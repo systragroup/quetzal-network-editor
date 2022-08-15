@@ -1,0 +1,211 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: easygettext\n"
+"Project-Id-Version: \n"
+
+#: src/components/layout/NavigationDrawer.vue:30
+#: src/components/utils/InformationPopup.vue:27
+msgid "%{s}"
+msgstr ""
+
+#: src/pages/Post.vue:66
+msgid "Add"
+msgstr ""
+
+#: src/router/index.js:42
+msgid "Add a blog post"
+msgstr ""
+
+#: src/pages/Post.vue:93
+#: src/pages/Post.vue:100
+msgid "Add a comment"
+msgstr ""
+
+#: src/components/CommentForm.vue:20
+#: src/pages/PostAdd.vue:55
+msgid "Author"
+msgstr ""
+
+#: src/components/CommentForm.vue:22
+#: src/pages/PostAdd.vue:24
+msgid "Author is required"
+msgstr ""
+
+#: src/pages/PostAdd.vue:29
+msgid "Blog post addition"
+msgstr ""
+
+#: src/components/Comment.vue:49
+msgid "By"
+msgstr ""
+
+#: src/components/PostCard.vue:42
+#: src/pages/Post.vue:60
+#: src/pages/Post.vue:76
+#: src/pages/Post.vue:92
+#: src/pages/PostAdd.vue:91
+msgid "Cancel"
+msgstr ""
+
+#: src/pages/PostAdd.vue:65
+msgid "Categories"
+msgstr ""
+
+#: src/pages/Category.vue:9
+msgid "Category:"
+msgstr ""
+
+#: src/App.vue:40
+msgid "Close"
+msgstr ""
+
+#: src/components/CommentForm.vue:11
+msgid "Comment"
+msgstr ""
+
+#: src/components/CommentForm.vue:19
+msgid "Comment is required"
+msgstr ""
+
+#: src/pages/Post.vue:69
+msgid "Comments"
+msgstr ""
+
+#: src/components/PostCard.vue:48
+msgid "Confirm"
+msgstr ""
+
+#: src/components/Welcome.vue:32
+msgid "Create a new blog post"
+msgstr ""
+
+#: src/components/Comment.vue:45
+#: src/pages/Post.vue:98
+msgid "Delete"
+msgstr ""
+
+#: src/components/PostCard.vue:65
+msgid "Delete a blog post"
+msgstr ""
+
+#: src/pages/Post.vue:135
+msgid "Delete a comment"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:22
+msgid "Disconnect"
+msgstr ""
+
+#: src/components/PostCard.vue:72
+#: src/pages/Post.vue:143
+msgid "Do you really want to take that action?"
+msgstr ""
+
+#: src/components/Comment.vue:28
+msgid "Edit"
+msgstr ""
+
+#: src/pages/Post.vue:117
+msgid "Edit a comment"
+msgstr ""
+
+#: src/router/index.js:28
+msgid "Home"
+msgstr ""
+
+#: src/components/PostList.vue:12
+msgid "keyword"
+msgstr ""
+
+#: src/pages/Map.vue:44
+msgid "Legend"
+msgstr ""
+
+#: src/pages/Map.vue:55
+msgid "Line"
+msgstr ""
+
+#: src/pages/Login.vue:31
+#: src/pages/Login.vue:50
+msgid "Login"
+msgstr ""
+
+#: src/router/index.js:35
+msgid "Map"
+msgstr ""
+
+#: src/pages/Map.vue:49
+msgid "Markers"
+msgstr ""
+
+#: src/components/Comment.vue:50
+#: src/pages/Post.vue:66
+msgid "On"
+msgstr ""
+
+#: src/pages/Map.vue:86
+msgid "Pk:"
+msgstr ""
+
+#: src/pages/PostAdd.vue:111
+msgid "Publish"
+msgstr ""
+
+#: src/components/PostCard.vue:27
+#: src/pages/Post.vue:65
+msgid "Published by"
+msgstr ""
+
+#: src/pages/Post.vue:42
+msgid "Return"
+msgstr ""
+
+#: src/pages/Post.vue:82
+msgid "Save"
+msgstr ""
+
+#: src/components/PostList.vue:11
+msgid "Search"
+msgstr ""
+
+#: src/components/Welcome.vue:16
+msgid "Select a blog post in the list, or create a new one!"
+msgstr ""
+
+#: src/pages/PostAdd.vue:46
+msgid "Text"
+msgstr ""
+
+#: src/pages/PostAdd.vue:20
+msgid "Text is required"
+msgstr ""
+
+#: src/pages/PostAdd.vue:38
+msgid "Title"
+msgstr ""
+
+#: src/pages/PostAdd.vue:16
+msgid "Title cannot excess 100 characters"
+msgstr ""
+
+#: src/pages/PostAdd.vue:15
+msgid "Title is required"
+msgstr ""
+
+#: src/components/Welcome.vue:14
+msgid "Welcome to"
+msgstr ""
+
+#: src/components/PostCard.vue:71
+msgid "You are about to delete the blog post"
+msgstr ""
+
+#: src/pages/Post.vue:142
+msgid "You are about to delete the comment"
+msgstr ""
+
+#: src/pages/Login.vue:34
+msgid "You must be logged in to have access to this application. Please click on the button below to do so."
+msgstr ""

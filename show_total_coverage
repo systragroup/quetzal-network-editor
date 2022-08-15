@@ -1,0 +1,9 @@
+#!/bin/sh
+if [ -s reports/coverage.xml ]; then
+    xmllint --format reports/coverage.xml \
+        | sed -rn '3{s/ /\n/g;p}' \
+        | grep ^line-rate \
+        | cut -d= -f2 \
+        | tr -d '"' \
+        | node -e "const fs = require('fs'); console.log('coverage ' + (100 * fs.readFileSync(0).toString().trim()).toLocaleString('en-US', { minimumFractionDigits: 2}))"
+fi

@@ -1,0 +1,3 @@
+#!/bin/sh
+TRANSLATION_FILE="src/translations.json"
+gettext-compile --output "$TRANSLATION_FILE" locale/*/*.po

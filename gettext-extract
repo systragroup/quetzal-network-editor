@@ -1,0 +1,20 @@
+#!/bin/sh
+POT_FILE="locale/myapp.pot"
+# shellcheck disable=SC2046
+yarn run gettext-extract \
+  --quiet \
+  --attribute v-translate \
+  --output "$POT_FILE" \
+  $(find src -name '*.js' -o -name '*.vue')
+# separated by spaces (english is not included)
+AVAILABLE_LANGS="fr"
+for lang in $AVAILABLE_LANGS; do
+  PO_FILE="locale/$lang/myapp.po"
+  echo "Updating $PO_FILE"
+  if [ -f "$PO_FILE" ]; then
+    msgmerge "--lang=$lang" --update "$PO_FILE" "$POT_FILE"
+  else
+    msginit --no-translator "--locale=$lang" "--input=$POT_FILE" "--output-file=$PO_FILE"
+    msgattrib --no-wrap --no-obsolete -o "$PO_FILE" "$PO_FILE"
+  fi
+done

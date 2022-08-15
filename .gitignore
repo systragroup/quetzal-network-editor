@@ -1,0 +1,22 @@
+.DS_Store
+*~
+node_modules/
+/dist/
+reports/
+.npmrc
+/src/config.js
+/src/translations.json
+/locale/*/*.mo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+version
+.gitlab-ci-local/
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
