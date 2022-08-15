@@ -1,9 +1,8 @@
 <script>
 import Mapbox from 'mapbox-gl'
-import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup } from 'vue-mapbox'
+import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup} from 'vue-mapbox'
 import { mapboxPublicKey } from '@src/config.js'
-import pkPoints from '@static/markers.geojson'
-import line from '@static/line.geojson'
+
 
 export default {
   name: 'Map',
@@ -20,9 +19,9 @@ export default {
       showLeftPanelContent: false,
       checkPk: true,
       checkLine: true,
-      points: pkPoints.features,
+      points: this.$store.getters.nodes.features,
       mapboxPublicKey: null,
-      line: {},
+      links: {},
     }
   },
   watch: {
@@ -39,7 +38,7 @@ export default {
   },
   created () {
     this.mapboxPublicKey = mapboxPublicKey
-    this.line = line
+    this.links = this.$store.getters.links
   },
   mounted () {
     this.$store.commit('changeRoute', this.$options.name)
@@ -47,13 +46,16 @@ export default {
   methods: {
     onMapLoaded (event) {
       const bounds = new Mapbox.LngLatBounds()
-      this.line.features[0].geometry.coordinates.forEach(coord => {
+      this.links.features[0].geometry.coordinates.forEach(coord => {
         bounds.extend(coord)
       })
       event.map.fitBounds(bounds, {
         padding: 100,
       })
     },
+    lineclick(event){
+      console.log(event)
+    }
   },
 }
 </script>
@@ -108,6 +110,7 @@ export default {
     >
       <MglNavigationControl position="bottom-right" />
       <template v-if="checkPk">
+      
         <MglMarker
           v-for="(point, index) in points"
           :key="`marker-${index}`"
@@ -123,23 +126,28 @@ export default {
         </MglMarker>
       </template>
       <MglGeojsonLayer
-        source-id="dunkerque"
+        v-for="(line,index) in links.features"
+        :key="`line-${index}`"
+        :source-id="index.toString(8)"
         :source="{
           type: 'geojson',
-          data: 'line.geojson'
+          data: line
         }"
-        layer-id="dunkerque"
+        :layer-id="index.toString(8)"
         :layer="{
-          id: 'dunkerque',
-          source: 'dunkerque',
+          id: index.toString(8),
+          source: index.toString(8),
           type: 'line',
           paint: {
             'line-color': '#B5E0D6',
             'line-opacity': checkLine ? 1 : 0,
-            'line-width': 3
+            'line-width': 5
           }
         }"
-      />
+        @click="lineclick"
+        >
+        
+      </MglGeojsonLayer>
     </MglMap>
   </section>
 </template>
