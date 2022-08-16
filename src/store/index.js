@@ -11,7 +11,9 @@ export const store = new Vuex.Store({
     notification: {},
     user: null,
     links: line, //links: {},
-    nodes: pkPoints //nodes: null
+    nodes: pkPoints, //nodes: null
+    route_id : Array.from(new Set(line.features.map(item => item.properties.route_id))),
+    trip_id : Array.from(new Set(line.features.map(item => item.properties.trip_id)))
   },
   mutations: {
     changeRoute (state, newRoute) {
@@ -29,6 +31,8 @@ export const store = new Vuex.Store({
     notification: state => state.notification,
     user: state => state.user,
     nodes: state => state.nodes,
-    links: state => state.links
+    links: state => state.links,
+    route_id: state => state.route_id,
+    trip_id: state => state.trip_id
   },
 })

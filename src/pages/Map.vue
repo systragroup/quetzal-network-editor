@@ -18,10 +18,13 @@ export default {
       showLeftPanel: false,
       showLeftPanelContent: false,
       checkPk: true,
-      checkLine: true,
-      points: this.$store.getters.nodes.features,
+      nodes: {},
       mapboxPublicKey: null,
       links: {},
+      tripId : this.$store.getters.trip_id,
+      selectedTrips : this.$store.getters.trip_id,
+      editorTrip : null//'STM_12_0'
+
     }
   },
   watch: {
@@ -39,6 +42,8 @@ export default {
   created () {
     this.mapboxPublicKey = mapboxPublicKey
     this.links = this.$store.getters.links
+    this.nodes = this.$store.getters.nodes.features
+
   },
   mounted () {
     this.$store.commit('changeRoute', this.$options.name)
@@ -49,14 +54,41 @@ export default {
       this.links.features[0].geometry.coordinates.forEach(coord => {
         bounds.extend(coord)
       })
+      
       event.map.fitBounds(bounds, {
         padding: 100,
       })
     },
+
     lineclick(event){
       console.log(event)
+      
+    },
+
+    buttonClick(event){
+      console.log(this.selectedTrips)
     }
   },
+  computed:{
+    activeLinks() {
+      var filtered = {...this.links}      
+      filtered.features = filtered.features.filter(link => this.selectedTrips.includes(link.properties.trip_id)) 
+      return filtered
+      },
+    nonActiveLinks() {
+      var filtered = {...this.links}
+      filtered.features = filtered.features.filter(link => !this.selectedTrips.includes(link.properties.trip_id)); 
+      return filtered
+      },
+
+    editorLinks() {
+      var filtered = {...this.links}
+      filtered.features = filtered.features.filter(link => link.properties.trip_id == this.editorTrip); 
+      return filtered
+      }
+
+  }
+  
 }
 </script>
 <template>
@@ -74,7 +106,7 @@ export default {
           small
           color="secondary"
         >
-          {{ showLeftPanel ? 'fal fa-chevron-left' : 'fal fa-chevron-right' }}
+          {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
         </v-icon>
       </div>
       <transition name="fade">
@@ -88,14 +120,15 @@ export default {
             </div>
             <div :style="{marginLeft: '20px'}">
               <v-checkbox
-                v-model="checkPk"
-                :label="$gettext('Markers')"
+                 v-for="(trip, index) in tripId"
+                :on-icon="'fa-solid fa-eye'"
+                :off-icon="'fa-solid fa-eye-slash'"
+                :key="index"
+                :value="trip"
+                v-model="selectedTrips"
+                :label="trip"
                 hide-details
-              />
-              <v-checkbox
-                v-model="checkLine"
-                :label="$gettext('Line')"
-                hide-details
+                @click="buttonClick"
               />
             </div>
           </div>
@@ -112,7 +145,7 @@ export default {
       <template v-if="checkPk">
       
         <MglMarker
-          v-for="(point, index) in points"
+          v-for="(point, index) in nodes"
           :key="`marker-${index}`"
           :coordinates="point.geometry.coordinates"
           color="#2C3E4E"
@@ -125,29 +158,63 @@ export default {
           </MglPopup>
         </MglMarker>
       </template>
+    
       <MglGeojsonLayer
-        v-for="(line,index) in links.features"
-        :key="`line-${index}`"
-        :source-id="index.toString(8)"
+        source-id="test"
         :source="{
           type: 'geojson',
-          data: line
+          data: activeLinks
         }"
-        :layer-id="index.toString(8)"
+        layer-id="test"
         :layer="{
-          id: index.toString(8),
-          source: index.toString(8),
           type: 'line',
           paint: {
-            'line-color': '#B5E0D6',
-            'line-opacity': checkLine ? 1 : 0,
+            'line-color': '#00a6ff',
             'line-width': 5
           }
         }"
         @click="lineclick"
-        >
-        
+        >   
       </MglGeojsonLayer>
+      <MglGeojsonLayer
+        source-id="test2"
+        :source="{
+          type: 'geojson',
+          data: nonActiveLinks
+        }"
+        layer-id="test2"
+        :layer="{
+          type: 'line',
+          paint: {
+            'line-color': '#00a6ff',
+            'line-opacity':0.2,
+            'line-width': 3
+          }
+        }"
+        @click="lineclick"
+        >   
+      </MglGeojsonLayer>
+
+
+      <MglGeojsonLayer
+        source-id="editorLink"
+        :source="{
+          type: 'geojson',
+          data: editorLinks
+        }"
+        layer-id="editorLink"
+        :layer="{
+          type: 'line',
+          paint: {
+            'line-color': '#22e335',
+            'line-opacity':1,
+            'line-width': 8
+          }
+        }"
+        @click="lineclick"
+        >   
+      </MglGeojsonLayer>
+
     </MglMap>
   </section>
 </template>
