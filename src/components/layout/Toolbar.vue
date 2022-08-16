@@ -25,7 +25,6 @@ export default {
       v-if="!isLoginPage"
       class="project-name"
     >
-      links file name here? (project name)
     </div>
     <div class="languages-container">
       <div

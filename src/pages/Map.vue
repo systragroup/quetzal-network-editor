@@ -120,10 +120,10 @@ export default {
             </div>
             <div :style="{marginLeft: '20px'}">
               <v-checkbox
-                 v-for="(trip, index) in tripId"
+                 v-for="trip in tripId"
                 :on-icon="'fa-solid fa-eye'"
                 :off-icon="'fa-solid fa-eye-slash'"
-                :key="index"
+                :key="trip.id"
                 :value="trip"
                 v-model="selectedTrips"
                 :label="trip"
