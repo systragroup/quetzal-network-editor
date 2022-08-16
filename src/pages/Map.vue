@@ -46,7 +46,7 @@ export default {
 
   },
   mounted () {
-    this.$store.commit('changeRoute', this.$options.name)
+    //this.$store.commit('changeRoute', this.$options.name)
   },
   methods: {
     onMapLoaded (event) {
@@ -62,6 +62,7 @@ export default {
 
     lineclick(event){
       console.log(event)
+      //this.$store.commit('linksLoaded')
       
     },
 
@@ -154,7 +155,7 @@ export default {
             <div class="pk-marker" />
           </template>
           <MglPopup>
-            <div>{{ $gettext('Pk:') }} {{ point.properties.pk }}</div>
+            <div>{{ $gettext('stop_id:') }} {{ point.properties.stop_id }}</div>
           </MglPopup>
         </MglMarker>
       </template>
