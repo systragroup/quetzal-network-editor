@@ -20,12 +20,11 @@ export default {
     dense
     color="white"
   >
-    <div>myapp</div>
+    <div>Quetzal Network Editor</div>
     <div
       v-if="!isLoginPage"
       class="project-name"
     >
-      myapp
     </div>
     <div class="languages-container">
       <div

@@ -1,18 +1,26 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-
+import pkPoints from '@static/nodes_test.geojson'
+import linksModule from './links.js'
+import nodesModule from './nodes.js'
 Vue.use(Vuex)
 
+
+
 export const store = new Vuex.Store({
+  modules: {
+    links : linksModule,
+    nodes : nodesModule
+  },
+
   state: {
-    route: null,
     notification: {},
     user: null,
+  
+    nodes: pkPoints, //nodes: null
+    
   },
   mutations: {
-    changeRoute (state, newRoute) {
-      state.route = newRoute
-    },
     changeNotification (state, payload) {
       state.notification = payload
     },
@@ -21,8 +29,8 @@ export const store = new Vuex.Store({
     },
   },
   getters: {
-    route: state => state.route,
-    notification: state => state.notification,
-    user: state => state.user,
+    notification: (state) => state.notification,
+    user: (state) => state.user,
+    
   },
 })
