@@ -2,7 +2,6 @@
 import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup} from 'vue-mapbox'
 import { mapboxPublicKey } from '@src/config.js'
-import CommentForm from '../components/CommentForm.vue'
 
 
 export default {
@@ -13,8 +12,7 @@ export default {
     MglGeojsonLayer,
     MglMarker,
     MglPopup,
-    CommentForm
-},
+  },
   data () {
     return {
       showLeftPanel: false,
@@ -23,8 +21,8 @@ export default {
       nodes: {},
       mapboxPublicKey: null,
       links: {},
-      tripId : this.$store.getters.trip_id, //[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40]
-      selectedTrips : [],
+      tripId : [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40],//this.$store.getters.trip_id,
+      selectedTrips : this.$store.getters.trip_id,
       editorTrip : null//'STM_12_0'
 
     }
@@ -70,9 +68,6 @@ export default {
 
     buttonClick(event){
       console.log(this.selectedTrips)
-    },
-    editButton(value){
-      this.editorTrip = this.editorTrip == value? null : value
     }
   },
   computed:{
@@ -124,133 +119,27 @@ export default {
             <div class="left-panel-title">
               {{ $gettext('Legend') }}
             </div>
-            <div :style="{marginLeft: '20px', marginRight:'20px'}">
-              <v-card
-                elevation="16"
-                max-width="100%"
-                class="mx-auto"
-              >
-                <v-card-title class="white--text primary">
-                  <v-spacer></v-spacer>
-
-                    Trips IDs
-                  <v-spacer></v-spacer>
-
-                  <v-btn
-                    color="white"
-                    class="ma-1"
-                    fab
-                    small
-                  >
-                    <v-icon>fa-light fa-plus</v-icon>
-                  </v-btn>
-                </v-card-title>
-                <v-divider></v-divider>
-                <v-virtual-scroll
-                  :items="tripId"
-                  height="400"
-                  item-height="64"
-                >
-                  <template v-slot:default="{ item }">
-                    <v-list-item :key="item">
-                      <v-list-item-action>
-                        <v-checkbox
-                          :on-icon="'far fa-eye'"
-                          :off-icon="'far fa-eye-slash'"
-                          :value="item"
-                          v-model="selectedTrips"
-                          hide-details
-                          @click="buttonClick"
-                        />
-                      </v-list-item-action>
-
-                      <v-list-item-content>
-                        <v-list-item-title>
-                          <strong>{{ item }}</strong>
-                        </v-list-item-title>
-                      </v-list-item-content>
-
-                      <v-list-item-action>
-                        <v-btn icon class="ma-1" @click="editButton(item)">
-                          <v-icon>fa-regular fa-pen</v-icon>
-                        </v-btn>
-                      </v-list-item-action>
-
-                      <v-list-item-action>
-                        <v-btn icon class="ma-1" color="error">
-                          <v-icon small>fa-regular fa-trash</v-icon>
-                        </v-btn>
-                      </v-list-item-action>
-                      
-                    </v-list-item>
-
-                    <v-divider></v-divider>
-                  </template>
-                </v-virtual-scroll>
-                <v-divider></v-divider>
-                <v-card-actions>
-                  <v-btn outlined rounded text @click = "selectedTrips = tripId ">       
-                  select all
-                  </v-btn>
-                  <v-btn outlined rounded text @click = "selectedTrips = [] ">  
-                  deselect all
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
+            <div :style="{marginLeft: '20px',}">
+            
+              <v-checkbox
+                 v-for="trip in tripId"
+                :on-icon="'fa-solid fa-eye'"
+                :off-icon="'fa-solid fa-eye-slash'"
+                :key="trip.id"
+                :value="trip"
+                v-model="selectedTrips"
+                :label="trip"
+                hide-details
+                @click="buttonClick"
+              />
             </div>
-            <div :style="{marginLeft: '20px', marginRight:'20px',marginTop:'20px'}"
-                v-show="editorTrip ? true: false">
-             <v-card
-                elevation="16"
-                max-width="100%"
-                class="mx-auto"
-              >
-                <v-card-title class="white--text primary">
-                  <v-spacer></v-spacer>
-                    {{editorTrip}}
-                  <v-spacer></v-spacer>
-                </v-card-title>
-                <v-divider></v-divider>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Edit Line info</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Cut Line From Node</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Cut Line At Node</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Extend Line Upward</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Extend Line Downward</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Add Stop Inline</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Move Stop</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text> Delete Stop</v-btn>
-                </v-card-actions>
-                <v-card-actions>
-                  <v-btn outlined rounded text color="success"> Confirm Changes</v-btn>
-                </v-card-actions>
-                  
-                
-              </v-card>
-            </div>
-
           </div>
         </div>
       </transition>
     </div>
     <MglMap
-       v-show="true"
       :style="{'width': showLeftPanel ? '80%' : '100%'}"
-      :access-token="mapboxPublicKey"
+      :access-token="mapboxPublicKey4"
       map-style="mapbox://styles/mapbox/light-v9"
       @load="onMapLoaded"
     >
