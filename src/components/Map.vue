@@ -14,41 +14,30 @@ export default {
     MglPopup,
 },
   props:  ["links","nodes", "selectedTrips", "editorTrip", "showLeftPanel"],
-
-  data () {
-    return {
-
-      checkPk: true,
-      mapboxPublicKey:  null,
-      
-
-    }
-  },
-  created () {
-    this.mapboxPublicKey = mapboxPublicKey
-  },
-  watch: {
-
-  },
-
+    data () {
+      return {
+        checkPk: true,
+        mapboxPublicKey:  null,
+      }
+    },
+    created () {
+      this.mapboxPublicKey = mapboxPublicKey
+    },
+  watch: {},
   methods: {
     onMapLoaded (event) {
-      const bounds = new Mapbox.LngLatBounds()
-      this.links.features[0].geometry.coordinates.forEach(coord => {
-        bounds.extend(coord)
+      const bounds = new Mapbox.LngLatBounds();
+      this.links.features.forEach(link => {
+        bounds.extend(link.geometry.coordinates)
       })
-      
       event.map.fitBounds(bounds, {
         padding: 100,
       })
     },
-
     lineclick(event){
-      console.log(event)
+      console.log(event);
       //this.$store.commit('linksLoaded')
-      
     },
-    
   },
   computed:{
     activeLinks() {
@@ -67,9 +56,7 @@ export default {
       filtered.features = filtered.features.filter(link => link.properties.trip_id == this.editorTrip); 
       return filtered
       }
-
   }
-  
 }
 </script>
 <template>

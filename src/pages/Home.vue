@@ -1,5 +1,5 @@
 <script>
-import sidePanel from '../components/sidePanel.vue'
+import sidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 
 
