@@ -94,9 +94,11 @@ export default {
         layer-id="test"
         :layer="{
           type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
           paint: {
-            'line-color': '#00a6ff',
-            'line-width': 5
+            'line-color': '#B5E0D6',
+            'line-width': 3
           }
         }"
         @click="lineclick"
@@ -111,8 +113,10 @@ export default {
         layer-id="test2"
         :layer="{
           type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
           paint: {
-            'line-color': '#00a6ff',
+            'line-color': '#9E9E9E',
             'line-opacity':0.2,
             'line-width': 3
           }
@@ -120,8 +124,6 @@ export default {
         @click="lineclick"
         >   
       </MglGeojsonLayer>
-
-
       <MglGeojsonLayer
         source-id="editorLink"
         :source="{
@@ -131,10 +133,12 @@ export default {
         layer-id="editorLink"
         :layer="{
           type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
           paint: {
-            'line-color': '#22e335',
+            'line-color': '#4CAF50',
             'line-opacity':1,
-            'line-width': 8
+            'line-width': 5
           }
         }"
         @click="lineclick"
