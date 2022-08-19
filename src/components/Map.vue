@@ -12,42 +12,25 @@ export default {
     MglGeojsonLayer,
     MglMarker,
     MglPopup,
-  },
+},
+  props:  ["links","nodes", "selectedTrips", "editorTrip", "showLeftPanel"],
+
   data () {
     return {
-      showLeftPanel: false,
-      showLeftPanelContent: false,
+
       checkPk: true,
-      nodes: {},
-      mapboxPublicKey: null,
-      links: {},
-      tripId : this.$store.getters.trip_id,
-      selectedTrips : this.$store.getters.trip_id,
-      editorTrip : null//'STM_12_0'
+      mapboxPublicKey:  null,
+      
 
     }
   },
-  watch: {
-    showLeftPanel (val) {
-      if (val) {
-        // Leave time for animation to end (.fade-enter-active css rule)
-        setTimeout(() => {
-          this.showLeftPanelContent = true
-        }, 500)
-      } else {
-        this.showLeftPanelContent = false
-      }
-    },
-  },
   created () {
     this.mapboxPublicKey = mapboxPublicKey
-    this.links = this.$store.getters.links
-    this.nodes = this.$store.getters.nodes.features
+  },
+  watch: {
 
   },
-  mounted () {
-    //this.$store.commit('changeRoute', this.$options.name)
-  },
+
   methods: {
     onMapLoaded (event) {
       const bounds = new Mapbox.LngLatBounds()
@@ -65,10 +48,7 @@ export default {
       //this.$store.commit('linksLoaded')
       
     },
-
-    buttonClick(event){
-      console.log(this.selectedTrips)
-    }
+    
   },
   computed:{
     activeLinks() {
@@ -93,50 +73,8 @@ export default {
 }
 </script>
 <template>
-  <section class="map-view">
-    <div
-      class="left-panel elevation-4"
-      :style="{'width': showLeftPanel ? '20%' : '0'}"
-    >
-      <div
-        class="left-panel-toggle-btn elevation-4"
-        :style="{'left': showLeftPanel ? 'calc(20% + 40px)' : '50px'}"
-        @click="showLeftPanel = !showLeftPanel"
-      >
-        <v-icon
-          small
-          color="secondary"
-        >
-          {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
-        </v-icon>
-      </div>
-      <transition name="fade">
-        <div
-          v-show="showLeftPanelContent"
-          class="left-panel-content"
-        >
-          <div>
-            <div class="left-panel-title">
-              {{ $gettext('Legend') }}
-            </div>
-            <div :style="{marginLeft: '20px'}">
-              <v-checkbox
-                 v-for="trip in tripId"
-                :on-icon="'fa-solid fa-eye'"
-                :off-icon="'fa-solid fa-eye-slash'"
-                :key="trip.id"
-                :value="trip"
-                v-model="selectedTrips"
-                :label="trip"
-                hide-details
-                @click="buttonClick"
-              />
-            </div>
-          </div>
-        </div>
-      </transition>
-    </div>
     <MglMap
+       v-show="true"
       :style="{'width': showLeftPanel ? '80%' : '100%'}"
       :access-token="mapboxPublicKey"
       map-style="mapbox://styles/mapbox/light-v9"
@@ -217,7 +155,6 @@ export default {
       </MglGeojsonLayer>
 
     </MglMap>
-  </section>
 </template>
 <style lang="scss" scoped>
 .map-view {
@@ -262,5 +199,9 @@ export default {
   height: 15px;
   border-radius: 20px;
   background-color: $secondary;
+}
+
+.scrollable {
+   overflow-y: scroll;
 }
 </style>

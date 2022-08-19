@@ -1,64 +1,72 @@
 <script>
-import Welcome from '@comp/Welcome.vue'
-import PostList from '@comp/PostList.vue'
-import { getAllPostsQuery } from '@src/queries.js'
+import sidePanel from '../components/sidePanel.vue'
+import Map from '../components/Map.vue'
+
 
 export default {
   name: 'Home',
   components: {
-    Welcome,
-    PostList,
-  },
+    Map,
+    sidePanel,
+},
   data () {
     return {
-      posts: [],
-      search: '',
+
+      nodes: {},
+      links: {},
+      tripId : [], //[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40]
+      selectedTrips : [],
+      editorTrip : null,//'STM_12_0'
+      showLeftPanel:false
+
     }
   },
-  async mounted () {
-    this.$store.commit('changeRoute', this.$options.name)
-    await this.setData()
+  watch: {
+
+  },
+  created () {
+    this.links = this.$store.getters.links
+    this.nodes = this.$store.getters.nodes.features
+    this.tripId = this.$store.getters.trip_id
+
+  },
+  mounted () {
+    //this.$store.commit('changeRoute', this.$options.name)
   },
   methods: {
-    async setData () {
-      await this.$apollo.query({
-        query: getAllPostsQuery,
-        variables: {
-          search: this.search,
-        },
-      }).then(({ data: { allPosts } }) => {
-        this.posts = this.$flatEdges(allPosts)
-      })
-    },
-    addPostEvent () {
-      this.$router.push({ name: 'PostAdd' })
-    },
-    async searchEvent (keyword) {
-      this.search = keyword
-      await this.setData()
-    },
+
+    
   },
+  computed:{
+   
+  }
+  
 }
 </script>
 <template>
-  <section class="view home-view">
-    <Welcome
-      @addPost="addPostEvent"
-    />
-    <PostList
-      class="posts-list"
-      :items="posts"
-      :search="search"
-      @search="searchEvent"
-      @refreshRequired="setData"
-    />
+  <section class="map-view">
+
+  <sidePanel
+    v-model="selectedTrips" 
+    @selectEditorTrip="(e) => editorTrip = e" 
+    @showPanel='(e) => showLeftPanel = e'>
+  </sidePanel>
+
+  <Map 
+    :links="links" 
+    :nodes="nodes" 
+    :selectedTrips="selectedTrips" 
+    :editorTrip="editorTrip" 
+    :showLeftPanel="showLeftPanel">
+  </Map>
+
   </section>
 </template>
 <style lang="scss" scoped>
-.home-view {
-  justify-content: space-between;
+.map-view {
+  height: calc(100% - 50px);
+  width: 100%;
+  display: flex;
 }
-.posts-list {
-  width: calc(60% - 20px);
-}
+
 </style>
