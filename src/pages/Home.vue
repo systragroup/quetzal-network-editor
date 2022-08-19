@@ -1,5 +1,5 @@
 <script>
-import sidePanel from '../components/sidePanel.vue'
+import sidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 
 
@@ -11,12 +11,11 @@ export default {
 },
   data () {
     return {
-
       nodes: {},
       links: {},
-      tripId : [], //[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40]
+      tripId : [],
       selectedTrips : [],
-      editorTrip : null,//'STM_12_0'
+      editorTrip : null,
       showLeftPanel:false
 
     }
@@ -26,7 +25,7 @@ export default {
   },
   created () {
     this.links = this.$store.getters.links
-    this.nodes = this.$store.getters.nodes.features
+    this.nodes = this.$store.getters.nodes
     this.tripId = this.$store.getters.trip_id
 
   },

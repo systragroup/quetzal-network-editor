@@ -13,42 +13,30 @@ export default {
     MglMarker,
     MglPopup,
 },
-  props:  ["links","nodes", "selectedTrips", "editorTrip", "showLeftPanel"],
-
-  data () {
-    return {
-
-      checkPk: true,
-      mapboxPublicKey:  null,
-      
-
-    }
-  },
-  created () {
-    this.mapboxPublicKey = mapboxPublicKey
-  },
-  watch: {
-
-  },
-
+  props:  ["links", "nodes", "selectedTrips", "editorTrip", "showLeftPanel"],
+    data () {
+      return {
+        mapboxPublicKey:  null,
+      }
+    },
+    created () {
+      this.mapboxPublicKey = mapboxPublicKey
+    },
+  watch: {},
   methods: {
     onMapLoaded (event) {
-      const bounds = new Mapbox.LngLatBounds()
-      this.links.features[0].geometry.coordinates.forEach(coord => {
-        bounds.extend(coord)
+      const bounds = new Mapbox.LngLatBounds();
+      this.links.features.forEach(link => {
+        bounds.extend(link.geometry.coordinates)
       })
-      
       event.map.fitBounds(bounds, {
         padding: 100,
       })
     },
-
     lineclick(event){
-      console.log(event)
+      console.log(event);
       //this.$store.commit('linksLoaded')
-      
     },
-    
   },
   computed:{
     activeLinks() {
@@ -67,9 +55,7 @@ export default {
       filtered.features = filtered.features.filter(link => link.properties.trip_id == this.editorTrip); 
       return filtered
       }
-
   }
-  
 }
 </script>
 <template>
@@ -81,35 +67,21 @@ export default {
       @load="onMapLoaded"
     >
       <MglNavigationControl position="bottom-right" />
-      <template v-if="checkPk">
-      
-        <MglMarker
-          v-for="(point, index) in nodes"
-          :key="`marker-${index}`"
-          :coordinates="point.geometry.coordinates"
-          color="#2C3E4E"
-        >
-          <template slot="marker">
-            <div class="pk-marker" />
-          </template>
-          <MglPopup>
-            <div>{{ $gettext('stop_id:') }} {{ point.properties.stop_id }}</div>
-          </MglPopup>
-        </MglMarker>
-      </template>
-    
       <MglGeojsonLayer
         source-id="test"
         :source="{
           type: 'geojson',
-          data: activeLinks
+          data: activeLinks,
+          buffer: 0
         }"
         layer-id="test"
         :layer="{
           type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
           paint: {
-            'line-color': '#00a6ff',
-            'line-width': 5
+            'line-color': '#B5E0D6',
+            'line-width': 3
           }
         }"
         @click="lineclick"
@@ -119,13 +91,16 @@ export default {
         source-id="test2"
         :source="{
           type: 'geojson',
-          data: nonActiveLinks
+          data: nonActiveLinks,
+          buffer: 0
         }"
         layer-id="test2"
         :layer="{
           type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
           paint: {
-            'line-color': '#00a6ff',
+            'line-color': '#9E9E9E',
             'line-opacity':0.2,
             'line-width': 3
           }
@@ -133,27 +108,47 @@ export default {
         @click="lineclick"
         >   
       </MglGeojsonLayer>
-
-
       <MglGeojsonLayer
         source-id="editorLink"
         :source="{
           type: 'geojson',
-          data: editorLinks
+          data: editorLinks,
+          buffer: 0
         }"
         layer-id="editorLink"
         :layer="{
           type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
           paint: {
-            'line-color': '#22e335',
+            'line-color': '#4CAF50',
             'line-opacity':1,
-            'line-width': 8
+            'line-width': 5
           }
         }"
         @click="lineclick"
         >   
       </MglGeojsonLayer>
-
+      <MglGeojsonLayer
+        source-id="nodes"
+        :source="{
+          type: 'geojson',
+          data: this.nodes,
+          buffer: 0
+        }"
+        layer-id="nodes"
+        :layer="{
+          type: 'circle',
+          minzoom: 12,
+          maxzoom: 18,
+          paint: {
+            'circle-color': '#2C3E4E',
+            'circle-radius': 3,
+          }
+        }"
+        @click="lineclick"
+        >   
+      </MglGeojsonLayer>
     </MglMap>
 </template>
 <style lang="scss" scoped>
