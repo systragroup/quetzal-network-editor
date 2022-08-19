@@ -36,9 +36,17 @@ export default {
     lineclick(event){
       console.log(event.mapboxEvent.features[0])
       console.log(this.activeNodes)
+      console.log(event.map.getCanvas().slyle)
       //console.log(this.activeLinks)
       //console.log(this.nodes)
     },
+    onCursor(event){
+      event.map.getCanvas().style.cursor = 'pointer';
+    },
+    offCursor(event){
+      event.map.getCanvas().style.cursor = '';
+    },
+    
 
   },
   computed:{
@@ -109,6 +117,7 @@ export default {
       :style="{'width': showLeftPanel ? '80%' : '100%'}"
       :access-token="mapboxPublicKey"
       map-style="mapbox://styles/mapbox/light-v9"
+ 
       @load="onMapLoaded"
     >
       <MglNavigationControl position="bottom-right" />
@@ -121,6 +130,7 @@ export default {
         }"
         layer-id="activeLinks"
         :layer="{
+          interactive: true,
           type: 'line',
           minzoom: 9,
           maxzoom: 18,
@@ -130,6 +140,8 @@ export default {
           }
         }"
         @click="lineclick"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
@@ -171,6 +183,8 @@ export default {
           }
         }"
         @click="lineclick"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
@@ -192,6 +206,8 @@ export default {
           }
         }"
         @click="lineclick"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
 
@@ -235,6 +251,8 @@ export default {
             'circle-radius': 3,
           }
         }"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
     </MglMap>
