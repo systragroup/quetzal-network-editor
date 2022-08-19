@@ -16,6 +16,8 @@ export default new Router({
       path: '/login',
       name: Login.name,
       component: Login,
+      icon: 'fa-light fa-file-import',
+      title: $gettext('Login'),
     },
     {
       path: '/',
