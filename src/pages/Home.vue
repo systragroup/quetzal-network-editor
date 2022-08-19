@@ -1,5 +1,5 @@
 <script>
-import sidePanel from '../components/SidePanel.vue'
+import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 
 
@@ -7,7 +7,7 @@ export default {
   name: 'Home',
   components: {
     Map,
-    sidePanel,
+    SidePanel,
 },
   data () {
     return {
@@ -45,11 +45,11 @@ export default {
 <template>
   <section class="map-view">
 
-  <sidePanel
+  <SidePanel
     v-model="selectedTrips" 
     @selectEditorTrip="(e) => editorTrip = e" 
     @showPanel='(e) => showLeftPanel = e'>
-  </sidePanel>
+  </SidePanel>
 
   <Map 
     :links="links" 
