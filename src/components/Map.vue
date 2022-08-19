@@ -34,19 +34,44 @@ export default {
       })
     },
     lineclick(event){
-      console.log(event);
-      //this.$store.commit('linksLoaded')
+      console.log(event.mapboxEvent.features[0])
+      console.log(this.activeNodes)
+      console.log(event.map.getCanvas().slyle)
+      //console.log(this.activeLinks)
+      //console.log(this.nodes)
     },
+    onCursor(event){
+      event.map.getCanvas().style.cursor = 'pointer';
+    },
+    offCursor(event){
+      event.map.getCanvas().style.cursor = '';
+    },
+    
+
   },
   computed:{
     activeLinks() {
       var filtered = {...this.links}      
-      filtered.features = filtered.features.filter(link => this.selectedTrips.includes(link.properties.trip_id)) 
+      if (!this.editorTrip)  // no edit links. normal view
+      {
+        filtered.features = filtered.features.filter(link => this.selectedTrips.includes(link.properties.trip_id)) 
+      }
+      else  //edit mode. everything is transparent
+      {
+        filtered.features=[]
+      }
       return filtered
       },
     nonActiveLinks() {
       var filtered = {...this.links}
-      filtered.features = filtered.features.filter(link => !this.selectedTrips.includes(link.properties.trip_id)); 
+      if (!this.editorTrip) // no edit mode. normal view
+      {
+        filtered.features = filtered.features.filter(link => !this.selectedTrips.includes(link.properties.trip_id)); 
+      }
+       else // edit mode. everythin in transperent excep edit trip id
+      {
+        filtered.features = filtered.features.filter(link => link.properties.trip_id != this.editorTrip); 
+      }
       return filtered
       },
 
@@ -54,7 +79,35 @@ export default {
       var filtered = {...this.links}
       filtered.features = filtered.features.filter(link => link.properties.trip_id == this.editorTrip); 
       return filtered
-      }
+      },
+
+    selectedNodes(){
+      let a = this.activeLinks.features.map(item => item.properties.a)
+      let b = this.activeLinks.features.map(item => item.properties.b)
+      return  Array.from(new Set([...a, ...b]))
+    },
+    editorNodesList(){
+      let a = this.editorLinks.features.map(item => item.properties.a)
+      let b = this.editorLinks.features.map(item => item.properties.b)
+      return  Array.from(new Set([...a, ...b]))
+    },
+
+    activeNodes(){
+      var filtered = {...this.nodes}
+      filtered.features = filtered.features.filter(node => this.selectedNodes.includes(node.properties.index)); 
+      return filtered
+    },
+    nonActiveNodes(){
+      var filtered = {...this.nodes}
+      filtered.features = filtered.features.filter(node => !this.selectedNodes.includes(node.properties.index)); 
+      return filtered
+    },
+    editorNodes(){
+      var filtered = {...this.nodes}
+      filtered.features = filtered.features.filter(node => this.editorNodesList.includes(node.properties.index)); 
+      return filtered
+    }
+    
   }
 }
 </script>
@@ -64,18 +117,20 @@ export default {
       :style="{'width': showLeftPanel ? '80%' : '100%'}"
       :access-token="mapboxPublicKey"
       map-style="mapbox://styles/mapbox/light-v9"
+ 
       @load="onMapLoaded"
     >
       <MglNavigationControl position="bottom-right" />
       <MglGeojsonLayer
-        source-id="test"
+        source-id="activeLinks"
         :source="{
           type: 'geojson',
           data: activeLinks,
           buffer: 0
         }"
-        layer-id="test"
+        layer-id="activeLinks"
         :layer="{
+          interactive: true,
           type: 'line',
           minzoom: 9,
           maxzoom: 18,
@@ -85,16 +140,18 @@ export default {
           }
         }"
         @click="lineclick"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
-        source-id="test2"
+        source-id="nonActiveLinks"
         :source="{
           type: 'geojson',
           data: nonActiveLinks,
           buffer: 0
         }"
-        layer-id="test2"
+        layer-id="nonActiveLinks"
         :layer="{
           type: 'line',
           minzoom: 9,
@@ -105,7 +162,6 @@ export default {
             'line-width': 3
           }
         }"
-        @click="lineclick"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
@@ -127,17 +183,20 @@ export default {
           }
         }"
         @click="lineclick"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
-        source-id="nodes"
+        source-id="activeNodes"
         :source="{
           type: 'geojson',
-          data: this.nodes,
+          data: this.activeNodes,
           buffer: 0
         }"
-        layer-id="nodes"
+        layer-id="activeNodes"
         :layer="{
+          interactive: true,
           type: 'circle',
           minzoom: 12,
           maxzoom: 18,
@@ -147,6 +206,53 @@ export default {
           }
         }"
         @click="lineclick"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
+        >   
+      </MglGeojsonLayer>
+
+      <MglGeojsonLayer
+        source-id="nonActiveNodes"
+        :source="{
+          type: 'geojson',
+          data: this.nonActiveNodes,
+          buffer: 0
+        }"
+        layer-id="nonActiveNodes"
+        :layer="{
+          interactive: true,
+          type: 'circle',
+          minzoom: 12,
+          maxzoom: 18,
+          paint: {
+            'circle-color': '#9E9E9E',
+            'circle-radius': 3,
+            'circle-opacity':0.2,
+          }
+        }"
+        >   
+      </MglGeojsonLayer>
+
+      <MglGeojsonLayer
+        source-id="editorNodes"
+        :source="{
+          type: 'geojson',
+          data: this.editorNodes,
+          buffer: 0
+        }"
+        layer-id="editorNodes"
+        :layer="{
+          interactive: true,
+          type: 'circle',
+          minzoom: 12,
+          maxzoom: 18,
+          paint: {
+            'circle-color': '#2C3E4E',
+            'circle-radius': 3,
+          }
+        }"
+        @mouseenter="onCursor"
+        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
     </MglMap>
