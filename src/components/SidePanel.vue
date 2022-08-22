@@ -95,11 +95,6 @@ export default {
                 >
                   <template v-slot:default="{ item }">
                     <v-list-item :key="item">
-                      <v-list-item-content>
-                        <v-list-item-title>
-                          {{ item }}
-                        </v-list-item-title>
-                      </v-list-item-content>
                       <v-list-item-action>
                         <v-checkbox
                           :on-icon="'fa-eye fa'"
@@ -110,6 +105,11 @@ export default {
                           @click="buttonClick"
                         />
                       </v-list-item-action>
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          {{ item }}
+                        </v-list-item-title>
+                      </v-list-item-content>
                       <v-list-item-action>
                         <v-btn icon class="ma-1" @click="editButton(item)">
                           <v-icon>fa-regular fa-pen</v-icon>
