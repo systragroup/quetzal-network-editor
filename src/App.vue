@@ -23,12 +23,13 @@ export default {
   },
   watch: {
     notification () {
-      this.snackbar = true
+      this.snackbar = this.notification.text? true: false
     },
   },
   methods: {
     closeSnackbar () {
       this.snackbar = false
+      this.$store.notification={}
     },
   },
 }
