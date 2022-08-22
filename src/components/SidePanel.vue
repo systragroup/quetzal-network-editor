@@ -1,7 +1,4 @@
 <script>
-
-
-
 export default {
   name: 'sidePanel',
   components: {
@@ -81,79 +78,58 @@ export default {
           class="left-panel-content"
         >
           <div>
-            <div class="left-panel-title">
-              {{ $gettext('Legend') }}
-            </div>
-            <div :style="{marginLeft: '20px', marginRight:'20px'}">
+            <div :style="{margin: '20px'}">
               <v-card
-                elevation="16"
                 max-width="100%"
                 class="mx-auto"
               >
-                <v-card-title class="white--text primary">
+                <v-card-title class="white--text primary" text-align='left'>
                   <v-spacer></v-spacer>
-
-                    Trips IDs
+                  {{ $gettext("Lines") }}
                   <v-spacer></v-spacer>
-
-                  <v-btn
-                    color="white"
-                    class="ma-1"
-                    fab
-                    small
-                  >
-                    <v-icon>fa-light fa-plus</v-icon>
-                  </v-btn>
                 </v-card-title>
-                <v-divider></v-divider>
                 <v-virtual-scroll
                   :items="tripId"
-                  height="400"
-                  item-height="64"
+                  height=400
+                  item-height="32"
                 >
                   <template v-slot:default="{ item }">
                     <v-list-item :key="item">
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          {{ item }}
+                        </v-list-item-title>
+                      </v-list-item-content>
                       <v-list-item-action>
                         <v-checkbox
-                          :on-icon="'far fa-eye'"
-                          :off-icon="'far fa-eye-slash'"
+                          :on-icon="'fa-eye fa'"
+                          :off-icon="'fa-eye-slash fa'"
                           :value="item"
                           v-model="tripList"
                           hide-details
                           @click="buttonClick"
                         />
                       </v-list-item-action>
-
-                      <v-list-item-content>
-                        <v-list-item-title>
-                          <strong>{{ item }}</strong>
-                        </v-list-item-title>
-                      </v-list-item-content>
-
                       <v-list-item-action>
                         <v-btn icon class="ma-1" @click="editButton(item)">
                           <v-icon>fa-regular fa-pen</v-icon>
                         </v-btn>
                       </v-list-item-action>
-
                       <v-list-item-action>
                         <v-btn icon class="ma-1" color="error">
-                          <v-icon small>fa-regular fa-trash</v-icon>
+                          <v-icon>fa-regular fa-trash</v-icon>
                         </v-btn>
                       </v-list-item-action>
-                      
                     </v-list-item>
-
-                    <v-divider></v-divider>
                   </template>
                 </v-virtual-scroll>
                 <v-divider></v-divider>
                 <v-card-actions>
                   <v-btn outlined rounded text @click = "tripList = tripId ">       
-                  select all
+                  {{ $gettext("Show All") }}
                   </v-btn>
                   <v-btn outlined rounded text @click = "tripList = [] ">  
-                  deselect all
+                  {{ $gettext("Hide All") }}
                   </v-btn>
                 </v-card-actions>
               </v-card>
@@ -209,10 +185,10 @@ export default {
     </div>
 </template>
 <style lang="scss" scoped>
-
+@import "src/scss/variables.scss";
 .left-panel {
   height: 100%;
-  background-color: white;
+  background-color: $primary-dark;
   transition: 0.3s;
   z-index: 20;
 }
@@ -227,7 +203,7 @@ export default {
   left: 100%;
   width: 25px;
   z-index: 1;
-  background-color: white;
+  background-color: $primary-dark;
   display: flex;
   align-items: center;
   justify-content: center;
