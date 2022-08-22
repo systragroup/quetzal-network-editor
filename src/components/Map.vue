@@ -13,42 +13,26 @@ export default {
     MglMarker,
     MglPopup,
 },
-  props:  ["links", "nodes", "selectedTrips", "editorTrip", "showLeftPanel"],
+  props:  ["selectedTrips", "editorTrip", "showLeftPanel"],
+  events: ["clickLink","clickNode"],
     data () {
       return {
+        links: {},
+        nodes: {},
         mapboxPublicKey:  null,
+        selectedNode : null,
+        selectedLink : null,
+        linkClickable :true
       }
     },
     created () {
       this.mapboxPublicKey = mapboxPublicKey
+      this.links = this.$store.getters.links
+      this.nodes = this.$store.getters.nodes
+      
     },
   watch: {},
-  methods: {
-    onMapLoaded (event) {
-      const bounds = new Mapbox.LngLatBounds();
-      this.links.features.forEach(link => {
-        bounds.extend(link.geometry.coordinates)
-      })
-      event.map.fitBounds(bounds, {
-        padding: 100,
-      })
-    },
-    lineclick(event){
-      console.log(event.mapboxEvent.features[0])
-      console.log(this.activeNodes)
-      console.log(event.map.getCanvas().slyle)
-      //console.log(this.activeLinks)
-      //console.log(this.nodes)
-    },
-    onCursor(event){
-      event.map.getCanvas().style.cursor = 'pointer';
-    },
-    offCursor(event){
-      event.map.getCanvas().style.cursor = '';
-    },
-    
 
-  },
   computed:{
     activeLinks() {
       var filtered = {...this.links}      
@@ -81,7 +65,7 @@ export default {
       return filtered
       },
 
-    selectedNodes(){
+    activeNodesList(){
       let a = this.activeLinks.features.map(item => item.properties.a)
       let b = this.activeLinks.features.map(item => item.properties.b)
       return  Array.from(new Set([...a, ...b]))
@@ -94,12 +78,12 @@ export default {
 
     activeNodes(){
       var filtered = {...this.nodes}
-      filtered.features = filtered.features.filter(node => this.selectedNodes.includes(node.properties.index)); 
+      filtered.features = filtered.features.filter(node => this.activeNodesList.includes(node.properties.index)); 
       return filtered
     },
     nonActiveNodes(){
       var filtered = {...this.nodes}
-      filtered.features = filtered.features.filter(node => !this.selectedNodes.includes(node.properties.index)); 
+      filtered.features = filtered.features.filter(node => !this.activeNodesList.includes(node.properties.index)); 
       return filtered
     },
     editorNodes(){
@@ -108,7 +92,44 @@ export default {
       return filtered
     }
     
-  }
+  },
+
+    methods: {
+    onMapLoaded (event) {
+      const bounds = new Mapbox.LngLatBounds();
+      this.links.features.forEach(link => {
+        bounds.extend(link.geometry.coordinates)
+      })
+      event.map.fitBounds(bounds, {
+        padding: 100,
+      })
+    },
+    
+    onCursor(event){
+      this.linkClickable =  event.layerId == 'editorNodes'? false:true
+      event.map.getCanvas().style.cursor = 'pointer';
+    },
+    offCursor(event){
+      event.map.getCanvas().style.cursor = '';
+      this.linkClickable=true
+    },
+
+    linkClick(event){
+      if (this.linkClickable){
+        //console.log(event.mapboxEvent.features[0].properties.index)
+        this.selectedLink = event.mapboxEvent.features[0].properties.index
+        this.$emit("clickLink",this.selectedLink)
+      }
+      
+    },
+    nodeClick(event){
+      //console.log(event.mapboxEvent.features[0].properties.index)
+      this.selectedNode = event.mapboxEvent.features[0].properties.index
+      this.$emit("clickNode",this.selectedNode)
+    },
+    
+
+  },
 }
 </script>
 <template>
@@ -139,9 +160,6 @@ export default {
             'line-width': 3
           }
         }"
-        @click="lineclick"
-        @mouseenter="onCursor"
-        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
@@ -182,7 +200,7 @@ export default {
             'line-width': 5
           }
         }"
-        @click="lineclick"
+        @click="linkClick"
         @mouseenter="onCursor"
         @mouseleave="offCursor"
         >   
@@ -205,9 +223,6 @@ export default {
             'circle-radius': 3,
           }
         }"
-        @click="lineclick"
-        @mouseenter="onCursor"
-        @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
 
@@ -248,11 +263,12 @@ export default {
           maxzoom: 18,
           paint: {
             'circle-color': '#2C3E4E',
-            'circle-radius': 3,
+            'circle-radius': 5,
           }
         }"
         @mouseenter="onCursor"
         @mouseleave="offCursor"
+        @click="nodeClick"
         >   
       </MglGeojsonLayer>
     </MglMap>
