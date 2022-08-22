@@ -22,7 +22,8 @@ export default {
         mapboxPublicKey:  null,
         selectedNode : null,
         selectedLink : null,
-        linkClickable :true
+        linkClickable : true,
+        hoveredStateId : null,
       }
     },
     created () {
@@ -106,26 +107,51 @@ export default {
     },
     
     onCursor(event){
-      this.linkClickable =  event.layerId == 'editorNodes'? false:true
+      this.linkClickable =  event.layerId == 'editorNodes' ? false : true
       event.map.getCanvas().style.cursor = 'pointer';
+
+      if (this.hoveredStateId !== null) {
+        console.log('On Cursor (1): ' + this.hoveredStateId)
+        event.map.setFeatureState(
+          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+          { hover: false }
+        )
+      }
+      
+      this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
+      console.log('On Cursor (2): ' + this.hoveredStateId)
+      event.map.setFeatureState(
+        { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+        { hover: true }
+      );
     },
+
     offCursor(event){
       event.map.getCanvas().style.cursor = '';
-      this.linkClickable=true
+      this.linkClickable = true
+      
+      if (this.hoveredStateId !== null) {
+        console.log('Off Cursor (1): ' + this.hoveredStateId)
+        event.map.setFeatureState(
+          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+          { hover: false }
+        );
+      }
+      this.hoveredStateId = null;
     },
 
     linkClick(event){
       if (this.linkClickable){
         //console.log(event.mapboxEvent.features[0].properties.index)
         this.selectedLink = event.mapboxEvent.features[0].properties.index
-        this.$emit("clickLink",this.selectedLink)
+        this.$emit("clickLink", this.selectedLink)
       }
       
     },
     nodeClick(event){
       //console.log(event.mapboxEvent.features[0].properties.index)
       this.selectedNode = event.mapboxEvent.features[0].properties.index
-      this.$emit("clickNode",this.selectedNode)
+      this.$emit("clickNode", this.selectedNode)
     },
     
 
@@ -187,7 +213,8 @@ export default {
         :source="{
           type: 'geojson',
           data: editorLinks,
-          buffer: 0
+          buffer: 0,
+          generateId: true,
         }"
         layer-id="editorLink"
         :layer="{
@@ -196,8 +223,8 @@ export default {
           maxzoom: 18,
           paint: {
             'line-color': '#4CAF50',
-            'line-opacity':1,
-            'line-width': 5
+            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 3],
+            'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  4, 0]
           }
         }"
         @click="linkClick"
@@ -253,7 +280,8 @@ export default {
         :source="{
           type: 'geojson',
           data: this.editorNodes,
-          buffer: 0
+          buffer: 0,
+          generateId: true,
         }"
         layer-id="editorNodes"
         :layer="{
@@ -263,7 +291,8 @@ export default {
           maxzoom: 18,
           paint: {
             'circle-color': '#2C3E4E',
-            'circle-radius': 5,
+            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  8, 5],
+            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
         @mouseenter="onCursor"
