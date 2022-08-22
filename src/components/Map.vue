@@ -224,7 +224,7 @@ export default {
           paint: {
             'line-color': '#4CAF50',
             'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 3],
-            'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false], 4, 0]
+            'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  4, 0]
           }
         }"
         @click="linkClick"
@@ -291,8 +291,8 @@ export default {
           maxzoom: 18,
           paint: {
             'circle-color': '#2C3E4E',
-            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
-            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0, 0.5]
+            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  8, 5],
+            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
         @mouseenter="onCursor"
