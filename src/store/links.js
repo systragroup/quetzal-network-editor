@@ -36,12 +36,10 @@ function cutTripToNode(links,editorLinks,nodeId) {
   let toDelete = [];
 
   for (const [i, link] of editorLinks.features.entries()) {
-
     if (link.properties.a == nodeId) {
-
       toDelete = editorLinks.features.slice(0, i);
 
-      console.log(toDelete)
+      //console.log(toDelete)
 
       break;
 
@@ -77,7 +75,6 @@ export default {
       },
       cutLineFromNode(state,payload)
       {
-        console.log(state.links.features.length)
         // Filter links from selected line
         let activeTrip = payload.editorTrip;
 
@@ -85,8 +82,10 @@ export default {
 
         let editorLinks = {...state.links};
 
-        editorLinks.features = [];
+        editorLinks.features = editorLinks.features.filter(link => link.properties.trip_id == activeTrip); 
+        
         editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+
         state.links = cutTripToNode(state.links,editorLinks,nodeId)
 
       }
@@ -105,6 +104,7 @@ export default {
     },
   }
 
+  
   
 
 

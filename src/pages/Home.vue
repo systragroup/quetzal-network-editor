@@ -20,6 +20,7 @@ export default {
       showLeftPanel:false,
       actionsList : ['Edit Line info','Cut Line From Node','Cut Line At Node','Extend Line Upward','Extend Line Downward','Add Stop Inline','Move Stop','Delete Stop'],
       action : null,
+      selectedNode : null,
       showDialog : false
     }
   },
@@ -46,8 +47,7 @@ export default {
       }
     },
     clickNode(selectedNode){
-      console.log(selectedNode)
-      console.log(this.action)
+      this.selectedNode=selectedNode
       if (selectedNode){ 
         if(this.action){
           this.showDialog = true
