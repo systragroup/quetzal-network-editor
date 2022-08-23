@@ -61,7 +61,7 @@ export default {
       console.log('linkClick')
     },
 
-    acceptChanges(){
+    applyAction(){
       this.showDialog=false
       if (this.action == 'Cut Line From Node')
       {
@@ -88,6 +88,8 @@ export default {
     <v-dialog
       v-model="showDialog"
       max-width="290"
+      @keydown.enter="applyAction"
+      @keydown.esc ="showDialog=false"
     >
       <v-card>
         <v-card-title class="text-h5">
@@ -109,7 +111,8 @@ export default {
           <v-btn
             color="green darken-1"
             text
-            @click="acceptChanges"
+            @click="applyAction"
+            
           >
             {{$gettext("Agree")}}
           </v-btn>
