@@ -57,7 +57,7 @@ export default {
       cutLineFromNode(state,payload)
       {
         // Filter links from selected line
-        let nodeId = payload.nodeId
+        let nodeId = payload.selectedNode.index
         state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
 
         let toDelete = [];
@@ -74,7 +74,7 @@ export default {
       cutLineAtNode(state,payload)
       {
         // Filter links from selected line
-        let nodeId = payload.nodeId
+        let nodeId = payload.selectedNode.index
         state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
 
         let toDelete = [];

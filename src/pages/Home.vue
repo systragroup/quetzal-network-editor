@@ -49,7 +49,7 @@ export default {
     },
 
     clickNode(selectedNode){
-      this.selectedNode=selectedNode
+      this.selectedNode=selectedNode.properties
       if (selectedNode){ 
         // node action
         if(this.action){
@@ -57,17 +57,18 @@ export default {
         }
       }
     },
-    clickLink(){
-
+    clickLink(selectedLink){
+      console.log('linkClick')
     },
+
     acceptChanges(){
       this.showDialog=false
       if (this.action == 'Cut Line From Node')
       {
-        this.$store.commit('cutLineFromNode',{nodeId:this.selectedNode})  
+        this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode})  
       }else if (this.action == 'Cut Line At Node')
       {
-         this.$store.commit('cutLineAtNode',{nodeId:this.selectedNode})  
+         this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
       }
       
       
