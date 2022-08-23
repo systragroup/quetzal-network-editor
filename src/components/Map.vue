@@ -20,9 +20,7 @@ export default {
         links: {},
         nodes: {},
         mapboxPublicKey:  null,
-        selectedNode : null,
-        selectedLink : null,
-        linkClickable : true,
+        selectedFeature : null,
         hoveredStateId : null,
       }
     },
@@ -55,12 +53,11 @@ export default {
       }
        else // edit mode. everythin in transperent excep edit trip id
       {
-        filtered.features = filtered.features.filter(link => link.properties.trip_id != this.$store.getters.editorTrip); 
+        filtered.features = filtered.features.filter(link => link.properties.trip_id != this.$store.editorTrip); 
       }
       return filtered
       },
 
-    
     activeNodesList(){
       let a = this.activeLinks.features.map(item => item.properties.a)
       let b = this.activeLinks.features.map(item => item.properties.b)
@@ -77,7 +74,6 @@ export default {
       filtered.features = filtered.features.filter(node => !this.activeNodesList.includes(node.properties.index)); 
       return filtered
     },
- 
     
   },
 
@@ -93,11 +89,8 @@ export default {
     },
     
     onCursor(event){
-      this.linkClickable =  event.layerId == 'editorNodes' ? false : true
       event.map.getCanvas().style.cursor = 'pointer';
-
       if (this.hoveredStateId !== null) {
-        console.log('On Cursor (1): ' + this.hoveredStateId)
         event.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: false }
@@ -105,7 +98,6 @@ export default {
       }
       
       this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
-      console.log('On Cursor (2): ' + this.hoveredStateId)
       event.map.setFeatureState(
         { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
         { hover: true }
@@ -114,10 +106,7 @@ export default {
 
     offCursor(event){
       event.map.getCanvas().style.cursor = '';
-      this.linkClickable = true
-      
       if (this.hoveredStateId !== null) {
-        console.log('Off Cursor (1): ' + this.hoveredStateId)
         event.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: false }
@@ -126,21 +115,25 @@ export default {
       this.hoveredStateId = null;
     },
 
-    linkClick(event){
-      if (this.linkClickable){
-        //console.log(event.mapboxEvent.features[0].properties.index)
-        this.selectedLink = event.mapboxEvent.features[0].properties.index
-        this.$emit("clickLink", this.selectedLink)
+    selectClick(event){
+      // Get the highlighted feature
+      const features = event.map.querySourceFeatures(this.hoveredStateId.layerId);
+      for (const feature of features) {
+        if (feature.id == this.hoveredStateId.id) {
+          this.selectedFeature = feature;
+          break;
+        }
       }
-      
+      // Emit a click base on layer type (node or link)
+      if (this.selectedFeature !== null) {
+        if (this.hoveredStateId.layerId == 'editorNodes') {
+          this.$emit('clickNode', this.selectedFeature);
+        } else if (this.hoveredStateId.layerId == 'editorLinks') {
+          this.$emit('clickLink', this.selectedFeature);
+        }
+        this.selectedFeature = null;
+      }
     },
-    nodeClick(event){
-      //console.log(event.mapboxEvent.features[0].properties.index)
-      this.selectedNode = event.mapboxEvent.features[0].properties.index
-      this.$emit("clickNode", this.selectedNode)
-    },
-    
-
   },
 }
 </script>
@@ -195,25 +188,25 @@ export default {
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
-        source-id="editorLink"
+        source-id="editorLinks"
         :source="{
           type: 'geojson',
           data: $store.getters.editorLinks,
           buffer: 0,
           generateId: true,
         }"
-        layer-id="editorLink"
+        layer-id="editorLinks"
         :layer="{
           type: 'line',
           minzoom: 9,
           maxzoom: 18,
           paint: {
             'line-color': '#4CAF50',
-            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 3],
+            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  4, 0]
           }
         }"
-        @click="linkClick"
+        @click="selectClick"
         @mouseenter="onCursor"
         @mouseleave="offCursor"
         >   
@@ -277,13 +270,13 @@ export default {
           maxzoom: 18,
           paint: {
             'circle-color': '#2C3E4E',
-            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  8, 5],
+            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  10, 8],
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
         @mouseenter="onCursor"
         @mouseleave="offCursor"
-        @click="nodeClick"
+        @click="selectClick"
         >   
       </MglGeojsonLayer>
     </MglMap>
