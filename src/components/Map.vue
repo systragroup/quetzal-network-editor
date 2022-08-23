@@ -25,12 +25,23 @@ export default {
       }
     },
     created () {
-      this.mapboxPublicKey = mapboxPublicKey
-      this.links = this.$store.getters.links
-      this.nodes = this.$store.getters.nodes
+      this.map = null;
+      this.mapboxPublicKey = mapboxPublicKey;
+      this.links = this.$store.getters.links;
+      this.nodes = this.$store.getters.nodes;
       
     },
-  watch: {},
+  watch: {
+    editorNodes(nodes) {
+      const bounds = new Mapbox.LngLatBounds();
+      nodes.features.forEach(node => {
+        bounds.extend(node.geometry.coordinates)
+      })
+      this.map.fitBounds(bounds, {
+        padding: 100,
+      })
+    } 
+  },
 
   computed:{
     activeLinks() {
@@ -74,6 +85,9 @@ export default {
       filtered.features = filtered.features.filter(node => !this.activeNodesList.includes(node.properties.index)); 
       return filtered
     },
+    editorNodes() {
+      return this.$store.getters.editorNodes
+    }
     
   },
 
@@ -86,28 +100,29 @@ export default {
       event.map.fitBounds(bounds, {
         padding: 100,
       })
+      this.map = event.map;
     },
     
     onCursor(event){
-      event.map.getCanvas().style.cursor = 'pointer';
+      this.map.getCanvas().style.cursor = 'pointer';
       if (this.hoveredStateId !== null) {
-        event.map.setFeatureState(
+        this.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: false }
         )
       }
       
       this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
-      event.map.setFeatureState(
+      this.map.setFeatureState(
         { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
         { hover: true }
       );
     },
 
     offCursor(event){
-      event.map.getCanvas().style.cursor = '';
+      this.map.getCanvas().style.cursor = '';
       if (this.hoveredStateId !== null) {
-        event.map.setFeatureState(
+        this.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: false }
         );
@@ -117,7 +132,7 @@ export default {
 
     selectClick(event){
       // Get the highlighted feature
-      const features = event.map.querySourceFeatures(this.hoveredStateId.layerId);
+      const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
       for (const feature of features) {
         if (feature.id == this.hoveredStateId.id) {
           this.selectedFeature = feature;
@@ -202,8 +217,8 @@ export default {
           maxzoom: 18,
           paint: {
             'line-color': '#4CAF50',
-            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
-            'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  4, 0]
+            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
+            'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
         }"
         @click="selectClick"
@@ -270,7 +285,7 @@ export default {
           maxzoom: 18,
           paint: {
             'circle-color': '#2C3E4E',
-            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  10, 8],
+            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  12, 8],
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
