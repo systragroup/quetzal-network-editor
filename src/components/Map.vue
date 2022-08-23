@@ -13,7 +13,7 @@ export default {
     MglMarker,
     MglPopup,
 },
-  props:  ["selectedTrips", "editorTrip", "showLeftPanel"],
+  props:  ["selectedTrips", "showLeftPanel"],
   events: ["clickLink","clickNode"],
     data () {
       return {
@@ -35,7 +35,7 @@ export default {
   computed:{
     activeLinks() {
       var filtered = {...this.links}      
-      if (!this.editorTrip)  // no edit links. normal view
+      if (!this.$store.getters.editorTrip)  // no edit links. normal view
       {
         filtered.features = filtered.features.filter(link => this.selectedTrips.includes(link.properties.trip_id)) 
       }
@@ -47,31 +47,20 @@ export default {
       },
     nonActiveLinks() {
       var filtered = {...this.links}
-      if (!this.editorTrip) // no edit mode. normal view
+      if (!this.$store.getters.editorTrip) // no edit mode. normal view
       {
         filtered.features = filtered.features.filter(link => !this.selectedTrips.includes(link.properties.trip_id)); 
       }
        else // edit mode. everythin in transperent excep edit trip id
       {
-        filtered.features = filtered.features.filter(link => link.properties.trip_id != this.editorTrip); 
+        filtered.features = filtered.features.filter(link => link.properties.trip_id != this.$store.editorTrip); 
       }
-      return filtered
-      },
-
-    editorLinks() {
-      var filtered = {...this.links}
-      filtered.features = filtered.features.filter(link => link.properties.trip_id == this.editorTrip); 
       return filtered
       },
 
     activeNodesList(){
       let a = this.activeLinks.features.map(item => item.properties.a)
       let b = this.activeLinks.features.map(item => item.properties.b)
-      return  Array.from(new Set([...a, ...b]))
-    },
-    editorNodesList(){
-      let a = this.editorLinks.features.map(item => item.properties.a)
-      let b = this.editorLinks.features.map(item => item.properties.b)
       return  Array.from(new Set([...a, ...b]))
     },
 
@@ -85,11 +74,6 @@ export default {
       filtered.features = filtered.features.filter(node => !this.activeNodesList.includes(node.properties.index)); 
       return filtered
     },
-    editorNodes(){
-      var filtered = {...this.nodes}
-      filtered.features = filtered.features.filter(node => this.editorNodesList.includes(node.properties.index)); 
-      return filtered
-    }
     
   },
 
@@ -207,7 +191,7 @@ export default {
         source-id="editorLinks"
         :source="{
           type: 'geojson',
-          data: editorLinks,
+          data: $store.getters.editorLinks,
           buffer: 0,
           generateId: true,
         }"
@@ -274,7 +258,7 @@ export default {
         source-id="editorNodes"
         :source="{
           type: 'geojson',
-          data: this.editorNodes,
+          data: $store.getters.editorNodes,
           buffer: 0,
           generateId: true,
         }"

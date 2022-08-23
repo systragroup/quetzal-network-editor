@@ -8,6 +8,7 @@ export default {
   components: {
     Map,
     SidePanel,
+
 },
   data () {
     return {
@@ -16,8 +17,11 @@ export default {
       tripId : [],
       selectedTrips : [],
       editorTrip : null,
-      showLeftPanel:false
-
+      showLeftPanel:false,
+      actionsList : ['Edit Line info','Cut Line From Node','Cut Line At Node','Extend Line Upward','Extend Line Downward','Add Stop Inline','Move Stop','Delete Stop'],
+      action : null,
+      selectedNode : null,
+      showDialog : false
     }
   },
   watch: {
@@ -27,12 +31,47 @@ export default {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.tripId = this.$store.getters.trip_id
+    this.editorTrip = this.$store.getters.editorTrip
+
 
   },
   mounted () {
     //this.$store.commit('changeRoute', this.$options.name)
   },
   methods: {
+    actionClick(action){
+      this.action = action
+      if (action){
+        this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
+      }else {
+        {this.$store.commit('changeNotification',{text:null, autoClose:true})}
+      }
+    },
+
+    clickNode(selectedNode){
+      this.selectedNode=selectedNode
+      if (selectedNode){ 
+        // node action
+        if(this.action){
+          this.showDialog = true
+        }
+      }
+    },
+    clickLink(){
+
+    },
+    acceptChanges(){
+      this.showDialog=false
+      if (this.action == 'Cut Line From Node')
+      {
+        this.$store.commit('cutLineFromNode',{nodeId:this.selectedNode})  
+      }else if (this.action == 'Cut Line At Node')
+      {
+         this.$store.commit('cutLineAtNode',{nodeId:this.selectedNode})  
+      }
+      
+      
+    }
 
     
   },
@@ -43,22 +82,57 @@ export default {
 }
 </script>
 <template>
+
   <section class="map-view">
+    <v-dialog
+      v-model="showDialog"
+      max-width="290"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{$gettext("Apply Change?")}}
+        </v-card-title>
+
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+
+          <v-btn
+            color="grey"
+            text
+            @click="showDialog = false"
+          >
+            {{$gettext("Disagree")}}
+          </v-btn>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="acceptChanges"
+          >
+            {{$gettext("Agree")}}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
 
   <SidePanel
     v-model="selectedTrips" 
-    @selectEditorTrip="(e) => editorTrip = e" 
-    @showPanel='(e) => showLeftPanel = e'>
+    :actionsList="actionsList"
+    @showPanel='(e) => showLeftPanel = e'
+    @actionClick="actionClick">
   </SidePanel>
 
   <Map 
     :links="links" 
     :nodes="nodes" 
     :selectedTrips="selectedTrips" 
-    :editorTrip="editorTrip" 
-    :showLeftPanel="showLeftPanel">
+    :showLeftPanel="showLeftPanel"
+    @clickNode = "clickNode"
+    @clickLink = "clickLink">
   </Map>
-
+  
   </section>
 </template>
 <style lang="scss" scoped>
