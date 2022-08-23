@@ -31,6 +31,7 @@ export default {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.tripId = this.$store.getters.trip_id
+    this.editorTrip = this.$store.getters.editorTrip
 
 
   },
@@ -46,9 +47,11 @@ export default {
         {this.$store.commit('changeNotification',{text:null, autoClose:true})}
       }
     },
+
     clickNode(selectedNode){
       this.selectedNode=selectedNode
       if (selectedNode){ 
+        // node action
         if(this.action){
           this.showDialog = true
         }
@@ -61,8 +64,10 @@ export default {
       this.showDialog=false
       if (this.action == 'Cut Line From Node')
       {
-        this.$store.commit('cutLineFromNode',{editorTrip:this.editorTrip,nodeId:this.selectedNode})
-        
+        this.$store.commit('cutLineFromNode',{nodeId:this.selectedNode})  
+      }else if (this.action == 'Cut Line At Node')
+      {
+         this.$store.commit('cutLineAtNode',{nodeId:this.selectedNode})  
       }
       
       
@@ -85,7 +90,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{$gettext("Save Change?")}}
+          {{$gettext("Apply Change?")}}
         </v-card-title>
 
 
@@ -115,7 +120,6 @@ export default {
   <SidePanel
     v-model="selectedTrips" 
     :actionsList="actionsList"
-    @selectEditorTrip="(e) => editorTrip = e" 
     @showPanel='(e) => showLeftPanel = e'
     @actionClick="actionClick">
   </SidePanel>
@@ -124,7 +128,6 @@ export default {
     :links="links" 
     :nodes="nodes" 
     :selectedTrips="selectedTrips" 
-    :editorTrip="editorTrip" 
     :showLeftPanel="showLeftPanel"
     @clickNode = "clickNode"
     @clickLink = "clickLink">

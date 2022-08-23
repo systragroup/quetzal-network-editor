@@ -16,7 +16,7 @@ export default {
       showLeftPanel: false,
       showLeftPanelContent: false,
       tripId : this.$store.getters.trip_id, //[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40]
-      editorTrip: null,
+      editorTrip: this.$store.getters.editorTrip,
       tripList : this.selectedTrips,
       
       selectedAction : null
@@ -51,8 +51,7 @@ export default {
     },
     editButton(value){
       this.editorTrip = this.editorTrip == value? null : value
-      this.$emit("selectEditorTrip", this.editorTrip);
-      
+      this.$store.commit('setEditorTrip',this.editorTrip)      
     },
 
     disableAction(action){
@@ -113,7 +112,7 @@ export default {
                 <v-virtual-scroll
                   :items="tripId"
                   height=400
-                  :item-height="32"
+                  :item-height="64"
                 >
                   <template v-slot:default="{ item }">
                     <v-list-item :key="item">
