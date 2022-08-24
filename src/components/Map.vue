@@ -14,7 +14,7 @@ export default {
     MglPopup,
 },
   props:  ["selectedTrips", "showLeftPanel"],
-  events: ["clickLink","clickNode"],
+  events: ["clickLink", "clickNode"],
     data () {
       return {
         links: {},
@@ -26,6 +26,7 @@ export default {
     },
     created () {
       this.map = null;
+      this.clonedMap = null
       this.mapboxPublicKey = mapboxPublicKey;
       this.links = this.$store.getters.links;
       this.nodes = this.$store.getters.nodes;
@@ -33,18 +34,67 @@ export default {
     },
   watch: {
     editorNodes(nodes) {
-      const bounds = new Mapbox.LngLatBounds();
-      nodes.features.forEach(node => {
-        bounds.extend(node.geometry.coordinates)
-      })
-      this.map.fitBounds(bounds, {
-        padding: 100,
-      })
-    } 
+      if ( nodes.features.length > 0 ) {
+        const bounds = new Mapbox.LngLatBounds();
+        nodes.features.forEach(node => {
+          bounds.extend(node.geometry.coordinates)
+        })
+        this.map.fitBounds(bounds, {
+          padding: 100,
+        })
+      }
+    },
+    
+    selectedTrips(newList, oldList) {
+      if (this.map !== null) {
+        // Set all nodes to hidden
+        const hiddenNodes = this.map.querySourceFeatures('nodes');
+        hiddenNodes.forEach(feature => {
+          this.map.setFeatureState({ source: 'nodes', id: feature.id }, 
+                                   { hidden: true })
+        })
+
+        // Set visible links
+        const visible = this.map.querySourceFeatures(
+                          'links', 
+                          {filter: [
+                            'in', ['get', 'trip_id'], ['literal', newList]
+                          ]})
+        visible.forEach(feature => {
+          this.map.setFeatureState({ source: 'links', id: feature.id }, 
+                                   { hidden: false })
+        }) 
+
+        // Set hidden links
+        const hidden = this.map.querySourceFeatures(
+                          'links', 
+                          {filter: [
+                            '!', ['in', ['get', 'trip_id'], ['literal', newList]]
+                          ]})
+        hidden.forEach(feature => {
+          this.map.setFeatureState({ source: 'links', id: feature.id }, 
+                                   { hidden: true })
+        })
+        
+        // Set visible nodes
+        const a = visible.map(item => item.properties.a)
+        const b = visible.map(item => item.properties.b)
+        const visibleNodes = this.map.querySourceFeatures(
+                              'nodes', 
+                              {filter: [
+                                'in', ['get', 'index'], 
+                                ['literal', Array.from(new Set([...a, ...b]))]
+                              ]})
+        visibleNodes.forEach(feature => {
+          this.map.setFeatureState({ source: 'nodes', id: feature.id }, 
+                                   { hidden: false })
+        })                  
+      }
+    }
   },
 
   computed:{
-    activeLinks() {
+      /*
       var filtered = {...this.links}      
       if (!this.$store.getters.editorTrip)  // no edit links. normal view
       {
@@ -56,18 +106,7 @@ export default {
       }
       return filtered
       },
-    nonActiveLinks() {
-      var filtered = {...this.links}
-      if (!this.$store.getters.editorTrip) // no edit mode. normal view
-      {
-        filtered.features = filtered.features.filter(link => !this.selectedTrips.includes(link.properties.trip_id)); 
-      }
-       else // edit mode. everythin in transperent excep edit trip id
-      {
-        filtered.features = filtered.features.filter(link => link.properties.trip_id != this.$store.editorTrip); 
-      }
-      return filtered
-      },
+      */
 
     activeNodesList(){
       let a = this.activeLinks.features.map(item => item.properties.a)
@@ -87,8 +126,7 @@ export default {
     },
     editorNodes() {
       return this.$store.getters.editorNodes
-    }
-    
+    } 
   },
 
     methods: {
@@ -102,6 +140,9 @@ export default {
       })
       this.map = event.map;
     },
+
+    
+    //console.log(this.map.querySourceFeatures('links', {filter: ['in', ['get', 'trip_id'], ['literal', selectedTrips]]}));
     
     onCursor(event){
       this.map.getCanvas().style.cursor = 'pointer';
@@ -163,43 +204,26 @@ export default {
     >
       <MglNavigationControl position="bottom-right" />
       <MglGeojsonLayer
-        source-id="activeLinks"
+        source-id="links"
         :source="{
           type: 'geojson',
-          data: activeLinks,
-          buffer: 0
+          data: this.links,
+          buffer: 0,
+          generateId: true,
         }"
-        layer-id="activeLinks"
+        layer-id="links"
         :layer="{
           interactive: true,
           type: 'line',
           minzoom: 9,
           maxzoom: 18,
           paint: {
-            'line-color': '#B5E0D6',
+            'line-color': ['case', ['boolean', ['feature-state', 'hidden'], false],'#9E9E9E', '#B5E0D6'],
+            'line-opacity': ['case', ['boolean', ['feature-state', 'hidden'], false], 0.2, 1],
             'line-width': 3
           }
         }"
-        >   
-      </MglGeojsonLayer>
-      <MglGeojsonLayer
-        source-id="nonActiveLinks"
-        :source="{
-          type: 'geojson',
-          data: nonActiveLinks,
-          buffer: 0
-        }"
-        layer-id="nonActiveLinks"
-        :layer="{
-          type: 'line',
-          minzoom: 9,
-          maxzoom: 18,
-          paint: {
-            'line-color': '#9E9E9E',
-            'line-opacity':0.2,
-            'line-width': 3
-          }
-        }"
+        @load="console.log('Test')"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
@@ -226,54 +250,34 @@ export default {
         @mouseleave="offCursor"
         >   
       </MglGeojsonLayer>
+      /*
       <MglGeojsonLayer
-        source-id="activeNodes"
+        source-id="nodes"
         :source="{
           type: 'geojson',
-          data: this.activeNodes,
-          buffer: 0
+          data: this.nodes,
+          buffer: 0,
+          generateId: true,
         }"
-        layer-id="activeNodes"
+        layer-id="nodes"
         :layer="{
           interactive: true,
           type: 'circle',
           minzoom: 12,
           maxzoom: 18,
           paint: {
-            'circle-color': '#2C3E4E',
+            'circle-color': ['case', ['boolean', ['feature-state', 'hidden'], false],'#9E9E9E', '#2C3E4E'],
             'circle-radius': 3,
           }
         }"
         >   
       </MglGeojsonLayer>
-
-      <MglGeojsonLayer
-        source-id="nonActiveNodes"
-        :source="{
-          type: 'geojson',
-          data: this.nonActiveNodes,
-          buffer: 0
-        }"
-        layer-id="nonActiveNodes"
-        :layer="{
-          interactive: true,
-          type: 'circle',
-          minzoom: 12,
-          maxzoom: 18,
-          paint: {
-            'circle-color': '#9E9E9E',
-            'circle-radius': 3,
-            'circle-opacity':0.2,
-          }
-        }"
-        >   
-      </MglGeojsonLayer>
-
+      */
       <MglGeojsonLayer
         source-id="editorNodes"
         :source="{
           type: 'geojson',
-          data: $store.getters.editorNodes,
+          data: editorNodes,
           buffer: 0,
           generateId: true,
         }"

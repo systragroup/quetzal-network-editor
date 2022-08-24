@@ -32,6 +32,7 @@ export default {
     this.nodes = this.$store.getters.nodes
     this.tripId = this.$store.getters.trip_id
     this.editorTrip = this.$store.getters.editorTrip
+    this.selectedTrips = this.tripId
 
 
   },
