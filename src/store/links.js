@@ -44,15 +44,32 @@ export default {
         var filtered = {...state.links}
         filtered.features = filtered.features.filter(link => link.properties.trip_id == state.editorTrip); 
         state.editorLinks = filtered
+        // get the corresponding nodes
+        this.commit('getEditorNodes',{nodes:state.nodes})
+      },
+      getEditorNodes(state,payload){
+        // payload contain nodes. state.nodes or state.editorNodes
         // find the nodes in the editor links
         let a = state.editorLinks.features.map(item => item.properties.a)
         let b = state.editorLinks.features.map(item => item.properties.b)
         let editorNodesList =  Array.from(new Set([...a, ...b]))
         // set nodes corresponding to trip id
-        var filtered = {...state.nodes}
+        var filtered = {...payload.nodes}
         filtered.features = filtered.features.filter(node => editorNodesList.includes(node.properties.index)); 
         state.editorNodes = filtered
       },
+      //apply change to Links
+      confirmChanges(state){
+        var filtered = {...state.links}
+        filtered.features = filtered.features.filter(link => link.properties.trip_id == state.editorTrip); 
+        let toDelete = filtered.features.filter(item => !state.editorLinks.features.includes(item))
+
+        state.links.features = state.links.features.filter(item => !toDelete.includes(item));
+      },
+
+      //
+      //actions
+      //
 
       cutLineFromNode(state,payload)
       {
@@ -67,8 +84,10 @@ export default {
             break;
           }
         }
+        console.log(toDelete)
         // Delete links
         state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
+        this.commit('getEditorNodes',{nodes:state.editorNodes})
       },
 
       cutLineAtNode(state,payload)
@@ -85,8 +104,9 @@ export default {
             break;
           }
         }
-      // Delete links
+        // Delete links
         state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
+        this.commit('getEditorNodes',{nodes:state.editorNodes})
       }
 
         

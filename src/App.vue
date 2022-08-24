@@ -50,7 +50,7 @@ export default {
       v-model="snackbar"
       :timeout="notification.autoClose ? 3000 : -1"
       transition="slide-y-reverse-transition"
-      color="white"
+      :color="notification.color? notification.color : 'white'"
       class="snackbar"
       :class="`snackbar-${notification.type}`"
     >

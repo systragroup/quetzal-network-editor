@@ -50,8 +50,30 @@ export default {
       
     },
     editButton(value){
-      this.editorTrip = this.editorTrip == value? null : value
+      if (this.editorTrip == value){
+        this.editorTrip = null
+        this.selectedAction = null
+        this.$store.commit('changeNotification',{text:null, autoClose:true})
+
+      }else{
+        this.editorTrip = value
+      }
       this.$store.commit('setEditorTrip',this.editorTrip)      
+    },
+    abortChanges(){
+      this.editorTrip = null 
+      this.$store.commit('setEditorTrip',this.editorTrip)
+      this.selectedAction = null
+      {this.$store.commit('changeNotification',{text:"modification aborted", autoClose:true})}
+
+    },
+    confirmChanges(){
+      this.$store.commit('confirmChanges')
+      this.editorTrip = null 
+      this.$store.commit('setEditorTrip',this.editorTrip)
+      this.$store.commit('changeNotification',{text:"modification applied", autoClose:true,color:'success'})
+      this.selectedAction = null
+
     },
 
     disableAction(action){
@@ -96,7 +118,7 @@ export default {
       <transition name="fade">
         <div
           v-show="showLeftPanelContent"
-          class="left-panel-content"
+          class="left--conpaneltent"
         >
           <div>
             <div :style="{margin: '20px'}">
@@ -110,17 +132,20 @@ export default {
                   <v-spacer></v-spacer>
                 </v-card-title>
                 <v-virtual-scroll
+                dense
                   :items="tripId"
                   height=400
-                  :item-height="64"
+                  :item-height="41"
+                  
                 >
                   <template v-slot:default="{ item }">
                     <v-list-item :key="item">
-                      <v-list-item-action>
+                      <v-list-item-action >
                         <v-checkbox
                           :on-icon="'fa-eye fa'"
                           :off-icon="'fa-eye-slash fa'"
                           :value="item"
+                          :disabled="editorTrip ? true: false"
                           size="30"
                           v-model="tripList"
                           hide-details
@@ -132,13 +157,18 @@ export default {
                         </v-list-item-title>
                       </v-list-item-content>
                       <v-list-item-action>
-                        <v-btn icon class="ma-1" @click="editButton(item)">
-                          <v-icon>fa-regular fa-pen</v-icon>
+                        <v-btn icon class="ma-1" 
+                        @click="editButton(item)"
+                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
+                          <v-icon  :color="item == editorTrip? 'error':'regular' ">fa-regular fa-pen</v-icon>
                         </v-btn>
                       </v-list-item-action>
                       <v-list-item-action>
-                        <v-btn icon class="ma-1" color="error">
-                          <v-icon>fa-regular fa-trash</v-icon>
+                        <v-btn 
+                        icon class="ma-1" 
+                        color="error"
+                        :disabled="editorTrip ? true: false">
+                          <v-icon small>fa-regular fa-trash</v-icon>
                         </v-btn>
                       </v-list-item-action>
                     </v-list-item>
@@ -178,7 +208,9 @@ export default {
                     </v-btn>
                 </v-card-actions>
                 <v-card-actions>
-                  <v-btn outlined rounded text color="success"> Confirm Changes</v-btn>
+                  <v-btn outlined rounded text color="success" @click='confirmChanges'> {{$gettext("Confirm")}}</v-btn>
+                  <v-btn outlined rounded text color="error" @click="abortChanges"> {{$gettext("Abort")}}</v-btn>
+
                 </v-card-actions>
                   
                 
