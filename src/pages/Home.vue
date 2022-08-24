@@ -30,6 +30,7 @@ export default {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
+    this.selectedTrips = this.tripId
 
 
   },
