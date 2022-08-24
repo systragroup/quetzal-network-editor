@@ -14,7 +14,6 @@ export default {
     return {
       nodes: {},
       links: {},
-      tripId : [],
       selectedTrips : [],
       editorTrip : null,
       showLeftPanel:false,
@@ -30,7 +29,6 @@ export default {
   created () {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
-    this.tripId = this.$store.getters.trip_id
     this.editorTrip = this.$store.getters.editorTrip
 
 
@@ -40,15 +38,21 @@ export default {
   },
   methods: {
     actionClick(action){
+      //when an action is clicked in the sidepanel
       this.action = action
-      if (action){
+      if (action=='Edit Line info'){
+        this.showDialog=true
+      }
+      else if (action){
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }else {
-        {this.$store.commit('changeNotification',{text:null, autoClose:true})}
+        this.$store.commit('changeNotification',{text:null, autoClose:true})
       }
+      
     },
 
     clickNode(selectedNode){
+      // node is clicked on the map
       this.selectedNode=selectedNode.properties
       if (selectedNode){ 
         // node action
@@ -58,21 +62,46 @@ export default {
       }
     },
     clickLink(selectedLink){
+      // link is clicked on the map
       console.log('linkClick')
     },
 
     applyAction(){
+      // click yes on dialog
       this.showDialog=false
       if (this.action == 'Cut Line From Node')
       {
         this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode})  
-      }else if (this.action == 'Cut Line At Node')
+      }
+      else if (this.action == 'Cut Line At Node')
       {
          this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
       }
-      
-      
-    }
+      else if (this.action == 'Edit Line info')
+      {
+         //this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
+         this.action = null
+      }
+    },
+    confirmChanges(){
+      // confirm changes on sidePanel, this overwrite Links in store.
+      this.$store.commit('confirmChanges')
+      // put editTrip and action to null.
+      this.editorTrip = null 
+      this.$store.commit('setEditorTrip',null)
+      this.action=null
+      // notification
+      this.$store.commit('changeNotification',{text:"modification applied", autoClose:true,color:'success'})
+    },
+    abortChanges(){
+      // unselect a trip for edition. nothing to commit on link here.
+      // put editTrip and action to null.
+      this.editorTrip = null 
+      this.$store.commit('setEditorTrip',null)
+      this.action=null
+      // notification
+      this.$store.commit('changeNotification',{text:"modification aborted", autoClose:true})
+    },
 
     
   },
@@ -95,6 +124,18 @@ export default {
         <v-card-title class="text-h5">
           {{$gettext("Apply Change?")}}
         </v-card-title>
+
+        <v-card-text v-if="action == 'Edit Line info'">
+          <v-container>
+              <v-col cols="12" v-for="(value,name) in $store.getters.editorLinks.features[0].properties" :key="name">
+                <v-text-field
+                  :value="value"
+                  :label="name"
+                  required
+                ></v-text-field>
+              </v-col>
+          </v-container>
+        </v-card-text>
 
 
         <v-card-actions>
@@ -123,9 +164,12 @@ export default {
 
   <SidePanel
     v-model="selectedTrips" 
-    :actionsList="actionsList"
     @showPanel='(e) => showLeftPanel = e'
-    @actionClick="actionClick">
+    :actionsList="actionsList"
+    :selectedAction = "action"
+    @actionClick="actionClick"
+    @confirmChanges="confirmChanges"
+    @abortChanges="abortChanges">
   </SidePanel>
 
   <Map 
