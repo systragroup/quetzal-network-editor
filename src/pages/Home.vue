@@ -43,7 +43,7 @@ export default {
       if (action=='Edit Line info'){
         this.showDialog=true
       }
-      else if (action){
+      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop'].includes(action)){
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }else {
         this.$store.commit('changeNotification',{text:null, autoClose:true})
@@ -128,7 +128,7 @@ export default {
         <v-card-text v-if="action == 'Edit Line info'">
           <v-container>
               <v-col cols="12" v-for="(value,name) in $store.getters.editorLinks.features[0].properties" :key="name">
-                <v-text-field
+                <v-text-field v-if="!['id','a','b','shape_dist_traveled'].includes(name)"
                   :value="value"
                   :label="name"
                   required
