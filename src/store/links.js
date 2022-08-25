@@ -42,8 +42,8 @@ export default {
         //set Trip Id
         state.editorTrip = payload
         // set editor links corresponding to trip id
-        var filtered = {...state.links}
-        //var filtered = JSON.parse(JSON.stringify(state.links))
+        //var filtered = {...state.links}
+        var filtered = JSON.parse(JSON.stringify(state.links))
         filtered.features = filtered.features.filter(link => link.properties.trip_id == state.editorTrip); 
         state.editorLinks = filtered
         // get the corresponding nodes
@@ -81,14 +81,17 @@ export default {
       //apply change to Links
       confirmChanges(state){
 
-        //let props = Object.keys(state.editorLinksInfo)
-        //state.editorLinks.features.forEach((features)=> props.forEach((key) => features.properties[key]=state.editorLinksInfo[key] ))
 
+        //delete links with trip_id == editorTrip
         var filtered = {...state.links}
         filtered.features = filtered.features.filter(link => link.properties.trip_id == state.editorTrip); 
         let toDelete = filtered.features.filter(item => !state.editorLinks.features.includes(item))
+        //find index of soon to be deleted links
+        let index = state.links.features.findIndex(link => link.properties.trip_id == state.editorTrip)
         state.links.features = state.links.features.filter(item => !toDelete.includes(item));
-        
+        //add edited links to links.
+        state.links.features.splice(index, 0, ...state.editorLinks.features);
+
       },
 
       
