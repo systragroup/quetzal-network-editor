@@ -38,6 +38,7 @@ export default {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
+    this.selectedTrips = this.$store.getters.tripId
   },
   mounted () {
     //this.$store.commit('changeRoute', this.$options.name)
@@ -87,7 +88,6 @@ export default {
       }
       else if (this.action == 'Edit Line info')
       {
-         console.log(this.editorLinksInfo)
          this.$store.commit('editLineInfo',this.editorLinksInfo)  
          this.action = null
       }
