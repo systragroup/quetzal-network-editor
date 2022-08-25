@@ -1,6 +1,7 @@
 <script>
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
+import { enableAutoDestroy } from '@vue/test-utils'
 
 
 export default {
@@ -21,18 +22,22 @@ export default {
       action : null,
       selectedNode : null,
       showDialog : false,
-      editorLinksInfo:{}
+      editorLinksInfo:{},
+      clickLinkEnabled: true,
+      clickNodeEnabled: true 
     }
   },
   watch: {
-
+    action (val) {
+      if (val === null) {
+        this.clickLinkEnabled = this.clickNodeEnabled = true
+      }
+    }
   },
   created () {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
-
-
   },
   mounted () {
     //this.$store.commit('changeRoute', this.$options.name)
@@ -46,6 +51,7 @@ export default {
         this.showDialog=true
       }
       else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop'].includes(action)){
+        this.clickLinkEnabled = false
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }else {
         this.$store.commit('changeNotification',{text:null, autoClose:true})
@@ -181,6 +187,8 @@ export default {
     :nodes="nodes" 
     :selectedTrips="selectedTrips" 
     :showLeftPanel="showLeftPanel"
+    :clickNodeEnabled="clickNodeEnabled"
+    :clickLinkEnabled="clickLinkEnabled"
     @clickNode = "clickNode"
     @clickLink = "clickLink">
   </Map>
