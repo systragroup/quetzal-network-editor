@@ -20,7 +20,8 @@ export default {
       actionsList : ['Edit Line info','Cut Line From Node','Cut Line At Node','Extend Line Upward','Extend Line Downward','Add Stop Inline','Move Stop','Delete Stop'],
       action : null,
       selectedNode : null,
-      showDialog : false
+      showDialog : false,
+      editorLinksInfo:{}
     }
   },
   watch: {
@@ -30,7 +31,6 @@ export default {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
-    this.selectedTrips = this.tripId
 
 
   },
@@ -42,6 +42,7 @@ export default {
       //when an action is clicked in the sidepanel
       this.action = action
       if (action=='Edit Line info'){
+        this.editorLinksInfo = {...this.$store.getters.editorLinksInfo}
         this.showDialog=true
       }
       else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop'].includes(action)){
@@ -80,7 +81,8 @@ export default {
       }
       else if (this.action == 'Edit Line info')
       {
-         //this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
+         console.log(this.editorLinksInfo)
+         this.$store.commit('editLineInfo',this.editorLinksInfo)  
          this.action = null
       }
     },
@@ -116,10 +118,11 @@ export default {
 
   <section class="map-view">
     <v-dialog
+      persistent
       v-model="showDialog"
       max-width="290"
       @keydown.enter="applyAction"
-      @keydown.esc ="showDialog=false"
+      @keydown.esc ="showDialog=false; action=null"
     >
       <v-card>
         <v-card-title class="text-h5">
@@ -128,11 +131,11 @@ export default {
 
         <v-card-text v-if="action == 'Edit Line info'">
           <v-container>
-              <v-col cols="12" v-for="(value,name) in $store.getters.editorLinks.features[0].properties" :key="name">
-                <v-text-field v-if="!['id','a','b','shape_dist_traveled'].includes(name)"
-                  :value="value"
+              <v-col cols="12" >
+                <v-text-field 
+                  v-for="(value,name) in editorLinksInfo" :key="name"
+                  v-model="editorLinksInfo[name]"
                   :label="name"
-                  required
                 ></v-text-field>
               </v-col>
           </v-container>
@@ -145,7 +148,7 @@ export default {
           <v-btn
             color="grey"
             text
-            @click="showDialog = false"
+            @click="showDialog = false; action = null"
           >
             {{$gettext("Disagree")}}
           </v-btn>
