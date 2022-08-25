@@ -48,45 +48,33 @@ export default {
     selectedTrips(newList, oldList) {
       if (this.map !== null) {
         // Set all nodes to hidden
-        const hiddenNodes = this.map.querySourceFeatures('nodes');
-        hiddenNodes.forEach(feature => {
-          this.map.setFeatureState({ source: 'nodes', id: feature.id }, 
+        this.nodes.features.forEach(feature => {
+          this.map.setFeatureState({ source: 'nodes', id: feature.properties.index }, 
                                    { hidden: true })
         })
 
-        // Set visible links
-        const visible = this.map.querySourceFeatures(
-                          'links', 
-                          {filter: [
-                            'in', ['get', 'trip_id'], ['literal', newList]
-                          ]})
-        visible.forEach(feature => {
-          this.map.setFeatureState({ source: 'links', id: feature.id }, 
-                                   { hidden: false })
+        // Set all links to hidden
+        this.links.features.forEach(feature => {
+          this.map.setFeatureState({ source: 'links', id: feature.properties.index }, 
+                                   { hidden: true })
         }) 
 
-        // Set hidden links
-        const hidden = this.map.querySourceFeatures(
-                          'links', 
-                          {filter: [
-                            '!', ['in', ['get', 'trip_id'], ['literal', newList]]
-                          ]})
-        hidden.forEach(feature => {
-          this.map.setFeatureState({ source: 'links', id: feature.id }, 
-                                   { hidden: true })
+        // Set visible links
+        const visibleLinks = new Set();
+        newList.forEach(line => {
+          this.linksPerLine[line].forEach(link => visibleLinks.add(link))
+        })
+        visibleLinks.forEach(link => {
+          this.map.setFeatureState({ source: 'links', id: link.properties.index }, 
+                                   { hidden: false })
         })
         
         // Set visible nodes
-        const a = visible.map(item => item.properties.a)
-        const b = visible.map(item => item.properties.b)
-        const visibleNodes = this.map.querySourceFeatures(
-                              'nodes', 
-                              {filter: [
-                                'in', ['get', 'index'], 
-                                ['literal', Array.from(new Set([...a, ...b]))]
-                              ]})
-        visibleNodes.forEach(feature => {
-          this.map.setFeatureState({ source: 'nodes', id: feature.id }, 
+        const a = [...visibleLinks].map(item => item.properties.a);
+        const b = [...visibleLinks].map(item => item.properties.b);
+        const ab = new Set([...a, ...b]);
+        [...ab].forEach(id => {
+          this.map.setFeatureState({ source: 'nodes', id: id }, 
                                    { hidden: false })
         })                  
       }
@@ -94,19 +82,15 @@ export default {
   },
 
   computed:{
-      /*
-      var filtered = {...this.links}      
-      if (!this.$store.getters.editorTrip)  // no edit links. normal view
-      {
-        filtered.features = filtered.features.filter(link => this.selectedTrips.includes(link.properties.trip_id)) 
-      }
-      else  //edit mode. everything is transparent
-      {
-        filtered.features=[]
-      }
-      return filtered
-      },
-      */
+    linksPerLine() {
+      const groupBy = function(xs) {
+        return xs.reduce(function(rv, x) {
+          (rv[x.properties.trip_id] = rv[x.properties.trip_id] || []).push(x);
+          return rv;
+        }, {});
+      };
+      return groupBy(this.$store.getters.links.features)
+    },
 
     activeNodesList(){
       let a = this.activeLinks.features.map(item => item.properties.a)
@@ -140,9 +124,6 @@ export default {
       })
       this.map = event.map;
     },
-
-    
-    //console.log(this.map.querySourceFeatures('links', {filter: ['in', ['get', 'trip_id'], ['literal', selectedTrips]]}));
     
     onCursor(event){
       this.map.getCanvas().style.cursor = 'pointer';
@@ -209,7 +190,7 @@ export default {
           type: 'geojson',
           data: this.links,
           buffer: 0,
-          generateId: true,
+          promoteId: 'index',
         }"
         layer-id="links"
         :layer="{
@@ -223,7 +204,6 @@ export default {
             'line-width': 3
           }
         }"
-        @load="console.log('Test')"
         >   
       </MglGeojsonLayer>
       <MglGeojsonLayer
@@ -240,7 +220,7 @@ export default {
           minzoom: 9,
           maxzoom: 18,
           paint: {
-            'line-color': '#4CAF50',
+            'line-color': '#2196F3',
             'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
@@ -257,7 +237,7 @@ export default {
           type: 'geojson',
           data: this.nodes,
           buffer: 0,
-          generateId: true,
+          promoteId: 'index',
         }"
         layer-id="nodes"
         :layer="{
