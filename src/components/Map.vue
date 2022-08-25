@@ -12,39 +12,54 @@ export default {
     MglGeojsonLayer,
     MglMarker,
     MglPopup,
-},
-  props:  ["selectedTrips", "showLeftPanel"],
+  },
+  props:  {
+    selectedTrips: {
+      type: Array,
+      default: []
+    },
+    showLeftPanel: {
+      type: Boolean,
+      default: false
+    },
+    clickNodeEnabled: {
+      type: Boolean,
+      default: true      
+    },
+    clickLinkEnabled: {
+      type: Boolean,
+      default: true
+    }
+  },
   events: ["clickLink", "clickNode"],
-    data () {
-      return {
-        links: {},
-        nodes: {},
-        mapboxPublicKey:  null,
-        selectedFeature : null,
-        hoveredStateId : null,
-      }
-    },
-    created () {
-      this.map = null;
-      this.clonedMap = null
-      this.mapboxPublicKey = mapboxPublicKey;
-      this.links = this.$store.getters.links;
-      this.nodes = this.$store.getters.nodes;
-      
-    },
+  data () {
+    return {
+      links: {},
+      nodes: {},
+      mapboxPublicKey:  null,
+      selectedFeature : null,
+      hoveredStateId : null,
+    }
+  },
+  created () {
+    this.map = null;
+    this.clonedMap = null
+    this.mapboxPublicKey = mapboxPublicKey;
+    this.links = this.$store.getters.links;
+    this.nodes = this.$store.getters.nodes;
+  },
   watch: {
     editorNodes(nodes) {
       if ( nodes.features.length > 0 ) {
         const bounds = new Mapbox.LngLatBounds();
         nodes.features.forEach(node => {
           bounds.extend(node.geometry.coordinates)
-        })
+        })        
         this.map.fitBounds(bounds, {
           padding: 100,
         })
       }
     },
-    
     selectedTrips(newList, oldList) {
       if (this.map !== null) {
         // Set all nodes to hidden
@@ -52,13 +67,11 @@ export default {
           this.map.setFeatureState({ source: 'nodes', id: feature.properties.index }, 
                                    { hidden: true })
         })
-
         // Set all links to hidden
         this.links.features.forEach(feature => {
           this.map.setFeatureState({ source: 'links', id: feature.properties.index }, 
                                    { hidden: true })
         }) 
-
         // Set visible links
         const visibleLinks = new Set();
         newList.forEach(line => {
@@ -68,7 +81,6 @@ export default {
           this.map.setFeatureState({ source: 'links', id: link.properties.index }, 
                                    { hidden: false })
         })
-        
         // Set visible nodes
         const a = [...visibleLinks].map(item => item.properties.a);
         const b = [...visibleLinks].map(item => item.properties.b);
@@ -80,7 +92,6 @@ export default {
       }
     }
   },
-
   computed:{
     linksPerLine() {
       const groupBy = function(xs) {
@@ -91,29 +102,11 @@ export default {
       };
       return groupBy(this.$store.getters.links.features)
     },
-
-    activeNodesList(){
-      let a = this.activeLinks.features.map(item => item.properties.a)
-      let b = this.activeLinks.features.map(item => item.properties.b)
-      return  Array.from(new Set([...a, ...b]))
-    },
-
-    activeNodes(){
-      var filtered = {...this.nodes}
-      filtered.features = filtered.features.filter(node => this.activeNodesList.includes(node.properties.index)); 
-      return filtered
-    },
-    nonActiveNodes(){
-      var filtered = {...this.nodes}
-      filtered.features = filtered.features.filter(node => !this.activeNodesList.includes(node.properties.index)); 
-      return filtered
-    },
     editorNodes() {
       return this.$store.getters.editorNodes
     } 
   },
-
-    methods: {
+  methods: {
     onMapLoaded (event) {
       const bounds = new Mapbox.LngLatBounds();
       this.links.features.forEach(link => {
@@ -124,7 +117,6 @@ export default {
       })
       this.map = event.map;
     },
-    
     onCursor(event){
       this.map.getCanvas().style.cursor = 'pointer';
       if (this.hoveredStateId !== null) {
@@ -140,7 +132,6 @@ export default {
         { hover: true }
       );
     },
-
     offCursor(event){
       this.map.getCanvas().style.cursor = '';
       if (this.hoveredStateId !== null) {
@@ -151,7 +142,6 @@ export default {
       }
       this.hoveredStateId = null;
     },
-
     selectClick(event){
       // Get the highlighted feature
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
@@ -225,9 +215,7 @@ export default {
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
         }"
-        @click="selectClick"
-        @mouseenter="onCursor"
-        @mouseleave="offCursor"
+        v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
         >   
       </MglGeojsonLayer>
       /*
@@ -273,9 +261,7 @@ export default {
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
-        @mouseenter="onCursor"
-        @mouseleave="offCursor"
-        @click="selectClick"
+        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
         >   
       </MglGeojsonLayer>
     </MglMap>
