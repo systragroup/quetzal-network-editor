@@ -28,14 +28,16 @@ export default {
     }
   },
   watch: {
-
+    action (val) {
+      if (val === null) {
+        this.clickLinkEnabled = this.clickNodeEnabled = true
+      }
+    }
   },
   created () {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
-
-
   },
   mounted () {
     //this.$store.commit('changeRoute', this.$options.name)
