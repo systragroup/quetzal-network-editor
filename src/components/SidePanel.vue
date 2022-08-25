@@ -4,24 +4,25 @@ export default {
   components: {
 
 },
-  props:  ["selectedTrips","actionsList"],
+  props:  ["selectedTrips","actionsList","selectedAction"],
   model: {
     prop: "selectedTrips",
     event: "update-tripList"
   },
-  events: ["selectEditorTrip","showPanel","ActionClick"],
+  events: ["selectEditorTrip","showPanel","ActionClick","confirmChanges","abortChanges"],
 
   data () {
     return {
       showLeftPanel: false,
       showLeftPanelContent: false,
-      tripId : this.$store.getters.trip_id, //[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40]
-      editorTrip: this.$store.getters.editorTrip,
       tripList : this.selectedTrips,
-      
-      selectedAction : null
     }
   },
+  computed:{
+    editorTrip(){return this.$store.getters.editorTrip},
+    tripId() {return this.$store.getters.tripId} 
+  },
+
   watch: {
     showLeftPanel (val) {
       if (val) {
@@ -43,38 +44,23 @@ export default {
     
     
     actionClick(action){
-      this.selectedAction = this.selectedAction == action? null:action
-      //this.$store.commit('changeNotification',{text:action, autoClose:true})
-      this.$emit("actionClick",this.selectedAction)
-  
+      let val = this.selectedAction == action? null:action
+      this.$emit("actionClick",val)
       
     },
     editButton(value){
       if (this.editorTrip == value){
-        this.editorTrip = null
-        this.selectedAction = null
-        this.$store.commit('changeNotification',{text:null, autoClose:true})
+       // this.$store.commit('setEditorTrip',null)
+       // this.$emit("actionClick",null)
+       // this.$store.commit('changeNotification',{text:null, autoClose:true})
+       this.$emit("abortChanges")
 
       }else{
-        this.editorTrip = value
+        this.$store.commit('setEditorTrip',value)
       }
-      this.$store.commit('setEditorTrip',this.editorTrip)      
     },
-    abortChanges(){
-      this.editorTrip = null 
-      this.$store.commit('setEditorTrip',this.editorTrip)
-      this.selectedAction = null
-      {this.$store.commit('changeNotification',{text:"modification aborted", autoClose:true})}
-
-    },
-    confirmChanges(){
-      this.$store.commit('confirmChanges')
-      this.editorTrip = null 
-      this.$store.commit('setEditorTrip',this.editorTrip)
-      this.$store.commit('changeNotification',{text:"modification applied", autoClose:true,color:'success'})
-      this.selectedAction = null
-
-    },
+    
+    
 
     disableAction(action){
       if (this.selectedAction == null)
@@ -91,10 +77,8 @@ export default {
         }
     },
     
-  },
-  computed:{
-
   }
+  
   
 }
 </script>
@@ -139,13 +123,12 @@ export default {
                   
                 >
                   <template v-slot:default="{ item }">
-                    <v-list-item :key="item">
+                    <v-list-item :key="item.id">
                       <v-list-item-action >
                         <v-checkbox
                           :on-icon="'fa-eye fa'"
                           :off-icon="'fa-eye-slash fa'"
                           :value="item"
-                          :disabled="editorTrip ? true: false"
                           size="30"
                           v-model="tripList"
                           hide-details
@@ -208,8 +191,8 @@ export default {
                     </v-btn>
                 </v-card-actions>
                 <v-card-actions>
-                  <v-btn outlined rounded text color="success" @click='confirmChanges'> {{$gettext("Confirm")}}</v-btn>
-                  <v-btn outlined rounded text color="error" @click="abortChanges"> {{$gettext("Abort")}}</v-btn>
+                  <v-btn outlined rounded text color="success" @click="$emit('confirmChanges')"> {{$gettext("Confirm")}}</v-btn>
+                  <v-btn outlined rounded text color="error" @click="$emit('abortChanges')"> {{$gettext("Abort")}}</v-btn>
 
                 </v-card-actions>
                   

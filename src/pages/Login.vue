@@ -1,4 +1,12 @@
 <script>
+
+import line from '@static/links_test.geojson'
+
+var links = line
+
+console.log(links.features.filter(item=>item.properties.trip_id=='STM_100_0'))
+
+
 export default {
   name: 'Login',
   data () {
