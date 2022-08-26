@@ -18,11 +18,14 @@ export default {
       selectedTrips : [],
       editorTrip : null,
       showLeftPanel:false,
-      actionsList : ['Edit Line info','Cut Line From Node','Cut Line At Node','Extend Line Upward','Extend Line Downward','Add Stop Inline','Move Stop','Delete Stop'],
+      actionsList : ['Edit Line info','Cut Line From Node','Cut Line At Node','Extend Line Upward','Extend Line Downward','Add Stop Inline','Move Stop','Delete Stop','Edit Link Info','Edit Node Info'],
       action : null,
       selectedNode : null,
+      selectedLink : null,
       showDialog : false,
-      editorLinksInfo:{},
+      editorLineInfo : {},
+      editorLinkInfo : {},
+      editorNodeInfo : {},
       clickLinkEnabled: true,
       clickNodeEnabled: true 
     }
@@ -48,10 +51,15 @@ export default {
       //when an action is clicked in the sidepanel
       this.action = action
       if (action=='Edit Line info'){
-        this.editorLinksInfo = {...this.$store.getters.editorLinksInfo}
+        this.editorLineInfo = {...this.$store.getters.editorLineInfo}
         this.showDialog=true
       }
-      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop'].includes(action)){
+      else if (action=='Edit Link Info'){
+        this.clickNodeEnabled=false
+        this.$store.commit('changeNotification',{text:'Select a Link', autoClose:false})
+        
+      }
+      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop', 'Edit Node Info'].includes(action)){
         this.clickLinkEnabled = false
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }else {
@@ -62,17 +70,45 @@ export default {
 
     clickNode(selectedNode){
       // node is clicked on the map
-      this.selectedNode=selectedNode.properties
+      this.selectedNode = selectedNode.properties
       if (selectedNode){ 
         // node action
-        if(this.action){
+        if (this.action == 'Edit Node Info'){
+          this.editorNodeInfo = this.selectedNode
+          const filteredKeys = ['id','index'];
+          let filtered = Object.keys(this.editorNodeInfo)
+            .filter(key => !filteredKeys.includes(key))
+            .reduce((obj, key) => {
+              obj[key] = this.editorNodeInfo[key];
+              return obj;
+            }, {});
+          this.editorNodeInfo = filtered
+          this.showDialog = true
+        }
+        else if(this.action){
           this.showDialog = true
         }
       }
     },
     clickLink(selectedLink){
       // link is clicked on the map
-      console.log('linkClick')
+      this.selectedLink = selectedLink.properties
+      if (selectedLink){ 
+        // links action
+        if(this.action == 'Edit Link Info'){
+          // filter properties to only the one that are editable.
+          this.editorLinkInfo = this.selectedLink
+          const filteredKeys = ['id','a','b','link_sequence','agency_id','direction_id','headway','index','route_color','route_short_name','route_type','trip_id','route_id'];
+          let filtered = Object.keys(this.editorLinkInfo)
+            .filter(key => !filteredKeys.includes(key))
+            .reduce((obj, key) => {
+              obj[key] = this.editorLinkInfo[key];
+              return obj;
+            }, {});
+          this.editorLinkInfo = filtered
+          this.showDialog = true
+        }
+      }
     },
 
     applyAction(){
@@ -86,9 +122,17 @@ export default {
       {
          this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
       }
+      else if (this.action == 'Edit Link Info')
+      {
+         this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorLinkInfo})  
+      }
+      else if (this.action == 'Edit Node Info')
+      {
+         this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorNodeInfo})  
+      }
       else if (this.action == 'Edit Line info')
       {
-         this.$store.commit('editLineInfo',this.editorLinksInfo)  
+         this.$store.commit('editLineInfo',this.editorLineInfo)  
          this.action = null
       }
     },
@@ -139,14 +183,37 @@ export default {
           <v-container>
               <v-col cols="12" >
                 <v-text-field 
-                  v-for="(value,name) in editorLinksInfo" :key="name"
-                  v-model="editorLinksInfo[name]"
+                  v-for="(value,name) in editorLineInfo" :key="name"
+                  v-model="editorLineInfo[name]"
                   :label="name"
                 ></v-text-field>
               </v-col>
           </v-container>
         </v-card-text>
 
+         <v-card-text v-if="action == 'Edit Link Info'">
+          <v-container>
+              <v-col cols="12" >
+                <v-text-field 
+                  v-for="(value,name) in editorLinkInfo" :key="name"
+                  v-model="editorLinkInfo[name]"
+                  :label="name"
+                ></v-text-field>
+              </v-col>
+          </v-container>
+        </v-card-text>
+
+        <v-card-text v-if="action == 'Edit Node Info'">
+          <v-container>
+              <v-col cols="12" >
+                <v-text-field 
+                  v-for="(value,name) in editorNodeInfo" :key="name"
+                  v-model="editorNodeInfo[name]"
+                  :label="name"
+                ></v-text-field>
+              </v-col>
+          </v-container>
+        </v-card-text>
 
         <v-card-actions>
           <v-spacer></v-spacer>

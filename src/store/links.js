@@ -25,7 +25,8 @@ export default {
       editorTrip: null,
       editorNodes: nodesHeader,
       editorLinks: linksHeader,
-      editorLinksInfo:{},
+      editorLineInfo:{},
+      editorlinkInfo:{},
       nodes: points, 
       tripId : []//Array.from(new Set(line.features.map(item => item.properties.trip_id)))
     },
@@ -48,7 +49,7 @@ export default {
         state.editorLinks = filtered
         // get the corresponding nodes
         this.commit('getEditorNodes',{nodes:state.nodes})
-        this.commit('getEditorLinksInfo')
+        this.commit('getEditorLineInfo')
       },
       getEditorNodes(state,payload){
         // payload contain nodes. state.nodes or state.editorNodes
@@ -57,30 +58,32 @@ export default {
         let b = state.editorLinks.features.map(item => item.properties.b)
         let editorNodesList =  Array.from(new Set([...a, ...b]))
         // set nodes corresponding to trip id
-        var filtered = {...payload.nodes}
+        var filtered = JSON.parse(JSON.stringify(payload.nodes))
         filtered.features = filtered.features.filter(node => editorNodesList.includes(node.properties.index)); 
         state.editorNodes = filtered
       },
 
-      getEditorLinksInfo(state){
+      getEditorLineInfo(state){
         if (state.editorLinks.features.length==0){
-          state.editorLinksInfo={}
+          state.editorLineInfo={}
         }
         else{
-        const filteredKeys = ['id','a','b','shape_dist_traveled','link_sequence','pickup_type','time'];
+        const filteredKeys = ['id','index','a','b','shape_dist_traveled','link_sequence','pickup_type','drop_off_type','time'];
         let filtered = Object.keys(state.editorLinks.features[0].properties)
           .filter(key => !filteredKeys.includes(key))
           .reduce((obj, key) => {
             obj[key] = state.editorLinks.features[0].properties[key];
             return obj;
           }, {});
-        state.editorLinksInfo = filtered
+        state.editorLineInfo = filtered
         }
+      },
+      setEditorLinkInfo(state,payload){
+        state.editorlinkInfo = payload
       },
 
       //apply change to Links
       confirmChanges(state){
-
 
         //delete links with trip_id == editorTrip
         var filtered = {...state.links}
@@ -91,6 +94,20 @@ export default {
         state.links.features = state.links.features.filter(item => !toDelete.includes(item));
         //add edited links to links.
         state.links.features.splice(index, 0, ...state.editorLinks.features);
+
+
+
+        state.nodes.features.filter(
+          function (node){state.editorNodes.features.forEach(
+            function (eNode){
+              if (node.properties.index == eNode.properties.index){
+                  node.properties = eNode.properties
+              }
+            }
+          )
+    
+          }
+        )
 
       },
 
@@ -137,11 +154,36 @@ export default {
       },
       editLineInfo(state,payload)
       {
-        state.editorLinksInfo = payload
+        state.editorLineInfo = payload
         let props = Object.keys(payload)
         state.editorLinks.features.forEach((features)=> props.forEach((key) => features.properties[key]=payload[key] ))
-        
-      }
+      },
+
+      editLinkInfo(state,payload)
+      {
+        // get selected link in editorLinks and modify the changes attributes.
+        let props = Object.keys(payload.info)
+        state.editorLinks.features.filter(
+          function (link){
+            if (link.properties.index==payload.selectedLinkId){
+              props.forEach((key) => link.properties[key] = payload.info[key] )
+            }
+          }
+        )
+      },
+      editNodeInfo(state,payload)
+      {
+        // get selected node in editorNodes and modify the changes attributes.
+        let props = Object.keys(payload.info)
+        state.editorNodes.features.filter(
+          function (node){
+            if (node.properties.index==payload.selectedNodeId){
+              props.forEach((key) => node.properties[key] = payload.info[key] )
+            }
+          }
+        )
+      },
+      
 
         
   
@@ -159,7 +201,7 @@ export default {
       tripId (state) {
         return Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
       },
-      editorLinksInfo: (state) => state.editorLinksInfo
+      editorLineInfo: (state) => state.editorLineInfo
       
     },
   }
