@@ -3,8 +3,9 @@
 import line from '@static/links_test.geojson'
 
 var links = line
+var link = links.features[0]
+console.log(link)
 
-console.log(links.features.filter(item=>item.properties.trip_id=='STM_100_0'))
 
 
 export default {

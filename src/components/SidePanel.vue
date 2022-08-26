@@ -184,7 +184,7 @@ export default {
                 <v-card-actions
                     v-for="action in actionsList"
                     :key="action.id">
-                  <v-btn outlined rounded text
+                  <v-btn x-small outlined rounded text
                     @click = "actionClick(action)"
                     :disabled= "disableAction(action)"> 
                     {{$gettext(action)}}
