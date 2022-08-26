@@ -23,8 +23,9 @@ export default {
       selectedNode : null,
       selectedLink : null,
       showDialog : false,
-      editorLineInfo:{},
-      editorLinkInfo:{},
+      editorLineInfo : {},
+      editorLinkInfo : {},
+      editorNodeInfo : {},
       clickLinkEnabled: true,
       clickNodeEnabled: true 
     }
@@ -58,7 +59,7 @@ export default {
         this.$store.commit('changeNotification',{text:'Select a Link', autoClose:false})
         
       }
-      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop'].includes(action)){
+      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop', 'Edit Node Info'].includes(action)){
         this.clickLinkEnabled = false
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }else {
@@ -72,19 +73,31 @@ export default {
       this.selectedNode = selectedNode.properties
       if (selectedNode){ 
         // node action
-        if(this.action){
+        if (this.action == 'Edit Node Info'){
+          this.editorNodeInfo = this.selectedNode
+          const filteredKeys = ['id','index'];
+          let filtered = Object.keys(this.editorNodeInfo)
+            .filter(key => !filteredKeys.includes(key))
+            .reduce((obj, key) => {
+              obj[key] = this.editorNodeInfo[key];
+              return obj;
+            }, {});
+          this.editorNodeInfo = filtered
+          this.showDialog = true
+        }
+        else if(this.action){
           this.showDialog = true
         }
       }
     },
     clickLink(selectedLink){
       // link is clicked on the map
-      this.selectedLink = selectedLink
+      this.selectedLink = selectedLink.properties
       if (selectedLink){ 
         // links action
         if(this.action == 'Edit Link Info'){
           // filter properties to only the one that are editable.
-          this.editorLinkInfo = this.selectedLink.properties
+          this.editorLinkInfo = this.selectedLink
           const filteredKeys = ['id','a','b','link_sequence','agency_id','direction_id','headway','index','route_color','route_short_name','route_type','trip_id','route_id'];
           let filtered = Object.keys(this.editorLinkInfo)
             .filter(key => !filteredKeys.includes(key))
@@ -111,7 +124,11 @@ export default {
       }
       else if (this.action == 'Edit Link Info')
       {
-         this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.properties.index,info:this.editorLinkInfo})  
+         this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorLinkInfo})  
+      }
+      else if (this.action == 'Edit Node Info')
+      {
+         this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorNodeInfo})  
       }
       else if (this.action == 'Edit Line info')
       {
@@ -186,6 +203,17 @@ export default {
           </v-container>
         </v-card-text>
 
+        <v-card-text v-if="action == 'Edit Node Info'">
+          <v-container>
+              <v-col cols="12" >
+                <v-text-field 
+                  v-for="(value,name) in editorNodeInfo" :key="name"
+                  v-model="editorNodeInfo[name]"
+                  :label="name"
+                ></v-text-field>
+              </v-col>
+          </v-container>
+        </v-card-text>
 
         <v-card-actions>
           <v-spacer></v-spacer>

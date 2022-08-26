@@ -58,7 +58,7 @@ export default {
         let b = state.editorLinks.features.map(item => item.properties.b)
         let editorNodesList =  Array.from(new Set([...a, ...b]))
         // set nodes corresponding to trip id
-        var filtered = {...payload.nodes}
+        var filtered = JSON.parse(JSON.stringify(payload.nodes))
         filtered.features = filtered.features.filter(node => editorNodesList.includes(node.properties.index)); 
         state.editorNodes = filtered
       },
@@ -94,6 +94,20 @@ export default {
         state.links.features = state.links.features.filter(item => !toDelete.includes(item));
         //add edited links to links.
         state.links.features.splice(index, 0, ...state.editorLinks.features);
+
+
+
+        state.nodes.features.filter(
+          function (node){state.editorNodes.features.forEach(
+            function (eNode){
+              if (node.properties.index == eNode.properties.index){
+                  node.properties = eNode.properties
+              }
+            }
+          )
+    
+          }
+        )
 
       },
 
@@ -153,6 +167,18 @@ export default {
           function (link){
             if (link.properties.index==payload.selectedLinkId){
               props.forEach((key) => link.properties[key] = payload.info[key] )
+            }
+          }
+        )
+      },
+      editNodeInfo(state,payload)
+      {
+        // get selected node in editorNodes and modify the changes attributes.
+        let props = Object.keys(payload.info)
+        state.editorNodes.features.filter(
+          function (node){
+            if (node.properties.index==payload.selectedNodeId){
+              props.forEach((key) => node.properties[key] = payload.info[key] )
             }
           }
         )
