@@ -120,7 +120,18 @@ export default {
 
       },
 
-      
+      deleteTrip(state,payload){
+        //set Trip Id
+        state.links.features = state.links.features.filter(link => link.properties.trip_id != payload)
+        // delete every every nodes not in links
+        let a = state.links.features.map(item => item.properties.a)
+        let b = state.links.features.map(item => item.properties.b)
+        let nodesList =  Array.from(new Set([...a, ...b]))
+        state.nodes.features = state.nodes.features.filter(node => nodesList.includes(node.properties.index))
+        //get tripId list
+        this.commit('getTripId')
+      },
+     
 
       //
       //actions
