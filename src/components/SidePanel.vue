@@ -9,7 +9,7 @@ export default {
     prop: "selectedTrips",
     event: "update-tripList"
   },
-  events: ["selectEditorTrip","showPanel","ActionClick","confirmChanges","abortChanges"],
+  events: ["selectEditorTrip","showPanel","ActionClick","confirmChanges","abortChanges","deleteButton"],
 
   data () {
     return {
@@ -39,10 +39,17 @@ export default {
       this.$emit("update-tripList", val);
     },
     tripId(new_val,old_val){
-      // update TripList v-model when a trip_id is changed.
-      var dict = {};
-      old_val.forEach((key, i) => dict[key] = new_val[i]);
-      this.tripList = this.tripList.map((trip)=>dict[trip])
+      if (new_val.length != old_val.length){
+        // if a trip is deleted. we remove it, no remapping.
+        this.tripList = this.tripList.filter((trip)=>new_val.includes(trip))
+      }
+      else{
+        // if a trip name changes.
+        // update TripList v-model when a trip_id is changed.
+        var dict = {};
+        old_val.forEach((key, i) => dict[key] = new_val[i]);
+        this.tripList = this.tripList.map((trip)=>dict[trip])
+      }
     }
   },
 
@@ -64,6 +71,10 @@ export default {
       }else{
         this.$store.commit('setEditorTrip',value)
       }
+    },
+
+    deleteButton(val){
+      this.$emit("deleteButton",val)
     },
     
     
@@ -156,6 +167,7 @@ export default {
                         <v-btn 
                         icon class="ma-1" 
                         color="error"
+                        @click="deleteButton(item)"
                         :disabled="editorTrip ? true: false">
                           <v-icon small>fa-regular fa-trash</v-icon>
                         </v-btn>

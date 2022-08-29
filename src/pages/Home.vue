@@ -25,7 +25,8 @@ export default {
       showDialog : false,
       editorForm : {},
       clickLinkEnabled: true,
-      clickNodeEnabled: true 
+      clickNodeEnabled: true,
+      tripToDelete : null
     }
   },
   watch: {
@@ -133,6 +134,10 @@ export default {
          this.$store.commit('editLineInfo',this.editorForm)  
          this.action = null
       }
+      else if (this.action == 'deleteTrip')
+        this.$store.commit('deleteTrip',this.tripToDelete)
+        this.action= null
+        
     },
     confirmChanges(){
       // confirm changes on sidePanel, this overwrite Links in store.
@@ -143,6 +148,7 @@ export default {
       this.action=null
       // notification
       this.$store.commit('changeNotification',{text:"modification applied", autoClose:true,color:'success'})
+      
     },
     abortChanges(){
       // unselect a trip for edition. nothing to commit on link here.
@@ -153,6 +159,11 @@ export default {
       // notification
       this.$store.commit('changeNotification',{text:"modification aborted", autoClose:true})
     },
+    deleteButton(selectedTrip){
+      this.tripToDelete=selectedTrip
+      this.action='deleteTrip'
+      this.showDialog=true
+    }
 
     
   },
@@ -174,7 +185,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{$gettext("Apply Change?")}}
+          {{ action == 'deleteTrip'? $gettext("Delete ") + ' '+ tripToDelete + '?': $gettext("Apply Change?")}}
         </v-card-title>
 
         <v-card-text v-if="['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
@@ -220,7 +231,8 @@ export default {
     :selectedAction = "action"
     @actionClick="actionClick"
     @confirmChanges="confirmChanges"
-    @abortChanges="abortChanges">
+    @abortChanges="abortChanges"
+    @deleteButton="deleteButton">
   </SidePanel>
 
   <Map 
