@@ -26,9 +26,8 @@ export default {
       editorNodes: nodesHeader,
       editorLinks: linksHeader,
       editorLineInfo:{},
-      editorlinkInfo:{},
       nodes: points, 
-      tripId : []//Array.from(new Set(line.features.map(item => item.properties.trip_id)))
+      tripId : Array.from(new Set(line.features.map(item => item.properties.trip_id))) // to change with the actual import.
     },
   
     mutations: {
@@ -78,8 +77,8 @@ export default {
         state.editorLineInfo = filtered
         }
       },
-      setEditorLinkInfo(state,payload){
-        state.editorlinkInfo = payload
+      getTripId(state){
+        state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
       },
 
       //apply change to Links
@@ -91,23 +90,33 @@ export default {
         let toDelete = filtered.features.filter(item => !state.editorLinks.features.includes(item))
         //find index of soon to be deleted links
         let index = state.links.features.findIndex(link => link.properties.trip_id == state.editorTrip)
+        // delete links that were edited.
         state.links.features = state.links.features.filter(item => !toDelete.includes(item));
         //add edited links to links.
         state.links.features.splice(index, 0, ...state.editorLinks.features);
 
 
+        //TODO : ajouter les noeds si des noeds sont ajout/
 
+        // for each editor nodes, apply new properties.
         state.nodes.features.filter(
           function (node){state.editorNodes.features.forEach(
             function (eNode){
               if (node.properties.index == eNode.properties.index){
                   node.properties = eNode.properties
               }
-            }
-          )
-    
-          }
-        )
+            })
+          })
+
+        // delete every every nodes not in links
+        let a = state.links.features.map(item => item.properties.a)
+        let b = state.links.features.map(item => item.properties.b)
+        let nodesList =  Array.from(new Set([...a, ...b]))
+        state.nodes.features = state.nodes.features.filter(node => nodesList.includes(node.properties.index))
+
+
+        //get tripId list
+        this.commit('getTripId')
 
       },
 
@@ -198,9 +207,7 @@ export default {
       editorTrip: (state) => state.editorTrip,
       editorLinks: (state) => state.editorLinks,
       editorNodes: (state) => state.editorNodes,
-      tripId (state) {
-        return Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
-      },
+      tripId: (state) => state.tripId,
       editorLineInfo: (state) => state.editorLineInfo
       
     },

@@ -37,6 +37,12 @@ export default {
     },
     tripList (val){
       this.$emit("update-tripList", val);
+    },
+    tripId(new_val,old_val){
+      // update TripList v-model when a trip_id is changed.
+      var dict = {};
+      old_val.forEach((key, i) => dict[key] = new_val[i]);
+      this.tripList = this.tripList.map((trip)=>dict[trip])
     }
   },
 
