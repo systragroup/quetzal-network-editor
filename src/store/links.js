@@ -26,9 +26,8 @@ export default {
       editorNodes: nodesHeader,
       editorLinks: linksHeader,
       editorLineInfo:{},
-      editorlinkInfo:{},
       nodes: points, 
-      tripId : []//Array.from(new Set(line.features.map(item => item.properties.trip_id)))
+      tripId : Array.from(new Set(line.features.map(item => item.properties.trip_id))) // to change with the actual import.
     },
   
     mutations: {
@@ -78,8 +77,8 @@ export default {
         state.editorLineInfo = filtered
         }
       },
-      setEditorLinkInfo(state,payload){
-        state.editorlinkInfo = payload
+      getTripId(state){
+        state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
       },
 
       //apply change to Links
@@ -108,6 +107,8 @@ export default {
     
           }
         )
+
+        this.commit('getTripId')
 
       },
 
@@ -198,9 +199,7 @@ export default {
       editorTrip: (state) => state.editorTrip,
       editorLinks: (state) => state.editorLinks,
       editorNodes: (state) => state.editorNodes,
-      tripId (state) {
-        return Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
-      },
+      tripId: (state) => state.tripId,
       editorLineInfo: (state) => state.editorLineInfo
       
     },

@@ -23,9 +23,7 @@ export default {
       selectedNode : null,
       selectedLink : null,
       showDialog : false,
-      editorLineInfo : {},
-      editorLinkInfo : {},
-      editorNodeInfo : {},
+      editorForm : {},
       clickLinkEnabled: true,
       clickNodeEnabled: true 
     }
@@ -51,7 +49,7 @@ export default {
       //when an action is clicked in the sidepanel
       this.action = action
       if (action=='Edit Line info'){
-        this.editorLineInfo = {...this.$store.getters.editorLineInfo}
+        this.editorForm = {...this.$store.getters.editorLineInfo}
         this.showDialog=true
       }
       else if (action=='Edit Link Info'){
@@ -74,15 +72,15 @@ export default {
       if (selectedNode){ 
         // node action
         if (this.action == 'Edit Node Info'){
-          this.editorNodeInfo = this.selectedNode
+          this.editorForm = this.selectedNode
           const filteredKeys = ['id','index'];
-          let filtered = Object.keys(this.editorNodeInfo)
+          let filtered = Object.keys(this.editorForm)
             .filter(key => !filteredKeys.includes(key))
             .reduce((obj, key) => {
-              obj[key] = this.editorNodeInfo[key];
+              obj[key] = this.editorForm[key];
               return obj;
             }, {});
-          this.editorNodeInfo = filtered
+          this.editorForm = filtered
           this.showDialog = true
         }
         else if(this.action){
@@ -97,15 +95,15 @@ export default {
         // links action
         if(this.action == 'Edit Link Info'){
           // filter properties to only the one that are editable.
-          this.editorLinkInfo = this.selectedLink
+          this.editorForm = this.selectedLink
           const filteredKeys = ['id','a','b','link_sequence','agency_id','direction_id','headway','index','route_color','route_short_name','route_type','trip_id','route_id'];
-          let filtered = Object.keys(this.editorLinkInfo)
+          let filtered = Object.keys(this.editorForm)
             .filter(key => !filteredKeys.includes(key))
             .reduce((obj, key) => {
-              obj[key] = this.editorLinkInfo[key];
+              obj[key] = this.editorForm[key];
               return obj;
             }, {});
-          this.editorLinkInfo = filtered
+          this.editorForm = filtered
           this.showDialog = true
         }
       }
@@ -124,15 +122,15 @@ export default {
       }
       else if (this.action == 'Edit Link Info')
       {
-         this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorLinkInfo})  
+         this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorForm})  
       }
       else if (this.action == 'Edit Node Info')
       {
-         this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorNodeInfo})  
+         this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorForm})  
       }
       else if (this.action == 'Edit Line info')
-      {
-         this.$store.commit('editLineInfo',this.editorLineInfo)  
+      { 
+         this.$store.commit('editLineInfo',this.editorForm)  
          this.action = null
       }
     },
@@ -179,36 +177,12 @@ export default {
           {{$gettext("Apply Change?")}}
         </v-card-title>
 
-        <v-card-text v-if="action == 'Edit Line info'">
+        <v-card-text v-if="['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
           <v-container>
               <v-col cols="12" >
                 <v-text-field 
-                  v-for="(value,name) in editorLineInfo" :key="name"
-                  v-model="editorLineInfo[name]"
-                  :label="name"
-                ></v-text-field>
-              </v-col>
-          </v-container>
-        </v-card-text>
-
-         <v-card-text v-if="action == 'Edit Link Info'">
-          <v-container>
-              <v-col cols="12" >
-                <v-text-field 
-                  v-for="(value,name) in editorLinkInfo" :key="name"
-                  v-model="editorLinkInfo[name]"
-                  :label="name"
-                ></v-text-field>
-              </v-col>
-          </v-container>
-        </v-card-text>
-
-        <v-card-text v-if="action == 'Edit Node Info'">
-          <v-container>
-              <v-col cols="12" >
-                <v-text-field 
-                  v-for="(value,name) in editorNodeInfo" :key="name"
-                  v-model="editorNodeInfo[name]"
+                  v-for="(value,name) in editorForm" :key="name"
+                  v-model="editorForm[name]"
                   :label="name"
                 ></v-text-field>
               </v-col>
