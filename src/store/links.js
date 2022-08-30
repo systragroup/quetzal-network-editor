@@ -93,10 +93,8 @@ export default {
         //create link
         var tempLink = JSON.parse(JSON.stringify(state.editorLinks))
         const filteredKeys = ['id','index','shape_dist_traveled','time']
-        console.log(tempLink)
         if (payload.action == 'Extend Line Upward'){
           // put null on values values that should change
-          console.log(tempLink.features.length-1)
           var features = tempLink.features[tempLink.features.length-1]
           Object.keys(features.properties)
             .filter((k) => filteredKeys.includes(k))
@@ -108,6 +106,7 @@ export default {
           features.geometry.coordinates[0] = features.geometry.coordinates[1]
           //new node index (hash)
           features.properties.b = state.newNode.features[0].properties.index
+          features.properties.index = 'link_' + (+new Date).toString(36)
           
           
         }
@@ -123,6 +122,8 @@ export default {
           features.geometry.coordinates[1] = features.geometry.coordinates[0]
           // new node index (hash)
           features.properties.a = state.newNode.features[0].properties.index
+          features.properties.index = 'link_' + (+new Date).toString(36)
+
         }
         tempLink.features = [features]
         state.newLink = tempLink
@@ -136,11 +137,10 @@ export default {
         var features = tempNode.features[0]
         Object.keys(features.properties)
           .forEach(k => features.properties[k]=null);
-        features.properties.index = (+new Date).toString(36)
+        features.properties.index = 'node_' + (+new Date).toString(36)
         features.geometry.coordinates=[null,null]
         tempNode.features = [features]
         state.newNode = tempNode
-        console.log(state.newNode)
       },
 
       editNewLink(state,payload){
@@ -185,6 +185,10 @@ export default {
 
 
         //TODO : ajouter les noeds si des noeds sont ajout/
+        let nodesList  = state.nodes.features.map(item => item.properties.index)
+        let newNodes = {...state.editorNodes}
+        newNodes.features = newNodes.features.filter(node => !nodesList.includes(node.properties.index))
+        state.nodes.features.push(...newNodes.features)
 
         // for each editor nodes, apply new properties.
         state.nodes.features.filter(
@@ -199,9 +203,10 @@ export default {
         // delete every every nodes not in links
         let a = state.links.features.map(item => item.properties.a)
         let b = state.links.features.map(item => item.properties.b)
-        let nodesList =  Array.from(new Set([...a, ...b]))
-        state.nodes.features = state.nodes.features.filter(node => nodesList.includes(node.properties.index))
-
+        let nodesInLinks =  Array.from(new Set([...a, ...b]))
+        state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+        
+        
 
         //get tripId list
         this.commit('getTripId')

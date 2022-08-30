@@ -90,6 +90,7 @@ export default {
     clickNode(selectedNode){
       // node is clicked on the map
       this.selectedNode = selectedNode.properties
+      //console.log(this.selectedNode)
       if (selectedNode){ 
         // node action
         if (this.action == 'Edit Node Info'){
