@@ -26,13 +26,15 @@ export default {
       editorForm : {},
       clickLinkEnabled: true,
       clickNodeEnabled: true,
-      tripToDelete : null
+      tripToDelete : null,
+      anchorNode : null
     }
   },
   watch: {
     action (val) {
       if (val === null) {
         this.clickLinkEnabled = this.clickNodeEnabled = true
+        this.anchorNode = null
       }
     }
   },
@@ -61,7 +63,21 @@ export default {
       else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop', 'Edit Node Info'].includes(action)){
         this.clickLinkEnabled = false
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
-      }else {
+      }
+      else if (action == 'Extend Line Upward'){
+        this.clickNodeEnabled=false
+        this.clickLinkEnabled=false
+        const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
+        this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
+      }
+      else if (action == 'Extend Line Downward'){
+        this.clickNodeEnabled=false
+        this.clickLinkEnabled=false
+        const firstNode = this.$store.getters.editorLinks.features[0].properties.a
+        this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
+      }
+      
+      else {
         this.$store.commit('changeNotification',{text:null, autoClose:true})
       }
       
@@ -238,6 +254,7 @@ export default {
   <Map 
     :links="links" 
     :nodes="nodes" 
+    :anchorNode="anchorNode"
     :selectedTrips="selectedTrips" 
     :showLeftPanel="showLeftPanel"
     :clickNodeEnabled="clickNodeEnabled"

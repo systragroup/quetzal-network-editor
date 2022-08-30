@@ -29,6 +29,10 @@ export default {
     clickLinkEnabled: {
       type: Boolean,
       default: true
+    },
+    anchorNode:{
+      type:Array,
+      default:null
     }
   },
   events: ["clickLink", "clickNode"],
@@ -36,6 +40,7 @@ export default {
     return {
       links: {},
       nodes: {},
+      drawLine:{},
       mapboxPublicKey:  null,
       selectedFeature : null,
       hoveredStateId : null,
@@ -47,8 +52,16 @@ export default {
     this.mapboxPublicKey = mapboxPublicKey;
     this.links = this.$store.getters.links;
     this.nodes = this.$store.getters.nodes;
+
+    this.drawLine = JSON.parse(JSON.stringify(this.links))
+    this.drawLine.features = []
   },
   watch: {
+    anchorNode (val) {
+      if (val==null){
+        this.drawLine.features = []
+      }
+    },
     editorNodes(nodes) {
       if ( nodes.features.length > 0 ) {
         const bounds = new Mapbox.LngLatBounds();
@@ -158,9 +171,15 @@ export default {
         } else if (this.hoveredStateId.layerId == 'editorLinks') {
           this.$emit('clickLink', this.selectedFeature);
         }
-        this.selectedFeature = null;
+        //this.selectedFeature = null;
       }
     },
+     draw(event){      
+      if(this.anchorNode && this.map.loaded()){
+      this.drawLine.features = [{"geometry": { "type": "LineString", "coordinates": [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat) ] }}]
+      }
+    },
+
   },
 }
 </script>
@@ -172,6 +191,7 @@ export default {
       map-style="mapbox://styles/mapbox/light-v9"
  
       @load="onMapLoaded"
+      @mousemove="draw"
     >
       <MglNavigationControl position="bottom-right" />
       <MglGeojsonLayer
@@ -218,6 +238,29 @@ export default {
         v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
         >   
       </MglGeojsonLayer>
+
+       <MglGeojsonLayer
+        v-if="drawLine.features.length>0"
+        source-id="draw"
+        :source="{
+          type: 'geojson',
+          data: drawLine,
+          buffer: 0,
+          generateId: true,
+        }"
+        layer-id="draw"
+        :layer="{
+          type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
+          paint: {
+            'line-color': '#2196F3',
+            'line-width': 5
+          }
+        }"
+        >   
+      </MglGeojsonLayer>
+
       /*
       <MglGeojsonLayer
         source-id="nodes"
