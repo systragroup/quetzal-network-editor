@@ -54,7 +54,7 @@ export default {
     this.nodes = this.$store.getters.nodes;
 
     this.drawLine = JSON.parse(JSON.stringify(this.links))
-    this.drawLine.features = []
+    this.drawLine.features = [{"geometry": { "type": "LineString", "coordinates": [ [null,null], [null,null] ] }}]
   },
   watch: {
     anchorNode (val) {
@@ -176,9 +176,21 @@ export default {
     },
      draw(event){      
       if(this.anchorNode && this.map.loaded()){
-      this.drawLine.features = [{"geometry": { "type": "LineString", "coordinates": [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat) ] }}]
+        let index = this.drawLine.features.length-1
+        this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat)  ]
       }
     },
+    addPoint(event){
+      if(this.anchorNode){
+        let pointGeom = Object.values(event.mapboxEvent.lngLat)
+        let index = this.drawLine.features.length-1
+        this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, pointGeom  ]
+        this.drawLine.features.push({"geometry": { "type": "LineString", "coordinates": [ pointGeom, pointGeom ] }})
+        this.anchorNode[0].geometry.coordinates = pointGeom
+        console.log(this.drawLine)
+
+      }
+    }
 
   },
 }
@@ -192,6 +204,7 @@ export default {
  
       @load="onMapLoaded"
       @mousemove="draw"
+      @click="addPoint"
     >
       <MglNavigationControl position="bottom-right" />
       <MglGeojsonLayer
@@ -240,7 +253,7 @@ export default {
       </MglGeojsonLayer>
 
        <MglGeojsonLayer
-        v-if="drawLine.features.length>0"
+        v-if="anchorNode != null"
         source-id="draw"
         :source="{
           type: 'geojson',
