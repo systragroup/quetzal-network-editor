@@ -30,9 +30,9 @@ export default {
       type: Boolean,
       default: true
     },
-    anchorNode:{
-      type:Array,
-      default:null
+    drawMode:{
+      type:Boolean,
+      default:false
     }
   },
   events: ["clickLink", "clickNode"],
@@ -40,7 +40,6 @@ export default {
     return {
       links: {},
       nodes: {},
-      drawLine:{},
       mapboxPublicKey:  null,
       selectedFeature : null,
       hoveredStateId : null,
@@ -52,16 +51,8 @@ export default {
     this.mapboxPublicKey = mapboxPublicKey;
     this.links = this.$store.getters.links;
     this.nodes = this.$store.getters.nodes;
-
-    this.drawLine = JSON.parse(JSON.stringify(this.links))
-    this.drawLine.features = [{"geometry": { "type": "LineString", "coordinates": [ [null,null], [null,null] ] }}]
   },
   watch: {
-    anchorNode (val) {
-      if (val==null){
-        this.drawLine.features = []
-      }
-    },
     editorNodes(nodes) {
       if ( nodes.features.length > 0 ) {
         const bounds = new Mapbox.LngLatBounds();
@@ -117,6 +108,9 @@ export default {
     },
     editorNodes() {
       return this.$store.getters.editorNodes
+    },
+    drawLine(){
+      return this.$store.getters.newLink
     } 
   },
   methods: {
@@ -175,22 +169,30 @@ export default {
       }
     },
      draw(event){      
-      if(this.anchorNode && this.map.loaded()){
-        let index = this.drawLine.features.length-1
-        this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat)  ]
+      if(this.drawMode && this.map.loaded()){
+        //let index = this.drawLine.features.length-1
+        //this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat)  ]
+        this.$store.commit('editNewLink',Object.values(event.mapboxEvent.lngLat))
+        
       }
     },
     addPoint(event){
-      if(this.anchorNode){
+      if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
-        let index = this.drawLine.features.length-1
-        this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, pointGeom  ]
-        this.drawLine.features.push({"geometry": { "type": "LineString", "coordinates": [ pointGeom, pointGeom ] }})
-        this.anchorNode[0].geometry.coordinates = pointGeom
-        console.log(this.drawLine)
+        this.$store.commit('applyNewLink',pointGeom)
 
       }
-    }
+    },
+    resetDraw(event){     
+      // reset draw line when we leave the map 
+      if(this.drawMode && this.map.loaded()){
+        if (this.drawLine.action == 'Extend Line Upward'){
+          this.$store.commit('editNewLink',this.drawLine.features[0].geometry.coordinates[0])
+        }else {
+          this.$store.commit('editNewLink',this.drawLine.features[0].geometry.coordinates[1])
+        }
+      }
+    },
 
   },
 }
@@ -204,6 +206,7 @@ export default {
  
       @load="onMapLoaded"
       @mousemove="draw"
+      @mouseout="resetDraw"
       @click="addPoint"
     >
       <MglNavigationControl position="bottom-right" />
@@ -253,7 +256,7 @@ export default {
       </MglGeojsonLayer>
 
        <MglGeojsonLayer
-        v-if="anchorNode != null"
+        v-if="drawMode"
         source-id="draw"
         :source="{
           type: 'geojson',

@@ -27,14 +27,14 @@ export default {
       clickLinkEnabled: true,
       clickNodeEnabled: true,
       tripToDelete : null,
-      anchorNode : null
+      drawMode : false
     }
   },
   watch: {
     action (val) {
       if (val === null) {
         this.clickLinkEnabled = this.clickNodeEnabled = true
-        this.anchorNode = null
+        this.drawMode=false
       }
     }
   },
@@ -65,16 +65,20 @@ export default {
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }
       else if (action == 'Extend Line Upward'){
+        this.$store.commit('setNewLink',{action:action})
         this.clickNodeEnabled=false
         this.clickLinkEnabled=false
-        const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
-        this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
+        //const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
+        //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
+        this.drawMode=true
       }
       else if (action == 'Extend Line Downward'){
+        this.$store.commit('setNewLink',{action:action})
         this.clickNodeEnabled=false
         this.clickLinkEnabled=false
         const firstNode = this.$store.getters.editorLinks.features[0].properties.a
-        this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
+        //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
+        this.drawMode=true
       }
       
       else {
@@ -254,7 +258,7 @@ export default {
   <Map 
     :links="links" 
     :nodes="nodes" 
-    :anchorNode="anchorNode"
+    :drawMode="drawMode"
     :selectedTrips="selectedTrips" 
     :showLeftPanel="showLeftPanel"
     :clickNodeEnabled="clickNodeEnabled"

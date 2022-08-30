@@ -27,7 +27,9 @@ export default {
       editorLinks: linksHeader,
       editorLineInfo:{},
       nodes: points, 
-      tripId : Array.from(new Set(line.features.map(item => item.properties.trip_id))) // to change with the actual import.
+      tripId : Array.from(new Set(line.features.map(item => item.properties.trip_id))), // to change with the actual import.
+      newLink: {},
+      newNode: {}
     },
   
     mutations: {
@@ -79,6 +81,92 @@ export default {
       },
       getTripId(state){
         state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
+      },
+
+      setNewLink(state,payload){
+        // copy editor links geoJSON, only take first (or last) link.
+        // delete some properties like id and index.
+
+        //first create a new Node
+        this.commit('setNewNode')
+
+        //create link
+        var tempLink = JSON.parse(JSON.stringify(state.editorLinks))
+        const filteredKeys = ['id','index','shape_dist_traveled','time']
+        console.log(tempLink)
+        if (payload.action == 'Extend Line Upward'){
+          // put null on values values that should change
+          console.log(tempLink.features.length-1)
+          var features = tempLink.features[tempLink.features.length-1]
+          Object.keys(features.properties)
+            .filter((k) => filteredKeys.includes(k))
+            .forEach(k => features.properties[k]=null);
+          // sequence +1
+          features.properties.link_sequence = features.properties.link_sequence+1
+          //  replace node a by b and delete node a
+          features.properties.a = features.properties.b
+          features.geometry.coordinates[0] = features.geometry.coordinates[1]
+          //new node index (hash)
+          features.properties.b = state.newNode.features[0].properties.index
+          
+          
+        }
+        else{
+          var features =  tempLink.features[0]
+          Object.keys(features.properties)
+            .filter((k) => filteredKeys.includes(k))
+            .forEach(k => features.properties[k]=null);
+          // sequence +1
+          features.properties.link_sequence = features.properties.link_sequence-1
+          //  replace node b by a and delete node b
+          features.properties.b = features.properties.a
+          features.geometry.coordinates[1] = features.geometry.coordinates[0]
+          // new node index (hash)
+          features.properties.a = state.newNode.features[0].properties.index
+        }
+        tempLink.features = [features]
+        state.newLink = tempLink
+        state.newLink.action=payload.action
+        
+      },
+
+      setNewNode(state,payload){
+        //node
+        var tempNode =  JSON.parse(JSON.stringify(state.editorNodes))
+        var features = tempNode.features[0]
+        Object.keys(features.properties)
+          .forEach(k => features.properties[k]=null);
+        features.properties.index = (+new Date).toString(36)
+        features.geometry.coordinates=[null,null]
+        tempNode.features = [features]
+        state.newNode = tempNode
+        console.log(state.newNode)
+      },
+
+      editNewLink(state,payload){
+        // for realtime viz. this method change the linestring to the payload (mouse position)
+        // for some reason, it doesnt work when i only apply payload to coordianate[1]
+        state.newNode.features[0].geometry.coordinates = payload
+        if (state.newLink.action == 'Extend Line Upward'){
+          state.newLink.features[0].geometry.coordinates=[state.newLink.features[0].geometry.coordinates[0], payload]
+        }
+        else{
+          state.newLink.features[0].geometry.coordinates=[payload,state.newLink.features[0].geometry.coordinates[1]]
+        }
+      },
+      applyNewLink(state,payload){
+        let action = state.newLink.action
+        this.commit('editNewLink',payload)
+        if (action == 'Extend Line Upward'){
+          state.editorLinks.features.push(state.newLink.features[0])
+          state.editorNodes.features.push(state.newNode.features[0])
+        }else{
+          state.editorLinks.features.splice(0,0,state.newLink.features[0])
+          state.editorNodes.features.splice(0,0,state.newNode.features[0])
+        }
+        // reset new link with updated editorLinks
+        this.commit('setNewLink',{action:action})
+
       },
 
       //apply change to Links
@@ -219,7 +307,8 @@ export default {
       editorLinks: (state) => state.editorLinks,
       editorNodes: (state) => state.editorNodes,
       tripId: (state) => state.tripId,
-      editorLineInfo: (state) => state.editorLineInfo
+      editorLineInfo: (state) => state.editorLineInfo,
+      newLink: (state)=> state.newLink
       
     },
   }
