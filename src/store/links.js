@@ -1,8 +1,6 @@
 import line from '@static/links_test.geojson'
 import points from '@static/nodes_test.geojson'
-
-
-// Filter links from selected line
+import length from '@turf/length'
 
 
 
@@ -145,7 +143,7 @@ export default {
 
       editNewLink(state,payload){
         // for realtime viz. this method change the linestring to the payload (mouse position)
-        // for some reason, it doesnt work when i only apply payload to coordianate[1]
+        // for some reason, it doesnt work when i only apply payload to coordinates[1]
         state.newNode.features[0].geometry.coordinates = payload
         if (state.newLink.action == 'Extend Line Upward'){
           state.newLink.features[0].geometry.coordinates=[state.newLink.features[0].geometry.coordinates[0], payload]
@@ -155,6 +153,13 @@ export default {
         }
       },
       applyNewLink(state,payload){
+
+        // get linestring length in km
+        let distance = length(state.newLink)
+        state.newLink.features[0].properties.shape_dist_traveled = distance*1000 // metres
+        let time = distance/20*3600 // 20kmh hard code speed. time in secs
+        state.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+
         let action = state.newLink.action
         this.commit('editNewLink',payload)
         if (action == 'Extend Line Upward'){

@@ -3,6 +3,7 @@ import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup} from 'vue-mapbox'
 import { mapboxPublicKey } from '@src/config.js'
 
+// Filter links from selected line
 
 export default {
   name: 'Map',
