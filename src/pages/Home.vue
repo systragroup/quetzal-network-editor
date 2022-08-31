@@ -4,6 +4,10 @@ import Map from '../components/Map.vue'
 import { enableAutoDestroy } from '@vue/test-utils'
 
 
+
+
+
+
 export default {
   name: 'Home',
   components: {
@@ -90,11 +94,13 @@ export default {
     clickNode(selectedNode){
       // node is clicked on the map
       this.selectedNode = selectedNode.properties
-      //console.log(this.selectedNode)
       if (selectedNode){ 
         // node action
         if (this.action == 'Edit Node Info'){
-          this.editorForm = this.selectedNode
+          // map selected node doesnt not return properties with nanulln value. we need to get the node in the store with the selected index.
+          this.editorForm = this.$store.getters.editorNodes.features.filter((node)=>node.properties.index==this.selectedNode.index)
+          this.editorForm = this.editorForm[0].properties
+          // filter properties to only the one that are editable.
           const filteredKeys = ['id','index'];
           let filtered = Object.keys(this.editorForm)
             .filter(key => !filteredKeys.includes(key))
@@ -116,8 +122,11 @@ export default {
       if (selectedLink){ 
         // links action
         if(this.action == 'Edit Link Info'){
+          // map selected link doesnt not return properties with null value. we need to get the links in the store with the selected index.
+          this.editorForm = this.$store.getters.editorLinks.features.filter((link)=>link.properties.index==this.selectedLink.index)
+          this.editorForm = this.editorForm[0].properties
+
           // filter properties to only the one that are editable.
-          this.editorForm = this.selectedLink
           const filteredKeys = ['id','a','b','link_sequence','agency_id','direction_id','headway','index','route_color','route_short_name','route_type','trip_id','route_id'];
           let filtered = Object.keys(this.editorForm)
             .filter(key => !filteredKeys.includes(key))
@@ -153,11 +162,12 @@ export default {
       else if (this.action == 'Edit Line info')
       { 
          this.$store.commit('editLineInfo',this.editorForm)  
-         this.action = null
       }
       else if (this.action == 'deleteTrip')
+      {
         this.$store.commit('deleteTrip',this.tripToDelete)
         this.action= null
+      }
         
     },
     confirmChanges(){
@@ -184,7 +194,8 @@ export default {
       this.tripToDelete=selectedTrip
       this.action='deleteTrip'
       this.showDialog=true
-    }
+    },
+
 
     
   },
@@ -196,13 +207,14 @@ export default {
 </script>
 <template>
 
-  <section class="map-view">
+  <section class="map-view"
+  @keydown.esc="!showDialog? action=null: null">
     <v-dialog
       persistent
       v-model="showDialog"
       max-width="290"
       @keydown.enter="applyAction"
-      @keydown.esc ="showDialog=false; action=null"
+      @keydown.esc ="showDialog=false"
     >
       <v-card>
         <v-card-title class="text-h5">
@@ -227,7 +239,7 @@ export default {
           <v-btn
             color="grey"
             text
-            @click="showDialog = false; action = null"
+            @click="showDialog = false"
           >
             {{$gettext("Disagree")}}
           </v-btn>
