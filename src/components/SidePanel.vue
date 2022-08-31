@@ -1,4 +1,6 @@
 <script>
+console.log((window.innerHeight-50)/2)
+
 export default {
   name: 'sidePanel',
   components: {
@@ -19,7 +21,9 @@ export default {
     }
   },
   computed:{
-    editorTrip(){return this.$store.getters.editorTrip},
+    height() {return (window.innerHeight-50)/2 - 20*3 - 50},
+    width() {},
+    editorTrip() {return this.$store.getters.editorTrip},
     tripId() {return this.$store.getters.tripId} 
   },
 
@@ -102,11 +106,11 @@ export default {
 <template>
     <div
       class="left-panel elevation-4"
-      :style="{'width': showLeftPanel ? '20%' : '0'}"
+      :style="{'width': showLeftPanel ? '350px' : '0'}"
     >
       <div
         class="left-panel-toggle-btn elevation-4"
-        :style="{'left': showLeftPanel ? 'calc(20% + 40px)' : '50px'}"
+        :style="{'left': showLeftPanel ? 'calc(350px + 40px)' : '50px'}"
         @click="showLeftPanel = !showLeftPanel"
       >
         <v-icon
@@ -133,9 +137,9 @@ export default {
                   <v-spacer></v-spacer>
                 </v-card-title>
                 <v-virtual-scroll
-                dense
+                  dense
                   :items="tripId"
-                  height=400
+                  :height="height"
                   :item-height="41"
                   
                 >
@@ -193,28 +197,35 @@ export default {
                 max-width="100%"
                 class="mx-auto"
               >
-                <v-card-title class="white--text primary">
+              <v-card-title class="white--text primary" text-align='left'>
                   <v-spacer></v-spacer>
-                    {{editorTrip}}
+                  {{editorTrip}}
                   <v-spacer></v-spacer>
                 </v-card-title>
+                <v-virtual-scroll
+                dense
+                  :items="actionsList"
+                  :height="height"
+                  :item-height="41"
+                  
+                >
+                  <template v-slot:default="{ item }">
+                    <v-list-item :key="item.id">
+                      <v-list-item-content>
+                        <v-btn  outlined 
+                        @click = "actionClick(item)"
+                        :disabled= "disableAction(item)"> 
+                        {{$gettext(item)}}
+                        </v-btn>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
                 <v-divider></v-divider>
-                <v-card-actions
-                    v-for="action in actionsList"
-                    :key="action.id">
-                  <v-btn x-small outlined rounded text
-                    @click = "actionClick(action)"
-                    :disabled= "disableAction(action)"> 
-                    {{$gettext(action)}}
-                    </v-btn>
-                </v-card-actions>
                 <v-card-actions>
                   <v-btn outlined rounded text color="success" @click="$emit('confirmChanges')"> {{$gettext("Confirm")}}</v-btn>
                   <v-btn outlined rounded text color="error" @click="$emit('abortChanges')"> {{$gettext("Abort")}}</v-btn>
-
                 </v-card-actions>
-                  
-                
               </v-card>
             </div>
 
@@ -260,5 +271,12 @@ export default {
 
 .scrollable {
    overflow-y: scroll;
+}
+
+.drawer-list-item {
+  padding: 0 13px !important;
+  justify-content: flex-start !important;
+  flex: 0;
+  transition: 0.3s;
 }
 </style>

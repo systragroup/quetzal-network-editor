@@ -18,192 +18,63 @@ msgstr ""
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/pages/Post.vue:66
-msgid "Add"
-msgstr "Ajouter"
-
-#: src/router/index.js:42
-msgid "Add a blog post"
-msgstr "Ajouter un billet"
-
-#: src/pages/Post.vue:93 src/pages/Post.vue:100
-msgid "Add a comment"
-msgstr "Ajouter un commentaire"
-
-#: src/components/CommentForm.vue:20 src/pages/PostAdd.vue:55
-msgid "Author"
-msgstr "Auteur"
-
-#: src/components/CommentForm.vue:22 src/pages/PostAdd.vue:24
-msgid "Author is required"
-msgstr "Auteur requis"
-
-#: src/pages/PostAdd.vue:29
-msgid "Blog post addition"
-msgstr "Ajout d’un billet"
-
-#: src/components/Comment.vue:49
-msgid "By"
-msgstr "Par"
-
-#: src/components/PostCard.vue:42 src/pages/Post.vue:60 src/pages/Post.vue:76
-#: src/pages/Post.vue:92 src/pages/PostAdd.vue:91
-msgid "Cancel"
+#: src/components/SidePanel.vue:246
+msgid "Abort"
 msgstr "Annuler"
 
-#: src/pages/PostAdd.vue:65
-msgid "Categories"
-msgstr "Catégories"
+#: src/components/SidePanel.vue:216
+msgid "action"
+msgstr ""
 
-#: src/pages/Category.vue:9
-msgid "Category:"
-msgstr "Catégorie :"
+#: src/pages/Home.vue:84
+msgid "Agree"
+msgstr "Confirmer"
+
+#: src/pages/Home.vue:36
+msgid "Apply Change?"
+msgstr "Appliquer?"
 
 #: src/App.vue:40
 msgid "Close"
 msgstr "Fermer"
 
-#: src/components/CommentForm.vue:11
-msgid "Comment"
-msgstr "Commentaire"
-
-#: src/components/CommentForm.vue:19
-msgid "Comment is required"
-msgstr "Commentaire requis"
-
-#: src/pages/Post.vue:69
-msgid "Comments"
-msgstr "Commentaires"
-
-#: src/components/PostCard.vue:48
+#: src/components/SidePanel.vue:234
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/components/Welcome.vue:32
-msgid "Create a new blog post"
-msgstr "Créer un nouveau billet"
-
-#: src/components/Comment.vue:45 src/pages/Post.vue:98
-msgid "Delete"
+#: src/pages/Home.vue:36
+#, fuzzy
+msgid "Delete "
 msgstr "Supprimer"
 
-#: src/components/PostCard.vue:65
-msgid "Delete a blog post"
-msgstr "Suppression d’un billet"
-
-#: src/pages/Post.vue:135
-msgid "Delete a comment"
-msgstr "Suppression d’un commentaire"
+#: src/pages/Home.vue:74
+msgid "Disagree"
+msgstr "Annuler"
 
 #: src/components/layout/NavigationDrawer.vue:22
 msgid "Disconnect"
 msgstr "Se déconnecter"
 
-#: src/components/PostCard.vue:72 src/pages/Post.vue:143
-msgid "Do you really want to take that action?"
-msgstr "Voulez-vous vraiment effectuer cette action ?"
+#: src/components/SidePanel.vue:175
+msgid "Hide All"
+msgstr "Cacher Tout"
 
-#: src/components/Comment.vue:28
-msgid "Edit"
-msgstr "Éditer"
-
-#: src/pages/Post.vue:117
-msgid "Edit a comment"
-msgstr "Éditer un commentaire"
-
-#: src/router/index.js:28
+#: src/router/index.js:27
 msgid "Home"
 msgstr "Accueil"
 
-#: src/components/PostList.vue:12
-msgid "keyword"
-msgstr "mot-clé"
-
-#: src/pages/Map.vue:44
-msgid "Legend"
-msgstr "Légende"
-
-#: src/pages/Map.vue:55
-msgid "Line"
+#: src/components/SidePanel.vue:62
+#, fuzzy
+msgid "Lines"
 msgstr "Ligne"
 
-#: src/pages/Login.vue:31 src/pages/Login.vue:50
+#: src/pages/Login.vue:31 src/pages/Login.vue:50 src/router/index.js:20
 msgid "Login"
 msgstr "Connexion"
 
-#: src/router/index.js:35
-msgid "Map"
-msgstr "Carte"
-
-#: src/pages/Map.vue:49
-msgid "Markers"
-msgstr "Marqueurs"
-
-#: src/components/Comment.vue:50 src/pages/Post.vue:66
-msgid "On"
-msgstr "Le"
-
-#: src/pages/Map.vue:86
-msgid "Pk:"
-msgstr "Pk :"
-
-#: src/pages/PostAdd.vue:111
-msgid "Publish"
-msgstr "Publier"
-
-#: src/components/PostCard.vue:27 src/pages/Post.vue:65
-msgid "Published by"
-msgstr "Publié par"
-
-#: src/pages/Post.vue:42
-msgid "Return"
-msgstr "Retour"
-
-#: src/pages/Post.vue:82
-msgid "Save"
-msgstr "Sauvegarder"
-
-#: src/components/PostList.vue:11
-msgid "Search"
-msgstr "Rechercher"
-
-#: src/components/Welcome.vue:16
-msgid "Select a blog post in the list, or create a new one!"
-msgstr ""
-"Sélectionnez un billet dans la liste sur la droite de l’écran, ou créez-en "
-"un nouveau !"
-
-#: src/pages/PostAdd.vue:46
-msgid "Text"
-msgstr "Texte"
-
-#: src/pages/PostAdd.vue:20
-msgid "Text is required"
-msgstr "Texte requis"
-
-#: src/pages/PostAdd.vue:38
-msgid "Title"
-msgstr "Titre"
-
-#: src/pages/PostAdd.vue:16
-msgid "Title cannot excess 100 characters"
-msgstr "Un titre ne peut pas faire plus de 100 caractères"
-
-#: src/pages/PostAdd.vue:15
-msgid "Title is required"
-msgstr "Titre requis"
-
-#: src/components/Welcome.vue:14
-msgid "Welcome to"
-msgstr "Bienvenue sur"
-
-#: src/components/PostCard.vue:71
-msgid "You are about to delete the blog post"
-msgstr "Vous êtes sur le point de supprimer le billet"
-
-#: src/pages/Post.vue:142
-msgid "You are about to delete the comment"
-msgstr "Vous êtes sur le point de supprimer le commentaire"
+#: src/components/SidePanel.vue:164
+msgid "Show All"
+msgstr "Montrer Tout"
 
 #: src/pages/Login.vue:34
 msgid ""
@@ -212,3 +83,122 @@ msgid ""
 msgstr ""
 "L'accès à cette application nécessite une authentification, cliquez sur le "
 "bouton ci-dessous pour vous connecter."
+
+#~ msgid "Add"
+#~ msgstr "Ajouter"
+
+#~ msgid "Add a blog post"
+#~ msgstr "Ajouter un billet"
+
+#~ msgid "Add a comment"
+#~ msgstr "Ajouter un commentaire"
+
+#~ msgid "Author"
+#~ msgstr "Auteur"
+
+#~ msgid "Author is required"
+#~ msgstr "Auteur requis"
+
+#~ msgid "Blog post addition"
+#~ msgstr "Ajout d’un billet"
+
+#~ msgid "By"
+#~ msgstr "Par"
+
+#~ msgid "Cancel"
+#~ msgstr "Annuler"
+
+#~ msgid "Categories"
+#~ msgstr "Catégories"
+
+#~ msgid "Category:"
+#~ msgstr "Catégorie :"
+
+#~ msgid "Comment"
+#~ msgstr "Commentaire"
+
+#~ msgid "Comment is required"
+#~ msgstr "Commentaire requis"
+
+#~ msgid "Comments"
+#~ msgstr "Commentaires"
+
+#~ msgid "Create a new blog post"
+#~ msgstr "Créer un nouveau billet"
+
+#~ msgid "Delete a blog post"
+#~ msgstr "Suppression d’un billet"
+
+#~ msgid "Delete a comment"
+#~ msgstr "Suppression d’un commentaire"
+
+#~ msgid "Do you really want to take that action?"
+#~ msgstr "Voulez-vous vraiment effectuer cette action ?"
+
+#~ msgid "Edit"
+#~ msgstr "Éditer"
+
+#~ msgid "Edit a comment"
+#~ msgstr "Éditer un commentaire"
+
+#~ msgid "keyword"
+#~ msgstr "mot-clé"
+
+#~ msgid "Legend"
+#~ msgstr "Légende"
+
+#~ msgid "Map"
+#~ msgstr "Carte"
+
+#~ msgid "Markers"
+#~ msgstr "Marqueurs"
+
+#~ msgid "On"
+#~ msgstr "Le"
+
+#~ msgid "Pk:"
+#~ msgstr "Pk :"
+
+#~ msgid "Publish"
+#~ msgstr "Publier"
+
+#~ msgid "Published by"
+#~ msgstr "Publié par"
+
+#~ msgid "Return"
+#~ msgstr "Retour"
+
+#~ msgid "Save"
+#~ msgstr "Sauvegarder"
+
+#~ msgid "Search"
+#~ msgstr "Rechercher"
+
+#~ msgid "Select a blog post in the list, or create a new one!"
+#~ msgstr ""
+#~ "Sélectionnez un billet dans la liste sur la droite de l’écran, ou créez-"
+#~ "en un nouveau !"
+
+#~ msgid "Text"
+#~ msgstr "Texte"
+
+#~ msgid "Text is required"
+#~ msgstr "Texte requis"
+
+#~ msgid "Title"
+#~ msgstr "Titre"
+
+#~ msgid "Title cannot excess 100 characters"
+#~ msgstr "Un titre ne peut pas faire plus de 100 caractères"
+
+#~ msgid "Title is required"
+#~ msgstr "Titre requis"
+
+#~ msgid "Welcome to"
+#~ msgstr "Bienvenue sur"
+
+#~ msgid "You are about to delete the blog post"
+#~ msgstr "Vous êtes sur le point de supprimer le billet"
+
+#~ msgid "You are about to delete the comment"
+#~ msgstr "Vous êtes sur le point de supprimer le commentaire"
