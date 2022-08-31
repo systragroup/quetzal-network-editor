@@ -163,6 +163,8 @@ export default {
         }else{
           state.editorLinks.features.splice(0,0,state.newLink.features[0])
           state.editorNodes.features.splice(0,0,state.newNode.features[0])
+
+          state.editorLinks.features.forEach(link => link.properties.link_sequence+=1)
         }
         // reset new link with updated editorLinks
         this.commit('setNewLink',{action:action})
@@ -206,7 +208,8 @@ export default {
         let nodesInLinks =  Array.from(new Set([...a, ...b]))
         state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
         
-        
+        state.newLink = {}
+        state.newNode = {}
 
         //get tripId list
         this.commit('getTripId')
