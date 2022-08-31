@@ -3,6 +3,7 @@ import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup} from 'vue-mapbox'
 import { mapboxPublicKey } from '@src/config.js'
 
+// Filter links from selected line
 
 export default {
   name: 'Map',
@@ -29,6 +30,10 @@ export default {
     clickLinkEnabled: {
       type: Boolean,
       default: true
+    },
+    drawMode:{
+      type:Boolean,
+      default:false
     }
   },
   events: ["clickLink", "clickNode"],
@@ -104,6 +109,9 @@ export default {
     },
     editorNodes() {
       return this.$store.getters.editorNodes
+    },
+    drawLine(){
+      return this.$store.getters.newLink
     } 
   },
   methods: {
@@ -158,9 +166,35 @@ export default {
         } else if (this.hoveredStateId.layerId == 'editorLinks') {
           this.$emit('clickLink', this.selectedFeature);
         }
-        this.selectedFeature = null;
+        //this.selectedFeature = null;
       }
     },
+     draw(event){      
+      if(this.drawMode && this.map.loaded()){
+        //let index = this.drawLine.features.length-1
+        //this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat)  ]
+        this.$store.commit('editNewLink',Object.values(event.mapboxEvent.lngLat))
+        
+      }
+    },
+    addPoint(event){
+      if(this.drawMode){
+        let pointGeom = Object.values(event.mapboxEvent.lngLat)
+        this.$store.commit('applyNewLink',pointGeom)
+
+      }
+    },
+    resetDraw(event){     
+      // reset draw line when we leave the map 
+      if(this.drawMode && this.map.loaded()){
+        if (this.drawLine.action == 'Extend Line Upward'){
+          this.$store.commit('editNewLink',this.drawLine.features[0].geometry.coordinates[0])
+        }else {
+          this.$store.commit('editNewLink',this.drawLine.features[0].geometry.coordinates[1])
+        }
+      }
+    },
+
   },
 }
 </script>
@@ -172,6 +206,9 @@ export default {
       map-style="mapbox://styles/mapbox/light-v9"
  
       @load="onMapLoaded"
+      @mousemove="draw"
+      @mouseout="resetDraw"
+      @click="addPoint"
     >
       <MglNavigationControl position="bottom-right" />
       <MglGeojsonLayer
@@ -218,6 +255,29 @@ export default {
         v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
         >   
       </MglGeojsonLayer>
+
+       <MglGeojsonLayer
+        v-if="drawMode"
+        source-id="draw"
+        :source="{
+          type: 'geojson',
+          data: drawLine,
+          buffer: 0,
+          generateId: true,
+        }"
+        layer-id="draw"
+        :layer="{
+          type: 'line',
+          minzoom: 9,
+          maxzoom: 18,
+          paint: {
+            'line-color': '#2196F3',
+            'line-width': 5
+          }
+        }"
+        >   
+      </MglGeojsonLayer>
+
       /*
       <MglGeojsonLayer
         source-id="nodes"

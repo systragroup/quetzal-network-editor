@@ -4,7 +4,6 @@ import line from '@static/links_test.geojson'
 
 var links = line
 var link = links.features[0]
-console.log(link)
 
 
 
