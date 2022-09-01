@@ -69,6 +69,7 @@ export default {
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }
       else if (action == 'Extend Line Upward'){
+        this.$store.commit('changeNotification',{text:'Click on the map to extend', autoClose:false})
         this.$store.commit('setNewLink',{action:action})
         this.clickNodeEnabled=false
         this.clickLinkEnabled=false
@@ -77,12 +78,18 @@ export default {
         this.drawMode=true
       }
       else if (action == 'Extend Line Downward'){
+        this.$store.commit('changeNotification',{text:'Click on the map to extend', autoClose:false})
         this.$store.commit('setNewLink',{action:action})
         this.clickNodeEnabled=false
         this.clickLinkEnabled=false
         const firstNode = this.$store.getters.editorLinks.features[0].properties.a
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
         this.drawMode=true
+      }
+      else if (action == 'Delete Stop'){
+        this.clickLinkEnabled = false
+        this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
+
       }
       
       else {
@@ -111,7 +118,7 @@ export default {
           this.editorForm = filtered
           this.showDialog = true
         }
-        else if(this.action){
+        else if (this.action){
           this.showDialog = true
         }
       }
@@ -128,6 +135,7 @@ export default {
 
           // filter properties to only the one that are editable.
           const filteredKeys = ['id','a','b','link_sequence','agency_id','direction_id','headway','index','route_color','route_short_name','route_type','trip_id','route_id'];
+          //const filteredKeys=[]
           let filtered = Object.keys(this.editorForm)
             .filter(key => !filteredKeys.includes(key))
             .reduce((obj, key) => {
@@ -151,6 +159,10 @@ export default {
       {
          this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
       }
+      else if (this.action == 'Delete Stop')
+      {
+        this.$store.commit('deleteNode',{selectedNode:this.selectedNode})
+      }
       else if (this.action == 'Edit Link Info')
       {
          this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorForm})  
@@ -162,6 +174,7 @@ export default {
       else if (this.action == 'Edit Line info')
       { 
          this.$store.commit('editLineInfo',this.editorForm)  
+         this.action=null
       }
       else if (this.action == 'deleteTrip')
       {
