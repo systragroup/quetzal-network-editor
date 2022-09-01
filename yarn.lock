@@ -5078,7 +5078,7 @@
   dependencies:
     "brace-expansion" "^1.1.7"
 
-"minimist@^1.2.0", "minimist@^1.2.5", "minimist@^1.2.6":
+"minimist@^1.1.0", "minimist@^1.2.0", "minimist@^1.2.5", "minimist@^1.2.6":
   "integrity" "sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q=="
   "resolved" "https://registry.npmjs.org/minimist/-/minimist-1.2.6.tgz"
   "version" "1.2.6"
@@ -6777,6 +6777,18 @@
   "integrity" "sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ=="
   "resolved" "https://registry.npmjs.org/tslib/-/tslib-2.4.0.tgz"
   "version" "2.4.0"
+
+"turf-linestring@^1.0.2":
+  "integrity" "sha512-oXXB/COibgmPCUrVaSxCr5hqJsnSEwFvwGkC7hOx6KwlGfHTnhakLCM3BKeRHIfpwMT+Oo+WxJvagAh8UTUeSg=="
+  "resolved" "https://registry.npmjs.org/turf-linestring/-/turf-linestring-1.0.2.tgz"
+  "version" "1.0.2"
+
+"turf-point@^2.0.1":
+  "integrity" "sha512-DkzYiE8Gc7G6XNW3FsBEwKAMz7jVZ/cw+PqLLkiSR1bde0vRZumF26UDQrspyQNih/oShQ0i4mSfa/dw3tqzsA=="
+  "resolved" "https://registry.npmjs.org/turf-point/-/turf-point-2.0.1.tgz"
+  "version" "2.0.1"
+  dependencies:
+    "minimist" "^1.1.0"
 
 "type-check@^0.4.0":
   "integrity" "sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew=="
