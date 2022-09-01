@@ -34,6 +34,10 @@ export default {
     drawMode:{
       type:Boolean,
       default:false
+    },
+    selectedAction:{
+      type: String,
+      defaut: null      
     }
   },
   events: ["clickLink", "clickNode"],
@@ -49,7 +53,12 @@ export default {
         coordinates: [0, 0],
         showed: false,
         content: null
-      }
+      },
+      popupEditor: {
+        coordinates: [0, 0],
+        showed: false,
+        content: null
+      },
     }
   },
   created () {
@@ -134,11 +143,11 @@ export default {
     },
     enterLink(event) {
       this.map.getCanvas().style.cursor = 'pointer';
-      this.popup.showed = true
       this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
                                 event.mapboxEvent.lngLat.lat
       ]
       this.popup.content = event.mapboxEvent.features[0].properties.trip_id
+      this.popup.showed = true
     },
     leaveLink(event) {
       this.map.getCanvas().style.cursor = '';
@@ -157,9 +166,15 @@ export default {
         { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
         { hover: true }
       );
+      this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
+                                      event.mapboxEvent.lngLat.lat
+      ]
+      this.popupEditor.content = this.hoveredStateId.id;
+      this.popupEditor.showed = true;
     },
     offCursor(event){
       this.map.getCanvas().style.cursor = '';
+      this.popupEditor.showed = false;
       if (this.hoveredStateId !== null) {
         this.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
@@ -179,10 +194,14 @@ export default {
       }
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
+        let click = {selectedFeature: this.selectedFeature,
+                     action: this.selectedAction }
         if (this.hoveredStateId.layerId == 'editorNodes') {
-          this.$emit('clickNode', this.selectedFeature);
+          if ( this.selectedAction === null ) {  click.action = 'Edit Node Info' }
+          this.$emit('clickNode', click);
         } else if (this.hoveredStateId.layerId == 'editorLinks') {
-          this.$emit('clickLink', this.selectedFeature);
+          if ( this.selectedAction === null ) {  click.action = 'Edit Link Info' }
+          this.$emit('clickLink', click);
         }
         //this.selectedFeature = null;
       }
@@ -258,7 +277,7 @@ export default {
           type: 'geojson',
           data: $store.getters.editorLinks,
           buffer: 0,
-          generateId: true,
+          promoteId: 'index',
         }"
         layer-id="editorLinks"
         :layer="{
@@ -326,7 +345,7 @@ export default {
           type: 'geojson',
           data: editorNodes,
           buffer: 0,
-          generateId: true,
+          promoteId: 'index',
         }"
         layer-id="editorNodes"
         :layer="{
@@ -347,6 +366,17 @@ export default {
                 :showed="popup.showed"
                 :coordinates="popup.coordinates">
         {{this.popup.content}}
+      </MglPopup>
+      <MglPopup :closeButton="false"
+                :showed="popupEditor.showed"
+                :coordinates="popupEditor.coordinates">
+        <span>
+          <h3>{{this.popupEditor.content}}</h3>
+          <hr>
+          Left click to show info
+          <hr>
+          Right click for context menu
+        </span>
       </MglPopup>
     </MglMap>
 
@@ -392,8 +422,5 @@ export default {
 
 .scrollable {
    overflow-y: scroll;
-}
-.mapboxgl-popup-tip {
-  border-top-color: yellow;
 }
 </style>
