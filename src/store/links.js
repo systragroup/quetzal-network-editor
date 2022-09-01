@@ -136,7 +136,7 @@ export default {
         Object.keys(features.properties)
           .forEach(k => features.properties[k]=null);
         features.properties.index = 'node_' + (+new Date).toString(36)
-        features.geometry.coordinates=[null,null]
+        features.geometry.coordinates = payload?.coordinates? payload.coordinates:[null,null]
         tempNode.features = [features]
         state.newNode = tempNode
       },
@@ -351,7 +351,8 @@ export default {
       editorNodes: (state) => state.editorNodes,
       tripId: (state) => state.tripId,
       editorLineInfo: (state) => state.editorLineInfo,
-      newLink: (state)=> state.newLink
+      newLink: (state)=> state.newLink,
+      newNode: (state)=> state.newNode
       
     },
   }
