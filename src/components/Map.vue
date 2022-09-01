@@ -166,11 +166,13 @@ export default {
         { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
         { hover: true }
       );
-      this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
+      if ( this.selectedAction === null ) {
+        this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
                                       event.mapboxEvent.lngLat.lat
-      ]
-      this.popupEditor.content = this.hoveredStateId.id;
-      this.popupEditor.showed = true;
+        ]
+        this.popupEditor.content = this.hoveredStateId.id;
+        this.popupEditor.showed = true;
+      }
     },
     offCursor(event){
       this.map.getCanvas().style.cursor = '';
@@ -192,6 +194,7 @@ export default {
           break;
         }
       }
+      console.log(this.selectedFeature.id)
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
@@ -203,7 +206,6 @@ export default {
           if ( this.selectedAction === null ) {  click.action = 'Edit Link Info' }
           this.$emit('clickLink', click);
         }
-        //this.selectedFeature = null;
       }
     },
      draw(event){      
@@ -373,9 +375,9 @@ export default {
         <span>
           <h3>{{this.popupEditor.content}}</h3>
           <hr>
-          Left click to show info
+          {{$gettext("Left click to edit properties")}}
           <hr>
-          Right click for context menu
+          {{$gettext("Right click for context menu")}}
         </span>
       </MglPopup>
     </MglMap>

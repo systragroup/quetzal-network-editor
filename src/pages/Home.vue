@@ -3,11 +3,6 @@ import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 import { enableAutoDestroy } from '@vue/test-utils'
 
-
-
-
-
-
 export default {
   name: 'Home',
   components: {
@@ -31,14 +26,16 @@ export default {
       clickLinkEnabled: true,
       clickNodeEnabled: true,
       tripToDelete : null,
-      drawMode : false
+      drawMode : false,
+      lingeringAction : false
     }
   },
   watch: {
     action (val) {
       if (val === null) {
         this.clickLinkEnabled = this.clickNodeEnabled = true
-        this.drawMode=false
+        this.drawMode = false
+        this.lingeringAction = false
       }
     }
   },
@@ -55,53 +52,52 @@ export default {
     actionClick(action){
       //when an action is clicked in the sidepanel
       this.action = action
-      if (action=='Edit Line info'){
+      if ( action == 'Edit Line info' ){
         this.editorForm = {...this.$store.getters.editorLineInfo}
-        this.showDialog=true
+        this.showDialog = true
       }
-      else if (action=='Edit Link Info'){
-        this.clickNodeEnabled=false
+      else if ( action == 'Edit Link Info' ){
+        this.clickNodeEnabled = false
+        this.lingeringAction = true
         this.$store.commit('changeNotification',{text:'Select a Link', autoClose:false})
-        
       }
-      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop', 'Edit Node Info'].includes(action)){
+      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop','Edit Node Info'].includes(action)){
         this.clickLinkEnabled = false
+        this.lingeringAction = true
         this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
       }
       else if (action == 'Extend Line Upward'){
         this.$store.commit('changeNotification',{text:'Click on the map to extend', autoClose:false})
         this.$store.commit('setNewLink',{action:action})
-        this.clickNodeEnabled=false
-        this.clickLinkEnabled=false
+        this.clickNodeEnabled = false
+        this.clickLinkEnabled = false
+        this.lingeringAction = true
         //const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
-        this.drawMode=true
+        this.drawMode = true
       }
       else if (action == 'Extend Line Downward'){
         this.$store.commit('changeNotification',{text:'Click on the map to extend', autoClose:false})
         this.$store.commit('setNewLink',{action:action})
         this.clickNodeEnabled=false
         this.clickLinkEnabled=false
+        this.lingeringAction = true
         const firstNode = this.$store.getters.editorLinks.features[0].properties.a
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
         this.drawMode=true
       }
-      else if (action == 'Delete Stop'){
-        this.clickLinkEnabled = false
-        this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
-
-      }
-      
       else {
+        this.lingeringAction = false
         this.$store.commit('changeNotification',{text:null, autoClose:true})
       }
-      
     },
 
-    clickNode(selectedNode){
+    clickNode(event){
       // node is clicked on the map
-      this.selectedNode = selectedNode.properties
-      if (selectedNode){ 
+      console.log(event.selectedFeature.id)
+      this.selectedNode = event.selectedFeature.properties
+      this.action = event.action
+      if (this.selectedNode){ 
         // node action
         if (this.action == 'Edit Node Info'){
           // map selected node doesnt not return properties with nanulln value. we need to get the node in the store with the selected index.
@@ -123,10 +119,12 @@ export default {
         }
       }
     },
-    clickLink(selectedLink){
+    clickLink(event){
       // link is clicked on the map
-      this.selectedLink = selectedLink.properties
-      if (selectedLink){ 
+      console.log(event.selectedFeature.id)
+      this.selectedLink = event.selectedFeature.properties
+      this.action = event.action
+      if (this.selectedLink){ 
         // links action
         if(this.action == 'Edit Link Info'){
           // map selected link doesnt not return properties with null value. we need to get the links in the store with the selected index.
@@ -150,7 +148,7 @@ export default {
 
     applyAction(){
       // click yes on dialog
-      this.showDialog=false
+      this.showDialog = false
       if (this.action == 'Cut Line From Node')
       {
         this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode})  
@@ -174,14 +172,16 @@ export default {
       else if (this.action == 'Edit Line info')
       { 
          this.$store.commit('editLineInfo',this.editorForm)  
-         this.action=null
       }
       else if (this.action == 'deleteTrip')
       {
         this.$store.commit('deleteTrip',this.tripToDelete)
-        this.action= null
       }
-        
+      if ( !this.lingeringAction ) { this.action = null } 
+    },
+    cancelAction(){
+      this.showDialog = false
+      if ( !this.lingeringAction ) { this.action = null }
     },
     confirmChanges(){
       // confirm changes on sidePanel, this overwrite Links in store.
@@ -208,14 +208,7 @@ export default {
       this.action='deleteTrip'
       this.showDialog=true
     },
-
-
-    
   },
-  computed:{
-   
-  }
-  
 }
 </script>
 <template>
@@ -231,7 +224,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{ action == 'deleteTrip'? $gettext("Delete ") + ' '+ tripToDelete + '?': $gettext("Apply Change?")}}
+          {{ action == 'deleteTrip'? $gettext("Delete ") + ' '+ tripToDelete + '?': $gettext("Edit Properties")}}
         </v-card-title>
 
         <v-card-text v-if="['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
@@ -252,18 +245,19 @@ export default {
           <v-btn
             color="grey"
             text
-            @click="showDialog = false"
+            @click="cancelAction"
+            @keydown.esc="cancelAction"
           >
-            {{$gettext("Disagree")}}
+            {{$gettext("Cancel")}}
           </v-btn>
 
           <v-btn
             color="green darken-1"
             text
             @click="applyAction"
-            
+            @keydown.enter="applyAction"
           >
-            {{$gettext("Agree")}}
+            {{$gettext("Save")}}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -289,6 +283,7 @@ export default {
     :showLeftPanel="showLeftPanel"
     :clickNodeEnabled="clickNodeEnabled"
     :clickLinkEnabled="clickLinkEnabled"
+    :selectedAction="action"
     @clickNode = "clickNode"
     @clickLink = "clickLink">
   </Map>
