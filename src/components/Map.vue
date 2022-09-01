@@ -44,6 +44,12 @@ export default {
       mapboxPublicKey:  null,
       selectedFeature : null,
       hoveredStateId : null,
+      isEditorMode : false,
+      popup: {
+        coordinates: [0, 0],
+        showed: false,
+        content: null
+      }
     }
   },
   created () {
@@ -51,11 +57,12 @@ export default {
     this.clonedMap = null
     this.mapboxPublicKey = mapboxPublicKey;
     this.links = this.$store.getters.links;
-    this.nodes = this.$store.getters.nodes;
+    this.nodes = this.$store.getters.nodes
   },
   watch: {
     editorNodes(nodes) {
-      if ( nodes.features.length > 0 ) {
+      this.isEditorMode = ( nodes.features.length > 0 );
+      if ( this.isEditorMode ) {
         const bounds = new Mapbox.LngLatBounds();
         nodes.features.forEach(node => {
           bounds.extend(node.geometry.coordinates)
@@ -125,6 +132,18 @@ export default {
       })
       this.map = event.map;
     },
+    enterLink(event) {
+      this.map.getCanvas().style.cursor = 'pointer';
+      this.popup.showed = true
+      this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
+                                event.mapboxEvent.lngLat.lat
+      ]
+      this.popup.content = event.mapboxEvent.features[0].properties.trip_id
+    },
+    leaveLink(event) {
+      this.map.getCanvas().style.cursor = '';
+      this.popup.showed = false
+    },
     onCursor(event){
       this.map.getCanvas().style.cursor = 'pointer';
       if (this.hoveredStateId !== null) {
@@ -133,7 +152,6 @@ export default {
           { hover: false }
         )
       }
-      
       this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
       this.map.setFeatureState(
         { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
@@ -231,7 +249,8 @@ export default {
             'line-width': 3
           }
         }"
-        >   
+        v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink }"
+        >  
       </MglGeojsonLayer>
       <MglGeojsonLayer
         source-id="editorLinks"
@@ -324,7 +343,13 @@ export default {
         v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
         >   
       </MglGeojsonLayer>
+      <MglPopup :closeButton="false"
+                :showed="popup.showed"
+                :coordinates="popup.coordinates">
+        {{this.popup.content}}
+      </MglPopup>
     </MglMap>
+
 </template>
 <style lang="scss" scoped>
 .map-view {
@@ -364,14 +389,11 @@ export default {
   font-size: 1.1em;
   margin-bottom: 10px;
 }
-.pk-marker {
-  width: 15px;
-  height: 15px;
-  border-radius: 20px;
-  background-color: $secondary;
-}
 
 .scrollable {
    overflow-y: scroll;
+}
+.mapboxgl-popup-tip {
+  border-top-color: yellow;
 }
 </style>
