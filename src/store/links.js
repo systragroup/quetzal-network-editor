@@ -176,6 +176,36 @@ export default {
 
       },
 
+      deleteNode(state,payload){
+        const nodeIndex = payload.selectedNode.index
+        // remove node
+        state.editorNodes.features=state.editorNodes.features.filter(node=>node.properties.index!=nodeIndex)
+        // changing link1 change editorLinks as it is an observer.
+        let link1 = state.editorLinks.features.filter(link => link.properties.b==nodeIndex)[0] // this link is extented
+        let link2 = state.editorLinks.features.filter(link => link.properties.a==nodeIndex)[0] // this link is deleted
+        // if the last or first node is selected, there is only one link. The node and the link are deleted.
+        if (!link1) {
+          state.editorLinks.features = state.editorLinks.features.filter(link => link.properties.index!=link2.properties.index)
+          // a link was remove, link_sequence -1
+          state.editorLinks.features.forEach(link => link.properties.link_sequence-=1)
+        }
+        else if (!link2) {
+          state.editorLinks.features = state.editorLinks.features.filter(link => link.properties.index!=link1.properties.index)
+        }
+        // the node is inbetween 2 links. 1 link is deleted, and the other is extented.
+        else {
+          link1.geometry.coordinates = [link1.geometry.coordinates[0],link2.geometry.coordinates[1]]
+          link1.properties.b = link2.properties.b
+          link1.properties.shape_dist_traveled += link2.properties.shape_dist_traveled
+          link1.properties.time += link2.properties.time
+          // find removed link index. drop everylinks link_sequence after by 1
+          let featureIndex = state.editorLinks.features.findIndex(link => link.properties.index == link2.properties.index)
+          state.editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence-=1)
+          //delete link2
+          state.editorLinks.features = state.editorLinks.features.filter(link => link.properties.index!=link2.properties.index)
+        }
+      },
+
       //apply change to Links
       confirmChanges(state){
 
