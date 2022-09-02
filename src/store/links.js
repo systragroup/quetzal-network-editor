@@ -1,6 +1,9 @@
 import line from '@static/links_test.geojson'
 import points from '@static/nodes_test.geojson'
 import length from '@turf/length'
+import nearestPointOnLine from '@turf/nearest-point-on-line'
+import Linestring from 'turf-linestring'
+import Point from 'turf-point'
 
 
 
@@ -136,7 +139,7 @@ export default {
         Object.keys(features.properties)
           .forEach(k => features.properties[k]=null);
         features.properties.index = 'node_' + (+new Date).toString(36)
-        features.geometry.coordinates=[null,null]
+        features.geometry.coordinates = payload?.coordinates? payload.coordinates:[null,null]
         tempNode.features = [features]
         state.newNode = tempNode
       },
@@ -205,7 +208,40 @@ export default {
           state.editorLinks.features = state.editorLinks.features.filter(link => link.properties.index!=link2.properties.index)
         }
       },
+      splitLink(state,payload){
+        const linkIndex = payload.selectedLink.index
+        let featureIndex = state.editorLinks.features.findIndex(link => link.properties.index == linkIndex)
+        // changing link1 change editorLinks as it is an observer.
+        let link1 = state.editorLinks.features[featureIndex] // this link is extented
+        let link2 = JSON.parse(JSON.stringify(link1))
+        // distance du point (entre 0 et 1) sur le lien original
+        const ratio = payload.offset / link1.properties.shape_dist_traveled
 
+        link1.properties.b = state.newNode.features[0].properties.index
+        link1.geometry.coordinates[1] = state.newNode.features[0].geometry.coordinates
+        link1.properties.index = 'link_' + (+new Date).toString(36)+'1' //link1.properties.index+ '-1'
+        link1.properties.shape_dist_traveled = link1.properties.shape_dist_traveled*ratio
+        link1.properties.time = link1.properties.time*ratio
+
+        link2.properties.a = state.newNode.features[0].properties.index
+        link2.geometry.coordinates[0] = state.newNode.features[0].geometry.coordinates
+        link2.properties.index ='link_' + (+new Date).toString(36)+'2' // link2.properties.index+ '-2'
+        link2.properties.shape_dist_traveled = link2.properties.shape_dist_traveled*(1-ratio)
+        link2.properties.time = link2.properties.time*(1-ratio)
+
+        state.editorLinks.features.splice(featureIndex+1, 0, link2);
+        state.editorNodes.features.push(state.newNode.features[0])
+      },
+      addNodeInline(state,payload){
+        // payload contain selectedLink and event.lngLat (clicked point)
+          let linkGeom = state.editorLinks.features.filter((link)=>link.properties.index == payload.selectedLink.index)
+          linkGeom = Linestring(linkGeom[0].geometry.coordinates)
+          let clickedPoint = Point(Object.values(payload.lngLat))
+          var snapped = nearestPointOnLine(linkGeom, clickedPoint, {units: 'kilometers'});
+          const offset = snapped.properties.location * 1000 // offset in metres from node a.
+          this.commit('setNewNode',{coordinates:snapped.geometry.coordinates})
+          this.commit('splitLink',{selectedLink:payload.selectedLink, offset:offset})
+      },
       //apply change to Links
       confirmChanges(state){
 
@@ -351,7 +387,8 @@ export default {
       editorNodes: (state) => state.editorNodes,
       tripId: (state) => state.tripId,
       editorLineInfo: (state) => state.editorLineInfo,
-      newLink: (state)=> state.newLink
+      newLink: (state)=> state.newLink,
+      newNode: (state)=> state.newNode
       
     },
   }

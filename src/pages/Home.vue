@@ -3,6 +3,7 @@ import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 import { enableAutoDestroy } from '@vue/test-utils'
 
+
 export default {
   name: 'Home',
   components: {
@@ -23,6 +24,7 @@ export default {
       selectedLink : null,
       showDialog : false,
       editorForm : {},
+      cursorPosition : [],
       clickLinkEnabled: true,
       clickNodeEnabled: true,
       tripToDelete : null,
@@ -86,6 +88,11 @@ export default {
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
         this.drawMode=true
       }
+      else if (action == 'Add Stop Inline'){
+        this.$store.commit('changeNotification',{text:'Click on a link to add a Stop', autoClose:false})
+        this.clickNodeEnabled = false
+        this.lingeringAction = true
+      }
       else {
         this.lingeringAction = false
         this.$store.commit('changeNotification',{text:null, autoClose:true})
@@ -94,7 +101,6 @@ export default {
 
     clickNode(event){
       // node is clicked on the map
-      console.log(event.selectedFeature.id)
       this.selectedNode = event.selectedFeature.properties
       this.action = event.action
       if (this.selectedNode){ 
@@ -121,7 +127,6 @@ export default {
     },
     clickLink(event){
       // link is clicked on the map
-      console.log(event.selectedFeature.id)
       this.selectedLink = event.selectedFeature.properties
       this.action = event.action
       if (this.selectedLink){ 
@@ -143,7 +148,13 @@ export default {
           this.editorForm = filtered
           this.showDialog = true
         }
+        else if (this.action == 'Add Stop Inline'){
+          this.cursorPosition = event.lngLat
+          this.showDialog=true
+ 
+        }
       }
+      
     },
 
     applyAction(){
@@ -176,6 +187,10 @@ export default {
       else if (this.action == 'deleteTrip')
       {
         this.$store.commit('deleteTrip',this.tripToDelete)
+      }
+      else if (this.action == 'Add Stop Inline')
+      {
+        this.$store.commit('addNodeInline',{selectedLink:this.selectedLink, lngLat:this.cursorPosition})
       }
       if ( !this.lingeringAction ) { this.action = null } 
     },
