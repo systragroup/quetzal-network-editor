@@ -23,6 +23,7 @@ export default {
       selectedNode : null,
       selectedLink : null,
       showDialog : false,
+      hideDialog : false,
       editorForm : {},
       cursorPosition : [],
       clickLinkEnabled: true,
@@ -33,8 +34,9 @@ export default {
     }
   },
   watch: {
-    action (val) {
-      if (val === null) {
+    action (newVal,oldVal) {
+      console.log(newVal)
+      if (newVal === null) {
         this.clickLinkEnabled = this.clickNodeEnabled = true
         this.drawMode = false
         this.lingeringAction = false
@@ -121,7 +123,8 @@ export default {
           this.showDialog = true
         }
         else if (this.action){
-          this.showDialog = true
+          console.log(this.action,'ici')
+          this.hideDialog? this.applyAction() : this.showDialog = true
         }
       }
     },
@@ -150,7 +153,8 @@ export default {
         }
         else if (this.action == 'Add Stop Inline'){
           this.cursorPosition = event.lngLat
-          this.showDialog=true
+          this.hideDialog? this.applyAction() : this.showDialog = true
+
  
         }
       }
@@ -160,42 +164,50 @@ export default {
     applyAction(){
       // click yes on dialog
       this.showDialog = false
-      if (this.action == 'Cut Line From Node')
-      {
-        this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode})  
-      }
-      else if (this.action == 'Cut Line At Node')
-      {
-         this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
-      }
-      else if (this.action == 'Delete Stop')
-      {
+      switch(this.action){
+      case 'Cut Line From Node':
+        this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode}) 
+        break 
+
+      case 'Cut Line At Node':
+        this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
+        break
+      
+      case 'Delete Stop':
         this.$store.commit('deleteNode',{selectedNode:this.selectedNode})
-      }
-      else if (this.action == 'Edit Link Info')
-      {
-         this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorForm})  
-      }
-      else if (this.action == 'Edit Node Info')
-      {
-         this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorForm})  
-      }
-      else if (this.action == 'Edit Line info')
-      { 
-         this.$store.commit('editLineInfo',this.editorForm)  
-      }
-      else if (this.action == 'deleteTrip')
-      {
+        break
+      
+      case 'Edit Link Info':
+        this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorForm})  
+        break
+
+      case 'Edit Node Info':
+        this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorForm})  
+        break
+
+      case 'Edit Line info':
+        this.$store.commit('editLineInfo',this.editorForm)  
+        break
+        
+      case 'deleteTrip':
         this.$store.commit('deleteTrip',this.tripToDelete)
-      }
-      else if (this.action == 'Add Stop Inline')
-      {
+        break
+
+      case 'Add Stop Inline':
         this.$store.commit('addNodeInline',{selectedLink:this.selectedLink, lngLat:this.cursorPosition})
+        break
       }
+      this.$store.commit('cleanHistory')
       if ( !this.lingeringAction ) { this.action = null } 
     },
     cancelAction(){
       this.showDialog = false
+      if (this.action == 'Move Stop'){
+        // return to the original position
+        let hist = this.$store.getters.history[0]
+        this.$store.commit('moveNode',{selectedNode:hist.moveNode.selectedFeature,lngLat:Object.values(hist.moveNode.lngLat)})
+        this.$store.commit('cleanHistory')
+      }
       if ( !this.lingeringAction ) { this.action = null }
     },
     confirmChanges(){
@@ -221,7 +233,7 @@ export default {
     deleteButton(selectedTrip){
       this.tripToDelete=selectedTrip
       this.action='deleteTrip'
-      this.showDialog=true
+      this.hideDialog? this.applyAction() : this.showDialog = true
     },
   },
 }
@@ -235,7 +247,7 @@ export default {
       v-model="showDialog"
       max-width="290"
       @keydown.enter="applyAction"
-      @keydown.esc ="showDialog=false"
+      @keydown.esc ="cancelAction"
     >
       <v-card>
         <v-card-title class="text-h5">
@@ -253,15 +265,24 @@ export default {
               </v-col>
           </v-container>
         </v-card-text>
-
+        <v-card-actions>
+          <v-checkbox
+          v-if="!['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)"
+           x-small
+           v-model="hideDialog"
+           :label="$gettext('do not show again')"
+           ></v-checkbox>
+        </v-card-actions>
+       
         <v-card-actions>
           <v-spacer></v-spacer>
+          
 
           <v-btn
             color="grey"
             text
             @click="cancelAction"
-            @keydown.esc="cancelAction"
+
           >
             {{$gettext("Cancel")}}
           </v-btn>
