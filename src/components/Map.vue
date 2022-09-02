@@ -128,7 +128,7 @@ export default {
     },
     drawLine(){
       return this.$store.getters.newLink
-    } 
+    },
   },
   methods: {
     onMapLoaded (event) {
@@ -194,11 +194,11 @@ export default {
           break;
         }
       }
-      console.log(this.selectedFeature.id)
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
-                     action: this.selectedAction }
+                     action: this.selectedAction,
+                     lngLat: event.mapboxEvent.lngLat}
         if (this.hoveredStateId.layerId == 'editorNodes') {
           if ( this.selectedAction === null ) {  click.action = 'Edit Node Info' }
           this.$emit('clickNode', click);
@@ -298,14 +298,14 @@ export default {
 
        <MglGeojsonLayer
         v-if="drawMode"
-        source-id="draw"
+        source-id="drawLink"
         :source="{
           type: 'geojson',
           data: drawLine,
           buffer: 0,
           generateId: true,
         }"
-        layer-id="draw"
+        layer-id="drawLink"
         :layer="{
           type: 'line',
           minzoom: 9,
