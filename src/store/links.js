@@ -30,7 +30,8 @@ export default {
       nodes: points, 
       tripId : Array.from(new Set(line.features.map(item => item.properties.trip_id))), // to change with the actual import.
       newLink: {},
-      newNode: {}
+      newNode: {},
+      history: []
     },
   
     mutations: {
@@ -40,6 +41,10 @@ export default {
       nodeLoaded(state) {
         state.nodesAreLoaded = true
       },
+      addToHistory(state,payload){
+        state.history.push(payload)
+      },
+      cleanHistory(state){state.history = []},
 
       setEditorTrip(state,payload){
         //set Trip Id
@@ -242,6 +247,25 @@ export default {
           this.commit('setNewNode',{coordinates:snapped.geometry.coordinates})
           this.commit('splitLink',{selectedLink:payload.selectedLink, offset:offset})
       },
+
+      moveNode(state,payload){
+        const nodeIndex = payload.selectedNode.properties.index
+        // remove node
+        let newNode = state.editorNodes.features.filter(node=>node.properties.index == nodeIndex)[0]
+        newNode.geometry.coordinates=payload.lngLat
+
+        // changing links
+        let link1 = state.editorLinks.features.filter(link => link.properties.b==nodeIndex)[0] 
+        let link2 = state.editorLinks.features.filter(link => link.properties.a==nodeIndex)[0] 
+        // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
+        if (link1) {
+          // note: props are unchanged. even tho the length change, the time and shape_dist_travel are unchanged.
+          link1.geometry.coordinates = [link1.geometry.coordinates[0], payload.lngLat]
+        }
+        if (link2) {
+          link2.geometry.coordinates = [payload.lngLat, link2.geometry.coordinates[1]]
+        }
+      },
       //apply change to Links
       confirmChanges(state){
 
@@ -269,6 +293,7 @@ export default {
             function (eNode){
               if (node.properties.index == eNode.properties.index){
                   node.properties = eNode.properties
+                  node.geometry = eNode.geometry
               }
             })
           })
@@ -379,6 +404,7 @@ export default {
     getters: {
       linksAreLoaded: (state) => state.linksAreLoaded,
       nodesAreLoaded: (state) => state.nodesAreLoaded,
+      history: state => state.history,
       links: (state) => state.links,
       nodes: (state) => state.nodes,
       route_id: (state) => state.route_id,

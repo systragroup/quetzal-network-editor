@@ -111,6 +111,18 @@ export default {
                                    { hidden: false })
         })                  
       }
+    },
+    selectedAction(newVal,oldVal){
+       // if history is not empty, apply it.
+      // when we are moving and we change the action without any dialog, we want to revert to default value.
+      if (oldVal == 'Move Stop'){
+        this.stopMovingNode()
+        let hist = this.$store.getters.history
+        if (hist.length>0){
+          this.$store.commit('moveNode',{selectedNode:hist[0].moveNode.selectedFeature,lngLat:Object.values(hist[0].moveNode.lngLat)})
+          this.$store.commit('cleanHistory')
+        }
+      }
     }
   },
   computed:{
@@ -188,12 +200,8 @@ export default {
     selectClick(event){
       // Get the highlighted feature
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-      for (const feature of features) {
-        if (feature.id == this.hoveredStateId.id) {
-          this.selectedFeature = feature;
-          break;
-        }
-      }
+      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
+ 
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
@@ -234,7 +242,41 @@ export default {
       }
     },
 
+    
+    moveNode(event){
+      if(this.selectedAction=='Move Stop'){
+        event.mapboxEvent.preventDefault(); // prevent map control
+        this.map.getCanvas().style.cursor = 'grab';
+        // get selected node
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
+        // store default position in history
+        let geom =this.editorNodes.features.filter(node=>node.properties.index == this.selectedFeature.properties.index)[0].geometry.coordinates
+        this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
+
+        // get position
+        this.map.on('mousemove',this.onMove)
+      }
+    },
+
+    onMove(event){
+      // get position and update node position
+      if (this.map.loaded()){
+          this.$store.commit('moveNode',{selectedNode:this.selectedFeature,lngLat:Object.values(event.lngLat)})
+      }
+    },
+
+    stopMovingNode(event){
+      // stop tracking position (moving node.)
+      this.map.getCanvas().style.cursor = 'pointer';
+      this.map.off('mousemove', this.onMove);
+      if (event){
+        this.selectClick({mapboxEvent:event})
+      }
+    },
+
   },
+  
 }
 </script>
 <template>
@@ -292,7 +334,7 @@ export default {
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
         }"
-        v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
+        v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
         >   
       </MglGeojsonLayer>
 
@@ -361,7 +403,7 @@ export default {
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
-        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
+        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
         >   
       </MglGeojsonLayer>
       <MglPopup :closeButton="false"
