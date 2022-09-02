@@ -116,7 +116,8 @@ export default {
        // if history is not empty, apply it.
       // when we are moving and we change the action without any dialog, we want to revert to default value.
       if (oldVal == 'Move Stop'){
-        this.stopMovingNode()
+        this.map.getCanvas().style.cursor = 'pointer';
+        this.map.off('mousemove', this.onMove);
         let hist = this.$store.getters.history
         if (hist.length>0){
           this.$store.commit('moveNode',{selectedNode:hist[0].moveNode.selectedFeature,lngLat:Object.values(hist[0].moveNode.lngLat)})
@@ -270,9 +271,9 @@ export default {
       // stop tracking position (moving node.)
       this.map.getCanvas().style.cursor = 'pointer';
       this.map.off('mousemove', this.onMove);
-      if (event){
-        this.selectClick({mapboxEvent:event})
-      }
+      if (this.selectedAction == 'Move Stop') {this.selectClick({mapboxEvent:event})}
+      
+      
     },
 
   },

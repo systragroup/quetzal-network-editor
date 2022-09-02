@@ -23,6 +23,7 @@ export default {
       selectedNode : null,
       selectedLink : null,
       showDialog : false,
+      hideDialog : false,
       editorForm : {},
       cursorPosition : [],
       clickLinkEnabled: true,
@@ -122,7 +123,8 @@ export default {
           this.showDialog = true
         }
         else if (this.action){
-          this.showDialog = true
+          console.log(this.action,'ici')
+          this.hideDialog? this.applyAction() : this.showDialog = true
         }
       }
     },
@@ -151,7 +153,8 @@ export default {
         }
         else if (this.action == 'Add Stop Inline'){
           this.cursorPosition = event.lngLat
-          this.showDialog=true
+          this.hideDialog? this.applyAction() : this.showDialog = true
+
  
         }
       }
@@ -230,7 +233,7 @@ export default {
     deleteButton(selectedTrip){
       this.tripToDelete=selectedTrip
       this.action='deleteTrip'
-      this.showDialog=true
+      this.hideDialog? this.applyAction() : this.showDialog = true
     },
   },
 }
@@ -262,9 +265,18 @@ export default {
               </v-col>
           </v-container>
         </v-card-text>
-
+        <v-card-actions>
+          <v-checkbox
+          v-if="!['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)"
+           x-small
+           v-model="hideDialog"
+           :label="$gettext('do not show again')"
+           ></v-checkbox>
+        </v-card-actions>
+       
         <v-card-actions>
           <v-spacer></v-spacer>
+          
 
           <v-btn
             color="grey"
