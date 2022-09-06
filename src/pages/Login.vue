@@ -1,9 +1,7 @@
 <script>
 
-import line from '@static/links_test.geojson'
-
-var links = line
-var link = links.features[0]
+import lines from '@static/links_test.geojson'
+import points from '@static/nodes_test.geojson'
 
 
 
@@ -12,20 +10,81 @@ export default {
   data () {
     return {
       loggedIn: false,
+      loadedLinks:{},
+      loadedNodes:{},
+      choice:null,
+      loading:{links:false,nodes:false}
     }
   },
   mounted () {
-    this.$store.commit('changeRoute', this.$options.name)
+    //this.$store.commit('changeRoute', this.$options.name)
+  },
+
+  computed:{
+    filesAreLoaded(){return this.$store.getters.filesAreLoaded}
+
+  },
+  watch:{
+    loadedLinks(){
+      this.$store.commit('loadLinks',this.loadedLinks)
+      this.loading['links'] = false
+    },
+    loadedNodes(){
+      this.$store.commit('loadNodes',this.loadedNodes)
+      this.loading['nodes'] = false
+    },
+    filesAreLoaded(val){
+      if (val){
+        this.login()
+      }
+    }
+
   },
   methods: {
     login () {
-      this.loggedIn = true
       // Leave time for animation to end (.animate-login and .animate-layer css rules)
       setTimeout(() => {
-        this.$router.push('/')
+        this.$router.push('/').catch(()=>{})
       }, 1000)
     },
+    loadExample(){
+      this.$store.commit('loadLinks',lines)
+      this.$store.commit('loadNodes',points)
+    },
+
+    readJSON(choice){
+      
+      this.choice=choice
+      this.$refs.fileInput.click()
+    },
+
+    onFilePicked (event) {
+      this.loading[this.choice] = true
+      const files = event.target.files
+      if (!files.length){
+        this.loading[this.choice]=false
+        return
+      }
+      let fileReader = new FileReader()
+      fileReader.readAsText(files[0])
+      if (this.choice == 'links'){
+        fileReader.onload =  evt =>  {
+        try{
+            this.loadedLinks =  JSON.parse(evt.target.result)
+        } catch (e){ console.log('error') }
+      }
+      }else if (this.choice == 'nodes') {
+        fileReader.onload =  evt =>  {
+        try{
+            this.loadedNodes =  JSON.parse(evt.target.result)
+        } catch (e){ console.log('error') }
+      }
+      }
+      
+    },
   },
+
+  
 }
 </script>
 <template>
@@ -39,28 +98,68 @@ export default {
       :class="{ 'animate-login': loggedIn }"
     >
       <v-card-title class="title">
-        myapp
+        Quetzal Network Editor
       </v-card-title>
       <v-card-text :style="{textAlign: 'center'}">
         <div class="subtitle">
-          {{ $gettext("Login") }}
+          {{ $gettext("Load Files") }}
         </div>
         <div>
           <!-- eslint-disable-next-line max-len -->
-          {{ $gettext("You must be logged in to have access to this application. Please click on the button below to do so.") }}
+          {{ $gettext("Links and Nodes files must be geojson in EPSG:4326 ") }}
         </div>
         <v-btn
-          color="primary"
-          @click="login"
+          :loading="loading.links"
+          :color=" this.$store.getters.linksAreLoaded? 'primary': 'normal'"
+          @click="readJSON('links')"
         >
           <v-icon
             small
             left
           >
+          fa-solid fa-upload
+          </v-icon>
+          {{ $gettext('Links') }}
+        </v-btn>
+
+        <v-btn
+          :loading="loading.nodes"
+          :color=" this.$store.getters.nodesAreLoaded? 'primary': 'normal'"
+          @click="readJSON('nodes')"
+        >
+          <v-icon
+            small
+            left
+          >
+            fa-solid fa-upload
+          </v-icon>
+          {{ $gettext('Nodes') }}
+        </v-btn>
+
+        <input
+          type="file"
+          style="display: none"
+          ref="fileInput"
+          accept=".geojson"
+          @change="onFilePicked"/>
+      <div> 
+        <v-btn text x-small @click="loadExample">Load Example</v-btn> 
+      </div>
+      <div> 
+        <v-btn
+        color="primary"
+        v-show="filesAreLoaded"
+        @click="login">
+        <v-icon
+            small
+            left
+          >
             fas fa-sign-in-alt
           </v-icon>
-          {{ $gettext('Login') }}
-        </v-btn>
+          {{ $gettext('GO!') }}
+
+        </v-btn> 
+      </div>
       </v-card-text>
     </v-card>
   </div>

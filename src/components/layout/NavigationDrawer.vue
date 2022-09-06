@@ -34,10 +34,10 @@ export default {
     handleClickMenuItem (route) {
       switch (route.name) {
         case 'Disconnect':
-          this.$router.push('/login')
+          this.$router.push('/login').catch(()=>{})
           break
         default :
-          this.$router.push(route.path)
+          this.$router.push(route.path).catch(()=>{})
           this.mini = true
           break
       }
@@ -74,7 +74,6 @@ export default {
       >
         <template v-for="item in getDisplayedRoutes()">
           <v-list-item
-            :key="item.title"
             class="drawer-list-item"
             :class="[ $store.getters.route === item.name ? 'drawer-list-item-selected' : '']"
             :style="{marginTop: item.name === 'Disconnect' ? 'auto' : '0'}"

@@ -1,45 +1,46 @@
-import line from '@static/links_test.geojson'
-import points from '@static/nodes_test.geojson'
+//import line from '@static/links_test.geojson'
+//import points from '@static/nodes_test.geojson'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 
 
-
-
-
-
-
-
-var linksHeader = {...line}
-linksHeader.features = []
-var nodesHeader = {...points}
-nodesHeader.features = []
-
-
 export default {
     state: {
-      linksAreLoaded: false,
-      nodesAreLoaded: false,
-      links: line, 
+      filesAreLoaded: {links:false,nodes:false},
+      links: {}, 
       editorTrip: null,
-      editorNodes: nodesHeader,
-      editorLinks: linksHeader,
+      editorNodes: {},
+      editorLinks: {},
       editorLineInfo:{},
-      nodes: points, 
-      tripId : Array.from(new Set(line.features.map(item => item.properties.trip_id))), // to change with the actual import.
+      nodes: {}, 
+      tripId : [], // to change with the actual import.
       newLink: {},
       newNode: {},
       history: []
     },
   
     mutations: {
-      linksLoaded(state) {
-        state.linksAreLoaded = true
+      loadLinks(state,payload) {
+        state.links = JSON.parse(JSON.stringify(payload))
+
+        var linksHeader = {...state.links}
+        linksHeader.features = []
+        state.editorLinks = linksHeader
+
+        this.commit('getTripId')
+
+        state.filesAreLoaded.links = true
       },
-      nodeLoaded(state) {
-        state.nodesAreLoaded = true
+      loadNodes(state,payload) {
+        state.nodes = JSON.parse(JSON.stringify(payload))
+
+        var nodesHeader = {...state.nodes}
+        nodesHeader.features = []
+        state.editorNodes = nodesHeader
+
+        state.filesAreLoaded.nodes = true
       },
       addToHistory(state,payload){
         state.history.push(payload)
@@ -402,9 +403,10 @@ export default {
     },
   
     getters: {
-      linksAreLoaded: (state) => state.linksAreLoaded,
-      nodesAreLoaded: (state) => state.nodesAreLoaded,
-      history: state => state.history,
+      linksAreLoaded: (state) => state.filesAreLoaded.links,
+      nodesAreLoaded: (state) => state.filesAreLoaded.nodes,
+      filesAreLoaded: (state) => state.filesAreLoaded.links==true & state.filesAreLoaded.nodes==true, 
+      history: (state) => state.history,
       links: (state) => state.links,
       nodes: (state) => state.nodes,
       route_id: (state) => state.route_id,
