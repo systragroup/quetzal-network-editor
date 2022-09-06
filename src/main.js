@@ -22,6 +22,7 @@ import translations from './translations.json'
 
 import App from './App.vue'
 import { mapboxPublicKey, backUri } from '@src/config.js'
+
 console.assert(mapboxPublicKey)
 
 const languageMixin = {

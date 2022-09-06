@@ -1,6 +1,7 @@
 <script>
 import Router from '@src/router/index'
 
+
 export default {
   name: 'NavigationDrawer',
   data () {
@@ -18,9 +19,9 @@ export default {
   },
   created () {
     this.menuItems = Router.options.routes.concat({
-      name: 'Disconnect',
-      icon: 'fas fa-sign-out-alt',
-      title: this.$gettext('Disconnect'),
+      name: 'Export',
+      icon: "fa-solid fa-download",
+      title: this.$gettext('Export'),
     })
   },
   methods: {
@@ -33,8 +34,8 @@ export default {
     },
     handleClickMenuItem (route) {
       switch (route.name) {
-        case 'Disconnect':
-          this.$router.push('/login').catch(()=>{})
+        case 'Export':
+          this.saveFile()
           break
         default :
           this.$router.push(route.path).catch(()=>{})
@@ -42,6 +43,29 @@ export default {
           break
       }
     },
+
+    saveFile () {
+    let data = JSON.stringify(this.$store.getters.links)
+    let blob = new Blob([data], {type: 'application/json'})
+    let e = document.createEvent('MouseEvents'),
+    a = document.createElement('a');
+    a.download = "links.geojson";
+    a.href = window.URL.createObjectURL(blob);
+    a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
+    e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+    a.dispatchEvent(e);
+
+    data = JSON.stringify(this.$store.getters.nodes)
+    blob = new Blob([data], {type: 'application/json'})
+    e = document.createEvent('MouseEvents'),
+    a = document.createElement('a');
+    a.download = "nodes.geojson";
+    a.href = window.URL.createObjectURL(blob);
+    a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
+    e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+    a.dispatchEvent(e);
+  },
+
   },
 }
 </script>
@@ -76,7 +100,7 @@ export default {
           <v-list-item
             class="drawer-list-item"
             :class="[ $store.getters.route === item.name ? 'drawer-list-item-selected' : '']"
-            :style="{marginTop: item.name === 'Disconnect' ? 'auto' : '0'}"
+            :style="{marginTop: item.name === 'Export' ? 'auto' : '0'}"
             @click.native.stop
             @click="handleClickMenuItem(item)"
           >

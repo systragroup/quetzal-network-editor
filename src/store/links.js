@@ -5,7 +5,6 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 
-
 export default {
     state: {
       filesAreLoaded: {links:false,nodes:false},

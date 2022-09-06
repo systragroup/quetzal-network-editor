@@ -61,10 +61,18 @@ export default {
     onFilePicked (event) {
       this.loading[this.choice] = true
       const files = event.target.files
+      // there is a file
       if (!files.length){
         this.loading[this.choice]=false
         return
       }
+      //it is a geojson
+      if (files[0].name.slice(-7) != 'geojson'){
+        this.loading[this.choice]=false
+        alert('file is not a geojson')
+        return
+      }
+
       let fileReader = new FileReader()
       fileReader.readAsText(files[0])
       if (this.choice == 'links'){
@@ -158,7 +166,7 @@ export default {
           </v-icon>
           {{ $gettext('GO!') }}
 
-        </v-btn> 
+        </v-btn>
       </div>
       </v-card-text>
     </v-card>
