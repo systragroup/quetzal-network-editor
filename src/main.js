@@ -22,6 +22,7 @@ import translations from './translations.json'
 
 import App from './App.vue'
 import { mapboxPublicKey, backUri } from '@src/config.js'
+
 console.assert(mapboxPublicKey)
 
 const languageMixin = {
@@ -65,6 +66,7 @@ Vue.use(GetTextPlugin, {
 Vue.use(VueApollo)
 
 Vue.config.productionTip = false
+Vue.config.devtools = true
 
 const vuetify = new Vuetify({
   theme: {

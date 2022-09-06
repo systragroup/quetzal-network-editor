@@ -35,7 +35,6 @@ export default {
   },
   watch: {
     action (newVal,oldVal) {
-      console.log(newVal)
       if (newVal === null) {
         this.clickLinkEnabled = this.clickNodeEnabled = true
         this.drawMode = false
@@ -123,7 +122,6 @@ export default {
           this.showDialog = true
         }
         else if (this.action){
-          console.log(this.action,'ici')
           this.hideDialog? this.applyAction() : this.showDialog = true
         }
       }
