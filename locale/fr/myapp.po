@@ -22,6 +22,10 @@ msgstr "%{s}"
 msgid "Abort"
 msgstr "Annuler"
 
+#: src/pages/Home.vue:32
+msgid "Add Stop Inline"
+msgstr "Ajouter un Arrêt en ligne"
+
 #: src/pages/Home.vue:89
 msgid "Cancel"
 msgstr "Annuler"
@@ -34,13 +38,37 @@ msgstr "Fermer"
 msgid "Confirm"
 msgstr "Valider"
 
+#: src/pages/Home.vue:26
+msgid "Cut Line At Node"
+msgstr "Couper à l'arrêt"
+
+#: src/pages/Home.vue:24
+msgid "Cut Line From Node"
+msgstr "Couper depuis l'arrêt"
+
 #: src/pages/Home.vue:37
 msgid "Delete "
 msgstr "Supprimer"
 
+#: src/pages/Home.vue:36
+msgid "Delete Stop"
+msgstr "Supprimer arrêt"
+
 #: src/pages/Home.vue:74
 msgid "do not show again"
 msgstr "Ne plus montrer"
+
+#: src/pages/Home.vue:22
+msgid "Edit Line Info"
+msgstr "Modifier les infos de la ligne"
+
+#: src/pages/Home.vue:38
+msgid "Edit Link Info"
+msgstr "Modifier les infos du lien"
+
+#: src/pages/Home.vue:40
+msgid "Edit Node Info"
+msgstr "Modifier les infos d'arrêt"
 
 #: src/pages/Home.vue:37
 msgid "Edit Properties"
@@ -49,6 +77,14 @@ msgstr "Modifier"
 #: src/components/layout/NavigationDrawer.vue:23
 msgid "Export"
 msgstr "Exporter"
+
+#: src/pages/Home.vue:30
+msgid "Extend Line Downward"
+msgstr "Prolonger la ligne en aval"
+
+#: src/pages/Home.vue:28
+msgid "Extend Line Upward"
+msgstr "Prolonger la Ligne en amont"
 
 #: src/pages/Login.vue:107
 msgid "GO!"
@@ -63,6 +99,8 @@ msgid "Import"
 msgstr "Importer"
 
 #: src/components/SidePanel.vue:223
+#: src/components/layout/NavigationDrawer.vue:61
+#: src/components/layout/NavigationDrawer.vue:75
 msgid "item"
 msgstr ""
 
@@ -80,8 +118,8 @@ msgstr "Liens"
 
 #: src/pages/Login.vue:34
 msgid "Links and Nodes files must be geojson in EPSG:4326"
-msgstr "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
-
+msgstr ""
+"Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
 
 #: src/pages/Login.vue:87
 msgid "Load Example"
@@ -94,6 +132,10 @@ msgstr "Charger les Fichiers"
 #: src/router/index.js:28
 msgid "Map"
 msgstr "Carte"
+
+#: src/pages/Home.vue:34
+msgid "Move Stop"
+msgstr "Déplacer l'arrêt"
 
 #: src/pages/Login.vue:69
 msgid "Nodes"

@@ -2,7 +2,8 @@
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 import { enableAutoDestroy } from '@vue/test-utils'
-
+// only used to force to see translation to vue-gettext
+const $gettext = s => s
 
 export default {
   name: 'Home',
@@ -18,7 +19,26 @@ export default {
       selectedTrips : [],
       editorTrip : null,
       showLeftPanel:false,
-      actionsList : ['Edit Line info','Cut Line From Node','Cut Line At Node','Extend Line Upward','Extend Line Downward','Add Stop Inline','Move Stop','Delete Stop','Edit Link Info','Edit Node Info'],
+      actionsList :[{value:'Edit Line info',
+                    name: $gettext('Edit Line Info')},
+                    {value: 'Cut Line From Node',
+                    name: $gettext('Cut Line From Node')},
+                    {value:'Cut Line At Node',
+                    name: $gettext('Cut Line At Node')},
+                    {value:'Extend Line Upward',
+                    name: $gettext('Extend Line Upward')},
+                    {value:'Extend Line Downward', 
+                    name: $gettext('Extend Line Downward')},
+                    {value:'Add Stop Inline', 
+                    name: $gettext('Add Stop Inline')}, 
+                    {value:'Move Stop', 
+                    name: $gettext('Move Stop')},
+                    {value:'Delete Stop', 
+                    name: $gettext('Delete Stop')},
+                    {value:'Edit Link Info', 
+                    name: $gettext('Edit Link Info')},
+                    {value:'Edit Node Info', 
+                    name: $gettext('Edit Node Info')}],            
       action : null,
       selectedNode : null,
       selectedLink : null,

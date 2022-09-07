@@ -14,6 +14,10 @@ msgstr ""
 msgid "Abort"
 msgstr ""
 
+#: src/pages/Home.vue:32
+msgid "Add Stop Inline"
+msgstr ""
+
 #: src/pages/Home.vue:89
 msgid "Cancel"
 msgstr ""
@@ -26,12 +30,36 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
+#: src/pages/Home.vue:26
+msgid "Cut Line At Node"
+msgstr ""
+
+#: src/pages/Home.vue:24
+msgid "Cut Line From Node"
+msgstr ""
+
 #: src/pages/Home.vue:37
 msgid "Delete "
 msgstr ""
 
+#: src/pages/Home.vue:36
+msgid "Delete Stop"
+msgstr ""
+
 #: src/pages/Home.vue:74
 msgid "do not show again"
+msgstr ""
+
+#: src/pages/Home.vue:22
+msgid "Edit Line Info"
+msgstr ""
+
+#: src/pages/Home.vue:38
+msgid "Edit Link Info"
+msgstr ""
+
+#: src/pages/Home.vue:40
+msgid "Edit Node Info"
 msgstr ""
 
 #: src/pages/Home.vue:37
@@ -40,6 +68,14 @@ msgstr ""
 
 #: src/components/layout/NavigationDrawer.vue:23
 msgid "Export"
+msgstr ""
+
+#: src/pages/Home.vue:30
+msgid "Extend Line Downward"
+msgstr ""
+
+#: src/pages/Home.vue:28
+msgid "Extend Line Upward"
 msgstr ""
 
 #: src/pages/Login.vue:107
@@ -55,6 +91,8 @@ msgid "Import"
 msgstr ""
 
 #: src/components/SidePanel.vue:223
+#: src/components/layout/NavigationDrawer.vue:61
+#: src/components/layout/NavigationDrawer.vue:75
 msgid "item"
 msgstr ""
 
@@ -71,7 +109,7 @@ msgid "Links"
 msgstr ""
 
 #: src/pages/Login.vue:34
-msgid "Links and Nodes files must be geojson in EPSG:4326 "
+msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
 
 #: src/pages/Login.vue:87
@@ -84,6 +122,10 @@ msgstr ""
 
 #: src/router/index.js:28
 msgid "Map"
+msgstr ""
+
+#: src/pages/Home.vue:34
+msgid "Move Stop"
 msgstr ""
 
 #: src/pages/Login.vue:69

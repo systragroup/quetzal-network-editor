@@ -113,7 +113,7 @@ export default {
           {{ $gettext("Load Files") }}
         </div>
         <div>
-          {{ $gettext("Links and Nodes files must be geojson in EPSG:4326 ") }}
+          {{ $gettext("Links and Nodes files must be geojson in EPSG:4326") }}
         </div>
         <v-btn
           :loading="loading.links"
