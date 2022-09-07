@@ -13,6 +13,10 @@ msgstr ""
 "Generated-By: easygettext\n"
 "X-Generator: Poedit 3.0.1\n"
 
+#: src/App.vue:46
+msgid "_ctx"
+msgstr ""
+
 #: src/components/layout/NavigationDrawer.vue:31
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
@@ -29,6 +33,14 @@ msgstr "Ajouter un Arrêt en ligne"
 #: src/pages/Home.vue:89
 msgid "Cancel"
 msgstr "Annuler"
+
+#: src/pages/Home.vue:112
+msgid "Click on a link to add a Stop"
+msgstr "Cliquer sur un lien pour ajouter un arrêt"
+
+#: src/pages/Home.vue:92 src/pages/Home.vue:102
+msgid "Click on the map to extend"
+msgstr "Cliquer sur la carte pour prolonger"
 
 #: src/App.vue:40
 msgid "Close"
@@ -133,6 +145,14 @@ msgstr "Charger les Fichiers"
 msgid "Map"
 msgstr "Carte"
 
+#: src/pages/Home.vue:248
+msgid "modification aborted"
+msgstr "Mofification annulée"
+
+#: src/pages/Home.vue:238
+msgid "modification applied"
+msgstr "Modification Appliquée"
+
 #: src/pages/Home.vue:34
 msgid "Move Stop"
 msgstr "Déplacer l'arrêt"
@@ -148,6 +168,14 @@ msgstr "Clique droit pour le menu contextuel"
 #: src/pages/Home.vue:100
 msgid "Save"
 msgstr "Sauvegarder"
+
+#: src/pages/Home.vue:84
+msgid "Select a Link"
+msgstr "Sélectionner un lien"
+
+#: src/pages/Home.vue:89
+msgid "Select a Node"
+msgstr "Sélectionner un arrêt"
 
 #: src/components/SidePanel.vue:164
 msgid "Show All"

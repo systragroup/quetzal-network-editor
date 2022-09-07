@@ -5,6 +5,10 @@ msgstr ""
 "Generated-By: easygettext\n"
 "Project-Id-Version: \n"
 
+#: src/App.vue:46
+msgid "_ctx"
+msgstr ""
+
 #: src/components/layout/NavigationDrawer.vue:31
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
@@ -20,6 +24,15 @@ msgstr ""
 
 #: src/pages/Home.vue:89
 msgid "Cancel"
+msgstr ""
+
+#: src/pages/Home.vue:112
+msgid "Click on a link to add a Stop"
+msgstr ""
+
+#: src/pages/Home.vue:92
+#: src/pages/Home.vue:102
+msgid "Click on the map to extend"
 msgstr ""
 
 #: src/App.vue:40
@@ -124,6 +137,14 @@ msgstr ""
 msgid "Map"
 msgstr ""
 
+#: src/pages/Home.vue:248
+msgid "modification aborted"
+msgstr ""
+
+#: src/pages/Home.vue:238
+msgid "modification applied"
+msgstr ""
+
 #: src/pages/Home.vue:34
 msgid "Move Stop"
 msgstr ""
@@ -138,6 +159,14 @@ msgstr ""
 
 #: src/pages/Home.vue:100
 msgid "Save"
+msgstr ""
+
+#: src/pages/Home.vue:84
+msgid "Select a Link"
+msgstr ""
+
+#: src/pages/Home.vue:89
+msgid "Select a Node"
 msgstr ""
 
 #: src/components/SidePanel.vue:164

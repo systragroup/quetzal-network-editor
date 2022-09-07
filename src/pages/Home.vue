@@ -82,15 +82,15 @@ export default {
       else if ( action == 'Edit Link Info' ){
         this.clickNodeEnabled = false
         this.lingeringAction = true
-        this.$store.commit('changeNotification',{text:'Select a Link', autoClose:false})
+        this.$store.commit('changeNotification',{text:$gettext('Select a Link'), autoClose:false})
       }
       else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop','Edit Node Info'].includes(action)){
         this.clickLinkEnabled = false
         this.lingeringAction = true
-        this.$store.commit('changeNotification',{text:'Select a node', autoClose:false})
+        this.$store.commit('changeNotification',{text:$gettext('Select a Node'), autoClose:false})
       }
       else if (action == 'Extend Line Upward'){
-        this.$store.commit('changeNotification',{text:'Click on the map to extend', autoClose:false})
+        this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
         this.$store.commit('setNewLink',{action:action})
         this.clickNodeEnabled = false
         this.clickLinkEnabled = false
@@ -100,7 +100,7 @@ export default {
         this.drawMode = true
       }
       else if (action == 'Extend Line Downward'){
-        this.$store.commit('changeNotification',{text:'Click on the map to extend', autoClose:false})
+        this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
         this.$store.commit('setNewLink',{action:action})
         this.clickNodeEnabled=false
         this.clickLinkEnabled=false
@@ -110,7 +110,7 @@ export default {
         this.drawMode=true
       }
       else if (action == 'Add Stop Inline'){
-        this.$store.commit('changeNotification',{text:'Click on a link to add a Stop', autoClose:false})
+        this.$store.commit('changeNotification',{text:$gettext('Click on a link to add a Stop'), autoClose:false})
         this.clickNodeEnabled = false
         this.lingeringAction = true
       }
@@ -236,7 +236,7 @@ export default {
       this.$store.commit('setEditorTrip',null)
       this.action=null
       // notification
-      this.$store.commit('changeNotification',{text:"modification applied", autoClose:true,color:'success'})
+      this.$store.commit('changeNotification',{text:$gettext("modification applied"), autoClose:true,color:'success'})
       
     },
     abortChanges(){
@@ -246,7 +246,7 @@ export default {
       this.$store.commit('setEditorTrip',null)
       this.action=null
       // notification
-      this.$store.commit('changeNotification',{text:"modification aborted", autoClose:true})
+      this.$store.commit('changeNotification',{text:$gettext("modification aborted"), autoClose:true})
     },
     deleteButton(selectedTrip){
       this.tripToDelete=selectedTrip
