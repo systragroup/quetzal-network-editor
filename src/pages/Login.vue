@@ -113,7 +113,6 @@ export default {
           {{ $gettext("Load Files") }}
         </div>
         <div>
-          <!-- eslint-disable-next-line max-len -->
           {{ $gettext("Links and Nodes files must be geojson in EPSG:4326 ") }}
         </div>
         <v-btn

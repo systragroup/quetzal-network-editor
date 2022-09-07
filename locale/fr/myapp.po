@@ -51,7 +51,7 @@ msgstr "Modifier"
 msgid "Export"
 msgstr "Exporter"
 
-#: src/pages/Login.vue:111
+#: src/pages/Login.vue:107
 msgid "GO!"
 msgstr "Aller!"
 
@@ -76,15 +76,21 @@ msgstr "Clique gauche pour modifier"
 msgid "Lines"
 msgstr "Ligne"
 
-#: src/pages/Login.vue:54
+#: src/pages/Login.vue:50
 msgid "Links"
 msgstr "Liens"
 
-#: src/pages/Login.vue:37
-msgid "Links and Nodes files must be geojson in EPSG:4326 "
-msgstr "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
-
 #: src/pages/Login.vue:34
+msgid "Links and Nodes files must be geojson in EPSG:4326 "
+msgstr ""
+"Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
+
+#: src/pages/Login.vue:87
+#, fuzzy
+msgid "Load Example"
+msgstr "Charger l’exemple"
+
+#: src/pages/Login.vue:33
 msgid "Load Files"
 msgstr "Charger les Fichiers"
 
@@ -92,7 +98,7 @@ msgstr "Charger les Fichiers"
 msgid "Map"
 msgstr "Carte"
 
-#: src/pages/Login.vue:73
+#: src/pages/Login.vue:69
 msgid "Nodes"
 msgstr "Noeuds"
 
