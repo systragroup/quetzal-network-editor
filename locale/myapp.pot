@@ -5,69 +5,95 @@ msgstr ""
 "Generated-By: easygettext\n"
 "Project-Id-Version: \n"
 
-#: src/components/layout/NavigationDrawer.vue:30
+#: src/components/layout/NavigationDrawer.vue:31
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:246
+#: src/components/SidePanel.vue:259
 msgid "Abort"
 msgstr ""
 
-#: src/components/SidePanel.vue:216
-msgid "action"
-msgstr ""
-
-#: src/pages/Home.vue:84
-msgid "Agree"
-msgstr ""
-
-#: src/pages/Home.vue:36
-msgid "Apply Change?"
+#: src/pages/Home.vue:89
+msgid "Cancel"
 msgstr ""
 
 #: src/App.vue:40
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:234
+#: src/components/SidePanel.vue:247
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 msgid "Delete "
 msgstr ""
 
 #: src/pages/Home.vue:74
-msgid "Disagree"
+msgid "do not show again"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:22
-msgid "Disconnect"
+#: src/pages/Home.vue:37
+msgid "Edit Properties"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:23
+msgid "Export"
+msgstr ""
+
+#: src/pages/Login.vue:111
+msgid "GO!"
 msgstr ""
 
 #: src/components/SidePanel.vue:175
 msgid "Hide All"
 msgstr ""
 
-#: src/router/index.js:27
-msgid "Home"
+#: src/router/index.js:21
+msgid "Import"
+msgstr ""
+
+#: src/components/SidePanel.vue:223
+msgid "item"
+msgstr ""
+
+#: src/components/Map.vue:150
+msgid "Left click to edit properties"
 msgstr ""
 
 #: src/components/SidePanel.vue:62
 msgid "Lines"
 msgstr ""
 
-#: src/pages/Login.vue:31
-#: src/pages/Login.vue:50
-#: src/router/index.js:20
-msgid "Login"
+#: src/pages/Login.vue:54
+msgid "Links"
+msgstr ""
+
+#: src/pages/Login.vue:37
+msgid "Links and Nodes files must be geojson in EPSG:4326 "
+msgstr ""
+
+#: src/pages/Login.vue:34
+msgid "Load Files"
+msgstr ""
+
+#: src/router/index.js:28
+msgid "Map"
+msgstr ""
+
+#: src/pages/Login.vue:73
+msgid "Nodes"
+msgstr ""
+
+#: src/components/Map.vue:152
+msgid "Right click for context menu"
+msgstr ""
+
+#: src/pages/Home.vue:100
+msgid "Save"
 msgstr ""
 
 #: src/components/SidePanel.vue:164
 msgid "Show All"
-msgstr ""
-
-#: src/pages/Login.vue:34
-msgid "You must be logged in to have access to this application. Please click on the button below to do so."
 msgstr ""

@@ -13,76 +13,125 @@ msgstr ""
 "Generated-By: easygettext\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/components/layout/NavigationDrawer.vue:30
+#: src/components/layout/NavigationDrawer.vue:31
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:246
+#: src/components/SidePanel.vue:259
 msgid "Abort"
 msgstr "Annuler"
 
-#: src/components/SidePanel.vue:216
-msgid "action"
-msgstr ""
-
-#: src/pages/Home.vue:84
-msgid "Agree"
-msgstr "Confirmer"
-
-#: src/pages/Home.vue:36
-msgid "Apply Change?"
-msgstr "Appliquer?"
+#: src/pages/Home.vue:89
+msgid "Cancel"
+msgstr "Annuler"
 
 #: src/App.vue:40
 msgid "Close"
 msgstr "Fermer"
 
-#: src/components/SidePanel.vue:234
+#: src/components/SidePanel.vue:247
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 #, fuzzy
 msgid "Delete "
 msgstr "Supprimer"
 
 #: src/pages/Home.vue:74
-msgid "Disagree"
-msgstr "Annuler"
+msgid "do not show again"
+msgstr "Ne plus montrer"
 
-#: src/components/layout/NavigationDrawer.vue:22
-msgid "Disconnect"
-msgstr "Se déconnecter"
+#: src/pages/Home.vue:37
+msgid "Edit Properties"
+msgstr "Modifier"
+
+#: src/components/layout/NavigationDrawer.vue:23
+msgid "Export"
+msgstr "Exporter"
+
+#: src/pages/Login.vue:111
+msgid "GO!"
+msgstr "Aller!"
 
 #: src/components/SidePanel.vue:175
 msgid "Hide All"
 msgstr "Cacher Tout"
 
-#: src/router/index.js:27
-msgid "Home"
-msgstr "Accueil"
+#: src/router/index.js:21
+msgid "Import"
+msgstr "Importer"
+
+#: src/components/SidePanel.vue:223
+msgid "item"
+msgstr ""
+
+#: src/components/Map.vue:150
+msgid "Left click to edit properties"
+msgstr "Clique gauche pour modifier"
 
 #: src/components/SidePanel.vue:62
 #, fuzzy
 msgid "Lines"
 msgstr "Ligne"
 
-#: src/pages/Login.vue:31 src/pages/Login.vue:50 src/router/index.js:20
-msgid "Login"
-msgstr "Connexion"
+#: src/pages/Login.vue:54
+msgid "Links"
+msgstr "Liens"
+
+#: src/pages/Login.vue:37
+msgid "Links and Nodes files must be geojson in EPSG:4326 "
+msgstr "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
+
+#: src/pages/Login.vue:34
+msgid "Load Files"
+msgstr "Charger les Fichiers"
+
+#: src/router/index.js:28
+msgid "Map"
+msgstr "Carte"
+
+#: src/pages/Login.vue:73
+msgid "Nodes"
+msgstr "Noeuds"
+
+#: src/components/Map.vue:152
+msgid "Right click for context menu"
+msgstr "Clique droit pour le menu contextuel"
+
+#: src/pages/Home.vue:100
+msgid "Save"
+msgstr "Sauvegarder"
 
 #: src/components/SidePanel.vue:164
 msgid "Show All"
 msgstr "Montrer Tout"
 
-#: src/pages/Login.vue:34
-msgid ""
-"You must be logged in to have access to this application. Please click on "
-"the button below to do so."
-msgstr ""
-"L'accès à cette application nécessite une authentification, cliquez sur le "
-"bouton ci-dessous pour vous connecter."
+#~ msgid "Agree"
+#~ msgstr "Confirmer"
+
+#~ msgid "Apply Change?"
+#~ msgstr "Appliquer?"
+
+#~ msgid "Disagree"
+#~ msgstr "Annuler"
+
+#~ msgid "Disconnect"
+#~ msgstr "Se déconnecter"
+
+#~ msgid "Home"
+#~ msgstr "Accueil"
+
+#~ msgid "Login"
+#~ msgstr "Connexion"
+
+#~ msgid ""
+#~ "You must be logged in to have access to this application. Please click on "
+#~ "the button below to do so."
+#~ msgstr ""
+#~ "L'accès à cette application nécessite une authentification, cliquez sur "
+#~ "le bouton ci-dessous pour vous connecter."
 
 #~ msgid "Add"
 #~ msgstr "Ajouter"
@@ -104,9 +153,6 @@ msgstr ""
 
 #~ msgid "By"
 #~ msgstr "Par"
-
-#~ msgid "Cancel"
-#~ msgstr "Annuler"
 
 #~ msgid "Categories"
 #~ msgstr "Catégories"
@@ -147,9 +193,6 @@ msgstr ""
 #~ msgid "Legend"
 #~ msgstr "Légende"
 
-#~ msgid "Map"
-#~ msgstr "Carte"
-
 #~ msgid "Markers"
 #~ msgstr "Marqueurs"
 
@@ -167,9 +210,6 @@ msgstr ""
 
 #~ msgid "Return"
 #~ msgstr "Retour"
-
-#~ msgid "Save"
-#~ msgstr "Sauvegarder"
 
 #~ msgid "Search"
 #~ msgstr "Rechercher"

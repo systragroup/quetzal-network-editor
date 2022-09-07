@@ -151,7 +151,7 @@ export default {
           accept=".geojson"
           @change="onFilePicked"/>
       <div> 
-        <v-btn text x-small @click="loadExample">Load Example</v-btn> 
+        <v-btn text x-small @click="loadExample">{{ $gettext('Load Example') }}</v-btn> 
       </div>
       <div> 
         <v-btn
