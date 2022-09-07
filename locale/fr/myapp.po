@@ -35,7 +35,6 @@ msgid "Confirm"
 msgstr "Valider"
 
 #: src/pages/Home.vue:37
-#, fuzzy
 msgid "Delete "
 msgstr "Supprimer"
 
@@ -72,7 +71,6 @@ msgid "Left click to edit properties"
 msgstr "Clique gauche pour modifier"
 
 #: src/components/SidePanel.vue:62
-#, fuzzy
 msgid "Lines"
 msgstr "Ligne"
 
@@ -81,14 +79,13 @@ msgid "Links"
 msgstr "Liens"
 
 #: src/pages/Login.vue:34
-msgid "Links and Nodes files must be geojson in EPSG:4326 "
-msgstr ""
-"Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
+msgid "Links and Nodes files must be geojson in EPSG:4326"
+msgstr "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
+
 
 #: src/pages/Login.vue:87
-#, fuzzy
 msgid "Load Example"
-msgstr "Charger l’exemple"
+msgstr "Exemple"
 
 #: src/pages/Login.vue:33
 msgid "Load Files"
