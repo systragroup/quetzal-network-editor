@@ -43,6 +43,10 @@ You can log in by typing anything you want in credentials inputs.
 
 ## Internationalization
 
+```
+sudo apt-get install gettext
+```
+
 Use `$gettext` in template or script sections of your vue files.
 
 For more information: https://www.npmjs.com/package/vue-gettext

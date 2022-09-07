@@ -113,8 +113,7 @@ export default {
           {{ $gettext("Load Files") }}
         </div>
         <div>
-          <!-- eslint-disable-next-line max-len -->
-          {{ $gettext("Links and Nodes files must be geojson in EPSG:4326 ") }}
+          {{ $gettext("Links and Nodes files must be geojson in EPSG:4326") }}
         </div>
         <v-btn
           :loading="loading.links"
@@ -151,7 +150,7 @@ export default {
           accept=".geojson"
           @change="onFilePicked"/>
       <div> 
-        <v-btn text x-small @click="loadExample">Load Example</v-btn> 
+        <v-btn text x-small @click="loadExample">{{ $gettext('Load Example') }}</v-btn> 
       </div>
       <div> 
         <v-btn

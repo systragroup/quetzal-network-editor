@@ -30,6 +30,7 @@ export default {
     },
     getRouteTitle (route) {
       const tpl = this.$gettext('%{s}')
+      console.log(this.$gettextInterpolate(tpl, { s: route.title }))
       return this.$gettextInterpolate(tpl, { s: route.title })
     },
     handleClickMenuItem (route) {
@@ -107,14 +108,14 @@ export default {
             <v-list-item-action class="drawer-list-item-icon">
               <v-icon
                 small
-                :title="getRouteTitle(item)"
+                :title="$gettext(item.title)"
               >
                 {{ item.icon }}
               </v-icon>
             </v-list-item-action>
             <v-list-item-content>
               <v-list-item-title :style="{marginLeft: '20px', color: 'white'}">
-                {{ getRouteTitle(item) }}
+                {{ $gettext(item.title)}}
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>

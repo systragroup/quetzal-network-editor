@@ -213,9 +213,9 @@ export default {
                     <v-list-item :key="item.id">
                       <v-list-item-content>
                         <v-btn  outlined 
-                        @click = "actionClick(item)"
-                        :disabled= "disableAction(item)"> 
-                        {{$gettext(item)}}
+                        @click = "actionClick(item.value)"
+                        :disabled= "disableAction(item.value)"> 
+                        {{$gettext(item.name)}}
                         </v-btn>
                       </v-list-item-content>
                     </v-list-item>
