@@ -251,10 +251,11 @@ export default {
         // get selected node
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
         this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
+        let nodeId = this.selectedFeature.properties.index
         // store default position in history
-        let geom =this.editorNodes.features.filter(node=>node.properties.index == this.selectedFeature.properties.index)[0].geometry.coordinates
+        let geom =this.editorNodes.features.filter(node=>node.properties.index == nodeId)[0].geometry.coordinates
         this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
-
+        
         // get position
         this.map.on('mousemove',this.onMove)
       }
@@ -271,9 +272,14 @@ export default {
       // stop tracking position (moving node.)
       this.map.getCanvas().style.cursor = 'pointer';
       this.map.off('mousemove', this.onMove);
-      if (this.selectedAction == 'Move Stop') {this.selectClick({mapboxEvent:event})}
-      
-      
+      // emit a clickNode with the selected node.
+      // this will work with lag as it is the selectedFeature and not the highlighted one.
+      if (this.selectedAction == 'Move Stop') {
+        let click = {selectedFeature: this.selectedFeature,
+                     action: this.selectedAction,
+                     lngLat: event.lngLat}
+          this.$emit('clickNode', click);
+       }
     },
 
   },

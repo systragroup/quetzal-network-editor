@@ -79,13 +79,17 @@ export default {
         fileReader.onload =  evt =>  {
         try{
             this.loadedLinks =  JSON.parse(evt.target.result)
-        } catch (e){ console.log('error') }
+        } catch (e){ 
+          this.$store.commit('changeNotification',{text:e.message, autoClose:true,color:'red darken-2'}); 
+          this.loading[this.choice]=false }
       }
       }else if (this.choice == 'nodes') {
         fileReader.onload =  evt =>  {
         try{
             this.loadedNodes =  JSON.parse(evt.target.result)
-        } catch (e){ console.log('error') }
+        } catch (e){  
+          alert(e.message)
+          this.loading[this.choice]=false }
       }
       }
       

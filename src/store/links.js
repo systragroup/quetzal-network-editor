@@ -22,24 +22,33 @@ export default {
   
     mutations: {
       loadLinks(state,payload) {
+
         state.links = JSON.parse(JSON.stringify(payload))
 
-        var linksHeader = {...state.links}
-        linksHeader.features = []
-        state.editorLinks = linksHeader
+        if (state.links.crs.properties.name == 'urn:ogc:def:crs:OGC:1.3:CRS84'){
+          var linksHeader = {...state.links}
+          linksHeader.features = []
+          state.editorLinks = linksHeader
+          this.commit('getTripId')
+          state.filesAreLoaded.links = true
+        }
+        else{alert('invalid CRS. use CRS84 / EPSG:4326')}
 
-        this.commit('getTripId')
-
-        state.filesAreLoaded.links = true
+        
       },
       loadNodes(state,payload) {
+        
         state.nodes = JSON.parse(JSON.stringify(payload))
 
-        var nodesHeader = {...state.nodes}
-        nodesHeader.features = []
-        state.editorNodes = nodesHeader
+        if (state.nodes.crs.properties.name == 'urn:ogc:def:crs:OGC:1.3:CRS84'){
 
-        state.filesAreLoaded.nodes = true
+          var nodesHeader = {...state.nodes}
+          nodesHeader.features = []
+          state.editorNodes = nodesHeader
+
+          state.filesAreLoaded.nodes = true
+        }
+        else{alert('invalid CRS. use CRS84 / EPSG:4326')}
       },
       addToHistory(state,payload){
         state.history.push(payload)
@@ -255,8 +264,8 @@ export default {
         newNode.geometry.coordinates=payload.lngLat
 
         // changing links
-        let link1 = state.editorLinks.features.filter(link => link.properties.b==nodeIndex)[0] 
-        let link2 = state.editorLinks.features.filter(link => link.properties.a==nodeIndex)[0] 
+        let link1 = state.editorLinks.features.filter(link => link.properties.b == nodeIndex)[0] 
+        let link2 = state.editorLinks.features.filter(link => link.properties.a == nodeIndex)[0] 
         // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
         if (link1) {
           // note: props are unchanged. even tho the length change, the time and shape_dist_travel are unchanged.
@@ -281,7 +290,7 @@ export default {
         state.links.features.splice(index, 0, ...state.editorLinks.features);
 
 
-        //TODO : ajouter les noeds si des noeds sont ajout/
+        //all new nodes.
         let nodesList  = state.nodes.features.map(item => item.properties.index)
         let newNodes = {...state.editorNodes}
         newNodes.features = newNodes.features.filter(node => !nodesList.includes(node.properties.index))
@@ -303,6 +312,19 @@ export default {
         let b = state.links.features.map(item => item.properties.b)
         let nodesInLinks =  Array.from(new Set([...a, ...b]))
         state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+
+
+        // For every Links containing an editor Nodes. update Geometry (this is necessary when we move a node that is share between multiplde lines)
+        // get a list of all links (excluding editorLinks) that contain the selected node
+        let editorNodesList  = state.editorNodes.features.map(item => item.properties.index)
+        //get list of link with a node A modifieed
+        let linksA = state.links.features.filter(link => link.properties.trip_id !== state.editorTrip).filter(item => editorNodesList.includes(item.properties.a) )
+        // apply new node geometry
+        linksA.forEach(link => link.geometry.coordinates = [state.editorNodes.features.filter(node => node.properties.index == link.properties.a )[0].geometry.coordinates,link.geometry.coordinates[1]])
+        // same for nodes b
+        let linksB = state.links.features.filter(link => link.properties.trip_id !== state.editorTrip).filter(item => editorNodesList.includes(item.properties.b) )
+        linksB.forEach(link => link.geometry.coordinates = [link.geometry.coordinates[0], state.editorNodes.features.filter(node => node.properties.index == link.properties.b )[0].geometry.coordinates])
+  
         
         state.newLink = {}
         state.newNode = {}
