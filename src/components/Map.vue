@@ -1,6 +1,6 @@
 <script>
 import Mapbox from 'mapbox-gl'
-import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup} from 'vue-mapbox'
+import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup, MglImageLayer} from 'vue-mapbox'
 import { mapboxPublicKey } from '@src/config.js'
 
 // Filter links from selected line
@@ -13,6 +13,7 @@ export default {
     MglGeojsonLayer,
     MglMarker,
     MglPopup,
+    MglImageLayer,
   },
   props:  {
     selectedTrips: {
@@ -152,7 +153,17 @@ export default {
       event.map.fitBounds(bounds, {
         padding: 100,
       })
+      
+      var url = 'https://i.imgur.com/LcIng3L.png';
+      event.map.loadImage(url, function(err, image) {
+        if (err) {
+          console.error('err image', err);
+          return;
+        }
+        event.map.addImage('arrow', image);
+      });
       this.map = event.map;
+
     },
     enterLink(event) {
       this.map.getCanvas().style.cursor = 'pointer';
@@ -344,6 +355,26 @@ export default {
         v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
         >   
       </MglGeojsonLayer>
+
+      <MglImageLayer
+        source-id= 'editorLinks'
+        type= 'symbol'
+        source= 'editorLinks'
+        layer-id="arrow-layer"
+        :layer="{
+          type: 'symbol',
+          layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 1,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-image': 'arrow',
+          'icon-size': 0.05,
+          'visibility': 'visible'
+          }
+        }"
+        >
+      </MglImageLayer>
 
        <MglGeojsonLayer
         v-if="drawMode"
