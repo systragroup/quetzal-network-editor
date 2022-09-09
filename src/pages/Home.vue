@@ -18,7 +18,7 @@ export default {
       links: {},
       selectedTrips : [],
       editorTrip : null,
-      showLeftPanel:false,
+      showLeftPanel : true,
       actionsList :[{value:'Edit Line info',
                     name: $gettext('Edit Line Info')},
                     {value: 'Cut Line From Node',

@@ -15,8 +15,8 @@ export default {
 
   data () {
     return {
-      showLeftPanel: false,
-      showLeftPanelContent: false,
+      showLeftPanel: true,
+      showLeftPanelContent: true,
       tripList : this.selectedTrips,
     }
   },

@@ -15,14 +15,14 @@ const router =  new Router({
   base: '/quetzal_network_editor/',
   routes: [
     {
-      path: '/login',
+      path: '/',
       name: Login.name,
       component: Login,
       icon: 'fa-light fa-file-import',
       title: $gettext('Import'),
     },
     {
-      path: '/',
+      path: '/Home',
       name: Home.name,
       component: Home,
       icon: 'fa-solid fa-map',

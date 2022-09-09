@@ -66,7 +66,7 @@ Vue.use(GetTextPlugin, {
 Vue.use(VueApollo)
 
 Vue.config.productionTip = false
-Vue.config.devtools = true
+Vue.config.devtools = false
 
 const vuetify = new Vuetify({
   theme: {

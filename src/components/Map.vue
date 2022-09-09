@@ -22,7 +22,7 @@ export default {
     },
     showLeftPanel: {
       type: Boolean,
-      default: false
+      default: true
     },
     clickNodeEnabled: {
       type: Boolean,

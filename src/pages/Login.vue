@@ -44,7 +44,7 @@ export default {
     login () {
       // Leave time for animation to end (.animate-login and .animate-layer css rules)
       setTimeout(() => {
-        this.$router.push('/').catch(()=>{})
+        this.$router.push('/Home').catch(()=>{})
       }, 1000)
     },
     loadExample(){
