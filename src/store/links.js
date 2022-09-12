@@ -1,42 +1,59 @@
-import line from '@static/links_test.geojson'
-import points from '@static/nodes_test.geojson'
+//import line from '@static/links_test.geojson'
+//import points from '@static/nodes_test.geojson'
 import length from '@turf/length'
-
-
-
-
-
-
-
-
-var linksHeader = {...line}
-linksHeader.features = []
-var nodesHeader = {...points}
-nodesHeader.features = []
-
+import nearestPointOnLine from '@turf/nearest-point-on-line'
+import Linestring from 'turf-linestring'
+import Point from 'turf-point'
 
 export default {
     state: {
-      linksAreLoaded: false,
-      nodesAreLoaded: false,
-      links: line, 
+      filesAreLoaded: {links:false,nodes:false},
+      links: {}, 
       editorTrip: null,
-      editorNodes: nodesHeader,
-      editorLinks: linksHeader,
+      editorNodes: {},
+      editorLinks: {},
       editorLineInfo:{},
-      nodes: points, 
-      tripId : Array.from(new Set(line.features.map(item => item.properties.trip_id))), // to change with the actual import.
+      nodes: {}, 
+      tripId : [], // to change with the actual import.
       newLink: {},
-      newNode: {}
+      newNode: {},
+      history: []
     },
   
     mutations: {
-      linksLoaded(state) {
-        state.linksAreLoaded = true
+      loadLinks(state,payload) {
+
+        state.links = JSON.parse(JSON.stringify(payload))
+
+        if (state.links.crs.properties.name == 'urn:ogc:def:crs:OGC:1.3:CRS84'){
+          var linksHeader = {...state.links}
+          linksHeader.features = []
+          state.editorLinks = linksHeader
+          this.commit('getTripId')
+          state.filesAreLoaded.links = true
+        }
+        else{alert('invalid CRS. use CRS84 / EPSG:4326')}
+
+        
       },
-      nodeLoaded(state) {
-        state.nodesAreLoaded = true
+      loadNodes(state,payload) {
+        
+        state.nodes = JSON.parse(JSON.stringify(payload))
+
+        if (state.nodes.crs.properties.name == 'urn:ogc:def:crs:OGC:1.3:CRS84'){
+
+          var nodesHeader = {...state.nodes}
+          nodesHeader.features = []
+          state.editorNodes = nodesHeader
+
+          state.filesAreLoaded.nodes = true
+        }
+        else{alert('invalid CRS. use CRS84 / EPSG:4326')}
       },
+      addToHistory(state,payload){
+        state.history.push(payload)
+      },
+      cleanHistory(state){state.history = []},
 
       setEditorTrip(state,payload){
         //set Trip Id
@@ -136,7 +153,7 @@ export default {
         Object.keys(features.properties)
           .forEach(k => features.properties[k]=null);
         features.properties.index = 'node_' + (+new Date).toString(36)
-        features.geometry.coordinates=[null,null]
+        features.geometry.coordinates = payload?.coordinates? payload.coordinates:[null,null]
         tempNode.features = [features]
         state.newNode = tempNode
       },
@@ -205,7 +222,59 @@ export default {
           state.editorLinks.features = state.editorLinks.features.filter(link => link.properties.index!=link2.properties.index)
         }
       },
+      splitLink(state,payload){
+        const linkIndex = payload.selectedLink.index
+        let featureIndex = state.editorLinks.features.findIndex(link => link.properties.index == linkIndex)
+        // changing link1 change editorLinks as it is an observer.
+        let link1 = state.editorLinks.features[featureIndex] // this link is extented
+        let link2 = JSON.parse(JSON.stringify(link1))
+        // distance du point (entre 0 et 1) sur le lien original
+        const ratio = payload.offset / link1.properties.shape_dist_traveled
 
+        link1.properties.b = state.newNode.features[0].properties.index
+        link1.geometry.coordinates[1] = state.newNode.features[0].geometry.coordinates
+        link1.properties.index = 'link_' + (+new Date).toString(36)+'1' //link1.properties.index+ '-1'
+        link1.properties.shape_dist_traveled = link1.properties.shape_dist_traveled*ratio
+        link1.properties.time = link1.properties.time*ratio
+
+        link2.properties.a = state.newNode.features[0].properties.index
+        link2.geometry.coordinates[0] = state.newNode.features[0].geometry.coordinates
+        link2.properties.index ='link_' + (+new Date).toString(36)+'2' // link2.properties.index+ '-2'
+        link2.properties.shape_dist_traveled = link2.properties.shape_dist_traveled*(1-ratio)
+        link2.properties.time = link2.properties.time*(1-ratio)
+
+        state.editorLinks.features.splice(featureIndex+1, 0, link2);
+        state.editorNodes.features.push(state.newNode.features[0])
+      },
+      addNodeInline(state,payload){
+        // payload contain selectedLink and event.lngLat (clicked point)
+          let linkGeom = state.editorLinks.features.filter((link)=>link.properties.index == payload.selectedLink.index)
+          linkGeom = Linestring(linkGeom[0].geometry.coordinates)
+          let clickedPoint = Point(Object.values(payload.lngLat))
+          var snapped = nearestPointOnLine(linkGeom, clickedPoint, {units: 'kilometers'});
+          const offset = snapped.properties.location * 1000 // offset in metres from node a.
+          this.commit('setNewNode',{coordinates:snapped.geometry.coordinates})
+          this.commit('splitLink',{selectedLink:payload.selectedLink, offset:offset})
+      },
+
+      moveNode(state,payload){
+        const nodeIndex = payload.selectedNode.properties.index
+        // remove node
+        let newNode = state.editorNodes.features.filter(node=>node.properties.index == nodeIndex)[0]
+        newNode.geometry.coordinates=payload.lngLat
+
+        // changing links
+        let link1 = state.editorLinks.features.filter(link => link.properties.b == nodeIndex)[0] 
+        let link2 = state.editorLinks.features.filter(link => link.properties.a == nodeIndex)[0] 
+        // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
+        if (link1) {
+          // note: props are unchanged. even tho the length change, the time and shape_dist_travel are unchanged.
+          link1.geometry.coordinates = [link1.geometry.coordinates[0], payload.lngLat]
+        }
+        if (link2) {
+          link2.geometry.coordinates = [payload.lngLat, link2.geometry.coordinates[1]]
+        }
+      },
       //apply change to Links
       confirmChanges(state){
 
@@ -221,7 +290,7 @@ export default {
         state.links.features.splice(index, 0, ...state.editorLinks.features);
 
 
-        //TODO : ajouter les noeds si des noeds sont ajout/
+        //all new nodes.
         let nodesList  = state.nodes.features.map(item => item.properties.index)
         let newNodes = {...state.editorNodes}
         newNodes.features = newNodes.features.filter(node => !nodesList.includes(node.properties.index))
@@ -233,6 +302,7 @@ export default {
             function (eNode){
               if (node.properties.index == eNode.properties.index){
                   node.properties = eNode.properties
+                  node.geometry = eNode.geometry
               }
             })
           })
@@ -242,6 +312,19 @@ export default {
         let b = state.links.features.map(item => item.properties.b)
         let nodesInLinks =  Array.from(new Set([...a, ...b]))
         state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+
+
+        // For every Links containing an editor Nodes. update Geometry (this is necessary when we move a node that is share between multiplde lines)
+        // get a list of all links (excluding editorLinks) that contain the selected node
+        let editorNodesList  = state.editorNodes.features.map(item => item.properties.index)
+        //get list of link with a node A modifieed
+        let linksA = state.links.features.filter(link => link.properties.trip_id !== state.editorTrip).filter(item => editorNodesList.includes(item.properties.a) )
+        // apply new node geometry
+        linksA.forEach(link => link.geometry.coordinates = [state.editorNodes.features.filter(node => node.properties.index == link.properties.a )[0].geometry.coordinates,link.geometry.coordinates[1]])
+        // same for nodes b
+        let linksB = state.links.features.filter(link => link.properties.trip_id !== state.editorTrip).filter(item => editorNodesList.includes(item.properties.b) )
+        linksB.forEach(link => link.geometry.coordinates = [link.geometry.coordinates[0], state.editorNodes.features.filter(node => node.properties.index == link.properties.b )[0].geometry.coordinates])
+  
         
         state.newLink = {}
         state.newNode = {}
@@ -341,8 +424,10 @@ export default {
     },
   
     getters: {
-      linksAreLoaded: (state) => state.linksAreLoaded,
-      nodesAreLoaded: (state) => state.nodesAreLoaded,
+      linksAreLoaded: (state) => state.filesAreLoaded.links,
+      nodesAreLoaded: (state) => state.filesAreLoaded.nodes,
+      filesAreLoaded: (state) => state.filesAreLoaded.links==true & state.filesAreLoaded.nodes==true, 
+      history: (state) => state.history,
       links: (state) => state.links,
       nodes: (state) => state.nodes,
       route_id: (state) => state.route_id,
@@ -351,7 +436,8 @@ export default {
       editorNodes: (state) => state.editorNodes,
       tripId: (state) => state.tripId,
       editorLineInfo: (state) => state.editorLineInfo,
-      newLink: (state)=> state.newLink
+      newLink: (state)=> state.newLink,
+      newNode: (state)=> state.newNode
       
     },
   }

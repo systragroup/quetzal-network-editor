@@ -2,9 +2,8 @@
 export default {
   name: 'Toolbar',
   computed: {
-    isLoginPage () {
-      return this.$store.getters.route === 'Login'
-    },
+   
+    
   },
   methods: {
     handleChangeLanguage (lang) {
@@ -16,16 +15,33 @@ export default {
 </script>
 <template>
   <v-toolbar
-    :class="'app-toolbar elevation-4' + ([isLoginPage ? 'login' : ''])"
+    :class="'app-toolbar elevation-4'"
     dense
     color="white"
   >
     <div>Quetzal Network Editor</div>
-    <div
-      v-if="!isLoginPage"
-      class="project-name"
-    >
+  
+    <v-spacer></v-spacer>
+    <div>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon
+          v-bind="attrs"
+          v-on="on"
+          href="https://github.com/systragroup/quetzal" target="_blank">
+            <v-icon >
+            fa-solid fa-code
+            </v-icon>
+          </v-btn>
+        </template>
+        <span>Quetzal GitHub</span>
+      </v-tooltip>
     </div>
+    
+
+
+
+   
     <div class="languages-container">
       <div
         v-for="(language, lang) in $language.available"

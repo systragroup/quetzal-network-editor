@@ -7,14 +7,14 @@ const WriteFilePlugin = require('write-file-webpack-plugin')
 const path = require('path')
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   target: 'web',
   entry: [
     './src/main.js',
   ],
   output: {
     filename: 'build.js',
-    publicPath: '/quetzal_network_editor/',
+    publicPath: '/',
   },
   resolve: {
     alias: {

@@ -54,7 +54,7 @@ export default {
       class="snackbar"
       :class="`snackbar-${notification.type}`"
     >
-      {{ notification.text }}
+      {{ $gettext(notification.text) }}
       <template v-slot:action="{ attrs }">
         <v-btn
           small

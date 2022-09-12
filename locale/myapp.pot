@@ -5,69 +5,170 @@ msgstr ""
 "Generated-By: easygettext\n"
 "Project-Id-Version: \n"
 
-#: src/components/layout/NavigationDrawer.vue:30
+#: src/App.vue:46
+msgid "_ctx"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:31
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:246
+#: src/components/SidePanel.vue:259
 msgid "Abort"
 msgstr ""
 
-#: src/components/SidePanel.vue:216
-msgid "action"
+#: src/pages/Home.vue:32
+msgid "Add Stop Inline"
 msgstr ""
 
-#: src/pages/Home.vue:84
-msgid "Agree"
+#: src/pages/Home.vue:89
+msgid "Cancel"
 msgstr ""
 
-#: src/pages/Home.vue:36
-msgid "Apply Change?"
+#: src/pages/Home.vue:112
+msgid "Click on a link to add a Stop"
+msgstr ""
+
+#: src/pages/Home.vue:92
+#: src/pages/Home.vue:102
+msgid "Click on the map to extend"
 msgstr ""
 
 #: src/App.vue:40
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:234
+#: src/components/SidePanel.vue:247
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:26
+msgid "Cut Line At Node"
+msgstr ""
+
+#: src/pages/Home.vue:24
+msgid "Cut Line From Node"
+msgstr ""
+
+#: src/pages/Home.vue:37
 msgid "Delete "
 msgstr ""
 
-#: src/pages/Home.vue:74
-msgid "Disagree"
+#: src/pages/Home.vue:36
+msgid "Delete Stop"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:22
-msgid "Disconnect"
+#: src/pages/Home.vue:74
+msgid "do not show again"
+msgstr ""
+
+#: src/pages/Home.vue:22
+msgid "Edit Line Info"
+msgstr ""
+
+#: src/pages/Home.vue:38
+msgid "Edit Link Info"
+msgstr ""
+
+#: src/pages/Home.vue:40
+msgid "Edit Node Info"
+msgstr ""
+
+#: src/pages/Home.vue:37
+msgid "Edit Properties"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:23
+msgid "Export"
+msgstr ""
+
+#: src/pages/Home.vue:30
+msgid "Extend Line Downward"
+msgstr ""
+
+#: src/pages/Home.vue:28
+msgid "Extend Line Upward"
+msgstr ""
+
+#: src/pages/Login.vue:107
+msgid "GO!"
 msgstr ""
 
 #: src/components/SidePanel.vue:175
 msgid "Hide All"
 msgstr ""
 
-#: src/router/index.js:27
-msgid "Home"
+#: src/router/index.js:21
+msgid "Import"
+msgstr ""
+
+#: src/components/SidePanel.vue:223
+#: src/components/layout/NavigationDrawer.vue:61
+#: src/components/layout/NavigationDrawer.vue:75
+msgid "item"
+msgstr ""
+
+#: src/components/Map.vue:150
+msgid "Left click to edit properties"
 msgstr ""
 
 #: src/components/SidePanel.vue:62
 msgid "Lines"
 msgstr ""
 
-#: src/pages/Login.vue:31
 #: src/pages/Login.vue:50
-#: src/router/index.js:20
-msgid "Login"
+msgid "Links"
+msgstr ""
+
+#: src/pages/Login.vue:34
+msgid "Links and Nodes files must be geojson in EPSG:4326"
+msgstr ""
+
+#: src/pages/Login.vue:87
+msgid "Load Example"
+msgstr ""
+
+#: src/pages/Login.vue:33
+msgid "Load Files"
+msgstr ""
+
+#: src/router/index.js:28
+msgid "Map"
+msgstr ""
+
+#: src/pages/Home.vue:248
+msgid "modification aborted"
+msgstr ""
+
+#: src/pages/Home.vue:238
+msgid "modification applied"
+msgstr ""
+
+#: src/pages/Home.vue:34
+msgid "Move Stop"
+msgstr ""
+
+#: src/pages/Login.vue:69
+msgid "Nodes"
+msgstr ""
+
+#: src/components/Map.vue:152
+msgid "Right click for context menu"
+msgstr ""
+
+#: src/pages/Home.vue:100
+msgid "Save"
+msgstr ""
+
+#: src/pages/Home.vue:84
+msgid "Select a Link"
+msgstr ""
+
+#: src/pages/Home.vue:89
+msgid "Select a Node"
 msgstr ""
 
 #: src/components/SidePanel.vue:164
 msgid "Show All"
-msgstr ""
-
-#: src/pages/Login.vue:34
-msgid "You must be logged in to have access to this application. Please click on the button below to do so."
 msgstr ""
