@@ -226,17 +226,12 @@ export default {
     selectClick(event){
       // Get the highlighted feature
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-<<<<<<< HEAD
       for (const feature of features) {
         if (feature.id == this.hoveredStateId.id) {
           this.selectedFeature = feature;
           break;
         }
       }
-=======
-      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
- 
->>>>>>> master
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
@@ -492,12 +487,8 @@ export default {
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
-<<<<<<< HEAD
         v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
         @contextmenu="contextMenuNode"
-=======
-        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
->>>>>>> master
         >   
       </MglGeojsonLayer>
       <MglPopup :closeButton="false"
