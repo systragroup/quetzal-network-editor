@@ -59,6 +59,12 @@ export default {
         showed: false,
         content: null
       },
+      contextMenu: {
+        coordinates: [0, 0],
+        showed: false,
+        actions: [],
+        feature: null
+      }
     }
   },
   created () {
@@ -79,6 +85,14 @@ export default {
         this.map.fitBounds(bounds, {
           padding: 100,
         })
+      }
+    },
+    popupEditor() {
+      this.contextMenu = {
+        coordinates: [0, 0],
+        showed: false,
+        actions: [],
+        feature: null
       }
     },
     selectedTrips(newList, oldList) {
@@ -194,7 +208,6 @@ export default {
           break;
         }
       }
-      console.log(this.selectedFeature.id)
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
@@ -208,7 +221,35 @@ export default {
         }
       }
     },
-     draw(event){      
+    contextMenuNode(event) {
+      if ( this.popupEditor.showed ) {
+        console.log(event)
+        this.popupEditor.showed = false
+        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
+                                        event.mapboxEvent.lngLat.lat
+        ]
+        this.contextMenu.showed = true;
+        this.contextMenu.actions = ['Cut Line From Node',
+                                    'Cut Line At Node',
+                                    'Move Stop',
+                                    'Delete Stop']
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        for (const feature of features) {
+          if (feature.id == this.hoveredStateId.id) {
+            this.contextMenu.feature = feature;
+            break;
+          }
+        }
+        console.log(this.contextMenu)
+      }
+    },
+    actionClick(event) {
+      let click = {selectedFeature: event.feature,
+                    action: event.action }
+      this.$emit('clickNode', click);
+      this.contextMenu.showed = false
+    },
+    draw(event){      
       if(this.drawMode && this.map.loaded()){
         //let index = this.drawLine.features.length-1
         //this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat)  ]
@@ -362,6 +403,7 @@ export default {
           }
         }"
         v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
+        @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
       <MglPopup :closeButton="false"
@@ -378,6 +420,27 @@ export default {
           {{$gettext("Left click to edit properties")}}
           <hr>
           {{$gettext("Right click for context menu")}}
+        </span>
+      </MglPopup>
+      <MglPopup :closeButton="false"
+                :showed="contextMenu.showed"
+                :coordinates="contextMenu.coordinates">
+        <span>
+          <v-list dense flat >
+            <v-list-item-group>
+              <v-list-item
+                v-for="action in contextMenu.actions"
+                :key="action.id"
+              >
+                <v-list-item-content>
+                  <v-btn  outlined small
+                    @click = "actionClick({action: action, feature: contextMenu.feature})"> 
+                    {{$gettext(action)}}
+                  </v-btn>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-item-group>
+          </v-list>
         </span>
       </MglPopup>
     </MglMap>
@@ -421,8 +484,10 @@ export default {
   font-size: 1.1em;
   margin-bottom: 10px;
 }
-
 .scrollable {
    overflow-y: scroll;
+}
+.context-menu {
+  color: blue;
 }
 </style>
