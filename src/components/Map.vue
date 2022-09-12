@@ -227,12 +227,8 @@ export default {
     selectClick(event){
       // Get the highlighted feature
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-      for (const feature of features) {
-        if (feature.id == this.hoveredStateId.id) {
-          this.selectedFeature = feature;
-          break;
-        }
-      }
+      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
+
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
@@ -248,7 +244,7 @@ export default {
       }
     },
     contextMenuNode(event) {
-      if ( this.popupEditor.showed ) {
+      if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorNodes') {
         this.popupEditor.showed = false;
         this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
                                         event.mapboxEvent.lngLat.lat
@@ -264,7 +260,7 @@ export default {
       }
     },
     contextMenuLink(event) {
-      if ( this.popupEditor.showed ) {
+      if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorLinks' ) {
         this.popupEditor.showed = false;
         this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
                                         event.mapboxEvent.lngLat.lat
