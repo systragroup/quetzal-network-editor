@@ -2,6 +2,7 @@
 import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup, MglImageLayer} from 'vue-mapbox'
 import { mapboxPublicKey } from '@src/config.js'
+import arrowImage from '@static/arrow.png';
 
 // Filter links from selected line
 
@@ -154,8 +155,7 @@ export default {
         padding: 100,
       })
       
-      var url = 'https://i.imgur.com/LcIng3L.png';
-      event.map.loadImage(url, function(err, image) {
+      event.map.loadImage(arrowImage, function(err, image) {
         if (err) {
           console.error('err image', err);
           return;
@@ -365,12 +365,11 @@ export default {
           type: 'symbol',
           layout: {
           'symbol-placement': 'line',
-          'symbol-spacing': 1,
-          'icon-allow-overlap': true,
+          'symbol-spacing': 30,
           'icon-ignore-placement': true,
           'icon-image': 'arrow',
-          'icon-size': 0.05,
-          'visibility': 'visible'
+          'icon-size': 0.5,
+          'icon-rotate': 90
           }
         }"
         >
