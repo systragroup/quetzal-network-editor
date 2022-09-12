@@ -64,7 +64,8 @@ export default {
         coordinates: [0, 0],
         showed: false,
         actions: [],
-        feature: null
+        feature: null,
+        type: null // link of node
       }
     }
   },
@@ -248,31 +249,42 @@ export default {
     },
     contextMenuNode(event) {
       if ( this.popupEditor.showed ) {
-        console.log(event)
-        this.popupEditor.showed = false
+        this.popupEditor.showed = false;
         this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
                                         event.mapboxEvent.lngLat.lat
         ]
         this.contextMenu.showed = true;
-        this.contextMenu.actions = ['Cut Line From Node',
+        this.contextMenu.actions = ['Edit Node Info',
+                                    'Cut Line From Node',
                                     'Cut Line At Node',
-                                    'Move Stop',
                                     'Delete Stop']
+        this.contextMenu.type = 'node';
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-        for (const feature of features) {
-          if (feature.id == this.hoveredStateId.id) {
-            this.contextMenu.feature = feature;
-            break;
-          }
-        }
-        console.log(this.contextMenu)
+        this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
+      }
+    },
+    contextMenuLink(event) {
+      if ( this.popupEditor.showed ) {
+        this.popupEditor.showed = false;
+        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
+                                        event.mapboxEvent.lngLat.lat
+        ]
+        this.contextMenu.showed = true;
+        this.contextMenu.actions = ['Edit Link Info',
+                                    'Add Stop Inline']
+        this.contextMenu.type = 'link';
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
       }
     },
     actionClick(event) {
       let click = {selectedFeature: event.feature,
-                    action: event.action }
-      this.$emit('clickNode', click);
+                    action: event.action,
+                    lngLat: event.coordinates }
+      if ( this.contextMenu.type == 'node' ) { this.$emit('clickNode', click) }
+      if ( this.contextMenu.type == 'link' ) { this.$emit('clickLink', click) }
       this.contextMenu.showed = false
+      this.contextMenu.type = null
     },
     draw(event){      
       if(this.drawMode && this.map.loaded()){
@@ -283,6 +295,7 @@ export default {
       }
     },
     addPoint(event){
+      this.contextMenu.showed = false
       if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
         this.$store.commit('applyNewLink',pointGeom)
@@ -299,10 +312,8 @@ export default {
         }
       }
     },
-
-    
     moveNode(event){
-      if(this.selectedAction=='Move Stop'){
+      if ( this.selectedAction == 'Move Stop' ){
         event.mapboxEvent.preventDefault(); // prevent map control
         this.map.getCanvas().style.cursor = 'grab';
         // get selected node
@@ -317,14 +328,12 @@ export default {
         this.map.on('mousemove',this.onMove)
       }
     },
-
     onMove(event){
       // get position and update node position
       if (this.map.loaded()){
           this.$store.commit('moveNode',{selectedNode:this.selectedFeature,lngLat:Object.values(event.lngLat)})
       }
     },
-
     stopMovingNode(event){
       // stop tracking position (moving node.)
       this.map.getCanvas().style.cursor = 'pointer';
@@ -399,6 +408,7 @@ export default {
           }
         }"
         v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
+        @contextmenu="contextMenuLink"
         >   
       </MglGeojsonLayer>
 
@@ -421,7 +431,6 @@ export default {
         }"
         >
       </MglImageLayer>
-
        <MglGeojsonLayer
         v-if="drawMode"
         source-id="drawLink"
@@ -487,7 +496,7 @@ export default {
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
-        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor } : {}"
+        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
         @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
@@ -519,7 +528,9 @@ export default {
               >
                 <v-list-item-content>
                   <v-btn  outlined small
-                    @click = "actionClick({action: action, feature: contextMenu.feature})"> 
+                    @click = "actionClick({action: action, 
+                                           feature: contextMenu.feature, 
+                                           coordinates: contextMenu.coordinates})"> 
                     {{$gettext(action)}}
                   </v-btn>
                 </v-list-item-content>
