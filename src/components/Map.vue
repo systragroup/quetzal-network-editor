@@ -42,11 +42,12 @@ export default {
       defaut: null      
     }
   },
-  events: ["clickLink", "clickNode"],
+  events: ["clickLink", "clickNode", "clearSelectedTrips"],
   data () {
     return {
       links: {},
       nodes: {},
+      showedTrips: this.selectedTrips,
       mapboxPublicKey:  null,
       selectedFeature : null,
       hoveredStateId : null,
@@ -78,17 +79,24 @@ export default {
     this.nodes = this.$store.getters.nodes
   },
   watch: {
-    editorNodes(nodes) {
-      this.isEditorMode = ( nodes.features.length > 0 );
+    editorNodes(newVal, oldVal) {
+      let wasEditorMode = ( oldVal.features.length > 0 );
+      this.isEditorMode = ( newVal.features.length > 0 );
       if ( this.isEditorMode ) {
+        if ( !wasEditorMode ) {this.showedTrips = []}
         const bounds = new Mapbox.LngLatBounds();
-        nodes.features.forEach(node => {
+        newVal.features.forEach(node => {
           bounds.extend(node.geometry.coordinates)
         })        
         this.map.fitBounds(bounds, {
           padding: 100,
         })
+      } else {
+        this.showedTrips = this.selectedTrips 
       }
+    },
+    selectedTrips(newVal) {
+      this.showedTrips = newVal
     },
     popupEditor() {
       this.contextMenu = {
@@ -98,7 +106,7 @@ export default {
         feature: null
       }
     },
-    selectedTrips(newList, oldList) {
+    showedTrips(newList, oldList) {
       if (this.map !== null) {
         // Set all nodes to hidden
         this.nodes.features.forEach(feature => {
@@ -376,8 +384,8 @@ export default {
           minzoom: 9,
           maxzoom: 18,
           paint: {
-            'line-color': ['case', ['boolean', ['feature-state', 'hidden'], false],'#9E9E9E', '#B5E0D6'],
-            'line-opacity': ['case', ['boolean', ['feature-state', 'hidden'], false], 0.2, 1],
+            'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
+            'line-opacity': ['case', ['boolean', ['feature-state', 'hidden'], false], 0.1, 1],
             'line-width': 3
           }
         }"
@@ -398,7 +406,7 @@ export default {
           minzoom: 9,
           maxzoom: 18,
           paint: {
-            'line-color': '#2196F3',
+            'line-color': '#7EBAAC',
             'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
