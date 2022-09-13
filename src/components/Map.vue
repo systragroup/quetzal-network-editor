@@ -373,7 +373,11 @@ export default {
           this.$emit('clickNode', click);
        }
     },
-    test(event){console.log(event)}
+    rightClickMap(event){
+      if(event.mapboxEvent.originalEvent.button==2){
+        this.$emit('actionClick',null)
+      }
+    }
 
   },
   
@@ -390,7 +394,7 @@ export default {
       @mousemove="draw"
       @mouseout="resetDraw"
       @click="addPoint"
-      @mouseup="test"
+      @mouseup="rightClickMap"
     >
       <MglNavigationControl position="bottom-right" />
       <MglGeojsonLayer
