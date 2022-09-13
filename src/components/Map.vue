@@ -62,6 +62,13 @@ export default {
         showed: false,
         content: null
       },
+      contextMenu: {
+        coordinates: [0, 0],
+        showed: false,
+        actions: [],
+        feature: null,
+        type: null // link of node
+      }
     }
   },
   created () {
@@ -90,6 +97,14 @@ export default {
     },
     selectedTrips(newVal) {
       this.showedTrips = newVal
+    },
+    popupEditor() {
+      this.contextMenu = {
+        coordinates: [0, 0],
+        showed: false,
+        actions: [],
+        feature: null
+      }
     },
     showedTrips(newList, oldList) {
       if (this.map !== null) {
@@ -220,8 +235,8 @@ export default {
     selectClick(event){
       // Get the highlighted feature
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
- 
+      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
+
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
@@ -236,7 +251,46 @@ export default {
         }
       }
     },
-     draw(event){      
+    contextMenuNode(event) {
+      if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorNodes') {
+        this.popupEditor.showed = false;
+        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
+                                        event.mapboxEvent.lngLat.lat
+        ]
+        this.contextMenu.showed = true;
+        this.contextMenu.actions = ['Edit Node Info',
+                                    'Cut Line From Node',
+                                    'Cut Line At Node',
+                                    'Delete Stop']
+        this.contextMenu.type = 'node';
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
+      }
+    },
+    contextMenuLink(event) {
+      if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorLinks' ) {
+        this.popupEditor.showed = false;
+        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
+                                        event.mapboxEvent.lngLat.lat
+        ]
+        this.contextMenu.showed = true;
+        this.contextMenu.actions = ['Edit Link Info',
+                                    'Add Stop Inline']
+        this.contextMenu.type = 'link';
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
+      }
+    },
+    actionClick(event) {
+      let click = {selectedFeature: event.feature,
+                    action: event.action,
+                    lngLat: event.coordinates }
+      if ( this.contextMenu.type == 'node' ) { this.$emit('clickNode', click) }
+      if ( this.contextMenu.type == 'link' ) { this.$emit('clickLink', click) }
+      this.contextMenu.showed = false
+      this.contextMenu.type = null
+    },
+    draw(event){      
       if(this.drawMode && this.map.loaded()){
         //let index = this.drawLine.features.length-1
         //this.drawLine.features[index].geometry.coordinates = [ this.anchorNode[0].geometry.coordinates, Object.values(event.mapboxEvent.lngLat)  ]
@@ -245,6 +299,7 @@ export default {
       }
     },
     addPoint(event){
+      this.contextMenu.showed = false
       if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
         this.$store.commit('applyNewLink',pointGeom)
@@ -261,10 +316,8 @@ export default {
         }
       }
     },
-
-    
     moveNode(event){
-      if(this.selectedAction=='Move Stop'){
+      if ( this.selectedAction == 'Move Stop' ){
         event.mapboxEvent.preventDefault(); // prevent map control
         this.map.getCanvas().style.cursor = 'grab';
         // get selected node
@@ -279,14 +332,12 @@ export default {
         this.map.on('mousemove',this.onMove)
       }
     },
-
     onMove(event){
       // get position and update node position
       if (this.map.loaded()){
           this.$store.commit('moveNode',{selectedNode:this.selectedFeature,lngLat:Object.values(event.lngLat)})
       }
     },
-
     stopMovingNode(event){
       // stop tracking position (moving node.)
       this.map.getCanvas().style.cursor = 'pointer';
@@ -361,6 +412,7 @@ export default {
           }
         }"
         v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
+        @contextmenu="contextMenuLink"
         >   
       </MglGeojsonLayer>
 
@@ -382,7 +434,6 @@ export default {
         }"
         >
       </MglImageLayer>
-
        <MglGeojsonLayer
         v-if="drawMode"
         source-id="drawLink"
@@ -449,6 +500,7 @@ export default {
           }
         }"
         v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
+        @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
       <MglPopup :closeButton="false"
@@ -465,6 +517,29 @@ export default {
           {{$gettext("Left click to edit properties")}}
           <hr>
           {{$gettext("Right click for context menu")}}
+        </span>
+      </MglPopup>
+      <MglPopup :closeButton="false"
+                :showed="contextMenu.showed"
+                :coordinates="contextMenu.coordinates">
+        <span>
+          <v-list dense flat >
+            <v-list-item-group>
+              <v-list-item
+                v-for="action in contextMenu.actions"
+                :key="action.id"
+              >
+                <v-list-item-content>
+                  <v-btn  outlined small
+                    @click = "actionClick({action: action, 
+                                           feature: contextMenu.feature, 
+                                           coordinates: contextMenu.coordinates})"> 
+                    {{$gettext(action)}}
+                  </v-btn>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-item-group>
+          </v-list>
         </span>
       </MglPopup>
     </MglMap>
@@ -508,8 +583,10 @@ export default {
   font-size: 1.1em;
   margin-bottom: 10px;
 }
-
 .scrollable {
    overflow-y: scroll;
+}
+.context-menu {
+  color: blue;
 }
 </style>
