@@ -42,7 +42,7 @@ export default {
       defaut: null      
     }
   },
-  events: ["clickLink", "clickNode", "clearSelectedTrips"],
+  events: ["clickLink", "clickNode","actionClick"],
   data () {
     return {
       links: {},
@@ -73,7 +73,6 @@ export default {
   },
   created () {
     this.map = null;
-    this.clonedMap = null
     this.mapboxPublicKey = mapboxPublicKey;
     this.links = this.$store.getters.links;
     this.nodes = this.$store.getters.nodes
@@ -258,13 +257,28 @@ export default {
                                         event.mapboxEvent.lngLat.lat
         ]
         this.contextMenu.showed = true;
-        this.contextMenu.actions = ['Edit Node Info',
-                                    'Cut Line From Node',
-                                    'Cut Line At Node',
-                                    'Delete Stop']
+        
         this.contextMenu.type = 'node';
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
         this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
+
+        let selectedNode = this.contextMenu.feature.properties.index
+        let firstNode = this.$store.getters.editorLinks.features[0].properties.a
+        let lastNode = this.$store.getters.editorLinks.features.slice(-1)[0].properties.b
+        if (selectedNode == firstNode){
+          this.contextMenu.actions = ['Edit Node Info',
+                                    'Extend Line Downward',
+                                    'Delete Stop']
+        }else if (selectedNode == lastNode){
+          this.contextMenu.actions = ['Edit Node Info',
+                                      'Extend Line Upward',
+                                      'Delete Stop']
+        }else{
+          this.contextMenu.actions = ['Edit Node Info',
+                                      'Cut Line From Node',
+                                      'Cut Line At Node',
+                                      'Delete Stop']
+        }
       }
     },
     contextMenuLink(event) {
@@ -282,11 +296,19 @@ export default {
       }
     },
     actionClick(event) {
-      let click = {selectedFeature: event.feature,
+      if (['Extend Line Upward', 'Extend Line Downward'].includes(event.action)){
+        this.$emit('actionClick',event.action)
+
+      }else{
+        let click = {selectedFeature: event.feature,
                     action: event.action,
                     lngLat: event.coordinates }
-      if ( this.contextMenu.type == 'node' ) { this.$emit('clickNode', click) }
-      if ( this.contextMenu.type == 'link' ) { this.$emit('clickLink', click) }
+        if ( this.contextMenu.type == 'node' ) { this.$emit('clickNode', click) }
+        if ( this.contextMenu.type == 'link' ) { this.$emit('clickLink', click) }
+
+      }
+     
+      
       this.contextMenu.showed = false
       this.contextMenu.type = null
     },
@@ -351,6 +373,7 @@ export default {
           this.$emit('clickNode', click);
        }
     },
+    test(event){console.log(event)}
 
   },
   
@@ -367,6 +390,7 @@ export default {
       @mousemove="draw"
       @mouseout="resetDraw"
       @click="addPoint"
+      @mouseup="test"
     >
       <MglNavigationControl position="bottom-right" />
       <MglGeojsonLayer
@@ -449,7 +473,7 @@ export default {
           minzoom: 9,
           maxzoom: 18,
           paint: {
-            'line-color': '#2196F3',
+            'line-color': '#7EBAAC',
             'line-width': 5
           }
         }"
