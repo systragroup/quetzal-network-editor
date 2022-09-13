@@ -46,18 +46,13 @@ export default {
       hideDialog : false,
       editorForm : {},
       cursorPosition : [],
-      clickLinkEnabled: true,
-      clickNodeEnabled: true,
       tripToDelete : null,
-      drawMode : false,
       lingeringAction : false
     }
   },
   watch: {
     action (newVal,oldVal) {
       if (newVal === null) {
-        this.clickLinkEnabled = this.clickNodeEnabled = true
-        this.drawMode = false
         this.lingeringAction = false
       }
     }
@@ -80,38 +75,30 @@ export default {
         this.showDialog = true
       }
       else if ( action == 'Edit Link Info' ){
-        this.clickNodeEnabled = false
         this.lingeringAction = true
         this.$store.commit('changeNotification',{text:$gettext('Select a Link'), autoClose:false})
       }
       else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop','Edit Node Info'].includes(action)){
-        this.clickLinkEnabled = false
         this.lingeringAction = true
         this.$store.commit('changeNotification',{text:$gettext('Select a Node'), autoClose:false})
       }
       else if (action == 'Extend Line Upward'){
         this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
         this.$store.commit('setNewLink',{action:action})
-        this.clickNodeEnabled = false
-        this.clickLinkEnabled = false
+
         this.lingeringAction = true
         //const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
-        this.drawMode = true
       }
       else if (action == 'Extend Line Downward'){
         this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
         this.$store.commit('setNewLink',{action:action})
-        this.clickNodeEnabled=false
-        this.clickLinkEnabled=false
         this.lingeringAction = true
         const firstNode = this.$store.getters.editorLinks.features[0].properties.a
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
-        this.drawMode=true
       }
       else if (action == 'Add Stop Inline'){
         this.$store.commit('changeNotification',{text:$gettext('Click on a link to add a Stop'), autoClose:false})
-        this.clickNodeEnabled = false
         this.lingeringAction = true
       }
       else {
@@ -330,17 +317,13 @@ export default {
   </SidePanel>
 
   <Map 
-    :links="links" 
-    :nodes="nodes" 
-    :drawMode="drawMode"
     :selectedTrips="selectedTrips" 
     :showLeftPanel="showLeftPanel"
-    :clickNodeEnabled="clickNodeEnabled"
-    :clickLinkEnabled="clickLinkEnabled"
     :selectedAction="action"
     @clickNode = "clickNode"
     @clickLink = "clickLink"
     @actionClick = "actionClick">
+
   </Map>
   
   </section>

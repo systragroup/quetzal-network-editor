@@ -25,18 +25,6 @@ export default {
       type: Boolean,
       default: true
     },
-    clickNodeEnabled: {
-      type: Boolean,
-      default: true      
-    },
-    clickLinkEnabled: {
-      type: Boolean,
-      default: true
-    },
-    drawMode:{
-      type:Boolean,
-      default:false
-    },
     selectedAction:{
       type: String,
       defaut: null      
@@ -47,11 +35,14 @@ export default {
     return {
       links: {},
       nodes: {},
+      clickNodeEnabled : true,
+      clickLinkEnabled : true,
       showedTrips: this.selectedTrips,
       mapboxPublicKey:  null,
       selectedFeature : null,
       hoveredStateId : null,
       isEditorMode : false,
+      drawMode : false,
       popup: {
         coordinates: [0, 0],
         showed: false,
@@ -147,6 +138,10 @@ export default {
           this.$store.commit('moveNode',{selectedNode:hist[0].moveNode.selectedFeature,lngLat:Object.values(hist[0].moveNode.lngLat)})
           this.$store.commit('cleanHistory')
         }
+      }else if (['Extend Line Upward','Extend Line Downward'].includes(newVal)){
+        this.drawMode=true
+      }else{
+        this.drawMode=false
       }
     }
   },
@@ -231,6 +226,7 @@ export default {
       }
       this.hoveredStateId = null;
     },
+    
     selectClick(event){
       // Get the highlighted feature
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
@@ -312,6 +308,7 @@ export default {
       this.contextMenu.showed = false
       this.contextMenu.type = null
     },
+
     draw(event){      
       if(this.drawMode && this.map.loaded()){
         //let index = this.drawLine.features.length-1
@@ -421,6 +418,34 @@ export default {
         >  
       </MglGeojsonLayer>
       <MglGeojsonLayer
+        source-id="nodes"
+        :source="{
+          type: 'geojson',
+          data: this.nodes,
+          buffer: 0,
+          promoteId: 'index',
+        }"
+        layer-id="nodes"
+        :layer="{
+          interactive: true,
+          type: 'circle',
+          minzoom: 12,
+          maxzoom: 18,
+          paint: {
+            'circle-color': ['case', ['boolean', ['feature-state', 'hidden'], false],'#9E9E9E', '#2C3E4E'],
+            'circle-radius': 3,
+          }
+        }"
+        >   
+      </MglGeojsonLayer>
+      <MglPopup :closeButton="false"
+                :showed="popup.showed"
+                :coordinates="popup.coordinates">
+        {{this.popup.content}}
+      </MglPopup>
+
+
+      <MglGeojsonLayer
         source-id="editorLinks"
         :source="{
           type: 'geojson',
@@ -443,7 +468,6 @@ export default {
         @contextmenu="contextMenuLink"
         >   
       </MglGeojsonLayer>
-
       <MglImageLayer
         source-id= 'editorLinks'
         type= 'symbol'
@@ -483,30 +507,6 @@ export default {
         }"
         >   
       </MglGeojsonLayer>
-
-      /*
-      <MglGeojsonLayer
-        source-id="nodes"
-        :source="{
-          type: 'geojson',
-          data: this.nodes,
-          buffer: 0,
-          promoteId: 'index',
-        }"
-        layer-id="nodes"
-        :layer="{
-          interactive: true,
-          type: 'circle',
-          minzoom: 12,
-          maxzoom: 18,
-          paint: {
-            'circle-color': ['case', ['boolean', ['feature-state', 'hidden'], false],'#9E9E9E', '#2C3E4E'],
-            'circle-radius': 3,
-          }
-        }"
-        >   
-      </MglGeojsonLayer>
-      */
       <MglGeojsonLayer
         source-id="editorNodes"
         :source="{
@@ -531,11 +531,9 @@ export default {
         @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
-      <MglPopup :closeButton="false"
-                :showed="popup.showed"
-                :coordinates="popup.coordinates">
-        {{this.popup.content}}
-      </MglPopup>
+
+
+
       <MglPopup :closeButton="false"
                 :showed="popupEditor.showed"
                 :coordinates="popupEditor.coordinates">
