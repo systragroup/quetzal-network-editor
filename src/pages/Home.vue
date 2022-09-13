@@ -339,7 +339,8 @@ export default {
     :clickLinkEnabled="clickLinkEnabled"
     :selectedAction="action"
     @clickNode = "clickNode"
-    @clickLink = "clickLink">
+    @clickLink = "clickLink"
+    @actionClick = "actionClick">
   </Map>
   
   </section>
