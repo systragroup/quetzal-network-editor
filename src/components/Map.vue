@@ -1,6 +1,7 @@
 <script>
 import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup, MglImageLayer} from 'vue-mapbox'
+import StaticLinks from './StaticLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png';
 
@@ -15,6 +16,7 @@ export default {
     MglMarker,
     MglPopup,
     MglImageLayer,
+    StaticLinks,
   },
   props:  {
     selectedTrips: {
@@ -33,8 +35,6 @@ export default {
   events: ["clickLink", "clickNode","actionClick"],
   data () {
     return {
-      links: {},
-      nodes: {},
       clickNodeEnabled : true,
       clickLinkEnabled : true,
       showedTrips: this.selectedTrips,
@@ -43,16 +43,13 @@ export default {
       hoveredStateId : null,
       isEditorMode : false,
       drawMode : false,
-      popup: {
-        coordinates: [0, 0],
-        showed: false,
-        content: null
-      },
+      mapIsLoaded:false,
       popupEditor: {
         coordinates: [0, 0],
         showed: false,
         content: null
-      },
+		  },
+
       contextMenu: {
         coordinates: [0, 0],
         showed: false,
@@ -63,10 +60,7 @@ export default {
     }
   },
   created () {
-    this.map = null;
     this.mapboxPublicKey = mapboxPublicKey;
-    this.links = this.$store.getters.links;
-    this.nodes = this.$store.getters.nodes
   },
   watch: {
     editorNodes(newVal, oldVal) {
@@ -88,45 +82,8 @@ export default {
     selectedTrips(newVal) {
       this.showedTrips = newVal
     },
-    popupEditor() {
-      this.contextMenu = {
-        coordinates: [0, 0],
-        showed: false,
-        actions: [],
-        feature: null
-      }
-    },
-    showedTrips(newList, oldList) {
-      if (this.map !== null) {
-        // Set all nodes to hidden
-        this.nodes.features.forEach(feature => {
-          this.map.setFeatureState({ source: 'nodes', id: feature.properties.index }, 
-                                   { hidden: true })
-        })
-        // Set all links to hidden
-        this.links.features.forEach(feature => {
-          this.map.setFeatureState({ source: 'links', id: feature.properties.index }, 
-                                   { hidden: true })
-        }) 
-        // Set visible links
-        const visibleLinks = new Set();
-        newList.forEach(line => {
-          this.linksPerLine[line].forEach(link => visibleLinks.add(link))
-        })
-        visibleLinks.forEach(link => {
-          this.map.setFeatureState({ source: 'links', id: link.properties.index }, 
-                                   { hidden: false })
-        })
-        // Set visible nodes
-        const a = [...visibleLinks].map(item => item.properties.a);
-        const b = [...visibleLinks].map(item => item.properties.b);
-        const ab = new Set([...a, ...b]);
-        [...ab].forEach(id => {
-          this.map.setFeatureState({ source: 'nodes', id: id }, 
-                                   { hidden: false })
-        })                  
-      }
-    },
+
+
     selectedAction(newVal,oldVal){
        // if history is not empty, apply it.
       // when we are moving and we change the action without any dialog, we want to revert to default value.
@@ -146,15 +103,7 @@ export default {
     }
   },
   computed:{
-    linksPerLine() {
-      const groupBy = function(xs) {
-        return xs.reduce(function(rv, x) {
-          (rv[x.properties.trip_id] = rv[x.properties.trip_id] || []).push(x);
-          return rv;
-        }, {});
-      };
-      return groupBy(this.$store.getters.links.features)
-    },
+ 
     editorNodes() {
       return this.$store.getters.editorNodes
     },
@@ -165,7 +114,7 @@ export default {
   methods: {
     onMapLoaded (event) {
       const bounds = new Mapbox.LngLatBounds();
-      this.links.features.forEach(link => {
+      this.$store.getters.links.features.forEach(link => {
         bounds.extend(link.geometry.coordinates)
       })
       event.map.fitBounds(bounds, {
@@ -180,19 +129,9 @@ export default {
         event.map.addImage('arrow', image);
       });
       this.map = event.map;
+      
+      this.mapIsLoaded=true
 
-    },
-    enterLink(event) {
-      this.map.getCanvas().style.cursor = 'pointer';
-      this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
-                                event.mapboxEvent.lngLat.lat
-      ]
-      this.popup.content = event.mapboxEvent.features[0].properties.trip_id
-      this.popup.showed = true
-    },
-    leaveLink(event) {
-      this.map.getCanvas().style.cursor = '';
-      this.popup.showed = false
     },
     onCursor(event){
       this.map.getCanvas().style.cursor = 'pointer';
@@ -394,56 +333,14 @@ export default {
       @mouseup="rightClickMap"
     >
       <MglNavigationControl position="bottom-right" />
-      <MglGeojsonLayer
-        source-id="links"
-        :source="{
-          type: 'geojson',
-          data: this.links,
-          buffer: 0,
-          promoteId: 'index',
-        }"
-        layer-id="links"
-        :layer="{
-          interactive: true,
-          type: 'line',
-          minzoom: 9,
-          maxzoom: 18,
-          paint: {
-            'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
-            'line-opacity': ['case', ['boolean', ['feature-state', 'hidden'], false], 0.1, 1],
-            'line-width': 3
-          }
-        }"
-        v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink }"
-        >  
-      </MglGeojsonLayer>
-      <MglGeojsonLayer
-        source-id="nodes"
-        :source="{
-          type: 'geojson',
-          data: this.nodes,
-          buffer: 0,
-          promoteId: 'index',
-        }"
-        layer-id="nodes"
-        :layer="{
-          interactive: true,
-          type: 'circle',
-          minzoom: 12,
-          maxzoom: 18,
-          paint: {
-            'circle-color': ['case', ['boolean', ['feature-state', 'hidden'], false],'#9E9E9E', '#2C3E4E'],
-            'circle-radius': 3,
-          }
-        }"
-        >   
-      </MglGeojsonLayer>
-      <MglPopup :closeButton="false"
-                :showed="popup.showed"
-                :coordinates="popup.coordinates">
-        {{this.popup.content}}
-      </MglPopup>
-
+      <template v-if="mapIsLoaded">
+        <StaticLinks 
+        :map="map"
+        :showedTrips="showedTrips"
+        :isEditorMode="isEditorMode">
+        </StaticLinks>
+      </template>
+     
 
       <MglGeojsonLayer
         source-id="editorLinks"
@@ -535,16 +432,17 @@ export default {
 
 
       <MglPopup :closeButton="false"
-                :showed="popupEditor.showed"
-                :coordinates="popupEditor.coordinates">
+					:showed="popupEditor.showed"
+					:coordinates="popupEditor.coordinates">
         <span>
-          <h3>{{this.popupEditor.content}}</h3>
-          <hr>
-          {{$gettext("Left click to edit properties")}}
-          <hr>
-          {{$gettext("Right click for context menu")}}
+            <h3>{{this.popupEditor.content}}</h3>
+            <hr>
+            {{$gettext("Left click to edit properties")}}
+            <hr>
+            {{$gettext("Right click for context menu")}}
         </span>
       </MglPopup>
+          
       <MglPopup :closeButton="false"
                 :showed="contextMenu.showed"
                 :coordinates="contextMenu.coordinates">
