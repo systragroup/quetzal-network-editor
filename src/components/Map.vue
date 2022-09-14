@@ -2,6 +2,7 @@
 import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglGeojsonLayer, MglMarker, MglPopup, MglImageLayer} from 'vue-mapbox'
 import StaticLinks from './StaticLinks.vue'
+import EditorLinks from './EditorLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png';
 
@@ -17,6 +18,7 @@ export default {
     MglPopup,
     MglImageLayer,
     StaticLinks,
+    EditorLinks,
   },
   props:  {
     selectedTrips: {
@@ -35,28 +37,12 @@ export default {
   events: ["clickLink", "clickNode","actionClick"],
   data () {
     return {
-      clickNodeEnabled : true,
-      clickLinkEnabled : true,
       showedTrips: this.selectedTrips,
       mapboxPublicKey:  null,
       selectedFeature : null,
-      hoveredStateId : null,
       isEditorMode : false,
       drawMode : false,
       mapIsLoaded:false,
-      popupEditor: {
-        coordinates: [0, 0],
-        showed: false,
-        content: null
-		  },
-
-      contextMenu: {
-        coordinates: [0, 0],
-        showed: false,
-        actions: [],
-        feature: null,
-        type: null // link of node
-      }
     }
   },
   created () {
@@ -104,13 +90,14 @@ export default {
   },
   computed:{
  
-    editorNodes() {
-      return this.$store.getters.editorNodes
-    },
-    drawLine(){
-      return this.$store.getters.newLink
-    },
-  },
+ editorNodes() {
+   return this.$store.getters.editorNodes
+ },
+ drawLine(){
+   return this.$store.getters.newLink
+ },
+},
+
   methods: {
     onMapLoaded (event) {
       const bounds = new Mapbox.LngLatBounds();
@@ -129,124 +116,10 @@ export default {
         event.map.addImage('arrow', image);
       });
       this.map = event.map;
-      
       this.mapIsLoaded=true
 
     },
-    onCursor(event){
-      this.map.getCanvas().style.cursor = 'pointer';
-      if (this.hoveredStateId !== null) {
-        this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-          { hover: false }
-        )
-      }
-      this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
-      this.map.setFeatureState(
-        { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-        { hover: true }
-      );
-      if ( this.selectedAction === null ) {
-        this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
-                                      event.mapboxEvent.lngLat.lat
-        ]
-        this.popupEditor.content = this.hoveredStateId.id;
-        this.popupEditor.showed = true;
-      }
-    },
-    offCursor(event){
-      this.map.getCanvas().style.cursor = '';
-      this.popupEditor.showed = false;
-      if (this.hoveredStateId !== null) {
-        this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-          { hover: false }
-        );
-      }
-      this.hoveredStateId = null;
-    },
     
-    selectClick(event){
-      // Get the highlighted feature
-      const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
-
-      // Emit a click base on layer type (node or link)
-      if (this.selectedFeature !== null) {
-        let click = {selectedFeature: this.selectedFeature,
-                     action: this.selectedAction,
-                     lngLat: event.mapboxEvent.lngLat}
-        if (this.hoveredStateId.layerId == 'editorNodes') {
-          if ( this.selectedAction === null ) {  click.action = 'Edit Node Info' }
-          this.$emit('clickNode', click);
-        } else if (this.hoveredStateId.layerId == 'editorLinks') {
-          if ( this.selectedAction === null ) {  click.action = 'Edit Link Info' }
-          this.$emit('clickLink', click);
-        }
-      }
-    },
-    contextMenuNode(event) {
-      if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorNodes') {
-        this.popupEditor.showed = false;
-        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
-                                        event.mapboxEvent.lngLat.lat
-        ]
-        this.contextMenu.showed = true;
-        
-        this.contextMenu.type = 'node';
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-        this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
-
-        let selectedNode = this.contextMenu.feature.properties.index
-        let firstNode = this.$store.getters.editorLinks.features[0].properties.a
-        let lastNode = this.$store.getters.editorLinks.features.slice(-1)[0].properties.b
-        if (selectedNode == firstNode){
-          this.contextMenu.actions = ['Edit Node Info',
-                                    'Extend Line Downward',
-                                    'Delete Stop']
-        }else if (selectedNode == lastNode){
-          this.contextMenu.actions = ['Edit Node Info',
-                                      'Extend Line Upward',
-                                      'Delete Stop']
-        }else{
-          this.contextMenu.actions = ['Edit Node Info',
-                                      'Cut Line From Node',
-                                      'Cut Line At Node',
-                                      'Delete Stop']
-        }
-      }
-    },
-    contextMenuLink(event) {
-      if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorLinks' ) {
-        this.popupEditor.showed = false;
-        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
-                                        event.mapboxEvent.lngLat.lat
-        ]
-        this.contextMenu.showed = true;
-        this.contextMenu.actions = ['Edit Link Info',
-                                    'Add Stop Inline']
-        this.contextMenu.type = 'link';
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-        this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
-      }
-    },
-    actionClick(event) {
-      if (['Extend Line Upward', 'Extend Line Downward'].includes(event.action)){
-        this.$emit('actionClick',event.action)
-
-      }else{
-        let click = {selectedFeature: event.feature,
-                    action: event.action,
-                    lngLat: event.coordinates }
-        if ( this.contextMenu.type == 'node' ) { this.$emit('clickNode', click) }
-        if ( this.contextMenu.type == 'link' ) { this.$emit('clickLink', click) }
-
-      }
-     
-      
-      this.contextMenu.showed = false
-      this.contextMenu.type = null
-    },
 
     draw(event){      
       if(this.drawMode && this.map.loaded()){
@@ -257,7 +130,6 @@ export default {
       }
     },
     addPoint(event){
-      this.contextMenu.showed = false
       if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
         this.$store.commit('applyNewLink',pointGeom)
@@ -274,41 +146,7 @@ export default {
         }
       }
     },
-    moveNode(event){
-      if ( this.selectedAction == 'Move Stop' ){
-        event.mapboxEvent.preventDefault(); // prevent map control
-        this.map.getCanvas().style.cursor = 'grab';
-        // get selected node
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-        this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
-        let nodeId = this.selectedFeature.properties.index
-        // store default position in history
-        let geom =this.editorNodes.features.filter(node=>node.properties.index == nodeId)[0].geometry.coordinates
-        this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
-        
-        // get position
-        this.map.on('mousemove',this.onMove)
-      }
-    },
-    onMove(event){
-      // get position and update node position
-      if (this.map.loaded()){
-          this.$store.commit('moveNode',{selectedNode:this.selectedFeature,lngLat:Object.values(event.lngLat)})
-      }
-    },
-    stopMovingNode(event){
-      // stop tracking position (moving node.)
-      this.map.getCanvas().style.cursor = 'pointer';
-      this.map.off('mousemove', this.onMove);
-      // emit a clickNode with the selected node.
-      // this will work with lag as it is the selectedFeature and not the highlighted one.
-      if (this.selectedAction == 'Move Stop') {
-        let click = {selectedFeature: this.selectedFeature,
-                     action: this.selectedAction,
-                     lngLat: event.lngLat}
-          this.$emit('clickNode', click);
-       }
-    },
+
     rightClickMap(event){
       if(event.mapboxEvent.originalEvent.button==2){
         this.$emit('actionClick',null)
@@ -341,131 +179,20 @@ export default {
         </StaticLinks>
       </template>
      
-
-      <MglGeojsonLayer
-        source-id="editorLinks"
-        :source="{
-          type: 'geojson',
-          data: $store.getters.editorLinks,
-          buffer: 0,
-          promoteId: 'index',
-        }"
-        layer-id="editorLinks"
-        :layer="{
-          type: 'line',
-          minzoom: 9,
-          maxzoom: 18,
-          paint: {
-            'line-color': '#7EBAAC',
-            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
-            'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
-          }
-        }"
-        v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
-        @contextmenu="contextMenuLink"
-        >   
-      </MglGeojsonLayer>
-      <MglImageLayer
-        source-id= 'editorLinks'
-        type= 'symbol'
-        source= 'editorLinks'
-        layer-id="arrow-layer"
-        :layer="{
-          type: 'symbol',
-          layout: {
-          'symbol-placement': 'line',
-          'symbol-spacing': 30,
-          'icon-ignore-placement': true,
-          'icon-image': 'arrow',
-          'icon-size': 0.5,
-          'icon-rotate': 90
-          }
-        }"
-        >
-      </MglImageLayer>
-       <MglGeojsonLayer
-        v-if="drawMode"
-        source-id="drawLink"
-        :source="{
-          type: 'geojson',
-          data: drawLine,
-          buffer: 0,
-          generateId: true,
-        }"
-        layer-id="drawLink"
-        :layer="{
-          type: 'line',
-          minzoom: 9,
-          maxzoom: 18,
-          paint: {
-            'line-color': '#7EBAAC',
-            'line-width': 5
-          }
-        }"
-        >   
-      </MglGeojsonLayer>
-      <MglGeojsonLayer
-        source-id="editorNodes"
-        :source="{
-          type: 'geojson',
-          data: editorNodes,
-          buffer: 0,
-          promoteId: 'index',
-        }"
-        layer-id="editorNodes"
-        :layer="{
-          interactive: true,
-          type: 'circle',
-          minzoom: 12,
-          maxzoom: 18,
-          paint: {
-            'circle-color': '#2C3E4E',
-            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  12, 8],
-            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
-          }
-        }"
-        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
-        @contextmenu="contextMenuNode"
-        >   
-      </MglGeojsonLayer>
+      <template v-if="mapIsLoaded">
+        <EditorLinks 
+        :map="map"
+        :drawMode="drawMode"
+        :editorNodes="editorNodes"
+        :drawLine="drawLine"
+        :selectedAction="selectedAction"
+        @clickLink="(e) => this.$emit('clickLink',e)"
+        @clickNode="(e) => this.$emit('clickNode',e)"
+        @actionClick="(e) => this.$emit('actionClick',e)">
+        </EditorLinks>
+      </template>
 
 
-
-      <MglPopup :closeButton="false"
-					:showed="popupEditor.showed"
-					:coordinates="popupEditor.coordinates">
-        <span>
-            <h3>{{this.popupEditor.content}}</h3>
-            <hr>
-            {{$gettext("Left click to edit properties")}}
-            <hr>
-            {{$gettext("Right click for context menu")}}
-        </span>
-      </MglPopup>
-          
-      <MglPopup :closeButton="false"
-                :showed="contextMenu.showed"
-                :coordinates="contextMenu.coordinates">
-        <span>
-          <v-list dense flat >
-            <v-list-item-group>
-              <v-list-item
-                v-for="action in contextMenu.actions"
-                :key="action.id"
-              >
-                <v-list-item-content>
-                  <v-btn  outlined small
-                    @click = "actionClick({action: action, 
-                                           feature: contextMenu.feature, 
-                                           coordinates: contextMenu.coordinates})"> 
-                    {{$gettext(action)}}
-                  </v-btn>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list-item-group>
-          </v-list>
-        </span>
-      </MglPopup>
     </MglMap>
 
 </template>
