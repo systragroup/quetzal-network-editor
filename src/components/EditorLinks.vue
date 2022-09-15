@@ -52,21 +52,23 @@ events: ["clickLink", "clickNode", "actionClick"],
 
 	methods: {
     selectClick(event){
-      // Get the highlighted feature
-      const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
+      if ( this.hoveredStateId !== null ) {
+        // Get the highlighted feature
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
 
-      // Emit a click base on layer type (node or link)
-      if (this.selectedFeature !== null) {
-        let click = {selectedFeature: this.selectedFeature,
-                     action: this.selectedAction,
-                     lngLat: event.mapboxEvent.lngLat}
-        if (this.hoveredStateId.layerId == 'editorNodes') {
-          if ( this.selectedAction === null ) {  click.action = 'Edit Node Info' }
-          this.$emit('clickNode', click);
-        } else if (this.hoveredStateId.layerId == 'editorLinks') {
-          if ( this.selectedAction === null ) {  click.action = 'Edit Link Info' }
-          this.$emit('clickLink', click);
+        // Emit a click base on layer type (node or link)
+        if (this.selectedFeature !== null) {
+          let click = {selectedFeature: this.selectedFeature,
+                      action: this.selectedAction,
+                      lngLat: event.mapboxEvent.lngLat}
+          if (this.hoveredStateId.layerId == 'editorNodes') {
+            if ( this.selectedAction === null ) {  click.action = 'Edit Node Info' }
+            this.$emit('clickNode', click);
+          } else if (this.hoveredStateId.layerId == 'editorLinks') {
+            if ( this.selectedAction === null ) {  click.action = 'Edit Link Info' }
+            this.$emit('clickLink', click);
+          }
         }
       }
     },
