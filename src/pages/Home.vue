@@ -18,7 +18,6 @@ export default {
       links: {},
       selectedTrips : [],
       editorTrip : null,
-      showLeftPanel : true,
       actionsList :[{value:'Edit Line info',
                     name: $gettext('Edit Line Info')},
                     {value: 'Cut Line From Node',
@@ -307,7 +306,6 @@ export default {
 
   <SidePanel
     v-model="selectedTrips" 
-    @showPanel='(e) => showLeftPanel = e'
     :actionsList="actionsList"
     :selectedAction = "action"
     @actionClick="actionClick"
@@ -318,7 +316,6 @@ export default {
 
   <Map 
     :selectedTrips="selectedTrips" 
-    :showLeftPanel="showLeftPanel"
     :selectedAction="action"
     @clickNode = "clickNode"
     @clickLink = "clickLink"

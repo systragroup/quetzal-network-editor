@@ -25,10 +25,7 @@ export default {
       type: Array,
       default: []
     },
-    showLeftPanel: {
-      type: Boolean,
-      default: true
-    },
+    
     selectedAction:{
       type: String,
       defaut: null      
@@ -160,7 +157,7 @@ export default {
 <template>
     <MglMap
        v-show="true"
-      :style="{'width': showLeftPanel ? '80%' : '100%'}"
+      :style="{'width': $store.getters.showLeftPanel ? '80%' : '100%'}"
       :access-token="mapboxPublicKey"
       map-style="mapbox://styles/mapbox/light-v9"
  

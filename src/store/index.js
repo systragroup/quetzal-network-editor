@@ -12,19 +12,19 @@ export const store = new Vuex.Store({
 
   state: {
     notification: {},
-    user: null,
+    showLeftPanel: true,
   },
   mutations: {
     changeNotification (state, payload) {
       state.notification = payload
     },
-    changeUser (state, newUser) {
-      state.user = newUser
+    changeLeftPanel (state, newUser) {
+      state.showLeftPanel = !state.showLeftPanel
     },
   },
   getters: {
     notification: (state) => state.notification,
-    user: (state) => state.user,
+    showLeftPanel: (state) => state.showLeftPanel,
     
   },
 })
