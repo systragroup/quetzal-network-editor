@@ -220,7 +220,6 @@ events: ["clickLink", "clickNode", "actionClick"],
         :layer="{
           type: 'line',
           minzoom: 9,
-          maxzoom: 18,
           paint: {
             'line-color': '#7EBAAC',
             'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
@@ -264,7 +263,6 @@ events: ["clickLink", "clickNode", "actionClick"],
         :layer="{
           type: 'line',
           minzoom: 9,
-          maxzoom: 18,
           paint: {
             'line-color': '#7EBAAC',
             'line-width': 5
@@ -286,7 +284,6 @@ events: ["clickLink", "clickNode", "actionClick"],
           interactive: true,
           type: 'circle',
           minzoom: 12,
-          maxzoom: 18,
           paint: {
             'circle-color': '#2C3E4E',
             'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  12, 8],
