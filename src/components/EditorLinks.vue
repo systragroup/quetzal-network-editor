@@ -73,36 +73,41 @@ events: ["clickLink", "clickNode", "actionClick"],
       }
     },
     onCursor(event){
-      this.map.getCanvas().style.cursor = 'pointer';
-      if (this.hoveredStateId !== null) {
+      if ( this.hoveredStateId === null || this.hoveredStateId.layerId == 'editorLinks') {
+        this.map.getCanvas().style.cursor = 'pointer';
+        if (this.hoveredStateId !== null) {
+          this.map.setFeatureState(
+            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+            { hover: false }
+          )
+        }
+
+        this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
         this.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-          { hover: false }
-        )
-      }
-      this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
-      this.map.setFeatureState(
-        { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-        { hover: true }
-      );
-      if ( this.selectedAction === null ) {
-        this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
-                                      event.mapboxEvent.lngLat.lat
-        ]
-        this.popupEditor.content = this.hoveredStateId.id;
-        this.popupEditor.showed = true;
+          { hover: true }
+        );
+        if ( this.selectedAction === null ) {
+          this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
+                                        event.mapboxEvent.lngLat.lat
+          ]
+          this.popupEditor.content = this.hoveredStateId.id;
+          this.popupEditor.showed = true;
+        }
       }
     },
     offCursor(event){
-      this.map.getCanvas().style.cursor = '';
-      this.popupEditor.showed = false;
-      if (this.hoveredStateId !== null) {
-        this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-          { hover: false }
-        );
+      if ( this.hoveredStateId !== null ) {
+        if ( !(this.hoveredStateId.layerId == 'editorNodes' && event.layerId == 'editorLinks') ) {
+          this.map.getCanvas().style.cursor = '';
+          this.popupEditor.showed = false;
+          this.map.setFeatureState(
+            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+            { hover: false }
+          );
+          this.hoveredStateId = null;
+        }
       }
-      this.hoveredStateId = null;
     },
 
     contextMenuNode(event) {
@@ -228,7 +233,7 @@ events: ["clickLink", "clickNode", "actionClick"],
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
         }"
-        v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
+        v-on="clickNodeEnabled ? { click: selectClick, mouseover: onCursor, mouseleave: offCursor } : {}"
         @contextmenu="contextMenuLink"
         >   
       </MglGeojsonLayer>
@@ -288,11 +293,11 @@ events: ["clickLink", "clickNode", "actionClick"],
           minzoom: 12,
           paint: {
             'circle-color': '#2C3E4E',
-            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  12, 8],
-            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
+            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  16, 8],
+            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
           }
         }"
-        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
+        v-on="clickNodeEnabled ? { click: selectClick, mouseover: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
         @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
