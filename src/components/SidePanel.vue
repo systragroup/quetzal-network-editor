@@ -11,16 +11,16 @@ export default {
     prop: "selectedTrips",
     event: "update-tripList"
   },
-  events: ["selectEditorTrip","showPanel","ActionClick","confirmChanges","abortChanges","deleteButton"],
+  events: ["selectEditorTrip","ActionClick","confirmChanges","abortChanges","deleteButton"],
 
   data () {
     return {
-      showLeftPanel: true,
       showLeftPanelContent: true,
       tripList : this.selectedTrips,
     }
   },
   computed:{
+    showLeftPanel() {return this.$store.getters.showLeftPanel},
     height() {return (window.innerHeight-50)/2 - 20*3 - 50},
     width() {},
     editorTrip() {return this.$store.getters.editorTrip},
@@ -37,7 +37,6 @@ export default {
       } else {
         this.showLeftPanelContent = false
       }
-      this.$emit("showPanel",this.showLeftPanel)
     },
     tripList (val){
       this.$emit("update-tripList", val);
@@ -111,7 +110,7 @@ export default {
       <div
         class="left-panel-toggle-btn elevation-4"
         :style="{'left': showLeftPanel ? 'calc(350px + 40px)' : '50px'}"
-        @click="showLeftPanel = !showLeftPanel"
+        @click="$store.commit('changeLeftPanel')"
       >
         <v-icon
           small

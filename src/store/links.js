@@ -229,7 +229,7 @@ export default {
         let link1 = state.editorLinks.features[featureIndex] // this link is extented
         let link2 = JSON.parse(JSON.stringify(link1))
         // distance du point (entre 0 et 1) sur le lien original
-        const ratio = payload.offset / link1.properties.shape_dist_traveled
+        const ratio = payload.offset
 
         link1.properties.b = state.newNode.features[0].properties.index
         link1.geometry.coordinates[1] = state.newNode.features[0].geometry.coordinates
@@ -252,7 +252,9 @@ export default {
           linkGeom = Linestring(linkGeom[0].geometry.coordinates)
           let clickedPoint = Point(Object.values(payload.lngLat))
           var snapped = nearestPointOnLine(linkGeom, clickedPoint, {units: 'kilometers'});
-          const offset = snapped.properties.location * 1000 // offset in metres from node a.
+          const dist = length(linkGeom, {units: 'kilometers'}); //dist
+
+          const offset = snapped.properties.location / dist
           this.commit('setNewNode',{coordinates:snapped.geometry.coordinates})
           this.commit('splitLink',{selectedLink:payload.selectedLink, offset:offset})
       },
