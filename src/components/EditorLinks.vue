@@ -134,19 +134,16 @@ events: ["clickLink", "clickNode", "actionClick"],
         }
       }
     },
-    contextMenuLink(event) {
-      if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorLinks' ) {
-        this.popupEditor.showed = false;
-        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
-                                        event.mapboxEvent.lngLat.lat
-        ]
-        this.contextMenu.showed = true;
-        this.contextMenu.actions = ['Edit Link Info',
-                                    'Add Stop Inline']
-        this.contextMenu.type = 'link';
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-        this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
-      }
+
+    linkRightClick(event) {
+      const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
+      let click = {selectedFeature: this.selectedFeature,
+                    action: 'Add Stop Inline',
+                    lngLat:  [event.mapboxEvent.lngLat.lng,
+                              event.mapboxEvent.lngLat.lat]
+                  }
+         this.$emit('clickLink', click) 
     },
 
     actionClick(event) {
@@ -228,7 +225,7 @@ events: ["clickLink", "clickNode", "actionClick"],
           }
         }"
         v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
-        @contextmenu="contextMenuLink"
+        @contextmenu="linkRightClick"
         >   
       </MglGeojsonLayer>
 

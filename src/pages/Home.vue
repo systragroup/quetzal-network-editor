@@ -312,8 +312,8 @@ export default {
   </SidePanel>
 
   <Map 
-    :selectedTrips="selectedTrips" 
-    :selectedAction="action"
+    :selectedTrips = "selectedTrips" 
+    :selectedAction = "action"
     @clickNode = "clickNode"
     @clickLink = "clickLink"
     @actionClick = "actionClick">
