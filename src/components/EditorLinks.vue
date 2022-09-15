@@ -178,7 +178,7 @@ events: ["clickLink", "clickNode", "actionClick"],
         let nodeId = this.selectedFeature.properties.index
         // store default position in history
         let geom =this.editorNodes.features.filter(node=>node.properties.index == nodeId)[0].geometry.coordinates
-        this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
+        this.$store.commit('addToHistory')
         
         // get position
         this.map.on('mousemove',this.onMove)

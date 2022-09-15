@@ -50,8 +50,14 @@ export default {
         }
         else{alert('invalid CRS. use CRS84 / EPSG:4326')}
       },
-      addToHistory(state,payload){
-        state.history.push(payload)
+      addToHistory(state){
+        state.history.push({editorLinks:JSON.parse(JSON.stringify(state.editorLinks)),
+          editorNodes:JSON.parse(JSON.stringify(state.editorNodes))})
+      },
+      applyHistory(state){
+        let hist = state.history.pop()
+        state.editorLinks = hist.editorLinks
+        state.editorNodes = hist.editorNodes
       },
       cleanHistory(state){state.history = []},
 

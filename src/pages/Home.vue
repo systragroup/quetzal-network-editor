@@ -201,7 +201,7 @@ export default {
         this.$store.commit('addNodeInline',{selectedLink:this.selectedLink, lngLat:this.cursorPosition})
         break
       }
-      this.$store.commit('cleanHistory')
+      //this.$store.commit('cleanHistory')
       if ( !this.lingeringAction ) { this.action = null } 
     },
     cancelAction(){
@@ -209,8 +209,8 @@ export default {
       if (this.action == 'Move Stop'){
         // return to the original position
         let hist = this.$store.getters.history[0]
-        this.$store.commit('moveNode',{selectedNode:hist.moveNode.selectedFeature,lngLat:Object.values(hist.moveNode.lngLat)})
-        this.$store.commit('cleanHistory')
+        this.$store.commit('applyHistory')
+        //this.$store.commit('cleanHistory')
       }
       if ( !this.lingeringAction ) { this.action = null }
     },
