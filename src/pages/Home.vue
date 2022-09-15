@@ -306,9 +306,6 @@ export default {
 
   <SidePanel
     v-model="selectedTrips" 
-    :actionsList="actionsList"
-    :selectedAction = "action"
-    @actionClick="actionClick"
     @confirmChanges="confirmChanges"
     @abortChanges="abortChanges"
     @deleteButton="deleteButton">
