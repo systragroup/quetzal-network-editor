@@ -14,7 +14,7 @@ module.exports = {
   ],
   output: {
     filename: 'build.js',
-    publicPath: '/quetzal_network_editor/',
+    publicPath: '/quetzal-network-editor/',
   },
   resolve: {
     alias: {
