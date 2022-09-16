@@ -257,6 +257,7 @@ export default {
           const offset = snapped.properties.location / dist
           this.commit('setNewNode',{coordinates:snapped.geometry.coordinates})
           this.commit('splitLink',{selectedLink:payload.selectedLink, offset:offset})
+          this.commit('setNewNode',null) // init new node to null
       },
 
       moveNode(state,payload){

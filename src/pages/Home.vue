@@ -42,7 +42,7 @@ export default {
       selectedNode : null,
       selectedLink : null,
       showDialog : false,
-      hideDialog : false,
+      hideDialog : true,
       editorForm : {},
       cursorPosition : [],
       tripToDelete : null,

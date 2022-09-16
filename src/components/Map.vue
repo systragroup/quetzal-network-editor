@@ -157,7 +157,15 @@ export default {
       if(event.mapboxEvent.originalEvent.button==2){
         this.$emit('actionClick',null)
       }
-    }
+    },
+    onHover(){
+      this.drawMode=false
+      this.map.setLayoutProperty('drawLink', 'visibility', 'none');
+    },
+    offHover(){
+      this.drawMode=true
+      this.map.setLayoutProperty('drawLink', 'visibility', 'visible');
+    },
 
   },
   
@@ -193,7 +201,9 @@ export default {
         @clickLink="(e) => this.$emit('clickLink',e)"
         @clickNode="(e) => this.$emit('clickNode',e)"
         @actionClick="(e) => this.$emit('actionClick',e)"
-        @onHover="resetDraw('onHover')">
+        @onHover = "onHover"
+        @offHover ="offHover"
+        >
         </EditorLinks>
       </template>
 

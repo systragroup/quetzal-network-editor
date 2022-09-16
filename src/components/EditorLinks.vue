@@ -49,9 +49,13 @@ model: {
       } else if (['Add Stop Inline','Edit Link Info'].includes(val)){
         this.clickNodeEnabled=false
       }
-    }
+    },
+    drawMode(val){
+    
+  }
 
 	},
+  
   
 
 	methods: {
@@ -84,15 +88,16 @@ model: {
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: true }
         );
-        if ( this.selectedAction === null ) {
+        if ( this.selectedAction != 'Move Stop' ) {
           this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
                                         event.mapboxEvent.lngLat.lat
           ]
           this.popupEditor.content = this.hoveredStateId.id;
           this.popupEditor.showed = true;
+          this.$emit('onHover',event)
         }
       }
-      this.$emit('onHover')
+      
     },
     offCursor(event){
       if ( this.hoveredStateId !== null ) {
@@ -104,9 +109,10 @@ model: {
             { hover: false }
           );
           this.hoveredStateId = null;
+          this.$emit('offHover',event)
         }
       }
-      this.$emit('offHover')
+      
     },
 
     contextMenuNode(event) {
@@ -270,7 +276,8 @@ model: {
           minzoom: 9,
           paint: {
             'line-color': '#7EBAAC',
-            'line-width': 5
+            'line-width': 3,
+            'line-dasharray': [0, 2, 4]
           }
         }"
         >   
