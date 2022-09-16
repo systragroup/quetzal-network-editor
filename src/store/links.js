@@ -257,6 +257,7 @@ export default {
           const offset = snapped.properties.location / dist
           this.commit('setNewNode',{coordinates:snapped.geometry.coordinates})
           this.commit('splitLink',{selectedLink:payload.selectedLink, offset:offset})
+          this.commit('setNewNode',null) // init new node to null
       },
 
       moveNode(state,payload){
@@ -387,12 +388,6 @@ export default {
         // Delete links
         state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
         this.commit('getEditorNodes',{nodes:state.editorNodes})
-
-        // Update link_sequence
-        for (const [i, link] of state.editorLinks.features.entries()) {
-          console.log()
-          link.properties.link_sequence = i + 1;
-        }
       },
       editLineInfo(state,payload)
       {
@@ -444,8 +439,13 @@ export default {
       editorNodes: (state) => state.editorNodes,
       tripId: (state) => state.tripId,
       editorLineInfo: (state) => state.editorLineInfo,
-      newLink: (state)=> state.newLink,
-      newNode: (state)=> state.newNode
+      newLink: (state) => state.newLink,
+      newNode: (state) => state.newNode,
+      firstNodeId: (state) => state.editorTrip? state.editorLinks.features[0].properties.a : null,
+      lastNodeId: (state) => state.editorTrip? state.editorLinks.features.slice(-1)[0].properties.b: null,
+      firstNode: (state, getters) => state.editorTrip? state.editorNodes.features.filter((node) => node.properties.index == getters.firstNodeId)[0] : null,
+      lastNode: (state, getters) => state.editorTrip? state.editorNodes.features.filter((node) => node.properties.index == getters.lastNodeId)[0] : null,
+
       
     },
   }

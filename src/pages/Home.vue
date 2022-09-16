@@ -41,7 +41,7 @@ export default {
       selectedNode : null,
       selectedLink : null,
       showDialog : false,
-      hideDialog : false,
+      hideDialog : true,
       editorForm : {},
       cursorPosition : [],
       tripToDelete : null,
@@ -293,17 +293,13 @@ export default {
 
   <SidePanel
     v-model="selectedTrips" 
-    :actionsList="actionsList"
-    :selectedAction = "action"
-    @actionClick="actionClick"
     @confirmChanges="confirmChanges"
     @abortChanges="abortChanges"
     @deleteButton="deleteButton">
   </SidePanel>
 
   <Map 
-    :selectedTrips="selectedTrips" 
-    :selectedAction="action"
+    :selectedTrips = "selectedTrips" 
     @clickNode = "clickNode"
     @clickLink = "clickLink"
     @actionClick = "actionClick">

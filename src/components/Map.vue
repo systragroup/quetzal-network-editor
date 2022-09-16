@@ -26,20 +26,18 @@ export default {
       default: []
     },
     
-    selectedAction:{
-      type: String,
-      defaut: null      
-    }
   },
   events: ["clickLink", "clickNode","actionClick"],
   data () {
     return {
+      selectedAction:null,
       showedTrips: this.selectedTrips,
       mapboxPublicKey:  null,
       selectedFeature : null,
       isEditorMode : false,
-      drawMode : false,
       mapIsLoaded:false,
+      drawMode:false,
+      hoverId:null,
     }
   },
   created () {
@@ -65,20 +63,29 @@ export default {
     selectedTrips(newVal) {
       this.showedTrips = newVal
     },
+    isEditorMode(val){
+      if (val){
+        this.selectedAction='Extend Line Upward'
+      } else {
+        this.selectedAction = null
+      }
+      if (!val & this.drawMode){this.drawMode=false}
 
+    },
+    'firstNode.geometry.coordinates'(val){ 
+      if (this.$store.getters.editorTrip) {
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }
+    },
+    'lastNode.geometry.coordinates'(val){
+      if (this.$store.getters.editorTrip) {
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }
+    },
 
     selectedAction(newVal,oldVal){
-       // if history is not empty, apply it.
-      // when we are moving and we change the action without any dialog, we want to revert to default value.
-      if (oldVal == 'Move Stop'){
-        this.map.getCanvas().style.cursor = 'pointer';
-        this.map.off('mousemove', this.onMove);
-        let hist = this.$store.getters.history
-        if (hist.length>0){
-          this.$store.commit('moveNode',{selectedNode:hist[0].moveNode.selectedFeature,lngLat:Object.values(hist[0].moveNode.lngLat)})
-          this.$store.commit('cleanHistory')
-        }
-      }else if (['Extend Line Upward','Extend Line Downward'].includes(newVal)){
+      if (['Extend Line Upward','Extend Line Downward'].includes(newVal)){
+        this.$store.commit('setNewLink',{action:this.selectedAction})
         this.drawMode=true
       }else{
         this.drawMode=false
@@ -87,12 +94,18 @@ export default {
   },
   computed:{
  
- editorNodes() {
-   return this.$store.getters.editorNodes
- },
- drawLine(){
-   return this.$store.getters.newLink
- },
+  editorNodes() {
+    return this.$store.getters.editorNodes
+  },
+  drawLine(){
+    return this.$store.getters.newLink
+  },
+  firstNode(){
+    return this.$store.getters.firstNode
+  },
+  lastNode(){
+    return this.$store.getters.lastNode
+  },
 },
 
   methods: {
@@ -133,7 +146,7 @@ export default {
 
       }
     },
-    resetDraw(event){     
+    resetDraw(event){    
       // reset draw line when we leave the map 
       if(this.drawMode && this.map.loaded()){
         if (this.drawLine.action == 'Extend Line Upward'){
@@ -145,10 +158,32 @@ export default {
     },
 
     rightClickMap(event){
-      if(event.mapboxEvent.originalEvent.button==2){
-        this.$emit('actionClick',null)
+       //remove action when right click on map (and not link / nodes)
+      if(event.mapboxEvent.originalEvent.button==2  & !this.hoverId){
+        this.selectedAction=null
       }
-    }
+    },
+    onHover(event){
+      // no drawing when we hover on link or node
+      this.drawMode=false
+      this.hoverId=event.selectedId
+      // change hook when we hover first or last node. 
+      if (this.hoverId == this.$store.getters.lastNodeId){
+        this.selectedAction='Extend Line Upward'
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }else if (this.hoverId == this.$store.getters.firstNodeId){
+        this.selectedAction='Extend Line Downward'
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }
+      
+    },
+    offHover(event){
+      // put back drawmode offHover only if action is not null
+      if(this.selectedAction){
+        this.hoverId=null
+        this.drawMode = true
+      }
+    },
 
   },
   
@@ -180,12 +215,12 @@ export default {
         <EditorLinks 
         :map="map"
         :drawMode="drawMode"
-        :editorNodes="editorNodes"
-        :drawLine="drawLine"
-        :selectedAction="selectedAction"
         @clickLink="(e) => this.$emit('clickLink',e)"
         @clickNode="(e) => this.$emit('clickNode',e)"
-        @actionClick="(e) => this.$emit('actionClick',e)">
+        @actionClick="(e) => this.$emit('actionClick',e)"
+        @onHover = "onHover"
+        @offHover ="offHover"
+        >
         </EditorLinks>
       </template>
 

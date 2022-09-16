@@ -6,12 +6,12 @@ export default {
   components: {
 
 },
-  props:  ["selectedTrips","actionsList","selectedAction"],
+  props:  ["selectedTrips"],
   model: {
     prop: "selectedTrips",
     event: "update-tripList"
   },
-  events: ["selectEditorTrip","ActionClick","confirmChanges","abortChanges","deleteButton"],
+  events: ["selectEditorTrip","confirmChanges","abortChanges","deleteButton"],
 
   data () {
     return {
@@ -21,7 +21,7 @@ export default {
   },
   computed:{
     showLeftPanel() {return this.$store.getters.showLeftPanel},
-    height() {return (window.innerHeight-50)/2 - 20*3 - 50},
+    height() {return (window.innerHeight-50) - 20*3 - 100},
     width() {},
     editorTrip() {return this.$store.getters.editorTrip},
     tripId() {return this.$store.getters.tripId} 
@@ -58,12 +58,6 @@ export default {
 
   methods: {
     
-    
-    actionClick(action){
-      let val = this.selectedAction == action? null:action
-      this.$emit("actionClick",val)
-      
-    },
     editButton(value){
       if (this.editorTrip == value){
        // this.$store.commit('setEditorTrip',null)
@@ -82,20 +76,7 @@ export default {
     
     
 
-    disableAction(action){
-      if (this.selectedAction == null)
-      {
-        return false
-        }
-      else if(this.selectedAction == action) 
-      {
-        return false
-        }
-      else 
-      {
-        return true
-        }
-    },
+    
     
   }
   
@@ -187,46 +168,13 @@ export default {
                   {{ $gettext("Hide All") }}
                   </v-btn>
                 </v-card-actions>
-              </v-card>
-            </div>
-            <div :style="{marginLeft: '20px', marginRight:'20px',marginTop:'20px'}"
-                v-show="editorTrip ? true: false">
-             <v-card
-                elevation="16"
-                max-width="100%"
-                class="mx-auto"
-              >
-              <v-card-title class="white--text primary" text-align='left'>
-                  <v-spacer></v-spacer>
-                  {{editorTrip}}
-                  <v-spacer></v-spacer>
-                </v-card-title>
-                <v-virtual-scroll
-                dense
-                  :items="actionsList"
-                  :height="height"
-                  :item-height="41"
-                  
-                >
-                  <template v-slot:default="{ item }">
-                    <v-list-item :key="item.id">
-                      <v-list-item-content>
-                        <v-btn  outlined 
-                        @click = "actionClick(item.value)"
-                        :disabled= "disableAction(item.value)"> 
-                        {{$gettext(item.name)}}
-                        </v-btn>
-                      </v-list-item-content>
-                    </v-list-item>
-                  </template>
-                </v-virtual-scroll>
-                <v-divider></v-divider>
-                <v-card-actions>
+                <v-card-actions v-show="editorTrip ? true: false">
                   <v-btn outlined rounded text color="success" @click="$emit('confirmChanges')"> {{$gettext("Confirm")}}</v-btn>
                   <v-btn outlined rounded text color="error" @click="$emit('abortChanges')"> {{$gettext("Abort")}}</v-btn>
                 </v-card-actions>
               </v-card>
             </div>
+            
 
           </div>
         </div>
