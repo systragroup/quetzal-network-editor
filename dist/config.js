@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkquetzal_network_editor=self.webpackChunkquetzal_network_editor||[]).push([[182],{9182:(e,t,c)=>{c.d(t,{C:()=>l,K:()=>a});const l="pk.eyJ1Ijoic2ZvcnRpbiIsImEiOiJja3I2aDY4c2UzZXJlMnBxcHl1emU0aWZ4In0.ZyddT1jTceylLs2zYVyxRw",a="http://localhost:8000/graphql/"}}]);
+//# sourceMappingURL=config.js.map

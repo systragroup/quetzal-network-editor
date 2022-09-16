@@ -56,9 +56,10 @@ model: {
 
 	methods: {
     selectClick(event){
-      // Get the highlighted feature
-      const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
+      if ( this.hoveredStateId !== null ) {
+        // Get the highlighted feature
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
 
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
@@ -67,37 +68,44 @@ model: {
                      lngLat: event.mapboxEvent.lngLat}
           this.$emit('clickLink', click);
         }
+      }
     },
     onCursor(event){
-      this.map.getCanvas().style.cursor = 'pointer';
-      if (this.hoveredStateId !== null) {
+      if ( this.hoveredStateId === null || this.hoveredStateId.layerId == 'editorLinks') {
+        this.map.getCanvas().style.cursor = 'pointer';
+        if (this.hoveredStateId !== null) {
+          this.map.setFeatureState(
+            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+            { hover: false }
+          )
+        }
+
+        this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
         this.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-          { hover: false }
-        )
-      }
-      this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
-      this.map.setFeatureState(
-        { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-        { hover: true }
-      );
-      if ( this.selectedAction != 'Move Stop' ) {
-        this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
-                                      event.mapboxEvent.lngLat.lat
-        ]
-        this.popupEditor.content = this.hoveredStateId.id;
-        this.popupEditor.showed = true;
+          { hover: true }
+        );
+        if ( this.selectedAction === null ) {
+          this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
+                                        event.mapboxEvent.lngLat.lat
+          ]
+          this.popupEditor.content = this.hoveredStateId.id;
+          this.popupEditor.showed = true;
+        }
       }
       this.$emit('onHover')
     },
     offCursor(event){
-      this.map.getCanvas().style.cursor = '';
-      this.popupEditor.showed = false;
-      if (this.hoveredStateId !== null) {
-        this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-          { hover: false }
-        );
+      if ( this.hoveredStateId !== null ) {
+        if ( !(this.hoveredStateId.layerId == 'editorNodes' && event.layerId == 'editorLinks') ) {
+          this.map.getCanvas().style.cursor = '';
+          this.popupEditor.showed = false;
+          this.map.setFeatureState(
+            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+            { hover: false }
+          );
+          this.hoveredStateId = null;
+        }
       }
       this.hoveredStateId = null;
       this.$emit('offHover')
@@ -219,14 +227,13 @@ model: {
         :layer="{
           type: 'line',
           minzoom: 9,
-          maxzoom: 18,
           paint: {
             'line-color': '#7EBAAC',
             'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
         }"
-        v-on="clickLinkEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor} : {}"
+        v-on="clickLinkEnabled ? { click: selectClick, mouseover: onCursor, mouseleave: offCursor} : {}"
         @contextmenu="linkRightClick"
         >   
       </MglGeojsonLayer>
@@ -263,7 +270,6 @@ model: {
         :layer="{
           type: 'line',
           minzoom: 9,
-          maxzoom: 18,
           paint: {
             'line-color': '#7EBAAC',
             'line-width': 5
@@ -285,14 +291,13 @@ model: {
           interactive: true,
           type: 'circle',
           minzoom: 12,
-          maxzoom: 18,
           paint: {
             'circle-color': '#2C3E4E',
-            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  12, 8],
-            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
+            'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false],  16, 8],
+            'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
           }
         }"
-        v-on="clickNodeEnabled ? { mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
+        v-on="clickNodeEnabled ? { mouseover: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
         @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
