@@ -387,6 +387,12 @@ export default {
         // Delete links
         state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
         this.commit('getEditorNodes',{nodes:state.editorNodes})
+
+        // Update link_sequence
+        for (const [i, link] of state.editorLinks.features.entries()) {
+          console.log()
+          link.properties.link_sequence = i + 1;
+        }
       },
       editLineInfo(state,payload)
       {

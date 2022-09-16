@@ -17,44 +17,17 @@ props:["map","showedTrips","isEditorMode"],
         showed: false,
         content: null
       },
-		
 	}
 },
 created() {
 },
 	watch: {
-		showedTrips(newList, oldList) {
-      if (this.map !== null) {
-        // Set all nodes to hidden
-        this.nodes.features.forEach(feature => {
-          this.map.setFeatureState({ source: 'nodes', id: feature.properties.index }, 
-                                   { hidden: true })
-        })
-        // Set all links to hidden
-        this.links.features.forEach(feature => {
-          this.map.setFeatureState({ source: 'links', id: feature.properties.index }, 
-                                   { hidden: true })
-        }) 
-        // Set visible links
-        const visibleLinks = new Set();
-        newList.forEach(line => {
-          this.linksPerLine[line].forEach(link => visibleLinks.add(link))
-        })
-        visibleLinks.forEach(link => {
-          this.map.setFeatureState({ source: 'links', id: link.properties.index }, 
-                                   { hidden: false })
-        })
-        // Set visible nodes
-        const a = [...visibleLinks].map(item => item.properties.a);
-        const b = [...visibleLinks].map(item => item.properties.b);
-        const ab = new Set([...a, ...b]);
-        [...ab].forEach(id => {
-          this.map.setFeatureState({ source: 'nodes', id: id }, 
-                                   { hidden: false })
-        })                  
-      }
+		showedTrips() {
+      this.setHiddenFeatures()
     },
-		
+    isEditorMode() {
+      this.setHiddenFeatures()
+    },
 	},
 	computed:{
 		links() {return this.$store.getters.links},
@@ -72,7 +45,6 @@ created() {
 
 	methods: {
 		enterLink(event) {
-			
       event.map.getCanvas().style.cursor = 'pointer';
       this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
                                 event.mapboxEvent.lngLat.lat
@@ -84,7 +56,37 @@ created() {
       event.map.getCanvas().style.cursor = '';
       this.popup.showed = false
     },
-
+    setHiddenFeatures() {
+      // Set all nodes to hidden
+      this.nodes.features.forEach(feature => {
+        this.map.setFeatureState({ source: 'nodes', id: feature.properties.index }, 
+                                  { hidden: true })
+      })
+      // Set all links to hidden
+      this.links.features.forEach(feature => {
+        this.map.setFeatureState({ source: 'links', id: feature.properties.index }, 
+                                  { hidden: true })
+      }) 
+      if ( !this.isEditorMode ) {
+        // Set visible links
+        const visibleLinks = new Set();
+        this.showedTrips.forEach(line => {
+          this.linksPerLine[line].forEach(link => visibleLinks.add(link))
+        })
+        visibleLinks.forEach(link => {
+          this.map.setFeatureState({ source: 'links', id: link.properties.index }, 
+                                  { hidden: false })
+        })
+        // Set visible nodes
+        const a = [...visibleLinks].map(item => item.properties.a);
+        const b = [...visibleLinks].map(item => item.properties.b);
+        const ab = new Set([...a, ...b]);
+        [...ab].forEach(id => {
+          this.map.setFeatureState({ source: 'nodes', id: id }, 
+                                  { hidden: false })
+        })                  
+      }
+    }
 	},
 }
 </script>
