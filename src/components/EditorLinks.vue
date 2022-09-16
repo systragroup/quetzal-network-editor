@@ -122,11 +122,9 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
 
         if (selectedNode == this.$store.getters.firstNodeId){
           this.contextMenu.actions = ['Edit Node Info',
-                                    'Extend Line Downward',
-                                    'Delete Stop']
+                                      'Delete Stop']
         } else if (selectedNode == this.$store.getters.lastNodeId){
           this.contextMenu.actions = ['Edit Node Info',
-                                      'Extend Line Upward',
                                       'Delete Stop']
         } else {
           this.contextMenu.actions = ['Edit Node Info',
@@ -314,9 +312,13 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
         <span>
             <h3>{{this.popupEditor.content}}</h3>
             <hr>
-            {{$gettext("Left click to edit properties")}}
+            {{ hoveredStateId?.layerId == 'editorLinks'? 
+            $gettext("Left click to edit properties"): 
+            $gettext("Hold right click to drag")}}
             <hr>
-            {{$gettext("Right click for context menu")}}
+            {{ hoveredStateId?.layerId == 'editorLinks'? 
+            $gettext("right click to add a node"): 
+            $gettext("Right click for context menu")}}
         </span>
       </MglPopup>
           
