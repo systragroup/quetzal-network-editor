@@ -300,7 +300,6 @@ export default {
 
   <Map 
     :selectedTrips = "selectedTrips" 
-    :selectedAction = "action"
     @clickNode = "clickNode"
     @clickLink = "clickLink"
     @actionClick = "actionClick">

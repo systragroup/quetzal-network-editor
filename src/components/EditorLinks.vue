@@ -10,16 +10,11 @@ export default {
 },
 props:["map","drawMode"],
 events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
-model: {
-    prop: "selectedAction",
-    event: "selectedAction"
-  },
 	data () {
 	return {
-    clickLinkEnabled : true,
-    clickNodeEnabled : true,
     selectedFeature : null,
     hoveredStateId : null,
+    disablePopup : false,
     popupEditor: {
         coordinates: [0, 0],
         showed: false,
@@ -35,21 +30,9 @@ model: {
 	}
 },
 	watch: {
-    // Enable of disable clicking on node/link depending to the selected action
-    selectedAction (val){
-      if (val == null){
-        this.clickLinkEnabled = true
-        this.clickNodeEnabled = true
-      } else if (['Move Stop','Cut Line From Node','Cut Line At Node','Delete Stop', 'Edit Node Info'].includes(val)){
-        this.clickLinkEnabled = false
-      } else if(['Extend Line Upward','Extend Line Downward'].includes(val)){
-        this.clickLinkEnabled = false
-        this.clickNodeEnabled = false
-      } else if (['Add Stop Inline','Edit Link Info'].includes(val)){
-        this.clickNodeEnabled = false
-      }
-    },
+
     drawMode(val){
+      //set layer visible if drawMode is true
       if (val){
         this.map.setLayoutProperty('drawLink', 'visibility', 'visible');
       }else{
@@ -91,7 +74,7 @@ model: {
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: true }
         );
-        if ( this.selectedAction != 'Move Stop' ) {
+        if ( !this.disablePopup ) {
           this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
                                         event.mapboxEvent.lngLat.lat
           ]
@@ -191,7 +174,7 @@ model: {
         this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
         
         // get position
-        this.$emit('SelectedAction','Move Stop')
+        this.disablePopup=true
         this.map.on('mousemove',this.onMove)
       }
     },
@@ -212,7 +195,7 @@ model: {
                      action: 'Move Node',
                      lngLat: event.lngLat}
           this.$emit('clickNode', click);
-          this.$emit('selectedAction','Extend Line Upward')
+          this.disablePopup=false
        }
     },
 	},
@@ -238,8 +221,10 @@ model: {
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
         }"
-        v-on="clickLinkEnabled ? { click: selectClick, mouseover: onCursor, mouseleave: offCursor} : {}"
-        @contextmenu="linkRightClick"
+        @click = "selectClick"
+        @mouseover = "onCursor"
+        @mouseleave = "offCursor"
+        @contextmenu ="linkRightClick"
         >   
       </MglGeojsonLayer>
 
@@ -303,7 +288,10 @@ model: {
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
           }
         }"
-        v-on="clickNodeEnabled ? { mouseover: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
+        @mouseover = "onCursor" 
+        @mouseleave = "offCursor"
+        @mousedown = "moveNode"
+        @mouseup = "stopMovingNode"
         @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
