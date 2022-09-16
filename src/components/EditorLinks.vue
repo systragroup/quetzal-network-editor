@@ -41,13 +41,12 @@ model: {
         this.clickLinkEnabled = true
         this.clickNodeEnabled = true
       } else if (['Move Stop','Cut Line From Node','Cut Line At Node','Delete Stop', 'Edit Node Info'].includes(val)){
-        this.clickLinkEnabled=false
+        this.clickLinkEnabled = false
       } else if(['Extend Line Upward','Extend Line Downward'].includes(val)){
-        this.clickLinkEnabled=false
-        this.clickNodeEnabled=false
-
+        this.clickLinkEnabled = false
+        this.clickNodeEnabled = false
       } else if (['Add Stop Inline','Edit Link Info'].includes(val)){
-        this.clickNodeEnabled=false
+        this.clickNodeEnabled = false
       }
     },
     drawMode(val){
@@ -118,7 +117,6 @@ model: {
       }
       
     },
-
     contextMenuNode(event) {
       if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorNodes') {
         this.popupEditor.showed = false;
@@ -137,11 +135,11 @@ model: {
           this.contextMenu.actions = ['Edit Node Info',
                                     'Extend Line Downward',
                                     'Delete Stop']
-        }else if (selectedNode == this.$store.getters.lastNodeId){
+        } else if (selectedNode == this.$store.getters.lastNodeId){
           this.contextMenu.actions = ['Edit Node Info',
                                       'Extend Line Upward',
                                       'Delete Stop']
-        }else{
+        } else {
           this.contextMenu.actions = ['Edit Node Info',
                                       'Cut Line From Node',
                                       'Cut Line At Node',
@@ -165,7 +163,7 @@ model: {
       if (['Extend Line Upward', 'Extend Line Downward'].includes(event.action)){
         this.$emit('actionClick',event.action)
 
-      }else{
+      } else {
         let click = {selectedFeature: event.feature,
                     action: event.action,
                     lngLat: event.coordinates }

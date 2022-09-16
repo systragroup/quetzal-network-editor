@@ -10,7 +10,6 @@ export default {
   components: {
     Map,
     SidePanel,
-
 },
   data () {
     return {
@@ -105,7 +104,6 @@ export default {
         this.$store.commit('changeNotification',{text:null, autoClose:true})
       }
     },
-
     clickNode(event){
       // node is clicked on the map
       this.selectedNode = event.selectedFeature.properties
@@ -128,7 +126,7 @@ export default {
           this.showDialog = true
         }
         else if (this.action){
-          this.hideDialog? this.applyAction() : this.showDialog = true
+          this.applyAction()
         }
       }
     },
@@ -157,14 +155,10 @@ export default {
         }
         else if (this.action == 'Add Stop Inline'){
           this.cursorPosition = event.lngLat
-          this.hideDialog? this.applyAction() : this.showDialog = true
-
- 
+          this.applyAction()
         }
       }
-      
     },
-
     applyAction(){
       // click yes on dialog
       this.showDialog = false
@@ -172,31 +166,24 @@ export default {
       case 'Cut Line From Node':
         this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode}) 
         break 
-
       case 'Cut Line At Node':
         this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
         break
-      
       case 'Delete Stop':
         this.$store.commit('deleteNode',{selectedNode:this.selectedNode})
         break
-      
       case 'Edit Link Info':
         this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorForm})  
         break
-
       case 'Edit Node Info':
         this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorForm})  
         break
-
       case 'Edit Line info':
         this.$store.commit('editLineInfo',this.editorForm)  
         break
-        
       case 'deleteTrip':
         this.$store.commit('deleteTrip',this.tripToDelete)
         break
-
       case 'Add Stop Inline':
         this.$store.commit('addNodeInline',{selectedLink:this.selectedLink, lngLat:this.cursorPosition})
         break
