@@ -26,20 +26,17 @@ export default {
       default: []
     },
     
-    selectedAction:{
-      type: String,
-      defaut: null      
-    }
   },
   events: ["clickLink", "clickNode","actionClick"],
   data () {
     return {
+      selectedAction:'Extend Line Upward',
       showedTrips: this.selectedTrips,
       mapboxPublicKey:  null,
       selectedFeature : null,
       isEditorMode : false,
-      drawMode : false,
       mapIsLoaded:false,
+      drawMode:false,
     }
   },
   created () {
@@ -64,6 +61,16 @@ export default {
     },
     selectedTrips(newVal) {
       this.showedTrips = newVal
+    },
+    isEditorMode(val){
+      if (val & ['Extend Line Upward', 'Extend Line Downward'].includes(this.selectedAction)){
+        this.drawMode = true
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      } else {
+        this.drawMode = false
+      }
+
+
     },
 
 
@@ -133,9 +140,11 @@ export default {
 
       }
     },
-    resetDraw(event){     
+    resetDraw(event){    
       // reset draw line when we leave the map 
+
       if(this.drawMode && this.map.loaded()){
+        
         if (this.drawLine.action == 'Extend Line Upward'){
           this.$store.commit('editNewLink',this.drawLine.features[0].geometry.coordinates[0])
         }else {
@@ -180,12 +189,11 @@ export default {
         <EditorLinks 
         :map="map"
         :drawMode="drawMode"
-        :editorNodes="editorNodes"
-        :drawLine="drawLine"
-        :selectedAction="selectedAction"
+        v-model=selectedAction
         @clickLink="(e) => this.$emit('clickLink',e)"
         @clickNode="(e) => this.$emit('clickNode',e)"
-        @actionClick="(e) => this.$emit('actionClick',e)">
+        @actionClick="(e) => this.$emit('actionClick',e)"
+        @onHover="resetDraw('onHover')">
         </EditorLinks>
       </template>
 

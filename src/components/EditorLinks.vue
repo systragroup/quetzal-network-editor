@@ -8,8 +8,12 @@ export default {
   MglImageLayer,
   MglGeojsonLayer
 },
-props:["map","drawMode","editorNodes","drawLine","selectedAction"],
-events: ["clickLink", "clickNode", "actionClick"],
+props:["map","drawMode"],
+events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
+model: {
+    prop: "selectedAction",
+    event: "selectedAction"
+  },
 	data () {
 	return {
     clickLinkEnabled : true,
@@ -59,16 +63,10 @@ events: ["clickLink", "clickNode", "actionClick"],
       // Emit a click base on layer type (node or link)
       if (this.selectedFeature !== null) {
         let click = {selectedFeature: this.selectedFeature,
-                     action: this.selectedAction,
+                     action: 'Edit Link Info',
                      lngLat: event.mapboxEvent.lngLat}
-        if (this.hoveredStateId.layerId == 'editorNodes') {
-          if ( this.selectedAction === null ) {  click.action = 'Edit Node Info' }
-          this.$emit('clickNode', click);
-        } else if (this.hoveredStateId.layerId == 'editorLinks') {
-          if ( this.selectedAction === null ) {  click.action = 'Edit Link Info' }
           this.$emit('clickLink', click);
         }
-      }
     },
     onCursor(event){
       this.map.getCanvas().style.cursor = 'pointer';
@@ -83,13 +81,14 @@ events: ["clickLink", "clickNode", "actionClick"],
         { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
         { hover: true }
       );
-      if ( this.selectedAction === null ) {
+      if ( this.selectedAction != 'Move Stop' ) {
         this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
                                       event.mapboxEvent.lngLat.lat
         ]
         this.popupEditor.content = this.hoveredStateId.id;
         this.popupEditor.showed = true;
       }
+      this.$emit('onHover')
     },
     offCursor(event){
       this.map.getCanvas().style.cursor = '';
@@ -101,6 +100,7 @@ events: ["clickLink", "clickNode", "actionClick"],
         );
       }
       this.hoveredStateId = null;
+      this.$emit('offHover')
     },
 
     contextMenuNode(event) {
@@ -166,7 +166,7 @@ events: ["clickLink", "clickNode", "actionClick"],
 
 
     moveNode(event){
-      if ( this.selectedAction == 'Move Stop' ){
+      if (true){
         event.mapboxEvent.preventDefault(); // prevent map control
         this.map.getCanvas().style.cursor = 'grab';
         // get selected node
@@ -174,10 +174,11 @@ events: ["clickLink", "clickNode", "actionClick"],
         this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
         let nodeId = this.selectedFeature.properties.index
         // store default position in history
-        let geom =this.editorNodes.features.filter(node=>node.properties.index == nodeId)[0].geometry.coordinates
+        let geom =this.$store.getters.editorNodes.features.filter(node=>node.properties.index == nodeId)[0].geometry.coordinates
         this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
         
         // get position
+        this.$emit('SelectedAction','Move Stop')
         this.map.on('mousemove',this.onMove)
       }
     },
@@ -193,11 +194,12 @@ events: ["clickLink", "clickNode", "actionClick"],
       this.map.off('mousemove', this.onMove);
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
-      if (this.selectedAction == 'Move Stop') {
+      if (true) {
         let click = {selectedFeature: this.selectedFeature,
-                     action: this.selectedAction,
+                     action: 'Move Node',
                      lngLat: event.lngLat}
           this.$emit('clickNode', click);
+          this.$emit('selectedAction','Extend Line Upward')
        }
     },
 	},
@@ -253,7 +255,7 @@ events: ["clickLink", "clickNode", "actionClick"],
         source-id="drawLink"
         :source="{
           type: 'geojson',
-          data: drawLine,
+          data: $store.getters.newLink,
           buffer: 0,
           generateId: true,
         }"
@@ -274,7 +276,7 @@ events: ["clickLink", "clickNode", "actionClick"],
         source-id="editorNodes"
         :source="{
           type: 'geojson',
-          data: editorNodes,
+          data: $store.getters.editorNodes,
           buffer: 0,
           promoteId: 'index',
         }"
@@ -290,7 +292,7 @@ events: ["clickLink", "clickNode", "actionClick"],
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.5, 0]
           }
         }"
-        v-on="clickNodeEnabled ? { click: selectClick, mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
+        v-on="clickNodeEnabled ? { mouseenter: onCursor, mouseleave: offCursor, mousedown: moveNode, mouseup:stopMovingNode } : {}"
         @contextmenu="contextMenuNode"
         >   
       </MglGeojsonLayer>
