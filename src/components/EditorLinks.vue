@@ -37,19 +37,15 @@ events: ["clickLink", "clickNode", "actionClick"],
         this.clickLinkEnabled = true
         this.clickNodeEnabled = true
       } else if (['Move Stop','Cut Line From Node','Cut Line At Node','Delete Stop', 'Edit Node Info'].includes(val)){
-        this.clickLinkEnabled=false
+        this.clickLinkEnabled = false
       } else if(['Extend Line Upward','Extend Line Downward'].includes(val)){
-        this.clickLinkEnabled=false
-        this.clickNodeEnabled=false
-
+        this.clickLinkEnabled = false
+        this.clickNodeEnabled = false
       } else if (['Add Stop Inline','Edit Link Info'].includes(val)){
-        this.clickNodeEnabled=false
+        this.clickNodeEnabled = false
       }
     }
-
 	},
-  
-
 	methods: {
     selectClick(event){
       if ( this.hoveredStateId !== null ) {
@@ -109,7 +105,6 @@ events: ["clickLink", "clickNode", "actionClick"],
         }
       }
     },
-
     contextMenuNode(event) {
       if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorNodes') {
         this.popupEditor.showed = false;
@@ -129,11 +124,11 @@ events: ["clickLink", "clickNode", "actionClick"],
           this.contextMenu.actions = ['Edit Node Info',
                                     'Extend Line Downward',
                                     'Delete Stop']
-        }else if (selectedNode == lastNode){
+        } else if (selectedNode == lastNode){
           this.contextMenu.actions = ['Edit Node Info',
                                       'Extend Line Upward',
                                       'Delete Stop']
-        }else{
+        } else {
           this.contextMenu.actions = ['Edit Node Info',
                                       'Cut Line From Node',
                                       'Cut Line At Node',
@@ -233,7 +228,7 @@ events: ["clickLink", "clickNode", "actionClick"],
             'line-blur':  ['case', ['boolean', ['feature-state', 'hover'], false],  6, 0]
           }
         }"
-        v-on="clickNodeEnabled ? { click: selectClick, mouseover: onCursor, mouseleave: offCursor } : {}"
+        v-on="clickLinkEnabled ? { click: selectClick, mouseover: onCursor, mouseleave: offCursor } : {}"
         @contextmenu="contextMenuLink"
         >   
       </MglGeojsonLayer>
