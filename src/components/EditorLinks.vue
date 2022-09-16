@@ -51,8 +51,12 @@ model: {
       }
     },
     drawMode(val){
-    
-  }
+      if (val){
+        this.map.setLayoutProperty('drawLink', 'visibility', 'visible');
+      }else{
+        this.map.setLayoutProperty('drawLink', 'visibility', 'none');
+      }
+    },
 
 	},
   
@@ -94,7 +98,7 @@ model: {
           ]
           this.popupEditor.content = this.hoveredStateId.id;
           this.popupEditor.showed = true;
-          this.$emit('onHover',event)
+          this.$emit('onHover',{selectedId:this.hoveredStateId.id})
         }
       }
       
@@ -128,13 +132,12 @@ model: {
         this.contextMenu.feature = features.filter(item => item.id == this.hoveredStateId.id )[0];
 
         let selectedNode = this.contextMenu.feature.properties.index
-        let firstNode = this.$store.getters.editorLinks.features[0].properties.a
-        let lastNode = this.$store.getters.editorLinks.features.slice(-1)[0].properties.b
-        if (selectedNode == firstNode){
+
+        if (selectedNode == this.$store.getters.firstNodeId){
           this.contextMenu.actions = ['Edit Node Info',
                                     'Extend Line Downward',
                                     'Delete Stop']
-        }else if (selectedNode == lastNode){
+        }else if (selectedNode == this.$store.getters.lastNodeId){
           this.contextMenu.actions = ['Edit Node Info',
                                       'Extend Line Upward',
                                       'Delete Stop']

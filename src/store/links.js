@@ -439,8 +439,13 @@ export default {
       editorNodes: (state) => state.editorNodes,
       tripId: (state) => state.tripId,
       editorLineInfo: (state) => state.editorLineInfo,
-      newLink: (state)=> state.newLink,
-      newNode: (state)=> state.newNode
+      newLink: (state) => state.newLink,
+      newNode: (state) => state.newNode,
+      firstNodeId: (state) => state.editorTrip? state.editorLinks.features[0].properties.a : null,
+      lastNodeId: (state) => state.editorTrip? state.editorLinks.features.slice(-1)[0].properties.b: null,
+      firstNode: (state, getters) => state.editorTrip? state.editorNodes.features.filter((node) => node.properties.index == getters.firstNodeId)[0] : null,
+      lastNode: (state, getters) => state.editorTrip? state.editorNodes.features.filter((node) => node.properties.index == getters.lastNodeId)[0] : null,
+
       
     },
   }

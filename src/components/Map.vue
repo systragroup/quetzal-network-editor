@@ -69,9 +69,14 @@ export default {
       } else {
         this.drawMode = false
       }
-
-
     },
+    'firstNode.geometry.coordinates'(val){ 
+      this.$store.commit('setNewLink',{action:this.selectedAction})
+    },
+    'lastNode.geometry.coordinates'(val){
+       this.$store.commit('setNewLink',{action:this.selectedAction})},
+    
+
 
 
     selectedAction(newVal,oldVal){
@@ -94,12 +99,18 @@ export default {
   },
   computed:{
  
- editorNodes() {
-   return this.$store.getters.editorNodes
- },
- drawLine(){
-   return this.$store.getters.newLink
- },
+  editorNodes() {
+    return this.$store.getters.editorNodes
+  },
+  drawLine(){
+    return this.$store.getters.newLink
+  },
+  firstNode(){
+    return this.$store.getters.firstNode
+  },
+  lastNode(){
+    return this.$store.getters.lastNode
+  },
 },
 
   methods: {
@@ -156,15 +167,23 @@ export default {
     rightClickMap(event){
       if(event.mapboxEvent.originalEvent.button==2){
         this.$emit('actionClick',null)
+        this.selectedAction=null
       }
     },
-    onHover(){
+    onHover(event){
       this.drawMode=false
-      this.map.setLayoutProperty('drawLink', 'visibility', 'none');
+      if (event.selectedId == this.$store.getters.lastNodeId){
+        this.selectedAction='Extend Line Upward'
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }else  if (event.selectedId == this.$store.getters.firstNodeId){
+        this.selectedAction='Extend Line Downward'
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }
+      
     },
-    offHover(){
+    offHover(event){
       this.drawMode=true
-      this.map.setLayoutProperty('drawLink', 'visibility', 'visible');
+      
     },
 
   },
