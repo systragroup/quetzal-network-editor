@@ -86,6 +86,9 @@ created() {
                                   { hidden: false })
         })                  
       }
+    },
+    selectLine(event){
+      this.$store.commit('setEditorTrip',event.mapboxEvent.features[0].properties.trip_id)
     }
 	},
 }
@@ -112,7 +115,7 @@ created() {
             'line-width': 3
           }
         }"
-        v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink }"
+        v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine }"
         >  
       </MglGeojsonLayer>
 

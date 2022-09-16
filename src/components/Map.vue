@@ -64,16 +64,24 @@ export default {
       this.showedTrips = newVal
     },
     isEditorMode(val){
-      val? this.selectedAction='Extend Line Upward' : null
+      if (val){
+        this.selectedAction='Extend Line Upward'
+      } else {
+        this.selectedAction = null
+      }
+      if (!val & this.drawMode){this.drawMode=false}
+
     },
     'firstNode.geometry.coordinates'(val){ 
-      this.$store.commit('setNewLink',{action:this.selectedAction})
+      if (this.$store.getters.editorTrip) {
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }
     },
     'lastNode.geometry.coordinates'(val){
-       this.$store.commit('setNewLink',{action:this.selectedAction})},
-    
-
-
+      if (this.$store.getters.editorTrip) {
+        this.$store.commit('setNewLink',{action:this.selectedAction})
+      }
+    },
 
     selectedAction(newVal,oldVal){
       if (['Extend Line Upward','Extend Line Downward'].includes(newVal)){
