@@ -33,10 +33,13 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
 
     drawMode(val){
       //set layer visible if drawMode is true
-      if (val){
-        this.map.setLayoutProperty('drawLink', 'visibility', 'visible');
-      }else{
-        this.map.setLayoutProperty('drawLink', 'visibility', 'none');
+      // check if layer exist. will bug if it is check befere rendering the layer
+      if (this.map.getStyle().layers.filter((layer => layer.id=='drawLink')).length>0){
+        if (val){
+          this.map.setLayoutProperty('drawLink', 'visibility', 'visible');
+        }else{
+          this.map.setLayoutProperty('drawLink', 'visibility', 'none');
+        }
       }
     },
 
@@ -52,11 +55,14 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
         this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
 
       // Emit a click base on layer type (node or link)
+      
       if (this.selectedFeature !== null) {
-        let click = {selectedFeature: this.selectedFeature,
-                     action: 'Edit Link Info',
-                     lngLat: event.mapboxEvent.lngLat}
-          this.$emit('clickLink', click);
+        if (this.hoveredStateId.layerId == 'editorLinks') {
+          let click = {selectedFeature: this.selectedFeature,
+                      action: 'Edit Link Info',
+                      lngLat: event.mapboxEvent.lngLat}
+            this.$emit('clickLink', click);
+          }
         }
       }
     },
@@ -132,14 +138,16 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
     },
 
     linkRightClick(event) {
-      const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
-      this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
-      let click = {selectedFeature: this.selectedFeature,
-                    action: 'Add Stop Inline',
-                    lngLat:  [event.mapboxEvent.lngLat.lng,
-                              event.mapboxEvent.lngLat.lat]
-                  }
-         this.$emit('clickLink', click) 
+      if (this.hoveredStateId.layerId == 'editorLinks'){
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
+        this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
+        let click = {selectedFeature: this.selectedFeature,
+                      action: 'Add Stop Inline',
+                      lngLat:  [event.mapboxEvent.lngLat.lng,
+                                event.mapboxEvent.lngLat.lat]
+                    }
+          this.$emit('clickLink', click) 
+      }
     },
 
     actionClick(event) {
@@ -288,6 +296,7 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
             'circle-blur':   ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
           }
         }"
+        @click = "selectClick"
         @mouseover = "onCursor" 
         @mouseleave = "offCursor"
         @mousedown = "moveNode"

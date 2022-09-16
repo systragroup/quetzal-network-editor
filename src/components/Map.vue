@@ -171,7 +171,6 @@ export default {
     },
     offHover(event){
       // put back drawmode offHover only if action is not null
-      console.log(this.selectedAction)
       if(this.selectedAction){
         this.hoverId=null
         this.drawMode = true
