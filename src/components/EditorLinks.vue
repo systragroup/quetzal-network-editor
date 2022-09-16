@@ -79,7 +79,6 @@ model: {
             { hover: false }
           )
         }
-
         this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id };
         this.map.setFeatureState(
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
@@ -107,7 +106,6 @@ model: {
           this.hoveredStateId = null;
         }
       }
-      this.hoveredStateId = null;
       this.$emit('offHover')
     },
 
