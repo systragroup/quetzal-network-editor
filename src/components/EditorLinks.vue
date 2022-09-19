@@ -15,6 +15,7 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
     selectedFeature : null,
     hoveredStateId : null,
     disablePopup : false,
+    keepHovering : false,
     popupEditor: {
         coordinates: [0, 0],
         showed: false,
@@ -59,7 +60,7 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
       if (this.selectedFeature !== null) {
         if (this.hoveredStateId.layerId == 'editorLinks') {
           let click = {selectedFeature: this.selectedFeature,
-                      action: 'Edit Link Info',
+                      action: 'Add Stop Inline',
                       lngLat: event.mapboxEvent.lngLat}
             this.$emit('clickLink', click);
           }
@@ -86,13 +87,14 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
           ]
           this.popupEditor.content = this.hoveredStateId.id;
           this.popupEditor.showed = true;
-          this.$emit('onHover',{selectedId:this.hoveredStateId.id})
+          
         }
       }
+      this.$emit('onHover',{selectedId:this.hoveredStateId.id})
       
     },
     offCursor(event){
-      if ( this.hoveredStateId !== null ) {
+      if ( this.hoveredStateId !== null & !this.keepHovering) {
         if ( !(this.hoveredStateId.layerId == 'editorNodes' && event.layerId == 'editorLinks') ) {
           this.map.getCanvas().style.cursor = '';
           this.popupEditor.showed = false;
@@ -140,9 +142,8 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
         this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
         let click = {selectedFeature: this.selectedFeature,
-                      action: 'Add Stop Inline',
-                      lngLat:  [event.mapboxEvent.lngLat.lng,
-                                event.mapboxEvent.lngLat.lat]
+                      action: 'Edit Link Info',
+                      lngLat:  event.mapboxEvent.lngLat
                     }
           this.$emit('clickLink', click) 
       }
@@ -161,16 +162,17 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
 
       }
      
-      
       this.contextMenu.showed = false
       this.contextMenu.type = null
     },
 
 
     moveNode(event){
-      if (true){
+      if (event.mapboxEvent.originalEvent.button==0){
         event.mapboxEvent.preventDefault(); // prevent map control
         this.map.getCanvas().style.cursor = 'grab';
+        // disable mouseLeave so we stay in hover state even if its laggy.
+        this.keepHovering = true  
         // get selected node
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
         this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
@@ -179,30 +181,36 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
         let geom =this.$store.getters.editorNodes.features.filter(node=>node.properties.index == nodeId)[0].geometry.coordinates
         this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
         
-        // get position
+        //disable popup
         this.disablePopup=true
+        this.popupEditor.showed=false
+        // get position
         this.map.on('mousemove',this.onMove)
       }
     },
+
     onMove(event){
       // get position and update node position
       if (this.map.loaded()){
           this.$store.commit('moveNode',{selectedNode:this.selectedFeature,lngLat:Object.values(event.lngLat)})
+          
       }
     },
     stopMovingNode(event){
       // stop tracking position (moving node.)
       this.map.getCanvas().style.cursor = 'pointer';
       this.map.off('mousemove', this.onMove);
+      //enable popup and hovering off back.
+      this.keepHovering = false
+      this.disablePopup=false
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
-      if (true) {
+      if (this.selectedFeature){
         let click = {selectedFeature: this.selectedFeature,
-                     action: 'Move Node',
-                     lngLat: event.lngLat}
-          this.$emit('clickNode', click);
-          this.disablePopup=false
-       }
+                      action: 'Move Node',
+                      lngLat: event.lngLat}
+        this.$emit('clickNode', click);
+      }
     },
 	},
 }

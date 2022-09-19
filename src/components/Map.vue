@@ -69,7 +69,9 @@ export default {
       } else {
         this.selectedAction = null
       }
-      if (!val & this.drawMode){this.drawMode=false}
+      if (!val & this.drawMode){
+        this.drawMode=false
+      }
 
     },
     'firstNode.geometry.coordinates'(val){ 
