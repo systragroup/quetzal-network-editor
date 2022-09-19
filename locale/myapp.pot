@@ -14,11 +14,15 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:259
+#: src/components/SidePanel.vue:228
 msgid "Abort"
 msgstr ""
 
-#: src/pages/Home.vue:32
+#: src/components/EditorLinks.vue:156
+msgid "action"
+msgstr ""
+
+#: src/pages/Home.vue:30
 msgid "Add Stop Inline"
 msgstr ""
 
@@ -26,12 +30,12 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/pages/Home.vue:112
+#: src/pages/Home.vue:98
 msgid "Click on a link to add a Stop"
 msgstr ""
 
-#: src/pages/Home.vue:92
-#: src/pages/Home.vue:102
+#: src/pages/Home.vue:83
+#: src/pages/Home.vue:91
 msgid "Click on the map to extend"
 msgstr ""
 
@@ -39,15 +43,15 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:247
+#: src/components/SidePanel.vue:216
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Home.vue:26
+#: src/pages/Home.vue:24
 msgid "Cut Line At Node"
 msgstr ""
 
-#: src/pages/Home.vue:24
+#: src/pages/Home.vue:22
 msgid "Cut Line From Node"
 msgstr ""
 
@@ -55,7 +59,7 @@ msgstr ""
 msgid "Delete "
 msgstr ""
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:34
 msgid "Delete Stop"
 msgstr ""
 
@@ -63,15 +67,15 @@ msgstr ""
 msgid "do not show again"
 msgstr ""
 
-#: src/pages/Home.vue:22
+#: src/pages/Home.vue:20
 msgid "Edit Line Info"
 msgstr ""
 
-#: src/pages/Home.vue:38
+#: src/pages/Home.vue:36
 msgid "Edit Link Info"
 msgstr ""
 
-#: src/pages/Home.vue:40
+#: src/pages/Home.vue:38
 msgid "Edit Node Info"
 msgstr ""
 
@@ -83,11 +87,11 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/pages/Home.vue:30
+#: src/pages/Home.vue:28
 msgid "Extend Line Downward"
 msgstr ""
 
-#: src/pages/Home.vue:28
+#: src/pages/Home.vue:26
 msgid "Extend Line Upward"
 msgstr ""
 
@@ -95,22 +99,25 @@ msgstr ""
 msgid "GO!"
 msgstr ""
 
-#: src/components/SidePanel.vue:175
+#: src/components/SidePanel.vue:199
 msgid "Hide All"
 msgstr ""
 
-#: src/router/index.js:21
+#: src/components/EditorLinks.vue:117
+msgid "Hold left click to drag"
+msgstr ""
+
+#: src/router/index.js:22
 msgid "Import"
 msgstr ""
 
-#: src/components/SidePanel.vue:223
 #: src/components/layout/NavigationDrawer.vue:61
 #: src/components/layout/NavigationDrawer.vue:75
 msgid "item"
 msgstr ""
 
-#: src/components/Map.vue:150
-msgid "Left click to edit properties"
+#: src/components/EditorLinks.vue:116
+msgid "Left click to add a stop"
 msgstr ""
 
 #: src/components/SidePanel.vue:62
@@ -133,19 +140,19 @@ msgstr ""
 msgid "Load Files"
 msgstr ""
 
-#: src/router/index.js:28
+#: src/router/index.js:29
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:248
+#: src/pages/Home.vue:221
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:238
+#: src/pages/Home.vue:211
 msgid "modification applied"
 msgstr ""
 
-#: src/pages/Home.vue:34
+#: src/pages/Home.vue:32
 msgid "Move Stop"
 msgstr ""
 
@@ -153,22 +160,26 @@ msgstr ""
 msgid "Nodes"
 msgstr ""
 
-#: src/components/Map.vue:152
+#: src/components/EditorLinks.vue:121
 msgid "Right click for context menu"
+msgstr ""
+
+#: src/components/EditorLinks.vue:120
+msgid "Right click to edit properties"
 msgstr ""
 
 #: src/pages/Home.vue:100
 msgid "Save"
 msgstr ""
 
-#: src/pages/Home.vue:84
+#: src/pages/Home.vue:76
 msgid "Select a Link"
 msgstr ""
 
-#: src/pages/Home.vue:89
+#: src/pages/Home.vue:80
 msgid "Select a Node"
 msgstr ""
 
-#: src/components/SidePanel.vue:164
+#: src/components/SidePanel.vue:188
 msgid "Show All"
 msgstr ""

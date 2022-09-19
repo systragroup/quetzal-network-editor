@@ -15,6 +15,8 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
     selectedFeature : null,
     hoveredStateId : null,
     disablePopup : false,
+    keepHovering : false,
+    dragNode : false,
     popupEditor: {
         coordinates: [0, 0],
         showed: false,
@@ -59,7 +61,7 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
       if (this.selectedFeature !== null) {
         if (this.hoveredStateId.layerId == 'editorLinks') {
           let click = {selectedFeature: this.selectedFeature,
-                      action: 'Edit Link Info',
+                      action: 'Add Stop Inline',
                       lngLat: event.mapboxEvent.lngLat}
             this.$emit('clickLink', click);
           }
@@ -86,29 +88,37 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
           ]
           this.popupEditor.content = this.hoveredStateId.id;
           this.popupEditor.showed = true;
-          this.$emit('onHover',{selectedId:this.hoveredStateId.id})
+          
         }
       }
+      this.$emit('onHover',{selectedId:this.hoveredStateId.id})
       
     },
     offCursor(event){
-      if ( this.hoveredStateId !== null ) {
+     if ( this.hoveredStateId !== null) {
         if ( !(this.hoveredStateId.layerId == 'editorNodes' && event.layerId == 'editorLinks') ) {
-          this.map.getCanvas().style.cursor = '';
-          this.popupEditor.showed = false;
-          this.map.setFeatureState(
-            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-            { hover: false }
-          );
-          this.hoveredStateId = null;
-          this.$emit('offHover',event)
+          if (this.keepHovering)
+          { // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
+            this.dragNode=true
+            this.contextMenu.showed = false;
+          }
+          else // normal behaviours, hovering is false
+          {
+            this.map.getCanvas().style.cursor = '';
+            this.popupEditor.showed = false;
+            this.map.setFeatureState(
+              { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+              { hover: false }
+            );
+            this.hoveredStateId = null;
+            this.$emit('offHover',event)
+          }
         }
       }
       
     },
     contextMenuNode(event) {
       if ( this.popupEditor.showed && this.hoveredStateId.layerId == 'editorNodes') {
-        this.popupEditor.showed = false;
         this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
                                         event.mapboxEvent.lngLat.lat
         ]
@@ -140,9 +150,8 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
         this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id)[0]
         let click = {selectedFeature: this.selectedFeature,
-                      action: 'Add Stop Inline',
-                      lngLat:  [event.mapboxEvent.lngLat.lng,
-                                event.mapboxEvent.lngLat.lat]
+                      action: 'Edit Link Info',
+                      lngLat:  event.mapboxEvent.lngLat
                     }
           this.$emit('clickLink', click) 
       }
@@ -161,16 +170,17 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
 
       }
      
-      
       this.contextMenu.showed = false
       this.contextMenu.type = null
     },
 
 
     moveNode(event){
-      if (true){
+      if (event.mapboxEvent.originalEvent.button==0){
         event.mapboxEvent.preventDefault(); // prevent map control
         this.map.getCanvas().style.cursor = 'grab';
+        // disable mouseLeave so we stay in hover state.
+        this.keepHovering = true
         // get selected node
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId);
         this.selectedFeature = features.filter(item => item.id == this.hoveredStateId.id )[0]
@@ -179,30 +189,38 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
         let geom =this.$store.getters.editorNodes.features.filter(node=>node.properties.index == nodeId)[0].geometry.coordinates
         this.$store.commit('addToHistory',{moveNode:{selectedFeature:this.selectedFeature,lngLat:geom}})
         
-        // get position
+        //disable popup
         this.disablePopup=true
+        this.popupEditor.showed=false
+        // get position
+        this.initialPostition = event.mapboxEvent.lngLat
         this.map.on('mousemove',this.onMove)
       }
     },
     onMove(event){
       // get position and update node position
-      if (this.map.loaded()){
+      // only if dragmode is activated (we just leave the node hovering state.)
+      if (this.map.loaded() && this.dragNode){
           this.$store.commit('moveNode',{selectedNode:this.selectedFeature,lngLat:Object.values(event.lngLat)})
       }
     },
+
     stopMovingNode(event){
       // stop tracking position (moving node.)
       this.map.getCanvas().style.cursor = 'pointer';
       this.map.off('mousemove', this.onMove);
+      //enable popup and hovering off back. disable Dragmode
+      this.keepHovering = false
+      this.dragNode = false
+      this.disablePopup=false
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
-      if (true) {
+      if (this.selectedFeature){
         let click = {selectedFeature: this.selectedFeature,
-                     action: 'Move Node',
-                     lngLat: event.lngLat}
-          this.$emit('clickNode', click);
-          this.disablePopup=false
-       }
+                      action: 'Move Node',
+                      lngLat: event.lngLat}
+        this.$emit('clickNode', click);
+      }
     },
 	},
 }
@@ -313,11 +331,11 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
             <h3>{{this.popupEditor.content}}</h3>
             <hr>
             {{ hoveredStateId?.layerId == 'editorLinks'? 
-            $gettext("Left click to edit properties"): 
-            $gettext("Hold right click to drag")}}
+            $gettext("Left click to add a stop"): 
+            $gettext("Hold left click to drag")}}
             <hr>
             {{ hoveredStateId?.layerId == 'editorLinks'? 
-            $gettext("right click to add a node"): 
+            $gettext("Right click to edit properties"): 
             $gettext("Right click for context menu")}}
         </span>
       </MglPopup>
@@ -325,8 +343,10 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
       <MglPopup :closeButton="false"
                 :showed="contextMenu.showed"
                 @close="contextMenu.showed=false"
+                @click="(e)=>{console.log(e)}"
                 :coordinates="contextMenu.coordinates">
-        <span>
+        <span
+        @mouseleave="contextMenu.showed=false">
           <v-list dense flat >
             <v-list-item-group>
               <v-list-item
