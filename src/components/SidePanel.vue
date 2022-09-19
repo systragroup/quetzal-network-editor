@@ -11,7 +11,7 @@ export default {
     prop: "selectedTrips",
     event: "update-tripList"
   },
-  events: ["selectEditorTrip","confirmChanges","abortChanges","deleteButton"],
+  events: ["selectEditorTrip","confirmChanges","abortChanges","deleteButton","propertiesButton"],
 
   data () {
     return {
@@ -70,6 +70,18 @@ export default {
       }
     },
 
+    propertiesButton(value){
+      // select the TripId and open dialog
+      if (!this.editorTrip){
+        this.$store.commit('setEditorTrip',value)
+        this.$emit("propertiesButton",value)
+
+      }// just open dialog
+      else{
+        this.$emit("propertiesButton",value)
+      }
+    },
+
     deleteButton(val){
       this.$emit("deleteButton",val)
     },
@@ -117,7 +129,6 @@ export default {
                   <v-spacer></v-spacer>
                 </v-card-title>
                 <v-virtual-scroll
-                  dense
                   :items="tripId"
                   :height="height"
                   :item-height="41"
@@ -135,27 +146,35 @@ export default {
                           hide-details
                         />
                       </v-list-item-action>
-                      <v-list-item-content>
                         <v-list-item-title>
                           {{ item }}
                         </v-list-item-title>
-                      </v-list-item-content>
-                      <v-list-item-action>
+
+                      <v-list-item-avatar>
                         <v-btn icon class="ma-1" 
                         @click="editButton(item)"
                         :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
                           <v-icon  :color="item == editorTrip? 'error':'regular' ">fa-regular fa-pen</v-icon>
                         </v-btn>
-                      </v-list-item-action>
+                      </v-list-item-avatar>
+
                       <v-list-item-action>
-                        <v-btn 
-                        icon class="ma-1" 
-                        color="error"
-                        @click="deleteButton(item)"
-                        :disabled="editorTrip ? true: false">
-                          <v-icon small>fa-regular fa-trash</v-icon>
+                        <v-btn icon class="ma-1" 
+                        @click="propertiesButton(item)"
+                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
+                          <v-icon :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-table</v-icon>
                         </v-btn>
                       </v-list-item-action>
+                      
+                      <v-list-item-action>
+                        <v-btn icon class="ma-1" 
+                        
+                        @click="deleteButton(item)"
+                        :disabled="editorTrip ? true: false">
+                          <v-icon small color="error">fa-regular fa-trash</v-icon>
+                        </v-btn>
+                      </v-list-item-action>
+
                     </v-list-item>
                   </template>
                 </v-virtual-scroll>
