@@ -321,11 +321,11 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
             <h3>{{this.popupEditor.content}}</h3>
             <hr>
             {{ hoveredStateId?.layerId == 'editorLinks'? 
-            $gettext("Left click to edit properties"): 
-            $gettext("Hold right click to drag")}}
+            $gettext("Left click to add a stop"): 
+            $gettext("Hold left click to drag")}}
             <hr>
             {{ hoveredStateId?.layerId == 'editorLinks'? 
-            $gettext("right click to add a node"): 
+            $gettext("Right click to edit properties"): 
             $gettext("Right click for context menu")}}
         </span>
       </MglPopup>
@@ -333,8 +333,10 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
       <MglPopup :closeButton="false"
                 :showed="contextMenu.showed"
                 @close="contextMenu.showed=false"
+                @click="(e)=>{console.log(e)}"
                 :coordinates="contextMenu.coordinates">
-        <span>
+        <span
+        @mouseleave="contextMenu.showed=false">
           <v-list dense flat >
             <v-list-item-group>
               <v-list-item
