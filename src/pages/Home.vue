@@ -114,12 +114,13 @@ export default {
           // map selected node doesnt not return properties with nanulln value. we need to get the node in the store with the selected index.
           this.editorForm = this.$store.getters.editorNodes.features.filter((node)=>node.properties.index==this.selectedNode.index)
           this.editorForm = this.editorForm[0].properties
+
           // filter properties to only the one that are editable.
-          const filteredKeys = ['id','index'];
+          const uneditable = ['index'];
           let filtered = Object.keys(this.editorForm)
-            .filter(key => !filteredKeys.includes(key))
             .reduce((obj, key) => {
-              obj[key] = this.editorForm[key];
+              obj[key] = {'value': this.editorForm[key],
+                          'disabled': uneditable.includes(key)}
               return obj;
             }, {});
           this.editorForm = filtered
@@ -142,12 +143,13 @@ export default {
           this.editorForm = this.editorForm[0].properties
 
           // filter properties to only the one that are editable.
-          const filteredKeys = ['id','a','b','link_sequence','agency_id','direction_id','headway','index','route_color','route_short_name','route_type','trip_id','route_id'];
-          //const filteredKeys=[]
+          const filteredKeys = this.$store.getters.lineAttributes
+          const uneditable = ['a', 'b', 'index', 'link_sequence']
           let filtered = Object.keys(this.editorForm)
             .filter(key => !filteredKeys.includes(key))
             .reduce((obj, key) => {
-              obj[key] = this.editorForm[key];
+              obj[key] = {'value': this.editorForm[key],
+                          'disabled': uneditable.includes(key)}
               return obj;
             }, {});
           this.editorForm = filtered
@@ -249,9 +251,10 @@ export default {
           <v-container>
               <v-col cols="12" >
                 <v-text-field 
-                  v-for="(value,name) in editorForm" :key="name"
-                  v-model="editorForm[name]"
-                  :label="name"
+                  v-for="(value, key) in editorForm" :key="key"
+                  v-model="value['value']"
+                  :label="key"
+                  :disabled="value['disabled']"
                 ></v-text-field>
               </v-col>
           </v-container>
