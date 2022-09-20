@@ -38,12 +38,17 @@ export default {
       mapIsLoaded:false,
       drawMode:false,
       hoverId:null,
+      mapDiv:null,
     }
   },
   created () {
     this.mapboxPublicKey = mapboxPublicKey;
   },
   watch: {
+    showLeftPanel(){
+      setTimeout(()=>this.map.resize(),250)
+    },
+
     editorNodes(newVal, oldVal) {
       let wasEditorMode = ( oldVal.features.length > 0 );
       this.isEditorMode = ( newVal.features.length > 0 );
@@ -95,20 +100,23 @@ export default {
     }
   },
   computed:{
- 
-  editorNodes() {
-    return this.$store.getters.editorNodes
+    
+    showLeftPanel(){
+      return this.$store.getters.showLeftPanel 
+    },
+    editorNodes() {
+      return this.$store.getters.editorNodes
+    },
+    drawLine(){
+      return this.$store.getters.newLink
+    },
+    firstNode(){
+      return this.$store.getters.firstNode
+    },
+    lastNode(){
+      return this.$store.getters.lastNode
+    },
   },
-  drawLine(){
-    return this.$store.getters.newLink
-  },
-  firstNode(){
-    return this.$store.getters.firstNode
-  },
-  lastNode(){
-    return this.$store.getters.lastNode
-  },
-},
 
   methods: {
     onMapLoaded (event) {
@@ -129,7 +137,6 @@ export default {
       });
       this.map = event.map;
       this.mapIsLoaded=true
-
     },
     
 
@@ -145,6 +152,8 @@ export default {
       if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
         this.$store.commit('applyNewLink',pointGeom)
+        //console.log(this.mapDiv.style.width)
+        
 
       }
     },
@@ -191,11 +200,9 @@ export default {
   
 }
 </script>
-<template>
+<template >
     <MglMap
-       v-show="true"
-       class='map-view'
-     
+      :style="{'width': '100%'}"
       :access-token="mapboxPublicKey"
       map-style="mapbox://styles/mapbox/light-v9"
  
@@ -233,46 +240,8 @@ export default {
 </template>
 <style lang="scss" scoped>
 .map-view {
-  height: calc(100%);
-  width: calc(100%);
-  display: flex;
+  width: 100%;
+
 }
-.left-panel {
-  height: 100%;
-  background-color: white;
-  transition: 0.3s;
-  z-index: 20;
-}
-.left-panel-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-}
-.left-panel-toggle-btn {
-  position: absolute;
-  left: 100%;
-  width: 25px;
-  z-index: 1;
-  background-color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 50px;
-  transition: 0.3s;
-  cursor: pointer;
-}
-.left-panel-title {
-  height: 50px;
-  line-height: 55px;
-  padding-left: 20px;
-  font-size: 1.1em;
-  margin-bottom: 10px;
-}
-.scrollable {
-   overflow-y: scroll;
-}
-.context-menu {
-  color: blue;
-}
+
 </style>
