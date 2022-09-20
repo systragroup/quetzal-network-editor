@@ -41,7 +41,6 @@ export default {
       selectedNode : null,
       selectedLink : null,
       showDialog : false,
-      hideDialog : true,
       editorForm : {},
       cursorPosition : [],
       tripToDelete : null,
@@ -226,7 +225,7 @@ export default {
     deleteButton(selectedTrip){
       this.tripToDelete=selectedTrip
       this.action='deleteTrip'
-      this.hideDialog? this.applyAction() : this.showDialog = true
+      this.showDialog = true
     },
   },
 }
@@ -259,14 +258,7 @@ export default {
               </v-col>
           </v-container>
         </v-card-text>
-        <v-card-actions>
-          <v-checkbox
-          v-if="!['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)"
-           x-small
-           v-model="hideDialog"
-           :label="$gettext('do not show again')"
-           ></v-checkbox>
-        </v-card-actions>
+
        
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -298,7 +290,8 @@ export default {
     v-model="selectedTrips" 
     @confirmChanges="confirmChanges"
     @abortChanges="abortChanges"
-    @deleteButton="deleteButton">
+    @deleteButton="deleteButton"
+    @propertiesButton="actionClick('Edit Line info')">
   </SidePanel>
 
   <Map 
