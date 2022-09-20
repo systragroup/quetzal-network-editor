@@ -387,7 +387,7 @@ export default {
       editLineInfo(state,payload) {
         state.editorLineInfo = payload
         let props = Object.keys(payload)
-        state.editorLinks.features.forEach((features) => props.forEach((key) => features.properties[key]=payload[key] ))
+        state.editorLinks.features.forEach((features) => props.forEach((key) => features.properties[key] =payload[key] ))
       },
 
       editLinkInfo(state,payload) {
