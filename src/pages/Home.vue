@@ -68,39 +68,39 @@ export default {
       //when an action is clicked in the sidepanel
       this.action = action
       if ( action == 'Edit Line info' ){
-        this.editorForm = {...this.$store.getters.editorLineInfo}
+        this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
         this.showDialog = true
       }
       else if ( action == 'Edit Link Info' ){
         this.lingeringAction = true
-        this.$store.commit('changeNotification',{text:$gettext('Select a Link'), autoClose:false})
+        this.$store.commit('changeNotification', {text:$gettext('Select a Link'), autoClose:false})
       }
       else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop','Edit Node Info'].includes(action)){
         this.lingeringAction = true
-        this.$store.commit('changeNotification',{text:$gettext('Select a Node'), autoClose:false})
+        this.$store.commit('changeNotification', {text:$gettext('Select a Node'), autoClose:false})
       }
       else if (action == 'Extend Line Upward'){
-        this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
-        this.$store.commit('setNewLink',{action:action})
+        this.$store.commit('changeNotification', {text: $gettext('Click on the map to extend'), autoClose: false})
+        this.$store.commit('setNewLink', {action: action})
 
         this.lingeringAction = true
         //const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
       }
       else if (action == 'Extend Line Downward'){
-        this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
-        this.$store.commit('setNewLink',{action:action})
+        this.$store.commit('changeNotification', {text: $gettext('Click on the map to extend'), autoClose: false})
+        this.$store.commit('setNewLink', {action: action})
         this.lingeringAction = true
         const firstNode = this.$store.getters.editorLinks.features[0].properties.a
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
       }
       else if (action == 'Add Stop Inline'){
-        this.$store.commit('changeNotification',{text:$gettext('Click on a link to add a Stop'), autoClose:false})
+        this.$store.commit('changeNotification', {text: $gettext('Click on a link to add a Stop'), autoClose: false})
         this.lingeringAction = true
       }
       else {
         this.lingeringAction = false
-        this.$store.commit('changeNotification',{text:null, autoClose:true})
+        this.$store.commit('changeNotification', {text: null, autoClose: true})
       }
     },
     clickNode(event){
@@ -111,7 +111,7 @@ export default {
         // node action
         if (this.action == 'Edit Node Info'){
           // map selected node doesnt not return properties with nanulln value. we need to get the node in the store with the selected index.
-          this.editorForm = this.$store.getters.editorNodes.features.filter((node)=>node.properties.index==this.selectedNode.index)
+          this.editorForm = this.$store.getters.editorNodes.features.filter((node) => node.properties.index == this.selectedNode.index)
           this.editorForm = this.editorForm[0].properties
 
           // filter properties to only the one that are editable.
@@ -138,7 +138,7 @@ export default {
         // links action
         if(this.action == 'Edit Link Info'){
           // map selected link doesnt not return properties with null value. we need to get the links in the store with the selected index.
-          this.editorForm = this.$store.getters.editorLinks.features.filter((link)=>link.properties.index==this.selectedLink.index)
+          this.editorForm = this.$store.getters.editorLinks.features.filter((link) => link.properties.index == this.selectedLink.index)
           this.editorForm = this.editorForm[0].properties
 
           // filter properties to only the one that are editable.
