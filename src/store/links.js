@@ -384,31 +384,33 @@ export default {
         state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
         this.commit('getEditorNodes',{nodes:state.editorNodes})
       }, 
-      editLineInfo(state,payload) {
-        state.editorLineInfo = payload
+      editLineInfo(state, payload) {
         let props = Object.keys(payload)
-        state.editorLinks.features.forEach((features) => props.forEach((key) => features.properties[key] =payload[key] ))
+        state.editorLinks.features.forEach((features) => props.forEach((key) => features.properties[key] = payload[key].value ))
+        this.commit('getEditorLineInfo')
       },
 
-      editLinkInfo(state,payload) {
+      editLinkInfo(state, payload) {
         // get selected link in editorLinks and modify the changes attributes.
-        let props = Object.keys(payload.info)
+        const {selectedLinkId, info} = payload
+        let props = Object.keys(info)
         state.editorLinks.features.filter(
           function (link){
-            if (link.properties.index == payload.selectedLinkId){
-              props.forEach((key) => link.properties[key] = payload.info[key] )
+            if (link.properties.index == selectedLinkId){
+              props.forEach((key) => link.properties[key] = info[key].value )
             }
           }
         )
       },
 
-      editNodeInfo(state,payload) {
+      editNodeInfo(state, payload) {
         // get selected node in editorNodes and modify the changes attributes.
-        let props = Object.keys(payload.info)
+        const {selectedNodeId, info} = payload
+        let props = Object.keys(info)
         state.editorNodes.features.filter(
           function (node){
-            if (node.properties.index == payload.selectedNodeId){
-              props.forEach((key) => node.properties[key] = payload.info[key] )
+            if (node.properties.index == selectedNodeId){
+              props.forEach((key) => node.properties[key] = info[key].value )
             }
           }
         )

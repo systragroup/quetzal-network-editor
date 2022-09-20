@@ -165,28 +165,28 @@ export default {
       this.showDialog = false
       switch(this.action){
       case 'Cut Line From Node':
-        this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode}) 
+        this.$store.commit('cutLineFromNode', {selectedNode: this.selectedNode}) 
         break 
       case 'Cut Line At Node':
-        this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
+        this.$store.commit('cutLineAtNode', {selectedNode: this.selectedNode})  
         break
       case 'Delete Stop':
-        this.$store.commit('deleteNode',{selectedNode:this.selectedNode})
+        this.$store.commit('deleteNode', {selectedNode: this.selectedNode})
         break
       case 'Edit Link Info':
-        this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorForm})  
+        this.$store.commit('editLinkInfo', {selectedLinkId: this.selectedLink.index, info: this.editorForm})  
         break
       case 'Edit Node Info':
-        this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorForm})  
+        this.$store.commit('editNodeInfo', {selectedNodeId: this.selectedNode.index, info: this.editorForm})  
         break
       case 'Edit Line info':
-        this.$store.commit('editLineInfo',this.editorForm)  
+        this.$store.commit('editLineInfo', this.editorForm)  
         break
       case 'deleteTrip':
-        this.$store.commit('deleteTrip',this.tripToDelete)
+        this.$store.commit('deleteTrip', this.tripToDelete)
         break
       case 'Add Stop Inline':
-        this.$store.commit('addNodeInline',{selectedLink:this.selectedLink, lngLat:this.cursorPosition})
+        this.$store.commit('addNodeInline', {selectedLink: this.selectedLink, lngLat: this.cursorPosition})
         break
       }
       this.$store.commit('cleanHistory')
