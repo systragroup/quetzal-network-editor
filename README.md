@@ -1,4 +1,8 @@
-# Quenedi (quetzal-network-editor)
+# Quenedi
+
+Quenedi (quetzal-network-editor) is a graphical user interface to edit puclic transportation network. It is designed to work with the [Quetzal](https://github.com/systragroup/quetzal) transport planning and forcasting object models.  
+
+![image](https://user-images.githubusercontent.com/56046851/191356410-8f8b0540-684f-42e0-8740-42b41049481d.png)
 
 ## Inputs 
 
@@ -44,9 +48,7 @@ GeoJSON table describing network nodes (EPSG: 4326). [Exemple](static/nodes_exem
 
 Any other properties in the table will be copied from the nearest node when adding a new node.
 
-# Developement Setup 
-
-## Build Setup
+## Developement Setup 
 
 ```sh
 # define BACK_URL and MAPBOX_TOKEN variable or let you guide by the setup
@@ -71,7 +73,7 @@ Then go to [http://localhost:8081/].
 
 You can log in by typing anything you want in credentials inputs.
 
-## Internationalization
+### Internationalization
 
 ```
 sudo apt-get install gettext
