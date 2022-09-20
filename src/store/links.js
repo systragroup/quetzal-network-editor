@@ -245,6 +245,15 @@ export default {
 
         state.editorLinks.features.splice(featureIndex+1, 0, link2);
         state.editorNodes.features.push(state.newNode.features[0])
+
+        // add +1 to every link sequence afer link1
+        let seq = link1.properties.link_sequence
+        // everything after link1 except link2
+        state.editorLinks.features.filter(link => link.properties.link_sequence>seq).forEach(link => link.properties.link_sequence+=1)
+        // add link2 sequence after.
+        link2.properties.link_sequence+=1
+        
+
       },
       addNodeInline(state,payload){
         // payload contain selectedLink and event.lngLat (clicked point)
