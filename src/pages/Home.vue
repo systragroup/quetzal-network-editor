@@ -44,15 +44,10 @@ export default {
       editorForm : {},
       cursorPosition : [],
       tripToDelete : null,
-      lingeringAction : false
     }
   },
   watch: {
-    action (newVal,oldVal) {
-      if (newVal === null) {
-        this.lingeringAction = false
-      }
-    }
+    
   },
   created () {
     this.links = this.$store.getters.links
@@ -72,34 +67,27 @@ export default {
         this.showDialog = true
       }
       else if ( action == 'Edit Link Info' ){
-        this.lingeringAction = true
         this.$store.commit('changeNotification',{text:$gettext('Select a Link'), autoClose:false})
       }
       else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop','Edit Node Info'].includes(action)){
-        this.lingeringAction = true
         this.$store.commit('changeNotification',{text:$gettext('Select a Node'), autoClose:false})
       }
       else if (action == 'Extend Line Upward'){
         this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
         this.$store.commit('setNewLink',{action:action})
-
-        this.lingeringAction = true
         //const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
       }
       else if (action == 'Extend Line Downward'){
         this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
         this.$store.commit('setNewLink',{action:action})
-        this.lingeringAction = true
         const firstNode = this.$store.getters.editorLinks.features[0].properties.a
         //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
       }
       else if (action == 'Add Stop Inline'){
         this.$store.commit('changeNotification',{text:$gettext('Click on a link to add a Stop'), autoClose:false})
-        this.lingeringAction = true
       }
       else {
-        this.lingeringAction = false
         this.$store.commit('changeNotification',{text:null, autoClose:true})
       }
     },
@@ -187,8 +175,7 @@ export default {
         this.$store.commit('addNodeInline',{selectedLink:this.selectedLink, lngLat:this.cursorPosition})
         break
       }
-      this.$store.commit('cleanHistory')
-      if ( !this.lingeringAction ) { this.action = null } 
+       
     },
     cancelAction(){
       this.showDialog = false
@@ -198,7 +185,6 @@ export default {
         this.$store.commit('moveNode',{selectedNode:hist.moveNode.selectedFeature,lngLat:Object.values(hist.moveNode.lngLat)})
         this.$store.commit('cleanHistory')
       }
-      if ( !this.lingeringAction ) { this.action = null }
     },
     confirmChanges(){
       // confirm changes on sidePanel, this overwrite Links in store.

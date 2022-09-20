@@ -85,11 +85,7 @@ export default {
     deleteButton(val){
       this.$emit("deleteButton",val)
     },
-    
-    
-
-    
-    
+  
   }
   
   
