@@ -194,7 +194,8 @@ export default {
 <template>
     <MglMap
        v-show="true"
-      :style="{'width': $store.getters.showLeftPanel ? '80%' : '100%'}"
+       class='map-view'
+     
       :access-token="mapboxPublicKey"
       map-style="mapbox://styles/mapbox/light-v9"
  
@@ -232,8 +233,8 @@ export default {
 </template>
 <style lang="scss" scoped>
 .map-view {
-  height: calc(100% - 50px);
-  width: 100%;
+  height: calc(100%);
+  width: calc(100%);
   display: flex;
 }
 .left-panel {
