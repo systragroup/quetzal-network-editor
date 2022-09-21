@@ -1,5 +1,5 @@
 <script>
-console.log((window.innerHeight-50)/2)
+
 
 export default {
   name: 'sidePanel',
@@ -17,11 +17,13 @@ export default {
     return {
       showLeftPanelContent: true,
       tripList : this.selectedTrips,
+      width:null,
     }
   },
   computed:{
     showLeftPanel() {return this.$store.getters.showLeftPanel},
-    height() {return (window.innerHeight-50) - 20*3 - 100},
+    height() {return (window.innerHeight-80) - 20*3 - 100},
+   
     editorTrip() {return this.$store.getters.editorTrip},
     tripId() {return this.$store.getters.tripId} 
   },
@@ -56,6 +58,9 @@ export default {
   },
 
   methods: {
+    getWidth(){
+      this.width=this.$refs.leftPanelDiv.clientWidth
+    },
     
     editButton(value){
       if (this.editorTrip == value){
@@ -92,6 +97,7 @@ export default {
 </script>
 <template>
     <div
+      ref="leftPanelDiv"
       class="left-panel elevation-4"
       :style="{'width': showLeftPanel ? '400px' : '0'}"
     >
