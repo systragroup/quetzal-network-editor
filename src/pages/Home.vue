@@ -1,7 +1,6 @@
 <script>
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
-import { enableAutoDestroy } from '@vue/test-utils'
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
 
@@ -63,7 +62,7 @@ export default {
       //when an action is clicked in the sidepanel
       this.action = action
       if ( action == 'Edit Line info' ){
-        this.editorForm = {...this.$store.getters.editorLineInfo}
+        this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
         this.showDialog = true
       }
       else if ( action == 'Edit Link Info' ){
@@ -99,14 +98,15 @@ export default {
         // node action
         if (this.action == 'Edit Node Info'){
           // map selected node doesnt not return properties with nanulln value. we need to get the node in the store with the selected index.
-          this.editorForm = this.$store.getters.editorNodes.features.filter((node)=>node.properties.index==this.selectedNode.index)
+          this.editorForm = this.$store.getters.editorNodes.features.filter((node) => node.properties.index == this.selectedNode.index)
           this.editorForm = this.editorForm[0].properties
+
           // filter properties to only the one that are editable.
-          const filteredKeys = ['id','index'];
+          const uneditable = ['index'];
           let filtered = Object.keys(this.editorForm)
-            .filter(key => !filteredKeys.includes(key))
             .reduce((obj, key) => {
-              obj[key] = this.editorForm[key];
+              obj[key] = {'value': this.editorForm[key],
+                          'disabled': uneditable.includes(key)}
               return obj;
             }, {});
           this.editorForm = filtered
@@ -125,16 +125,17 @@ export default {
         // links action
         if(this.action == 'Edit Link Info'){
           // map selected link doesnt not return properties with null value. we need to get the links in the store with the selected index.
-          this.editorForm = this.$store.getters.editorLinks.features.filter((link)=>link.properties.index==this.selectedLink.index)
+          this.editorForm = this.$store.getters.editorLinks.features.filter((link) => link.properties.index == this.selectedLink.index)
           this.editorForm = this.editorForm[0].properties
 
           // filter properties to only the one that are editable.
-          const filteredKeys = ['id','a','b','link_sequence','agency_id','direction_id','headway','index','route_color','route_short_name','route_type','trip_id','route_id'];
-          //const filteredKeys=[]
+          const filteredKeys = this.$store.getters.lineAttributes
+          const uneditable = ['a', 'b', 'index', 'link_sequence']
           let filtered = Object.keys(this.editorForm)
             .filter(key => !filteredKeys.includes(key))
             .reduce((obj, key) => {
-              obj[key] = this.editorForm[key];
+              obj[key] = {'value': this.editorForm[key],
+                          'disabled': uneditable.includes(key)}
               return obj;
             }, {});
           this.editorForm = filtered
@@ -151,28 +152,28 @@ export default {
       this.showDialog = false
       switch(this.action){
       case 'Cut Line From Node':
-        this.$store.commit('cutLineFromNode',{selectedNode:this.selectedNode}) 
+        this.$store.commit('cutLineFromNode', {selectedNode: this.selectedNode}) 
         break 
       case 'Cut Line At Node':
-        this.$store.commit('cutLineAtNode',{selectedNode:this.selectedNode})  
+        this.$store.commit('cutLineAtNode', {selectedNode: this.selectedNode})  
         break
       case 'Delete Stop':
-        this.$store.commit('deleteNode',{selectedNode:this.selectedNode})
+        this.$store.commit('deleteNode', {selectedNode: this.selectedNode})
         break
       case 'Edit Link Info':
-        this.$store.commit('editLinkInfo',{selectedLinkId:this.selectedLink.index,info:this.editorForm})  
+        this.$store.commit('editLinkInfo', {selectedLinkId: this.selectedLink.index, info: this.editorForm})  
         break
       case 'Edit Node Info':
-        this.$store.commit('editNodeInfo',{selectedNodeId:this.selectedNode.index,info:this.editorForm})  
+        this.$store.commit('editNodeInfo', {selectedNodeId: this.selectedNode.index, info: this.editorForm})  
         break
       case 'Edit Line info':
-        this.$store.commit('editLineInfo',this.editorForm)  
+        this.$store.commit('editLineInfo', this.editorForm)  
         break
       case 'deleteTrip':
-        this.$store.commit('deleteTrip',this.tripToDelete)
+        this.$store.commit('deleteTrip', this.tripToDelete)
         break
       case 'Add Stop Inline':
-        this.$store.commit('addNodeInline',{selectedLink:this.selectedLink, lngLat:this.cursorPosition})
+        this.$store.commit('addNodeInline', {selectedLink: this.selectedLink, lngLat: this.cursorPosition})
         break
       }
        
@@ -234,9 +235,10 @@ export default {
           <v-container>
               <v-col cols="12" >
                 <v-text-field 
-                  v-for="(value,name) in editorForm" :key="name"
-                  v-model="editorForm[name]"
-                  :label="name"
+                  v-for="(value, key) in editorForm" :key="key"
+                  v-model="value['value']"
+                  :label="key"
+                  :disabled="value['disabled']"
                 ></v-text-field>
               </v-col>
           </v-container>

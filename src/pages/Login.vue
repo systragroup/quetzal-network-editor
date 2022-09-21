@@ -1,7 +1,7 @@
 <script>
 
-import lines from '@static/links_test.geojson'
-import points from '@static/nodes_test.geojson'
+import lines from '@static/links_exemple.geojson'
+import points from '@static/nodes_exemple.geojson'
 
 
 
