@@ -5,22 +5,9 @@
  */
 
 /*!
- * Determine if an object is a Buffer
- *
- * @author   Feross Aboukhadijeh <https://feross.org>
- * @license  MIT
- */
-
-/*!
  * Vue.js v2.7.8
  * (c) 2014-2022 Evan You
  * Released under the MIT License.
- */
-
-/*!
- * isElementVisible
- * Ported from https://github.com/testing-library/jest-dom
- * Licensed under the MIT License.
  */
 
 /*!
@@ -1309,8 +1296,6 @@ PERFORMANCE OF THIS SOFTWARE.
 /*! exports provided: stack */
 
 /*! exports provided: weekNumber, isLeapYear */
-
-/*! https://mths.be/he v1.2.0 by @mathias | MIT license */
 
 /*! no static exports found */
 
