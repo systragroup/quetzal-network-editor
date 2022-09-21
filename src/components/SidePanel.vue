@@ -1,5 +1,5 @@
 <script>
-console.log((window.innerHeight-50)/2)
+
 
 export default {
   name: 'sidePanel',
@@ -17,12 +17,13 @@ export default {
     return {
       showLeftPanelContent: true,
       tripList : this.selectedTrips,
+      width:null,
     }
   },
   computed:{
     showLeftPanel() {return this.$store.getters.showLeftPanel},
-    height() {return (window.innerHeight-50) - 20*3 - 100},
-    width() {},
+    height() {return (window.innerHeight-80) - 20*3 - 100},
+   
     editorTrip() {return this.$store.getters.editorTrip},
     tripId() {return this.$store.getters.tripId} 
   },
@@ -57,6 +58,9 @@ export default {
   },
 
   methods: {
+    getWidth(){
+      this.width=this.$refs.leftPanelDiv.clientWidth
+    },
     
     editButton(value){
       if (this.editorTrip == value){
@@ -85,11 +89,7 @@ export default {
     deleteButton(val){
       this.$emit("deleteButton",val)
     },
-    
-    
-
-    
-    
+  
   }
   
   
@@ -97,8 +97,9 @@ export default {
 </script>
 <template>
     <div
+      ref="leftPanelDiv"
       class="left-panel elevation-4"
-      :style="{'width': showLeftPanel ? '350px' : '0'}"
+      :style="{'width': showLeftPanel ? '400px' : '0'}"
     >
       <div
         class="left-panel-toggle-btn elevation-4"
@@ -115,7 +116,7 @@ export default {
       <transition name="fade">
         <div
           v-show="showLeftPanelContent"
-          class="left--conpaneltent"
+          class="left-panel-content"
         >
           <div>
             <div :style="{margin: '20px'}">
@@ -206,13 +207,22 @@ export default {
   height: 100%;
   background-color: $primary-dark;
   transition: 0.3s;
+  display:flex;
   z-index: 20;
+  resize: horizontal;
+  overflow: auto;
+  
 }
 .left-panel-content {
   display: flex;
+  width : 100%;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  //resize: horizontal;
+  //overflow: auto;
+  
+  
 }
 .left-panel-toggle-btn {
   position: absolute;
