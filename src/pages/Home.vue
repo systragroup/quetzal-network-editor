@@ -16,7 +16,7 @@ export default {
       links: {},
       selectedTrips : [],
       editorTrip : null,
-      actionsList :[{value:'Edit Line info',
+      actionsList :[{value:'Edit Line Info',
                     name: $gettext('Edit Line Info')},
                     {value: 'Cut Line From Node',
                     name: $gettext('Cut Line From Node')},
@@ -43,6 +43,7 @@ export default {
       editorForm : {},
       cursorPosition : [],
       tripToDelete : null,
+      lingering : true,
     }
   },
   watch: {
@@ -60,8 +61,10 @@ export default {
 
       this.action = event.action
 
-      if ( this.action == 'Edit Line info'){
+      if ( this.action == 'Edit Line Info'){
+        console.log('tet')
         this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
+        this.lingering = event.lingering
         this.showDialog = true
       }
       else if ( this.action == 'Edit Link Info' ){
@@ -113,7 +116,6 @@ export default {
       }
     },
 
-    
     applyAction(){
       // click yes on dialog
       this.showDialog = false
@@ -133,7 +135,7 @@ export default {
       case 'Edit Node Info':
         this.$store.commit('editNodeInfo', {selectedNodeId: this.selectedNode.index, info: this.editorForm})  
         break
-      case 'Edit Line info':
+      case 'Edit Line Info':
         this.$store.commit('editLineInfo', this.editorForm)  
         break
       case 'deleteTrip':
@@ -143,10 +145,18 @@ export default {
         this.$store.commit('addNodeInline', {selectedLink: this.selectedLink, lngLat: this.cursorPosition})
         break
       }
+      if (!this.lingering){
+        this.confirmChanges()
+        this.lingering=true
+      }
        
     },
     cancelAction(){
       this.showDialog = false
+      if (!this.lingering){
+        this.abortChanges()
+        this.lingering=true
+      }
     },
     confirmChanges(){
       // confirm changes on sidePanel, this overwrite Links in store.
@@ -192,7 +202,7 @@ export default {
           {{ action == 'deleteTrip'? $gettext("Delete ") + ' '+ tripToDelete + '?': $gettext("Edit Properties")}}
         </v-card-title>
 
-        <v-card-text v-if="['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
+        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
           <v-container>
               <v-col cols="12" >
                 <v-text-field 
@@ -237,7 +247,7 @@ export default {
     @confirmChanges="confirmChanges"
     @abortChanges="abortChanges"
     @deleteButton="deleteButton"
-    @propertiesButton="actionClick({action:'Edit Line info'})">
+    @propertiesButton="actionClick">
   </SidePanel>
 
   <Map 

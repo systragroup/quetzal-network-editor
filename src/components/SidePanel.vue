@@ -64,11 +64,7 @@ export default {
     
     editButton(value){
       if (this.editorTrip == value){
-       // this.$store.commit('setEditorTrip',null)
-       // this.$emit("actionClick",null)
-       // this.$store.commit('changeNotification',{text:null, autoClose:true})
        this.$emit("abortChanges")
-
       }else{
         this.$store.commit('setEditorTrip',value)
       }
@@ -78,11 +74,11 @@ export default {
       // select the TripId and open dialog
       if (!this.editorTrip){
         this.$store.commit('setEditorTrip',value)
-        this.$emit("propertiesButton",value)
+        this.$emit("propertiesButton",{action:'Edit Line Info', lingering:false})
 
       }// just open dialog
       else{
-        this.$emit("propertiesButton",value)
+        this.$emit("propertiesButton",{action:'Edit Line Info', lingering:true})
       }
     },
 
