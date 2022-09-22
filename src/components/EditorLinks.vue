@@ -9,7 +9,7 @@ export default {
   MglGeojsonLayer
 },
 props:["map","drawMode"],
-events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
+events: ["clickFeature","onHover","offHover"],
 	data () {
 	return {
     selectedFeature : null,
@@ -63,7 +63,7 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
           let click = {selectedFeature: this.selectedFeature,
                       action: 'Add Stop Inline',
                       lngLat: event.mapboxEvent.lngLat}
-            this.$emit('clickLink', click);
+            this.$emit('clickFeature', click);
           }
         }
       }
@@ -153,26 +153,19 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
                       action: 'Edit Link Info',
                       lngLat:  event.mapboxEvent.lngLat
                     }
-          this.$emit('clickLink', click) 
+          this.$emit('clickFeature', click) 
       }
     },
 
     actionClick(event) {
-      if (['Extend Line Upward', 'Extend Line Downward'].includes(event.action)){
-        this.$emit('actionClick',event.action)
+      let click = {selectedFeature: event.feature,
+                  action: event.action,
+                  lngLat: event.coordinates }
+      this.$emit('clickFeature', click)
 
-      } else {
-        let click = {selectedFeature: event.feature,
-                    action: event.action,
-                    lngLat: event.coordinates }
-        if ( this.contextMenu.type == 'node' ) { this.$emit('clickNode', click) }
-        if ( this.contextMenu.type == 'link' ) { this.$emit('clickLink', click) }
-
-      }
-     
       this.contextMenu.showed = false
       this.contextMenu.type = null
-    },
+  },
 
 
     moveNode(event){
@@ -219,7 +212,7 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
         let click = {selectedFeature: this.selectedFeature,
                       action: 'Move Node',
                       lngLat: event.lngLat}
-        this.$emit('clickNode', click);
+        this.$emit('clickFeature', click);
       }
     },
 	},
@@ -343,7 +336,6 @@ events: ["clickLink", "clickNode", "actionClick","onHover","offHover"],
       <MglPopup :closeButton="false"
                 :showed="contextMenu.showed"
                 @close="contextMenu.showed=false"
-                @click="(e)=>{console.log(e)}"
                 :coordinates="contextMenu.coordinates">
         <span
         @mouseleave="contextMenu.showed=false">

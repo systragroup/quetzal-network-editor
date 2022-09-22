@@ -27,7 +27,7 @@ export default {
     },
     
   },
-  events: ["clickLink", "clickNode","actionClick"],
+  events: ["clickFeature"],
   data () {
     return {
       selectedAction:null,
@@ -225,9 +225,7 @@ export default {
         <EditorLinks 
         :map="map"
         :drawMode="drawMode"
-        @clickLink="(e) => this.$emit('clickLink',e)"
-        @clickNode="(e) => this.$emit('clickNode',e)"
-        @actionClick="(e) => this.$emit('actionClick',e)"
+        @clickFeature="(e) => this.$emit('clickFeature',e)"
         @onHover = "onHover"
         @offHover ="offHover"
         >
