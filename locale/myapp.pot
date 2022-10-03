@@ -14,72 +14,64 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:228
+#: src/components/SidePanel.vue:234
 msgid "Abort"
 msgstr ""
 
-#: src/components/EditorLinks.vue:156
+#: src/components/EditorLinks.vue:158
 msgid "action"
 msgstr ""
 
-#: src/pages/Home.vue:30
+#: src/pages/Home.vue:29
 msgid "Add Stop Inline"
 msgstr ""
 
-#: src/pages/Home.vue:89
+#: src/components/SidePanel.vue:316
+#: src/pages/Home.vue:75
 msgid "Cancel"
 msgstr ""
 
-#: src/pages/Home.vue:98
-msgid "Click on a link to add a Stop"
-msgstr ""
-
-#: src/pages/Home.vue:83
-#: src/pages/Home.vue:91
-msgid "Click on the map to extend"
+#: src/components/SidePanel.vue:88
+msgid "Click on the map to start drawing"
 msgstr ""
 
 #: src/App.vue:40
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:216
+#: src/components/SidePanel.vue:252
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Home.vue:24
+#: src/pages/Home.vue:23
 msgid "Cut Line At Node"
 msgstr ""
 
-#: src/pages/Home.vue:22
+#: src/pages/Home.vue:21
 msgid "Cut Line From Node"
 msgstr ""
 
-#: src/pages/Home.vue:37
+#: src/pages/Home.vue:36
 msgid "Delete "
 msgstr ""
 
-#: src/pages/Home.vue:34
+#: src/pages/Home.vue:33
 msgid "Delete Stop"
 msgstr ""
 
-#: src/pages/Home.vue:74
-msgid "do not show again"
-msgstr ""
-
-#: src/pages/Home.vue:20
+#: src/pages/Home.vue:19
 msgid "Edit Line Info"
 msgstr ""
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:35
 msgid "Edit Link Info"
 msgstr ""
 
-#: src/pages/Home.vue:38
+#: src/pages/Home.vue:37
 msgid "Edit Node Info"
 msgstr ""
 
-#: src/pages/Home.vue:37
+#: src/pages/Home.vue:36
 msgid "Edit Properties"
 msgstr ""
 
@@ -87,20 +79,16 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/pages/Home.vue:28
+#: src/pages/Home.vue:27
 msgid "Extend Line Downward"
 msgstr ""
 
-#: src/pages/Home.vue:26
+#: src/pages/Home.vue:25
 msgid "Extend Line Upward"
 msgstr ""
 
 #: src/pages/Login.vue:107
 msgid "GO!"
-msgstr ""
-
-#: src/components/SidePanel.vue:199
-msgid "Hide All"
 msgstr ""
 
 #: src/components/EditorLinks.vue:117
@@ -120,7 +108,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:62
+#: src/components/SidePanel.vue:81
 msgid "Lines"
 msgstr ""
 
@@ -144,16 +132,24 @@ msgstr ""
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:221
+#: src/pages/Home.vue:177
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:211
+#: src/pages/Home.vue:167
 msgid "modification applied"
 msgstr ""
 
-#: src/pages/Home.vue:32
+#: src/pages/Home.vue:31
 msgid "Move Stop"
+msgstr ""
+
+#: src/components/SidePanel.vue:269
+msgid "New Line"
+msgstr ""
+
+#: src/components/SidePanel.vue:326
+msgid "No"
 msgstr ""
 
 #: src/pages/Login.vue:69
@@ -168,18 +164,14 @@ msgstr ""
 msgid "Right click to edit properties"
 msgstr ""
 
-#: src/pages/Home.vue:100
+#: src/pages/Home.vue:86
 msgid "Save"
 msgstr ""
 
-#: src/pages/Home.vue:76
-msgid "Select a Link"
+#: src/components/SidePanel.vue:303
+msgid "Save Changes?"
 msgstr ""
 
-#: src/pages/Home.vue:80
-msgid "Select a Node"
-msgstr ""
-
-#: src/components/SidePanel.vue:188
-msgid "Show All"
+#: src/components/SidePanel.vue:335
+msgid "Yes"
 msgstr ""

@@ -22,71 +22,63 @@ msgstr ""
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:228
+#: src/components/SidePanel.vue:234
 msgid "Abort"
 msgstr "Annuler"
 
-#: src/components/EditorLinks.vue:156
+#: src/components/EditorLinks.vue:158
 msgid "action"
 msgstr ""
 
-#: src/pages/Home.vue:30
+#: src/pages/Home.vue:29
 msgid "Add Stop Inline"
 msgstr "Ajouter un Arrêt en ligne"
 
-#: src/pages/Home.vue:89
+#: src/components/SidePanel.vue:316 src/pages/Home.vue:75
 msgid "Cancel"
 msgstr "Annuler"
 
-#: src/pages/Home.vue:98
-msgid "Click on a link to add a Stop"
-msgstr "Cliquer sur un lien pour ajouter un arrêt"
-
-#: src/pages/Home.vue:83 src/pages/Home.vue:91
-msgid "Click on the map to extend"
-msgstr "Cliquer sur la carte pour prolonger"
+#: src/components/SidePanel.vue:88
+msgid "Click on the map to start drawing"
+msgstr "Cliquer sur la carte pour commencer"
 
 #: src/App.vue:40
 msgid "Close"
 msgstr "Fermer"
 
-#: src/components/SidePanel.vue:216
+#: src/components/SidePanel.vue:252
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/pages/Home.vue:24
+#: src/pages/Home.vue:23
 msgid "Cut Line At Node"
 msgstr "Couper à l'arrêt"
 
-#: src/pages/Home.vue:22
+#: src/pages/Home.vue:21
 msgid "Cut Line From Node"
 msgstr "Couper depuis l'arrêt"
 
-#: src/pages/Home.vue:37
+#: src/pages/Home.vue:36
 msgid "Delete "
 msgstr "Supprimer"
 
-#: src/pages/Home.vue:34
+#: src/pages/Home.vue:33
 msgid "Delete Stop"
 msgstr "Supprimer arrêt"
 
-#: src/pages/Home.vue:74
-msgid "do not show again"
-msgstr "Ne plus montrer"
-
-#: src/pages/Home.vue:20
+#: src/pages/Home.vue:19
 msgid "Edit Line Info"
 msgstr "Modifier les infos de la ligne"
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:35
 msgid "Edit Link Info"
 msgstr "Modifier les infos du lien"
 
-#: src/pages/Home.vue:38
+#: src/pages/Home.vue:37
 msgid "Edit Node Info"
 msgstr "Modifier les infos d'arrêt"
 
-#: src/pages/Home.vue:37
+#: src/pages/Home.vue:36
 msgid "Edit Properties"
 msgstr "Modifier"
 
@@ -94,21 +86,17 @@ msgstr "Modifier"
 msgid "Export"
 msgstr "Exporter"
 
-#: src/pages/Home.vue:28
+#: src/pages/Home.vue:27
 msgid "Extend Line Downward"
 msgstr "Prolonger la ligne en aval"
 
-#: src/pages/Home.vue:26
+#: src/pages/Home.vue:25
 msgid "Extend Line Upward"
 msgstr "Prolonger la Ligne en amont"
 
 #: src/pages/Login.vue:107
 msgid "GO!"
 msgstr "Aller!"
-
-#: src/components/SidePanel.vue:199
-msgid "Hide All"
-msgstr "Cacher Tout"
 
 #: src/components/EditorLinks.vue:117
 msgid "Hold left click to drag"
@@ -127,9 +115,9 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
-#: src/components/SidePanel.vue:62
+#: src/components/SidePanel.vue:81
 msgid "Lines"
-msgstr "Ligne"
+msgstr "Lignes"
 
 #: src/pages/Login.vue:50
 msgid "Links"
@@ -152,17 +140,25 @@ msgstr "Charger les Fichiers"
 msgid "Map"
 msgstr "Carte"
 
-#: src/pages/Home.vue:221
+#: src/pages/Home.vue:177
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/pages/Home.vue:211
+#: src/pages/Home.vue:167
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
-#: src/pages/Home.vue:32
+#: src/pages/Home.vue:31
 msgid "Move Stop"
 msgstr "Déplacer l'arrêt"
+
+#: src/components/SidePanel.vue:269
+msgid "New Line"
+msgstr "Nouvelle Ligne"
+
+#: src/components/SidePanel.vue:326
+msgid "No"
+msgstr "Non"
 
 #: src/pages/Login.vue:69
 msgid "Nodes"
@@ -176,27 +172,38 @@ msgstr "Clique droit pour modifier"
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/pages/Home.vue:100
+#: src/pages/Home.vue:86
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/pages/Home.vue:76
-msgid "Select a Link"
-msgstr "Sélectionner un lien"
+#: src/components/SidePanel.vue:303
+msgid "Save Changes?"
+msgstr "Sauvegarder?"
 
-#: src/pages/Home.vue:80
-msgid "Select a Node"
-msgstr "Sélectionner un arrêt"
+#: src/components/SidePanel.vue:335
+msgid "Yes"
+msgstr "Oui"
 
-#: src/components/SidePanel.vue:188
-msgid "Show All"
-msgstr "Montrer Tout"
+#~ msgid "Click on a link to add a Stop"
+#~ msgstr "Cliquer sur un lien pour ajouter un arrêt"
+
+#~ msgid "do not show again"
+#~ msgstr "Ne plus montrer"
+
+#~ msgid "Hide All"
+#~ msgstr "Cacher Tout"
+
+#~ msgid "Select a Link"
+#~ msgstr "Sélectionner un lien"
+
+#~ msgid "Select a Node"
+#~ msgstr "Sélectionner un arrêt"
+
+#~ msgid "Show All"
+#~ msgstr "Montrer Tout"
 
 #~ msgid "Agree"
 #~ msgstr "Confirmer"
-
-#~ msgid "Apply Change?"
-#~ msgstr "Appliquer?"
 
 #~ msgid "Disagree"
 #~ msgstr "Annuler"
