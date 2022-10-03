@@ -147,7 +147,7 @@ export default {
           let linkFeature =  {geometry: linkGeometry, properties: linkProperties, type: "Feature"}
           tempLink.features = [linkFeature]
         } 
-        
+
         if (payload.action == 'Extend Line Upward'){
           // Take last link and copy properties
           var features = tempLink.features[tempLink.features.length - 1]
@@ -487,7 +487,32 @@ export default {
         //get tripId list
         this.commit('getTripId')
       },
+
+      exportFiles(state){
+        let data = JSON.stringify(state.links)
+        let blob = new Blob([data], {type: 'application/json'})
+        let e = document.createEvent('MouseEvents'),
+        a = document.createElement('a');
+        a.download = "links.geojson";
+        a.href = window.URL.createObjectURL(blob);
+        a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
+        e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        a.dispatchEvent(e);
+    
+        data = JSON.stringify(state.nodes)
+        blob = new Blob([data], {type: 'application/json'})
+        e = document.createEvent('MouseEvents'),
+        a = document.createElement('a');
+        a.download = "nodes.geojson";
+        a.href = window.URL.createObjectURL(blob);
+        a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
+        e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        a.dispatchEvent(e);
+      },
+
+
     },
+    
 
       
   
