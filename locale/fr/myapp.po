@@ -22,7 +22,7 @@ msgstr ""
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:234
+#: src/components/SidePanel.vue:253
 msgid "Abort"
 msgstr "Annuler"
 
@@ -34,7 +34,7 @@ msgstr ""
 msgid "Add Stop Inline"
 msgstr "Ajouter un Arrêt en ligne"
 
-#: src/components/SidePanel.vue:316 src/pages/Home.vue:75
+#: src/components/SidePanel.vue:335 src/pages/Home.vue:75
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -46,7 +46,7 @@ msgstr "Cliquer sur la carte pour commencer"
 msgid "Close"
 msgstr "Fermer"
 
-#: src/components/SidePanel.vue:252
+#: src/components/SidePanel.vue:271
 msgid "Confirm"
 msgstr "Valider"
 
@@ -86,6 +86,10 @@ msgstr "Modifier"
 msgid "Export"
 msgstr "Exporter"
 
+#: src/components/SidePanel.vue:114
+msgid "Export Files"
+msgstr "Exporter"
+
 #: src/pages/Home.vue:27
 msgid "Extend Line Downward"
 msgstr "Prolonger la ligne en aval"
@@ -97,6 +101,10 @@ msgstr "Prolonger la Ligne en amont"
 #: src/pages/Login.vue:107
 msgid "GO!"
 msgstr "Aller!"
+
+#: src/components/SidePanel.vue:86
+msgid "Hide All"
+msgstr "Cacher Tout"
 
 #: src/components/EditorLinks.vue:117
 msgid "Hold left click to drag"
@@ -115,7 +123,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
-#: src/components/SidePanel.vue:81
+#: src/components/SidePanel.vue:91
 msgid "Lines"
 msgstr "Lignes"
 
@@ -152,11 +160,11 @@ msgstr "Modification Appliquée"
 msgid "Move Stop"
 msgstr "Déplacer l'arrêt"
 
-#: src/components/SidePanel.vue:269
+#: src/components/SidePanel.vue:288
 msgid "New Line"
 msgstr "Nouvelle Ligne"
 
-#: src/components/SidePanel.vue:326
+#: src/components/SidePanel.vue:345
 msgid "No"
 msgstr "Non"
 
@@ -176,11 +184,15 @@ msgstr "Clique droit pour modifier"
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/components/SidePanel.vue:303
+#: src/components/SidePanel.vue:322
 msgid "Save Changes?"
 msgstr "Sauvegarder?"
 
-#: src/components/SidePanel.vue:335
+#: src/components/SidePanel.vue:86
+msgid "Show All"
+msgstr "Montrer Tout"
+
+#: src/components/SidePanel.vue:354
 msgid "Yes"
 msgstr "Oui"
 
@@ -190,17 +202,11 @@ msgstr "Oui"
 #~ msgid "do not show again"
 #~ msgstr "Ne plus montrer"
 
-#~ msgid "Hide All"
-#~ msgstr "Cacher Tout"
-
 #~ msgid "Select a Link"
 #~ msgstr "Sélectionner un lien"
 
 #~ msgid "Select a Node"
 #~ msgstr "Sélectionner un arrêt"
-
-#~ msgid "Show All"
-#~ msgstr "Montrer Tout"
 
 #~ msgid "Agree"
 #~ msgstr "Confirmer"

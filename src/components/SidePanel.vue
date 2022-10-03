@@ -142,19 +142,33 @@ export default {
                 class="mx-auto"
               >
                 <v-card-title class = "white--text primary">
-                  <v-btn icon class = "ma-2" color="white"
-                  @click="showAll()">
-                      <v-icon  class="list-item-icon">fa-eye fa</v-icon>
-                  </v-btn>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon class = "ma-2" color="white"
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="showAll()">
+                        <v-icon  class="list-item-icon">fa-eye fa</v-icon>
+                    </v-btn>
+                    </template>
+                    <span>{{ tripList == tripId? $gettext("Hide All"): $gettext("Show All")}}</span>
+                  </v-tooltip>  
 
-                  <v-spacer></v-spacer>
-                    {{ $gettext("Lines") }}                    
-                  <v-spacer></v-spacer>
-
+                    <v-spacer></v-spacer>
+                      {{ $gettext("Lines") }}                    
+                    <v-spacer></v-spacer>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
                     <v-btn icon class="ma-2" color="white"
-                    @click="$store.commit('exportFiles')" >
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="$store.commit('exportFiles')" >
                       <v-icon >fa-solid fa-download</v-icon>
-                    </v-btn>              
+                    </v-btn>     
+                    </template>
+                      <span>{{ $gettext("Export Files")}}</span>
+                   </v-tooltip>  
+                          
 
                 </v-card-title>
                 <v-virtual-scroll

@@ -14,7 +14,7 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:234
+#: src/components/SidePanel.vue:253
 msgid "Abort"
 msgstr ""
 
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Add Stop Inline"
 msgstr ""
 
-#: src/components/SidePanel.vue:316
+#: src/components/SidePanel.vue:335
 #: src/pages/Home.vue:75
 msgid "Cancel"
 msgstr ""
@@ -39,7 +39,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:252
+#: src/components/SidePanel.vue:271
 msgid "Confirm"
 msgstr ""
 
@@ -79,6 +79,10 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
+#: src/components/SidePanel.vue:114
+msgid "Export Files"
+msgstr ""
+
 #: src/pages/Home.vue:27
 msgid "Extend Line Downward"
 msgstr ""
@@ -89,6 +93,10 @@ msgstr ""
 
 #: src/pages/Login.vue:107
 msgid "GO!"
+msgstr ""
+
+#: src/components/SidePanel.vue:86
+msgid "Hide All"
 msgstr ""
 
 #: src/components/EditorLinks.vue:117
@@ -108,7 +116,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:81
+#: src/components/SidePanel.vue:91
 msgid "Lines"
 msgstr ""
 
@@ -144,11 +152,11 @@ msgstr ""
 msgid "Move Stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:269
+#: src/components/SidePanel.vue:288
 msgid "New Line"
 msgstr ""
 
-#: src/components/SidePanel.vue:326
+#: src/components/SidePanel.vue:345
 msgid "No"
 msgstr ""
 
@@ -168,10 +176,14 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: src/components/SidePanel.vue:303
+#: src/components/SidePanel.vue:322
 msgid "Save Changes?"
 msgstr ""
 
-#: src/components/SidePanel.vue:335
+#: src/components/SidePanel.vue:86
+msgid "Show All"
+msgstr ""
+
+#: src/components/SidePanel.vue:354
 msgid "Yes"
 msgstr ""
