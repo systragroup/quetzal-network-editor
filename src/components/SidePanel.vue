@@ -1,5 +1,7 @@
 <script>
 
+const $gettext = s => s
+
 
 export default {
   name: 'sidePanel',
@@ -11,7 +13,7 @@ export default {
     prop: "selectedTrips",
     event: "update-tripList"
   },
-  events: ["selectEditorTrip","confirmChanges","abortChanges","deleteButton","propertiesButton"],
+  events: ["selectEditorTrip","confirmChanges","abortChanges","deleteButton","propertiesButton","newLine"],
 
   data () {
     return {
@@ -80,6 +82,13 @@ export default {
       else{
         this.$emit("propertiesButton",{action:'Edit Line Info', lingering:true})
       }
+    },
+    createNewLine(){
+      this.$store.commit('setEditorTrip','trip_' + (+new Date).toString(36))
+      this.$emit("propertiesButton",{action:'Edit Line Info', lingering:true})
+      this.$store.commit('changeNotification',{text: $gettext("Click on the map to start drawing"), autoClose: false})
+
+
     },
 
     deleteButton(val){
@@ -184,9 +193,12 @@ export default {
                   {{ $gettext("Hide All") }}
                   </v-btn>
                 </v-card-actions>
-                <v-card-actions v-show="editorTrip ? true: false">
+                <v-card-actions v-if="editorTrip ? true: false">
                   <v-btn outlined rounded text color="success" @click="$emit('confirmChanges')"> {{$gettext("Confirm")}}</v-btn>
                   <v-btn outlined rounded text color="error" @click="$emit('abortChanges')"> {{$gettext("Abort")}}</v-btn>
+                </v-card-actions>
+                <v-card-actions v-if="editorTrip ? false: true">
+                  <v-btn outlined rounded text color="success" @click="createNewLine"> {{$gettext("New Line")}}</v-btn>
                 </v-card-actions>
               </v-card>
             </div>

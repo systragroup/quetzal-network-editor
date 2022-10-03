@@ -77,31 +77,41 @@ export default {
       },
 
       getEditorLineInfo(state){
+        //empty trip, when its a newLine
         if ( state.editorLinks.features.length == 0 ) {
-          state.editorLineInfo = {};
+
+          var filtered = state.lineAttributes.reduce(
+            (acc,curr) => (acc[curr]={'value':null, 'disabled':false},acc),{}
+            );
+          filtered.trip_id = {'value': state.editorTrip,'disabled':false}
         }
         else {
-          let properties = state.editorLinks.features[0].properties
+          var properties = state.editorLinks.features[0].properties
+   
           const uneditable = []
-          let filtered = Object.keys(properties)
+          var filtered = Object.keys(properties)
             .filter(key => state.lineAttributes.includes(key))
             .reduce((obj, key) => {
               obj[key] = {'value': properties[key],
                           'disabled': uneditable.includes(key)}
               return obj;
             }, {});
-        state.editorLineInfo = filtered
         }
+      state.editorLineInfo = filtered
+        
       },
 
       getTripId(state){
         state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)));
       },
 
+      createNewLink(state){
+
+      },
+
       setNewLink(state, payload){
         // copy editor links geoJSON, only take first (or last) link.
         // delete some properties like id and index.
-        // first create a new Node
         const uncopiedPropeties = {
           'index': null,
           'length': null,  
@@ -111,6 +121,33 @@ export default {
         }
         //create link
         var tempLink = JSON.parse(JSON.stringify(state.editorLinks))
+        // if there is no link to copy, create one. (new Line)
+        if (tempLink.features.length==0){
+          // copy Line properties.
+          var lineProperties={}
+          Object.keys(state.editorLineInfo).forEach((key)=>{
+            lineProperties[key]=state.editorLineInfo[key].value
+          })
+          const linkProperties = {
+            'index': 'link_' + (+new Date).toString(36),
+            'a': state.editorNodes.features[0].properties.index,
+            'b': state.editorNodes.features[0].properties.index,
+            'length': null,  
+            'time': null,
+            'pickup_type': 0,
+            'drop_off_type': 0,
+            'trip_id':state.editorTrip,
+            ...lineProperties
+           
+          }
+          const linkGeometry = {
+            'coordinates': [state.editorNodes.features[0].geometry.coordinates,state.editorNodes.features[0].geometry.coordinates],
+            'type': "LineString"
+          }
+          let linkFeature =  {geometry: linkGeometry, properties: linkProperties, type: "Feature"}
+          tempLink.features = [linkFeature]
+        } 
+        
         if (payload.action == 'Extend Line Upward'){
           // Take last link and copy properties
           var features = tempLink.features[tempLink.features.length - 1]
@@ -123,6 +160,7 @@ export default {
           //new node index (hash)
           payload.nodeCopyId = features.properties.a
           this.commit('setNewNode', payload)
+
           features.properties.b = state.newNode.features[0].properties.index
           features.properties.index = 'link_' + (+new Date).toString(36)
         }
@@ -144,6 +182,20 @@ export default {
         tempLink.features = [features]
         state.newLink = tempLink
         state.newLink.action = payload.action 
+      },
+      createNewNode(state,payload){
+        const nodeProperties = {
+          'index': 'node_' + (+new Date).toString(36),
+          'stop_code': null,
+          'stop_name': null,
+        }
+        const nodeGeometry = {
+          'coordinates': payload,
+          'type': "Point"
+        }
+        // Copy specified node
+        let nodeFeatures =  {geometry: nodeGeometry, properties: nodeProperties, type: "Feature"}
+        state.editorNodes.features=[nodeFeatures]
       },
 
       setNewNode(state, payload){
@@ -295,18 +347,93 @@ export default {
         }
       },
 
+      cutLineFromNode(state,payload) {
+        // Filter links from selected line
+        let nodeId = payload.selectedNode.index
+        state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+
+        let toDelete = [];
+        for (const [i, link] of state.editorLinks.features.entries()) {
+          if (link.properties.b == nodeId) {
+            toDelete = state.editorLinks.features.slice(i + 1);
+            break;
+          }
+        }
+        // Delete links
+        state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
+        this.commit('getEditorNodes',{nodes:state.editorNodes})
+      },
+
+      cutLineAtNode(state,payload) {
+        // Filter links from selected line
+        let nodeId = payload.selectedNode.index
+        state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+
+        let toDelete = [];
+        for (const [i, link] of state.editorLinks.features.entries()) {
+          if (link.properties.a == nodeId) {
+            toDelete = state.editorLinks.features.slice(0, i);
+            break;
+          }
+        }
+        // Delete links
+        state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
+        this.commit('getEditorNodes',{nodes:state.editorNodes})
+      }, 
+
+      editLineInfo(state, payload) {
+        state.editorLineInfo = payload
+      },
+
+      editLinkInfo(state, payload) {
+        // get selected link in editorLinks and modify the changes attributes.
+        const {selectedLinkId, info} = payload
+        let props = Object.keys(info)
+        state.editorLinks.features.filter(
+          function (link){
+            if (link.properties.index == selectedLinkId){
+              props.forEach((key) => link.properties[key] = info[key].value )
+            }
+          }
+        )
+      },
+
+      editNodeInfo(state, payload) {
+        // get selected node in editorNodes and modify the changes attributes.
+        const {selectedNodeId, info} = payload
+        let props = Object.keys(info)
+        state.editorNodes.features.filter(
+          function (node){
+            if (node.properties.index == selectedNodeId){
+              props.forEach((key) => node.properties[key] = info[key].value )
+            }
+          }
+        )
+      },
+    
+
       confirmChanges(state) { //apply change to Links
-        //delete links with trip_id == editorTrip
+        // add editor Line info to each editor links
+        let props = Object.keys(state.editorLineInfo)
+        state.editorLinks.features.forEach((features) => props.forEach((key) => features.properties[key] = state.editorLineInfo[key].value ))
+
         var filtered = {...state.links}
+
         filtered.features = filtered.features.filter(link => link.properties.trip_id == state.editorTrip); 
         let toDelete = filtered.features.filter(item => !state.editorLinks.features.includes(item))
         //find index of soon to be deleted links
-        let index = state.links.features.findIndex(link => link.properties.trip_id == state.editorTrip)
+        if (state.tripId.includes(state.editorTrip)) 
+        {
+          var index = state.links.features.findIndex(link => link.properties.trip_id == state.editorTrip)
+        }else
+        {
+          var index = 0
+        }
         // delete links that were edited.
         state.links.features = state.links.features.filter(item => !toDelete.includes(item));
         //add edited links to links.
+        
         state.links.features.splice(index, 0, ...state.editorLinks.features);
-
         //all new nodes.
         let nodesList  = state.nodes.features.map(item => item.properties.index)
         let newNodes = {...state.editorNodes}
@@ -346,6 +473,7 @@ export default {
 
         //get tripId list
         this.commit('getTripId')
+
       },
 
       deleteTrip(state,payload){
@@ -359,72 +487,9 @@ export default {
         //get tripId list
         this.commit('getTripId')
       },
-
-      cutLineFromNode(state,payload) {
-        // Filter links from selected line
-        let nodeId = payload.selectedNode.index
-        state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-
-        let toDelete = [];
-        for (const [i, link] of state.editorLinks.features.entries()) {
-          if (link.properties.b == nodeId) {
-            toDelete = state.editorLinks.features.slice(i + 1);
-            break;
-          }
-        }
-        // Delete links
-        state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
-        this.commit('getEditorNodes',{nodes:state.editorNodes})
-      },
-
-      cutLineAtNode(state,payload) {
-        // Filter links from selected line
-        let nodeId = payload.selectedNode.index
-        state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-
-        let toDelete = [];
-        for (const [i, link] of state.editorLinks.features.entries()) {
-          if (link.properties.a == nodeId) {
-            toDelete = state.editorLinks.features.slice(0, i);
-            break;
-          }
-        }
-        // Delete links
-        state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item));
-        this.commit('getEditorNodes',{nodes:state.editorNodes})
-      }, 
-      editLineInfo(state, payload) {
-        let props = Object.keys(payload)
-        state.editorLinks.features.forEach((features) => props.forEach((key) => features.properties[key] = payload[key].value ))
-        this.commit('getEditorLineInfo')
-      },
-
-      editLinkInfo(state, payload) {
-        // get selected link in editorLinks and modify the changes attributes.
-        const {selectedLinkId, info} = payload
-        let props = Object.keys(info)
-        state.editorLinks.features.filter(
-          function (link){
-            if (link.properties.index == selectedLinkId){
-              props.forEach((key) => link.properties[key] = info[key].value )
-            }
-          }
-        )
-      },
-
-      editNodeInfo(state, payload) {
-        // get selected node in editorNodes and modify the changes attributes.
-        const {selectedNodeId, info} = payload
-        let props = Object.keys(info)
-        state.editorNodes.features.filter(
-          function (node){
-            if (node.properties.index == selectedNodeId){
-              props.forEach((key) => node.properties[key] = info[key].value )
-            }
-          }
-        )
-      },
     },
+
+      
   
     getters: {
       linksAreLoaded: (state) => state.filesAreLoaded.links,
@@ -441,8 +506,8 @@ export default {
       editorLineInfo: (state) => state.editorLineInfo,
       newLink: (state) => state.newLink,
       newNode: (state) => state.newNode,
-      firstNodeId: (state) => state.editorTrip? state.editorLinks.features[0].properties.a : null,
-      lastNodeId: (state) => state.editorTrip? state.editorLinks.features.slice(-1)[0].properties.b: null,
+      firstNodeId: (state) => state.editorNodes.features.length>1? state.editorLinks.features[0].properties.a : state.editorNodes.features[0].properties.index,
+      lastNodeId: (state) => state.editorNodes.features.length>1? state.editorLinks.features.slice(-1)[0].properties.b: state.editorNodes.features[0].properties.index,
       firstNode: (state, getters) => state.editorTrip? state.editorNodes.features.filter((node) => node.properties.index == getters.firstNodeId)[0] : null,
       lastNode: (state, getters) => state.editorTrip? state.editorNodes.features.filter((node) => node.properties.index == getters.lastNodeId)[0] : null,
       linkAttributes: (state) => state.linkAttributes, 

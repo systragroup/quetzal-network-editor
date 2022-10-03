@@ -62,7 +62,6 @@ export default {
       this.action = event.action
 
       if ( this.action == 'Edit Line Info'){
-        console.log('tet')
         this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
         this.lingering = event.lingering
         this.showDialog = true
@@ -183,6 +182,7 @@ export default {
       this.action='deleteTrip'
       this.showDialog = true
     },
+    
   },
 }
 </script>

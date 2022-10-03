@@ -68,8 +68,14 @@ export default {
     selectedTrips(newVal) {
       this.showedTrips = newVal
     },
-    isEditorMode(val){
+    editorTrip(val){
       if (val){
+        this.isEditorMode=true
+      }
+    },
+    isEditorMode(val){
+
+      if (val && this.editorNodes.features.length>0){
         this.selectedAction='Extend Line Upward'
       } else {
         this.selectedAction = null
@@ -80,12 +86,12 @@ export default {
 
     },
     'firstNode.geometry.coordinates'(val){ 
-      if (this.$store.getters.editorTrip) {
+      if (this.editorTrip) {
         this.$store.commit('setNewLink',{action:this.selectedAction})
       }
     },
     'lastNode.geometry.coordinates'(val){
-      if (this.$store.getters.editorTrip) {
+      if (this.editorTrip) {
         this.$store.commit('setNewLink',{action:this.selectedAction})
       }
     },
@@ -103,6 +109,9 @@ export default {
     
     showLeftPanel(){
       return this.$store.getters.showLeftPanel 
+    },
+    editorTrip(){
+      return this.$store.getters.editorTrip
     },
     editorNodes() {
       return this.$store.getters.editorNodes
@@ -149,12 +158,14 @@ export default {
       }
     },
     addPoint(event){
+      // for a new Line
+      if (this.editorNodes.features.length==0 && this.editorTrip){
+            this.$store.commit('createNewNode',Object.values(event.mapboxEvent.lngLat))
+        }
       if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
         this.$store.commit('applyNewLink',pointGeom)
         //console.log(this.mapDiv.style.width)
-        
-
       }
     },
     resetDraw(event){    
