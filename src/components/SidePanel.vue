@@ -46,9 +46,14 @@ export default {
       this.$emit("update-tripList", val);
     },
     tripId(new_val,old_val){
-      if (new_val.length != old_val.length){
+      if (new_val.length < old_val.length){
         // if a trip is deleted. we remove it, no remapping.
         this.tripList = this.tripList.filter((trip)=>new_val.includes(trip))
+      
+      }else if (new_val.length > old_val.length){
+        //if a trip is added, we add it!
+        let newTrip = new_val.filter(item => !old_val.includes(item))[0]
+        this.tripList.push(newTrip)
       }
       else{
         // if a trip name changes.

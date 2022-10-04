@@ -247,7 +247,7 @@ export default {
   <v-dialog
       persistent
       v-model="showDialog"
-      max-width="400"
+      max-width="350"
       @keydown.enter="applyDialog"
       @keydown.esc="showDialog=false"
     >

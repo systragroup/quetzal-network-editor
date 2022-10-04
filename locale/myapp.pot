@@ -26,12 +26,12 @@ msgstr ""
 msgid "Add Stop Inline"
 msgstr ""
 
-#: src/components/SidePanel.vue:397
+#: src/components/SidePanel.vue:396
 #: src/pages/Home.vue:74
 msgid "Cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:88
+#: src/components/SidePanel.vue:93
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -43,7 +43,7 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Login.vue:98
+#: src/pages/Login.vue:102
 msgid "Create a network from scratch"
 msgstr ""
 
@@ -95,7 +95,7 @@ msgstr ""
 msgid "Edit Properties"
 msgstr ""
 
-#: src/pages/Login.vue:114
+#: src/pages/Login.vue:118
 msgid "Example"
 msgstr ""
 
@@ -115,7 +115,7 @@ msgstr ""
 msgid "Extend Line Upward"
 msgstr ""
 
-#: src/pages/Login.vue:140
+#: src/pages/Login.vue:145
 msgid "GO!"
 msgstr ""
 
@@ -144,19 +144,19 @@ msgstr ""
 msgid "Lines"
 msgstr ""
 
-#: src/pages/Login.vue:51
+#: src/pages/Login.vue:55
 msgid "Links"
 msgstr ""
 
-#: src/pages/Login.vue:35
+#: src/pages/Login.vue:39
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
 
-#: src/pages/Login.vue:34
+#: src/pages/Login.vue:38
 msgid "Load Files"
 msgstr ""
 
-#: src/pages/Login.vue:120
+#: src/pages/Login.vue:124
 msgid "Load Montréal Example"
 msgstr ""
 
@@ -176,16 +176,21 @@ msgstr ""
 msgid "Move Stop"
 msgstr ""
 
-#: src/pages/Login.vue:92
+#: src/pages/Login.vue:96
 msgid "New Project"
 msgstr ""
 
-#: src/components/SidePanel.vue:407
+#: src/components/SidePanel.vue:406
+#: src/pages/Login.vue:184
 msgid "No"
 msgstr ""
 
-#: src/pages/Login.vue:70
+#: src/pages/Login.vue:74
 msgid "Nodes"
+msgstr ""
+
+#: src/pages/Login.vue:172
+msgid "Overwrite current Project ?"
 msgstr ""
 
 #: src/components/EditorLinks.vue:121
@@ -208,6 +213,7 @@ msgstr ""
 msgid "Show All"
 msgstr ""
 
-#: src/components/SidePanel.vue:416
+#: src/components/SidePanel.vue:415
+#: src/pages/Login.vue:193
 msgid "Yes"
 msgstr ""
