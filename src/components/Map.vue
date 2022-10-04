@@ -167,6 +167,7 @@ export default {
       if (this.editorNodes.features.length==0 && this.editorTrip){
             this.$store.commit('createNewNode',Object.values(event.mapboxEvent.lngLat))
             this.selectedAction = 'Extend Line Upward'
+            this.$store.commit('changeNotification',{text:'', autoClose:true})
         }
       if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
