@@ -133,9 +133,14 @@ export default {
       this.$store.getters.links.features.forEach(link => {
         bounds.extend(link.geometry.coordinates)
       })
-      event.map.fitBounds(bounds, {
+      // for empty (new) project, do not fit bounds around the links geometries.
+      if (Object.keys(bounds).length !== 0)
+      {
+        event.map.fitBounds(bounds, {
         padding: 100,
-      })
+        })
+      }
+      
       
       event.map.loadImage(arrowImage, function(err, image) {
         if (err) {

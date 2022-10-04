@@ -1,8 +1,10 @@
 <script>
 
-import lines from '@static/links_exemple.geojson'
-import points from '@static/nodes_exemple.geojson'
+import links_example from '@static/links_exemple.geojson'
+import nodes_example from '@static/nodes_exemple.geojson'
 
+import links_base from '@static/links_base.geojson'
+import nodes_base from '@static/nodes_base.geojson'
 
 
 export default {
@@ -48,8 +50,12 @@ export default {
       }, 1000)
     },
     loadExample(){
-      this.$store.commit('loadLinks',lines)
-      this.$store.commit('loadNodes',points)
+      this.$store.commit('loadLinks',links_example)
+      this.$store.commit('loadNodes',nodes_example)
+    },
+    newProject(){
+      this.$store.commit('loadLinks',links_base)
+      this.$store.commit('loadNodes',nodes_base)
     },
 
     readJSON(choice){
@@ -153,9 +159,37 @@ export default {
           ref="fileInput"
           accept=".geojson"
           @change="onFilePicked"/>
+          
       <div> 
-        <v-btn text x-small @click="loadExample">{{ $gettext('Load Example') }}</v-btn> 
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn  x-small 
+              @click="newProject"
+              v-bind="attrs"
+              v-on="on">
+              {{ $gettext('New Project') }}
+            </v-btn> 
+          </template>
+          <span>{{ $gettext("Create a network from scratch")}}</span>
+        </v-tooltip>  
       </div>
+
+      <div> 
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn  x-small 
+              @click="loadExample"
+              v-bind="attrs"
+              v-on="on">
+              {{ $gettext('Example') }}
+            </v-btn> 
+          </template>
+          <span>{{ $gettext("Load Montréal Example")}}</span>
+        </v-tooltip>  
+      </div>
+
+  
+      
       <div> 
         <v-btn
         color="primary"
