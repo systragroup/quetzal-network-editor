@@ -188,8 +188,7 @@ export default {
 </script>
 <template>
 
-  <section class="map-view"
-  @keydown.esc="!showDialog? action=null: null">
+  <section class="map-view">
     <v-dialog
       persistent
       v-model="showDialog"
@@ -233,7 +232,6 @@ export default {
             color="green darken-1"
             text
             @click="applyAction"
-            @keydown.enter="applyAction"
           >
             {{$gettext("Save")}}
           </v-btn>

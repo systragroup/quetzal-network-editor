@@ -161,7 +161,7 @@ export default {
           @change="onFilePicked"/>
           
       <div> 
-        <v-tooltip top>
+        <v-tooltip bottom open-delay="500">
           <template v-slot:activator="{ on, attrs }">
             <v-btn  x-small 
               @click="newProject"
@@ -175,7 +175,7 @@ export default {
       </div>
 
       <div> 
-        <v-tooltip top>
+        <v-tooltip bottom open-delay="500">
           <template v-slot:activator="{ on, attrs }">
             <v-btn  x-small 
               @click="loadExample"

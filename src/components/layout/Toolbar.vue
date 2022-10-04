@@ -28,13 +28,13 @@ export default {
           <v-btn icon
           v-bind="attrs"
           v-on="on"
-          href="https://github.com/systragroup/quetzal" target="_blank">
+          href="https://github.com/systragroup/quetzal-network-editor" target="_blank">
             <v-icon >
             fa-solid fa-code
             </v-icon>
           </v-btn>
         </template>
-        <span>Quetzal GitHub</span>
+        <span>GitHub</span>
       </v-tooltip>
     </div>
     

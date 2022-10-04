@@ -142,7 +142,7 @@ export default {
                 class="mx-auto"
               >
                 <v-card-title class = "white--text primary">
-                  <v-tooltip bottom>
+                  <v-tooltip bottom open-delay="500">
                     <template v-slot:activator="{ on, attrs }">
                     <v-btn icon class = "ma-2" color="white"
                             v-bind="attrs"
@@ -157,7 +157,7 @@ export default {
                     <v-spacer></v-spacer>
                       {{ $gettext("Lines") }}                    
                     <v-spacer></v-spacer>
-                  <v-tooltip bottom>
+                  <v-tooltip bottom open-delay="500">
                     <template v-slot:activator="{ on, attrs }">
                     <v-btn icon class="ma-2" color="white"
                             v-bind="attrs"
@@ -198,28 +198,51 @@ export default {
                         </v-list-item-title>
 
                       <v-list-item-avatar>
-                        <v-btn icon class="ma-1" 
-                        @click="editButton(item)"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
-                          <v-icon  :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-pen</v-icon>
+
+                        <v-tooltip bottom open-delay="500" >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon class="ma-1" 
+                              v-bind="attrs"
+                              v-on="on"
+                              @click="editButton(item)"
+                              :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
+                            <v-icon  :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-pen</v-icon>
                         </v-btn>
+                          </template>
+                          <span>{{ $gettext("Edit Line")}}</span>
+                        </v-tooltip>  
+
+                    
                       </v-list-item-avatar>
 
                       <v-list-item-action>
-                        <v-btn icon class="ma-1" 
-                        @click="propertiesButton(item)"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
-                          <v-icon :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-table</v-icon>
-                        </v-btn>
+                        <v-tooltip bottom open-delay="500">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon class="ma-1" 
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="propertiesButton(item)"
+                            :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
+                              <v-icon :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-table</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ $gettext("Edit Line Properties")}}</span>
+                        </v-tooltip>  
                       </v-list-item-action>
                       
                       <v-list-item-action>
-                        <v-btn icon class="ma-1" 
-                        
-                        @click="deleteButton(item)"
-                        :disabled="editorTrip ? true: false">
-                          <v-icon small color="regular">fa-regular fa-trash</v-icon>
-                        </v-btn>
+                        <v-tooltip bottom open-delay="500">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon class="ma-1" 
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="deleteButton(item)"
+                            :disabled="editorTrip ? true: false">
+                              <v-icon small color="regular">fa-regular fa-trash</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ $gettext("Delete Line")}}</span>
+                        </v-tooltip>  
                       </v-list-item-action>
 
                     </v-list-item>
@@ -241,9 +264,26 @@ export default {
                     {{$gettext("Confirm")}}
                   </v-btn>
                 </v-card-actions>
-                <v-card-actions v-if="editorTrip ? false: true">
+                <v-card-actions v-show="editorTrip ? false: true">
                   <v-spacer></v-spacer>
-                  <v-btn color="primary" @click="createNewLine"> {{$gettext("New Line")}}</v-btn>
+
+                  <v-tooltip bottom open-delay="500">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn 
+                        v-bind="attrs"
+                        v-on="on"
+                        color="primary"
+                        class="text--primary"
+                        fab
+                        small
+                        @click="createNewLine"> 
+                        <v-icon>fas fa-plus</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $gettext("Create new Line")}}</span>
+                  </v-tooltip>  
+
+                  
                 </v-card-actions>
               </v-card>
             </div>
@@ -356,4 +396,5 @@ export default {
   margin: 0 !important;
   color: white;
 }
+
 </style>
