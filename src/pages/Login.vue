@@ -12,10 +12,11 @@ export default {
   data () {
     return {
       loggedIn: false,
-      loadedLinks:{},
-      loadedNodes:{},
-      choice:null,
-      loading:{links:false,nodes:false}
+      loadedLinks: {},
+      loadedNodes: {},
+      choice: null,
+      loading: {links:false,nodes:false},
+      showDialog: false,
     }
   },
   mounted () {
@@ -23,8 +24,8 @@ export default {
   },
 
   computed:{
-    filesAreLoaded(){return this.$store.getters.filesAreLoaded}
-
+    filesAreLoaded(){return this.$store.getters.filesAreLoaded},
+    localFilesAreLoaded() {return (Object.keys(this.loadedLinks).length === 0 || Object.keys(this.loadedNodes).length === 0)? false: true},
   },
   watch:{
     loadedLinks(){
@@ -32,6 +33,7 @@ export default {
       this.loading['links'] = false
     },
     loadedNodes(){
+
       this.$store.commit('loadNodes',this.loadedNodes)
       this.loading['nodes'] = false
     },
@@ -49,20 +51,54 @@ export default {
         this.$router.push('/Home').catch(()=>{})
       }, 1000)
     },
-    loadExample(){
-      this.$store.commit('loadLinks',links_example)
-      this.$store.commit('loadNodes',nodes_example)
+
+    buttonHandle(choice){
+      this.choice = choice
+      if (!this.filesAreLoaded)
+      {
+        if (choice == 'example'){
+          this.loadExample()
+        }
+        else if (choice=='newProject') {
+          this.newProject()
+        }
+        else {
+          // read json links or node (depending on choice)
+          this.$refs.fileInput.click()
+        }
+      }
+      else{
+        this.showDialog=true
+      }
     },
-    newProject(){
-      this.$store.commit('loadLinks',links_base)
-      this.$store.commit('loadNodes',nodes_base)
+    applyDialog(){
+      if (this.choice == 'example'){
+        this.loadExample()
+      } 
+      else if (this.choice == 'newProject') {
+        this.newProject() 
+      } 
+      else {
+        // this only happen when both files are loaded.
+        // remove links and nodes from store. (and filesAreLoaded)
+        this.$store.commit('unloadFiles')
+        // handle click and open file explorer
+        this.$refs.fileInput.click()
+
+      }
+      this.showDialog = !this.showDialog
+
     },
 
-    readJSON(choice){
-      
-      this.choice=choice
-      this.$refs.fileInput.click()
+    loadExample(){
+      this.loadedLinks = links_example
+      this.loadedNodes = nodes_example
     },
+    newProject(){
+      this.loadedLinks = links_base
+      this.loadedNodes = nodes_base
+    },
+
 
     onFilePicked (event) {
       this.loading[this.choice] = true
@@ -106,6 +142,7 @@ export default {
 }
 </script>
 <template>
+  <section>
   <div class="layout">
     <div
       class="layout-overlay"
@@ -127,8 +164,8 @@ export default {
         </div>
         <v-btn
           :loading="loading.links"
-          :color=" this.$store.getters.linksAreLoaded? 'primary': 'normal'"
-          @click="readJSON('links')"
+          :color=" Object.keys(this.loadedLinks).length != 0? 'primary': 'normal'"
+          @click="buttonHandle('links')"
         >
           <v-icon
             small
@@ -141,8 +178,8 @@ export default {
 
         <v-btn
           :loading="loading.nodes"
-          :color=" this.$store.getters.nodesAreLoaded? 'primary': 'normal'"
-          @click="readJSON('nodes')"
+          :color=" Object.keys(this.loadedNodes).length != 0? 'primary': 'normal'"
+          @click="buttonHandle('nodes')"
         >
           <v-icon
             small
@@ -163,8 +200,8 @@ export default {
       <div> 
         <v-tooltip bottom open-delay="500">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn  x-small 
-              @click="newProject"
+            <v-btn  small 
+              @click="buttonHandle('newProject')"
               v-bind="attrs"
               v-on="on">
               {{ $gettext('New Project') }}
@@ -178,7 +215,7 @@ export default {
         <v-tooltip bottom open-delay="500">
           <template v-slot:activator="{ on, attrs }">
             <v-btn  x-small 
-              @click="loadExample"
+              @click="buttonHandle('example')"
               v-bind="attrs"
               v-on="on">
               {{ $gettext('Example') }}
@@ -188,12 +225,11 @@ export default {
         </v-tooltip>  
       </div>
 
-  
       
       <div> 
         <v-btn
         color="primary"
-        v-show="filesAreLoaded"
+        :disabled="!localFilesAreLoaded"
         @click="login">
         <v-icon
             small
@@ -208,6 +244,36 @@ export default {
       </v-card-text>
     </v-card>
   </div>
+  <v-dialog
+      persistent
+      v-model="showDialog"
+      max-width="400"
+      @keydown.enter="applyDialog"
+      @keydown.esc="showDialog=false"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $gettext("Overwrite current Project ?")}}
+        </v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="regular"
+            @click="showDialog = !showDialog"
+          >
+            {{$gettext("No")}}
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            @click="applyDialog"
+          >
+            {{$gettext("Yes")}}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+</section>
 </template>
 <style lang="scss" scoped>
 .layout {

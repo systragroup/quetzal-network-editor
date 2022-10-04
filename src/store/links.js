@@ -44,6 +44,12 @@ export default {
         }
         else{alert('invalid CRS. use CRS84 / EPSG:4326')}
       },
+      unloadFiles(state){
+        //when we reload files (some were already loaded.)
+        state.filesAreLoaded = {links: false, nodes: false}
+        state.links = {}
+        state.nodes = {}
+      },
 
       addToHistory(state, payload){
         state.history.push(payload);

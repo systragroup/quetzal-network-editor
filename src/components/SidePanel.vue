@@ -305,8 +305,7 @@ export default {
         </v-card-title>
         <v-card-actions>
           <v-btn
-            color="grey"
-            text
+            color="regular"
             left
             @click="showDialog = false"
           >
