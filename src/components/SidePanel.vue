@@ -146,7 +146,7 @@ export default {
                 max-width="100%"
                 class="mx-auto"
               >
-                <v-card-title class = "white--text primary">
+                <v-card-title class = "white--text secondary">
                   <v-tooltip bottom open-delay="500">
                     <template v-slot:activator="{ on, attrs }">
                     <v-btn icon class = "ma-2" color="white"
