@@ -27,7 +27,7 @@ export default {
     },
     
   },
-  events: ["clickLink", "clickNode","actionClick"],
+  events: ["clickFeature"],
   data () {
     return {
       selectedAction:null,
@@ -68,8 +68,14 @@ export default {
     selectedTrips(newVal) {
       this.showedTrips = newVal
     },
-    isEditorMode(val){
+    editorTrip(val){
       if (val){
+        this.isEditorMode=true
+      }
+    },
+    isEditorMode(val){
+
+      if (val && this.editorNodes.features.length>0){
         this.selectedAction='Extend Line Upward'
       } else {
         this.selectedAction = null
@@ -80,12 +86,12 @@ export default {
 
     },
     'firstNode.geometry.coordinates'(val){ 
-      if (this.$store.getters.editorTrip) {
+      if (this.editorTrip) {
         this.$store.commit('setNewLink',{action:this.selectedAction})
       }
     },
     'lastNode.geometry.coordinates'(val){
-      if (this.$store.getters.editorTrip) {
+      if (this.editorTrip) {
         this.$store.commit('setNewLink',{action:this.selectedAction})
       }
     },
@@ -103,6 +109,9 @@ export default {
     
     showLeftPanel(){
       return this.$store.getters.showLeftPanel 
+    },
+    editorTrip(){
+      return this.$store.getters.editorTrip
     },
     editorNodes() {
       return this.$store.getters.editorNodes
@@ -124,9 +133,14 @@ export default {
       this.$store.getters.links.features.forEach(link => {
         bounds.extend(link.geometry.coordinates)
       })
-      event.map.fitBounds(bounds, {
+      // for empty (new) project, do not fit bounds around the links geometries.
+      if (Object.keys(bounds).length !== 0)
+      {
+        event.map.fitBounds(bounds, {
         padding: 100,
-      })
+        })
+      }
+      
       
       event.map.loadImage(arrowImage, function(err, image) {
         if (err) {
@@ -149,12 +163,16 @@ export default {
       }
     },
     addPoint(event){
+      // for a new Line
+      if (this.editorNodes.features.length==0 && this.editorTrip){
+            this.$store.commit('createNewNode',Object.values(event.mapboxEvent.lngLat))
+            this.selectedAction = 'Extend Line Upward'
+            this.$store.commit('changeNotification',{text:'', autoClose:true})
+        }
       if(this.drawMode){
         let pointGeom = Object.values(event.mapboxEvent.lngLat)
         this.$store.commit('applyNewLink',pointGeom)
         //console.log(this.mapDiv.style.width)
-        
-
       }
     },
     resetDraw(event){    
@@ -225,9 +243,7 @@ export default {
         <EditorLinks 
         :map="map"
         :drawMode="drawMode"
-        @clickLink="(e) => this.$emit('clickLink',e)"
-        @clickNode="(e) => this.$emit('clickNode',e)"
-        @actionClick="(e) => this.$emit('actionClick',e)"
+        @clickFeature="(e) => this.$emit('clickFeature',e)"
         @onHover = "onHover"
         @offHover ="offHover"
         >

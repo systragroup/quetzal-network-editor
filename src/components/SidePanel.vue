@@ -1,5 +1,7 @@
 <script>
 
+const $gettext = s => s
+
 
 export default {
   name: 'sidePanel',
@@ -11,13 +13,14 @@ export default {
     prop: "selectedTrips",
     event: "update-tripList"
   },
-  events: ["selectEditorTrip","confirmChanges","abortChanges","deleteButton","propertiesButton"],
+  events: ["selectEditorTrip","confirmChanges","abortChanges","deleteButton","propertiesButton","newLine"],
 
   data () {
     return {
+      showDialog:false,
       showLeftPanelContent: true,
       tripList : this.selectedTrips,
-      width:null,
+      width :null,
     }
   },
   computed:{
@@ -43,9 +46,14 @@ export default {
       this.$emit("update-tripList", val);
     },
     tripId(new_val,old_val){
-      if (new_val.length != old_val.length){
+      if (new_val.length < old_val.length){
         // if a trip is deleted. we remove it, no remapping.
         this.tripList = this.tripList.filter((trip)=>new_val.includes(trip))
+      
+      }else if (new_val.length > old_val.length){
+        //if a trip is added, we add it!
+        let newTrip = new_val.filter(item => !old_val.includes(item))[0]
+        this.tripList.push(newTrip)
       }
       else{
         // if a trip name changes.
@@ -64,11 +72,7 @@ export default {
     
     editButton(value){
       if (this.editorTrip == value){
-       // this.$store.commit('setEditorTrip',null)
-       // this.$emit("actionClick",null)
-       // this.$store.commit('changeNotification',{text:null, autoClose:true})
-       this.$emit("abortChanges")
-
+        this.showDialog = true
       }else{
         this.$store.commit('setEditorTrip',value)
       }
@@ -78,16 +82,32 @@ export default {
       // select the TripId and open dialog
       if (!this.editorTrip){
         this.$store.commit('setEditorTrip',value)
-        this.$emit("propertiesButton",value)
+        this.$emit("propertiesButton",{action:'Edit Line Info', lingering:false})
 
       }// just open dialog
       else{
-        this.$emit("propertiesButton",value)
+        this.$emit("propertiesButton",{action:'Edit Line Info', lingering:true})
       }
+    },
+    createNewLine(){
+      this.$store.commit('setEditorTrip','trip_' + (+new Date).toString(36))
+      this.$emit("propertiesButton",{action:'Edit Line Info', lingering:true})
+      this.$store.commit('changeNotification',{text: $gettext("Click on the map to start drawing"), autoClose: false})
+
+
     },
 
     deleteButton(val){
       this.$emit("deleteButton",val)
+    },
+    showAll(){
+      if (this.tripList == this.tripId){
+        this.tripList = []
+      }else
+      {
+        this.tripList = this.tripId
+      }
+      
     },
   
   }
@@ -96,7 +116,9 @@ export default {
 }
 </script>
 <template>
-    <div
+    
+
+    <section
       ref="leftPanelDiv"
       class="left-panel elevation-4"
       :style="{'width': showLeftPanel ? '400px' : '0'}"
@@ -124,10 +146,35 @@ export default {
                 max-width="100%"
                 class="mx-auto"
               >
-                <v-card-title class="white--text primary" text-align='left'>
-                  <v-spacer></v-spacer>
-                  {{ $gettext("Lines") }}
-                  <v-spacer></v-spacer>
+                <v-card-title class = "white--text secondary">
+                  <v-tooltip bottom open-delay="500">
+                    <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon class = "ma-2" color="white"
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="showAll()">
+                        <v-icon  class="list-item-icon">fa-eye fa</v-icon>
+                    </v-btn>
+                    </template>
+                    <span>{{ tripList == tripId? $gettext("Hide All"): $gettext("Show All")}}</span>
+                  </v-tooltip>  
+
+                    <v-spacer></v-spacer>
+                      {{ $gettext("Lines") }}                    
+                    <v-spacer></v-spacer>
+                  <v-tooltip bottom open-delay="500">
+                    <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon class="ma-2" color="white"
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="$store.commit('exportFiles')" >
+                      <v-icon >fa-solid fa-download</v-icon>
+                    </v-btn>     
+                    </template>
+                      <span>{{ $gettext("Export Files")}}</span>
+                   </v-tooltip>  
+                          
+
                 </v-card-title>
                 <v-virtual-scroll
                   :items="tripId"
@@ -141,56 +188,107 @@ export default {
                         <v-checkbox
                           :on-icon="'fa-eye fa'"
                           :off-icon="'fa-eye-slash fa'"
+                          :color="'primary'"
                           :value="item"
                           size="30"
                           v-model="tripList"
                           hide-details
                         />
                       </v-list-item-action>
-                        <v-list-item-title>
+                        <v-list-item-title v-if="item==editorTrip">
+                          <strong >{{ item }}</strong>
+                        </v-list-item-title>
+                        <v-list-item-title v-else>
                           {{ item }}
                         </v-list-item-title>
 
                       <v-list-item-avatar>
-                        <v-btn icon class="ma-1" 
-                        @click="editButton(item)"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
-                          <v-icon  :color="item == editorTrip? 'error':'regular' ">fa-regular fa-pen</v-icon>
+
+                        <v-tooltip bottom open-delay="500" >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon class="ma-1" 
+                              v-bind="attrs"
+                              v-on="on"
+                              @click="editButton(item)"
+                              :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
+                            <v-icon  :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-pen</v-icon>
                         </v-btn>
+                          </template>
+                          <span>{{ $gettext("Edit Line")}}</span>
+                        </v-tooltip>  
+
+                    
                       </v-list-item-avatar>
 
                       <v-list-item-action>
-                        <v-btn icon class="ma-1" 
-                        @click="propertiesButton(item)"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
-                          <v-icon :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-table</v-icon>
-                        </v-btn>
+                        <v-tooltip bottom open-delay="500">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon class="ma-1" 
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="propertiesButton(item)"
+                            :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false">
+                              <v-icon :color="item == editorTrip? 'regular':'regular' ">fa-regular fa-table</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ $gettext("Edit Line Properties")}}</span>
+                        </v-tooltip>  
                       </v-list-item-action>
                       
                       <v-list-item-action>
-                        <v-btn icon class="ma-1" 
-                        
-                        @click="deleteButton(item)"
-                        :disabled="editorTrip ? true: false">
-                          <v-icon small color="error">fa-regular fa-trash</v-icon>
-                        </v-btn>
+                        <v-tooltip bottom open-delay="500">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon class="ma-1" 
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="deleteButton(item)"
+                            :disabled="editorTrip ? true: false">
+                              <v-icon small color="regular">fa-regular fa-trash</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ $gettext("Delete Line")}}</span>
+                        </v-tooltip>  
                       </v-list-item-action>
 
                     </v-list-item>
                   </template>
                 </v-virtual-scroll>
                 <v-divider></v-divider>
-                <v-card-actions>
-                  <v-btn outlined rounded text @click = "tripList = tripId ">       
-                  {{ $gettext("Show All") }}
+                <v-card-actions v-if="editorTrip ? true: false">
+                  <v-spacer></v-spacer>
+                  <v-btn @click="$emit('abortChanges')"> 
+                    <v-icon small left>
+                      fas fa-times-circle
+                    </v-icon>
+                    {{$gettext("Abort")}}
                   </v-btn>
-                  <v-btn outlined rounded text @click = "tripList = [] ">  
-                  {{ $gettext("Hide All") }}
+                  <v-btn  color="primary" @click="$emit('confirmChanges')"> 
+                    <v-icon small left>
+                      fas fa-save
+                    </v-icon>
+                    {{$gettext("Confirm")}}
                   </v-btn>
                 </v-card-actions>
-                <v-card-actions v-show="editorTrip ? true: false">
-                  <v-btn outlined rounded text color="success" @click="$emit('confirmChanges')"> {{$gettext("Confirm")}}</v-btn>
-                  <v-btn outlined rounded text color="error" @click="$emit('abortChanges')"> {{$gettext("Abort")}}</v-btn>
+                <v-card-actions v-show="editorTrip ? false: true">
+                  <v-spacer></v-spacer>
+
+                  <v-tooltip bottom open-delay="500">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn 
+                        v-bind="attrs"
+                        v-on="on"
+                        color="primary"
+                        class="text--primary"
+                        fab
+                        small
+                        @click="createNewLine"> 
+                        <v-icon>fas fa-plus</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $gettext("Create new Line")}}</span>
+                  </v-tooltip>  
+
+                  
                 </v-card-actions>
               </v-card>
             </div>
@@ -199,7 +297,46 @@ export default {
           </div>
         </div>
       </transition>
-    </div>
+    <v-dialog
+      persistent
+      v-model="showDialog"
+      max-width="290"
+      @keydown.enter="$emit('confirmChanges'); showDialog = !showDialog"
+      @keydown.esc="showDialog=false"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $gettext("Save Changes?")}}
+        </v-card-title>
+        <v-card-actions>
+          <v-btn
+            color="regular"
+            left
+            @click="showDialog = false"
+          >
+            {{$gettext("Cancel")}}
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="regular"
+            @click="$emit('abortChanges'); showDialog = !showDialog"
+          >
+            {{$gettext("No")}}
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            
+            @click="$emit('confirmChanges'); showDialog = !showDialog"
+          >
+            {{$gettext("Yes")}}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    </section>
+    
+
 </template>
 <style lang="scss" scoped>
 @import "src/scss/variables.scss";
@@ -255,4 +392,13 @@ export default {
   flex: 0;
   transition: 0.3s;
 }
+
+.list-item-icon {
+  display: flex !important;
+  flex-flow: row !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  color: white;
+}
+
 </style>

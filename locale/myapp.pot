@@ -14,92 +14,112 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:228
+#: src/components/SidePanel.vue:296
 msgid "Abort"
 msgstr ""
 
-#: src/components/EditorLinks.vue:156
+#: src/components/EditorLinks.vue:158
 msgid "action"
 msgstr ""
 
-#: src/pages/Home.vue:30
+#: src/pages/Home.vue:29
 msgid "Add Stop Inline"
 msgstr ""
 
-#: src/pages/Home.vue:89
+#: src/components/SidePanel.vue:396
+#: src/pages/Home.vue:74
 msgid "Cancel"
 msgstr ""
 
-#: src/pages/Home.vue:98
-msgid "Click on a link to add a Stop"
-msgstr ""
-
-#: src/pages/Home.vue:83
-#: src/pages/Home.vue:91
-msgid "Click on the map to extend"
+#: src/components/SidePanel.vue:93
+msgid "Click on the map to start drawing"
 msgstr ""
 
 #: src/App.vue:40
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:216
+#: src/components/SidePanel.vue:314
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Home.vue:24
+#: src/pages/Login.vue:102
+msgid "Create a network from scratch"
+msgstr ""
+
+#: src/components/SidePanel.vue:349
+msgid "Create new Line"
+msgstr ""
+
+#: src/pages/Home.vue:23
 msgid "Cut Line At Node"
 msgstr ""
 
-#: src/pages/Home.vue:22
+#: src/pages/Home.vue:21
 msgid "Cut Line From Node"
 msgstr ""
 
-#: src/pages/Home.vue:37
+#: src/pages/Home.vue:35
 msgid "Delete "
 msgstr ""
 
-#: src/pages/Home.vue:34
+#: src/components/SidePanel.vue:265
+msgid "Delete Line"
+msgstr ""
+
+#: src/pages/Home.vue:33
 msgid "Delete Stop"
 msgstr ""
 
-#: src/pages/Home.vue:74
-msgid "do not show again"
+#: src/components/SidePanel.vue:194
+msgid "Edit Line"
 msgstr ""
 
-#: src/pages/Home.vue:20
+#: src/pages/Home.vue:19
 msgid "Edit Line Info"
 msgstr ""
 
-#: src/pages/Home.vue:36
+#: src/components/SidePanel.vue:229
+msgid "Edit Line Properties"
+msgstr ""
+
+#: src/pages/Home.vue:35
 msgid "Edit Link Info"
 msgstr ""
 
-#: src/pages/Home.vue:38
+#: src/pages/Home.vue:37
 msgid "Edit Node Info"
 msgstr ""
 
-#: src/pages/Home.vue:37
+#: src/pages/Home.vue:35
 msgid "Edit Properties"
+msgstr ""
+
+#: src/pages/Login.vue:118
+msgid "Example"
 msgstr ""
 
 #: src/components/layout/NavigationDrawer.vue:23
 msgid "Export"
 msgstr ""
 
-#: src/pages/Home.vue:28
+#: src/components/SidePanel.vue:121
+msgid "Export Files"
+msgstr ""
+
+#: src/pages/Home.vue:27
 msgid "Extend Line Downward"
 msgstr ""
 
-#: src/pages/Home.vue:26
+#: src/pages/Home.vue:25
 msgid "Extend Line Upward"
 msgstr ""
 
-#: src/pages/Login.vue:107
+#: src/pages/Login.vue:145
 msgid "GO!"
 msgstr ""
 
-#: src/components/SidePanel.vue:199
+#: src/components/SidePanel.vue:90
 msgid "Hide All"
 msgstr ""
 
@@ -120,44 +140,57 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:62
+#: src/components/SidePanel.vue:95
 msgid "Lines"
 msgstr ""
 
-#: src/pages/Login.vue:50
+#: src/pages/Login.vue:55
 msgid "Links"
 msgstr ""
 
-#: src/pages/Login.vue:34
+#: src/pages/Login.vue:39
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
 
-#: src/pages/Login.vue:87
-msgid "Load Example"
+#: src/pages/Login.vue:38
+msgid "Load Files"
 msgstr ""
 
-#: src/pages/Login.vue:33
-msgid "Load Files"
+#: src/pages/Login.vue:124
+msgid "Load Montréal Example"
 msgstr ""
 
 #: src/router/index.js:29
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:221
+#: src/pages/Home.vue:177
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:211
+#: src/pages/Home.vue:167
 msgid "modification applied"
 msgstr ""
 
-#: src/pages/Home.vue:32
+#: src/pages/Home.vue:31
 msgid "Move Stop"
 msgstr ""
 
-#: src/pages/Login.vue:69
+#: src/pages/Login.vue:96
+msgid "New Project"
+msgstr ""
+
+#: src/components/SidePanel.vue:406
+#: src/pages/Login.vue:184
+msgid "No"
+msgstr ""
+
+#: src/pages/Login.vue:74
 msgid "Nodes"
+msgstr ""
+
+#: src/pages/Login.vue:172
+msgid "Overwrite current Project ?"
 msgstr ""
 
 #: src/components/EditorLinks.vue:121
@@ -168,18 +201,19 @@ msgstr ""
 msgid "Right click to edit properties"
 msgstr ""
 
-#: src/pages/Home.vue:100
+#: src/pages/Home.vue:84
 msgid "Save"
 msgstr ""
 
-#: src/pages/Home.vue:76
-msgid "Select a Link"
+#: src/components/SidePanel.vue:384
+msgid "Save Changes?"
 msgstr ""
 
-#: src/pages/Home.vue:80
-msgid "Select a Node"
-msgstr ""
-
-#: src/components/SidePanel.vue:188
+#: src/components/SidePanel.vue:90
 msgid "Show All"
+msgstr ""
+
+#: src/components/SidePanel.vue:415
+#: src/pages/Login.vue:193
+msgid "Yes"
 msgstr ""

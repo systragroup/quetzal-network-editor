@@ -16,7 +16,7 @@ export default {
       links: {},
       selectedTrips : [],
       editorTrip : null,
-      actionsList :[{value:'Edit Line info',
+      actionsList :[{value:'Edit Line Info',
                     name: $gettext('Edit Line Info')},
                     {value: 'Cut Line From Node',
                     name: $gettext('Cut Line From Node')},
@@ -43,6 +43,7 @@ export default {
       editorForm : {},
       cursorPosition : [],
       tripToDelete : null,
+      lingering : true,
     }
   },
   watch: {
@@ -54,99 +55,66 @@ export default {
     this.editorTrip = this.$store.getters.editorTrip
     this.selectedTrips = this.$store.getters.tripId
   },
-  mounted () {
-    //this.$store.commit('changeRoute', this.$options.name)
-  },
+
   methods: {
-    actionClick(action){
-      //when an action is clicked in the sidepanel
-      this.action = action
-      if ( action == 'Edit Line info' ){
+    actionClick(event){
+
+      this.action = event.action
+
+      if ( this.action == 'Edit Line Info'){
         this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
+        this.lingering = event.lingering
         this.showDialog = true
       }
-      else if ( action == 'Edit Link Info' ){
-        this.$store.commit('changeNotification',{text:$gettext('Select a Link'), autoClose:false})
-      }
-      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop','Edit Node Info'].includes(action)){
-        this.$store.commit('changeNotification',{text:$gettext('Select a Node'), autoClose:false})
-      }
-      else if (action == 'Extend Line Upward'){
-        this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
-        this.$store.commit('setNewLink',{action:action})
-        //const lastNode = this.$store.getters.editorLinks.features[this.$store.getters.editorLinks.features.length-1].properties.b
-        //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==lastNode)
-      }
-      else if (action == 'Extend Line Downward'){
-        this.$store.commit('changeNotification',{text:$gettext('Click on the map to extend'), autoClose:false})
-        this.$store.commit('setNewLink',{action:action})
-        const firstNode = this.$store.getters.editorLinks.features[0].properties.a
-        //this.anchorNode = this.$store.getters.editorNodes.features.filter((node) => node.properties.index==firstNode)
-      }
-      else if (action == 'Add Stop Inline'){
-        this.$store.commit('changeNotification',{text:$gettext('Click on a link to add a Stop'), autoClose:false})
-      }
-      else {
-        this.$store.commit('changeNotification',{text:null, autoClose:true})
-      }
-    },
-    clickNode(event){
-      // node is clicked on the map
-      this.selectedNode = event.selectedFeature.properties
-      this.action = event.action
-      if (this.selectedNode){ 
-        // node action
-        if (this.action == 'Edit Node Info'){
-          // map selected node doesnt not return properties with nanulln value. we need to get the node in the store with the selected index.
-          this.editorForm = this.$store.getters.editorNodes.features.filter((node) => node.properties.index == this.selectedNode.index)
-          this.editorForm = this.editorForm[0].properties
+      else if ( this.action == 'Edit Link Info' ){
+         // link is clicked on the map
+        this.selectedLink = event.selectedFeature.properties
+        // map selected link doesnt not return properties with null value. we need to get the links in the store with the selected index.
+        this.editorForm = this.$store.getters.editorLinks.features.filter((link) => link.properties.index == this.selectedLink.index)
+        this.editorForm = this.editorForm[0].properties
 
-          // filter properties to only the one that are editable.
-          const uneditable = ['index'];
-          let filtered = Object.keys(this.editorForm)
-            .reduce((obj, key) => {
-              obj[key] = {'value': this.editorForm[key],
-                          'disabled': uneditable.includes(key)}
-              return obj;
-            }, {});
-          this.editorForm = filtered
-          this.showDialog = true
-        }
-        else if (this.action){
-          this.applyAction()
-        }
+        // filter properties to only the one that are editable.
+        const filteredKeys = this.$store.getters.lineAttributes
+        const uneditable = ['a', 'b', 'index', 'link_sequence']
+        let filtered = Object.keys(this.editorForm)
+          .filter(key => !filteredKeys.includes(key))
+          .reduce((obj, key) => {
+            obj[key] = {'value': this.editorForm[key],
+                        'disabled': uneditable.includes(key)}
+            return obj;
+          }, {});
+        this.editorForm = filtered
+        this.showDialog = true
       }
-    },
-    clickLink(event){
-      // link is clicked on the map
-      this.selectedLink = event.selectedFeature.properties
-      this.action = event.action
-      if (this.selectedLink){ 
-        // links action
-        if(this.action == 'Edit Link Info'){
-          // map selected link doesnt not return properties with null value. we need to get the links in the store with the selected index.
-          this.editorForm = this.$store.getters.editorLinks.features.filter((link) => link.properties.index == this.selectedLink.index)
-          this.editorForm = this.editorForm[0].properties
+      else if (this.action == 'Edit Node Info'){
+        this.selectedNode = event.selectedFeature.properties
+        // map selected node doesnt not return properties with nanulln value. we need to get the node in the store with the selected index.
+        this.editorForm = this.$store.getters.editorNodes.features.filter((node) => node.properties.index == this.selectedNode.index)
+        this.editorForm = this.editorForm[0].properties
 
-          // filter properties to only the one that are editable.
-          const filteredKeys = this.$store.getters.lineAttributes
-          const uneditable = ['a', 'b', 'index', 'link_sequence']
-          let filtered = Object.keys(this.editorForm)
-            .filter(key => !filteredKeys.includes(key))
-            .reduce((obj, key) => {
-              obj[key] = {'value': this.editorForm[key],
-                          'disabled': uneditable.includes(key)}
-              return obj;
-            }, {});
-          this.editorForm = filtered
-          this.showDialog = true
-        }
-        else if (this.action == 'Add Stop Inline'){
-          this.cursorPosition = event.lngLat
-          this.applyAction()
-        }
+        // filter properties to only the one that are editable.
+        const uneditable = ['index'];
+        let filtered = Object.keys(this.editorForm)
+          .reduce((obj, key) => {
+            obj[key] = {'value': this.editorForm[key],
+                        'disabled': uneditable.includes(key)}
+            return obj;
+          }, {});
+        this.editorForm = filtered
+        this.showDialog = true
+
+      }
+      else if (['Cut Line From Node','Cut Line At Node','Move Stop','Delete Stop'].includes(this.action)){
+        this.selectedNode = event.selectedFeature.properties
+        this.applyAction()
+      }
+      else if (this.action == 'Add Stop Inline'){
+        this.selectedLink = event.selectedFeature.properties
+        this.cursorPosition = event.lngLat
+        this.applyAction()
       }
     },
+
     applyAction(){
       // click yes on dialog
       this.showDialog = false
@@ -166,7 +134,7 @@ export default {
       case 'Edit Node Info':
         this.$store.commit('editNodeInfo', {selectedNodeId: this.selectedNode.index, info: this.editorForm})  
         break
-      case 'Edit Line info':
+      case 'Edit Line Info':
         this.$store.commit('editLineInfo', this.editorForm)  
         break
       case 'deleteTrip':
@@ -176,15 +144,17 @@ export default {
         this.$store.commit('addNodeInline', {selectedLink: this.selectedLink, lngLat: this.cursorPosition})
         break
       }
+      if (!this.lingering){
+        this.confirmChanges()
+        this.lingering=true
+      }
        
     },
     cancelAction(){
       this.showDialog = false
-      if (this.action == 'Move Stop'){
-        // return to the original position
-        let hist = this.$store.getters.history[0]
-        this.$store.commit('moveNode',{selectedNode:hist.moveNode.selectedFeature,lngLat:Object.values(hist.moveNode.lngLat)})
-        this.$store.commit('cleanHistory')
+      if (!this.lingering){
+        this.abortChanges()
+        this.lingering=true
       }
     },
     confirmChanges(){
@@ -212,13 +182,13 @@ export default {
       this.action='deleteTrip'
       this.showDialog = true
     },
+    
   },
 }
 </script>
 <template>
 
-  <section class="map-view"
-  @keydown.esc="!showDialog? action=null: null">
+  <section class="map-view">
     <v-dialog
       persistent
       v-model="showDialog"
@@ -231,7 +201,7 @@ export default {
           {{ action == 'deleteTrip'? $gettext("Delete ") + ' '+ tripToDelete + '?': $gettext("Edit Properties")}}
         </v-card-title>
 
-        <v-card-text v-if="['Edit Line info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
+        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
           <v-container>
               <v-col cols="12" >
                 <v-text-field 
@@ -262,7 +232,6 @@ export default {
             color="green darken-1"
             text
             @click="applyAction"
-            @keydown.enter="applyAction"
           >
             {{$gettext("Save")}}
           </v-btn>
@@ -276,14 +245,12 @@ export default {
     @confirmChanges="confirmChanges"
     @abortChanges="abortChanges"
     @deleteButton="deleteButton"
-    @propertiesButton="actionClick('Edit Line info')">
+    @propertiesButton="actionClick">
   </SidePanel>
 
   <Map 
     :selectedTrips = "selectedTrips" 
-    @clickNode = "clickNode"
-    @clickLink = "clickLink"
-    @actionClick = "actionClick">
+    @clickFeature = "actionClick">
 
   </Map>
   
