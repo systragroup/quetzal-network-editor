@@ -64,7 +64,7 @@ yarn run i18n-compile
 yarn run start
 
 # build for production with minification
-yarn run build:prod
+yarn run build
 ```
 
 You can also use `npm` instead of `yarn`
@@ -94,3 +94,13 @@ Then compile the `po` files to a single `json` file using:
 ```
 yarn run i18n-compile
 ```
+
+### Deployement and releases 
+After building the application with `yarn run build`, create a commit and a release naming the version.
+
+After the release has been commited, push the distribution as a subtree:
+```
+git subtree push --prefix dist origin dist
+```
+
+The *github-pages* should update automatically for *dist* branch.
