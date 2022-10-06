@@ -37,7 +37,7 @@ export default {
       this.$store.commit('loadNodes',this.loadedNodes)
       this.loading['nodes'] = false
     },
-    filesAreLoaded(val){
+    localFilesAreLoaded(val){
       if (val){
         this.login()
       }
@@ -223,23 +223,6 @@ export default {
           </template>
           <span>{{ $gettext("Load Montréal Example")}}</span>
         </v-tooltip>  
-      </div>
-
-      
-      <div> 
-        <v-btn
-        color="primary"
-        :disabled="!localFilesAreLoaded"
-        @click="login">
-        <v-icon
-            small
-            left
-          >
-            fas fa-sign-in-alt
-          </v-icon>
-          {{ $gettext('GO!') }}
-
-        </v-btn>
       </div>
       </v-card-text>
     </v-card>
