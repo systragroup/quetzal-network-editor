@@ -24,7 +24,7 @@ export default {
     mutations: {
       loadLinks(state, payload) {
         state.links = JSON.parse(JSON.stringify(payload));
-        if (state.links.crs.properties.name == 'urn:ogc:def:crs:OGC:1.3:CRS84'){
+        if (['urn:ogc:def:crs:OGC:1.3:CRS84','EPSG:4326'].includes(state.links.crs.properties.name)){
           var linksHeader = {...state.links};
           linksHeader.features = [];
           state.editorLinks = linksHeader;
@@ -36,7 +36,7 @@ export default {
 
       loadNodes(state, payload) {
         state.nodes = JSON.parse(JSON.stringify(payload));
-        if (state.nodes.crs.properties.name == 'urn:ogc:def:crs:OGC:1.3:CRS84'){
+        if (['urn:ogc:def:crs:OGC:1.3:CRS84','EPSG:4326'].includes(state.nodes.crs.properties.name)){
           var nodesHeader = {...state.nodes};
           nodesHeader.features = [];
           state.editorNodes = nodesHeader;
