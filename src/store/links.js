@@ -19,6 +19,7 @@ export default {
       newNode: {},
       history: [],
       changeBounds: true,
+      speed: 20, //20KmH for time (speed/distance)
       lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id', 
                         'headway', 'route_long_name', 'route_short_name',
                         'route_type', 'route_color'],
@@ -241,7 +242,7 @@ export default {
         // get linestring length in km
         let distance = length(state.newLink)
         state.newLink.features[0].properties.length = Number((distance*1000).toFixed(0)) // metres
-        let time = distance/20*3600 // 20kmh hard code speed. time in secs
+        let time = distance/state.speed*3600 // 20kmh hard code speed. time in secs
         state.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
 
         let action = state.newLink.action
@@ -351,9 +352,19 @@ export default {
         if (link1) {
           // note: props are unchanged. even tho the length change, the time and length are unchanged.
           link1.geometry.coordinates = [link1.geometry.coordinates[0], payload.lngLat]
+          //update time and distance
+          let distance = length(link1)
+          link1.properties.length = Number((distance*1000).toFixed(0)) // metres
+          let time = distance/state.speed*3600 // 20kmh hard code speed. time in secs
+          link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
         }
         if (link2) {
           link2.geometry.coordinates = [payload.lngLat, link2.geometry.coordinates[1]]
+          //update time and distance
+          let distance = length(link2)
+          link2.properties.length = Number((distance*1000).toFixed(0)) // metres
+          let time = distance/state.speed*3600 // 20kmh hard code speed. time in secs
+          link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
         }
       },
 

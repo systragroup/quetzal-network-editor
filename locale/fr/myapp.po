@@ -38,7 +38,7 @@ msgstr "Ajouter un Arrêt en ligne"
 msgid "Cancel"
 msgstr "Annuler"
 
-#: src/components/SidePanel.vue:93
+#: src/components/SidePanel.vue:97
 msgid "Click on the map to start drawing"
 msgstr "Cliquer sur la carte pour commencer"
 
@@ -50,7 +50,7 @@ msgstr "Fermer"
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/pages/Login.vue:102
+#: src/pages/Login.vue:101
 msgid "Create a network from scratch"
 msgstr "Créer un réseau à partir de zéro"
 
@@ -78,6 +78,10 @@ msgstr "Supprimer"
 msgid "Delete Stop"
 msgstr "Supprimer arrêt"
 
+#: src/pages/Home.vue:56
+msgid "double click to edit line, right click to edit line properties"
+msgstr "Double clique pour modifier une ligne, clique droit pour modifier les propriétés"
+
 #: src/components/SidePanel.vue:194
 msgid "Edit Line"
 msgstr "Modifier la ligne"
@@ -102,7 +106,7 @@ msgstr "Modifier les infos d'arrêt"
 msgid "Edit Properties"
 msgstr "Modifier"
 
-#: src/pages/Login.vue:118
+#: src/pages/Login.vue:117
 msgid "Example"
 msgstr "Exemple"
 
@@ -121,10 +125,6 @@ msgstr "Prolonger la ligne en aval"
 #: src/pages/Home.vue:25
 msgid "Extend Line Upward"
 msgstr "Prolonger la Ligne en amont"
-
-#: src/pages/Login.vue:145
-msgid "GO!"
-msgstr "Aller!"
 
 #: src/components/SidePanel.vue:90
 msgid "Hide All"
@@ -151,20 +151,20 @@ msgstr "Clique gauche ajouter un arrêt"
 msgid "Lines"
 msgstr "Lignes"
 
-#: src/pages/Login.vue:55
+#: src/pages/Login.vue:54
 msgid "Links"
 msgstr "Liens"
 
-#: src/pages/Login.vue:39
+#: src/pages/Login.vue:38
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
 "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
 
-#: src/pages/Login.vue:38
+#: src/pages/Login.vue:37
 msgid "Load Files"
 msgstr "Charger les Fichiers"
 
-#: src/pages/Login.vue:124
+#: src/pages/Login.vue:123
 msgid "Load Montréal Example"
 msgstr "Charger l'exemple de Montréal"
 
@@ -172,11 +172,11 @@ msgstr "Charger l'exemple de Montréal"
 msgid "Map"
 msgstr "Carte"
 
-#: src/pages/Home.vue:177
+#: src/pages/Home.vue:179
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/pages/Home.vue:167
+#: src/pages/Home.vue:169
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
@@ -184,19 +184,19 @@ msgstr "Modification Appliquée"
 msgid "Move Stop"
 msgstr "Déplacer l'arrêt"
 
-#: src/pages/Login.vue:96
+#: src/pages/Login.vue:95
 msgid "New Project"
 msgstr "Nouveau Projet"
 
-#: src/components/SidePanel.vue:406 src/pages/Login.vue:184
+#: src/components/SidePanel.vue:406 src/pages/Login.vue:162
 msgid "No"
 msgstr "Non"
 
-#: src/pages/Login.vue:74
+#: src/pages/Login.vue:73
 msgid "Nodes"
 msgstr "Noeuds"
 
-#: src/pages/Login.vue:172
+#: src/pages/Login.vue:150
 msgid "Overwrite current Project ?"
 msgstr "Écraser le projet en cours ?"
 
@@ -220,9 +220,12 @@ msgstr "Sauvegarder ?"
 msgid "Show All"
 msgstr "Montrer Tout"
 
-#: src/components/SidePanel.vue:415 src/pages/Login.vue:193
+#: src/components/SidePanel.vue:415 src/pages/Login.vue:171
 msgid "Yes"
 msgstr "Oui"
+
+#~ msgid "GO!"
+#~ msgstr "Aller!"
 
 #~ msgid "Click on a link to add a Stop"
 #~ msgstr "Cliquer sur un lien pour ajouter un arrêt"
