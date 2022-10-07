@@ -235,7 +235,8 @@ export default {
         <StaticLinks 
         :map="map"
         :showedTrips="showedTrips"
-        :isEditorMode="isEditorMode">
+        :isEditorMode="isEditorMode"
+        @rightClick="(e) => this.$emit('clickFeature',e)">
         </StaticLinks>
       </template>
      
