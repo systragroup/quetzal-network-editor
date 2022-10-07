@@ -54,13 +54,15 @@ export default {
       this.isEditorMode = ( newVal.features.length > 0 );
       if ( this.isEditorMode ) {
         if ( !wasEditorMode ) {this.showedTrips = []}
-        const bounds = new Mapbox.LngLatBounds();
-        newVal.features.forEach(node => {
-          bounds.extend(node.geometry.coordinates)
-        })        
-        this.map.fitBounds(bounds, {
-          padding: 100,
-        })
+        if (this.$store.getters.changeBounds){
+          const bounds = new Mapbox.LngLatBounds();
+          newVal.features.forEach(node => {
+            bounds.extend(node.geometry.coordinates)
+          })        
+          this.map.fitBounds(bounds, {
+            padding: 100,
+          })
+        }
       } else {
         this.showedTrips = this.selectedTrips 
       }
@@ -141,7 +143,6 @@ export default {
         })
       }
       
-      
       event.map.loadImage(arrowImage, function(err, image) {
         if (err) {
           console.error('err image', err);
@@ -150,6 +151,7 @@ export default {
         event.map.addImage('arrow', image);
       });
       this.map = event.map;
+      event.map.dragRotate.disable()
       this.mapIsLoaded=true
     },
     

@@ -89,13 +89,14 @@ created() {
       }
     },
     selectLine(event){
+      event.mapboxEvent.preventDefault(); // prevent map control
       this.popup.showed=false
-      this.$store.commit('setEditorTrip',event.mapboxEvent.features[0].properties.trip_id)
+      this.$store.commit('setEditorTrip',{tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false})
       this.$store.commit('changeNotification',{text:'', autoClose:true})
     },
     editLineProperties(event){
       this.popup.showed=false
-      this.$store.commit('setEditorTrip',event.mapboxEvent.features[0].properties.trip_id)
+      this.$store.commit('setEditorTrip',{tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false})
       this.$emit("rightClick",{action:'Edit Line Info', lingering:false})
     },
 	},

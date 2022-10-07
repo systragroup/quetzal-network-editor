@@ -74,7 +74,7 @@ export default {
       if (this.editorTrip == value){
         this.showDialog = true
       }else{
-        this.$store.commit('setEditorTrip',value)
+        this.$store.commit('setEditorTrip',{tripId: value, changeBounds: true})
         this.$store.commit('changeNotification',{text:'', autoClose:true})
 
       }
@@ -83,7 +83,7 @@ export default {
     propertiesButton(value){
       // select the TripId and open dialog
       if (!this.editorTrip){
-        this.$store.commit('setEditorTrip',value)
+        this.$store.commit('setEditorTrip',{tripId: value, changeBounds: false})
         this.$emit("propertiesButton",{action:'Edit Line Info', lingering:false})
 
       }// just open dialog
@@ -93,7 +93,8 @@ export default {
       }
     },
     createNewLine(){
-      this.$store.commit('setEditorTrip','trip_' + (+new Date).toString(36))
+      let name = 'trip_' + (+new Date).toString(36)
+      this.$store.commit('setEditorTrip',{tripId: name, changeBounds: false})
       this.$emit("propertiesButton",{action:'Edit Line Info', lingering:true})
       this.$store.commit('changeNotification',{text: $gettext("Click on the map to start drawing"), autoClose: false})
 

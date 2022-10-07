@@ -18,6 +18,7 @@ export default {
       newLink: {},
       newNode: {},
       history: [],
+      changeBounds: true,
       lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id', 
                         'headway', 'route_long_name', 'route_short_name',
                         'route_type', 'route_color'],
@@ -61,7 +62,8 @@ export default {
 
       setEditorTrip(state, payload){
         //set Trip Id
-        state.editorTrip = payload
+        state.editorTrip = payload.tripId
+        state.changeBounds = payload.changeBounds
         // set editor links corresponding to trip id
         //var filtered = {...state.links}
         var filtered = JSON.parse(JSON.stringify(state.links))
@@ -538,6 +540,7 @@ export default {
       linkAttributes: (state) => state.linkAttributes, 
       lineAttributes: (state) => state.lineAttributes, 
       nodeAttributes: (state) => state.nodeAttributes, 
+      changeBounds: (state)=> state.changeBounds,
     },
   }
 

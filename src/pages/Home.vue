@@ -164,7 +164,7 @@ export default {
       this.$store.commit('confirmChanges')
       // put editTrip and action to null.
       this.editorTrip = null 
-      this.$store.commit('setEditorTrip',null)
+      this.$store.commit('setEditorTrip',{tripId: null, changeBounds: false})
       this.action=null
       // notification
       this.$store.commit('changeNotification',{text:$gettext("modification applied"), autoClose:true,color:'success'})
@@ -174,7 +174,7 @@ export default {
       // unselect a trip for edition. nothing to commit on link here.
       // put editTrip and action to null.
       this.editorTrip = null 
-      this.$store.commit('setEditorTrip',null)
+      this.$store.commit('setEditorTrip',{tripId: null, changeBounds: false})
       this.action=null
       // notification
       this.$store.commit('changeNotification',{text:$gettext("modification aborted"), autoClose:true})
