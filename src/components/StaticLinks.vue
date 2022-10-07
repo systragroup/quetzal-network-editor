@@ -8,6 +8,7 @@ export default {
 	MglPopup
 },
 props:["map","showedTrips","isEditorMode"],
+events: ["rightClick"],
 
 	data () {
 	return {
@@ -88,8 +89,15 @@ created() {
       }
     },
     selectLine(event){
+      this.popup.showed=false
       this.$store.commit('setEditorTrip',event.mapboxEvent.features[0].properties.trip_id)
-    }
+      this.$store.commit('changeNotification',{text:'', autoClose:true})
+    },
+    editLineProperties(event){
+      this.popup.showed=false
+      this.$store.commit('setEditorTrip',event.mapboxEvent.features[0].properties.trip_id)
+      this.$emit("rightClick",{action:'Edit Line Info', lingering:false})
+    },
 	},
 }
 </script>
@@ -115,7 +123,7 @@ created() {
             'line-width': 3
           }
         }"
-        v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine }"
+        v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine, contextmenu:editLineProperties }"
         >  
       </MglGeojsonLayer>
 

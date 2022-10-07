@@ -54,6 +54,8 @@ export default {
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
     this.selectedTrips = this.$store.getters.tripId
+    this.$store.commit('changeNotification',{text:$gettext("double click to edit line, right click to edit line properties"), autoClose:false})
+
   },
 
   methods: {

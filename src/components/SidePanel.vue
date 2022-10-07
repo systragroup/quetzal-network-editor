@@ -75,6 +75,8 @@ export default {
         this.showDialog = true
       }else{
         this.$store.commit('setEditorTrip',value)
+        this.$store.commit('changeNotification',{text:'', autoClose:true})
+
       }
     },
 
@@ -87,6 +89,7 @@ export default {
       }// just open dialog
       else{
         this.$emit("propertiesButton",{action:'Edit Line Info', lingering:true})
+        this.$store.commit('changeNotification',{text:'', autoClose:true})
       }
     },
     createNewLine(){
