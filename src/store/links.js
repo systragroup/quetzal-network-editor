@@ -2,6 +2,8 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
+import JSZip from 'jszip'
+import saveAs from 'file-saver'
 
 export default {
     state: {
@@ -495,28 +497,20 @@ export default {
       },
 
       exportFiles(state){
-        let data = JSON.stringify(state.links)
-        let blob = new Blob([data], {type: 'application/json'})
-        let e = document.createEvent('MouseEvents'),
-        a = document.createElement('a');
-        a.download = "links.geojson";
-        a.href = window.URL.createObjectURL(blob);
-        a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-        e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-        a.dispatchEvent(e);
-    
-        data = JSON.stringify(state.nodes)
-        blob = new Blob([data], {type: 'application/json'})
-        e = document.createEvent('MouseEvents'),
-        a = document.createElement('a');
-        a.download = "nodes.geojson";
-        a.href = window.URL.createObjectURL(blob);
-        a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-        e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-        a.dispatchEvent(e);
+        var zip = new JSZip();
+        var folder = zip.folder("output");
+        var data = JSON.stringify(state.links)
+        var blob = new Blob([data], {type: 'application/json'}) 
+        folder.file("links.geojson",blob)
+        var data = JSON.stringify(state.nodes)
+        var blob = new Blob([data], {type: 'application/json'}) 
+        folder.file("nodes.geojson",blob)
+        zip.generateAsync({type:"blob"})
+        .then(function(content) {
+            // see FileSaver.js
+            saveAs(content, "output.zip");
+        });
       },
-
-
     },
     
 
