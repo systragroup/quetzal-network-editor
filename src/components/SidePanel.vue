@@ -21,7 +21,10 @@ export default {
       showLeftPanelContent: true,
       tripList: [],
       width: null,
-      selectedFilter: 'route_type'
+      filterChoices: [ 'route_id', 'agency_id', 'direction_id', 
+                       'route_long_name', 'route_short_name',
+                        'route_type', 'route_color'],
+      selectedFilter: 'route_type',
     }
   },
   computed:{
@@ -204,10 +207,11 @@ export default {
               >
               
                 <v-list-item><v-select
-                  :items="['route_type','agency_id','route_id']"
+                  :items="filterChoices"
                   v-model="selectedFilter"
                   prepend-icon="fas fa-filter"
                   label="filter"
+                  item-color="secondary"
                   color="secondary"
                 ></v-select></v-list-item>
                 <template v-for="(value, key) in classifiedTripId" >
@@ -215,7 +219,7 @@ export default {
                 <v-list-group
                   :key="key"
                   color="secondary"
-                  :value="true"
+                  :value="false"
                   no-action
                 >
                 
