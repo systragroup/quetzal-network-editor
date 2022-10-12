@@ -17,23 +17,44 @@ export default {
 
   data () {
     return {
-      showDialog:false,
+      showDialog: false,
       showLeftPanelContent: true,
-      tripList : this.selectedTrips,
-      width :null,
+      tripList: [],
+      width: null,
+      selectedFilter: 'route_type'
     }
   },
   computed:{
     showLeftPanel() {return this.$store.getters.showLeftPanel},
-    height() {return (window.innerHeight-80) - 20*3 - 100},
-   
+    height() {return (window.innerHeight-80) - 20*3 - 80 },
     editorTrip() {return this.$store.getters.editorTrip},
-    tripId() {return this.$store.getters.tripId} 
+    tripId() {return this.$store.getters.tripId},
+    classifiedTripId(){
+      let cat = Array.from(new Set(this.$store.getters.links.features.map(item => item.properties[this.selectedFilter])));
+      // return this list of object, {cat_name, tripId list}
+      let classifiedTripId = []
+      cat.forEach(c => 
+      {
+        //get all tripdId in the categeorie.
+        let arr = Array.from(
+          new Set(
+            this.$store.getters.links.features.filter(
+              item => item.properties[this.selectedFilter]==c
+              ).map(
+                (item) => item.properties.trip_id)
+                )
+                )
+        classifiedTripId.push({name: c, tripId: arr})
+      })
+      return classifiedTripId
+      //Array.from(new Set(this.$store.getters.links.features.map(item => item.properties.trip_id)));
+    }
   },
 
   watch: {
     showLeftPanel (val) {
       if (val) {
+        console.log(this.classifiedTripId)
         // Leave time for animation to end (.fade-enter-active css rule)
         setTimeout(() => {
           this.showLeftPanelContent = true
@@ -146,11 +167,7 @@ export default {
         >
           <div>
             <div :style="{margin: '20px'}">
-              <v-card
-                max-width="100%"
-                class="mx-auto"
-              >
-                <v-card-title class = "white--text secondary">
+               <v-card-title class = "white--text secondary">
                   <v-tooltip bottom open-delay="500">
                     <template v-slot:activator="{ on, attrs }">
                     <v-btn icon class = "ma-2" color="white"
@@ -180,21 +197,45 @@ export default {
                           
 
                 </v-card-title>
-                <v-virtual-scroll
-                  :items="tripId"
-                  :height="height"
-                  :item-height="41"
+              <v-card
+                max-width="100%"
+                :height="height"
+                class="mx-auto scrollable"
+              >
+              
+                <v-list-item><v-select
+                  :items="['route_type','agency_id','route_id']"
+                  v-model="selectedFilter"
+                  prepend-icon="fas fa-filter"
+                  label="filter"
+                  color="secondary"
+                ></v-select></v-list-item>
+                <template v-for="(value, key) in classifiedTripId" >
                   
+                <v-list-group
+                  :key="key"
+                  color="secondary"
+                  :value="true"
+                  no-action
                 >
-                  <template v-slot:default="{ item }">
-                    <v-list-item :key="item.id">
+                
+                  <template v-slot:activator>
+                    <v-list-item-content>
+                      <v-list-item-title><strong>{{value.name}}</strong></v-list-item-title>
+                    </v-list-item-content>
+                  </template>
+  
+                    <v-list-item v-for="(item, i) in value.tripId"
+                        :key="i" 
+                        class="pl-2"
+                        >
                       <v-list-item-action >
                         <v-checkbox
                           :on-icon="'fa-eye fa'"
                           :off-icon="'fa-eye-slash fa'"
                           :color="'primary'"
                           :value="item"
-                          size="30"
+                          size="10"
                           v-model="tripList"
                           hide-details
                         />
@@ -205,9 +246,6 @@ export default {
                         <v-list-item-title v-else>
                           {{ item }}
                         </v-list-item-title>
-
-                      <v-list-item-avatar>
-
                         <v-tooltip bottom open-delay="500" >
                           <template v-slot:activator="{ on, attrs }">
                             <v-btn icon class="ma-1" 
@@ -222,9 +260,6 @@ export default {
                         </v-tooltip>  
 
                     
-                      </v-list-item-avatar>
-
-                      <v-list-item-action>
                         <v-tooltip bottom open-delay="500">
                           <template v-slot:activator="{ on, attrs }">
                             <v-btn icon class="ma-1" 
@@ -237,9 +272,7 @@ export default {
                           </template>
                           <span>{{ $gettext("Edit Line Properties")}}</span>
                         </v-tooltip>  
-                      </v-list-item-action>
-                      
-                      <v-list-item-action>
+                     
                         <v-tooltip bottom open-delay="500">
                           <template v-slot:activator="{ on, attrs }">
                             <v-btn icon class="ma-1" 
@@ -252,13 +285,15 @@ export default {
                           </template>
                           <span>{{ $gettext("Delete Line")}}</span>
                         </v-tooltip>  
-                      </v-list-item-action>
 
-                    </v-list-item>
-                  </template>
-                </v-virtual-scroll>
+                    </v-list-item>      
+                </v-list-group>
+                </template>
                 <v-divider></v-divider>
-                <v-card-actions v-if="editorTrip ? true: false">
+                
+              </v-card>
+              <v-card class = "mx-auto" >
+              <v-list-item v-if="editorTrip ? true: false" >
                   <v-spacer></v-spacer>
                   <v-btn @click="$emit('abortChanges')"> 
                     <v-icon small left>
@@ -272,8 +307,8 @@ export default {
                     </v-icon>
                     {{$gettext("Confirm")}}
                   </v-btn>
-                </v-card-actions>
-                <v-card-actions v-show="editorTrip ? false: true">
+              </v-list-item>
+                <v-list-item v-show="editorTrip ? false: true">
                   <v-spacer></v-spacer>
 
                   <v-tooltip bottom open-delay="500">
@@ -293,7 +328,7 @@ export default {
                   </v-tooltip>  
 
                   
-                </v-card-actions>
+                </v-list-item>
               </v-card>
             </div>
             
@@ -365,6 +400,9 @@ export default {
   
   
 }
+.v-list__tile {
+  padding: 0  
+}
 .left-panel-toggle-btn {
   position: absolute;
   left: 100%;
@@ -384,6 +422,10 @@ export default {
   padding-left: 20px;
   font-size: 1.1em;
   margin-bottom: 10px;
+}
+.trip-list {
+  height: height;
+  padding-left:20px
 }
 
 .scrollable {
