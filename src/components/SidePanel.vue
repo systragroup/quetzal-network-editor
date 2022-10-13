@@ -27,6 +27,9 @@ export default {
       selectedFilter: 'route_type',
     }
   },
+  created () {
+    this.tripList = this.$store.getters.tripId
+  },
   computed:{
     showLeftPanel() {return this.$store.getters.showLeftPanel},
     height() {return (window.innerHeight-80) - 20*3 - 80 },
@@ -158,12 +161,11 @@ export default {
 
     <section
       ref="leftPanelDiv"
-      class="left-panel elevation-4"
-      :style="{'width': showLeftPanel ? '400px' : '0'}"
+      :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
+      :style="{'width': showLeftPanel ? '400px' : '0px'}"
     >
       <div
         class="left-panel-toggle-btn elevation-4"
-        :style="{'left': showLeftPanel ? 'calc(350px + 40px)' : '50px'}"
         @click="$store.commit('changeLeftPanel')"
       >
         <v-icon
@@ -179,7 +181,7 @@ export default {
           class="left-panel-content"
         >
           <div>
-            <div :style="{margin: '20px'}">
+            <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
                <v-card-title class = "white--text secondary">
                   <v-tooltip bottom open-delay="500">
                     <template v-slot:activator="{ on, attrs }">
@@ -259,6 +261,7 @@ export default {
                         >
                       <v-list-item-action >
                         <v-checkbox
+                        class="pl-2"
                           :on-icon="'fa-eye fa'"
                           :off-icon="'fa-eye-slash fa'"
                           :color="'primary'"
@@ -411,11 +414,13 @@ export default {
   height: 100%;
   background-color: $primary-dark;
   transition: 0.3s;
+  position: absolute;
   display:flex;
   z-index: 20;
-  resize: horizontal;
-  overflow: auto;
   
+}
+.left-panel-close {
+transition:0.3s
 }
 .left-panel-content {
   display: flex;
@@ -432,12 +437,12 @@ export default {
   padding: 0  
 }
 .left-panel-toggle-btn {
-  position: absolute;
   left: 100%;
   width: 25px;
   z-index: 1;
   background-color: $primary-dark;
   display: flex;
+  position: relative;
   align-items: center;
   justify-content: center;
   height: 50px;
