@@ -57,7 +57,6 @@ export default {
   watch: {
     showLeftPanel (val) {
       if (val) {
-        console.log(this.classifiedTripId)
         // Leave time for animation to end (.fade-enter-active css rule)
         setTimeout(() => {
           this.showLeftPanelContent = true
@@ -86,7 +85,7 @@ export default {
         old_val.forEach((key, i) => dict[key] = new_val[i]);
         this.tripList = this.tripList.map((trip)=>dict[trip])
       }
-    }
+    },
   },
 
   methods: {
@@ -135,6 +134,17 @@ export default {
       {
         this.tripList = this.tripId
       }
+      
+    },
+    showGroup(val){
+      //all values are selected : uncheck all
+      if (val.every(value =>  this.tripList.includes(value))){
+        this.tripList = this.tripList.filter(trip => !val.includes(trip))
+      } //not all are selected, select all.
+      else{
+        this.tripList = Array.from(new Set([...this.tripList, ...val]))
+      }
+
       
     },
   
@@ -224,6 +234,20 @@ export default {
                 >
                 
                   <template v-slot:activator>
+                    <v-list-item-action >
+                      <v-tooltip bottom open-delay="500">
+                        <template v-slot:activator="{ on, attrs }">
+                        <v-btn icon 
+                                v-bind="attrs"
+                                v-on="on"
+                                @click.stop="showGroup(value.tripId)">
+                            <v-icon  class="list-item-icon">fa-eye fa</v-icon>
+                        </v-btn>
+                        </template>
+                        <span>{{ value.tripId.every(val => tripList.includes(val))? $gettext("Hide All"): $gettext("Show All")}}</span>
+                      </v-tooltip>  
+                        
+                      </v-list-item-action>
                     <v-list-item-content>
                       <v-list-item-title><strong>{{value.name}}</strong></v-list-item-title>
                     </v-list-item-content>
