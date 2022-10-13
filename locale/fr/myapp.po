@@ -22,7 +22,7 @@ msgstr ""
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:296
+#: src/components/SidePanel.vue:351
 msgid "Abort"
 msgstr "Annuler"
 
@@ -34,11 +34,11 @@ msgstr ""
 msgid "Add Stop Inline"
 msgstr "Ajouter un Arrêt en ligne"
 
-#: src/components/SidePanel.vue:396 src/pages/Home.vue:74
+#: src/components/SidePanel.vue:451 src/pages/Home.vue:74
 msgid "Cancel"
 msgstr "Annuler"
 
-#: src/components/SidePanel.vue:97
+#: src/components/SidePanel.vue:123
 msgid "Click on the map to start drawing"
 msgstr "Cliquer sur la carte pour commencer"
 
@@ -46,7 +46,7 @@ msgstr "Cliquer sur la carte pour commencer"
 msgid "Close"
 msgstr "Fermer"
 
-#: src/components/SidePanel.vue:314
+#: src/components/SidePanel.vue:369
 msgid "Confirm"
 msgstr "Valider"
 
@@ -54,7 +54,7 @@ msgstr "Valider"
 msgid "Create a network from scratch"
 msgstr "Créer un réseau à partir de zéro"
 
-#: src/components/SidePanel.vue:349
+#: src/components/SidePanel.vue:404
 msgid "Create new Line"
 msgstr "Créer une nouvelle ligne"
 
@@ -70,7 +70,7 @@ msgstr "Couper depuis l'arrêt"
 msgid "Delete "
 msgstr "Supprimer "
 
-#: src/components/SidePanel.vue:265
+#: src/components/SidePanel.vue:316
 msgid "Delete Line"
 msgstr "Supprimer"
 
@@ -80,9 +80,11 @@ msgstr "Supprimer arrêt"
 
 #: src/pages/Home.vue:56
 msgid "double click to edit line, right click to edit line properties"
-msgstr "Double clique pour modifier une ligne, clique droit pour modifier les propriétés"
+msgstr ""
+"Double clique pour modifier une ligne, clique droit pour modifier les "
+"propriétés"
 
-#: src/components/SidePanel.vue:194
+#: src/components/SidePanel.vue:255
 msgid "Edit Line"
 msgstr "Modifier la ligne"
 
@@ -90,7 +92,7 @@ msgstr "Modifier la ligne"
 msgid "Edit Line Info"
 msgstr "Modifier les infos de la ligne"
 
-#: src/components/SidePanel.vue:229
+#: src/components/SidePanel.vue:285
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
@@ -114,7 +116,7 @@ msgstr "Exemple"
 msgid "Export"
 msgstr "Exporter"
 
-#: src/components/SidePanel.vue:121
+#: src/components/SidePanel.vue:117
 msgid "Export Files"
 msgstr "Exporter"
 
@@ -126,7 +128,7 @@ msgstr "Prolonger la ligne en aval"
 msgid "Extend Line Upward"
 msgstr "Prolonger la Ligne en amont"
 
-#: src/components/SidePanel.vue:90
+#: src/components/SidePanel.vue:86 src/components/SidePanel.vue:174
 msgid "Hide All"
 msgstr "Cacher Tout"
 
@@ -147,7 +149,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
-#: src/components/SidePanel.vue:95
+#: src/components/SidePanel.vue:91
 msgid "Lines"
 msgstr "Lignes"
 
@@ -188,7 +190,7 @@ msgstr "Déplacer l'arrêt"
 msgid "New Project"
 msgstr "Nouveau Projet"
 
-#: src/components/SidePanel.vue:406 src/pages/Login.vue:162
+#: src/components/SidePanel.vue:461 src/pages/Login.vue:162
 msgid "No"
 msgstr "Non"
 
@@ -212,15 +214,15 @@ msgstr "Clique droit pour modifier"
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/components/SidePanel.vue:384
+#: src/components/SidePanel.vue:439
 msgid "Save Changes?"
 msgstr "Sauvegarder ?"
 
-#: src/components/SidePanel.vue:90
+#: src/components/SidePanel.vue:86 src/components/SidePanel.vue:174
 msgid "Show All"
 msgstr "Montrer Tout"
 
-#: src/components/SidePanel.vue:415 src/pages/Login.vue:171
+#: src/components/SidePanel.vue:470 src/pages/Login.vue:171
 msgid "Yes"
 msgstr "Oui"
 

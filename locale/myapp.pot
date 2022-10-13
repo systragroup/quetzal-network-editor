@@ -14,7 +14,7 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:296
+#: src/components/SidePanel.vue:351
 msgid "Abort"
 msgstr ""
 
@@ -26,12 +26,12 @@ msgstr ""
 msgid "Add Stop Inline"
 msgstr ""
 
-#: src/components/SidePanel.vue:396
+#: src/components/SidePanel.vue:451
 #: src/pages/Home.vue:74
 msgid "Cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:97
+#: src/components/SidePanel.vue:123
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -39,7 +39,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:314
+#: src/components/SidePanel.vue:369
 msgid "Confirm"
 msgstr ""
 
@@ -47,7 +47,7 @@ msgstr ""
 msgid "Create a network from scratch"
 msgstr ""
 
-#: src/components/SidePanel.vue:349
+#: src/components/SidePanel.vue:404
 msgid "Create new Line"
 msgstr ""
 
@@ -63,7 +63,7 @@ msgstr ""
 msgid "Delete "
 msgstr ""
 
-#: src/components/SidePanel.vue:265
+#: src/components/SidePanel.vue:316
 msgid "Delete Line"
 msgstr ""
 
@@ -75,7 +75,7 @@ msgstr ""
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 
-#: src/components/SidePanel.vue:194
+#: src/components/SidePanel.vue:255
 msgid "Edit Line"
 msgstr ""
 
@@ -83,7 +83,7 @@ msgstr ""
 msgid "Edit Line Info"
 msgstr ""
 
-#: src/components/SidePanel.vue:229
+#: src/components/SidePanel.vue:285
 msgid "Edit Line Properties"
 msgstr ""
 
@@ -107,7 +107,7 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/components/SidePanel.vue:121
+#: src/components/SidePanel.vue:117
 msgid "Export Files"
 msgstr ""
 
@@ -119,7 +119,8 @@ msgstr ""
 msgid "Extend Line Upward"
 msgstr ""
 
-#: src/components/SidePanel.vue:90
+#: src/components/SidePanel.vue:86
+#: src/components/SidePanel.vue:174
 msgid "Hide All"
 msgstr ""
 
@@ -140,7 +141,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:95
+#: src/components/SidePanel.vue:91
 msgid "Lines"
 msgstr ""
 
@@ -180,7 +181,7 @@ msgstr ""
 msgid "New Project"
 msgstr ""
 
-#: src/components/SidePanel.vue:406
+#: src/components/SidePanel.vue:461
 #: src/pages/Login.vue:162
 msgid "No"
 msgstr ""
@@ -205,15 +206,16 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: src/components/SidePanel.vue:384
+#: src/components/SidePanel.vue:439
 msgid "Save Changes?"
 msgstr ""
 
-#: src/components/SidePanel.vue:90
+#: src/components/SidePanel.vue:86
+#: src/components/SidePanel.vue:174
 msgid "Show All"
 msgstr ""
 
-#: src/components/SidePanel.vue:415
+#: src/components/SidePanel.vue:470
 #: src/pages/Login.vue:171
 msgid "Yes"
 msgstr ""
