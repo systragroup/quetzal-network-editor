@@ -18,8 +18,8 @@ Properties from link table are automatically splited into 2 categories: **links 
 - ***index*** (non editable): unique identifier.
 - ***a*** (non editable): Id of the first node.
 - ***b*** (non editable): Id of the last node.
-- ***time***: Travel time along the link in seconds.
-- ***length*** (optional): distance along the link in meters.
+- ***time***: Travel time along the link in seconds. set as Lenght/20kmh when a link is created or edited.
+- ***length*** : links geometry linestring length (meters)
 - ***link_sequence***: Order of link for a particular line.
 - ***pickup_type***: pickup method at node *a*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
 - ***drop_off_type***: drop off method at node *b*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
