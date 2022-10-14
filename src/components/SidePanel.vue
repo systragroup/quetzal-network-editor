@@ -135,10 +135,10 @@ export default {
       }
     },
     showGroup (val) {
-      // all values are selected : uncheck all
-      if (val.every(value => this.tripList.includes(value))) {
+      // at least one value is selected in the group : uncheck all
+      if (val.some(value => this.tripList.includes(value))) {
         this.tripList = this.tripList.filter(trip => !val.includes(trip))
-      // not all are selected, select all.
+      // none are selected : select All.
       } else {
         this.tripList = Array.from(new Set([...this.tripList, ...val]))
       }
@@ -251,12 +251,14 @@ export default {
                             @click.stop="showGroup(value.tripId)"
                           >
                             <v-icon class="list-item-icon">
-                              fa-eye fa
+                              {{ value.tripId.some(val => tripList.includes(val))
+                                ? 'fa-eye fa' :
+                                  'fa-eye-slash fa' }}
                             </v-icon>
                           </v-btn>
                         </template>
                         <span>
-                          {{ value.tripId.every(val => tripList.includes(val))
+                          {{ value.tripId.some(val => tripList.includes(val))
                             ? $gettext("Hide All"):
                               $gettext("Show All") }}
                         </span>
