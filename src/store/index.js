@@ -3,11 +3,9 @@ import Vuex from 'vuex'
 import linksModule from './links.js'
 Vue.use(Vuex)
 
-
-
 export const store = new Vuex.Store({
   modules: {
-    links : linksModule,
+    links: linksModule,
   },
 
   state: {
@@ -25,6 +23,5 @@ export const store = new Vuex.Store({
   getters: {
     notification: (state) => state.notification,
     showLeftPanel: (state) => state.showLeftPanel,
-    
   },
 })
