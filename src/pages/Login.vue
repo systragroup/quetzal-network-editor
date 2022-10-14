@@ -40,8 +40,13 @@ export default {
     },
 
   },
-  mounted () {
-    // this.$store.commit('changeRoute', this.$options.name)
+  created () {
+    const cookieLinks = this.$localStorage.get('links')
+    const cookieNodes = this.$localStorage.get('nodes')
+    if (Object.keys(cookieLinks).length !== 0 && Object.keys(cookieNodes).length !== 0) {
+      this.$store.commit('loadLinks', cookieLinks)
+      this.$store.commit('loadNodes', cookieNodes)
+    }
   },
   methods: {
     login () {
@@ -58,6 +63,9 @@ export default {
           this.loadExample()
         } else if (choice === 'newProject') {
           this.newProject()
+        } else if (choice === 'zip') {
+          // read zip witjh links and nodes.
+          this.$refs.zipInput.click()
         } else {
           // read json links or node (depending on choice)
           this.$refs.fileInput.click()
@@ -67,10 +75,17 @@ export default {
       }
     },
     applyDialog () {
+      // this only happen when both files are loaded.
+      // remove links and nodes from store. (and filesAreLoaded)
+      this.$store.commit('unloadFiles')
+
       if (this.choice === 'example') {
         this.loadExample()
       } else if (this.choice === 'newProject') {
         this.newProject()
+      } else if (this.choice === 'zip') {
+        // handle click and open file explorer
+        this.$refs.zipInput.click()
       } else {
         // this only happen when both files are loaded.
         // remove links and nodes from store. (and filesAreLoaded)
@@ -127,6 +142,43 @@ export default {
         }
       }
     },
+    readZip (event) {
+      this.loading[this.choice] = true
+      const files = event.target.files
+      // there is a file
+      if (!files.length) {
+        this.loading[this.choice] = false
+        return
+      }
+      // it is a geojson
+      if (files[0].name.slice(-3) !== 'zip') {
+        this.loading[this.choice] = false
+        alert('file is not a zip')
+        return
+      }
+
+      const fileReader = new FileReader()
+      fileReader.readAsText(files[0])
+      if (this.choice === 'links') {
+        fileReader.onload = evt => {
+          try {
+            this.loadedLinks = JSON.parse(evt.target.result)
+          } catch (e) {
+            this.$store.commit('changeNotification', { text: e.message, autoClose: true, color: 'red darken-2' })
+            this.loading[this.choice] = false
+          }
+        }
+      } else if (this.choice === 'nodes') {
+        fileReader.onload = evt => {
+          try {
+            this.loadedNodes = JSON.parse(evt.target.result)
+          } catch (e) {
+            alert(e.message)
+            this.loading[this.choice] = false
+          }
+        }
+      }
+    },
   },
 }
 </script>
@@ -151,40 +203,60 @@ export default {
           <div>
             {{ $gettext("Links and Nodes files must be geojson in EPSG:4326") }}
           </div>
-          <v-btn
-            :loading="loading.links"
-            :color=" Object.keys(loadedLinks).length != 0? 'primary': 'normal'"
-            @click="buttonHandle('links')"
-          >
-            <v-icon
-              small
-              left
+          <div class=" text-xs-center">
+            <v-btn
+              :loading="loading.links"
+              :color=" Object.keys(loadedLinks).length != 0? 'primary': 'normal'"
+              @click="buttonHandle('links')"
             >
-              fa-solid fa-upload
-            </v-icon>
-            {{ $gettext('Links') }}
-          </v-btn>
-
-          <v-btn
-            :loading="loading.nodes"
-            :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
-            @click="buttonHandle('nodes')"
-          >
-            <v-icon
-              small
-              left
+              <v-icon
+                small
+                left
+              >
+                fa-solid fa-upload
+              </v-icon>
+              {{ $gettext('Links') }}
+            </v-btn>
+            <v-btn
+              :loading="loading.nodes"
+              :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
+              @click="buttonHandle('nodes')"
             >
-              fa-solid fa-upload
-            </v-icon>
-            {{ $gettext('Nodes') }}
-          </v-btn>
-
+              <v-icon
+                small
+                left
+              >
+                fa-solid fa-upload
+              </v-icon>
+              {{ $gettext('Nodes') }}
+            </v-btn>
+            <v-btn
+              :loading="loading.nodes"
+              :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
+              @click="buttonHandle('zip')"
+            >
+              <v-icon
+                small
+                left
+              >
+                fa-solid fa-upload
+              </v-icon>
+              {{ $gettext('zip') }}
+            </v-btn>
+          </div>
           <input
             ref="fileInput"
             type="file"
             style="display: none"
             accept=".geojson"
             @change="onFilePicked"
+          >
+          <input
+            ref="zipInput"
+            type="file"
+            style="display: none"
+            accept=".zip"
+            @change="readZip"
           >
 
           <div>

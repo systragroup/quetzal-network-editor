@@ -46,6 +46,8 @@ export default {
               (item) => item.properties.trip_id),
           ),
         )
+        // eslint-disable-next-line no-unused-expressions
+        // c == null | c === undefined ? c = 'null' : ''
         classifiedTripId.push({ name: c, tripId: arr })
       })
       return classifiedTripId
