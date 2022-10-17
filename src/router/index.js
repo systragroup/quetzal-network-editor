@@ -18,7 +18,7 @@ const router = new Router({
       path: '/',
       name: Login.name,
       component: Login,
-      icon: 'fa-light fa-file-import',
+      icon: 'fa-solid fa-upload',
       title: $gettext('Import'),
     },
     {

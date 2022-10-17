@@ -250,7 +250,7 @@ export default {
                     small
                     left
                   >
-                    fa-solid fa-upload
+                    fas fa-file-archive
                   </v-icon>
                   {{ 'zip' }}
                 </v-btn>

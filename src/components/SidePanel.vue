@@ -309,7 +309,7 @@ export default {
                           @click="editButton(item)"
                         >
                           <v-icon :color="item == editorTrip? 'regular':'regular' ">
-                            fa-regular fa-pen
+                            fas fa-pen
                           </v-icon>
                         </v-btn>
                       </template>
@@ -330,7 +330,7 @@ export default {
                           @click="propertiesButton(item)"
                         >
                           <v-icon :color="item == editorTrip? 'regular':'regular' ">
-                            fa-regular fa-table
+                            fas fa-table
                           </v-icon>
                         </v-btn>
                       </template>
@@ -354,7 +354,7 @@ export default {
                             small
                             color="regular"
                           >
-                            fa-regular fa-trash
+                            fas fa-trash
                           </v-icon>
                         </v-btn>
                       </template>
