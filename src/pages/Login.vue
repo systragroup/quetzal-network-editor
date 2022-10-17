@@ -4,6 +4,7 @@ import linksExample from '@static/links_exemple.geojson'
 import nodesExample from '@static/nodes_exemple.geojson'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
+import JSZip from 'jszip'
 
 export default {
   name: 'Login',
@@ -13,7 +14,7 @@ export default {
       loadedLinks: {},
       loadedNodes: {},
       choice: null,
-      loading: { links: false, nodes: false },
+      loading: { links: false, nodes: false, zip: false },
       showDialog: false,
     }
   },
@@ -143,41 +144,41 @@ export default {
       }
     },
     readZip (event) {
-      this.loading[this.choice] = true
+      this.loading.zip = true
       const files = event.target.files
       // there is a file
       if (!files.length) {
-        this.loading[this.choice] = false
+        this.loading.zip = false
         return
       }
-      // it is a geojson
+      // it is a zip
       if (files[0].name.slice(-3) !== 'zip') {
-        this.loading[this.choice] = false
+        this.loading.zip = false
         alert('file is not a zip')
         return
       }
-
-      const fileReader = new FileReader()
-      fileReader.readAsText(files[0])
-      if (this.choice === 'links') {
-        fileReader.onload = evt => {
-          try {
-            this.loadedLinks = JSON.parse(evt.target.result)
-          } catch (e) {
-            this.$store.commit('changeNotification', { text: e.message, autoClose: true, color: 'red darken-2' })
-            this.loading[this.choice] = false
-          }
-        }
-      } else if (this.choice === 'nodes') {
-        fileReader.onload = evt => {
-          try {
-            this.loadedNodes = JSON.parse(evt.target.result)
-          } catch (e) {
-            alert(e.message)
-            this.loading[this.choice] = false
-          }
-        }
-      }
+      const zip = new JSZip()
+      zip.loadAsync(files[0] /* = file blob */)
+        .then((zip) => {
+          // process ZIP file content here
+          Object.keys(zip.files).forEach((key) => {
+            if (zip.files[key].name.slice(-7) === 'geojson') {
+              let fileName = key.split('/')
+              fileName = fileName[fileName.length - 1]
+              zip.file(key).async('string').then((str) => {
+                const content = JSON.parse(str)
+                if (fileName.includes('links')) {
+                  this.choice = 'links'
+                  this.loadedLinks = content
+                } else if (fileName.includes('nodes')) {
+                  this.choice = 'nodes'
+                  this.loadedNodes = content
+                }
+              }).catch(() => { }) // remove alert, this happen when there is more file in the zip, ex: DS_STORE
+            }
+          })
+          this.loading.zip = false
+        }, () => { alert('Not a valid zip file'); this.loading.zip = false })
     },
   },
 }
@@ -231,8 +232,8 @@ export default {
               {{ $gettext('Nodes') }}
             </v-btn>
             <v-btn
-              :loading="loading.nodes"
-              :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
+              :loading="loading.zip"
+              :color="'normal'"
               @click="buttonHandle('zip')"
             >
               <v-icon
