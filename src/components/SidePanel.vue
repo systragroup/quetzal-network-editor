@@ -236,7 +236,7 @@ export default {
                 <v-list-group
                   :key="key"
                   color="secondary"
-                  :value="true"
+                  :value="false"
                   no-action
                 >
                   <template v-slot:activator>

@@ -41,12 +41,15 @@ export default {
     },
 
   },
-  created () {
+  mounted () {
+    this.$store.commit('changeNotification', '')
     const cookieLinks = this.$localStorage.get('links')
     const cookieNodes = this.$localStorage.get('nodes')
     if (Object.keys(cookieLinks).length !== 0 && Object.keys(cookieNodes).length !== 0) {
-      this.$store.commit('loadLinks', cookieLinks)
-      this.$store.commit('loadNodes', cookieNodes)
+      if (!this.filesAreLoaded) {
+        this.$store.commit('loadLinks', cookieLinks)
+        this.$store.commit('loadNodes', cookieNodes)
+      }
     }
   },
   methods: {
@@ -231,19 +234,31 @@ export default {
               </v-icon>
               {{ $gettext('Nodes') }}
             </v-btn>
-            <v-btn
-              :loading="loading.zip"
-              :color="'normal'"
-              @click="buttonHandle('zip')"
+            <v-tooltip
+              bottom
+              open-delay="500"
             >
-              <v-icon
-                small
-                left
-              >
-                fa-solid fa-upload
-              </v-icon>
-              {{ $gettext('zip') }}
-            </v-btn>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  v-bind="attrs"
+                  :loading="loading.zip"
+                  :color="'normal'"
+                  v-on="on"
+                  @click="buttonHandle('zip')"
+                >
+                  <v-icon
+                    small
+                    left
+                  >
+                    fa-solid fa-upload
+                  </v-icon>
+                  {{ 'zip' }}
+                </v-btn>
+              </template>
+              <span>{{ $gettext("Load a zip file containing") }}</span>
+              <br>
+              <span>{{ $gettext("nodes.geojson and links.geojson") }}</span>
+            </v-tooltip>
           </div>
           <input
             ref="fileInput"
