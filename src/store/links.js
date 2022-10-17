@@ -164,6 +164,7 @@ export default {
 
       if (payload.action === 'Extend Line Upward') {
         // Take last link and copy properties
+        // eslint-disable-next-line no-var
         var features = tempLink.features[tempLink.features.length - 1]
         Object.assign(features.properties, uncopiedPropeties)
         // sequence +1
@@ -494,7 +495,7 @@ export default {
       // apply new node geometry
       linksA.forEach(link => link.geometry.coordinates = [
         state.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
-        link.geometry.coordinates[1]
+        link.geometry.coordinates[1],
       ])
       // same for nodes b
       const linksB = state.links.features.filter(
@@ -502,7 +503,7 @@ export default {
         item => editorNodesList.includes(item.properties.b))
       linksB.forEach(link => link.geometry.coordinates = [
         link.geometry.coordinates[0],
-        state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates
+        state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
       ])
 
       state.newLink = {}

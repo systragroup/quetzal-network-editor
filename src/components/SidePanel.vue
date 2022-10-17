@@ -219,6 +219,7 @@ export default {
             </v-card-title>
             <v-card
               max-width="100%"
+              min-width="100%"
               :height="height"
               class="mx-auto scrollable"
             >
@@ -471,13 +472,13 @@ export default {
 transition:0.3s
 }
 .left-panel-content {
-  display: flex;
+  display:inline-block;
   width : 100%;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
   //resize: horizontal;
-  //overflow: auto;
+  overflow: auto;
 
 }
 .v-list__tile {
