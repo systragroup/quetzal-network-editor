@@ -437,6 +437,12 @@ export default {
       )
     },
 
+    appendNewFile (state, payload) {
+      state.links.features.push(...payload.links.features)
+      state.nodes.features.push(...payload.nodes.features)
+      this.commit('getTripId')
+    },
+
     confirmChanges (state) { // apply change to Links
       // add editor Line info to each editor links
       const props = Object.keys(state.editorLineInfo)
