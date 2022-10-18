@@ -36,6 +36,9 @@ export default {
       if (this.pcolor[0] !== '#') {
         this.color = '#'.concat(this.pcolor)
       }
+      if (this.pcolor[0] === '#') {
+        this.$emit('update-color', this.pcolor.slice(1))
+      }
     },
   },
 
