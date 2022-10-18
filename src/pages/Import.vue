@@ -66,6 +66,9 @@ export default {
     },
 
   },
+  mounted () {
+    this.$store.commit('changeNotification', '')
+  },
   methods: {
     applyDialog () {
       console.log('apply dialog')
