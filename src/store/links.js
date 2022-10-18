@@ -526,7 +526,6 @@ export default {
     },
 
     exportFiles (state, payload = []) {
-      console.log(payload)
       const zip = new JSZip()
       const folder = zip.folder('output')
       let links = ''

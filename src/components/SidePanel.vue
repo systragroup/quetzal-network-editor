@@ -198,27 +198,20 @@ export default {
               <v-spacer />
               <v-menu
                 offset-y
+                open-on-hover
                 transition="slide-y-transition"
               >
-                <template v-slot:activator="{ on: menu, attrs }">
-                  <v-tooltip
-                    bottom
-                    open-delay="500"
+                <template v-slot:activator="{ on: on,attrs:attrs }">
+                  <v-btn
+                    icon
+                    class="ma-2"
+                    color="white"
+                    dark
+                    v-bind="attrs"
+                    v-on="on"
                   >
-                    <template v-slot:activator="{ on: tooltip }">
-                      <v-btn
-                        icon
-                        class="ma-2"
-                        color="white"
-                        dark
-                        v-bind="attrs"
-                        v-on="{ ...tooltip, ...menu }"
-                      >
-                        <v-icon>fa-solid fa-download</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $gettext("Export Files") }}</span>
-                  </v-tooltip>
+                    <v-icon>fa-solid fa-download</v-icon>
+                  </v-btn>
                 </template>
                 <v-list>
                   <v-list-item
