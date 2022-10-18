@@ -35,7 +35,7 @@ export default {
           // console.log('all good')
         }
         if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(newLinks.crs.properties.name)) {
-          this.errorMessage = $gettext('invalid CRS. use CRS84 / EPSG:4326')
+          this.errorMessage = $gettext('invalid CRS. use CRS84 / EPSG:4326. Import aborted')
           this.loadedNodes = {}
           this.loadedLinks = {}
         }
