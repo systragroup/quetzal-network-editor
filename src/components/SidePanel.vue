@@ -1,11 +1,9 @@
 <script>
-
 const $gettext = s => s
 
 export default {
   name: 'SidePanel',
   components: {
-
   },
   model: {
     prop: 'selectedTrips',
@@ -198,24 +196,49 @@ export default {
               <v-spacer />
               {{ $gettext("Lines") }}
               <v-spacer />
-              <v-tooltip
-                bottom
-                open-delay="500"
+              <v-menu
+                offset-y
+                transition="slide-y-transition"
               >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    class="ma-2"
-                    color="white"
-                    v-bind="attrs"
-                    v-on="on"
+                <template v-slot:activator="{ on: menu, attrs }">
+                  <v-tooltip
+                    bottom
+                    open-delay="500"
+                  >
+                    <template v-slot:activator="{ on: tooltip }">
+                      <v-btn
+                        icon
+                        class="ma-2"
+                        color="white"
+                        dark
+                        v-bind="attrs"
+                        v-on="{ ...tooltip, ...menu }"
+                      >
+                        <v-icon>fa-solid fa-download</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $gettext("Export Files") }}</span>
+                  </v-tooltip>
+                </template>
+                <v-list>
+                  <v-list-item
+                    link
                     @click="$store.commit('exportFiles')"
                   >
-                    <v-icon>fa-solid fa-download</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $gettext("Export Files") }}</span>
-              </v-tooltip>
+                    <v-list-item-title>
+                      {{ $gettext("Export All") }}
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item
+                    link
+                    @click="$store.commit('exportFiles',tripList)"
+                  >
+                    <v-list-item-title>
+                      {{ $gettext("Export Only Visible") }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </v-card-title>
             <v-card
               max-width="100%"

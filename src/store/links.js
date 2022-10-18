@@ -525,18 +525,35 @@ export default {
       this.commit('getTripId')
     },
 
-    exportFiles (state) {
+    exportFiles (state, payload = []) {
+      console.log(payload)
       const zip = new JSZip()
       const folder = zip.folder('output')
+      let links = ''
+      let nodes = ''
+      // export only visible line (line selected)
+      if (payload.length > 1) {
+        const tempLinks = structuredClone(state.links)
+        tempLinks.features = tempLinks.features.filter(link => payload.includes(link.properties.trip_id))
+        links = JSON.stringify(tempLinks)
+        // delete every every nodes not in links
+        const a = tempLinks.features.map(item => item.properties.a)
+        const b = tempLinks.features.map(item => item.properties.b)
+        const nodesInLinks = Array.from(new Set([...a, ...b]))
+        const tempNodes = structuredClone(state.nodes)
+        tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+        nodes = JSON.stringify(tempNodes)
+
+      // export everything
+      } else {
+        links = JSON.stringify(state.links)
+        nodes = JSON.stringify(state.nodes)
+      }
       // eslint-disable-next-line no-var
-      var data = JSON.stringify(state.links)
-      // eslint-disable-next-line no-var
-      var blob = new Blob([data], { type: 'application/json' })
+      var blob = new Blob([links], { type: 'application/json' })
       folder.file('links.geojson', blob)
       // eslint-disable-next-line no-var, no-redeclare
-      var data = JSON.stringify(state.nodes)
-      // eslint-disable-next-line no-var, no-redeclare
-      var blob = new Blob([data], { type: 'application/json' })
+      var blob = new Blob([nodes], { type: 'application/json' })
       folder.file('nodes.geojson', blob)
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
