@@ -1,12 +1,14 @@
 <script>
 
 import JSZip from 'jszip'
+const $gettext = s => s
 
 export default {
   name: 'Import',
   data () {
     return {
       loggedIn: false,
+      errorMessage: '',
       loadedLinks: {},
       loadedNodes: {},
       choice: null,
@@ -28,12 +30,12 @@ export default {
         if (new Set([...linksIndex, ...newLinksIndex]).size !== (linksIndex.size + newLinksIndex.size)) {
           this.loadedLinks = {}
           this.loadedNodes = {}
-          alert('there is duplicated links index import aborted')
+          this.errorMessage = $gettext('there is duplicated links index. Import aborted')
         } else {
-          console.log('all good')
+          // console.log('all good')
         }
         if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(newLinks.crs.properties.name)) {
-          alert('invalid CRS. use CRS84 / EPSG:4326')
+          this.errorMessage = $gettext('invalid CRS. use CRS84 / EPSG:4326')
           this.loadedNodes = {}
           this.loadedLinks = {}
         }
@@ -44,14 +46,14 @@ export default {
         const nodesIndex = new Set(this.$store.getters.nodes.features.map(item => item.properties.index))
         const newNodesIndex = new Set(newNodes.features.map(item => item.properties.index))
         if (new Set([...nodesIndex, ...newNodesIndex]).size !== (nodesIndex.size + newNodesIndex.size)) {
-          alert('there is duplicated nodes index')
+          this.errorMessage = $gettext('there is duplicated nodes index. Import aborted')
           this.loadedNodes = {}
           this.loadedLinks = {}
         } else {
-          console.log('all good')
+          // console.log('all good')
         }
         if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(newNodes.crs.properties.name)) {
-          alert('invalid CRS. use CRS84 / EPSG:4326')
+          this.errorMessage = $gettext('invalid CRS. use CRS84 / EPSG:4326. Import aborted')
           this.loadedNodes = {}
           this.loadedLinks = {}
         }
@@ -59,8 +61,8 @@ export default {
     },
     localFilesAreLoaded (val) {
       if (val) {
-        console.log(this.loadedLinks)
         this.$store.commit('appendNewFile', { links: this.loadedLinks, nodes: this.loadedNodes })
+        this.loggedIn = true
         this.login()
       }
     },
@@ -71,7 +73,7 @@ export default {
   },
   methods: {
     applyDialog () {
-      console.log('apply dialog')
+      // console.log('apply dialog')
     },
     login () {
       // save as cookie
@@ -84,6 +86,9 @@ export default {
     },
     buttonHandle (choice) {
       this.choice = choice
+      this.loadedLinks = {}
+      this.loadedNodes = {}
+      this.errorMessage = ''
       // read zip witjh links and nodes.
       this.$refs.zipInput.click()
     },
@@ -98,7 +103,7 @@ export default {
       // it is a zip
       if (files[0].name.slice(-3) !== 'zip') {
         this.loading.zip = false
-        alert('file is not a zip')
+        this.errorMessage = $gettext('file is not a zip. Import aborted')
         return
       }
       const zip = new JSZip()
@@ -129,7 +134,7 @@ export default {
           // }
 
           this.loading.zip = false
-        }, () => { alert('Not a valid zip file'); this.loading.zip = false })
+        }, () => { this.errorMessage = $gettext('Not a valid zip file. Import aborted'); this.loading.zip = false })
     },
   },
 }
@@ -189,6 +194,9 @@ export default {
             accept=".zip"
             @change="readZip"
           >
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'red'}">
+          {{ errorMessage }}
         </v-card-text>
       </v-card>
     </div>

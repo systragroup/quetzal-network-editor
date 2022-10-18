@@ -36,6 +36,7 @@ export default {
     },
     localFilesAreLoaded (val) {
       if (val) {
+        this.loggedIn = true
         this.login()
       }
     },
