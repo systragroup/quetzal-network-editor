@@ -13,7 +13,7 @@ export default {
   events: ['update-color'],
   data () {
     return {
-      color: '',
+      color: '$primary',
       menu: false,
 
     }
@@ -24,14 +24,15 @@ export default {
       return {
         backgroundColor: color,
         cursor: 'pointer',
-        height: '30px',
-        width: '30px',
+        height: '20px',
+        width: '20px',
         borderRadius: menu ? '50%' : '4px',
         transition: 'border-radius 200ms ease-in-out',
       }
     },
   },
   watch: {
+    // this only happen when we type a value.
     pcolor (val) {
       if (this.pcolor[0] !== '#') {
         this.color = '#'.concat(this.pcolor)
@@ -43,12 +44,20 @@ export default {
   },
 
   mounted () {
-    if (this.pcolor[0] !== '#') {
+    // if it is null, do nothing, just put the blue color on the selection square.
+    if (this.pcolor === null) {
+      this.color = '#00BCD4'
+    // the input color never start with #, must add it for this component only (on local var this.color)
+    } else if (this.pcolor[0] !== '#') {
       this.color = '#'.concat(this.pcolor)
+    // it start with #, leave it as is (this should and will never be the case.)
+    } else {
+      this.color = this.pcolor
     }
   },
 
   methods: {
+    // this method is call when we select a color, the # is remove and pcolor is updated.
     updateColor (selectedColor) {
       this.color = selectedColor.hex
       this.$emit('update-color', this.color.slice(1))
