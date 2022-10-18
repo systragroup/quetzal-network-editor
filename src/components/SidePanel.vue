@@ -250,8 +250,9 @@ export default {
                   color="secondary"
                 />
               </v-list-item>
-              <template v-for="(value, key) in classifiedTripId">
+              <template>
                 <v-list-group
+                  v-for="(value, key) in classifiedTripId"
                   :key="key"
                   color="secondary"
                   :value="false"
