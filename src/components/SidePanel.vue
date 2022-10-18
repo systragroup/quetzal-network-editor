@@ -199,6 +199,7 @@ export default {
               <v-menu
                 offset-y
                 open-on-hover
+                close-delay="100"
                 transition="slide-y-transition"
               >
                 <template v-slot:activator="{ on: on,attrs:attrs }">
