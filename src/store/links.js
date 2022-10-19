@@ -119,10 +119,6 @@ export default {
       state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
     },
 
-    createNewLink (state) {
-
-    },
-
     setNewLink (state, payload) {
       // copy editor links geoJSON, only take first (or last) link.
       // delete some properties like id and index.
@@ -150,6 +146,7 @@ export default {
           time: null,
           pickup_type: 0,
           drop_off_type: 0,
+          link_sequence: 0,
           trip_id: state.editorTrip,
           ...lineProperties,
 
