@@ -78,31 +78,29 @@ export default {
         dense
         class="drawer-list"
       >
-        <template>
-          <v-list-item
-            v-for="item in getDisplayedRoutes()"
-            :key="item"
-            class="drawer-list-item"
-            :class="[ $store.getters.route === item.name ? 'drawer-list-item-selected' : '']"
-            :style="{marginTop: item.name === 'Export' ? 'auto' : '0'}"
-            @click.native.stop
-            @click="handleClickMenuItem(item)"
-          >
-            <v-list-item-action class="drawer-list-item-icon">
-              <v-icon
-                small
-                :title="$gettext(item.title)"
-              >
-                {{ item.icon }}
-              </v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title :style="{marginLeft: '20px', color: 'white'}">
-                {{ $gettext(item.title) }}
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
+        <v-list-item
+          v-for="( item,key ) in getDisplayedRoutes()"
+          :key="key"
+          class="drawer-list-item"
+          :class="[ $store.getters.route === item.name ? 'drawer-list-item-selected' : '']"
+          :style="{marginTop: item.name === 'Export' ? 'auto' : '0'}"
+          @click.native.stop
+          @click="handleClickMenuItem(item)"
+        >
+          <v-list-item-action class="drawer-list-item-icon">
+            <v-icon
+              small
+              :title="$gettext(item.title)"
+            >
+              {{ item.icon }}
+            </v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title :style="{marginLeft: '20px', color: 'white'}">
+              {{ $gettext(item.title) }}
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
   </transition>

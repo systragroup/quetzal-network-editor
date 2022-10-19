@@ -11,9 +11,7 @@ export default {
       errorMessage: '',
       loadedLinks: {},
       loadedNodes: {},
-      choice: null,
       loading: { zip: false },
-      showDialog: false,
     }
   },
 
@@ -72,9 +70,7 @@ export default {
     this.$store.commit('changeNotification', '')
   },
   methods: {
-    applyDialog () {
-      // console.log('apply dialog')
-    },
+
     login () {
       // save as cookie
       this.$localStorage.set('links', this.$store.getters.links)
@@ -85,7 +81,6 @@ export default {
       }, 1000)
     },
     buttonHandle (choice) {
-      this.choice = choice
       this.loadedLinks = {}
       this.loadedNodes = {}
       this.errorMessage = ''
@@ -200,35 +195,6 @@ export default {
         </v-card-text>
       </v-card>
     </div>
-    <v-dialog
-      v-model="showDialog"
-      persistent
-      max-width="350"
-      @keydown.enter="applyDialog"
-      @keydown.esc="showDialog=false"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Overwrite current Project ?") }}
-        </v-card-title>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="showDialog = !showDialog"
-          >
-            {{ $gettext("No") }}
-          </v-btn>
-
-          <v-btn
-            color="primary"
-            @click="applyDialog"
-          >
-            {{ $gettext("Yes") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </section>
 </template>
 <style lang="scss" scoped>
