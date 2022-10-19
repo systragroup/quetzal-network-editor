@@ -15,12 +15,20 @@ export default {
     return {
       color: '$primary',
       menu: false,
+      swatches: [
+        ['#FF0000', '#AA0000', '#550000'],
+        ['#FFFF00', '#AAAA00', '#555500'],
+        ['#00FF00', '#00AA00', '#005500'],
+        ['#00FFFF', '#00AAAA', '#005555'],
+        ['#0000FF', '#0000AA', '#000055'],
+      ],
 
     }
   },
   computed: {
     swatchStyle () {
       const { color, menu } = this
+
       return {
         backgroundColor: color,
         cursor: 'pointer',
@@ -44,6 +52,18 @@ export default {
   },
 
   mounted () {
+    this.swatches = []
+    const keys = Object.keys(this.$vuetify.theme.currentTheme.chart)
+    let tempArr = []
+    keys.map((key) => {
+      tempArr.push(this.$vuetify.theme.currentTheme.chart[key])
+      if (tempArr.length === 2) {
+        this.swatches.push(tempArr)
+        tempArr = []
+      }
+    })
+
+    console.log(this.swatches)
     // if it is null, do nothing, just put the blue color on the selection square.
     if (this.pcolor === null) {
       this.color = '#00BCD4'
@@ -86,6 +106,8 @@ export default {
         <v-color-picker
           :value="color"
           mode="hexa"
+          :swatches="swatches"
+          show-swatches
           flat
           @update:color="updateColor"
         />
