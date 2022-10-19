@@ -15,13 +15,7 @@ export default {
     return {
       color: '$primary',
       menu: false,
-      swatches: [
-        ['#FF0000', '#AA0000', '#550000'],
-        ['#FFFF00', '#AAAA00', '#555500'],
-        ['#00FF00', '#00AA00', '#005500'],
-        ['#00FFFF', '#00AAAA', '#005555'],
-        ['#0000FF', '#0000AA', '#000055'],
-      ],
+      swatches: [],
 
     }
   },
@@ -52,9 +46,10 @@ export default {
   },
 
   mounted () {
-    this.swatches = []
+    // get chart color and create a 2x4 Swatch for quick color selection.
     const keys = Object.keys(this.$vuetify.theme.currentTheme.chart)
     let tempArr = []
+    // eslint-disable-next-line array-callback-return
     keys.map((key) => {
       tempArr.push(this.$vuetify.theme.currentTheme.chart[key])
       if (tempArr.length === 2) {
@@ -63,10 +58,9 @@ export default {
       }
     })
 
-    console.log(this.swatches)
     // if it is null, do nothing, just put the blue color on the selection square.
     if (this.pcolor === null) {
-      this.color = '#00BCD4'
+      this.pcolor = this.$vuetify.theme.currentTheme.chart.lightblue
     // the input color never start with #, must add it for this component only (on local var this.color)
     } else if (this.pcolor[0] !== '#') {
       this.color = '#'.concat(this.pcolor)
