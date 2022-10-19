@@ -60,7 +60,8 @@ export default {
 
     // if it is null, do nothing, just put the blue color on the selection square.
     if (this.pcolor === null) {
-      this.pcolor = this.$vuetify.theme.currentTheme.chart.lightblue
+      this.color = this.$vuetify.theme.currentTheme.chart.lightblue
+      this.$emit('update-color', this.color.slice(1))
     // the input color never start with #, must add it for this component only (on local var this.color)
     } else if (this.pcolor[0] !== '#') {
       this.color = '#'.concat(this.pcolor)
@@ -76,6 +77,7 @@ export default {
       this.color = selectedColor.hex
       this.$emit('update-color', this.color.slice(1))
     },
+    test () { console.log('test') },
   },
 }
 </script>
@@ -96,7 +98,9 @@ export default {
       />
     </template>
     <v-card>
-      <v-card-text class="pa-0">
+      <v-card-text
+        class="pa-0"
+      >
         <v-color-picker
           :value="color"
           mode="hexa"
@@ -106,6 +110,17 @@ export default {
           @update:color="updateColor"
         />
       </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+
+        <v-btn
+          color="green darken-1"
+          outlined
+          @click="menu=false"
+        >
+          {{ $gettext("OK") }}
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-menu>
 </template>
