@@ -1,5 +1,6 @@
 <script>
 const $gettext = s => s
+const short = require('short-uuid')
 
 export default {
   name: 'SidePanel',
@@ -117,7 +118,7 @@ export default {
       }
     },
     createNewLine () {
-      const name = 'trip_' + (+new Date()).toString(36)
+      const name = 'trip_' + short.generate()
       this.$store.commit('setEditorTrip', { tripId: name, changeBounds: false })
       this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
       this.$store.commit('changeNotification',

@@ -32,6 +32,7 @@
     "mapbox-gl-vue": "^2.0.4",
     "moment": "^2.29.1",
     "promise-polyfill": "^8.2.0",
+    "short-uuid": "^4.2.2",
     "turf-linestring": "^1.0.2",
     "turf-point": "^2.0.1",
     "vue": "^2.6.14",

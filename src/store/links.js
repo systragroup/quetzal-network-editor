@@ -6,6 +6,7 @@ import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
+const short = require('short-uuid')
 
 export default {
   state: {
@@ -142,7 +143,7 @@ export default {
           lineProperties[key] = state.editorLineInfo[key].value
         })
         const linkProperties = {
-          index: 'link_' + (+new Date()).toString(36),
+          index: 'link_' + short.generate(),
           a: state.editorNodes.features[0].properties.index,
           b: state.editorNodes.features[0].properties.index,
           length: null,
@@ -177,7 +178,7 @@ export default {
         this.commit('setNewNode', payload)
 
         features.properties.b = state.newNode.features[0].properties.index
-        features.properties.index = 'link_' + (+new Date()).toString(36)
+        features.properties.index = 'link_' + short.generate()
       } else if (payload.action === 'Extend Line Downward') {
         // Take first link and copy properties
         // eslint-disable-next-line no-var, no-redeclare
@@ -192,7 +193,7 @@ export default {
         payload.nodeCopyId = features.properties.b
         this.commit('setNewNode', payload)
         features.properties.a = state.newNode.features[0].properties.index
-        features.properties.index = 'link_' + (+new Date()).toString(36)
+        features.properties.index = 'link_' + short.generate()
       }
       tempLink.features = [features]
       state.newLink = tempLink
@@ -200,7 +201,7 @@ export default {
     },
     createNewNode (state, payload) {
       const nodeProperties = {
-        index: 'node_' + (+new Date()).toString(36),
+        index: 'node_' + short.generate(),
         stop_code: null,
         stop_name: null,
       }
@@ -224,7 +225,7 @@ export default {
       const tempNode = JSON.parse(JSON.stringify(state.editorNodes))
       const features = tempNode.features.filter(node => node.properties.index === payload.nodeCopyId)[0]
       Object.assign(features.properties, uncopiedPropeties)
-      features.properties.index = 'node_' + (+new Date()).toString(36)
+      features.properties.index = 'node_' + short.generate()
       features.geometry.coordinates = coordinates
       tempNode.features = [features]
       state.newNode = tempNode
@@ -306,13 +307,13 @@ export default {
 
       link1.properties.b = state.newNode.features[0].properties.index
       link1.geometry.coordinates[1] = state.newNode.features[0].geometry.coordinates
-      link1.properties.index = 'link_' + (+new Date()).toString(36) + '1' // link1.properties.index+ '-1'
+      link1.properties.index = 'link_' + short.generate() // link1.properties.index+ '-1'
       link1.properties.length = link1.properties.length * ratio
       link1.properties.time = link1.properties.time * ratio
 
       link2.properties.a = state.newNode.features[0].properties.index
       link2.geometry.coordinates[0] = state.newNode.features[0].geometry.coordinates
-      link2.properties.index = 'link_' + (+new Date()).toString(36) + '2' // link2.properties.index+ '-2'
+      link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
       link2.properties.time = link2.properties.time * (1 - ratio)
 
