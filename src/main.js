@@ -154,11 +154,7 @@ Vue.mixin({
 
 const app = new Vue({
   localStorage: {
-    links: {
-      type: Object,
-      default: {},
-    },
-    nodes: {
+    info: {
       type: Object,
       default: {},
     },

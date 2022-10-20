@@ -44,20 +44,9 @@ export default {
   },
   mounted () {
     this.$store.commit('changeNotification', '')
-    const cookieLinks = this.$localStorage.get('links')
-    const cookieNodes = this.$localStorage.get('nodes')
-    if (Object.keys(cookieLinks).length !== 0 && Object.keys(cookieNodes).length !== 0) {
-      if (!this.filesAreLoaded) {
-        this.$store.commit('loadLinks', cookieLinks)
-        this.$store.commit('loadNodes', cookieNodes)
-      }
-    }
   },
   methods: {
     login () {
-      // save as cookie
-      this.$localStorage.set('links', this.$store.getters.links)
-      this.$localStorage.set('nodes', this.$store.getters.nodes)
       // Leave time for animation to end (.animate-login and .animate-layer css rules)
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})

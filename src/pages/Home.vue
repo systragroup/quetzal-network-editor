@@ -165,9 +165,6 @@ export default {
           break
         case 'deleteTrip':
           this.$store.commit('deleteTrip', this.tripToDelete)
-          // save as cookie
-          this.$localStorage.set('links', this.$store.getters.links)
-          this.$localStorage.set('nodes', this.$store.getters.nodes)
           break
         case 'Add Stop Inline':
           this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
@@ -188,9 +185,6 @@ export default {
     confirmChanges () {
       // confirm changes on sidePanel, this overwrite Links in store.
       this.$store.commit('confirmChanges')
-      // save Data as cookie
-      this.$localStorage.set('links', this.$store.getters.links)
-      this.$localStorage.set('nodes', this.$store.getters.nodes)
       // put editTrip and action to null.
       this.editorTrip = null
       this.$store.commit('setEditorTrip', { tripId: null, changeBounds: false })

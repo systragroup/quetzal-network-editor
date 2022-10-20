@@ -72,9 +72,6 @@ export default {
   methods: {
 
     login () {
-      // save as cookie
-      this.$localStorage.set('links', this.$store.getters.links)
-      this.$localStorage.set('nodes', this.$store.getters.nodes)
       // Leave time for animation to end (.animate-login and .animate-layer css rules)
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})
