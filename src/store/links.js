@@ -25,7 +25,7 @@ export default {
     speed: 20, // 20KmH for time (speed/distance)
     lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id',
       'headway', 'route_long_name', 'route_short_name',
-      'route_type', 'route_color'],
+      'route_type', 'route_color', 'route_width'],
   },
 
   mutations: {
