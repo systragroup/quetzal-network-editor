@@ -34,6 +34,7 @@ Properties from link table are automatically splited into 2 categories: **links 
 - ***route_long_name*** (optional): Long name for the route.
 - ***route_type*** (optional): Transportation mode for the line (e.g. bus, subway, tramway, etc.).
 - ***route_color*** (optional): Hex route color without '#' (i.e. 4287f5). Will be used for displaying lines.
+- ***route_width*** (optional): Line stroke width. Will be used for displaying lines. (by default 3)
 
 Any other properties in the table will be considered as link properties and values will be copied from the nearest link when creating a new link.
 

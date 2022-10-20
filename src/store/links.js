@@ -6,6 +6,7 @@ import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
+const short = require('short-uuid')
 
 export default {
   state: {
@@ -24,7 +25,7 @@ export default {
     speed: 20, // 20KmH for time (speed/distance)
     lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id',
       'headway', 'route_long_name', 'route_short_name',
-      'route_type', 'route_color'],
+      'route_type', 'route_color', 'route_width'],
   },
 
   mutations: {
@@ -118,10 +119,6 @@ export default {
       state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
     },
 
-    createNewLink (state) {
-
-    },
-
     setNewLink (state, payload) {
       // copy editor links geoJSON, only take first (or last) link.
       // delete some properties like id and index.
@@ -142,13 +139,14 @@ export default {
           lineProperties[key] = state.editorLineInfo[key].value
         })
         const linkProperties = {
-          index: 'link_' + (+new Date()).toString(36),
+          index: 'link_' + short.generate(),
           a: state.editorNodes.features[0].properties.index,
           b: state.editorNodes.features[0].properties.index,
           length: null,
           time: null,
           pickup_type: 0,
           drop_off_type: 0,
+          link_sequence: 0,
           trip_id: state.editorTrip,
           ...lineProperties,
 
@@ -164,6 +162,7 @@ export default {
 
       if (payload.action === 'Extend Line Upward') {
         // Take last link and copy properties
+        // eslint-disable-next-line no-var
         var features = tempLink.features[tempLink.features.length - 1]
         Object.assign(features.properties, uncopiedPropeties)
         // sequence +1
@@ -176,7 +175,7 @@ export default {
         this.commit('setNewNode', payload)
 
         features.properties.b = state.newNode.features[0].properties.index
-        features.properties.index = 'link_' + (+new Date()).toString(36)
+        features.properties.index = 'link_' + short.generate()
       } else if (payload.action === 'Extend Line Downward') {
         // Take first link and copy properties
         // eslint-disable-next-line no-var, no-redeclare
@@ -191,7 +190,7 @@ export default {
         payload.nodeCopyId = features.properties.b
         this.commit('setNewNode', payload)
         features.properties.a = state.newNode.features[0].properties.index
-        features.properties.index = 'link_' + (+new Date()).toString(36)
+        features.properties.index = 'link_' + short.generate()
       }
       tempLink.features = [features]
       state.newLink = tempLink
@@ -199,7 +198,7 @@ export default {
     },
     createNewNode (state, payload) {
       const nodeProperties = {
-        index: 'node_' + (+new Date()).toString(36),
+        index: 'node_' + short.generate(),
         stop_code: null,
         stop_name: null,
       }
@@ -223,7 +222,7 @@ export default {
       const tempNode = JSON.parse(JSON.stringify(state.editorNodes))
       const features = tempNode.features.filter(node => node.properties.index === payload.nodeCopyId)[0]
       Object.assign(features.properties, uncopiedPropeties)
-      features.properties.index = 'node_' + (+new Date()).toString(36)
+      features.properties.index = 'node_' + short.generate()
       features.geometry.coordinates = coordinates
       tempNode.features = [features]
       state.newNode = tempNode
@@ -305,13 +304,13 @@ export default {
 
       link1.properties.b = state.newNode.features[0].properties.index
       link1.geometry.coordinates[1] = state.newNode.features[0].geometry.coordinates
-      link1.properties.index = 'link_' + (+new Date()).toString(36) + '1' // link1.properties.index+ '-1'
+      link1.properties.index = 'link_' + short.generate() // link1.properties.index+ '-1'
       link1.properties.length = link1.properties.length * ratio
       link1.properties.time = link1.properties.time * ratio
 
       link2.properties.a = state.newNode.features[0].properties.index
       link2.geometry.coordinates[0] = state.newNode.features[0].geometry.coordinates
-      link2.properties.index = 'link_' + (+new Date()).toString(36) + '2' // link2.properties.index+ '-2'
+      link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
       link2.properties.time = link2.properties.time * (1 - ratio)
 
@@ -436,6 +435,12 @@ export default {
       )
     },
 
+    appendNewFile (state, payload) {
+      state.links.features.push(...payload.links.features)
+      state.nodes.features.push(...payload.nodes.features)
+      this.commit('getTripId')
+    },
+
     confirmChanges (state) { // apply change to Links
       // add editor Line info to each editor links
       const props = Object.keys(state.editorLineInfo)
@@ -494,7 +499,7 @@ export default {
       // apply new node geometry
       linksA.forEach(link => link.geometry.coordinates = [
         state.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
-        link.geometry.coordinates[1]
+        link.geometry.coordinates[1],
       ])
       // same for nodes b
       const linksB = state.links.features.filter(
@@ -502,7 +507,7 @@ export default {
         item => editorNodesList.includes(item.properties.b))
       linksB.forEach(link => link.geometry.coordinates = [
         link.geometry.coordinates[0],
-        state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates
+        state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
       ])
 
       state.newLink = {}
@@ -524,18 +529,34 @@ export default {
       this.commit('getTripId')
     },
 
-    exportFiles (state) {
+    exportFiles (state, payload = []) {
       const zip = new JSZip()
       const folder = zip.folder('output')
+      let links = ''
+      let nodes = ''
+      // export only visible line (line selected)
+      if (payload.length > 1) {
+        const tempLinks = structuredClone(state.links)
+        tempLinks.features = tempLinks.features.filter(link => payload.includes(link.properties.trip_id))
+        links = JSON.stringify(tempLinks)
+        // delete every every nodes not in links
+        const a = tempLinks.features.map(item => item.properties.a)
+        const b = tempLinks.features.map(item => item.properties.b)
+        const nodesInLinks = Array.from(new Set([...a, ...b]))
+        const tempNodes = structuredClone(state.nodes)
+        tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+        nodes = JSON.stringify(tempNodes)
+
+      // export everything
+      } else {
+        links = JSON.stringify(state.links)
+        nodes = JSON.stringify(state.nodes)
+      }
       // eslint-disable-next-line no-var
-      var data = JSON.stringify(state.links)
-      // eslint-disable-next-line no-var
-      var blob = new Blob([data], { type: 'application/json' })
+      var blob = new Blob([links], { type: 'application/json' })
       folder.file('links.geojson', blob)
       // eslint-disable-next-line no-var, no-redeclare
-      var data = JSON.stringify(state.nodes)
-      // eslint-disable-next-line no-var, no-redeclare
-      var blob = new Blob([data], { type: 'application/json' })
+      var blob = new Blob([nodes], { type: 'application/json' })
       folder.file('nodes.geojson', blob)
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {

@@ -13,6 +13,7 @@ import VueApollo from 'vue-apollo'
 import ApolloClient from 'apollo-client'
 import { HttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
+import VueLocalStorage from 'vue-localstorage'
 
 import 'promise-polyfill/src/polyfill'
 
@@ -65,6 +66,8 @@ Vue.use(GetTextPlugin, {
 })
 Vue.use(VueApollo)
 
+Vue.use(VueLocalStorage)
+
 Vue.config.productionTip = false
 Vue.config.devtools = false
 
@@ -82,6 +85,16 @@ const vuetify = new Vuetify({
         mediumgrey: '#9E9E9E',
         darkgrey: '#5B5B5C',
         accent: '#2C3E4E',
+        chart: {
+          lightgreen: '#CDDC39',
+          darkgreen: '#4CAF50',
+          lightblue: '#00BCD4',
+          darkblue: '#2196F3',
+          purple: '#673AB7',
+          pink: '#E91E63',
+          orange: '#FF7B30',
+          yellow: '#FFC107',
+        },
       },
     },
   },
@@ -140,6 +153,12 @@ Vue.mixin({
 })
 
 const app = new Vue({
+  localStorage: {
+    info: {
+      type: Object,
+      default: {},
+    },
+  },
   router,
   store,
   vuetify,

@@ -22,7 +22,7 @@ msgstr ""
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:351
+#: src/components/SidePanel.vue:392
 msgid "Abort"
 msgstr "Annuler"
 
@@ -30,11 +30,15 @@ msgstr "Annuler"
 msgid "action"
 msgstr ""
 
-#: src/pages/Home.vue:29
+#: src/pages/Import.vue:39
+msgid "Add Files"
+msgstr "Charger les Fichiers"
+
+#: src/pages/Home.vue:42
 msgid "Add Stop Inline"
 msgstr "Ajouter un Arrêt en ligne"
 
-#: src/components/SidePanel.vue:451 src/pages/Home.vue:74
+#: src/components/SidePanel.vue:491 src/pages/Home.vue:87
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -46,69 +50,69 @@ msgstr "Cliquer sur la carte pour commencer"
 msgid "Close"
 msgstr "Fermer"
 
-#: src/components/SidePanel.vue:369
+#: src/components/SidePanel.vue:410
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/pages/Login.vue:101
+#: src/pages/Login.vue:146
 msgid "Create a network from scratch"
 msgstr "Créer un réseau à partir de zéro"
 
-#: src/components/SidePanel.vue:404
+#: src/components/SidePanel.vue:444
 msgid "Create new Line"
 msgstr "Créer une nouvelle ligne"
 
-#: src/pages/Home.vue:23
+#: src/pages/Home.vue:30
 msgid "Cut Line At Node"
 msgstr "Couper à l'arrêt"
 
-#: src/pages/Home.vue:21
+#: src/pages/Home.vue:26
 msgid "Cut Line From Node"
 msgstr "Couper depuis l'arrêt"
 
-#: src/pages/Home.vue:35
+#: src/pages/Home.vue:36
 msgid "Delete "
 msgstr "Supprimer "
 
-#: src/components/SidePanel.vue:316
+#: src/components/SidePanel.vue:357
 msgid "Delete Line"
 msgstr "Supprimer"
 
-#: src/pages/Home.vue:33
+#: src/pages/Home.vue:50
 msgid "Delete Stop"
 msgstr "Supprimer arrêt"
 
-#: src/pages/Home.vue:56
+#: src/pages/Home.vue:79
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 "Double clique pour modifier une ligne, clique droit pour modifier les "
 "propriétés"
 
-#: src/components/SidePanel.vue:255
+#: src/components/SidePanel.vue:294
 msgid "Edit Line"
 msgstr "Modifier la ligne"
 
-#: src/pages/Home.vue:19
+#: src/pages/Home.vue:22
 msgid "Edit Line Info"
 msgstr "Modifier les infos de la ligne"
 
-#: src/components/SidePanel.vue:285
+#: src/components/SidePanel.vue:325
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
-#: src/pages/Home.vue:35
+#: src/pages/Home.vue:54
 msgid "Edit Link Info"
 msgstr "Modifier les infos du lien"
 
-#: src/pages/Home.vue:37
+#: src/pages/Home.vue:58
 msgid "Edit Node Info"
 msgstr "Modifier les infos d'arrêt"
 
-#: src/pages/Home.vue:35
+#: src/pages/Home.vue:36
 msgid "Edit Properties"
 msgstr "Modifier"
 
-#: src/pages/Login.vue:117
+#: src/pages/Login.vue:161
 msgid "Example"
 msgstr "Exemple"
 
@@ -116,19 +120,27 @@ msgstr "Exemple"
 msgid "Export"
 msgstr "Exporter"
 
-#: src/components/SidePanel.vue:117
-msgid "Export Files"
-msgstr "Exporter"
+#: src/components/SidePanel.vue:127
+msgid "Export All"
+msgstr "Exporter tout"
 
-#: src/pages/Home.vue:27
+#: src/components/SidePanel.vue:141
+msgid "Export Only Visible"
+msgstr "Exporter les visibles"
+
+#: src/pages/Home.vue:38
 msgid "Extend Line Downward"
 msgstr "Prolonger la ligne en aval"
 
-#: src/pages/Home.vue:25
+#: src/pages/Home.vue:34
 msgid "Extend Line Upward"
 msgstr "Prolonger la Ligne en amont"
 
-#: src/components/SidePanel.vue:86 src/components/SidePanel.vue:174
+#: src/pages/Import.vue:104
+msgid "file is not a zip. Import aborted"
+msgstr ""
+
+#: src/components/SidePanel.vue:87 src/components/SidePanel.vue:211
 msgid "Hide All"
 msgstr "Cacher Tout"
 
@@ -136,9 +148,13 @@ msgstr "Cacher Tout"
 msgid "Hold left click to drag"
 msgstr "Click gauche pour glisser"
 
-#: src/router/index.js:22
+#: src/router/index.js:30
 msgid "Import"
 msgstr "Importer"
+
+#: src/pages/Import.vue:36 src/pages/Import.vue:54
+msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
+msgstr "CRS invalide, utiliser CRS84 / EPSG:4326. Import annulé"
 
 #: src/components/layout/NavigationDrawer.vue:61
 #: src/components/layout/NavigationDrawer.vue:75
@@ -149,56 +165,69 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
-#: src/components/SidePanel.vue:91
+#: src/components/SidePanel.vue:92
 msgid "Lines"
 msgstr "Lignes"
 
-#: src/pages/Login.vue:54
+#: src/pages/Login.vue:59
 msgid "Links"
 msgstr "Liens"
 
-#: src/pages/Login.vue:38
+#: src/pages/Import.vue:40 src/pages/Login.vue:42
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
 "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
 
-#: src/pages/Login.vue:37
+#: src/pages/Import.vue:69 src/pages/Login.vue:109
+msgid "Load a zip file containing"
+msgstr ""
+
+#: src/pages/Login.vue:41
 msgid "Load Files"
 msgstr "Charger les Fichiers"
 
-#: src/pages/Login.vue:123
+#: src/pages/Login.vue:167
 msgid "Load Montréal Example"
 msgstr "Charger l'exemple de Montréal"
 
-#: src/router/index.js:29
+#: src/router/index.js:37
 msgid "Map"
 msgstr "Carte"
 
-#: src/pages/Home.vue:179
+#: src/pages/Home.vue:208
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/pages/Home.vue:169
+#: src/pages/Home.vue:199
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
-#: src/pages/Home.vue:31
+#: src/pages/Home.vue:46
 msgid "Move Stop"
 msgstr "Déplacer l'arrêt"
 
-#: src/pages/Login.vue:95
+#: src/pages/Login.vue:140 src/router/index.js:23
 msgid "New Project"
 msgstr "Nouveau Projet"
 
-#: src/components/SidePanel.vue:461 src/pages/Login.vue:162
+#: src/components/SidePanel.vue:501 src/pages/Import.vue:123
+#: src/pages/Login.vue:206
 msgid "No"
 msgstr "Non"
 
-#: src/pages/Login.vue:73
+#: src/pages/Login.vue:78
 msgid "Nodes"
 msgstr "Noeuds"
 
-#: src/pages/Login.vue:150
+#: src/pages/Import.vue:71 src/pages/Login.vue:111
+msgid "nodes.geojson and links.geojson"
+msgstr ""
+
+#: src/pages/Import.vue:135
+msgid "Not a valid zip file. Import aborted"
+msgstr ""
+
+#: src/pages/Import.vue:111 src/pages/Login.vue:194
 msgid "Overwrite current Project ?"
 msgstr "Écraser le projet en cours ?"
 
@@ -210,21 +239,33 @@ msgstr "Clique droit pour modifier"
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/pages/Home.vue:84
+#: src/pages/Home.vue:97
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/components/SidePanel.vue:439
+#: src/components/SidePanel.vue:479
 msgid "Save Changes?"
 msgstr "Sauvegarder ?"
 
-#: src/components/SidePanel.vue:86 src/components/SidePanel.vue:174
+#: src/components/SidePanel.vue:87 src/components/SidePanel.vue:212
 msgid "Show All"
 msgstr "Montrer Tout"
 
-#: src/components/SidePanel.vue:470 src/pages/Login.vue:171
+#: src/pages/Import.vue:31
+msgid "there is duplicated links index. Import aborted"
+msgstr ""
+
+#: src/pages/Import.vue:47
+msgid "there is duplicated nodes index. Import aborted"
+msgstr ""
+
+#: src/components/SidePanel.vue:510 src/pages/Import.vue:132
+#: src/pages/Login.vue:215
 msgid "Yes"
 msgstr "Oui"
+
+#~ msgid "invalid CRS. use CRS84 / EPSG:4326"
+#~ msgstr "CRS invalide, utiliser CRS84 / EPSG:4326"
 
 #~ msgid "GO!"
 #~ msgstr "Aller!"

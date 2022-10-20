@@ -4,6 +4,7 @@ import linksExample from '@static/links_exemple.geojson'
 import nodesExample from '@static/nodes_exemple.geojson'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
+import JSZip from 'jszip'
 
 export default {
   name: 'Login',
@@ -13,7 +14,7 @@ export default {
       loadedLinks: {},
       loadedNodes: {},
       choice: null,
-      loading: { links: false, nodes: false },
+      loading: { links: false, nodes: false, zip: false },
       showDialog: false,
     }
   },
@@ -35,13 +36,14 @@ export default {
     },
     localFilesAreLoaded (val) {
       if (val) {
+        this.loggedIn = true
         this.login()
       }
     },
 
   },
   mounted () {
-    // this.$store.commit('changeRoute', this.$options.name)
+    this.$store.commit('changeNotification', '')
   },
   methods: {
     login () {
@@ -58,6 +60,9 @@ export default {
           this.loadExample()
         } else if (choice === 'newProject') {
           this.newProject()
+        } else if (choice === 'zip') {
+          // read zip witjh links and nodes.
+          this.$refs.zipInput.click()
         } else {
           // read json links or node (depending on choice)
           this.$refs.fileInput.click()
@@ -67,10 +72,17 @@ export default {
       }
     },
     applyDialog () {
+      // this only happen when both files are loaded.
+      // remove links and nodes from store. (and filesAreLoaded)
+      this.$store.commit('unloadFiles')
+
       if (this.choice === 'example') {
         this.loadExample()
       } else if (this.choice === 'newProject') {
         this.newProject()
+      } else if (this.choice === 'zip') {
+        // handle click and open file explorer
+        this.$refs.zipInput.click()
       } else {
         // this only happen when both files are loaded.
         // remove links and nodes from store. (and filesAreLoaded)
@@ -127,6 +139,43 @@ export default {
         }
       }
     },
+    readZip (event) {
+      this.loading.zip = true
+      const files = event.target.files
+      // there is a file
+      if (!files.length) {
+        this.loading.zip = false
+        return
+      }
+      // it is a zip
+      if (files[0].name.slice(-3) !== 'zip') {
+        this.loading.zip = false
+        alert('file is not a zip')
+        return
+      }
+      const zip = new JSZip()
+      zip.loadAsync(files[0] /* = file blob */)
+        .then((zip) => {
+          // process ZIP file content here
+          Object.keys(zip.files).forEach((key) => {
+            if (zip.files[key].name.slice(-7) === 'geojson') {
+              let fileName = key.split('/')
+              fileName = fileName[fileName.length - 1]
+              zip.file(key).async('string').then((str) => {
+                const content = JSON.parse(str)
+                if (fileName.includes('links')) {
+                  this.choice = 'links'
+                  this.loadedLinks = content
+                } else if (fileName.includes('nodes')) {
+                  this.choice = 'nodes'
+                  this.loadedNodes = content
+                }
+              }).catch(() => { }) // remove alert, this happen when there is more file in the zip, ex: DS_STORE
+            }
+          })
+          this.loading.zip = false
+        }, () => { alert('Not a valid zip file'); this.loading.zip = false })
+    },
   },
 }
 </script>
@@ -151,40 +200,72 @@ export default {
           <div>
             {{ $gettext("Links and Nodes files must be geojson in EPSG:4326") }}
           </div>
-          <v-btn
-            :loading="loading.links"
-            :color=" Object.keys(loadedLinks).length != 0? 'primary': 'normal'"
-            @click="buttonHandle('links')"
-          >
-            <v-icon
-              small
-              left
+          <div class=" text-xs-center">
+            <v-btn
+              :loading="loading.links"
+              :color=" Object.keys(loadedLinks).length != 0? 'primary': 'normal'"
+              @click="buttonHandle('links')"
             >
-              fa-solid fa-upload
-            </v-icon>
-            {{ $gettext('Links') }}
-          </v-btn>
-
-          <v-btn
-            :loading="loading.nodes"
-            :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
-            @click="buttonHandle('nodes')"
-          >
-            <v-icon
-              small
-              left
+              <v-icon
+                small
+                left
+              >
+                fa-solid fa-upload
+              </v-icon>
+              {{ $gettext('Links') }}
+            </v-btn>
+            <v-btn
+              :loading="loading.nodes"
+              :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
+              @click="buttonHandle('nodes')"
             >
-              fa-solid fa-upload
-            </v-icon>
-            {{ $gettext('Nodes') }}
-          </v-btn>
-
+              <v-icon
+                small
+                left
+              >
+                fa-solid fa-upload
+              </v-icon>
+              {{ $gettext('Nodes') }}
+            </v-btn>
+            <v-tooltip
+              bottom
+              open-delay="500"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  v-bind="attrs"
+                  :loading="loading.zip"
+                  :color="'normal'"
+                  v-on="on"
+                  @click="buttonHandle('zip')"
+                >
+                  <v-icon
+                    small
+                    left
+                  >
+                    fas fa-file-archive
+                  </v-icon>
+                  {{ 'zip' }}
+                </v-btn>
+              </template>
+              <span>{{ $gettext("Load a zip file containing") }}</span>
+              <br>
+              <span>{{ $gettext("nodes.geojson and links.geojson") }}</span>
+            </v-tooltip>
+          </div>
           <input
             ref="fileInput"
             type="file"
             style="display: none"
             accept=".geojson"
             @change="onFilePicked"
+          >
+          <input
+            ref="zipInput"
+            type="file"
+            style="display: none"
+            accept=".zip"
+            @change="readZip"
           >
 
           <div>

@@ -1,6 +1,7 @@
 <script>
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
+import ColorPicker from '../components/utils/ColorPicker.vue'
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
 
@@ -9,6 +10,7 @@ export default {
   components: {
     Map,
     SidePanel,
+    ColorPicker,
   },
   data () {
     return {
@@ -232,7 +234,16 @@ export default {
                 v-model="value['value']"
                 :label="key"
                 :disabled="value['disabled']"
-              />
+              >
+                <template
+                  v-if="key==='route_color'"
+                  v-slot:append
+                >
+                  <color-picker
+                    v-model="value['value']"
+                  />
+                </template>
+              </v-text-field>
             </v-col>
           </v-container>
         </v-card-text>

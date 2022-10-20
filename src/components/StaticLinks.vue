@@ -121,7 +121,11 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
           'line-opacity': ['case', ['boolean', ['feature-state', 'hidden'], false], 0.1, 1],
-          'line-width': 3
+          'line-width': ['case', ['has', 'route_width'], ['to-number', ['get', 'route_width']], 3],
+        },
+        layout: {
+          'line-sort-key': ['get', 'route_width'],
+          'line-cap': 'round',
         }
       }"
       v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine, contextmenu:editLineProperties }"
@@ -144,6 +148,8 @@ export default {
         paint: {
           'circle-color': ['case', ['boolean', ['feature-state', 'hidden'], false],'#9E9E9E', '#2C3E4E'],
           'circle-radius': 3,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1,
         }
       }"
     />
