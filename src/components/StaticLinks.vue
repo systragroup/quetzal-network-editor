@@ -121,7 +121,10 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
           'line-opacity': ['case', ['boolean', ['feature-state', 'hidden'], false], 0.1, 1],
-          'line-width': ['case', ['has', 'route_width'], ['to-number', ['get', 'route_width']], 3],
+          'line-width': ['case', ['has', 'route_width'], 
+                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]], 
+                            ['to-number', ['get', 'route_width']], 
+                              3], 3],
         },
         layout: {
           'line-sort-key': ['get', 'route_width'],

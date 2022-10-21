@@ -91,10 +91,12 @@ export default {
     getEditorLineInfo (state) {
       // empty trip, when its a newLine
       if (state.editorLinks.features.length === 0) {
-        // eslint-disable-next-line no-var
+        function getDefaultValue(key){
+          const defaultValue = {route_width: 3};
+          return defaultValue[key] || null;
+        }
         var filtered = state.lineAttributes.reduce(
-          // eslint-disable-next-line no-sequences
-          (acc, curr) => (acc[curr] = { value: null, disabled: false }, acc), {},
+          (acc, curr) => (acc[curr] = { value: getDefaultValue(curr), disabled: false }, acc), {},
         )
         filtered.trip_id = { value: state.editorTrip, disabled: false }
       } else {
