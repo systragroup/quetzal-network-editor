@@ -2,8 +2,7 @@
 export default {
   name: 'Toolbar',
   computed: {
-   
-    
+
   },
   methods: {
     handleChangeLanguage (lang) {
@@ -20,28 +19,27 @@ export default {
     color="white"
   >
     <div>Quetzal Network Editor</div>
-  
-    <v-spacer></v-spacer>
+
+    <v-spacer />
     <div>
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
-          <v-btn icon
-          v-bind="attrs"
-          v-on="on"
-          href="https://github.com/systragroup/quetzal-network-editor" target="_blank">
-            <v-icon >
-            fa-solid fa-code
+          <v-btn
+            icon
+            v-bind="attrs"
+            href="https://github.com/systragroup/quetzal-network-editor"
+            target="_blank"
+            v-on="on"
+          >
+            <v-icon>
+              fa-solid fa-code
             </v-icon>
           </v-btn>
         </template>
         <span>GitHub</span>
       </v-tooltip>
     </div>
-    
 
-
-
-   
     <div class="languages-container">
       <div
         v-for="(language, lang) in $language.available"

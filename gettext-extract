@@ -7,8 +7,10 @@ yarn run gettext-extract \
   --output "$POT_FILE" \
   $(find src -name '*.js' -o -name '*.vue')
 # separated by spaces (english is not included)
-AVAILABLE_LANGS="fr"
-for lang in $AVAILABLE_LANGS; do
+AVAILABLE_LANGS=("fr" "es" "pt" "de")
+for lang in "${AVAILABLE_LANGS[@]}" 
+do
+  echo "doing $lang"
   PO_FILE="locale/$lang/myapp.po"
   echo "Updating $PO_FILE"
   if [ -f "$PO_FILE" ]; then
