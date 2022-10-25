@@ -2,8 +2,7 @@
 export default {
   name: 'Toolbar',
   computed: {
-   
-    
+
   },
   methods: {
     handleChangeLanguage (lang) {
@@ -20,39 +19,55 @@ export default {
     color="white"
   >
     <div>Quetzal Network Editor</div>
-  
-    <v-spacer></v-spacer>
+
+    <v-spacer />
     <div>
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
-          <v-btn icon
-          v-bind="attrs"
-          v-on="on"
-          href="https://github.com/systragroup/quetzal-network-editor" target="_blank">
-            <v-icon >
-            fa-solid fa-code
+          <v-btn
+            icon
+            v-bind="attrs"
+            href="https://github.com/systragroup/quetzal-network-editor"
+            target="_blank"
+            v-on="on"
+          >
+            <v-icon>
+              fa-solid fa-code
             </v-icon>
           </v-btn>
         </template>
         <span>GitHub</span>
       </v-tooltip>
     </div>
-    
 
-
-
-   
-    <div class="languages-container">
-      <div
-        v-for="(language, lang) in $language.available"
-        :key="lang"
-        class="language"
-        :class="[lang === $language.current ? 'active' : '']"
-        :title="language"
-        @click="handleChangeLanguage(lang)"
+    <div>
+      <v-menu
+        offset-y
+        close-delay="100"
+        transition="slide-y-transition"
       >
-        {{ lang.toUpperCase() }}
-      </div>
+        <template v-slot:activator="{ on: on,attrs:attrs }">
+          <v-btn
+            text
+            class="language active"
+            v-bind="attrs"
+            v-on="on"
+          >
+            {{ $language.current }}
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            v-for="(language, lang) in $language.available"
+            :key="lang"
+            :class="language"
+            :active-class="active"
+            @click="handleChangeLanguage(lang)"
+          >
+            {{ language.toUpperCase() }}
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
   </v-toolbar>
 </template>
@@ -75,7 +90,6 @@ export default {
 }
 .language {
   width: 50px;
-  border-right: 1px solid $grey-light;
   display: flex;
   align-items: center;
   justify-content: center;

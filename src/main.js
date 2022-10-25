@@ -19,6 +19,10 @@ import 'promise-polyfill/src/polyfill'
 
 import fr from 'vuetify/es5/locale/fr'
 import en from 'vuetify/es5/locale/en'
+import de from 'vuetify/es5/locale/de'
+import es from 'vuetify/es5/locale/es'
+import pt from 'vuetify/es5/locale/pt'
+
 import translations from './translations.json'
 
 import App from './App.vue'
@@ -51,7 +55,7 @@ const languageMixin = {
 }
 Vue.component('Apexchart', VueApexCharts)
 
-const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr'])
+const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr', 'es', 'de', 'pt'])
 
 Vue.use(Vuetify)
 Vue.use(GetTextPlugin, {
@@ -59,6 +63,9 @@ Vue.use(GetTextPlugin, {
   availableLanguages: {
     en: 'English',
     fr: 'Français',
+    es: 'Spanish',
+    de: 'Deutsch',
+    pt: 'Portuguese',
   },
   defaultLanguage: bestLanguage,
   translations,
@@ -102,7 +109,7 @@ const vuetify = new Vuetify({
     iconfont: 'fa',
   },
   lang: {
-    locales: { fr, en },
+    locales: { fr, en, es, de, pt },
     current: bestLanguage,
   },
 })
