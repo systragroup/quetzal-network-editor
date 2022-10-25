@@ -35,6 +35,7 @@ export default {
         item => item.properties[this.selectedFilter])))
       // return this list of object, {cat_name, tripId list}
       const classifiedTripId = []
+      const undefinedCat = { name: $gettext('undefined'), tripId: [] }
       cat.forEach(c => {
         // get all tripdId in the categeorie.
         const arr = Array.from(
@@ -45,10 +46,18 @@ export default {
               (item) => item.properties.trip_id),
           ),
         )
-        // eslint-disable-next-line no-unused-expressions
-        // c == null | c === undefined ? c = 'null' : ''
-        classifiedTripId.push({ name: c, tripId: arr })
+        // regroup all null values into a single list 'undefined'
+        if (c === null | c === '' | c === undefined) {
+          undefinedCat.tripId.push(...arr)
+        } else {
+          classifiedTripId.push({ name: c, tripId: arr })
+        }
       })
+      // if there was undefined Categories, append it at the end.
+      if (undefinedCat.tripId.length > 0) {
+        classifiedTripId.push(undefinedCat)
+      }
+
       return classifiedTripId
       // Array.from(new Set(this.$store.getters.links.features.map(item => item.properties.trip_id)));
     },
@@ -253,7 +262,7 @@ export default {
               </v-list-item>
               <v-list-group
                 v-for="(value, key) in classifiedTripId"
-                :key="key"
+                :key="value.name+key"
                 color="secondary"
                 :value="false"
                 no-action
