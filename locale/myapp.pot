@@ -35,7 +35,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:124
+#: src/components/SidePanel.vue:133
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -258,6 +258,10 @@ msgstr ""
 
 #: src/pages/Import.vue:45
 msgid "there is duplicated nodes index. Import aborted"
+msgstr ""
+
+#: src/components/SidePanel.vue:37
+msgid "undefined"
 msgstr ""
 
 #: src/components/SidePanel.vue:511

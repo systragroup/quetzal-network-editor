@@ -61,7 +61,7 @@ export default {
             v-for="(language, lang) in $language.available"
             :key="lang"
             :class="language"
-            :active-class="active"
+
             @click="handleChangeLanguage(lang)"
           >
             {{ language.toUpperCase() }}

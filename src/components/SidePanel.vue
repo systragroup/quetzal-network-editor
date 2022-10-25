@@ -295,7 +295,7 @@ export default {
                     </v-tooltip>
                   </v-list-item-action>
                   <v-list-item-content>
-                    <v-list-item-title><strong>{{ value.name }}</strong></v-list-item-title>
+                    <v-list-item-title><strong>{{ $gettext(value.name) }}</strong></v-list-item-title>
                   </v-list-item-content>
                 </template>
 

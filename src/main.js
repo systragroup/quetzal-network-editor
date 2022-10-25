@@ -63,9 +63,9 @@ Vue.use(GetTextPlugin, {
   availableLanguages: {
     en: 'English',
     fr: 'Français',
-    es: 'Spanish',
+    es: 'Español',
     de: 'Deutsch',
-    pt: 'Portuguese',
+    pt: 'Português',
   },
   defaultLanguage: bestLanguage,
   translations,
