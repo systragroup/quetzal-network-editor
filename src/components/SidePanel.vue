@@ -57,7 +57,6 @@ export default {
       if (undefinedCat.tripId.length > 0) {
         classifiedTripId.push(undefinedCat)
       }
-
       return classifiedTripId
       // Array.from(new Set(this.$store.getters.links.features.map(item => item.properties.trip_id)));
     },
@@ -117,7 +116,9 @@ export default {
 
     propertiesButton (value) {
       // select the TripId and open dialog
-      if (!this.editorTrip) {
+      if (typeof value === 'object') {
+        this.$emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
+      } else if (!this.editorTrip) {
         this.$store.commit('setEditorTrip', { tripId: value, changeBounds: false })
         this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
         // just open dialog
@@ -134,8 +135,9 @@ export default {
         { text: $gettext('Click on the map to start drawing'), autoClose: false })
     },
 
-    deleteButton (val) {
-      this.$emit('deleteButton', val)
+    deleteButton (obj) {
+      // obj contain trip and message.
+      this.$emit('deleteButton', obj)
     },
     showAll () {
       if (this.tripList === this.tripId) {
@@ -262,7 +264,7 @@ export default {
               </v-list-item>
               <v-list-group
                 v-for="(value, key) in classifiedTripId"
-                :key="value.name+key"
+                :key="String(value.name) + String(key)"
                 color="secondary"
                 :value="false"
                 no-action
@@ -295,8 +297,55 @@ export default {
                     </v-tooltip>
                   </v-list-item-action>
                   <v-list-item-content>
-                    <v-list-item-title><strong>{{ $gettext(value.name) }}</strong></v-list-item-title>
+                    <v-list-item-title>
+                      <strong>
+                        {{ value.name=='undefined'? $gettext(value.name): value.name }}
+                      </strong>
+                    </v-list-item-title>
                   </v-list-item-content>
+                  <v-tooltip
+                    bottom
+                    open-delay="500"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        class="ma-1"
+                        v-bind="attrs"
+                        :disabled="editorTrip!=null? true: false"
+                        v-on="on"
+                        @click.stop="propertiesButton(value.tripId)"
+                      >
+                        <v-icon color="regular">
+                          fas fa-table
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $gettext("Edit Group Properties") }}</span>
+                  </v-tooltip>
+                  <v-tooltip
+                    bottom
+                    open-delay="500"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        class="ma-1"
+                        v-bind="attrs"
+                        :disabled="editorTrip ? true: false"
+                        v-on="on"
+                        @click.stop="deleteButton({trip:value.tripId, message:value.name})"
+                      >
+                        <v-icon
+                          small
+                          color="regular"
+                        >
+                          fas fa-trash
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $gettext("Delete Group") }}</span>
+                  </v-tooltip>
                 </template>
 
                 <v-list-item
@@ -375,7 +424,7 @@ export default {
                         v-bind="attrs"
                         :disabled="editorTrip ? true: false"
                         v-on="on"
-                        @click="deleteButton(item)"
+                        @click="deleteButton({trip:item,message:item})"
                       >
                         <v-icon
                           small
