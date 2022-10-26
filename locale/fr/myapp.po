@@ -22,7 +22,7 @@ msgstr ""
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:393
+#: src/components/SidePanel.vue:456
 msgid "Abort"
 msgstr "Annuler"
 
@@ -38,11 +38,11 @@ msgstr "Charger les Fichiers"
 msgid "Add Stop Inline"
 msgstr "Ajouter un Arrêt en ligne"
 
-#: src/components/SidePanel.vue:492 src/pages/Home.vue:87
+#: src/components/SidePanel.vue:555 src/pages/Home.vue:89
 msgid "Cancel"
 msgstr "Annuler"
 
-#: src/components/SidePanel.vue:133
+#: src/components/SidePanel.vue:134
 msgid "Click on the map to start drawing"
 msgstr "Cliquer sur la carte pour commencer"
 
@@ -50,7 +50,7 @@ msgstr "Cliquer sur la carte pour commencer"
 msgid "Close"
 msgstr "Fermer"
 
-#: src/components/SidePanel.vue:411
+#: src/components/SidePanel.vue:474
 msgid "Confirm"
 msgstr "Valider"
 
@@ -58,7 +58,7 @@ msgstr "Valider"
 msgid "Create a network from scratch"
 msgstr "Créer un réseau à partir de zéro"
 
-#: src/components/SidePanel.vue:445
+#: src/components/SidePanel.vue:508
 msgid "Create new Line"
 msgstr "Créer une nouvelle ligne"
 
@@ -71,10 +71,14 @@ msgid "Cut Line From Node"
 msgstr "Couper depuis l'arrêt"
 
 #: src/pages/Home.vue:36
-msgid "Delete "
+msgid "Delete"
 msgstr "Supprimer "
 
-#: src/components/SidePanel.vue:358
+#: src/components/SidePanel.vue:290
+msgid "Delete Group"
+msgstr "Supprimer le groupe"
+
+#: src/components/SidePanel.vue:421
 msgid "Delete Line"
 msgstr "Supprimer"
 
@@ -82,13 +86,21 @@ msgstr "Supprimer"
 msgid "Delete Stop"
 msgstr "Supprimer arrêt"
 
-#: src/pages/Home.vue:79
+#: src/pages/Home.vue:85
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 "Double clique pour modifier une ligne, clique droit pour modifier les "
 "propriétés"
 
-#: src/components/SidePanel.vue:295
+#: src/pages/Home.vue:62
+msgid "Edit Group Info"
+msgstr "Modifier les infos du groupe"
+
+#: src/components/SidePanel.vue:258
+msgid "Edit Group Properties"
+msgstr "Modifier les propriétés du groupe"
+
+#: src/components/SidePanel.vue:358
 msgid "Edit Line"
 msgstr "Modifier la ligne"
 
@@ -96,7 +108,7 @@ msgstr "Modifier la ligne"
 msgid "Edit Line Info"
 msgstr "Modifier les infos de la ligne"
 
-#: src/components/SidePanel.vue:326
+#: src/components/SidePanel.vue:389
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
@@ -120,11 +132,11 @@ msgstr "Exemple"
 msgid "Export"
 msgstr "Exporter"
 
-#: src/components/SidePanel.vue:128
+#: src/components/SidePanel.vue:130
 msgid "Export All"
 msgstr "Exporter tout"
 
-#: src/components/SidePanel.vue:142
+#: src/components/SidePanel.vue:144
 msgid "Export Only Visible"
 msgstr "Exporter les visibles"
 
@@ -140,7 +152,7 @@ msgstr "Prolonger la Ligne en amont"
 msgid "file is not a zip. Import aborted"
 msgstr ""
 
-#: src/components/SidePanel.vue:87 src/components/SidePanel.vue:212
+#: src/components/SidePanel.vue:89 src/components/SidePanel.vue:214
 msgid "Hide All"
 msgstr "Cacher Tout"
 
@@ -165,7 +177,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
-#: src/components/SidePanel.vue:92
+#: src/components/SidePanel.vue:94
 msgid "Lines"
 msgstr "Lignes"
 
@@ -194,11 +206,11 @@ msgstr "Charger l'exemple de Montréal"
 msgid "Map"
 msgstr "Carte"
 
-#: src/pages/Home.vue:202
+#: src/pages/Home.vue:234
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/pages/Home.vue:193
+#: src/pages/Home.vue:225
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
@@ -206,11 +218,15 @@ msgstr "Modification Appliquée"
 msgid "Move Stop"
 msgstr "Déplacer l'arrêt"
 
+#: src/pages/Home.vue:53
+msgid "multiple Values"
+msgstr "Valeurs multiples"
+
 #: src/pages/Login.vue:140 src/router/index.js:23
 msgid "New Project"
 msgstr "Nouveau Projet"
 
-#: src/components/SidePanel.vue:502 src/pages/Login.vue:206
+#: src/components/SidePanel.vue:565 src/pages/Login.vue:206
 msgid "No"
 msgstr "Non"
 
@@ -242,15 +258,15 @@ msgstr "Clique droit pour modifier"
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/pages/Home.vue:97
+#: src/pages/Home.vue:99
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/components/SidePanel.vue:480
+#: src/components/SidePanel.vue:543
 msgid "Save Changes?"
 msgstr "Sauvegarder ?"
 
-#: src/components/SidePanel.vue:87 src/components/SidePanel.vue:213
+#: src/components/SidePanel.vue:89 src/components/SidePanel.vue:215
 msgid "Show All"
 msgstr "Montrer Tout"
 
@@ -266,7 +282,11 @@ msgstr ""
 msgid "undefined"
 msgstr "indéfini"
 
-#: src/components/SidePanel.vue:511 src/pages/Login.vue:215
+#: src/components/SidePanel.vue:226
+msgid "value"
+msgstr "valeur"
+
+#: src/components/SidePanel.vue:574 src/pages/Login.vue:215
 msgid "Yes"
 msgstr "Oui"
 

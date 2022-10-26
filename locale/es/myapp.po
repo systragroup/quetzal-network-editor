@@ -22,7 +22,7 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:393
+#: src/components/SidePanel.vue:456
 msgid "Abort"
 msgstr ""
 
@@ -38,11 +38,11 @@ msgstr ""
 msgid "Add Stop Inline"
 msgstr ""
 
-#: src/components/SidePanel.vue:492 src/pages/Home.vue:87
+#: src/components/SidePanel.vue:555 src/pages/Home.vue:89
 msgid "Cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:133
+#: src/components/SidePanel.vue:134
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -50,7 +50,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:411
+#: src/components/SidePanel.vue:474
 msgid "Confirm"
 msgstr ""
 
@@ -58,7 +58,7 @@ msgstr ""
 msgid "Create a network from scratch"
 msgstr ""
 
-#: src/components/SidePanel.vue:445
+#: src/components/SidePanel.vue:508
 msgid "Create new Line"
 msgstr ""
 
@@ -71,10 +71,14 @@ msgid "Cut Line From Node"
 msgstr ""
 
 #: src/pages/Home.vue:36
-msgid "Delete "
+msgid "Delete"
 msgstr ""
 
-#: src/components/SidePanel.vue:358
+#: src/components/SidePanel.vue:290
+msgid "Delete Group"
+msgstr ""
+
+#: src/components/SidePanel.vue:421
 msgid "Delete Line"
 msgstr ""
 
@@ -82,11 +86,19 @@ msgstr ""
 msgid "Delete Stop"
 msgstr ""
 
-#: src/pages/Home.vue:79
+#: src/pages/Home.vue:85
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 
-#: src/components/SidePanel.vue:295
+#: src/pages/Home.vue:62
+msgid "Edit Group Info"
+msgstr ""
+
+#: src/components/SidePanel.vue:258
+msgid "Edit Group Properties"
+msgstr ""
+
+#: src/components/SidePanel.vue:358
 msgid "Edit Line"
 msgstr ""
 
@@ -94,7 +106,7 @@ msgstr ""
 msgid "Edit Line Info"
 msgstr ""
 
-#: src/components/SidePanel.vue:326
+#: src/components/SidePanel.vue:389
 msgid "Edit Line Properties"
 msgstr ""
 
@@ -118,11 +130,11 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/components/SidePanel.vue:128
+#: src/components/SidePanel.vue:130
 msgid "Export All"
 msgstr ""
 
-#: src/components/SidePanel.vue:142
+#: src/components/SidePanel.vue:144
 msgid "Export Only Visible"
 msgstr ""
 
@@ -138,7 +150,7 @@ msgstr ""
 msgid "file is not a zip. Import aborted"
 msgstr ""
 
-#: src/components/SidePanel.vue:87 src/components/SidePanel.vue:212
+#: src/components/SidePanel.vue:89 src/components/SidePanel.vue:214
 msgid "Hide All"
 msgstr ""
 
@@ -163,7 +175,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:92
+#: src/components/SidePanel.vue:94
 msgid "Lines"
 msgstr ""
 
@@ -191,11 +203,11 @@ msgstr ""
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:202
+#: src/pages/Home.vue:234
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:193
+#: src/pages/Home.vue:225
 msgid "modification applied"
 msgstr ""
 
@@ -203,11 +215,15 @@ msgstr ""
 msgid "Move Stop"
 msgstr ""
 
+#: src/pages/Home.vue:53
+msgid "multiple Values"
+msgstr ""
+
 #: src/pages/Login.vue:140 src/router/index.js:23
 msgid "New Project"
 msgstr ""
 
-#: src/components/SidePanel.vue:502 src/pages/Login.vue:206
+#: src/components/SidePanel.vue:565 src/pages/Login.vue:206
 msgid "No"
 msgstr ""
 
@@ -239,15 +255,15 @@ msgstr ""
 msgid "Right click to edit properties"
 msgstr ""
 
-#: src/pages/Home.vue:97
+#: src/pages/Home.vue:99
 msgid "Save"
 msgstr ""
 
-#: src/components/SidePanel.vue:480
+#: src/components/SidePanel.vue:543
 msgid "Save Changes?"
 msgstr ""
 
-#: src/components/SidePanel.vue:87 src/components/SidePanel.vue:213
+#: src/components/SidePanel.vue:89 src/components/SidePanel.vue:215
 msgid "Show All"
 msgstr ""
 
@@ -263,6 +279,10 @@ msgstr ""
 msgid "undefined"
 msgstr ""
 
-#: src/components/SidePanel.vue:511 src/pages/Login.vue:215
+#: src/components/SidePanel.vue:226
+msgid "value"
+msgstr ""
+
+#: src/components/SidePanel.vue:574 src/pages/Login.vue:215
 msgid "Yes"
 msgstr ""

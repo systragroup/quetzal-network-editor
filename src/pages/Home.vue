@@ -256,7 +256,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{ action == 'deleteTrip'? $gettext("Delete ") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
+          {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
 
         <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info'].includes(action)">
