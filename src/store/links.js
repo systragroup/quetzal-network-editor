@@ -62,6 +62,11 @@ export default {
 
     cleanHistory (state) { state.history = [] },
 
+    addPropertie (state, payload) {
+      state.links.features.map(link => link.properties[payload.name] = null)
+      state.lineAttributes.push(payload.name)
+    },
+
     setEditorTrip (state, payload) {
       // set Trip Id
       state.editorTrip = payload.tripId
@@ -621,7 +626,6 @@ export default {
       ? state.editorNodes.features.filter(
         (node) => node.properties.index === getters.lastNodeId)[0]
       : null,
-    linkAttributes: (state) => state.linkAttributes,
     lineAttributes: (state) => state.lineAttributes,
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
