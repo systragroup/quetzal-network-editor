@@ -9,6 +9,7 @@ export default {
       showDialog: false,
       input: '',
       divHeight: 0,
+      errorMessage: null,
     }
   },
 
@@ -18,26 +19,40 @@ export default {
 
   mounted () {
     this.$store.commit('changeNotification', '')
-
-    let header = new Set([])
-    this.$store.getters.links.features.forEach(element => {
-      Object.keys(element.properties).forEach(key => header.add(key))
-      this.data.push(element.properties)
-    })
-    header = Array.from(header)
-    header.forEach(element => {
-      this.headers.push({ text: element, value: element })
-    })
+    this.fetchData()
     this.onResize()
   },
   methods: {
+    fetchData () {
+      let header = new Set([])
+      this.$store.getters.links.features.forEach(element => {
+        Object.keys(element.properties).forEach(key => header.add(key))
+        this.data.push(element.properties)
+      })
+      header = Array.from(header)
+      header.forEach(element => {
+        this.headers.push({ text: element, value: element })
+      })
+    },
     onResize () {
       this.divHeight = this.$refs.cardBox.clientHeight
     },
-    addField (name) {
-      console.log(this.headers)
-      this.$store.commit('addPropertie', { name: this.input })
+    addField () {
+      const propsList = []
+      Object.keys(this.headers).forEach(key => propsList.push(this.headers[key].value))
+      if (propsList.includes(this.input)) {
+        this.errorMessage = 'already exist'
+      } else {
+        this.$store.commit('addPropertie', { name: this.input })
+        this.fetchData()
+        this.input = ''
+        this.errorMessage = ''
+        this.showDialog = false
+      }
+    },
+    cancel () {
       this.input = ''
+      this.errorMessage = ''
       this.showDialog = false
     },
   },
@@ -106,7 +121,7 @@ export default {
       persistent
       max-width="290"
       @keydown.enter="addField"
-      @keydown.esc="showDialog=false"
+      @keydown.esc="cancel"
     >
       <v-card>
         <v-card-title class="text-h5">
@@ -123,6 +138,9 @@ export default {
             </v-col>
           </v-container>
         </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'red'}">
+          {{ errorMessage }}
+        </v-card-text>
 
         <v-card-actions>
           <v-spacer />
@@ -130,7 +148,7 @@ export default {
           <v-btn
             color="grey"
             text
-            @click="showDialog=false"
+            @click="cancel"
           >
             {{ $gettext("Cancel") }}
           </v-btn>
