@@ -79,7 +79,7 @@ export default {
             :footer-props="{
               'items-per-page-options': [10, 20,100,200,-1]
             }"
-            class="elevation-1"
+            class="elevation-3"
             show-group-by
           >
             <template v-slot:top>
@@ -93,20 +93,38 @@ export default {
                   inset
                 />
                 <v-spacer />
-                <v-btn
-                  class=" btn-links"
-                  href="newField"
-                  target="_blank"
-                  @click.prevent="showDialog=true"
-                >
-                  <v-icon
-                    small
-                    left
+                <v-card-actions>
+                  <!--
+                  <v-btn
+                    class=" btn-links"
+                    href="settings"
+                    target="_blank"
+                    @click.prevent=""
                   >
-                    fas fa-plus
-                  </v-icon>
-                  {{ $gettext('add field') }}
-                </v-btn>
+                    <v-icon
+                      small
+                      left
+                    >
+                      fas fa-cog
+                    </v-icon>
+                    {{ $gettext('Settings') }}
+                  </v-btn>
+                  -->
+                  <v-btn
+                    class=" btn-links"
+                    href="newField"
+                    target="_blank"
+                    @click.prevent="showDialog=true"
+                  >
+                    <v-icon
+                      small
+                      left
+                    >
+                      fas fa-plus
+                    </v-icon>
+                    {{ $gettext('add field') }}
+                  </v-btn>
+                </v-card-actions>
               </v-toolbar>
             </template>
           </v-data-table>
@@ -116,6 +134,7 @@ export default {
     <v-row
       v-resize="onResize"
     />
+
     <v-dialog
       v-model="showDialog"
       persistent
