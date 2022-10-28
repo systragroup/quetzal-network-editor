@@ -27,7 +27,6 @@ export default {
   data () {
     return {
       selectedAction: null,
-      showedTrips: this.selectedTrips,
       mapboxPublicKey: null,
       selectedFeature: null,
       isEditorMode: false,
@@ -64,10 +63,8 @@ export default {
     },
 
     editorNodes (newVal, oldVal) {
-      const wasEditorMode = (oldVal.features.length > 0)
       this.isEditorMode = (newVal.features.length > 0)
       if (this.isEditorMode) {
-        if (!wasEditorMode) { this.showedTrips = [] }
         if (this.$store.getters.changeBounds) {
           const bounds = new Mapbox.LngLatBounds()
           newVal.features.forEach(node => {
@@ -77,13 +74,9 @@ export default {
             padding: 100,
           })
         }
-      } else {
-        this.showedTrips = this.selectedTrips
       }
     },
-    selectedTrips (newVal) {
-      this.showedTrips = newVal
-    },
+
     editorTrip (val) {
       if (val) {
         this.isEditorMode = true
@@ -226,7 +219,7 @@ export default {
     <template v-if="mapIsLoaded">
       <StaticLinks
         :map="map"
-        :showed-trips="showedTrips"
+        :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"
         @rightClick="(e) => $emit('clickFeature',e)"
       />
