@@ -1,3 +1,4 @@
+<!-- eslint-disable no-return-assign -->
 <script>
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
@@ -57,6 +58,10 @@ export default {
       {
         value: 'Edit Node Info',
         name: $gettext('Edit Node Info'),
+      },
+      {
+        value: 'Edit Group Info',
+        name: $gettext('Edit Group Info'),
       }],
       action: null,
       selectedNode: null,
@@ -65,7 +70,9 @@ export default {
       editorForm: {},
       cursorPosition: [],
       tripToDelete: null,
+      deleteMessage: '',
       lingering: true,
+      groupTripIds: [],
     }
   },
   watch: {
@@ -88,10 +95,31 @@ export default {
         this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
         this.lingering = event.lingering
         this.showDialog = true
+      } else if (this.action === 'Edit Group Info') {
+        this.groupTripIds = event.tripIds
+        const lineAttributes = this.$store.getters.lineAttributes
+        let features = structuredClone(this.$store.getters.links.features)
+        features = features.filter(link => this.groupTripIds.includes(link.properties.trip_id))
+        const uneditable = []
+        const form = {}
+        lineAttributes.forEach(key => {
+          const val = new Set(features.map(link => link.properties[key]))
+          form[key] = {
+            value: val.size > 1 ? '' : [...val][0],
+            disabled: uneditable.includes(key),
+            placeholder: val.size > 1,
+          }
+        })
+
+        delete form.trip_id
+
+        this.editorForm = form
+        this.lingering = event.lingering
+        this.showDialog = true
       } else if (this.action === 'Edit Link Info') {
         // link is clicked on the map
         this.selectedLink = event.selectedFeature.properties
-        // map selected link doesnt not return properties with null value. we need
+        // map selected link doesnt return properties with null value. we need
         // to get the links in the store with the selected index.
         this.editorForm = this.$store.getters.editorLinks.features.filter(
           (link) => link.properties.index === this.selectedLink.index)
@@ -104,8 +132,9 @@ export default {
           .filter(key => !filteredKeys.includes(key))
           .reduce((obj, key) => {
             obj[key] = {
-              value: this.editorForm[key],
+              inputValue: this.editorForm[key],
               disabled: uneditable.includes(key),
+              placeholder: false,
             }
             return obj
           }, {})
@@ -126,6 +155,7 @@ export default {
             obj[key] = {
               value: this.editorForm[key],
               disabled: uneditable.includes(key),
+              placeholder: false,
             }
             return obj
           }, {})
@@ -162,6 +192,9 @@ export default {
           break
         case 'Edit Line Info':
           this.$store.commit('editLineInfo', this.editorForm)
+          break
+        case 'Edit Group Info':
+          this.$store.commit('editGroupInfo', { groupTripIds: this.groupTripIds, info: this.editorForm })
           break
         case 'deleteTrip':
           this.$store.commit('deleteTrip', this.tripToDelete)
@@ -202,8 +235,9 @@ export default {
       // notification
       this.$store.commit('changeNotification', { text: $gettext('modification aborted'), autoClose: true })
     },
-    deleteButton (selectedTrip) {
-      this.tripToDelete = selectedTrip
+    deleteButton (selection) {
+      this.tripToDelete = selection.trip
+      this.deleteMessage = selection.message
       this.action = 'deleteTrip'
       this.showDialog = true
     },
@@ -222,10 +256,10 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{ action == 'deleteTrip'? $gettext("Delete ") + ' '+ tripToDelete + '?': $gettext("Edit Properties") }}
+          {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
 
-        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info'].includes(action)">
+        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info'].includes(action)">
           <v-container>
             <v-col cols="12">
               <v-text-field
@@ -233,6 +267,8 @@ export default {
                 :key="key"
                 v-model="value['value']"
                 :label="key"
+                :placeholder="value['placeholder']? $gettext('multiple Values'):''"
+                :persistent-placeholder=" value['placeholder']? true:false "
                 :disabled="value['disabled']"
               >
                 <template
