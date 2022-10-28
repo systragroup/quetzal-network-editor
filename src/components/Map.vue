@@ -145,6 +145,7 @@ export default {
       })
       this.map = event.map
       event.map.dragRotate.disable()
+
       this.mapIsLoaded = true
     },
 
@@ -213,7 +214,7 @@ export default {
   <MglMap
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
-    map-style="mapbox://styles/mapbox/light-v9"
+    map-style="mapbox://styles/mapbox/light-v9?optimize=true"
 
     @load="onMapLoaded"
     @mousemove="draw"

@@ -202,9 +202,30 @@ export default {
                 </template>
                 <span>{{ tripList == tripId? $gettext("Hide All"): $gettext("Show All") }}</span>
               </v-tooltip>
+              <v-tooltip
+                bottom
+                open-delay="500"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    icon
+                    class="ma-2"
+                    color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="propertiesButton(tripList)"
+                  >
+                    <v-icon class="list-item-icon">
+                      fas fa-list
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $gettext("Edit Visibles Properties") }}</span>
+              </v-tooltip>
 
               <v-spacer />
               {{ $gettext("Lines") }}
+              <v-spacer />
               <v-spacer />
               <v-menu
                 offset-y
@@ -315,7 +336,7 @@ export default {
                         @click.stop="propertiesButton(value.tripId)"
                       >
                         <v-icon color="regular">
-                          fas fa-table
+                          fas fa-list
                         </v-icon>
                       </v-btn>
                     </template>
@@ -404,7 +425,7 @@ export default {
                         @click="propertiesButton(item)"
                       >
                         <v-icon :color="item == editorTrip? 'regular':'regular' ">
-                          fas fa-table
+                          fas fa-list
                         </v-icon>
                       </v-btn>
                     </template>

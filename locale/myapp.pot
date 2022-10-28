@@ -14,12 +14,20 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:456
+#: src/components/SidePanel.vue:486
 msgid "Abort"
 msgstr ""
 
 #: src/components/EditorLinks.vue:158
 msgid "action"
+msgstr ""
+
+#: src/pages/DataFrame.vue:166
+msgid "Add"
+msgstr ""
+
+#: src/pages/DataFrame.vue:81
+msgid "add field"
 msgstr ""
 
 #: src/pages/Import.vue:36
@@ -30,12 +38,13 @@ msgstr ""
 msgid "Add Stop Inline"
 msgstr ""
 
-#: src/components/SidePanel.vue:555
+#: src/components/SidePanel.vue:585
+#: src/pages/DataFrame.vue:156
 #: src/pages/Home.vue:89
 msgid "Cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:134
+#: src/components/SidePanel.vue:132
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -43,7 +52,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:474
+#: src/components/SidePanel.vue:504
 msgid "Confirm"
 msgstr ""
 
@@ -51,7 +60,7 @@ msgstr ""
 msgid "Create a network from scratch"
 msgstr ""
 
-#: src/components/SidePanel.vue:508
+#: src/components/SidePanel.vue:538
 msgid "Create new Line"
 msgstr ""
 
@@ -67,11 +76,11 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-#: src/components/SidePanel.vue:290
+#: src/components/SidePanel.vue:320
 msgid "Delete Group"
 msgstr ""
 
-#: src/components/SidePanel.vue:421
+#: src/components/SidePanel.vue:451
 msgid "Delete Line"
 msgstr ""
 
@@ -87,11 +96,11 @@ msgstr ""
 msgid "Edit Group Info"
 msgstr ""
 
-#: src/components/SidePanel.vue:258
+#: src/components/SidePanel.vue:288
 msgid "Edit Group Properties"
 msgstr ""
 
-#: src/components/SidePanel.vue:358
+#: src/components/SidePanel.vue:388
 msgid "Edit Line"
 msgstr ""
 
@@ -99,7 +108,7 @@ msgstr ""
 msgid "Edit Line Info"
 msgstr ""
 
-#: src/components/SidePanel.vue:389
+#: src/components/SidePanel.vue:419
 msgid "Edit Line Properties"
 msgstr ""
 
@@ -115,6 +124,10 @@ msgstr ""
 msgid "Edit Properties"
 msgstr ""
 
+#: src/components/SidePanel.vue:118
+msgid "Edit Visibles Properties"
+msgstr ""
+
 #: src/pages/Login.vue:161
 msgid "Example"
 msgstr ""
@@ -123,11 +136,11 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/components/SidePanel.vue:130
+#: src/components/SidePanel.vue:160
 msgid "Export All"
 msgstr ""
 
-#: src/components/SidePanel.vue:144
+#: src/components/SidePanel.vue:174
 msgid "Export Only Visible"
 msgstr ""
 
@@ -143,8 +156,8 @@ msgstr ""
 msgid "file is not a zip. Import aborted"
 msgstr ""
 
-#: src/components/SidePanel.vue:89
-#: src/components/SidePanel.vue:214
+#: src/components/SidePanel.vue:90
+#: src/components/SidePanel.vue:244
 msgid "Hide All"
 msgstr ""
 
@@ -152,7 +165,7 @@ msgstr ""
 msgid "Hold left click to drag"
 msgstr ""
 
-#: src/router/index.js:30
+#: src/router/index.js:31
 msgid "Import"
 msgstr ""
 
@@ -170,7 +183,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:94
+#: src/components/SidePanel.vue:123
 msgid "Lines"
 msgstr ""
 
@@ -181,6 +194,10 @@ msgstr ""
 #: src/pages/Import.vue:37
 #: src/pages/Login.vue:42
 msgid "Links and Nodes files must be geojson in EPSG:4326"
+msgstr ""
+
+#: src/pages/DataFrame.vue:52
+msgid "Links Table"
 msgstr ""
 
 #: src/pages/Import.vue:66
@@ -196,15 +213,15 @@ msgstr ""
 msgid "Load Montréal Example"
 msgstr ""
 
-#: src/router/index.js:37
+#: src/router/index.js:38
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:234
+#: src/pages/Home.vue:236
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:225
+#: src/pages/Home.vue:227
 msgid "modification applied"
 msgstr ""
 
@@ -216,12 +233,20 @@ msgstr ""
 msgid "multiple Values"
 msgstr ""
 
+#: src/pages/DataFrame.vue:130
+msgid "name"
+msgstr ""
+
+#: src/pages/DataFrame.vue:117
+msgid "New Field"
+msgstr ""
+
 #: src/pages/Login.vue:140
-#: src/router/index.js:23
+#: src/router/index.js:24
 msgid "New Project"
 msgstr ""
 
-#: src/components/SidePanel.vue:565
+#: src/components/SidePanel.vue:595
 #: src/pages/Login.vue:206
 msgid "No"
 msgstr ""
@@ -259,13 +284,17 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: src/components/SidePanel.vue:543
+#: src/components/SidePanel.vue:573
 msgid "Save Changes?"
 msgstr ""
 
-#: src/components/SidePanel.vue:89
-#: src/components/SidePanel.vue:215
+#: src/components/SidePanel.vue:90
+#: src/components/SidePanel.vue:245
 msgid "Show All"
+msgstr ""
+
+#: src/router/index.js:45
+msgid "Table"
 msgstr ""
 
 #: src/pages/Import.vue:29
@@ -276,15 +305,15 @@ msgstr ""
 msgid "there is duplicated nodes index. Import aborted"
 msgstr ""
 
-#: src/components/SidePanel.vue:37
+#: src/components/SidePanel.vue:35
 msgid "undefined"
 msgstr ""
 
-#: src/components/SidePanel.vue:226
+#: src/components/SidePanel.vue:256
 msgid "value"
 msgstr ""
 
-#: src/components/SidePanel.vue:574
+#: src/components/SidePanel.vue:604
 #: src/pages/Login.vue:215
 msgid "Yes"
 msgstr ""

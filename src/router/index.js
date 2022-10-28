@@ -42,7 +42,7 @@ const router = new Router({
       name: DataFrame.name,
       component: DataFrame,
       icon: 'fa-solid fa-table',
-      title: $gettext('test'),
+      title: $gettext('Table'),
     },
   ],
 })
