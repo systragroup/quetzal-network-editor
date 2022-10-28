@@ -124,6 +124,7 @@ export default {
         this.editorForm = this.$store.getters.editorLinks.features.filter(
           (link) => link.properties.index === this.selectedLink.index)
         this.editorForm = this.editorForm[0].properties
+        console.log(this.editorForm)
 
         // filter properties to only the one that are editable.
         const filteredKeys = this.$store.getters.lineAttributes
@@ -132,13 +133,14 @@ export default {
           .filter(key => !filteredKeys.includes(key))
           .reduce((obj, key) => {
             obj[key] = {
-              inputValue: this.editorForm[key],
+              value: this.editorForm[key],
               disabled: uneditable.includes(key),
               placeholder: false,
             }
             return obj
           }, {})
         this.editorForm = filtered
+        console.log(this.editorForm)
         this.showDialog = true
       } else if (this.action === 'Edit Node Info') {
         this.selectedNode = event.selectedFeature.properties

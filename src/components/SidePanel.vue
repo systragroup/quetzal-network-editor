@@ -19,13 +19,11 @@ export default {
       showLeftPanelContent: true,
       tripList: [],
       width: null,
-      filterChoices: ['route_id', 'agency_id', 'direction_id',
-        'route_long_name', 'route_short_name',
-        'route_type', 'route_color'],
       selectedFilter: 'route_type',
     }
   },
   computed: {
+    filterChoices () { return this.$store.getters.lineAttributes },
     showLeftPanel () { return this.$store.getters.showLeftPanel },
     height () { return (window.innerHeight - 80) - 20 * 3 - 80 },
     editorTrip () { return this.$store.getters.editorTrip },

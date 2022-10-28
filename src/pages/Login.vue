@@ -26,12 +26,12 @@ export default {
     },
   },
   watch: {
-    loadedLinks () {
-      this.$store.commit('loadLinks', this.loadedLinks)
+    loadedLinks (value) {
+      this.$store.commit('loadLinks', value)
       this.loading.links = false
     },
-    loadedNodes () {
-      this.$store.commit('loadNodes', this.loadedNodes)
+    loadedNodes (value) {
+      this.$store.commit('loadNodes', value)
       this.loading.nodes = false
     },
     localFilesAreLoaded (val) {
