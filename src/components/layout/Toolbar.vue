@@ -32,7 +32,7 @@ export default {
             v-on="on"
           >
             <v-icon>
-              fa-solid fa-code
+              fab fa-github
             </v-icon>
           </v-btn>
         </template>
