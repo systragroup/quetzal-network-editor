@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Login from '@page/Login.vue'
 import Home from '@page/Home.vue'
 import Import from '@page/Import.vue'
+import DataFrame from '@page/DataFrame.vue'
 import { store } from '../store/index.js'
 
 Vue.use(Router)
@@ -35,6 +36,13 @@ const router = new Router({
       component: Home,
       icon: 'fa-solid fa-map',
       title: $gettext('Map'),
+    },
+    {
+      path: '/DataFrame',
+      name: DataFrame.name,
+      component: DataFrame,
+      icon: 'fa-solid fa-table',
+      title: $gettext('Table'),
     },
   ],
 })

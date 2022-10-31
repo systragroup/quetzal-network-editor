@@ -5,7 +5,7 @@ msgstr ""
 "PO-Revision-Date: \n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
-"Language: fr\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -15,7 +15,7 @@ msgstr ""
 
 #: src/App.vue:46
 msgid "_ctx"
-msgstr ""
+msgstr "_ctx"
 
 #: src/components/layout/NavigationDrawer.vue:30
 #: src/components/utils/InformationPopup.vue:27
@@ -24,7 +24,7 @@ msgstr "%{s}"
 
 #: src/components/SidePanel.vue:486
 msgid "Abort"
-msgstr "Annuler"
+msgstr ""
 
 #: src/components/EditorLinks.vue:158
 msgid "action"
@@ -32,134 +32,132 @@ msgstr ""
 
 #: src/pages/DataFrame.vue:166
 msgid "Add"
-msgstr "Ajouter"
+msgstr ""
 
 #: src/pages/DataFrame.vue:81
 msgid "add field"
-msgstr "ajouter un champ"
+msgstr ""
 
 #: src/pages/Import.vue:36
 msgid "Add Files"
-msgstr "Charger les Fichiers"
+msgstr ""
 
 #: src/pages/Home.vue:42
 msgid "Add Stop Inline"
-msgstr "Ajouter un Arrêt en ligne"
+msgstr ""
 
 #: src/components/SidePanel.vue:585 src/pages/DataFrame.vue:156
 #: src/pages/Home.vue:89
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #: src/components/SidePanel.vue:132
 msgid "Click on the map to start drawing"
-msgstr "Cliquer sur la carte pour commencer"
+msgstr ""
 
 #: src/App.vue:40
 msgid "Close"
-msgstr "Fermer"
+msgstr ""
 
 #: src/components/SidePanel.vue:504
 msgid "Confirm"
-msgstr "Valider"
+msgstr ""
 
 #: src/pages/Login.vue:146
 msgid "Create a network from scratch"
-msgstr "Créer un réseau à partir de zéro"
+msgstr ""
 
 #: src/components/SidePanel.vue:538
 msgid "Create new Line"
-msgstr "Créer une nouvelle ligne"
+msgstr ""
 
 #: src/pages/Home.vue:30
 msgid "Cut Line At Node"
-msgstr "Couper à l'arrêt"
+msgstr ""
 
 #: src/pages/Home.vue:26
 msgid "Cut Line From Node"
-msgstr "Couper depuis l'arrêt"
+msgstr ""
 
 #: src/pages/Home.vue:36
 msgid "Delete"
-msgstr "Supprimer "
+msgstr ""
 
 #: src/components/SidePanel.vue:320
 msgid "Delete Group"
-msgstr "Supprimer le groupe"
+msgstr ""
 
 #: src/components/SidePanel.vue:451
 msgid "Delete Line"
-msgstr "Supprimer"
+msgstr ""
 
 #: src/pages/Home.vue:50
 msgid "Delete Stop"
-msgstr "Supprimer arrêt"
+msgstr ""
 
 #: src/pages/Home.vue:85
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
-"Double clique pour modifier une ligne, clique droit pour modifier les "
-"propriétés"
 
 #: src/pages/Home.vue:62
 msgid "Edit Group Info"
-msgstr "Modifier les infos du groupe"
+msgstr ""
 
 #: src/components/SidePanel.vue:288
 msgid "Edit Group Properties"
-msgstr "Modifier les propriétés du groupe"
+msgstr ""
 
 #: src/components/SidePanel.vue:388
 msgid "Edit Line"
-msgstr "Modifier la ligne"
+msgstr ""
 
 #: src/pages/Home.vue:22
 msgid "Edit Line Info"
-msgstr "Modifier les infos de la ligne"
+msgstr ""
 
 #: src/components/SidePanel.vue:419
 msgid "Edit Line Properties"
-msgstr "Modifier les propriétés"
+msgstr ""
 
 #: src/pages/Home.vue:54
 msgid "Edit Link Info"
-msgstr "Modifier les infos du lien"
+msgstr ""
 
 #: src/pages/Home.vue:58
 msgid "Edit Node Info"
-msgstr "Modifier les infos d'arrêt"
+msgstr ""
 
 #: src/pages/Home.vue:36
 msgid "Edit Properties"
-msgstr "Modifier"
+msgstr ""
 
 #: src/components/SidePanel.vue:118
 msgid "Edit Visibles Properties"
-msgstr "Modifier les propriétés des visibles"
+msgstr ""
 
 #: src/pages/Login.vue:161
 msgid "Example"
-msgstr "Exemple"
+msgstr ""
 
 #: src/components/layout/NavigationDrawer.vue:22
 msgid "Export"
-msgstr "Exporter"
+msgstr ""
 
 #: src/components/SidePanel.vue:160
 msgid "Export All"
-msgstr "Exporter tout"
+msgstr ""
 
 #: src/components/SidePanel.vue:174
 msgid "Export Only Visible"
-msgstr "Exporter les visibles"
+msgstr ""
 
 #: src/pages/Home.vue:38
 msgid "Extend Line Downward"
-msgstr "Prolonger la ligne en aval"
+msgstr ""
 
 #: src/pages/Home.vue:34
 msgid "Extend Line Upward"
-msgstr "Prolonger la Ligne en amont"
+msgstr ""
 
 #: src/pages/Import.vue:96
 msgid "file is not a zip. Import aborted"
@@ -167,19 +165,19 @@ msgstr ""
 
 #: src/components/SidePanel.vue:90 src/components/SidePanel.vue:244
 msgid "Hide All"
-msgstr "Cacher Tout"
+msgstr ""
 
 #: src/components/EditorLinks.vue:117
 msgid "Hold left click to drag"
-msgstr "Click gauche pour glisser"
+msgstr ""
 
 #: src/router/index.js:31
 msgid "Import"
-msgstr "Importer"
+msgstr ""
 
 #: src/pages/Import.vue:34 src/pages/Import.vue:52
 msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
-msgstr "CRS invalide, utiliser CRS84 / EPSG:4326. Import annulé"
+msgstr ""
 
 #: src/components/layout/NavigationDrawer.vue:62
 #: src/components/layout/NavigationDrawer.vue:76
@@ -188,24 +186,23 @@ msgstr ""
 
 #: src/components/EditorLinks.vue:116
 msgid "Left click to add a stop"
-msgstr "Clique gauche ajouter un arrêt"
+msgstr ""
 
 #: src/components/SidePanel.vue:123
 msgid "Lines"
-msgstr "Lignes"
+msgstr ""
 
 #: src/pages/Login.vue:59
 msgid "Links"
-msgstr "Liens"
+msgstr ""
 
 #: src/pages/Import.vue:37 src/pages/Login.vue:42
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
-"Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
 
 #: src/pages/DataFrame.vue:52
 msgid "Links Table"
-msgstr "Table des Liens"
+msgstr ""
 
 #: src/pages/Import.vue:66 src/pages/Login.vue:109
 msgid "Load a zip file containing"
@@ -213,31 +210,31 @@ msgstr ""
 
 #: src/pages/Login.vue:41
 msgid "Load Files"
-msgstr "Charger les Fichiers"
+msgstr ""
 
 #: src/pages/Login.vue:167
 msgid "Load Montréal Example"
-msgstr "Charger l'exemple de Montréal"
+msgstr ""
 
 #: src/router/index.js:38
 msgid "Map"
-msgstr "Carte"
+msgstr ""
 
 #: src/pages/Home.vue:236
 msgid "modification aborted"
-msgstr "Modification annulée"
+msgstr ""
 
 #: src/pages/Home.vue:227
 msgid "modification applied"
-msgstr "Modification Appliquée"
+msgstr ""
 
 #: src/pages/Home.vue:46
 msgid "Move Stop"
-msgstr "Déplacer l'arrêt"
+msgstr ""
 
 #: src/pages/Home.vue:53
 msgid "multiple Values"
-msgstr "Valeurs multiples"
+msgstr ""
 
 #: src/pages/DataFrame.vue:130
 msgid "name"
@@ -249,15 +246,15 @@ msgstr ""
 
 #: src/pages/Login.vue:140 src/router/index.js:24
 msgid "New Project"
-msgstr "Nouveau Projet"
+msgstr ""
 
 #: src/components/SidePanel.vue:595 src/pages/Login.vue:206
 msgid "No"
-msgstr "Non"
+msgstr ""
 
 #: src/pages/Login.vue:78
 msgid "Nodes"
-msgstr "Noeuds"
+msgstr ""
 
 #: src/pages/Import.vue:68 src/pages/Login.vue:111
 msgid "nodes.geojson and links.geojson"
@@ -273,31 +270,31 @@ msgstr ""
 
 #: src/pages/Login.vue:194
 msgid "Overwrite current Project ?"
-msgstr "Écraser le projet en cours ?"
+msgstr ""
 
 #: src/components/EditorLinks.vue:121
 msgid "Right click for context menu"
-msgstr "Clique droit pour modifier"
+msgstr ""
 
 #: src/components/EditorLinks.vue:120
 msgid "Right click to edit properties"
-msgstr "Clique droit pour modifier"
+msgstr ""
 
 #: src/pages/Home.vue:99
 msgid "Save"
-msgstr "Sauvegarder"
+msgstr ""
 
 #: src/components/SidePanel.vue:573
 msgid "Save Changes?"
-msgstr "Sauvegarder ?"
+msgstr ""
 
 #: src/components/SidePanel.vue:90 src/components/SidePanel.vue:245
 msgid "Show All"
-msgstr "Montrer Tout"
+msgstr ""
 
 #: src/router/index.js:45
 msgid "Table"
-msgstr "Table"
+msgstr ""
 
 #: src/pages/Import.vue:29
 msgid "there is duplicated links index. Import aborted"
@@ -309,156 +306,12 @@ msgstr ""
 
 #: src/components/SidePanel.vue:35
 msgid "undefined"
-msgstr "indéfini"
+msgstr ""
 
 #: src/components/SidePanel.vue:256
 msgid "value"
-msgstr "valeur"
+msgstr ""
 
 #: src/components/SidePanel.vue:604 src/pages/Login.vue:215
 msgid "Yes"
-msgstr "Oui"
-
-#~ msgid "invalid CRS. use CRS84 / EPSG:4326"
-#~ msgstr "CRS invalide, utiliser CRS84 / EPSG:4326"
-
-#~ msgid "GO!"
-#~ msgstr "Aller!"
-
-#~ msgid "Click on a link to add a Stop"
-#~ msgstr "Cliquer sur un lien pour ajouter un arrêt"
-
-#~ msgid "do not show again"
-#~ msgstr "Ne plus montrer"
-
-#~ msgid "Select a Link"
-#~ msgstr "Sélectionner un lien"
-
-#~ msgid "Select a Node"
-#~ msgstr "Sélectionner un arrêt"
-
-#~ msgid "Agree"
-#~ msgstr "Confirmer"
-
-#~ msgid "Disagree"
-#~ msgstr "Annuler"
-
-#~ msgid "Disconnect"
-#~ msgstr "Se déconnecter"
-
-#~ msgid "Home"
-#~ msgstr "Accueil"
-
-#~ msgid "Login"
-#~ msgstr "Connexion"
-
-#~ msgid ""
-#~ "You must be logged in to have access to this application. Please click on "
-#~ "the button below to do so."
-#~ msgstr ""
-#~ "L'accès à cette application nécessite une authentification, cliquez sur "
-#~ "le bouton ci-dessous pour vous connecter."
-
-#~ msgid "Add a blog post"
-#~ msgstr "Ajouter un billet"
-
-#~ msgid "Add a comment"
-#~ msgstr "Ajouter un commentaire"
-
-#~ msgid "Author"
-#~ msgstr "Auteur"
-
-#~ msgid "Author is required"
-#~ msgstr "Auteur requis"
-
-#~ msgid "Blog post addition"
-#~ msgstr "Ajout d’un billet"
-
-#~ msgid "By"
-#~ msgstr "Par"
-
-#~ msgid "Categories"
-#~ msgstr "Catégories"
-
-#~ msgid "Category:"
-#~ msgstr "Catégorie :"
-
-#~ msgid "Comment"
-#~ msgstr "Commentaire"
-
-#~ msgid "Comment is required"
-#~ msgstr "Commentaire requis"
-
-#~ msgid "Comments"
-#~ msgstr "Commentaires"
-
-#~ msgid "Delete a blog post"
-#~ msgstr "Suppression d’un billet"
-
-#~ msgid "Delete a comment"
-#~ msgstr "Suppression d’un commentaire"
-
-#~ msgid "Do you really want to take that action?"
-#~ msgstr "Voulez-vous vraiment effectuer cette action ?"
-
-#~ msgid "Edit"
-#~ msgstr "Éditer"
-
-#~ msgid "Edit a comment"
-#~ msgstr "Éditer un commentaire"
-
-#~ msgid "keyword"
-#~ msgstr "mot-clé"
-
-#~ msgid "Legend"
-#~ msgstr "Légende"
-
-#~ msgid "Markers"
-#~ msgstr "Marqueurs"
-
-#~ msgid "On"
-#~ msgstr "Le"
-
-#~ msgid "Pk:"
-#~ msgstr "Pk :"
-
-#~ msgid "Publish"
-#~ msgstr "Publier"
-
-#~ msgid "Published by"
-#~ msgstr "Publié par"
-
-#~ msgid "Return"
-#~ msgstr "Retour"
-
-#~ msgid "Search"
-#~ msgstr "Rechercher"
-
-#~ msgid "Select a blog post in the list, or create a new one!"
-#~ msgstr ""
-#~ "Sélectionnez un billet dans la liste sur la droite de l’écran, ou créez-"
-#~ "en un nouveau !"
-
-#~ msgid "Text"
-#~ msgstr "Texte"
-
-#~ msgid "Text is required"
-#~ msgstr "Texte requis"
-
-#~ msgid "Title"
-#~ msgstr "Titre"
-
-#~ msgid "Title cannot excess 100 characters"
-#~ msgstr "Un titre ne peut pas faire plus de 100 caractères"
-
-#~ msgid "Title is required"
-#~ msgstr "Titre requis"
-
-#~ msgid "Welcome to"
-#~ msgstr "Bienvenue sur"
-
-#~ msgid "You are about to delete the blog post"
-#~ msgstr "Vous êtes sur le point de supprimer le billet"
-
-#~ msgid "You are about to delete the comment"
-#~ msgstr "Vous êtes sur le point de supprimer le commentaire"
+msgstr ""

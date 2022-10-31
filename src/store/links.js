@@ -62,6 +62,11 @@ export default {
 
     cleanHistory (state) { state.history = [] },
 
+    addPropertie (state, payload) {
+      state.links.features.map(link => link.properties[payload.name] = null)
+      state.lineAttributes.push(payload.name)
+    },
+
     setEditorTrip (state, payload) {
       // set Trip Id
       state.editorTrip = payload.tripId
@@ -91,14 +96,16 @@ export default {
     getEditorLineInfo (state) {
       // empty trip, when its a newLine
       if (state.editorLinks.features.length === 0) {
-        function getDefaultValue(key){
-          const defaultValue = {route_width: 3};
-          return defaultValue[key] || null;
+        function getDefaultValue (key) {
+          const defaultValue = { route_width: 3 }
+          return defaultValue[key] || null
         }
+        // eslint-disable-next-line no-var
         var filtered = state.lineAttributes.reduce(
-          (acc, curr) => (acc[curr] = { value: getDefaultValue(curr), disabled: false }, acc), {},
+          // eslint-disable-next-line no-sequences
+          (acc, curr) => (acc[curr] = { value: getDefaultValue(curr), disabled: false, placeholder: false }, acc), {},
         )
-        filtered.trip_id = { value: state.editorTrip, disabled: false }
+        filtered.trip_id = { value: state.editorTrip, disabled: false, placeholder: false }
       } else {
         const properties = state.editorLinks.features[0].properties
 
@@ -110,6 +117,7 @@ export default {
             obj[key] = {
               value: properties[key],
               disabled: uneditable.includes(key),
+              placeholder: false,
             }
             return obj
           }, {})
@@ -443,6 +451,28 @@ export default {
       this.commit('getTripId')
     },
 
+    editGroupInfo (state, payload) {
+      // edit line info on multiple trips at once.
+      const editorGroupInfo = payload.info
+      const groupTripIds = payload.groupTripIds
+      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
+      const props = Object.keys(editorGroupInfo).filter(key =>
+        ((editorGroupInfo[key].value !== '') || !editorGroupInfo[key].placeholder))
+      // add new line info to each links of each trips.
+      const tempLinks = state.links.features.filter(link => groupTripIds.includes(link.properties.trip_id))
+      tempLinks.forEach(
+        (features) => props.forEach((key) => features.properties[key] = editorGroupInfo[key].value))
+      // get tripId list
+      this.commit('getTripId')
+    },
+    deleteUnusedNodes (state) {
+      // delete every every nodes not in links
+      const a = state.links.features.map(item => item.properties.a)
+      const b = state.links.features.map(item => item.properties.b)
+      const nodesInLinks = Array.from(new Set([...a, ...b]))
+      state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+    },
+
     confirmChanges (state) { // apply change to Links
       // add editor Line info to each editor links
       const props = Object.keys(state.editorLineInfo)
@@ -485,10 +515,7 @@ export default {
         })
 
       // delete every every nodes not in links
-      const a = state.links.features.map(item => item.properties.a)
-      const b = state.links.features.map(item => item.properties.b)
-      const nodesInLinks = Array.from(new Set([...a, ...b]))
-      state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+      this.commit('deleteUnusedNodes')
 
       // For every Links containing an editor Nodes. update Geometry.
       // (this is necessary when we move a node that is share between multiplde lines)
@@ -520,13 +547,15 @@ export default {
     },
 
     deleteTrip (state, payload) {
-      // set Trip Id
-      state.links.features = state.links.features.filter(link => link.properties.trip_id !== payload)
+      // payload = a single trip_id or a list or trips_id
+      // if its a list : delete all of them. else: delete single trip
+      if (typeof payload === 'object') {
+        state.links.features = state.links.features.filter(link => !payload.includes(link.properties.trip_id))
+      } else {
+        state.links.features = state.links.features.filter(link => link.properties.trip_id !== payload)
+      }
       // delete every every nodes not in links
-      const a = state.links.features.map(item => item.properties.a)
-      const b = state.links.features.map(item => item.properties.b)
-      const nodesList = Array.from(new Set([...a, ...b]))
-      state.nodes.features = state.nodes.features.filter(node => nodesList.includes(node.properties.index))
+      this.commit('deleteUnusedNodes')
       // get tripId list
       this.commit('getTripId')
     },
@@ -597,7 +626,6 @@ export default {
       ? state.editorNodes.features.filter(
         (node) => node.properties.index === getters.lastNodeId)[0]
       : null,
-    linkAttributes: (state) => state.linkAttributes,
     lineAttributes: (state) => state.lineAttributes,
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
