@@ -15,12 +15,12 @@ msgstr ""
 
 #: src/App.vue:46
 msgid "_ctx"
-msgstr ""
+msgstr "_ctx"
 
 #: src/components/layout/NavigationDrawer.vue:30
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
-msgstr ""
+msgstr "%{s}"
 
 #: src/components/SidePanel.vue:486
 msgid "Abort"
