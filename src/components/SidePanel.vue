@@ -18,14 +18,13 @@ export default {
       showDialog: false,
       showLeftPanelContent: true,
       tripList: [],
-      width: null,
+      height: null,
       selectedFilter: 'route_type',
     }
   },
   computed: {
     filterChoices () { return this.$store.getters.lineAttributes },
     showLeftPanel () { return this.$store.getters.showLeftPanel },
-    height () { return (window.innerHeight - 80) - 20 * 3 - 80 },
     editorTrip () { return this.$store.getters.editorTrip },
     tripId () { return this.$store.getters.tripId },
     classifiedTripId () {
@@ -96,11 +95,13 @@ export default {
   },
   created () {
     this.tripList = this.$store.getters.tripId
+    this.height = (window.innerHeight - 80) - 20 * 3 - 60
   },
 
   methods: {
-    getWidth () {
-      this.width = this.$refs.leftPanelDiv.clientWidth
+
+    onResize () {
+      this.height = this.$refs.leftPanel.clientHeight - 200
     },
 
     editButton (value) {
@@ -159,7 +160,6 @@ export default {
 </script>
 <template>
   <section
-    ref="leftPanelDiv"
     :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
     :style="{'width': showLeftPanel ? '400px' : '0px'}"
   >
@@ -177,6 +177,9 @@ export default {
     <transition name="fade">
       <div
         v-show="showLeftPanelContent"
+        id="left-panel"
+        ref="leftPanel"
+        v-resize="onResize"
         class="left-panel-content"
       >
         <div>
@@ -367,95 +370,102 @@ export default {
                   </v-tooltip>
                 </template>
 
-                <v-list-item
-                  v-for="item in value.tripId"
-                  :key="item"
-                  class="pl-2"
+                <v-virtual-scroll
+                  :items="value.tripId"
+                  :item-height="45"
+                  :height="Math.min(height-220, 45*value.tripId.length+3)"
                 >
-                  <v-list-item-action>
-                    <v-checkbox
-                      v-model="tripList"
+                  <template v-slot="{ item }">
+                    <v-list-item
+                      :key="item"
                       class="pl-2"
-                      :on-icon="'fa-eye fa'"
-                      :off-icon="'fa-eye-slash fa'"
-                      :color="'primary'"
-                      :value="item"
-                      size="10"
-                      hide-details
-                    />
-                  </v-list-item-action>
-                  <v-list-item-title v-if="item==editorTrip">
-                    <strong>{{ item }}</strong>
-                  </v-list-item-title>
-                  <v-list-item-title v-else>
-                    {{ item }}
-                  </v-list-item-title>
-                  <v-tooltip
-                    bottom
-                    open-delay="500"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        icon
-                        class="ma-1"
-                        v-bind="attrs"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
-                        v-on="on"
-                        @click="editButton(item)"
+                    >
+                      <v-list-item-action>
+                        <v-checkbox
+                          v-model="tripList"
+                          class="pl-2"
+                          :on-icon="'fa-eye fa'"
+                          :off-icon="'fa-eye-slash fa'"
+                          :color="'primary'"
+                          :value="item"
+                          size="10"
+                          hide-details
+                        />
+                      </v-list-item-action>
+                      <v-list-item-title v-if="item==editorTrip">
+                        <strong>{{ item }}</strong>
+                      </v-list-item-title>
+                      <v-list-item-title v-else>
+                        {{ item }}
+                      </v-list-item-title>
+                      <v-tooltip
+                        bottom
+                        open-delay="500"
                       >
-                        <v-icon :color="item == editorTrip? 'regular':'regular' ">
-                          fas fa-pen
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $gettext("Edit Line") }}</span>
-                  </v-tooltip>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            class="ma-1"
+                            v-bind="attrs"
+                            :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                            v-on="on"
+                            @click="editButton(item)"
+                          >
+                            <v-icon :color="item == editorTrip? 'regular':'regular' ">
+                              fas fa-pen
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $gettext("Edit Line") }}</span>
+                      </v-tooltip>
 
-                  <v-tooltip
-                    bottom
-                    open-delay="500"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        icon
-                        class="ma-1"
-                        v-bind="attrs"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
-                        v-on="on"
-                        @click="propertiesButton(item)"
+                      <v-tooltip
+                        bottom
+                        open-delay="500"
                       >
-                        <v-icon :color="item == editorTrip? 'regular':'regular' ">
-                          fas fa-list
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $gettext("Edit Line Properties") }}</span>
-                  </v-tooltip>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            class="ma-1"
+                            v-bind="attrs"
+                            :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                            v-on="on"
+                            @click="propertiesButton(item)"
+                          >
+                            <v-icon :color="item == editorTrip? 'regular':'regular' ">
+                              fas fa-list
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $gettext("Edit Line Properties") }}</span>
+                      </v-tooltip>
 
-                  <v-tooltip
-                    bottom
-                    open-delay="500"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        icon
-                        class="ma-1"
-                        v-bind="attrs"
-                        :disabled="editorTrip ? true: false"
-                        v-on="on"
-                        @click="deleteButton({trip:item,message:item})"
+                      <v-tooltip
+                        bottom
+                        open-delay="500"
                       >
-                        <v-icon
-                          small
-                          color="regular"
-                        >
-                          fas fa-trash
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $gettext("Delete Line") }}</span>
-                  </v-tooltip>
-                </v-list-item>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            class="ma-1"
+                            v-bind="attrs"
+                            :disabled="editorTrip ? true: false"
+                            v-on="on"
+                            @click="deleteButton({trip:item,message:item})"
+                          >
+                            <v-icon
+                              small
+                              color="regular"
+                            >
+                              fas fa-trash
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $gettext("Delete Line") }}</span>
+                      </v-tooltip>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
               </v-list-group>
 
               <v-divider />
@@ -605,7 +615,8 @@ transition:0.3s
 }
 
 .scrollable {
-   overflow-y: scroll;
+   overflow-y:hidden;
+
 }
 
 .drawer-list-item {

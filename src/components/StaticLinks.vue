@@ -12,7 +12,8 @@ export default {
 
   data () {
     return {
-      visibleNodes: [],
+      visibleNodes: {},
+      visibleLinks: {},
 
       popup: {
         coordinates: [0, 0],
@@ -24,15 +25,6 @@ export default {
   computed: {
     links () { return this.$store.getters.links },
     nodes () { return this.$store.getters.nodes },
-    linksPerLine () {
-      const groupBy = function (xs) {
-        return xs.reduce(function (rv, x) {
-          (rv[x.properties.trip_id] = rv[x.properties.trip_id] || []).push(x)
-          return rv
-        }, {})
-      }
-      return groupBy(this.links.features)
-    },
   },
   watch: {
     showedTrips () {
@@ -41,7 +33,8 @@ export default {
 
   },
   created () {
-    this.setHiddenFeatures()
+    this.visibleLinks = structuredClone(this.links)
+    this.visibleNodes = structuredClone(this.nodes)
   },
 
   methods: {
@@ -58,25 +51,32 @@ export default {
       this.popup.showed = false
     },
     setHiddenFeatures () {
-      // Set visible links
-      const visibleLinks = new Set()
-      this.showedTrips.forEach(line => {
-        this.linksPerLine[line].forEach(link => visibleLinks.add(link))
+      const promise = async () => {
+        // get visible links and features as an async function.
+        const linksFeatures = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
+        const a = linksFeatures.map(item => item.properties.a)
+        const b = linksFeatures.map(item => item.properties.b)
+        const ab = Array.from(new Set([...a, ...b]))
+        const nodesFeatures = this.nodes.features.filter(node => ab.includes(node.properties.index))
+        // return links and nodes features
+        return { linksFeatures: linksFeatures, nodesFeatures: nodesFeatures }
+      }
+      const res = promise()
+      res.then((result) => {
+        this.visibleLinks.features = result.linksFeatures
+        this.visibleNodes.features = result.nodesFeatures
       })
-      // Set visible nodes
-      const a = [...visibleLinks].map(item => item.properties.a)
-      const b = [...visibleLinks].map(item => item.properties.b)
-      const ab = new Set([...a, ...b])
-      this.visibleNodes = [...ab]
     },
     selectLine (event) {
       event.mapboxEvent.preventDefault() // prevent map control
       this.popup.showed = false
+      // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$store.commit('changeNotification', { text: '', autoClose: true })
     },
     editLineProperties (event) {
       this.popup.showed = false
+      // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$emit('rightClick', { action: 'Edit Line Info', lingering: false })
     },
@@ -89,7 +89,7 @@ export default {
       source-id="links"
       :source="{
         type: 'geojson',
-        data: links,
+        data: visibleLinks,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -107,7 +107,6 @@ export default {
                           ['to-number', ['get', 'route_width']],
                           3], 3],
         },
-        filter: ['in', ['get','trip_id'] ,['literal',showedTrips]],
 
         layout: {
           'line-sort-key': ['get', 'route_width'],
@@ -121,7 +120,7 @@ export default {
       source-id="nodes"
       :source="{
         type: 'geojson',
-        data: nodes,
+        data: visibleNodes,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -137,7 +136,6 @@ export default {
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1,
         },
-        filter: ['in', ['get','index'] ,['literal',visibleNodes]],
       }"
     />
 
