@@ -315,7 +315,6 @@ export default {
       @deleteButton="deleteButton"
       @propertiesButton="actionClick"
     />
-
     <Map
       :selected-trips="selectedTrips"
       @clickFeature="actionClick"

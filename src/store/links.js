@@ -63,6 +63,7 @@ export default {
     cleanHistory (state) { state.history = [] },
 
     addPropertie (state, payload) {
+      // when a new line properties is added (in dataframe page)
       state.links.features.map(link => link.properties[payload.name] = null)
       state.lineAttributes.push(payload.name)
     },
@@ -446,6 +447,7 @@ export default {
     },
 
     appendNewFile (state, payload) {
+      // append new links and node to the project (import page)
       state.links.features.push(...payload.links.features)
       state.nodes.features.push(...payload.nodes.features)
       this.commit('getTripId')
