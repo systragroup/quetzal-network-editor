@@ -1,4 +1,5 @@
 <script>
+
 const $gettext = s => s
 const short = require('short-uuid')
 
@@ -19,7 +20,10 @@ export default {
       showLeftPanelContent: true,
       tripList: [],
       height: null,
+      // for some reason, the v-model does not update when i force it in a watcher or a method.
+      // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
       selectedFilter: '',
+      vmodelSelectedFilter: '',
     }
   },
   computed: {
@@ -27,9 +31,17 @@ export default {
     showLeftPanel () { return this.$store.getters.showLeftPanel },
     editorTrip () { return this.$store.getters.editorTrip },
     tripId () { return this.$store.getters.tripId },
+    arrayUniqueTripId () {
+      // drop duplicates links trips. each line is a trip here.
+      const arrayUniqueByKey = [...new Map(this.$store.getters.links.features.map(item =>
+        [item.properties.trip_id, item.properties])).values()]
+      return arrayUniqueByKey
+    },
     filteredCat () {
-      const val = Array.from(new Set(this.$store.getters.links.features.map(
-        item => item.properties[this.selectedFilter])))
+      // for a given filter (key) get array of unique value
+      // e.g. get ['bus','subway'] for route_type
+      const val = Array.from(new Set(this.arrayUniqueTripId.map(
+        item => item[this.selectedFilter])))
       return val
     },
     classifiedTripId () {
@@ -37,15 +49,10 @@ export default {
       const classifiedTripId = []
       const undefinedCat = { name: $gettext('undefined'), tripId: [] }
       this.filteredCat.forEach(c => {
-        // get all tripdId in the categeorie.
-        const arr = Array.from(
-          new Set(
-            this.$store.getters.links.features.filter(
-              item => item.properties[this.selectedFilter] === c,
-            ).map(
-              (item) => item.properties.trip_id),
-          ),
-        )
+        const arr = this.arrayUniqueTripId.filter(
+          item => item[this.selectedFilter] === c,
+        ).map((item) => item.trip_id)
+
         // regroup all null values into a single list 'undefined'
         if (c === null | c === '' | c === undefined) {
           undefinedCat.tripId.push(...arr)
@@ -57,7 +64,6 @@ export default {
       if (undefinedCat.tripId.length > 0) {
         classifiedTripId.push(undefinedCat)
       }
-      console.log('classified done')
       return classifiedTripId
       // Array.from(new Set(this.$store.getters.links.features.map(item => item.properties.trip_id)));
     },
@@ -96,13 +102,22 @@ export default {
         this.tripList = this.tripList.map((trip) => dict[trip])
       }
     },
-    selectedFilter (newVal, oldVal) {
+    vmodelSelectedFilter (newVal, oldVal) {
+      this.selectedFilter = newVal
       // prevent group larger than 500.
       if (this.filteredCat.length > 500) {
+        // if it is larger, return to oldValue
         this.selectedFilter = oldVal
-        this.$store.commit('changeNotification', { text: $gettext('Cannot filter by this field. There is more than 500 groups'), autoClose: true, color: 'red darken-2' })
+        // display error message
+        this.$store.commit('changeNotification',
+          {
+            text: $gettext('Cannot filter by this field. There is more than 500 groups'),
+            autoClose: true,
+            color: 'red darken-2',
+          })
+        // return the value in the v-select as the old Value
         // eslint-disable-next-line no-return-assign
-        this.$nextTick(() => this.selectedFilter = oldVal)
+        this.$nextTick(() => this.vmodelSelectedFilter = oldVal)
       }
     },
   },
@@ -110,6 +125,7 @@ export default {
     this.tripList = this.$store.getters.tripId
     this.height = (window.innerHeight - 80) - 20 * 3 - 60
     this.selectedFilter = 'route_type'
+    this.vmodelSelectedFilter = this.selectedFilter
   },
 
   methods: {
@@ -167,6 +183,9 @@ export default {
       } else {
         this.tripList = Array.from(new Set([...this.tripList, ...val]))
       }
+    },
+    onChange (oldVal, newVal) {
+      console.log(oldVal, newVal)
     },
   },
 
@@ -290,7 +309,7 @@ export default {
             >
               <v-list-item>
                 <v-select
-                  v-model="selectedFilter"
+                  v-model="vmodelSelectedFilter"
                   :items="filterChoices"
                   prepend-icon="fas fa-filter"
                   label="filter"
