@@ -28,11 +28,7 @@ export default {
   },
   watch: {
     showedTrips () {
-      const promise = this.setHiddenFeatures()
-      promise.then((result) => {
-        this.visibleLinks.features = result.linksFeatures
-        this.visibleNodes.features = result.nodesFeatures
-      })
+      this.setHiddenFeatures()
     },
 
   },
@@ -54,15 +50,22 @@ export default {
       event.map.getCanvas().style.cursor = ''
       this.popup.showed = false
     },
-    async setHiddenFeatures () {
-      // get visible links and features as an async function.
-      const linksFeatures = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
-      const a = linksFeatures.map(item => item.properties.a)
-      const b = linksFeatures.map(item => item.properties.b)
-      const ab = Array.from(new Set([...a, ...b]))
-      const nodesFeatures = this.nodes.features.filter(node => ab.includes(node.properties.index))
-      // return links and nodes features
-      return { linksFeatures: linksFeatures, nodesFeatures: nodesFeatures }
+    setHiddenFeatures () {
+      const promise = async () => {
+        // get visible links and features as an async function.
+        const linksFeatures = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
+        const a = linksFeatures.map(item => item.properties.a)
+        const b = linksFeatures.map(item => item.properties.b)
+        const ab = Array.from(new Set([...a, ...b]))
+        const nodesFeatures = this.nodes.features.filter(node => ab.includes(node.properties.index))
+        // return links and nodes features
+        return { linksFeatures: linksFeatures, nodesFeatures: nodesFeatures }
+      }
+      const res = promise()
+      res.then((result) => {
+        this.visibleLinks.features = result.linksFeatures
+        this.visibleNodes.features = result.nodesFeatures
+      })
     },
     selectLine (event) {
       event.mapboxEvent.preventDefault() // prevent map control
