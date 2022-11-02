@@ -19,7 +19,7 @@ export default {
       showLeftPanelContent: true,
       tripList: [],
       height: null,
-      selectedFilter: 'route_type',
+      selectedFilter: '',
     }
   },
   computed: {
@@ -27,13 +27,16 @@ export default {
     showLeftPanel () { return this.$store.getters.showLeftPanel },
     editorTrip () { return this.$store.getters.editorTrip },
     tripId () { return this.$store.getters.tripId },
-    classifiedTripId () {
-      const cat = Array.from(new Set(this.$store.getters.links.features.map(
+    filteredCat () {
+      const val = Array.from(new Set(this.$store.getters.links.features.map(
         item => item.properties[this.selectedFilter])))
+      return val
+    },
+    classifiedTripId () {
       // return this list of object, {cat_name, tripId list}
       const classifiedTripId = []
       const undefinedCat = { name: $gettext('undefined'), tripId: [] }
-      cat.forEach(c => {
+      this.filteredCat.forEach(c => {
         // get all tripdId in the categeorie.
         const arr = Array.from(
           new Set(
@@ -54,6 +57,7 @@ export default {
       if (undefinedCat.tripId.length > 0) {
         classifiedTripId.push(undefinedCat)
       }
+      console.log('classified done')
       return classifiedTripId
       // Array.from(new Set(this.$store.getters.links.features.map(item => item.properties.trip_id)));
     },
@@ -92,10 +96,20 @@ export default {
         this.tripList = this.tripList.map((trip) => dict[trip])
       }
     },
+    selectedFilter (newVal, oldVal) {
+      // prevent group larger than 500.
+      if (this.filteredCat.length > 500) {
+        this.selectedFilter = oldVal
+        this.$store.commit('changeNotification', { text: $gettext('Cannot filter by this field. There is more than 500 groups'), autoClose: true, color: 'red darken-2' })
+        // eslint-disable-next-line no-return-assign
+        this.$nextTick(() => this.selectedFilter = oldVal)
+      }
+    },
   },
   created () {
     this.tripList = this.$store.getters.tripId
     this.height = (window.innerHeight - 80) - 20 * 3 - 60
+    this.selectedFilter = 'route_type'
   },
 
   methods: {
@@ -615,7 +629,7 @@ transition:0.3s
 }
 
 .scrollable {
-   overflow-y:hidden;
+   overflow-y:scroll;
 
 }
 

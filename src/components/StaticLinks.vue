@@ -29,6 +29,8 @@ export default {
   watch: {
     showedTrips () {
       this.setHiddenFeatures()
+      // TODO: append new links when showTrips change by 1 (1 trip is check)
+      // this could be quite faster!
     },
 
   },
