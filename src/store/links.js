@@ -35,6 +35,9 @@ export default {
         const linksHeader = { ...state.links }
         linksHeader.features = []
         state.editorLinks = linksHeader
+        // limit geometry precision to 6 digit
+        state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+          points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
         this.commit('getTripId')
         state.filesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
@@ -46,6 +49,10 @@ export default {
         const nodesHeader = { ...state.nodes }
         nodesHeader.features = []
         state.editorNodes = nodesHeader
+        // limit geometry precision to 6 digit
+        state.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+          coord => Math.round(Number(coord) * 1000000) / 1000000))
+
         state.filesAreLoaded.nodes = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },

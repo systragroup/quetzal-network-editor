@@ -23,16 +23,41 @@ export default {
     }
   },
   computed: {
-    links () { return this.$store.getters.links },
+    links () {
+      // remove unwanted features for faster computation
+      const links = structuredClone(this.$store.getters.links)
+      links.features = links.features.map((feature) => (
+        {
+          properties: {
+            trip_id: feature.properties.trip_id,
+            a: feature.properties.a,
+            b: feature.properties.b,
+            route_color: feature.properties.route_color,
+            route_width: feature.properties.route_width,
+          },
+          geometry: feature.geometry,
+        }
+      ),
+      )
+      return links
+    },
     nodes () { return this.$store.getters.nodes },
   },
   watch: {
-    showedTrips () {
-      this.setHiddenFeatures()
-      // TODO: append new links when showTrips change by 1 (1 trip is check)
-      // this could be quite faster!
+    showedTrips (newVal, oldVal) {
+      let changes = ''
+      if (newVal.length < oldVal.length) {
+        // if a tripis unchecked. we remove it
+        changes = oldVal.filter(item => !newVal.includes(item))
+        this.setHiddenFeatures('remove', changes)
+      } else if (newVal.length > oldVal.length) {
+        // if a trip is added, we add it!
+        changes = newVal.filter(item => !oldVal.includes(item))
+        this.setHiddenFeatures('add', changes)
+      } else {
+        this.setHiddenFeatures()
+      }
     },
-
   },
   created () {
     this.visibleLinks = structuredClone(this.links)
@@ -52,22 +77,30 @@ export default {
       event.map.getCanvas().style.cursor = ''
       this.popup.showed = false
     },
-    setHiddenFeatures () {
-      const promise = async () => {
-        // get visible links and features as an async function.
-        const linksFeatures = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
-        const a = linksFeatures.map(item => item.properties.a)
-        const b = linksFeatures.map(item => item.properties.b)
+    setHiddenFeatures (method = 'all', trips = []) {
+      // get visible links and features as an async function.
+      if (method === 'all') {
+        // eslint-disable-next-line max-len
+        this.visibleLinks.features = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
+        const a = this.visibleLinks.features.map(item => item.properties.a)
+        const b = this.visibleLinks.features.map(item => item.properties.b)
         const ab = Array.from(new Set([...a, ...b]))
-        const nodesFeatures = this.nodes.features.filter(node => ab.includes(node.properties.index))
-        // return links and nodes features
-        return { linksFeatures: linksFeatures, nodesFeatures: nodesFeatures }
+        this.visibleNodes.features = this.nodes.features.filter(node => ab.includes(node.properties.index))
+      } else if (method === 'remove') {
+        this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.includes(link.properties.trip_id))
+        const a = this.visibleLinks.features.map(item => item.properties.a)
+        const b = this.visibleLinks.features.map(item => item.properties.b)
+        const ab = Array.from(new Set([...a, ...b]))
+        this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.includes(node.properties.index))
+      } else if (method === 'add') {
+        const newFeatures = this.links.features.filter(link => trips.includes(link.properties.trip_id))
+        this.visibleLinks.features.push(...newFeatures)
+        const a = newFeatures.map(item => item.properties.a)
+        const b = newFeatures.map(item => item.properties.b)
+        const ab = Array.from(new Set([...a, ...b]))
+        const newNodes = this.visibleNodes.features.filter(node => ab.includes(node.properties.index))
+        this.visibleNodes.features.push(...newNodes)
       }
-      const res = promise()
-      res.then((result) => {
-        this.visibleLinks.features = result.linksFeatures
-        this.visibleNodes.features = result.nodesFeatures
-      })
     },
     selectLine (event) {
       event.mapboxEvent.preventDefault() // prevent map control
@@ -81,6 +114,9 @@ export default {
       // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$emit('rightClick', { action: 'Edit Line Info', lingering: false })
+    },
+    test () {
+      console.log('test')
     },
   },
 }
@@ -115,6 +151,7 @@ export default {
           'line-cap': 'round',
         }
       }"
+      @load="test"
       v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine, contextmenu:editLineProperties }"
     />
 

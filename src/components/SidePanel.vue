@@ -184,9 +184,7 @@ export default {
         this.tripList = Array.from(new Set([...this.tripList, ...val]))
       }
     },
-    onChange (oldVal, newVal) {
-      console.log(oldVal, newVal)
-    },
+
   },
 
 }
