@@ -17,11 +17,13 @@ export default {
     editorLinks: {},
     editorLineInfo: {},
     nodes: {},
+    nodesHeader: {},
     tripId: [], // to change with the actual import.
     newLink: {},
     newNode: {},
     history: [],
     changeBounds: true,
+    anchorMode: false,
     speed: 20, // 20KmH for time (speed/distance)
     lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id',
       'headway', 'route_long_name', 'route_short_name',
@@ -35,6 +37,9 @@ export default {
         const linksHeader = { ...state.links }
         linksHeader.features = []
         state.editorLinks = linksHeader
+        // limit geometry precision to 6 digit
+        state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+          points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
         this.commit('getTripId')
         state.filesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
@@ -45,7 +50,12 @@ export default {
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.nodes.crs.properties.name)) {
         const nodesHeader = { ...state.nodes }
         nodesHeader.features = []
+        state.nodesHeader = nodesHeader
         state.editorNodes = nodesHeader
+        // limit geometry precision to 6 digit
+        state.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+          coord => Math.round(Number(coord) * 1000000) / 1000000))
+
         state.filesAreLoaded.nodes = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
@@ -54,6 +64,10 @@ export default {
       state.filesAreLoaded = { links: false, nodes: false }
       state.links = {}
       state.nodes = {}
+    },
+
+    changeAnchorMode (state) {
+      state.anchorMode = !state.anchorMode
     },
 
     addToHistory (state, payload) {
@@ -180,7 +194,7 @@ export default {
         features.properties.link_sequence = features.properties.link_sequence + 1
         // replace node a by b and delete node a
         features.properties.a = features.properties.b
-        features.geometry.coordinates[0] = features.geometry.coordinates[1]
+        features.geometry.coordinates[0] = features.geometry.coordinates.slice(-1)[0]
         // new node index (hash)
         payload.nodeCopyId = features.properties.a
         this.commit('setNewNode', payload)
@@ -289,7 +303,9 @@ export default {
           link => link.properties.index !== link1.properties.index)
         // the node is inbetween 2 links. 1 link is deleted, and the other is extented.
       } else {
-        link1.geometry.coordinates = [link1.geometry.coordinates[0], link2.geometry.coordinates[1]]
+        link1.geometry.coordinates = [
+          ...link1.geometry.coordinates.slice(0, -1),
+          ...link2.geometry.coordinates.slice(1)]
         link1.properties.b = link2.properties.b
         link1.properties.length += link2.properties.length
         link1.properties.time += link2.properties.time
@@ -309,18 +325,25 @@ export default {
       const featureIndex = state.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link1 change editorLinks as it is an observer.
       const link1 = state.editorLinks.features[featureIndex] // this link is extented
-      const link2 = JSON.parse(JSON.stringify(link1))
+      const link2 = structuredClone(link1)
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
 
       link1.properties.b = state.newNode.features[0].properties.index
-      link1.geometry.coordinates[1] = state.newNode.features[0].geometry.coordinates
+      link1.geometry.coordinates = [
+        ...link1.geometry.coordinates.slice(0, payload.sliceIndex),
+        state.newNode.features[0].geometry.coordinates,
+      ]
+
       link1.properties.index = 'link_' + short.generate() // link1.properties.index+ '-1'
       link1.properties.length = link1.properties.length * ratio
       link1.properties.time = link1.properties.time * ratio
 
       link2.properties.a = state.newNode.features[0].properties.index
-      link2.geometry.coordinates[0] = state.newNode.features[0].geometry.coordinates
+      link2.geometry.coordinates = [
+        state.newNode.features[0].geometry.coordinates,
+        ...link2.geometry.coordinates.slice(payload.sliceIndex),
+      ]
       link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
       link2.properties.time = link2.properties.time * (1 - ratio)
@@ -345,10 +368,11 @@ export default {
       const clickedPoint = Point(Object.values(payload.lngLat))
       const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
       const dist = length(linkGeom, { units: 'kilometers' }) // dist
-
+      // for multiString, gives the index of the closest one, add +1 for the slice.
+      const sliceIndex = snapped.properties.index + 1
       const offset = snapped.properties.location / dist
       this.commit('setNewNode', { coordinates: snapped.geometry.coordinates, nodeCopyId: nodeCopyId })
-      this.commit('splitLink', { selectedLink: payload.selectedLink, offset: offset })
+      this.commit('splitLink', { selectedLink: payload.selectedLink, offset: offset, sliceIndex: sliceIndex })
       // this.commit('setNewNode', null) // init new node to null
     },
 
@@ -364,7 +388,7 @@ export default {
       // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
       if (link1) {
         // note: props are unchanged. even tho the length change, the time and length are unchanged.
-        link1.geometry.coordinates = [link1.geometry.coordinates[0], payload.lngLat]
+        link1.geometry.coordinates = [...link1.geometry.coordinates.slice(0, -1), payload.lngLat]
         // update time and distance
         const distance = length(link1)
         link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
@@ -372,7 +396,7 @@ export default {
         link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
       if (link2) {
-        link2.geometry.coordinates = [payload.lngLat, link2.geometry.coordinates[1]]
+        link2.geometry.coordinates = [payload.lngLat, ...link2.geometry.coordinates.slice(1)]
         // update time and distance
         const distance = length(link2)
         link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
@@ -631,5 +655,18 @@ export default {
     lineAttributes: (state) => state.lineAttributes,
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
+    anchorMode: (state) => state.anchorMode,
+    linksNodes: (state) => {
+      const nodes = state.nodesHeader
+      state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
+        feature => feature.geometry.coordinates.slice(1, -1).forEach(
+          point => nodes.features.push({
+            properties: { index: short.generate() },
+            geometry: { coordinates: point, type: 'Point' },
+          })),
+      )
+
+      return nodes
+    },
   },
 }

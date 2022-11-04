@@ -82,7 +82,16 @@ export default {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
-
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Control') {
+        this.$store.commit('changeAnchorMode')
+      }
+    })
+    // window.addEventListener('keyup', (e) => {
+    //  if (e.key === 'Control') {
+    //    this.$store.commit('changeAnchorMode')
+    //  }
+    // })
     this.$store.commit('changeNotification',
       { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
   },
@@ -124,7 +133,6 @@ export default {
         this.editorForm = this.$store.getters.editorLinks.features.filter(
           (link) => link.properties.index === this.selectedLink.index)
         this.editorForm = this.editorForm[0].properties
-        console.log(this.editorForm)
 
         // filter properties to only the one that are editable.
         const filteredKeys = this.$store.getters.lineAttributes
@@ -140,7 +148,6 @@ export default {
             return obj
           }, {})
         this.editorForm = filtered
-        console.log(this.editorForm)
         this.showDialog = true
       } else if (this.action === 'Edit Node Info') {
         this.selectedNode = event.selectedFeature.properties
@@ -200,6 +207,9 @@ export default {
           break
         case 'deleteTrip':
           this.$store.commit('deleteTrip', this.tripToDelete)
+          break
+        case 'Add Stop Inline':
+          this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
           break
         case 'Add Stop Inline':
           this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })

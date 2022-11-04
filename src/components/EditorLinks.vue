@@ -8,7 +8,7 @@ export default {
     MglImageLayer,
     MglGeojsonLayer,
   },
-  props: ['map', 'drawMode'],
+  props: ['map', 'drawMode', 'anchorMode'],
   events: ['clickFeature', 'onHover', 'offHover'],
   data () {
     return {
@@ -17,6 +17,7 @@ export default {
       disablePopup: false,
       keepHovering: false,
       dragNode: false,
+      anchorNodes: {},
       popupEditor: {
         coordinates: [0, 0],
         showed: false,
@@ -31,6 +32,7 @@ export default {
       },
     }
   },
+
   watch: {
 
     drawMode (val) {
@@ -44,7 +46,22 @@ export default {
         }
       }
     },
+    anchorMode (val) {
+      console.log(val)
+      if (val) {
+        this.anchorNodes = this.$store.getters.linksNodes
+        // disable popup
+        this.disablePopup = true
+        this.popupEditor.showed = false
+      } else {
+        this.anchorNodes.features = []
+        this.disablePopup = false
+      }
+    },
 
+  },
+  created () {
+    this.anchorNodes = this.$store.getters.linksNodes
   },
 
   methods: {
@@ -155,6 +172,7 @@ export default {
     },
 
     actionClick (event) {
+      console.log(event)
       const click = {
         selectedFeature: event.feature,
         action: event.action,
@@ -216,6 +234,7 @@ export default {
         this.$emit('clickFeature', click)
       }
     },
+
   },
 }
 </script>
@@ -264,7 +283,7 @@ export default {
     />
 
     <MglGeojsonLayer
-      v-if="drawMode"
+      v-if="drawMode & !anchorMode"
       source-id="drawLink"
       :source="{
         type: 'geojson',
@@ -301,6 +320,35 @@ export default {
           'circle-color': '#2C3E4E',
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
+        }
+      }"
+      @click="selectClick"
+      @mouseover="onCursor"
+      @mouseleave="offCursor"
+      @mousedown="moveNode"
+      @mouseup="stopMovingNode"
+      @contextmenu="contextMenuNode"
+    />
+
+    <MglGeojsonLayer
+      source-id="AnchorNodes"
+      :source="{
+        type: 'geojson',
+        data: anchorNodes,
+        buffer: 0,
+        promoteId: 'index',
+      }"
+      layer-id="AnchorNodes"
+      :layer="{
+        interactive: true,
+        type: 'circle',
+        minzoom: 9,
+        paint: {
+          'circle-color': '#FFFFFF',
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 4],
+          'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
+          'circle-stroke-color': '#2C3E4E',
+          'circle-stroke-width': 2,
         }
       }"
       @click="selectClick"
