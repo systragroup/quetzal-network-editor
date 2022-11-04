@@ -56,6 +56,7 @@ export default {
     lastNode () {
       return this.$store.getters.lastNode
     },
+    anchorMode () { return this.$store.getters.anchorMode },
   },
   watch: {
     showLeftPanel () {
@@ -155,7 +156,7 @@ export default {
         this.selectedAction = 'Extend Line Upward'
         this.$store.commit('changeNotification', { text: '', autoClose: true })
       }
-      if (this.drawMode) {
+      if (this.drawMode & !this.anchorMode) {
         const pointGeom = Object.values(event.mapboxEvent.lngLat)
         this.$store.commit('applyNewLink', pointGeom)
         // console.log(this.mapDiv.style.width)
@@ -163,7 +164,7 @@ export default {
     },
     resetDraw (event) {
       // reset draw line when we leave the map
-      if (this.drawMode && this.map.loaded()) {
+      if (this.drawMode && this.map.loaded() && !this.anchorMode) {
         if (this.drawLine.action === 'Extend Line Upward') {
           this.$store.commit('editNewLink', this.drawLine.features[0].geometry.coordinates[0])
         } else {
@@ -182,6 +183,7 @@ export default {
       // no drawing when we hover on link or node
       this.drawMode = false
       this.hoverId = event.selectedId
+      // console.log(event)
       // change hook when we hover first or last node.
       if (this.hoverId === this.$store.getters.lastNodeId) {
         this.selectedAction = 'Extend Line Upward'
@@ -229,6 +231,7 @@ export default {
       <EditorLinks
         :map="map"
         :draw-mode="drawMode"
+        :anchor-mode="anchorMode"
         @clickFeature="(e) => $emit('clickFeature',e)"
         @onHover="onHover"
         @offHover="offHover"

@@ -82,7 +82,16 @@ export default {
     this.links = this.$store.getters.links
     this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
-
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Control') {
+        this.$store.commit('changeAnchorMode')
+      }
+    })
+    // window.addEventListener('keyup', (e) => {
+    //  if (e.key === 'Control') {
+    //    this.$store.commit('changeAnchorMode')
+    //  }
+    // })
     this.$store.commit('changeNotification',
       { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
   },
@@ -198,6 +207,9 @@ export default {
           break
         case 'deleteTrip':
           this.$store.commit('deleteTrip', this.tripToDelete)
+          break
+        case 'Add Stop Inline':
+          this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
           break
         case 'Add Stop Inline':
           this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })

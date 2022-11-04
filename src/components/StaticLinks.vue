@@ -62,6 +62,7 @@ export default {
   created () {
     this.visibleLinks = structuredClone(this.links)
     this.visibleNodes = structuredClone(this.nodes)
+    this.setHiddenFeatures()
   },
 
   methods: {
@@ -98,7 +99,7 @@ export default {
         const a = newFeatures.map(item => item.properties.a)
         const b = newFeatures.map(item => item.properties.b)
         const ab = Array.from(new Set([...a, ...b]))
-        const newNodes = this.visibleNodes.features.filter(node => ab.includes(node.properties.index))
+        const newNodes = this.nodes.features.filter(node => ab.includes(node.properties.index))
         this.visibleNodes.features.push(...newNodes)
       }
     },
@@ -115,9 +116,7 @@ export default {
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$emit('rightClick', { action: 'Edit Line Info', lingering: false })
     },
-    test () {
-      console.log('test')
-    },
+
   },
 }
 </script>
@@ -151,7 +150,6 @@ export default {
           'line-cap': 'round',
         }
       }"
-      @load="test"
       v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine, contextmenu:editLineProperties }"
     />
 
