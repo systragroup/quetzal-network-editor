@@ -54,6 +54,7 @@ export default {
 
   methods: {
     selectClick (event) {
+      console.log('click')
       if (this.hoveredStateId !== null) {
         // Get the highlighted feature
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
@@ -216,7 +217,6 @@ export default {
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
     },
-
   },
 }
 </script>

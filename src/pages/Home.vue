@@ -85,12 +85,6 @@ export default {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Control') {
         this.$store.commit('changeAnchorMode')
-        if (this.$store.getters.anchorMode) {
-          this.$store.commit('changeNotification',
-            { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
-        } else {
-          this.$store.commit('changeNotification', { text: '', autoClose: true })
-        }
       }
     })
     // window.addEventListener('keyup', (e) => {

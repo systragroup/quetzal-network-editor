@@ -7,6 +7,7 @@ import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import arrowImageAnchor from '@static/arrow_anchor.png'
 // Filter links from selected line
+const $gettext = s => s
 
 export default {
   name: 'Map',
@@ -61,6 +62,14 @@ export default {
   watch: {
     showLeftPanel () {
       setTimeout(() => this.map.resize(), 250)
+    },
+    anchorMode (val) {
+      if (val) {
+        this.$store.commit('changeNotification',
+          { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
+      } else {
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
     },
 
     editorNodes (newVal, oldVal) {
