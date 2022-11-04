@@ -85,6 +85,12 @@ export default {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Control') {
         this.$store.commit('changeAnchorMode')
+        if (this.$store.getters.anchorMode) {
+          this.$store.commit('changeNotification',
+            { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
+        } else {
+          this.$store.commit('changeNotification', { text: '', autoClose: true })
+        }
       }
     })
     // window.addEventListener('keyup', (e) => {
@@ -173,7 +179,7 @@ export default {
       } else if (['Cut Line From Node', 'Cut Line At Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
-      } else if (this.action === 'Add Stop Inline') {
+      } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
         this.selectedLink = event.selectedFeature.properties
         this.cursorPosition = event.lngLat
         this.applyAction()
@@ -209,10 +215,18 @@ export default {
           this.$store.commit('deleteTrip', this.tripToDelete)
           break
         case 'Add Stop Inline':
-          this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
+          this.$store.commit('addNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'editorNodes',
+          })
           break
-        case 'Add Stop Inline':
-          this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
+        case 'Add Anchor Inline':
+          this.$store.commit('addNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'anchorNodes',
+          })
           break
       }
       if (!this.lingering) {

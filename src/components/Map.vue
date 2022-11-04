@@ -5,7 +5,7 @@ import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
-
+import arrowImageAnchor from '@static/arrow_anchor.png'
 // Filter links from selected line
 
 export default {
@@ -64,6 +64,7 @@ export default {
     },
 
     editorNodes (newVal, oldVal) {
+      this.$store.commit('setAnchorMode', false)
       this.isEditorMode = (newVal.features.length > 0)
       if (this.isEditorMode) {
         if (this.$store.getters.changeBounds) {
@@ -129,7 +130,6 @@ export default {
           padding: 100,
         })
       }
-
       event.map.loadImage(arrowImage, function (err, image) {
         if (err) {
           console.error('err image', err)
@@ -137,9 +137,15 @@ export default {
         }
         event.map.addImage('arrow', image)
       })
+      event.map.loadImage(arrowImageAnchor, function (err, image) {
+        if (err) {
+          console.error('err image', err)
+          return
+        }
+        event.map.addImage('arrowAnchor', image)
+      })
       this.map = event.map
       event.map.dragRotate.disable()
-
       this.mapIsLoaded = true
     },
 

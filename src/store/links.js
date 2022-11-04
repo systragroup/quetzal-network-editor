@@ -21,7 +21,6 @@ export default {
     tripId: [], // to change with the actual import.
     newLink: {},
     newNode: {},
-    history: [],
     changeBounds: true,
     anchorMode: false,
     speed: 20, // 20KmH for time (speed/distance)
@@ -66,15 +65,12 @@ export default {
       state.nodes = {}
     },
 
+    setAnchorMode (state, payload) {
+      state.anchorMode = payload
+    },
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
     },
-
-    addToHistory (state, payload) {
-      state.history.push(payload)
-    },
-
-    cleanHistory (state) { state.history = [] },
 
     addPropertie (state, payload) {
       // when a new line properties is added (in dataframe page)
@@ -371,9 +367,41 @@ export default {
       // for multiString, gives the index of the closest one, add +1 for the slice.
       const sliceIndex = snapped.properties.index + 1
       const offset = snapped.properties.location / dist
-      this.commit('setNewNode', { coordinates: snapped.geometry.coordinates, nodeCopyId: nodeCopyId })
-      this.commit('splitLink', { selectedLink: payload.selectedLink, offset: offset, sliceIndex: sliceIndex })
+      if (payload.nodes === 'editorNodes') {
+        this.commit('setNewNode', { coordinates: snapped.geometry.coordinates, nodeCopyId: nodeCopyId })
+        this.commit('splitLink', { selectedLink: payload.selectedLink, offset: offset, sliceIndex: sliceIndex })
+      // Anchor Nodes
+      } else {
+        this.commit('addAnchorNode', {
+          selectedLink: payload.selectedLink,
+          coordinates: snapped.geometry.coordinates,
+          sliceIndex: sliceIndex,
+        })
+      }
+
       // this.commit('setNewNode', null) // init new node to null
+    },
+    addAnchorNode (state, payload) {
+      const linkIndex = payload.selectedLink.index
+      const featureIndex = state.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
+      // changing link change editorLinks as it is an observer.
+      const link = state.editorLinks.features[featureIndex]
+      link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
+    },
+    deleteAnchorNode (state, payload) {
+      const linkIndex = payload.selectedNode.properties.linkIndex
+      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const link = state.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
+        ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+    },
+    moveAnchor (state, payload) {
+      const linkIndex = payload.selectedNode.properties.linkIndex
+      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const link = state.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
+        payload.lngLat,
+        ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
 
     moveNode (state, payload) {
@@ -627,7 +655,6 @@ export default {
     linksAreLoaded: (state) => state.filesAreLoaded.links,
     nodesAreLoaded: (state) => state.filesAreLoaded.nodes,
     filesAreLoaded: (state) => state.filesAreLoaded.links === true & state.filesAreLoaded.nodes === true,
-    history: (state) => state.history,
     links: (state) => state.links,
     nodes: (state) => state.nodes,
     route_id: (state) => state.route_id,
@@ -656,14 +683,19 @@ export default {
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
     anchorMode: (state) => state.anchorMode,
-    linksNodes: (state) => {
-      const nodes = state.nodesHeader
+    nodesHeader: (state) => state.nodesHeader,
+    anchorNodes: (state) => {
+      const nodes = structuredClone(state.nodesHeader)
       state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
-        feature => feature.geometry.coordinates.slice(1, -1).forEach(
-          point => nodes.features.push({
-            properties: { index: short.generate() },
-            geometry: { coordinates: point, type: 'Point' },
-          })),
+        feature => {
+          const linkIndex = feature.properties.index
+          feature.geometry.coordinates.slice(1, -1).forEach(
+            (point, idx) => nodes.features.push({
+              properties: { index: short.generate(), linkIndex: linkIndex, coordinatedIndex: idx + 1 },
+              geometry: { coordinates: point, type: 'Point' },
+            }),
+          )
+        },
       )
 
       return nodes
