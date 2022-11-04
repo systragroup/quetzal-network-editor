@@ -100,7 +100,8 @@ export default {
     },
     offCursor (event) {
       if (this.hoveredStateId !== null) {
-        if (!(this.hoveredStateId.layerId === 'editorNodes' && event.layerId === 'editorLinks')) {
+        // eslint-disable-next-line max-len
+        if (!(['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId) && event.layerId === 'editorLinks')) {
           // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
           if (this.keepHovering) {
             this.dragNode = true
@@ -198,7 +199,7 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode) {
-        if (this.anchorMode) {
+        if (this.hoveredStateId.layerId === 'anchorNodes') {
           this.$store.commit('moveAnchor', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
         } else {
           this.$store.commit('moveNode', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
@@ -301,13 +302,15 @@ export default {
         minzoom: 9,
         paint: {
           'circle-color': '#2C3E4E',
-          'circle-radius': ['case', ['boolean', anchorMode, false], 5,
-                            ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8]],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         }
       }"
-      v-on="anchorMode ? {} : {click: selectClick, mouseover: onCursor, mouseleave: offCursor,
-                               mousedown: moveNode, mouseup: stopMovingNode, contextmenu: contextMenuNode}"
+      v-on="anchorMode ? {} : {click: selectClick, contextmenu: contextMenuNode}"
+      @mouseover="onCursor"
+      @mouseleave="offCursor"
+      @mousedown="moveNode"
+      @mouseup="stopMovingNode"
     />
 
     <MglGeojsonLayer

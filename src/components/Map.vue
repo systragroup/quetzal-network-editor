@@ -159,7 +159,7 @@ export default {
     },
 
     draw (event) {
-      if (this.drawMode && this.map.loaded()) {
+      if (this.drawMode && this.map.loaded() && !this.anchorMode) {
         // let index = this.drawLine.features.length-1
         this.$store.commit('editNewLink', Object.values(event.mapboxEvent.lngLat))
       }
