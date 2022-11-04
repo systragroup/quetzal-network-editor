@@ -5,8 +5,9 @@ import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
-
+import arrowImageAnchor from '@static/arrow_anchor.png'
 // Filter links from selected line
+const $gettext = s => s
 
 export default {
   name: 'Map',
@@ -62,8 +63,17 @@ export default {
     showLeftPanel () {
       setTimeout(() => this.map.resize(), 250)
     },
+    anchorMode (val) {
+      if (val) {
+        this.$store.commit('changeNotification',
+          { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
+      } else {
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
+    },
 
     editorNodes (newVal, oldVal) {
+      this.$store.commit('setAnchorMode', false)
       this.isEditorMode = (newVal.features.length > 0)
       if (this.isEditorMode) {
         if (this.$store.getters.changeBounds) {
@@ -129,7 +139,6 @@ export default {
           padding: 100,
         })
       }
-
       event.map.loadImage(arrowImage, function (err, image) {
         if (err) {
           console.error('err image', err)
@@ -137,14 +146,20 @@ export default {
         }
         event.map.addImage('arrow', image)
       })
+      event.map.loadImage(arrowImageAnchor, function (err, image) {
+        if (err) {
+          console.error('err image', err)
+          return
+        }
+        event.map.addImage('arrowAnchor', image)
+      })
       this.map = event.map
       event.map.dragRotate.disable()
-
       this.mapIsLoaded = true
     },
 
     draw (event) {
-      if (this.drawMode && this.map.loaded()) {
+      if (this.drawMode && this.map.loaded() && !this.anchorMode) {
         // let index = this.drawLine.features.length-1
         this.$store.commit('editNewLink', Object.values(event.mapboxEvent.lngLat))
       }

@@ -503,8 +503,19 @@ export default {
             </v-card>
             <v-card class="mx-auto">
               <v-list-item v-if="editorTrip ? true: false">
-                <v-spacer />
-                <v-btn @click="$emit('abortChanges')">
+                <v-btn
+                  class="mx-2"
+                  :color="$store.getters.anchorMode? 'grey':'regular'"
+                  @click="$store.commit('changeAnchorMode')"
+                >
+                  <v-icon small>
+                    fas fa-bezier-curve
+                  </v-icon>
+                </v-btn>
+
+                <v-btn
+                  @click="$emit('abortChanges')"
+                >
                   <v-icon
                     small
                     left

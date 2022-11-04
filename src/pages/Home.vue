@@ -173,7 +173,7 @@ export default {
       } else if (['Cut Line From Node', 'Cut Line At Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
-      } else if (this.action === 'Add Stop Inline') {
+      } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
         this.selectedLink = event.selectedFeature.properties
         this.cursorPosition = event.lngLat
         this.applyAction()
@@ -209,10 +209,18 @@ export default {
           this.$store.commit('deleteTrip', this.tripToDelete)
           break
         case 'Add Stop Inline':
-          this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
+          this.$store.commit('addNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'editorNodes',
+          })
           break
-        case 'Add Stop Inline':
-          this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
+        case 'Add Anchor Inline':
+          this.$store.commit('addNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'anchorNodes',
+          })
           break
       }
       if (!this.lingering) {
