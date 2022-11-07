@@ -19,6 +19,7 @@ export default {
     nodes: {},
     nodesHeader: {},
     tripId: [], // to change with the actual import.
+    selectedTrips: [],
     newLink: {},
     newNode: {},
     changeBounds: true,
@@ -40,6 +41,8 @@ export default {
         state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
         this.commit('getTripId')
+        // set all trips visible
+        this.commit('changeSelectedTrips', state.tripId)
         state.filesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
@@ -76,6 +79,9 @@ export default {
       // when a new line properties is added (in dataframe page)
       state.links.features.map(link => link.properties[payload.name] = null)
       state.lineAttributes.push(payload.name)
+    },
+    changeSelectedTrips (state, payload) {
+      state.selectedTrips = payload
     },
 
     setEditorTrip (state, payload) {
@@ -662,6 +668,7 @@ export default {
     editorLinks: (state) => state.editorLinks,
     editorNodes: (state) => state.editorNodes,
     tripId: (state) => state.tripId,
+    selectedTrips: (state) => state.selectedTrips,
     editorLineInfo: (state) => state.editorLineInfo,
     newLink: (state) => state.newLink,
     newNode: (state) => state.newNode,
