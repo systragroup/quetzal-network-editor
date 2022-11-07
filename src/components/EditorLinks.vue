@@ -54,7 +54,6 @@ export default {
 
   methods: {
     selectClick (event) {
-      console.log('click')
       if (this.hoveredStateId !== null) {
         // Get the highlighted feature
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
@@ -234,7 +233,7 @@ export default {
       layer-id="editorLinks"
       :layer="{
         type: 'line',
-        minzoom: 9,
+        minzoom: 2,
         paint: {
           'line-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
@@ -254,6 +253,7 @@ export default {
       layer-id="arrow-layer"
       :layer="{
         type: 'symbol',
+        minzoom: 5,
         layout: {
           'symbol-placement': 'line',
           'symbol-spacing': 30,
@@ -277,7 +277,7 @@ export default {
       layer-id="drawLink"
       :layer="{
         type: 'line',
-        minzoom: 9,
+        minzoom: 2,
         paint: {
           'line-opacity': ['case', ['boolean', anchorMode, false], 0, 1],
           'line-color': '#7EBAAC',

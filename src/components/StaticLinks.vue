@@ -27,6 +27,7 @@ export default {
     links () {
       // remove unwanted features for faster computation
       const links = structuredClone(this.$store.getters.links)
+      // the popupContent column is added as it is acces by the map.
       links.features = links.features.map((feature) => (
         {
           properties: {
@@ -45,6 +46,7 @@ export default {
     },
     nodes () { return this.$store.getters.nodes },
   },
+
   watch: {
     showedTrips (newVal, oldVal) {
       let changes = ''
@@ -81,6 +83,7 @@ export default {
       this.popup.showed = false
     },
     setHiddenFeatures (method = 'all', trips = []) {
+      console.log(this.linksPerLine)
       // get visible links and features as an async function.
       if (method === 'all') {
         // eslint-disable-next-line max-len
@@ -136,7 +139,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'line',
-        minzoom: 9,
+        minzoom: 1,
         maxzoom: 18,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],

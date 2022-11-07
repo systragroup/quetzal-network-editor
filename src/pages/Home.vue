@@ -15,8 +15,6 @@ export default {
   },
   data () {
     return {
-      nodes: {},
-      links: {},
       editorTrip: null,
       action: null,
       selectedNode: null,
@@ -34,8 +32,6 @@ export default {
     selectedTrips () { return this.$store.getters.selectedTrips },
   },
   created () {
-    this.links = this.$store.getters.links
-    this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Control') {
