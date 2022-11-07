@@ -83,7 +83,6 @@ export default {
       this.popup.showed = false
     },
     setHiddenFeatures (method = 'all', trips = []) {
-      console.log(this.linksPerLine)
       // get visible links and features as an async function.
       if (method === 'all') {
         // eslint-disable-next-line max-len
