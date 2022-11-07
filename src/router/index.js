@@ -4,6 +4,7 @@ import Login from '@page/Login.vue'
 import Home from '@page/Home.vue'
 import Import from '@page/Import.vue'
 import DataFrame from '@page/DataFrame.vue'
+import Settings from '@page/Settings.vue'
 import { store } from '../store/index.js'
 
 Vue.use(Router)
@@ -43,6 +44,13 @@ const router = new Router({
       component: DataFrame,
       icon: 'fa-solid fa-table',
       title: $gettext('Table'),
+    },
+    {
+      path: '/Settings',
+      name: Settings.name,
+      component: Settings,
+      icon: 'fa-solid fa-cog',
+      title: $gettext('Settings'),
     },
   ],
 })
