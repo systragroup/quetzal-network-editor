@@ -25,6 +25,7 @@ export default {
     changeBounds: true,
     anchorMode: false,
     speed: 20, // 20KmH for time (speed/distance)
+    popupContent: 'trip_id',
     lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id',
       'headway', 'route_long_name', 'route_short_name',
       'route_type', 'route_color', 'route_width'],
@@ -81,7 +82,13 @@ export default {
       state.lineAttributes.push(payload.name)
     },
     changeSelectedTrips (state, payload) {
+      // trips list of visible trip_id.
       state.selectedTrips = payload
+    },
+
+    applySettings (state, payload) {
+      state.speed = payload.speed
+      state.popupContent = payload.popupContent
     },
 
     setEditorTrip (state, payload) {
@@ -408,6 +415,12 @@ export default {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+
+      // update time and distance
+      const distance = length(link)
+      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
 
     moveNode (state, payload) {
@@ -663,6 +676,8 @@ export default {
     filesAreLoaded: (state) => state.filesAreLoaded.links === true & state.filesAreLoaded.nodes === true,
     links: (state) => state.links,
     nodes: (state) => state.nodes,
+    speed: (state) => state.speed,
+    popupContent: (state) => state.popupContent,
     route_id: (state) => state.route_id,
     editorTrip: (state) => state.editorTrip,
     editorLinks: (state) => state.editorLinks,

@@ -23,6 +23,7 @@ export default {
     }
   },
   computed: {
+    selectedPopupContent () { return this.$store.getters.popupContent },
     links () {
       // remove unwanted features for faster computation
       const links = structuredClone(this.$store.getters.links)
@@ -30,6 +31,7 @@ export default {
         {
           properties: {
             trip_id: feature.properties.trip_id,
+            popupContent: feature.properties[this.selectedPopupContent],
             a: feature.properties.a,
             b: feature.properties.b,
             route_color: feature.properties.route_color,
@@ -71,7 +73,7 @@ export default {
       this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
         event.mapboxEvent.lngLat.lat,
       ]
-      this.popup.content = event.mapboxEvent.features[0].properties.trip_id
+      this.popup.content = event.mapboxEvent.features[0].properties.popupContent
       this.popup.showed = true
     },
     leaveLink (event) {
