@@ -11,18 +11,17 @@ export default {
         type: 'Number',
         value: this.$store.getters.speed,
         units: 'km/h',
-        hint: $gettext('Speed used to calculate the travel time when a new line is draw, extend, or a node is move'),
-        showHint: false,
+        hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
       },
       popupContent: {
         name: 'Popup Content',
         type: 'String',
         choices: this.$store.getters.lineAttributes,
         value: this.$store.getters.popupContent,
-        hint: $gettext('PopUp field to display when hovering a trip on the map'),
-        showHint: false,
+        hint: $gettext('Link field to display when hovering a trip on the map'),
       },
       errorMessage: null,
+      showHint: false,
       shake: false,
 
       rules: [
@@ -68,9 +67,10 @@ export default {
         class="card"
         :class="{'shake':shake}"
       >
-        <v-card-title class="title">
+        <v-card-title class="subtitle">
           {{ $gettext('Settings') }}
         </v-card-title>
+
         <v-card-text>
           <v-form
             ref="form"
@@ -80,34 +80,28 @@ export default {
               <v-col>
                 <v-text-field
                   v-model="speed.value"
-                  :append-icon=" 'far fa-question-circle small'"
                   :type="speed.type"
                   :label="speed.name"
                   :suffix="speed.units"
-                  :hint="speed.showHint? speed.hint: ''"
-                  :persistent-hint="speed.showHint"
+                  :hint="showHint? speed.hint: ''"
+                  :persistent-hint="showHint"
                   :rules="rules"
                   required
-                  @click:append="speed.showHint=!speed.showHint"
                   @wheel="()=>{}"
                 />
                 <v-select
                   v-model="popupContent.value"
                   :items="popupContent.choices"
-                  :append-icon=" 'far fa-question-circle'"
                   :label="popupContent.name"
-                  :hint="popupContent.showHint? popupContent.hint: ''"
-                  :persistent-hint="popupContent.showHint"
+                  :hint="showHint? popupContent.hint: ''"
+                  :persistent-hint="showHint"
                   required
-                  @click:append="popupContent.showHint=!popupContent.showHint"
                 />
               </v-col>
             </v-container>
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-spacer />
-
           <v-btn
             color="grey"
             text
@@ -122,6 +116,15 @@ export default {
             @click="submit"
           >
             {{ $gettext("Save") }}
+          </v-btn>
+
+          <v-spacer />
+          <v-btn
+            icon
+            small
+            @click="showHint = !showHint"
+          >
+            <v-icon>far fa-question-circle small</v-icon>
           </v-btn>
         </v-card-actions>
       </v-card>
