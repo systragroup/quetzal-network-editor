@@ -17,52 +17,7 @@ export default {
     return {
       nodes: {},
       links: {},
-      selectedTrips: [],
       editorTrip: null,
-      actionsList: [{
-        value: 'Edit Line Info',
-        name: $gettext('Edit Line Info'),
-      },
-      {
-        value: 'Cut Line From Node',
-        name: $gettext('Cut Line From Node'),
-      },
-      {
-        value: 'Cut Line At Node',
-        name: $gettext('Cut Line At Node'),
-      },
-      {
-        value: 'Extend Line Upward',
-        name: $gettext('Extend Line Upward'),
-      },
-      {
-        value: 'Extend Line Downward',
-        name: $gettext('Extend Line Downward'),
-      },
-      {
-        value: 'Add Stop Inline',
-        name: $gettext('Add Stop Inline'),
-      },
-      {
-        value: 'Move Stop',
-        name: $gettext('Move Stop'),
-      },
-      {
-        value: 'Delete Stop',
-        name: $gettext('Delete Stop'),
-      },
-      {
-        value: 'Edit Link Info',
-        name: $gettext('Edit Link Info'),
-      },
-      {
-        value: 'Edit Node Info',
-        name: $gettext('Edit Node Info'),
-      },
-      {
-        value: 'Edit Group Info',
-        name: $gettext('Edit Group Info'),
-      }],
       action: null,
       selectedNode: null,
       selectedLink: null,
@@ -75,8 +30,8 @@ export default {
       groupTripIds: [],
     }
   },
-  watch: {
-
+  computed: {
+    selectedTrips () { return this.$store.getters.selectedTrips },
   },
   created () {
     this.links = this.$store.getters.links
@@ -97,6 +52,11 @@ export default {
   },
 
   methods: {
+
+    updateSelectedTrips (val) {
+      this.$store.commit('changeSelectedTrips', val)
+    },
+
     actionClick (event) {
       this.action = event.action
 
@@ -327,7 +287,8 @@ export default {
     </v-dialog>
 
     <SidePanel
-      v-model="selectedTrips"
+      :selected-trips="selectedTrips"
+      @update-tripList="updateSelectedTrips"
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"
       @deleteButton="deleteButton"

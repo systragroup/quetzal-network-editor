@@ -122,7 +122,7 @@ export default {
     },
   },
   created () {
-    this.tripList = this.$store.getters.tripId
+    this.tripList = this.selectedTrips
     this.height = (window.innerHeight - 80) - 20 * 3 - 60
     this.selectedFilter = 'route_type'
     this.vmodelSelectedFilter = this.selectedFilter
