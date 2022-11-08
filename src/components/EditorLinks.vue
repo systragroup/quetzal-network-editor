@@ -299,7 +299,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'circle',
-        minzoom: 9,
+        minzoom: 2,
         paint: {
           'circle-color': '#2C3E4E',
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
@@ -325,7 +325,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'circle',
-        minzoom: 9,
+        minzoom: 2,
         paint: {
           'circle-color': '#FFFFFF',
           'circle-opacity':0,

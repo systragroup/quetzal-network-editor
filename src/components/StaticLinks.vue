@@ -26,9 +26,9 @@ export default {
     selectedPopupContent () { return this.$store.getters.popupContent },
     links () {
       // remove unwanted features for faster computation
-      const links = structuredClone(this.$store.getters.links)
+      const links = structuredClone(this.$store.getters.linksHeader)
       // the popupContent column is added as it is acces by the map.
-      links.features = links.features.map((feature) => (
+      links.features = this.$store.getters.links.features.map((feature) => (
         {
           properties: {
             trip_id: feature.properties.trip_id,
@@ -64,8 +64,8 @@ export default {
     },
   },
   created () {
-    this.visibleLinks = structuredClone(this.links)
-    this.visibleNodes = structuredClone(this.nodes)
+    this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
+    this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
     this.setHiddenFeatures()
   },
 
@@ -150,7 +150,7 @@ export default {
         },
 
         layout: {
-          'line-sort-key': ['get', 'route_width'],
+          'line-sort-key': ['to-number',['get', 'route_width']],
           'line-cap': 'round',
         }
       }"

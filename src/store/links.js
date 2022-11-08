@@ -18,6 +18,7 @@ export default {
     editorLineInfo: {},
     nodes: {},
     nodesHeader: {},
+    linksHeader: {},
     tripId: [], // to change with the actual import.
     selectedTrips: [],
     newLink: {},
@@ -33,10 +34,12 @@ export default {
 
   mutations: {
     loadLinks (state, payload) {
-      state.links = JSON.parse(JSON.stringify(payload))
+      state.links = structuredClone(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = { ...state.links }
         linksHeader.features = []
+        state.linksHeader = linksHeader
+
         state.editorLinks = linksHeader
         // limit geometry precision to 6 digit
         state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
@@ -706,6 +709,7 @@ export default {
     changeBounds: (state) => state.changeBounds,
     anchorMode: (state) => state.anchorMode,
     nodesHeader: (state) => state.nodesHeader,
+    linksHeader: (state) => state.linksHeader,
     anchorNodes: (state) => {
       const nodes = structuredClone(state.nodesHeader)
       state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(

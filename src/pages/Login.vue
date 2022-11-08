@@ -164,16 +164,17 @@ export default {
               zip.file(key).async('string').then((str) => {
                 const content = JSON.parse(str)
                 if (fileName.includes('links')) {
+                  this.loading.links = true
                   this.choice = 'links'
                   this.loadedLinks = content
                 } else if (fileName.includes('nodes')) {
+                  this.loading.nodes = true
                   this.choice = 'nodes'
                   this.loadedNodes = content
                 }
               }).catch(() => { }) // remove alert, this happen when there is more file in the zip, ex: DS_STORE
             }
           })
-          this.loading.zip = false
         }, () => { alert('Not a valid zip file'); this.loading.zip = false })
     },
   },
