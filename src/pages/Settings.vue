@@ -7,14 +7,14 @@ export default {
     return {
 
       speed: {
-        name: 'speed',
+        name: $gettext('speed'),
         type: 'Number',
         value: this.$store.getters.speed,
         units: 'km/h',
         hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
       },
       popupContent: {
-        name: 'Popup Content',
+        name: $gettext('Popup Content'),
         type: 'String',
         choices: this.$store.getters.lineAttributes,
         value: this.$store.getters.popupContent,
@@ -81,9 +81,9 @@ export default {
                 <v-text-field
                   v-model="speed.value"
                   :type="speed.type"
-                  :label="speed.name"
+                  :label="$gettext(speed.name)"
                   :suffix="speed.units"
-                  :hint="showHint? speed.hint: ''"
+                  :hint="showHint? $gettext(speed.hint): ''"
                   :persistent-hint="showHint"
                   :rules="rules"
                   required
@@ -92,8 +92,8 @@ export default {
                 <v-select
                   v-model="popupContent.value"
                   :items="popupContent.choices"
-                  :label="popupContent.name"
-                  :hint="showHint? popupContent.hint: ''"
+                  :label="$gettext(popupContent.name)"
+                  :hint="showHint? $gettext(popupContent.hint): ''"
                   :persistent-hint="showHint"
                   required
                 />
