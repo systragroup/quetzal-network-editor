@@ -1,3 +1,4 @@
+<!-- eslint-disable no-return-assign -->
 <script>
 import { MglGeojsonLayer, MglPopup } from 'vue-mapbox'
 
@@ -83,14 +84,33 @@ export default {
       this.popup.showed = false
     },
     setHiddenFeatures (method = 'all', trips = []) {
-      // get visible links and features as an async function.
+      // get visible links and nodes.
+      // const startTime = performance.now()
       if (method === 'all') {
         // eslint-disable-next-line max-len
         this.visibleLinks.features = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
-        const a = this.visibleLinks.features.map(item => item.properties.a)
-        const b = this.visibleLinks.features.map(item => item.properties.b)
-        const ab = Array.from(new Set([...a, ...b]))
-        this.visibleNodes.features = this.nodes.features.filter(node => ab.includes(node.properties.index))
+        // get all unique width
+        const widthArr = [...new Set(this.visibleLinks.features.map(item => Number(item.properties.route_width)))]
+        // create a dict {width:[node_index]}
+        const widthDict = {}
+        widthArr.forEach(key => widthDict[key] = new Set())
+        this.visibleLinks.features.map(item =>
+          [item.properties.a, item.properties.b].forEach(
+            node => widthDict[Number(item.properties.route_width)].add(node)))
+        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
+        let totSet = new Set()
+        for (let i = 0; i < widthArr.length - 1; i++) {
+          const a = widthDict[widthArr[i + 1]]
+          const b = widthDict[widthArr[i]]
+          totSet = new Set([...totSet, ...b])
+          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
+        }
+        // for each width, get the nodes and add the width to the properties for rendering.
+        widthArr.forEach(key => {
+          const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
+          newNodes.map(node => node.properties.route_width = key)
+          this.visibleNodes.features.push(...newNodes)
+        })
       } else if (method === 'remove') {
         this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.includes(link.properties.trip_id))
         const a = this.visibleLinks.features.map(item => item.properties.a)
@@ -100,12 +120,33 @@ export default {
       } else if (method === 'add') {
         const newFeatures = this.links.features.filter(link => trips.includes(link.properties.trip_id))
         this.visibleLinks.features.push(...newFeatures)
-        const a = newFeatures.map(item => item.properties.a)
-        const b = newFeatures.map(item => item.properties.b)
-        const ab = Array.from(new Set([...a, ...b]))
-        const newNodes = this.nodes.features.filter(node => ab.includes(node.properties.index))
-        this.visibleNodes.features.push(...newNodes)
+        // get all unique value of width
+        const widthArr = [...new Set(newFeatures.map(item => Number(item.properties.route_width)))]
+        widthArr.sort(function (a, b) { return b - a }) // sort it
+        // create a dict {width:[node_index]}
+        const widthDict = {}
+        widthArr.forEach(key => widthDict[key] = new Set())
+        newFeatures.map(item =>
+          [item.properties.a, item.properties.b].forEach(
+            node => widthDict[Number(item.properties.route_width)].add(node)))
+        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
+        let totSet = new Set()
+        for (let i = 0; i < widthArr.length - 1; i++) {
+          const a = widthDict[widthArr[i + 1]]
+          const b = widthDict[widthArr[i]]
+          totSet = new Set([...totSet, ...b])
+          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
+        }
+
+        // for each width, get the nodes and add the width to the properties for rendering.
+        widthArr.forEach(key => {
+          const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
+          newNodes.map(node => node.properties.route_width = key)
+          this.visibleNodes.features.push(...newNodes)
+        })
       }
+      // const endTime = performance.now()
+      // console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
     },
     selectLine (event) {
       event.mapboxEvent.preventDefault() // prevent map control
@@ -173,9 +214,12 @@ export default {
         maxzoom: 18,
         paint: {
           'circle-color': ['case', ['boolean', isEditorMode, false],'#9E9E9E', '#2C3E4E'],
-          'circle-radius': 3,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1,
+          'circle-radius': ['case', ['has', 'route_width'],
+                            ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                             ['to-number', ['get', 'route_width']],
+                             3], 3],
         },
       }"
     />
