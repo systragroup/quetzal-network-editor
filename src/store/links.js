@@ -124,7 +124,7 @@ export default {
       // empty trip, when its a newLine
       if (state.editorLinks.features.length === 0) {
         function getDefaultValue (key) {
-          const defaultValue = { route_width: 3 }
+          const defaultValue = { route_width: 3, route_color: '00BCD4' }
           return defaultValue[key] || null
         }
         // eslint-disable-next-line no-var
