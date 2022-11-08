@@ -90,12 +90,21 @@ export default {
         // eslint-disable-next-line max-len
         this.visibleLinks.features = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
         // get all unique width
-        const widthArr = [...new Set(this.visibleLinks.features.map(item => item.properties.route_width))]
+        const widthArr = [...new Set(this.visibleLinks.features.map(item => Number(item.properties.route_width)))]
         // create a dict {width:[node_index]}
         const widthDict = {}
         widthArr.forEach(key => widthDict[key] = new Set())
         this.visibleLinks.features.map(item =>
-          [item.properties.a, item.properties.b].forEach(node => widthDict[item.properties.route_width].add(node)))
+          [item.properties.a, item.properties.b].forEach(
+            node => widthDict[Number(item.properties.route_width)].add(node)))
+        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
+        let totSet = new Set()
+        for (let i = 0; i < widthArr.length - 1; i++) {
+          const a = widthDict[widthArr[i + 1]]
+          const b = widthDict[widthArr[i]]
+          totSet = new Set([...totSet, ...b])
+          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
+        }
         // for each width, get the nodes and add the width to the properties for rendering.
         widthArr.forEach(key => {
           const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
@@ -112,12 +121,23 @@ export default {
         const newFeatures = this.links.features.filter(link => trips.includes(link.properties.trip_id))
         this.visibleLinks.features.push(...newFeatures)
         // get all unique value of width
-        const widthArr = [...new Set(newFeatures.map(item => item.properties.route_width))]
+        const widthArr = [...new Set(newFeatures.map(item => Number(item.properties.route_width)))]
+        widthArr.sort(function (a, b) { return b - a }) // sort it
         // create a dict {width:[node_index]}
         const widthDict = {}
         widthArr.forEach(key => widthDict[key] = new Set())
         newFeatures.map(item =>
-          [item.properties.a, item.properties.b].forEach(node => widthDict[item.properties.route_width].add(node)))
+          [item.properties.a, item.properties.b].forEach(
+            node => widthDict[Number(item.properties.route_width)].add(node)))
+        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
+        let totSet = new Set()
+        for (let i = 0; i < widthArr.length - 1; i++) {
+          const a = widthDict[widthArr[i + 1]]
+          const b = widthDict[widthArr[i]]
+          totSet = new Set([...totSet, ...b])
+          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
+        }
+
         // for each width, get the nodes and add the width to the properties for rendering.
         widthArr.forEach(key => {
           const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
