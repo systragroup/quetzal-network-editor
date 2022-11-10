@@ -24,12 +24,15 @@ export default {
       const { color, menu } = this
 
       return {
-        backgroundColor: color,
-        cursor: 'pointer',
-        height: '20px',
-        width: '20px',
-        borderRadius: menu ? '50%' : '4px',
-        transition: 'border-radius 200ms ease-in-out',
+        'backgroundColor': color,
+        'border-style': 'solid',
+        'border-width': '1px',
+        'border-color': '#868686',
+        'cursor': 'pointer',
+        'height': '20px',
+        'width': '20px',
+        'borderRadius': menu ? '50%' : '4px',
+        'transition': 'border-radius 200ms ease-in-out',
       }
     },
   },
@@ -38,11 +41,13 @@ export default {
     pcolor (val) {
       if (this.pcolor[0] !== '#') {
         this.color = '#'.concat(this.pcolor)
+        this.$emit('update-color', this.pcolor.slice(0, 6))
       }
       if (this.pcolor[0] === '#') {
-        this.$emit('update-color', this.pcolor.slice(1))
+        this.$emit('update-color', this.pcolor.slice(1, 7))
       }
     },
+
   },
 
   mounted () {
@@ -59,9 +64,9 @@ export default {
     })
 
     // if it is null, do nothing, just put the blue color on the selection square.
-    if (this.pcolor === null) {
+    if ([null, undefined, ''].includes(this.pcolor)) {
       this.color = this.$vuetify.theme.currentTheme.chart.lightblue
-      this.$emit('update-color', this.color.slice(1))
+      // this.$emit('update-color', this.color.slice(1))
     // the input color never start with #, must add it for this component only (on local var this.color)
     } else if (this.pcolor[0] !== '#') {
       this.color = '#'.concat(this.pcolor)
@@ -73,11 +78,15 @@ export default {
 
   methods: {
     // this method is call when we select a color, the # is remove and pcolor is updated.
-    updateColor (selectedColor) {
-      this.color = selectedColor.hex
-      this.$emit('update-color', this.color.slice(1))
+    updateColor () {
+      this.$emit('update-color', this.color)
+
+      this.menu = false
     },
-    test () { console.log('test') },
+    cancel () {
+      this.color = this.pcolor
+      this.menu = false
+    },
   },
 }
 </script>
@@ -102,23 +111,29 @@ export default {
         class="pa-0"
       >
         <v-color-picker
-          :value="color"
+          v-model="color"
           mode="hexa"
           :swatches="swatches"
           show-swatches
           flat
-          @update:color="updateColor"
         />
       </v-card-text>
       <v-card-actions>
         <v-spacer />
 
         <v-btn
+          color="grey"
+          outlined
+          @click="cancel"
+        >
+          {{ $gettext("cancel") }}
+        </v-btn>
+        <v-btn
           color="green darken-1"
           outlined
-          @click="menu=false"
+          @click="updateColor"
         >
-          {{ $gettext("OK") }}
+          {{ $gettext("apply") }}
         </v-btn>
       </v-card-actions>
     </v-card>

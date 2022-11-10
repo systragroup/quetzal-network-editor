@@ -15,54 +15,7 @@ export default {
   },
   data () {
     return {
-      nodes: {},
-      links: {},
-      selectedTrips: [],
       editorTrip: null,
-      actionsList: [{
-        value: 'Edit Line Info',
-        name: $gettext('Edit Line Info'),
-      },
-      {
-        value: 'Cut Line From Node',
-        name: $gettext('Cut Line From Node'),
-      },
-      {
-        value: 'Cut Line At Node',
-        name: $gettext('Cut Line At Node'),
-      },
-      {
-        value: 'Extend Line Upward',
-        name: $gettext('Extend Line Upward'),
-      },
-      {
-        value: 'Extend Line Downward',
-        name: $gettext('Extend Line Downward'),
-      },
-      {
-        value: 'Add Stop Inline',
-        name: $gettext('Add Stop Inline'),
-      },
-      {
-        value: 'Move Stop',
-        name: $gettext('Move Stop'),
-      },
-      {
-        value: 'Delete Stop',
-        name: $gettext('Delete Stop'),
-      },
-      {
-        value: 'Edit Link Info',
-        name: $gettext('Edit Link Info'),
-      },
-      {
-        value: 'Edit Node Info',
-        name: $gettext('Edit Node Info'),
-      },
-      {
-        value: 'Edit Group Info',
-        name: $gettext('Edit Group Info'),
-      }],
       action: null,
       selectedNode: null,
       selectedLink: null,
@@ -75,19 +28,31 @@ export default {
       groupTripIds: [],
     }
   },
-  watch: {
-
+  computed: {
+    selectedTrips () { return this.$store.getters.selectedTrips },
   },
   created () {
-    this.links = this.$store.getters.links
-    this.nodes = this.$store.getters.nodes
     this.editorTrip = this.$store.getters.editorTrip
-
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Control') {
+        this.$store.commit('changeAnchorMode')
+      }
+    })
+    // window.addEventListener('keyup', (e) => {
+    //  if (e.key === 'Control') {
+    //    this.$store.commit('changeAnchorMode')
+    //  }
+    // })
     this.$store.commit('changeNotification',
       { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
   },
 
   methods: {
+
+    updateSelectedTrips (val) {
+      this.$store.commit('changeSelectedTrips', val)
+    },
+
     actionClick (event) {
       this.action = event.action
 
@@ -124,7 +89,6 @@ export default {
         this.editorForm = this.$store.getters.editorLinks.features.filter(
           (link) => link.properties.index === this.selectedLink.index)
         this.editorForm = this.editorForm[0].properties
-        console.log(this.editorForm)
 
         // filter properties to only the one that are editable.
         const filteredKeys = this.$store.getters.lineAttributes
@@ -140,7 +104,6 @@ export default {
             return obj
           }, {})
         this.editorForm = filtered
-        console.log(this.editorForm)
         this.showDialog = true
       } else if (this.action === 'Edit Node Info') {
         this.selectedNode = event.selectedFeature.properties
@@ -166,7 +129,7 @@ export default {
       } else if (['Cut Line From Node', 'Cut Line At Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
-      } else if (this.action === 'Add Stop Inline') {
+      } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
         this.selectedLink = event.selectedFeature.properties
         this.cursorPosition = event.lngLat
         this.applyAction()
@@ -202,7 +165,18 @@ export default {
           this.$store.commit('deleteTrip', this.tripToDelete)
           break
         case 'Add Stop Inline':
-          this.$store.commit('addNodeInline', { selectedLink: this.selectedLink, lngLat: this.cursorPosition })
+          this.$store.commit('addNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'editorNodes',
+          })
+          break
+        case 'Add Anchor Inline':
+          this.$store.commit('addNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'anchorNodes',
+          })
           break
       }
       if (!this.lingering) {
@@ -309,13 +283,13 @@ export default {
     </v-dialog>
 
     <SidePanel
-      v-model="selectedTrips"
+      :selected-trips="selectedTrips"
+      @update-tripList="updateSelectedTrips"
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"
       @deleteButton="deleteButton"
       @propertiesButton="actionClick"
     />
-
     <Map
       :selected-trips="selectedTrips"
       @clickFeature="actionClick"

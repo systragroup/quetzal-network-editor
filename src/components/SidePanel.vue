@@ -1,4 +1,5 @@
 <script>
+
 const $gettext = s => s
 const short = require('short-uuid')
 
@@ -18,32 +19,40 @@ export default {
       showDialog: false,
       showLeftPanelContent: true,
       tripList: [],
-      width: null,
-      selectedFilter: 'route_type',
+      height: null,
+      // for some reason, the v-model does not update when i force it in a watcher or a method.
+      // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
+      selectedFilter: '',
+      vmodelSelectedFilter: '',
     }
   },
   computed: {
     filterChoices () { return this.$store.getters.lineAttributes },
     showLeftPanel () { return this.$store.getters.showLeftPanel },
-    height () { return (window.innerHeight - 80) - 20 * 3 - 80 },
     editorTrip () { return this.$store.getters.editorTrip },
     tripId () { return this.$store.getters.tripId },
+    arrayUniqueTripId () {
+      // drop duplicates links trips. each line is a trip here.
+      const arrayUniqueByKey = [...new Map(this.$store.getters.links.features.map(item =>
+        [item.properties.trip_id, item.properties])).values()]
+      return arrayUniqueByKey
+    },
+    filteredCat () {
+      // for a given filter (key) get array of unique value
+      // e.g. get ['bus','subway'] for route_type
+      const val = Array.from(new Set(this.arrayUniqueTripId.map(
+        item => item[this.selectedFilter])))
+      return val
+    },
     classifiedTripId () {
-      const cat = Array.from(new Set(this.$store.getters.links.features.map(
-        item => item.properties[this.selectedFilter])))
       // return this list of object, {cat_name, tripId list}
       const classifiedTripId = []
       const undefinedCat = { name: $gettext('undefined'), tripId: [] }
-      cat.forEach(c => {
-        // get all tripdId in the categeorie.
-        const arr = Array.from(
-          new Set(
-            this.$store.getters.links.features.filter(
-              item => item.properties[this.selectedFilter] === c,
-            ).map(
-              (item) => item.properties.trip_id),
-          ),
-        )
+      this.filteredCat.forEach(c => {
+        const arr = this.arrayUniqueTripId.filter(
+          item => item[this.selectedFilter] === c,
+        ).map((item) => item.trip_id)
+
         // regroup all null values into a single list 'undefined'
         if (c === null | c === '' | c === undefined) {
           undefinedCat.tripId.push(...arr)
@@ -93,14 +102,36 @@ export default {
         this.tripList = this.tripList.map((trip) => dict[trip])
       }
     },
+    vmodelSelectedFilter (newVal, oldVal) {
+      this.selectedFilter = newVal
+      // prevent group larger than 500.
+      if (this.filteredCat.length > 500) {
+        // if it is larger, return to oldValue
+        this.selectedFilter = oldVal
+        // display error message
+        this.$store.commit('changeNotification',
+          {
+            text: $gettext('Cannot filter by this field. There is more than 500 groups'),
+            autoClose: true,
+            color: 'red darken-2',
+          })
+        // return the value in the v-select as the old Value
+        // eslint-disable-next-line no-return-assign
+        this.$nextTick(() => this.vmodelSelectedFilter = oldVal)
+      }
+    },
   },
   created () {
-    this.tripList = this.$store.getters.tripId
+    this.tripList = this.selectedTrips
+    this.height = (window.innerHeight - 80) - 20 * 3 - 60
+    this.selectedFilter = 'route_type'
+    this.vmodelSelectedFilter = this.selectedFilter
   },
 
   methods: {
-    getWidth () {
-      this.width = this.$refs.leftPanelDiv.clientWidth
+
+    onResize () {
+      this.height = this.$refs.leftPanel.clientHeight - 200
     },
 
     editButton (value) {
@@ -153,13 +184,13 @@ export default {
         this.tripList = Array.from(new Set([...this.tripList, ...val]))
       }
     },
+
   },
 
 }
 </script>
 <template>
   <section
-    ref="leftPanelDiv"
     :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
     :style="{'width': showLeftPanel ? '400px' : '0px'}"
   >
@@ -177,6 +208,9 @@ export default {
     <transition name="fade">
       <div
         v-show="showLeftPanelContent"
+        id="left-panel"
+        ref="leftPanel"
+        v-resize="onResize"
         class="left-panel-content"
       >
         <div>
@@ -273,7 +307,7 @@ export default {
             >
               <v-list-item>
                 <v-select
-                  v-model="selectedFilter"
+                  v-model="vmodelSelectedFilter"
                   :items="filterChoices"
                   prepend-icon="fas fa-filter"
                   label="filter"
@@ -367,103 +401,131 @@ export default {
                   </v-tooltip>
                 </template>
 
-                <v-list-item
-                  v-for="item in value.tripId"
-                  :key="item"
-                  class="pl-2"
+                <v-virtual-scroll
+                  :items="value.tripId"
+                  :item-height="45"
+                  :height="Math.min(height-220, 45*value.tripId.length+3)"
                 >
-                  <v-list-item-action>
-                    <v-checkbox
-                      v-model="tripList"
+                  <template v-slot="{ item }">
+                    <v-list-item
+                      :key="item"
                       class="pl-2"
-                      :on-icon="'fa-eye fa'"
-                      :off-icon="'fa-eye-slash fa'"
-                      :color="'primary'"
-                      :value="item"
-                      size="10"
-                      hide-details
-                    />
-                  </v-list-item-action>
-                  <v-list-item-title v-if="item==editorTrip">
-                    <strong>{{ item }}</strong>
-                  </v-list-item-title>
-                  <v-list-item-title v-else>
-                    {{ item }}
-                  </v-list-item-title>
-                  <v-tooltip
-                    bottom
-                    open-delay="500"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        icon
-                        class="ma-1"
-                        v-bind="attrs"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
-                        v-on="on"
-                        @click="editButton(item)"
+                    >
+                      <v-list-item-action>
+                        <v-checkbox
+                          v-model="tripList"
+                          class="pl-2"
+                          :on-icon="'fa-eye fa'"
+                          :off-icon="'fa-eye-slash fa'"
+                          :color="'primary'"
+                          :value="item"
+                          size="10"
+                          hide-details
+                        />
+                      </v-list-item-action>
+                      <v-list-item-title v-if="item==editorTrip">
+                        <strong>{{ item }}</strong>
+                      </v-list-item-title>
+                      <v-list-item-title v-else>
+                        {{ item }}
+                      </v-list-item-title>
+                      <v-tooltip
+                        bottom
+                        open-delay="500"
                       >
-                        <v-icon :color="item == editorTrip? 'regular':'regular' ">
-                          fas fa-pen
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $gettext("Edit Line") }}</span>
-                  </v-tooltip>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            class="ma-1"
+                            v-bind="attrs"
+                            :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                            v-on="on"
+                            @click="editButton(item)"
+                          >
+                            <v-icon :color="item == editorTrip? 'regular':'regular' ">
+                              fas fa-pen
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $gettext("Edit Line") }}</span>
+                      </v-tooltip>
 
-                  <v-tooltip
-                    bottom
-                    open-delay="500"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        icon
-                        class="ma-1"
-                        v-bind="attrs"
-                        :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
-                        v-on="on"
-                        @click="propertiesButton(item)"
+                      <v-tooltip
+                        bottom
+                        open-delay="500"
                       >
-                        <v-icon :color="item == editorTrip? 'regular':'regular' ">
-                          fas fa-list
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $gettext("Edit Line Properties") }}</span>
-                  </v-tooltip>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            class="ma-1"
+                            v-bind="attrs"
+                            :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                            v-on="on"
+                            @click="propertiesButton(item)"
+                          >
+                            <v-icon :color="item == editorTrip? 'regular':'regular' ">
+                              fas fa-list
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $gettext("Edit Line Properties") }}</span>
+                      </v-tooltip>
 
-                  <v-tooltip
-                    bottom
-                    open-delay="500"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        icon
-                        class="ma-1"
-                        v-bind="attrs"
-                        :disabled="editorTrip ? true: false"
-                        v-on="on"
-                        @click="deleteButton({trip:item,message:item})"
+                      <v-tooltip
+                        bottom
+                        open-delay="500"
                       >
-                        <v-icon
-                          small
-                          color="regular"
-                        >
-                          fas fa-trash
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $gettext("Delete Line") }}</span>
-                  </v-tooltip>
-                </v-list-item>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            class="ma-1"
+                            v-bind="attrs"
+                            :disabled="editorTrip ? true: false"
+                            v-on="on"
+                            @click="deleteButton({trip:item,message:item})"
+                          >
+                            <v-icon
+                              small
+                              color="regular"
+                            >
+                              fas fa-trash
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $gettext("Delete Line") }}</span>
+                      </v-tooltip>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
               </v-list-group>
 
               <v-divider />
             </v-card>
             <v-card class="mx-auto">
               <v-list-item v-if="editorTrip ? true: false">
-                <v-spacer />
-                <v-btn @click="$emit('abortChanges')">
+                <v-tooltip
+                  right
+                  open-delay="500"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      v-bind="attrs"
+                      class="mx-2"
+                      :color="$store.getters.anchorMode? 'grey':'regular'"
+                      v-on="on"
+                      @click="$store.commit('changeAnchorMode')"
+                    >
+                      <v-icon small>
+                        fas fa-bezier-curve
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $gettext("Edit Line geometry") }}</span>
+                </v-tooltip>
+
+                <v-btn
+                  @click="$emit('abortChanges')"
+                >
                   <v-icon
                     small
                     left
@@ -605,7 +667,8 @@ transition:0.3s
 }
 
 .scrollable {
-   overflow-y: scroll;
+   overflow-y:scroll;
+
 }
 
 .drawer-list-item {

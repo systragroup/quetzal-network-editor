@@ -13,7 +13,8 @@ msgstr ""
 "Generated-By: easygettext\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/App.vue:46
+#: src/App.vue:46 src/pages/Settings.vue:49 src/pages/Settings.vue:51
+#: src/pages/Settings.vue:61 src/pages/Settings.vue:62
 msgid "_ctx"
 msgstr "_ctx"
 
@@ -22,11 +23,11 @@ msgstr "_ctx"
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:486
+#: src/components/SidePanel.vue:525
 msgid "Abort"
 msgstr ""
 
-#: src/components/EditorLinks.vue:158
+#: src/components/EditorLinks.vue:188
 msgid "action"
 msgstr ""
 
@@ -42,16 +43,24 @@ msgstr ""
 msgid "Add Files"
 msgstr ""
 
-#: src/pages/Home.vue:42
-msgid "Add Stop Inline"
+#: src/components/utils/ColorPicker.vue:58
+msgid "apply"
 msgstr ""
 
-#: src/components/SidePanel.vue:585 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89
+#: src/components/utils/ColorPicker.vue:48
+msgid "cancel"
+msgstr ""
+
+#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
+#: src/pages/Home.vue:89 src/pages/Settings.vue:86
 msgid "Cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:132
+#: src/components/SidePanel.vue:112
+msgid "Cannot filter by this field. There is more than 500 groups"
+msgstr ""
+
+#: src/components/SidePanel.vue:162
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -59,7 +68,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:504
+#: src/components/SidePanel.vue:543
 msgid "Confirm"
 msgstr ""
 
@@ -67,71 +76,47 @@ msgstr ""
 msgid "Create a network from scratch"
 msgstr ""
 
-#: src/components/SidePanel.vue:538
+#: src/components/SidePanel.vue:577
 msgid "Create new Line"
-msgstr ""
-
-#: src/pages/Home.vue:30
-msgid "Cut Line At Node"
-msgstr ""
-
-#: src/pages/Home.vue:26
-msgid "Cut Line From Node"
 msgstr ""
 
 #: src/pages/Home.vue:36
 msgid "Delete"
 msgstr ""
 
-#: src/components/SidePanel.vue:320
+#: src/components/SidePanel.vue:326
 msgid "Delete Group"
 msgstr ""
 
-#: src/components/SidePanel.vue:451
+#: src/components/SidePanel.vue:462
 msgid "Delete Line"
 msgstr ""
 
-#: src/pages/Home.vue:50
-msgid "Delete Stop"
-msgstr ""
-
-#: src/pages/Home.vue:85
+#: src/pages/Home.vue:45
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 
-#: src/pages/Home.vue:62
-msgid "Edit Group Info"
-msgstr ""
-
-#: src/components/SidePanel.vue:288
+#: src/components/SidePanel.vue:294
 msgid "Edit Group Properties"
 msgstr ""
 
-#: src/components/SidePanel.vue:388
+#: src/components/SidePanel.vue:399
 msgid "Edit Line"
 msgstr ""
 
-#: src/pages/Home.vue:22
-msgid "Edit Line Info"
+#: src/components/SidePanel.vue:508
+msgid "Edit Line geometry"
 msgstr ""
 
-#: src/components/SidePanel.vue:419
+#: src/components/SidePanel.vue:430
 msgid "Edit Line Properties"
-msgstr ""
-
-#: src/pages/Home.vue:54
-msgid "Edit Link Info"
-msgstr ""
-
-#: src/pages/Home.vue:58
-msgid "Edit Node Info"
 msgstr ""
 
 #: src/pages/Home.vue:36
 msgid "Edit Properties"
 msgstr ""
 
-#: src/components/SidePanel.vue:118
+#: src/components/SidePanel.vue:124
 msgid "Edit Visibles Properties"
 msgstr ""
 
@@ -143,35 +128,27 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/components/SidePanel.vue:160
+#: src/components/SidePanel.vue:166
 msgid "Export All"
 msgstr ""
 
-#: src/components/SidePanel.vue:174
+#: src/components/SidePanel.vue:180
 msgid "Export Only Visible"
-msgstr ""
-
-#: src/pages/Home.vue:38
-msgid "Extend Line Downward"
-msgstr ""
-
-#: src/pages/Home.vue:34
-msgid "Extend Line Upward"
 msgstr ""
 
 #: src/pages/Import.vue:96
 msgid "file is not a zip. Import aborted"
 msgstr ""
 
-#: src/components/SidePanel.vue:90 src/components/SidePanel.vue:244
+#: src/components/SidePanel.vue:96 src/components/SidePanel.vue:250
 msgid "Hide All"
 msgstr ""
 
-#: src/components/EditorLinks.vue:117
+#: src/components/EditorLinks.vue:147
 msgid "Hold left click to drag"
 msgstr ""
 
-#: src/router/index.js:31
+#: src/router/index.js:32
 msgid "Import"
 msgstr ""
 
@@ -184,12 +161,20 @@ msgstr ""
 msgid "item"
 msgstr ""
 
-#: src/components/EditorLinks.vue:116
+#: src/components/EditorLinks.vue:146
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/SidePanel.vue:123
+#: src/components/Map.vue:68
+msgid "Left click to add an anchor point, right click to delete"
+msgstr ""
+
+#: src/components/SidePanel.vue:129
 msgid "Lines"
+msgstr ""
+
+#: src/pages/Settings.vue:20
+msgid "Link field to display when hovering a trip on the map"
 msgstr ""
 
 #: src/pages/Login.vue:59
@@ -216,20 +201,16 @@ msgstr ""
 msgid "Load Montréal Example"
 msgstr ""
 
-#: src/router/index.js:38
+#: src/router/index.js:39
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:236
+#: src/pages/Home.vue:210
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:227
+#: src/pages/Home.vue:201
 msgid "modification applied"
-msgstr ""
-
-#: src/pages/Home.vue:46
-msgid "Move Stop"
 msgstr ""
 
 #: src/pages/Home.vue:53
@@ -244,11 +225,11 @@ msgstr ""
 msgid "New Field"
 msgstr ""
 
-#: src/pages/Login.vue:140 src/router/index.js:24
+#: src/pages/Login.vue:140 src/router/index.js:25
 msgid "New Project"
 msgstr ""
 
-#: src/components/SidePanel.vue:595 src/pages/Login.vue:206
+#: src/components/SidePanel.vue:635 src/pages/Login.vue:206
 msgid "No"
 msgstr ""
 
@@ -264,35 +245,57 @@ msgstr ""
 msgid "Not a valid zip file. Import aborted"
 msgstr ""
 
-#: src/components/utils/ColorPicker.vue:48
-msgid "OK"
-msgstr ""
-
 #: src/pages/Login.vue:194
 msgid "Overwrite current Project ?"
 msgstr ""
 
-#: src/components/EditorLinks.vue:121
+#: src/pages/Settings.vue:16
+msgid "Popup Content"
+msgstr ""
+
+#: src/pages/Settings.vue:27
+msgid "Required"
+msgstr ""
+
+#: src/components/EditorLinks.vue:151
 msgid "Right click for context menu"
 msgstr ""
 
-#: src/components/EditorLinks.vue:120
+#: src/components/EditorLinks.vue:150
 msgid "Right click to edit properties"
 msgstr ""
 
-#: src/pages/Home.vue:99
+#: src/pages/Home.vue:99 src/pages/Settings.vue:96
 msgid "Save"
 msgstr ""
 
-#: src/components/SidePanel.vue:573
+#: src/components/SidePanel.vue:613
 msgid "Save Changes?"
 msgstr ""
 
-#: src/components/SidePanel.vue:90 src/components/SidePanel.vue:245
+#: src/pages/Settings.vue:30 src/router/index.js:53
+msgid "Settings"
+msgstr ""
+
+#: src/pages/Settings.vue:28
+msgid "should be larger than 0"
+msgstr ""
+
+#: src/components/SidePanel.vue:96 src/components/SidePanel.vue:251
 msgid "Show All"
 msgstr ""
 
-#: src/router/index.js:45
+#: src/pages/Settings.vue:9
+msgid "speed"
+msgstr ""
+
+#: src/pages/Settings.vue:13
+msgid ""
+"Speed used to calculate travel time when a link is drawn, extend or a node "
+"is moved"
+msgstr ""
+
+#: src/router/index.js:46
 msgid "Table"
 msgstr ""
 
@@ -304,14 +307,14 @@ msgstr ""
 msgid "there is duplicated nodes index. Import aborted"
 msgstr ""
 
-#: src/components/SidePanel.vue:35
+#: src/components/SidePanel.vue:48
 msgid "undefined"
 msgstr ""
 
-#: src/components/SidePanel.vue:256
+#: src/components/SidePanel.vue:262
 msgid "value"
 msgstr ""
 
-#: src/components/SidePanel.vue:604 src/pages/Login.vue:215
+#: src/components/SidePanel.vue:644 src/pages/Login.vue:215
 msgid "Yes"
 msgstr ""

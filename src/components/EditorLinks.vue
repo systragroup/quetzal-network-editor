@@ -8,7 +8,7 @@ export default {
     MglImageLayer,
     MglGeojsonLayer,
   },
-  props: ['map', 'drawMode'],
+  props: ['map', 'drawMode', 'anchorMode'],
   events: ['clickFeature', 'onHover', 'offHover'],
   data () {
     return {
@@ -31,8 +31,11 @@ export default {
       },
     }
   },
-  watch: {
+  computed: {
+    anchorNodes () { return this.anchorMode ? this.$store.getters.anchorNodes : this.$store.getters.nodesHeader },
+  },
 
+  watch: {
     drawMode (val) {
       // set layer visible if drawMode is true
       // check if layer exist. will bug if it is check befere rendering the layer
@@ -46,6 +49,8 @@ export default {
     },
 
   },
+  created () {
+  },
 
   methods: {
     selectClick (event) {
@@ -53,14 +58,14 @@ export default {
         // Get the highlighted feature
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
         this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
-
         // Emit a click base on layer type (node or link)
 
         if (this.selectedFeature !== null) {
           if (this.hoveredStateId.layerId === 'editorLinks') {
+            const action = this.anchorMode ? 'Add Anchor Inline' : 'Add Stop Inline'
             const click = {
               selectedFeature: this.selectedFeature,
-              action: 'Add Stop Inline',
+              action: action,
               lngLat: event.mapboxEvent.lngLat,
             }
             this.$emit('clickFeature', click)
@@ -82,7 +87,7 @@ export default {
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: true },
         )
-        if (!this.disablePopup) {
+        if (!this.disablePopup & !this.anchorMode) {
           this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
             event.mapboxEvent.lngLat.lat,
           ]
@@ -94,7 +99,8 @@ export default {
     },
     offCursor (event) {
       if (this.hoveredStateId !== null) {
-        if (!(this.hoveredStateId.layerId === 'editorNodes' && event.layerId === 'editorLinks')) {
+        // eslint-disable-next-line max-len
+        if (!(['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId) && event.layerId === 'editorLinks')) {
           // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
           if (this.keepHovering) {
             this.dragNode = true
@@ -114,7 +120,7 @@ export default {
       }
     },
     contextMenuNode (event) {
-      if (this.popupEditor.showed && this.hoveredStateId.layerId === 'editorNodes') {
+      if (this.popupEditor.showed && this.hoveredStateId?.layerId === 'editorNodes') {
         this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
           event.mapboxEvent.lngLat.lat,
         ]
@@ -138,6 +144,10 @@ export default {
             'Cut Line At Node',
             'Delete Stop']
         }
+      } else if (this.hoveredStateId?.layerId === 'anchorNodes') {
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        this.$store.commit('deleteAnchorNode', { selectedNode: this.selectedFeature })
       }
     },
 
@@ -167,7 +177,8 @@ export default {
     },
 
     moveNode (event) {
-      if (event.mapboxEvent.originalEvent.button === 0) {
+      if (event.mapboxEvent.originalEvent.button === 0 &
+      ['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId)) {
         event.mapboxEvent.preventDefault() // prevent map control
         this.map.getCanvas().style.cursor = 'grab'
         // disable mouseLeave so we stay in hover state.
@@ -175,17 +186,11 @@ export default {
         // get selected node
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
         this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
-        const nodeId = this.selectedFeature.properties.index
-        // store default position in history
-        const geom = this.$store.getters.editorNodes.features.filter(
-          node => node.properties.index === nodeId)[0].geometry.coordinates
-        this.$store.commit('addToHistory', { moveNode: { selectedFeature: this.selectedFeature, lngLat: geom } })
 
         // disable popup
         this.disablePopup = true
         this.popupEditor.showed = false
         // get position
-        this.initialPostition = event.mapboxEvent.lngLat
         this.map.on('mousemove', this.onMove)
       }
     },
@@ -193,7 +198,11 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode) {
-        this.$store.commit('moveNode', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+        if (this.hoveredStateId.layerId === 'anchorNodes') {
+          this.$store.commit('moveAnchor', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+        } else {
+          this.$store.commit('moveNode', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+        }
       }
     },
 
@@ -207,14 +216,6 @@ export default {
       this.disablePopup = false
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
-      if (this.selectedFeature) {
-        const click = {
-          selectedFeature: this.selectedFeature,
-          action: 'Move Node',
-          lngLat: event.lngLat,
-        }
-        this.$emit('clickFeature', click)
-      }
     },
   },
 }
@@ -232,17 +233,17 @@ export default {
       layer-id="editorLinks"
       :layer="{
         type: 'line',
-        minzoom: 9,
+        minzoom: 2,
         paint: {
-          'line-color': '#7EBAAC',
+          'line-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
         }
       }"
+      v-on="anchorMode ? {} : {contextmenu: linkRightClick}"
       @click="selectClick"
       @mouseover="onCursor"
       @mouseleave="offCursor"
-      @contextmenu="linkRightClick"
     />
 
     <MglImageLayer
@@ -252,11 +253,12 @@ export default {
       layer-id="arrow-layer"
       :layer="{
         type: 'symbol',
+        minzoom: 5,
         layout: {
           'symbol-placement': 'line',
           'symbol-spacing': 30,
           'icon-ignore-placement': true,
-          'icon-image': 'arrow',
+          'icon-image':['case', ['boolean', anchorMode, false], 'arrowAnchor','arrow'],
           'icon-size': 0.5,
           'icon-rotate': 90
         }
@@ -275,8 +277,9 @@ export default {
       layer-id="drawLink"
       :layer="{
         type: 'line',
-        minzoom: 9,
+        minzoom: 2,
         paint: {
+          'line-opacity': ['case', ['boolean', anchorMode, false], 0, 1],
           'line-color': '#7EBAAC',
           'line-width': 3,
           'line-dasharray': [0, 2, 4]
@@ -296,12 +299,41 @@ export default {
       :layer="{
         interactive: true,
         type: 'circle',
-        minzoom: 9,
+        minzoom: 2,
         paint: {
           'circle-color': '#2C3E4E',
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         }
+      }"
+      v-on="anchorMode ? {} : {click: selectClick, contextmenu: contextMenuNode}"
+      @mouseover="onCursor"
+      @mouseleave="offCursor"
+      @mousedown="moveNode"
+      @mouseup="stopMovingNode"
+    />
+
+    <MglGeojsonLayer
+      source-id="anchorNodes"
+      :source="{
+        type: 'geojson',
+        data: anchorNodes,
+        buffer: 0,
+        promoteId: 'index',
+      }"
+      layer-id="anchorNodes"
+      :layer="{
+        interactive: true,
+        type: 'circle',
+        minzoom: 2,
+        paint: {
+          'circle-color': '#ffffff',
+          'circle-opacity':0.5,
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
+          'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
+          'circle-stroke-color': '#2C3E4E',
+          'circle-stroke-width': 2,
+        },
       }"
       @click="selectClick"
       @mouseover="onCursor"

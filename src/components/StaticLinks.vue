@@ -1,3 +1,4 @@
+<!-- eslint-disable no-return-assign -->
 <script>
 import { MglGeojsonLayer, MglPopup } from 'vue-mapbox'
 
@@ -12,7 +13,8 @@ export default {
 
   data () {
     return {
-      visibleNodes: [],
+      visibleNodes: {},
+      visibleLinks: {},
 
       popup: {
         coordinates: [0, 0],
@@ -22,25 +24,49 @@ export default {
     }
   },
   computed: {
-    links () { return this.$store.getters.links },
+    selectedPopupContent () { return this.$store.getters.popupContent },
+    links () {
+      // remove unwanted features for faster computation
+      const links = structuredClone(this.$store.getters.linksHeader)
+      // the popupContent column is added as it is acces by the map.
+      links.features = this.$store.getters.links.features.map((feature) => (
+        {
+          properties: {
+            trip_id: feature.properties.trip_id,
+            popupContent: feature.properties[this.selectedPopupContent],
+            a: feature.properties.a,
+            b: feature.properties.b,
+            route_color: feature.properties.route_color,
+            route_width: feature.properties.route_width,
+          },
+          geometry: feature.geometry,
+        }
+      ),
+      )
+      return links
+    },
     nodes () { return this.$store.getters.nodes },
-    linksPerLine () {
-      const groupBy = function (xs) {
-        return xs.reduce(function (rv, x) {
-          (rv[x.properties.trip_id] = rv[x.properties.trip_id] || []).push(x)
-          return rv
-        }, {})
-      }
-      return groupBy(this.links.features)
-    },
   },
-  watch: {
-    showedTrips () {
-      this.setHiddenFeatures()
-    },
 
+  watch: {
+    showedTrips (newVal, oldVal) {
+      let changes = ''
+      if (newVal.length < oldVal.length) {
+        // if a tripis unchecked. we remove it
+        changes = oldVal.filter(item => !newVal.includes(item))
+        this.setHiddenFeatures('remove', changes)
+      } else if (newVal.length > oldVal.length) {
+        // if a trip is added, we add it!
+        changes = newVal.filter(item => !oldVal.includes(item))
+        this.setHiddenFeatures('add', changes)
+      } else {
+        this.setHiddenFeatures()
+      }
+    },
   },
   created () {
+    this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
+    this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
     this.setHiddenFeatures()
   },
 
@@ -50,36 +76,92 @@ export default {
       this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
         event.mapboxEvent.lngLat.lat,
       ]
-      this.popup.content = event.mapboxEvent.features[0].properties.trip_id
+      this.popup.content = event.mapboxEvent.features[0].properties.popupContent
       this.popup.showed = true
     },
     leaveLink (event) {
       event.map.getCanvas().style.cursor = ''
       this.popup.showed = false
     },
-    setHiddenFeatures () {
-      // Set visible links
-      const visibleLinks = new Set()
-      this.showedTrips.forEach(line => {
-        this.linksPerLine[line].forEach(link => visibleLinks.add(link))
-      })
-      // Set visible nodes
-      const a = [...visibleLinks].map(item => item.properties.a)
-      const b = [...visibleLinks].map(item => item.properties.b)
-      const ab = new Set([...a, ...b])
-      this.visibleNodes = [...ab]
+    setHiddenFeatures (method = 'all', trips = []) {
+      // get visible links and nodes.
+      // const startTime = performance.now()
+      if (method === 'all') {
+        // eslint-disable-next-line max-len
+        this.visibleLinks.features = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
+        // get all unique width
+        const widthArr = [...new Set(this.visibleLinks.features.map(item => Number(item.properties.route_width)))]
+        // create a dict {width:[node_index]}
+        const widthDict = {}
+        widthArr.forEach(key => widthDict[key] = new Set())
+        this.visibleLinks.features.map(item =>
+          [item.properties.a, item.properties.b].forEach(
+            node => widthDict[Number(item.properties.route_width)].add(node)))
+        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
+        let totSet = new Set()
+        for (let i = 0; i < widthArr.length - 1; i++) {
+          const a = widthDict[widthArr[i + 1]]
+          const b = widthDict[widthArr[i]]
+          totSet = new Set([...totSet, ...b])
+          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
+        }
+        // for each width, get the nodes and add the width to the properties for rendering.
+        widthArr.forEach(key => {
+          const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
+          newNodes.map(node => node.properties.route_width = key)
+          this.visibleNodes.features.push(...newNodes)
+        })
+      } else if (method === 'remove') {
+        this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.includes(link.properties.trip_id))
+        const a = this.visibleLinks.features.map(item => item.properties.a)
+        const b = this.visibleLinks.features.map(item => item.properties.b)
+        const ab = Array.from(new Set([...a, ...b]))
+        this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.includes(node.properties.index))
+      } else if (method === 'add') {
+        const newFeatures = this.links.features.filter(link => trips.includes(link.properties.trip_id))
+        this.visibleLinks.features.push(...newFeatures)
+        // get all unique value of width
+        const widthArr = [...new Set(newFeatures.map(item => Number(item.properties.route_width)))]
+        widthArr.sort(function (a, b) { return b - a }) // sort it
+        // create a dict {width:[node_index]}
+        const widthDict = {}
+        widthArr.forEach(key => widthDict[key] = new Set())
+        newFeatures.map(item =>
+          [item.properties.a, item.properties.b].forEach(
+            node => widthDict[Number(item.properties.route_width)].add(node)))
+        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
+        let totSet = new Set()
+        for (let i = 0; i < widthArr.length - 1; i++) {
+          const a = widthDict[widthArr[i + 1]]
+          const b = widthDict[widthArr[i]]
+          totSet = new Set([...totSet, ...b])
+          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
+        }
+
+        // for each width, get the nodes and add the width to the properties for rendering.
+        widthArr.forEach(key => {
+          const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
+          newNodes.map(node => node.properties.route_width = key)
+          this.visibleNodes.features.push(...newNodes)
+        })
+      }
+      // const endTime = performance.now()
+      // console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
     },
     selectLine (event) {
       event.mapboxEvent.preventDefault() // prevent map control
       this.popup.showed = false
+      // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$store.commit('changeNotification', { text: '', autoClose: true })
     },
     editLineProperties (event) {
       this.popup.showed = false
+      // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$emit('rightClick', { action: 'Edit Line Info', lingering: false })
     },
+
   },
 }
 </script>
@@ -89,7 +171,7 @@ export default {
       source-id="links"
       :source="{
         type: 'geojson',
-        data: links,
+        data: visibleLinks,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -97,7 +179,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'line',
-        minzoom: 9,
+        minzoom: 1,
         maxzoom: 18,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
@@ -107,10 +189,9 @@ export default {
                           ['to-number', ['get', 'route_width']],
                           3], 3],
         },
-        filter: ['in', ['get','trip_id'] ,['literal',showedTrips]],
 
         layout: {
-          'line-sort-key': ['get', 'route_width'],
+          'line-sort-key': ['to-number',['get', 'route_width']],
           'line-cap': 'round',
         }
       }"
@@ -121,7 +202,7 @@ export default {
       source-id="nodes"
       :source="{
         type: 'geojson',
-        data: nodes,
+        data: visibleNodes,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -133,11 +214,13 @@ export default {
         maxzoom: 18,
         paint: {
           'circle-color': ['case', ['boolean', isEditorMode, false],'#9E9E9E', '#2C3E4E'],
-          'circle-radius': 3,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1,
+          'circle-radius': ['case', ['has', 'route_width'],
+                            ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                             ['to-number', ['get', 'route_width']],
+                             3], 3],
         },
-        filter: ['in', ['get','index'] ,['literal',visibleNodes]],
       }"
     />
 
