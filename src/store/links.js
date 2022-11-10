@@ -641,8 +641,9 @@ export default {
       const folder = zip.folder('output')
       let links = ''
       let nodes = ''
+      console.log(payload)
       // export only visible line (line selected)
-      if (payload.length > 1) {
+      if (payload.length >= 1) {
         const tempLinks = structuredClone(state.links)
         tempLinks.features = tempLinks.features.filter(link => payload.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
