@@ -23,7 +23,7 @@ msgstr ""
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/SidePanel.vue:513
+#: src/components/SidePanel.vue:525
 msgid "Abort"
 msgstr "Anular"
 
@@ -52,7 +52,7 @@ msgstr ""
 msgid "cancel"
 msgstr "Cancelar"
 
-#: src/components/SidePanel.vue:613 src/pages/DataFrame.vue:156
+#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
 #: src/pages/Home.vue:89 src/pages/Settings.vue:86
 msgid "Cancel"
 msgstr "Cancelar"
@@ -69,7 +69,7 @@ msgstr "Dar clic en el mapa para comenzar a dibujar"
 msgid "Close"
 msgstr "Cerrar"
 
-#: src/components/SidePanel.vue:531
+#: src/components/SidePanel.vue:543
 msgid "Confirm"
 msgstr "Confirmar"
 
@@ -77,7 +77,7 @@ msgstr "Confirmar"
 msgid "Create a network from scratch"
 msgstr "Crear un red desde cero"
 
-#: src/components/SidePanel.vue:565
+#: src/components/SidePanel.vue:577
 msgid "Create new Line"
 msgstr "Crear nueva línea"
 
@@ -106,6 +106,11 @@ msgstr "Editar propiedades"
 #: src/components/SidePanel.vue:399
 msgid "Edit Line"
 msgstr "Editar línea"
+
+#: src/components/SidePanel.vue:508
+#, fuzzy
+msgid "Edit Line geometry"
+msgstr "Editar información de la línea"
 
 #: src/components/SidePanel.vue:430
 msgid "Edit Line Properties"
@@ -232,7 +237,7 @@ msgstr ""
 msgid "New Project"
 msgstr "Nuevo Proyecto"
 
-#: src/components/SidePanel.vue:623 src/pages/Login.vue:206
+#: src/components/SidePanel.vue:635 src/pages/Login.vue:206
 msgid "No"
 msgstr "No"
 
@@ -272,7 +277,7 @@ msgstr "Clic derecho para editar propiedades"
 msgid "Save"
 msgstr "Guardar"
 
-#: src/components/SidePanel.vue:601
+#: src/components/SidePanel.vue:613
 msgid "Save Changes?"
 msgstr "¿Guardar cambios?"
 
@@ -318,7 +323,7 @@ msgstr ""
 msgid "value"
 msgstr ""
 
-#: src/components/SidePanel.vue:632 src/pages/Login.vue:215
+#: src/components/SidePanel.vue:644 src/pages/Login.vue:215
 msgid "Yes"
 msgstr "Sí"
 
@@ -336,9 +341,6 @@ msgstr "Sí"
 
 #~ msgid "Edit Group Info"
 #~ msgstr "Editar información del grupo"
-
-#~ msgid "Edit Line Info"
-#~ msgstr "Editar información de la línea"
 
 #~ msgid "Edit Link Info"
 #~ msgstr "Editar información de enlace"

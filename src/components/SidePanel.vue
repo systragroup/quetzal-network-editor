@@ -504,7 +504,7 @@ export default {
             <v-card class="mx-auto">
               <v-list-item v-if="editorTrip ? true: false">
                 <v-tooltip
-                  bottom
+                  right
                   open-delay="500"
                 >
                   <template v-slot:activator="{ on, attrs }">

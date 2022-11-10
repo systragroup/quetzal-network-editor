@@ -18,7 +18,7 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/components/SidePanel.vue:513
+#: src/components/SidePanel.vue:525
 msgid "Abort"
 msgstr ""
 
@@ -46,7 +46,7 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:613
+#: src/components/SidePanel.vue:625
 #: src/pages/DataFrame.vue:156
 #: src/pages/Home.vue:89
 #: src/pages/Settings.vue:86
@@ -65,7 +65,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/components/SidePanel.vue:531
+#: src/components/SidePanel.vue:543
 msgid "Confirm"
 msgstr ""
 
@@ -73,7 +73,7 @@ msgstr ""
 msgid "Create a network from scratch"
 msgstr ""
 
-#: src/components/SidePanel.vue:565
+#: src/components/SidePanel.vue:577
 msgid "Create new Line"
 msgstr ""
 
@@ -99,6 +99,10 @@ msgstr ""
 
 #: src/components/SidePanel.vue:399
 msgid "Edit Line"
+msgstr ""
+
+#: src/components/SidePanel.vue:508
+msgid "Edit Line geometry"
 msgstr ""
 
 #: src/components/SidePanel.vue:430
@@ -227,7 +231,7 @@ msgstr ""
 msgid "New Project"
 msgstr ""
 
-#: src/components/SidePanel.vue:623
+#: src/components/SidePanel.vue:635
 #: src/pages/Login.vue:206
 msgid "No"
 msgstr ""
@@ -270,7 +274,7 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: src/components/SidePanel.vue:601
+#: src/components/SidePanel.vue:613
 msgid "Save Changes?"
 msgstr ""
 
@@ -316,7 +320,7 @@ msgstr ""
 msgid "value"
 msgstr ""
 
-#: src/components/SidePanel.vue:632
+#: src/components/SidePanel.vue:644
 #: src/pages/Login.vue:215
 msgid "Yes"
 msgstr ""
