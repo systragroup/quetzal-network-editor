@@ -327,9 +327,9 @@ export default {
         type: 'circle',
         minzoom: 2,
         paint: {
-          'circle-color': '#FFFFFF',
-          'circle-opacity':0,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
+          'circle-color': '#ffffff',
+          'circle-opacity':0.5,
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
           'circle-stroke-color': '#2C3E4E',
           'circle-stroke-width': 2,
