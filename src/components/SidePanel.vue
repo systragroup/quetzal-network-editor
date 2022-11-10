@@ -503,15 +503,25 @@ export default {
             </v-card>
             <v-card class="mx-auto">
               <v-list-item v-if="editorTrip ? true: false">
-                <v-btn
-                  class="mx-2"
-                  :color="$store.getters.anchorMode? 'grey':'regular'"
-                  @click="$store.commit('changeAnchorMode')"
+                <v-tooltip
+                  bottom
+                  open-delay="500"
                 >
-                  <v-icon small>
-                    fas fa-bezier-curve
-                  </v-icon>
-                </v-btn>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      v-bind="attrs"
+                      class="mx-2"
+                      :color="$store.getters.anchorMode? 'grey':'regular'"
+                      v-on="on"
+                      @click="$store.commit('changeAnchorMode')"
+                    >
+                      <v-icon small>
+                        fas fa-bezier-curve
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $gettext("Edit Line geometry") }}</span>
+                </v-tooltip>
 
                 <v-btn
                   @click="$emit('abortChanges')"
