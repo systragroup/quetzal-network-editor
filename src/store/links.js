@@ -27,6 +27,7 @@ export default {
     anchorMode: false,
     speed: 20, // 20KmH for time (speed/distance)
     popupContent: 'trip_id',
+    outputName: 'output',
     lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id',
       'headway', 'route_long_name', 'route_short_name',
       'route_type', 'route_color', 'route_width'],
@@ -92,6 +93,7 @@ export default {
     applySettings (state, payload) {
       state.speed = payload.speed
       state.popupContent = payload.popupContent
+      state.outputName = payload.outputName
     },
 
     setEditorTrip (state, payload) {
@@ -670,7 +672,7 @@ export default {
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
-          saveAs(content, 'output.zip')
+          saveAs(content, state.outputName + '.zip')
         })
     },
   },
@@ -682,6 +684,7 @@ export default {
     links: (state) => state.links,
     nodes: (state) => state.nodes,
     speed: (state) => state.speed,
+    outputName: (state) => state.outputName,
     popupContent: (state) => state.popupContent,
     route_id: (state) => state.route_id,
     editorTrip: (state) => state.editorTrip,

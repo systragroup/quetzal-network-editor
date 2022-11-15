@@ -15,6 +15,7 @@ msgstr ""
 
 #: src/App.vue:46 src/pages/Settings.vue:49 src/pages/Settings.vue:51
 #: src/pages/Settings.vue:61 src/pages/Settings.vue:62
+#: src/pages/Settings.vue:70 src/pages/Settings.vue:72
 msgid "_ctx"
 msgstr ""
 
@@ -52,7 +53,7 @@ msgid "cancel"
 msgstr "Annuler"
 
 #: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89 src/pages/Settings.vue:86
+#: src/pages/Home.vue:89 src/pages/Settings.vue:97
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -105,6 +106,10 @@ msgstr "Supprimer"
 msgid "Delete Stop"
 msgstr "Supprimer l'arrêt"
 
+#: src/pages/Settings.vue:37
+msgid "do not add .zip to the end"
+msgstr "n'ajouté pas de .zip à la fin"
+
 #: src/pages/Home.vue:45
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
@@ -151,6 +156,10 @@ msgstr "Exporter"
 #: src/components/SidePanel.vue:166
 msgid "Export All"
 msgstr "Exporter tout"
+
+#: src/pages/Settings.vue:23
+msgid "Export name"
+msgstr "Nom du fichier"
 
 #: src/components/SidePanel.vue:180
 msgid "Export Only Visible"
@@ -274,7 +283,7 @@ msgstr "Écraser le projet en cours ?"
 msgid "Popup Content"
 msgstr "Contenu du Popup"
 
-#: src/pages/Settings.vue:27
+#: src/pages/Settings.vue:34
 msgid "Required"
 msgstr "Requis"
 
@@ -286,7 +295,7 @@ msgstr "Clique droit pour modifier"
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/pages/Home.vue:99 src/pages/Settings.vue:96
+#: src/pages/Home.vue:99 src/pages/Settings.vue:107
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -298,7 +307,7 @@ msgstr "Sauvegarder ?"
 msgid "Settings"
 msgstr "Paramètres"
 
-#: src/pages/Settings.vue:28
+#: src/pages/Settings.vue:35
 msgid "should be larger than 0"
 msgstr "devrait être plus grand que 0"
 
@@ -321,6 +330,10 @@ msgstr ""
 #: src/router/index.js:46
 msgid "Table"
 msgstr "Table"
+
+#: src/pages/Settings.vue:27
+msgid "the name of the exported zip file"
+msgstr "Le nom du fichier .zip à l'export."
 
 #: src/pages/Import.vue:29
 msgid "there is duplicated links index. Import aborted"

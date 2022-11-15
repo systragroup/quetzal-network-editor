@@ -15,6 +15,7 @@ msgstr ""
 
 #: src/App.vue:46 src/pages/Settings.vue:49 src/pages/Settings.vue:51
 #: src/pages/Settings.vue:61 src/pages/Settings.vue:62
+#: src/pages/Settings.vue:70 src/pages/Settings.vue:72
 msgid "_ctx"
 msgstr "_ctx"
 
@@ -52,7 +53,7 @@ msgid "cancel"
 msgstr ""
 
 #: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89 src/pages/Settings.vue:86
+#: src/pages/Home.vue:89 src/pages/Settings.vue:97
 msgid "Cancel"
 msgstr ""
 
@@ -105,6 +106,10 @@ msgstr ""
 msgid "Delete Stop"
 msgstr ""
 
+#: src/pages/Settings.vue:37
+msgid "do not add .zip to the end"
+msgstr ""
+
 #: src/pages/Home.vue:45
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
@@ -148,6 +153,10 @@ msgstr ""
 
 #: src/components/SidePanel.vue:166
 msgid "Export All"
+msgstr ""
+
+#: src/pages/Settings.vue:23
+msgid "Export name"
 msgstr ""
 
 #: src/components/SidePanel.vue:180
@@ -271,7 +280,7 @@ msgstr ""
 msgid "Popup Content"
 msgstr ""
 
-#: src/pages/Settings.vue:27
+#: src/pages/Settings.vue:34
 msgid "Required"
 msgstr ""
 
@@ -283,7 +292,7 @@ msgstr ""
 msgid "Right click to edit properties"
 msgstr ""
 
-#: src/pages/Home.vue:99 src/pages/Settings.vue:96
+#: src/pages/Home.vue:99 src/pages/Settings.vue:107
 msgid "Save"
 msgstr ""
 
@@ -295,7 +304,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/pages/Settings.vue:28
+#: src/pages/Settings.vue:35
 msgid "should be larger than 0"
 msgstr ""
 
@@ -315,6 +324,10 @@ msgstr ""
 
 #: src/router/index.js:46
 msgid "Table"
+msgstr ""
+
+#: src/pages/Settings.vue:27
+msgid "the name of the exported zip file"
 msgstr ""
 
 #: src/pages/Import.vue:29

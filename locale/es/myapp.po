@@ -15,6 +15,7 @@ msgstr ""
 
 #: src/App.vue:46 src/pages/Settings.vue:49 src/pages/Settings.vue:51
 #: src/pages/Settings.vue:61 src/pages/Settings.vue:62
+#: src/pages/Settings.vue:70 src/pages/Settings.vue:72
 msgid "_ctx"
 msgstr ""
 
@@ -53,7 +54,7 @@ msgid "cancel"
 msgstr "Cancelar"
 
 #: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89 src/pages/Settings.vue:86
+#: src/pages/Home.vue:89 src/pages/Settings.vue:97
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -108,6 +109,10 @@ msgstr "Eliminar línea"
 msgid "Delete Stop"
 msgstr "Eliminar parada"
 
+#: src/pages/Settings.vue:37
+msgid "do not add .zip to the end"
+msgstr ""
+
 #: src/pages/Home.vue:45
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
@@ -156,6 +161,11 @@ msgstr "Exportar"
 #: src/components/SidePanel.vue:166
 msgid "Export All"
 msgstr "Exportar todo"
+
+#: src/pages/Settings.vue:23
+#, fuzzy
+msgid "Export name"
+msgstr "Exportar"
 
 #: src/components/SidePanel.vue:180
 msgid "Export Only Visible"
@@ -281,7 +291,7 @@ msgstr "¿Sobrescribir proyecto actual?"
 msgid "Popup Content"
 msgstr ""
 
-#: src/pages/Settings.vue:27
+#: src/pages/Settings.vue:34
 msgid "Required"
 msgstr ""
 
@@ -293,7 +303,7 @@ msgstr "Clic derecho para el menú contextual"
 msgid "Right click to edit properties"
 msgstr "Clic derecho para editar propiedades"
 
-#: src/pages/Home.vue:99 src/pages/Settings.vue:96
+#: src/pages/Home.vue:99 src/pages/Settings.vue:107
 msgid "Save"
 msgstr "Guardar"
 
@@ -305,7 +315,7 @@ msgstr "¿Guardar cambios?"
 msgid "Settings"
 msgstr ""
 
-#: src/pages/Settings.vue:28
+#: src/pages/Settings.vue:35
 msgid "should be larger than 0"
 msgstr ""
 
@@ -325,6 +335,10 @@ msgstr ""
 
 #: src/router/index.js:46
 msgid "Table"
+msgstr ""
+
+#: src/pages/Settings.vue:27
+msgid "the name of the exported zip file"
 msgstr ""
 
 #: src/pages/Import.vue:29
