@@ -20,6 +20,13 @@ export default {
         value: this.$store.getters.popupContent,
         hint: $gettext('Link field to display when hovering a trip on the map'),
       },
+      outputName: {
+        name: $gettext('Export name'),
+        type: 'String',
+        value: this.$store.getters.outputName,
+        units: '.zip',
+        hint: $gettext('the name of the exported zip file'),
+      },
       errorMessage: null,
       showHint: false,
       shake: false,
@@ -27,8 +34,8 @@ export default {
       rules: [
         v => !!v || $gettext('Required'),
         v => v >= 0 || $gettext('should be larger than 0'),
-
       ],
+      zipRules: [v => v.slice(-4) !== '.zip' || $gettext('do not add .zip to the end')],
     }
   },
 
@@ -45,6 +52,7 @@ export default {
         const payload = {
           speed: this.speed.value,
           popupContent: this.popupContent.value,
+          outputName: this.outputName.value,
         }
         this.$store.commit('applySettings', payload)
         this.$router.push('/Home').catch(() => {})
@@ -95,6 +103,16 @@ export default {
                   :label="$gettext(popupContent.name)"
                   :hint="showHint? $gettext(popupContent.hint): ''"
                   :persistent-hint="showHint"
+                  required
+                />
+                <v-text-field
+                  v-model="outputName.value"
+                  :type="outputName.type"
+                  :label="$gettext(outputName.name)"
+                  :suffix="outputName.units"
+                  :hint="showHint? $gettext(outputName.hint): ''"
+                  :persistent-hint="showHint"
+                  :rules="zipRules"
                   required
                 />
               </v-col>

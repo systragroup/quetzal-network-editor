@@ -15,6 +15,7 @@ msgstr ""
 
 #: src/App.vue:46 src/pages/Settings.vue:49 src/pages/Settings.vue:51
 #: src/pages/Settings.vue:61 src/pages/Settings.vue:62
+#: src/pages/Settings.vue:70 src/pages/Settings.vue:72
 msgid "_ctx"
 msgstr ""
 
@@ -52,7 +53,7 @@ msgid "cancel"
 msgstr "Annuler"
 
 #: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89 src/pages/Settings.vue:86
+#: src/pages/Home.vue:89 src/pages/Settings.vue:97
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -80,6 +81,14 @@ msgstr "Créer un réseau à partir de zéro"
 msgid "Create new Line"
 msgstr "Créer une nouvelle ligne"
 
+#: src/components/EditorLinks.vue:152
+msgid "Cut After Node"
+msgstr "Couper après l'arrêt"
+
+#: src/components/EditorLinks.vue:151
+msgid "Cut Before Node"
+msgstr "Couper avant l'arrêt"
+
 #: src/pages/Home.vue:36
 msgid "Delete"
 msgstr "Supprimer "
@@ -91,6 +100,15 @@ msgstr "Supprimer le groupe"
 #: src/components/SidePanel.vue:462
 msgid "Delete Line"
 msgstr "Supprimer"
+
+#: src/components/EditorLinks.vue:139 src/components/EditorLinks.vue:145
+#: src/components/EditorLinks.vue:153
+msgid "Delete Stop"
+msgstr "Supprimer l'arrêt"
+
+#: src/pages/Settings.vue:37
+msgid "do not add .zip to the end"
+msgstr "n'ajouté pas de .zip à la fin"
 
 #: src/pages/Home.vue:45
 msgid "double click to edit line, right click to edit line properties"
@@ -114,6 +132,11 @@ msgstr "Modifier La géométrie de la ligne"
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
+#: src/components/EditorLinks.vue:138 src/components/EditorLinks.vue:144
+#: src/components/EditorLinks.vue:150
+msgid "Edit Node Info"
+msgstr "Modifier les infos"
+
 #: src/pages/Home.vue:36
 msgid "Edit Properties"
 msgstr "Modifier"
@@ -133,6 +156,10 @@ msgstr "Exporter"
 #: src/components/SidePanel.vue:166
 msgid "Export All"
 msgstr "Exporter tout"
+
+#: src/pages/Settings.vue:23
+msgid "Export name"
+msgstr "Nom du fichier"
 
 #: src/components/SidePanel.vue:180
 msgid "Export Only Visible"
@@ -256,7 +283,7 @@ msgstr "Écraser le projet en cours ?"
 msgid "Popup Content"
 msgstr "Contenu du Popup"
 
-#: src/pages/Settings.vue:27
+#: src/pages/Settings.vue:34
 msgid "Required"
 msgstr "Requis"
 
@@ -268,7 +295,7 @@ msgstr "Clique droit pour modifier"
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/pages/Home.vue:99 src/pages/Settings.vue:96
+#: src/pages/Home.vue:99 src/pages/Settings.vue:107
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -280,7 +307,7 @@ msgstr "Sauvegarder ?"
 msgid "Settings"
 msgstr "Paramètres"
 
-#: src/pages/Settings.vue:28
+#: src/pages/Settings.vue:35
 msgid "should be larger than 0"
 msgstr "devrait être plus grand que 0"
 
@@ -303,6 +330,10 @@ msgstr ""
 #: src/router/index.js:46
 msgid "Table"
 msgstr "Table"
+
+#: src/pages/Settings.vue:27
+msgid "the name of the exported zip file"
+msgstr "Le nom du fichier .zip à l'export."
 
 #: src/pages/Import.vue:29
 msgid "there is duplicated links index. Import aborted"
@@ -327,23 +358,11 @@ msgstr "Oui"
 #~ msgid "Add Stop Inline"
 #~ msgstr "Ajouter un Arrêt en ligne"
 
-#~ msgid "Cut Line At Node"
-#~ msgstr "Couper à l'arrêt"
-
-#~ msgid "Cut Line From Node"
-#~ msgstr "Couper depuis l'arrêt"
-
-#~ msgid "Delete Stop"
-#~ msgstr "Supprimer arrêt"
-
 #~ msgid "Edit Group Info"
 #~ msgstr "Modifier les infos du groupe"
 
 #~ msgid "Edit Link Info"
 #~ msgstr "Modifier les infos du lien"
-
-#~ msgid "Edit Node Info"
-#~ msgstr "Modifier les infos d'arrêt"
 
 #~ msgid "Extend Line Downward"
 #~ msgstr "Prolonger la ligne en aval"

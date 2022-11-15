@@ -27,6 +27,7 @@ export default {
     anchorMode: false,
     speed: 20, // 20KmH for time (speed/distance)
     popupContent: 'trip_id',
+    outputName: 'output',
     lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id',
       'headway', 'route_long_name', 'route_short_name',
       'route_type', 'route_color', 'route_width'],
@@ -92,6 +93,7 @@ export default {
     applySettings (state, payload) {
       state.speed = payload.speed
       state.popupContent = payload.popupContent
+      state.outputName = payload.outputName
     },
 
     setEditorTrip (state, payload) {
@@ -638,10 +640,9 @@ export default {
 
     exportFiles (state, payload = []) {
       const zip = new JSZip()
-      const folder = zip.folder('output')
+      // const folder = zip.folder('output') // create a folder for the files.
       let links = ''
       let nodes = ''
-      console.log(payload)
       // export only visible line (line selected)
       if (payload.length >= 1) {
         const tempLinks = structuredClone(state.links)
@@ -662,14 +663,16 @@ export default {
       }
       // eslint-disable-next-line no-var
       var blob = new Blob([links], { type: 'application/json' })
-      folder.file('links.geojson', blob)
+      // use folder.file if you want to add it to a folder
+      zip.file('links.geojson', blob)
       // eslint-disable-next-line no-var, no-redeclare
       var blob = new Blob([nodes], { type: 'application/json' })
-      folder.file('nodes.geojson', blob)
+      // use folder.file if you want to add it to a folder
+      zip.file('nodes.geojson', blob)
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
-          saveAs(content, 'output.zip')
+          saveAs(content, state.outputName + '.zip')
         })
     },
   },
@@ -681,6 +684,7 @@ export default {
     links: (state) => state.links,
     nodes: (state) => state.nodes,
     speed: (state) => state.speed,
+    outputName: (state) => state.outputName,
     popupContent: (state) => state.popupContent,
     route_id: (state) => state.route_id,
     editorTrip: (state) => state.editorTrip,
