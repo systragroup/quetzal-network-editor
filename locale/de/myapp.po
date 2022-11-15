@@ -80,6 +80,14 @@ msgstr ""
 msgid "Create new Line"
 msgstr ""
 
+#: src/components/EditorLinks.vue:152
+msgid "Cut After Node"
+msgstr ""
+
+#: src/components/EditorLinks.vue:151
+msgid "Cut Before Node"
+msgstr ""
+
 #: src/pages/Home.vue:36
 msgid "Delete"
 msgstr ""
@@ -90,6 +98,11 @@ msgstr ""
 
 #: src/components/SidePanel.vue:462
 msgid "Delete Line"
+msgstr ""
+
+#: src/components/EditorLinks.vue:139 src/components/EditorLinks.vue:145
+#: src/components/EditorLinks.vue:153
+msgid "Delete Stop"
 msgstr ""
 
 #: src/pages/Home.vue:45
@@ -110,6 +123,11 @@ msgstr ""
 
 #: src/components/SidePanel.vue:430
 msgid "Edit Line Properties"
+msgstr ""
+
+#: src/components/EditorLinks.vue:138 src/components/EditorLinks.vue:144
+#: src/components/EditorLinks.vue:150
+msgid "Edit Node Info"
 msgstr ""
 
 #: src/pages/Home.vue:36

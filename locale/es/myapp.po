@@ -81,6 +81,16 @@ msgstr "Crear un red desde cero"
 msgid "Create new Line"
 msgstr "Crear nueva línea"
 
+#: src/components/EditorLinks.vue:152
+#, fuzzy
+msgid "Cut After Node"
+msgstr "Línea de corte en el nodo"
+
+#: src/components/EditorLinks.vue:151
+#, fuzzy
+msgid "Cut Before Node"
+msgstr "Línea de corte desde el nodo"
+
 #: src/pages/Home.vue:36
 msgid "Delete"
 msgstr "Eliminar "
@@ -92,6 +102,11 @@ msgstr "Eliminar grupo"
 #: src/components/SidePanel.vue:462
 msgid "Delete Line"
 msgstr "Eliminar línea"
+
+#: src/components/EditorLinks.vue:139 src/components/EditorLinks.vue:145
+#: src/components/EditorLinks.vue:153
+msgid "Delete Stop"
+msgstr "Eliminar parada"
 
 #: src/pages/Home.vue:45
 msgid "double click to edit line, right click to edit line properties"
@@ -115,6 +130,11 @@ msgstr "Editar información de la línea"
 #: src/components/SidePanel.vue:430
 msgid "Edit Line Properties"
 msgstr "Editar propiedades de la línea"
+
+#: src/components/EditorLinks.vue:138 src/components/EditorLinks.vue:144
+#: src/components/EditorLinks.vue:150
+msgid "Edit Node Info"
+msgstr "Editar información de nodo"
 
 #: src/pages/Home.vue:36
 msgid "Edit Properties"
@@ -330,23 +350,11 @@ msgstr "Sí"
 #~ msgid "Add Stop Inline"
 #~ msgstr "Agregar parada en línea"
 
-#~ msgid "Cut Line At Node"
-#~ msgstr "Línea de corte en el nodo"
-
-#~ msgid "Cut Line From Node"
-#~ msgstr "Línea de corte desde el nodo"
-
-#~ msgid "Delete Stop"
-#~ msgstr "Eliminar parada"
-
 #~ msgid "Edit Group Info"
 #~ msgstr "Editar información del grupo"
 
 #~ msgid "Edit Link Info"
 #~ msgstr "Editar información de enlace"
-
-#~ msgid "Edit Node Info"
-#~ msgstr "Editar información de nodo"
 
 #~ msgid "Extend Line Downward"
 #~ msgstr "Extender línea hacia abajo"

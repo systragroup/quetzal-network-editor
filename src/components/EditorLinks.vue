@@ -1,5 +1,6 @@
 <script>
 import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox'
+const $gettext = s => s
 
 export default {
   name: 'EditorLinks',
@@ -133,16 +134,25 @@ export default {
         const selectedNode = this.contextMenu.feature.properties.index
 
         if (selectedNode === this.$store.getters.firstNodeId) {
-          this.contextMenu.actions = ['Edit Node Info',
-            'Delete Stop']
+          this.contextMenu.actions =
+          [
+            $gettext('Edit Node Info'),
+            $gettext('Delete Stop'),
+          ]
         } else if (selectedNode === this.$store.getters.lastNodeId) {
-          this.contextMenu.actions = ['Edit Node Info',
-            'Delete Stop']
+          this.contextMenu.actions =
+          [
+            $gettext('Edit Node Info'),
+            $gettext('Delete Stop'),
+          ]
         } else {
-          this.contextMenu.actions = ['Edit Node Info',
-            'Cut Line From Node',
-            'Cut Line At Node',
-            'Delete Stop']
+          this.contextMenu.actions =
+           [
+             $gettext('Edit Node Info'),
+             $gettext('Cut Before Node'),
+             $gettext('Cut After Node'),
+             $gettext('Delete Stop'),
+           ]
         }
       } else if (this.hoveredStateId?.layerId === 'anchorNodes') {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)

@@ -126,7 +126,7 @@ export default {
           }, {})
         this.editorForm = filtered
         this.showDialog = true
-      } else if (['Cut Line From Node', 'Cut Line At Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
+      } else if (['Cut Before Node', 'Cut After Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
       } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
@@ -140,11 +140,11 @@ export default {
       // click yes on dialog
       this.showDialog = false
       switch (this.action) {
-        case 'Cut Line From Node':
-          this.$store.commit('cutLineFromNode', { selectedNode: this.selectedNode })
-          break
-        case 'Cut Line At Node':
+        case 'Cut Before Node':
           this.$store.commit('cutLineAtNode', { selectedNode: this.selectedNode })
+          break
+        case 'Cut After Node':
+          this.$store.commit('cutLineFromNode', { selectedNode: this.selectedNode })
           break
         case 'Delete Stop':
           this.$store.commit('deleteNode', { selectedNode: this.selectedNode })
