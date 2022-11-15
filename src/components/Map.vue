@@ -130,8 +130,10 @@ export default {
   methods: {
     onMapLoaded (event) {
       const bounds = new Mapbox.LngLatBounds()
+      // only use first and last point. seems to bug when there is anchor...
       this.$store.getters.links.features.forEach(link => {
-        bounds.extend(link.geometry.coordinates)
+        bounds.extend([link.geometry.coordinates[0],
+          link.geometry.coordinates[link.geometry.coordinates.length - 1]])
       })
       // for empty (new) project, do not fit bounds around the links geometries.
       if (Object.keys(bounds).length !== 0) {
