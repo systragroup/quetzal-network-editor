@@ -221,40 +221,41 @@ export default {
   <section class="map-view">
     <v-dialog
       v-model="showDialog"
+      scrollable="false"
       persistent
       max-width="290"
       @keydown.enter="applyAction"
       @keydown.esc="cancelAction"
     >
-      <v-card>
+      <v-card height="800px">
         <v-card-title class="text-h5">
           {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
+        <v-divider />
 
         <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info'].includes(action)">
-          <v-container>
-            <v-col cols="12">
-              <v-text-field
-                v-for="(value, key) in editorForm"
-                :key="key"
-                v-model="value['value']"
-                :label="key"
-                :placeholder="value['placeholder']? $gettext('multiple Values'):''"
-                :persistent-placeholder=" value['placeholder']? true:false "
-                :disabled="value['disabled']"
+          <v-list>
+            <v-text-field
+              v-for="(value, key) in editorForm"
+              :key="key"
+              v-model="value['value']"
+              :label="key"
+              :placeholder="value['placeholder']? $gettext('multiple Values'):''"
+              :persistent-placeholder=" value['placeholder']? true:false "
+              :disabled="value['disabled']"
+            >
+              <template
+                v-if="key==='route_color'"
+                v-slot:append
               >
-                <template
-                  v-if="key==='route_color'"
-                  v-slot:append
-                >
-                  <color-picker
-                    v-model="value['value']"
-                  />
-                </template>
-              </v-text-field>
-            </v-col>
-          </v-container>
+                <color-picker
+                  v-model="value['value']"
+                />
+              </template>
+            </v-text-field>
+          </v-list>
         </v-card-text>
+        <v-divider />
 
         <v-card-actions>
           <v-spacer />
