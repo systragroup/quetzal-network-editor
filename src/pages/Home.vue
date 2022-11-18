@@ -221,7 +221,7 @@ export default {
   <section class="map-view">
     <v-dialog
       v-model="showDialog"
-      scrollable="false"
+      scrollable
       persistent
       max-width="290"
       @keydown.enter="applyAction"
