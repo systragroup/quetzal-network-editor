@@ -227,7 +227,7 @@ export default {
       @keydown.enter="applyAction"
       @keydown.esc="cancelAction"
     >
-      <v-card height="800px">
+      <v-card max-height="800px">
         <v-card-title class="text-h5">
           {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
