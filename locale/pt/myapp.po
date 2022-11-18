@@ -32,11 +32,11 @@ msgstr ""
 msgid "action"
 msgstr ""
 
-#: src/pages/DataFrame.vue:166
+#: src/pages/DataFrame.vue:174
 msgid "Add"
 msgstr ""
 
-#: src/pages/DataFrame.vue:81
+#: src/pages/DataFrame.vue:89
 msgid "add field"
 msgstr ""
 
@@ -52,8 +52,8 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
-#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89 src/pages/Settings.vue:97
+#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:164
+#: src/pages/Home.vue:87 src/pages/Settings.vue:97
 msgid "Cancel"
 msgstr ""
 
@@ -89,7 +89,7 @@ msgstr ""
 msgid "Cut Before Node"
 msgstr ""
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 msgid "Delete"
 msgstr ""
 
@@ -135,7 +135,7 @@ msgstr ""
 msgid "Edit Node Info"
 msgstr ""
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 msgid "Edit Properties"
 msgstr ""
 
@@ -184,7 +184,7 @@ msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
 msgstr ""
 
 #: src/components/layout/NavigationDrawer.vue:62
-#: src/components/layout/NavigationDrawer.vue:76
+#: src/components/layout/NavigationDrawer.vue:76 src/pages/DataFrame.vue:59
 msgid "item"
 msgstr ""
 
@@ -212,7 +212,7 @@ msgstr ""
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
 
-#: src/pages/DataFrame.vue:52
+#: src/pages/DataFrame.vue:14
 msgid "Links Table"
 msgstr ""
 
@@ -232,11 +232,11 @@ msgstr ""
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:210
+#: src/pages/Home.vue:206
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:201
+#: src/pages/Home.vue:197
 msgid "modification applied"
 msgstr ""
 
@@ -244,11 +244,11 @@ msgstr ""
 msgid "multiple Values"
 msgstr ""
 
-#: src/pages/DataFrame.vue:130
+#: src/pages/DataFrame.vue:138
 msgid "name"
 msgstr ""
 
-#: src/pages/DataFrame.vue:117
+#: src/pages/DataFrame.vue:125
 msgid "New Field"
 msgstr ""
 
@@ -262,6 +262,10 @@ msgstr ""
 
 #: src/pages/Login.vue:78
 msgid "Nodes"
+msgstr ""
+
+#: src/pages/DataFrame.vue:15
+msgid "Nodes Table"
 msgstr ""
 
 #: src/pages/Import.vue:68 src/pages/Login.vue:111
@@ -292,7 +296,7 @@ msgstr ""
 msgid "Right click to edit properties"
 msgstr ""
 
-#: src/pages/Home.vue:99 src/pages/Settings.vue:107
+#: src/pages/Home.vue:97 src/pages/Settings.vue:107
 msgid "Save"
 msgstr ""
 
