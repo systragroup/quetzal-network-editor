@@ -28,9 +28,8 @@ export default {
     speed: 20, // 20KmH for time (speed/distance)
     popupContent: 'trip_id',
     outputName: 'output',
-    lineAttributes: ['trip_id', 'route_id', 'agency_id', 'direction_id',
-      'headway', 'route_long_name', 'route_short_name',
-      'route_type', 'route_color', 'route_width'],
+    lineAttributes: [],
+
   },
 
   mutations: {
@@ -48,6 +47,8 @@ export default {
         this.commit('getTripId')
         // set all trips visible
         this.commit('changeSelectedTrips', state.tripId)
+
+        this.commit('getLinksProperties')
         state.filesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
@@ -78,6 +79,24 @@ export default {
     },
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
+    },
+
+    getLinksProperties (state) {
+      let header = new Set([])
+      state.links.features.forEach(element => {
+        Object.keys(element.properties).forEach(key => header.add(key))
+      })
+      header.delete('index')
+      // add all default attributes
+      const defaultAttributes = [
+        'trip_id', 'route_id', 'agency_id', 'direction_id',
+        'headway', 'route_long_name', 'route_short_name',
+        'route_type', 'route_color', 'route_width', 'a',
+        'b', 'length', 'time', 'pickup_type', 'drop_off_type',
+        'link_sequence']
+      defaultAttributes.forEach(att => header.add(att))
+      header = Array.from(header)
+      state.lineAttributes = header
     },
 
     addPropertie (state, payload) {
@@ -123,35 +142,37 @@ export default {
     },
 
     getEditorLineInfo (state) {
+      const form = {}
+      const uneditable = ['index', 'length', 'a', 'b', 'link_sequence']
       // empty trip, when its a newLine
       if (state.editorLinks.features.length === 0) {
         function getDefaultValue (key) {
           const defaultValue = { route_width: 3, route_color: '00BCD4' }
           return defaultValue[key] || null
         }
-        // eslint-disable-next-line no-var
-        var filtered = state.lineAttributes.reduce(
-          // eslint-disable-next-line no-sequences
-          (acc, curr) => (acc[curr] = { value: getDefaultValue(curr), disabled: false, placeholder: false }, acc), {},
-        )
-        filtered.trip_id = { value: state.editorTrip, disabled: false, placeholder: false }
-      } else {
-        const properties = state.editorLinks.features[0].properties
 
-        const uneditable = []
-        // eslint-disable-next-line no-var, no-redeclare
-        var filtered = Object.keys(properties)
-          .filter(key => state.lineAttributes.includes(key))
-          .reduce((obj, key) => {
-            obj[key] = {
-              value: properties[key],
-              disabled: uneditable.includes(key),
-              placeholder: false,
-            }
-            return obj
-          }, {})
+        state.lineAttributes.forEach(key => {
+          form[key] = {
+            value: getDefaultValue[key],
+            disabled: uneditable.includes(key),
+            placeholder: false,
+          }
+        })
+
+        form.trip_id = { value: state.editorTrip, disabled: false, placeholder: false }
+      } else {
+        const features = state.editorLinks.features
+
+        state.lineAttributes.forEach(key => {
+          const val = new Set(features.map(link => link.properties[key]))
+          form[key] = {
+            value: val.size > 1 ? '' : [...val][0],
+            disabled: uneditable.includes(key),
+            placeholder: val.size > 1,
+          }
+        })
       }
-      state.editorLineInfo = filtered
+      state.editorLineInfo = form
     },
 
     getTripId (state) {
@@ -173,11 +194,12 @@ export default {
       // if there is no link to copy, create one. (new Line)
       if (tempLink.features.length === 0) {
         // copy Line properties.
-        const lineProperties = {}
+        const linkProperties = {}
         Object.keys(state.editorLineInfo).forEach((key) => {
-          lineProperties[key] = state.editorLineInfo[key].value
+          linkProperties[key] = state.editorLineInfo[key].value
         })
-        const linkProperties = {
+        // set default links values
+        const defaultValue = {
           index: 'link_' + short.generate(),
           a: state.editorNodes.features[0].properties.index,
           b: state.editorNodes.features[0].properties.index,
@@ -187,9 +209,11 @@ export default {
           drop_off_type: 0,
           link_sequence: 0,
           trip_id: state.editorTrip,
-          ...lineProperties,
-
         }
+        Object.keys(defaultValue).forEach((key) => {
+          linkProperties[key] = defaultValue[key]
+        })
+
         const linkGeometry = {
           coordinates: [state.editorNodes.features[0].geometry.coordinates,
             state.editorNodes.features[0].geometry.coordinates],
@@ -493,6 +517,13 @@ export default {
 
     editLineInfo (state, payload) {
       state.editorLineInfo = payload
+      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
+      const props = Object.keys(payload).filter(key =>
+        ((payload[key].value !== '') || !payload[key].placeholder) && (!payload[key].disabled))
+
+      // add new line info to each links of each trips.
+      state.editorLinks.features.forEach(
+        (features) => props.forEach((key) => features.properties[key] = payload[key].value))
     },
 
     editLinkInfo (state, payload) {
@@ -506,6 +537,7 @@ export default {
           }
         },
       )
+      this.commit('getEditorLineInfo')
     },
 
     editNodeInfo (state, payload) {
@@ -552,11 +584,6 @@ export default {
     },
 
     confirmChanges (state) { // apply change to Links
-      // add editor Line info to each editor links
-      const props = Object.keys(state.editorLineInfo)
-      state.editorLinks.features.forEach(
-        (features) => props.forEach((key) => features.properties[key] = state.editorLineInfo[key].value))
-
       const filtered = { ...state.links }
 
       filtered.features = filtered.features.filter(link => link.properties.trip_id === state.editorTrip)
@@ -622,6 +649,7 @@ export default {
 
       // get tripId list
       this.commit('getTripId')
+      this.commit('getLinksProperties')
     },
 
     deleteTrip (state, payload) {

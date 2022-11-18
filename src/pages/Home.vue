@@ -65,7 +65,7 @@ export default {
         const lineAttributes = this.$store.getters.lineAttributes
         let features = structuredClone(this.$store.getters.links.features)
         features = features.filter(link => this.groupTripIds.includes(link.properties.trip_id))
-        const uneditable = []
+        const uneditable = ['index', 'length', 'a', 'b', 'link_sequence']
         const form = {}
         lineAttributes.forEach(key => {
           const val = new Set(features.map(link => link.properties[key]))
@@ -75,8 +75,6 @@ export default {
             placeholder: val.size > 1,
           }
         })
-
-        delete form.trip_id
 
         this.editorForm = form
         this.lingering = event.lingering
@@ -91,19 +89,17 @@ export default {
         this.editorForm = this.editorForm[0].properties
 
         // filter properties to only the one that are editable.
-        const filteredKeys = this.$store.getters.lineAttributes
-        const uneditable = ['a', 'b', 'index', 'link_sequence']
-        const filtered = Object.keys(this.editorForm)
-          .filter(key => !filteredKeys.includes(key))
-          .reduce((obj, key) => {
-            obj[key] = {
-              value: this.editorForm[key],
-              disabled: uneditable.includes(key),
-              placeholder: false,
-            }
-            return obj
-          }, {})
-        this.editorForm = filtered
+        const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
+        const form = {}
+        const lineAttributes = this.$store.getters.lineAttributes
+        lineAttributes.forEach(key => {
+          form[key] = {
+            value: this.editorForm[key],
+            disabled: uneditable.includes(key),
+            placeholder: false,
+          }
+        })
+        this.editorForm = form
         this.showDialog = true
       } else if (this.action === 'Edit Node Info') {
         this.selectedNode = event.selectedFeature.properties
