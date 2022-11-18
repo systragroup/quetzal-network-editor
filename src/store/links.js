@@ -29,6 +29,7 @@ export default {
     popupContent: 'trip_id',
     outputName: 'output',
     lineAttributes: [],
+    nodeAttributes: [],
 
   },
 
@@ -64,6 +65,7 @@ export default {
         state.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
 
+        this.commit('getNodesProperties')
         state.filesAreLoaded.nodes = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
@@ -86,10 +88,10 @@ export default {
       state.links.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
-      header.delete('index')
+      // header.delete('index')
       // add all default attributes
       const defaultAttributes = [
-        'trip_id', 'route_id', 'agency_id', 'direction_id',
+        'index', 'trip_id', 'route_id', 'agency_id', 'direction_id',
         'headway', 'route_long_name', 'route_short_name',
         'route_type', 'route_color', 'route_width', 'a',
         'b', 'length', 'time', 'pickup_type', 'drop_off_type',
@@ -98,11 +100,29 @@ export default {
       header = Array.from(header)
       state.lineAttributes = header
     },
+    getNodesProperties (state) {
+      let header = new Set([])
+      state.nodes.features.forEach(element => {
+        Object.keys(element.properties).forEach(key => header.add(key))
+      })
+      // add all default attributes
+      const defaultAttributes = [
+        'index',
+        'stop_code',
+        'stop_name']
+      defaultAttributes.forEach(att => header.add(att))
+      header = Array.from(header)
+      state.nodeAttributes = header
+    },
 
     addPropertie (state, payload) {
       // when a new line properties is added (in dataframe page)
-      state.links.features.map(link => link.properties[payload.name] = null)
-      state.lineAttributes.push(payload.name)
+      if (payload.table === 'links') {
+        state.links.features.map(link => link.properties[payload.name] = null)
+        state.lineAttributes.push(payload.name)
+      } else {
+        state.nodes.features.map(node => node.properties[payload.name] = null)
+      }
     },
     changeSelectedTrips (state, payload) {
       // trips list of visible trip_id.
@@ -260,11 +280,11 @@ export default {
       state.newLink.action = payload.action
     },
     createNewNode (state, payload) {
-      const nodeProperties = {
-        index: 'node_' + short.generate(),
-        stop_code: null,
-        stop_name: null,
-      }
+      const nodeProperties = {}
+      state.nodeAttributes.forEach(key => {
+        nodeProperties[key] = null
+      })
+      nodeProperties.index = 'node_' + short.generate()
       const nodeGeometry = {
         coordinates: payload,
         type: 'Point',
@@ -276,11 +296,10 @@ export default {
 
     setNewNode (state, payload) {
       const { coordinates = [null, null] } = payload
-      const uncopiedPropeties = {
-        index: null,
-        stop_code: null,
-        stop_name: null,
-      }
+      const uncopiedPropeties = {}
+      state.nodeAttributes.forEach(key => {
+        uncopiedPropeties[key] = null
+      })
       // Copy specified node
       const tempNode = JSON.parse(JSON.stringify(state.editorNodes))
       const features = tempNode.features.filter(node => node.properties.index === payload.nodeCopyId)[0]

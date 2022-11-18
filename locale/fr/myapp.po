@@ -32,11 +32,11 @@ msgstr "Annuler"
 msgid "action"
 msgstr ""
 
-#: src/pages/DataFrame.vue:166
+#: src/pages/DataFrame.vue:174
 msgid "Add"
 msgstr "Ajouter"
 
-#: src/pages/DataFrame.vue:81
+#: src/pages/DataFrame.vue:89
 msgid "add field"
 msgstr "ajouter un champ"
 
@@ -52,8 +52,8 @@ msgstr ""
 msgid "cancel"
 msgstr "Annuler"
 
-#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89 src/pages/Settings.vue:97
+#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:164
+#: src/pages/Home.vue:87 src/pages/Settings.vue:97
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -89,7 +89,7 @@ msgstr "Couper après l'arrêt"
 msgid "Cut Before Node"
 msgstr "Couper avant l'arrêt"
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 msgid "Delete"
 msgstr "Supprimer "
 
@@ -137,7 +137,7 @@ msgstr "Modifier les propriétés"
 msgid "Edit Node Info"
 msgstr "Modifier les infos"
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 msgid "Edit Properties"
 msgstr "Modifier"
 
@@ -186,7 +186,7 @@ msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
 msgstr "CRS invalide, utiliser CRS84 / EPSG:4326. Import annulé"
 
 #: src/components/layout/NavigationDrawer.vue:62
-#: src/components/layout/NavigationDrawer.vue:76
+#: src/components/layout/NavigationDrawer.vue:76 src/pages/DataFrame.vue:59
 msgid "item"
 msgstr ""
 
@@ -215,7 +215,7 @@ msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
 "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
 
-#: src/pages/DataFrame.vue:52
+#: src/pages/DataFrame.vue:14
 msgid "Links Table"
 msgstr "Table des Liens"
 
@@ -235,11 +235,11 @@ msgstr "Charger l'exemple de Montréal"
 msgid "Map"
 msgstr "Carte"
 
-#: src/pages/Home.vue:210
+#: src/pages/Home.vue:206
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/pages/Home.vue:201
+#: src/pages/Home.vue:197
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
@@ -247,11 +247,11 @@ msgstr "Modification Appliquée"
 msgid "multiple Values"
 msgstr "Valeurs multiples"
 
-#: src/pages/DataFrame.vue:130
+#: src/pages/DataFrame.vue:138
 msgid "name"
 msgstr "nom"
 
-#: src/pages/DataFrame.vue:117
+#: src/pages/DataFrame.vue:125
 msgid "New Field"
 msgstr "Nouveau Champ"
 
@@ -266,6 +266,10 @@ msgstr "Non"
 #: src/pages/Login.vue:78
 msgid "Nodes"
 msgstr "Noeuds"
+
+#: src/pages/DataFrame.vue:15
+msgid "Nodes Table"
+msgstr "Table des Noeuds"
 
 #: src/pages/Import.vue:68 src/pages/Login.vue:111
 msgid "nodes.geojson and links.geojson"
@@ -295,7 +299,7 @@ msgstr "Clique droit pour modifier"
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/pages/Home.vue:99 src/pages/Settings.vue:107
+#: src/pages/Home.vue:97 src/pages/Settings.vue:107
 msgid "Save"
 msgstr "Sauvegarder"
 

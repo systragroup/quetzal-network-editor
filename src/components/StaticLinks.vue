@@ -45,7 +45,7 @@ export default {
       )
       return links
     },
-    nodes () { return this.$store.getters.nodes },
+    nodes () { return structuredClone(this.$store.getters.nodes) },
   },
 
   watch: {
