@@ -94,11 +94,12 @@ export default {
       // header.delete('index')
       // add all default attributes
       const defaultAttributes = [
-        'index', 'trip_id', 'route_id', 'agency_id', 'direction_id',
-        'headway', 'route_long_name', 'route_short_name',
-        'route_type', 'route_color', 'route_width', 'a',
-        'b', 'length', 'time', 'pickup_type', 'drop_off_type',
-        'link_sequence']
+        'index', 'a', 'b', 'length', 'time',
+        'pickup_type', 'drop_off_type', 'link_sequence',
+        'trip_id', 'headway', 'route_id', 'agency_id', 'direction_id',
+        'route_long_name', 'route_short_name',
+        'route_type', 'route_color', 'route_width',
+      ]
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.lineAttributes = header
