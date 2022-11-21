@@ -42,7 +42,7 @@ msgstr "ajouter un champ"
 
 #: src/pages/Import.vue:36
 msgid "Add Files"
-msgstr "Charger les Fichiers"
+msgstr "Ajouter des Fichiers"
 
 #: src/components/utils/ColorPicker.vue:58
 msgid "apply"
