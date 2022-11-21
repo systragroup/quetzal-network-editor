@@ -577,6 +577,8 @@ export default {
       // append new links and node to the project (import page)
       state.links.features.push(...payload.links.features)
       state.nodes.features.push(...payload.nodes.features)
+      this.commit('getLinksProperties')
+      this.commit('getNodesProperties')
       this.commit('getTripId')
     },
 
