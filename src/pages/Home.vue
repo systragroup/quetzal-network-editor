@@ -30,6 +30,17 @@ export default {
   },
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
+    orderedForm () {
+      // order editor Form in alphatical order
+      const ordered = Object.keys(this.editorForm).sort().reduce(
+        (obj, key) => {
+          obj[key] = this.editorForm[key]
+          return obj
+        },
+        {},
+      )
+      return ordered
+    },
   },
   created () {
     this.editorTrip = this.$store.getters.editorTrip
@@ -236,7 +247,7 @@ export default {
         <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info'].includes(action)">
           <v-list>
             <v-text-field
-              v-for="(value, key) in editorForm"
+              v-for="(value, key) in orderedForm"
               :key="key"
               v-model="value['value']"
               :label="key"
