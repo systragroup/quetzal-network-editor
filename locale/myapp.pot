@@ -6,12 +6,12 @@ msgstr ""
 "Project-Id-Version: \n"
 
 #: src/App.vue:46
-#: src/pages/Settings.vue:49
-#: src/pages/Settings.vue:51
-#: src/pages/Settings.vue:61
-#: src/pages/Settings.vue:62
-#: src/pages/Settings.vue:70
-#: src/pages/Settings.vue:72
+#: src/pages/Settings.vue:53
+#: src/pages/Settings.vue:55
+#: src/pages/Settings.vue:65
+#: src/pages/Settings.vue:66
+#: src/pages/Settings.vue:74
+#: src/pages/Settings.vue:76
 msgid "_ctx"
 msgstr ""
 
@@ -36,7 +36,7 @@ msgstr ""
 msgid "add field"
 msgstr ""
 
-#: src/pages/Import.vue:36
+#: src/pages/Import.vue:38
 msgid "Add Files"
 msgstr ""
 
@@ -51,7 +51,7 @@ msgstr ""
 #: src/components/SidePanel.vue:625
 #: src/pages/DataFrame.vue:164
 #: src/pages/Home.vue:87
-#: src/pages/Settings.vue:97
+#: src/pages/Settings.vue:101
 msgid "Cancel"
 msgstr ""
 
@@ -69,6 +69,10 @@ msgstr ""
 
 #: src/components/SidePanel.vue:543
 msgid "Confirm"
+msgstr ""
+
+#: src/pages/Home.vue:173
+msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
 #: src/pages/Login.vue:146
@@ -109,7 +113,7 @@ msgstr ""
 msgid "do not add .zip to the end"
 msgstr ""
 
-#: src/pages/Home.vue:45
+#: src/pages/Home.vue:56
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 
@@ -163,7 +167,7 @@ msgstr ""
 msgid "Export Only Visible"
 msgstr ""
 
-#: src/pages/Import.vue:96
+#: src/pages/Import.vue:148
 msgid "file is not a zip. Import aborted"
 msgstr ""
 
@@ -180,8 +184,8 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: src/pages/Import.vue:34
-#: src/pages/Import.vue:52
+#: src/pages/Import.vue:35
+#: src/pages/Import.vue:54
 msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
 msgstr ""
 
@@ -195,7 +199,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/Map.vue:68
+#: src/components/Map.vue:69
 msgid "Left click to add an anchor point, right click to delete"
 msgstr ""
 
@@ -207,11 +211,12 @@ msgstr ""
 msgid "Link field to display when hovering a trip on the map"
 msgstr ""
 
+#: src/pages/Import.vue:56
 #: src/pages/Login.vue:59
 msgid "Links"
 msgstr ""
 
-#: src/pages/Import.vue:37
+#: src/pages/Import.vue:39
 #: src/pages/Login.vue:42
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr ""
@@ -220,7 +225,7 @@ msgstr ""
 msgid "Links Table"
 msgstr ""
 
-#: src/pages/Import.vue:66
+#: src/pages/Import.vue:106
 #: src/pages/Login.vue:109
 msgid "Load a zip file containing"
 msgstr ""
@@ -237,11 +242,11 @@ msgstr ""
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:206
+#: src/pages/Home.vue:231
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:197
+#: src/pages/Home.vue:222
 msgid "modification applied"
 msgstr ""
 
@@ -267,6 +272,7 @@ msgstr ""
 msgid "No"
 msgstr ""
 
+#: src/pages/Import.vue:75
 #: src/pages/Login.vue:78
 msgid "Nodes"
 msgstr ""
@@ -275,12 +281,12 @@ msgstr ""
 msgid "Nodes Table"
 msgstr ""
 
-#: src/pages/Import.vue:68
+#: src/pages/Import.vue:108
 #: src/pages/Login.vue:111
 msgid "nodes.geojson and links.geojson"
 msgstr ""
 
-#: src/pages/Import.vue:127
+#: src/pages/Import.vue:172
 msgid "Not a valid zip file. Import aborted"
 msgstr ""
 
@@ -305,7 +311,7 @@ msgid "Right click to edit properties"
 msgstr ""
 
 #: src/pages/Home.vue:97
-#: src/pages/Settings.vue:107
+#: src/pages/Settings.vue:111
 msgid "Save"
 msgstr ""
 
@@ -313,7 +319,7 @@ msgstr ""
 msgid "Save Changes?"
 msgstr ""
 
-#: src/pages/Settings.vue:30
+#: src/pages/Settings.vue:34
 #: src/router/index.js:53
 msgid "Settings"
 msgstr ""
@@ -343,11 +349,11 @@ msgstr ""
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/pages/Import.vue:29
+#: src/pages/Import.vue:30
 msgid "there is duplicated links index. Import aborted"
 msgstr ""
 
-#: src/pages/Import.vue:45
+#: src/pages/Import.vue:47
 msgid "there is duplicated nodes index. Import aborted"
 msgstr ""
 
