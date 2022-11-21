@@ -76,7 +76,7 @@ export default {
         const lineAttributes = this.$store.getters.lineAttributes
         let features = structuredClone(this.$store.getters.links.features)
         features = features.filter(link => this.groupTripIds.includes(link.properties.trip_id))
-        const uneditable = ['index', 'length', 'a', 'b', 'link_sequence']
+        const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
         const form = {}
         lineAttributes.forEach(key => {
           const val = new Set(features.map(link => link.properties[key]))
@@ -163,6 +163,20 @@ export default {
           this.$store.commit('editNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
           break
         case 'Edit Line Info':
+          // check if trip_id was changed and if it already exist.
+          if ((this.editorForm.trip_id.value !== this.$store.getters.editorTrip) &&
+          this.$store.getters.tripId.includes(this.editorForm.trip_id.value)) {
+            // reset all. just like abortChanges but without the abort changes notification
+            this.lingering = true // if not, applyAction is call after and the notification is overwrite.
+            this.editorTrip = null
+            this.$store.commit('setEditorTrip', { tripId: null, changeBounds: false })
+            this.action = null
+            this.$store.commit('changeNotification', {
+              text: $gettext('Could not apply modification. Trip_id already exist'),
+              autoClose: true,
+              color: 'red darken-2',
+            })
+          }
           this.$store.commit('editLineInfo', this.editorForm)
           break
         case 'Edit Group Info':

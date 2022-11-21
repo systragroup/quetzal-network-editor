@@ -231,7 +231,6 @@ export default {
           pickup_type: 0,
           drop_off_type: 0,
           link_sequence: 0,
-          trip_id: state.editorTrip,
         }
         Object.keys(defaultValue).forEach((key) => {
           linkProperties[key] = defaultValue[key]
@@ -542,7 +541,6 @@ export default {
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(payload).filter(key =>
         ((payload[key].value !== '') || !payload[key].placeholder) && (!payload[key].disabled))
-
       // add new line info to each links of each trips.
       state.editorLinks.features.forEach(
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
