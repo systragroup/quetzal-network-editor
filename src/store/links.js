@@ -19,7 +19,7 @@ export default {
     nodes: {},
     nodesHeader: {},
     linksHeader: {},
-    tripId: [], // to change with the actual import.
+    tripId: [],
     selectedTrips: [],
     newLink: {},
     newNode: {},
@@ -74,6 +74,9 @@ export default {
       state.filesAreLoaded = { links: false, nodes: false }
       state.links = {}
       state.nodes = {}
+      state.editorTrip = null
+      state.tripId = []
+      state.selectedTrips = []
     },
 
     setAnchorMode (state, payload) {
