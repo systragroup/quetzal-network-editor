@@ -34,7 +34,11 @@ export default {
       // order editor Form in alphatical order
       const ordered = Object.keys(this.editorForm).sort().reduce(
         (obj, key) => {
-          obj[key] = this.editorForm[key]
+          // do not display disabled fields
+          if (!this.editorForm[key].disabled) {
+            obj[key] = this.editorForm[key]
+          }
+
           return obj
         },
         {},
@@ -248,11 +252,13 @@ export default {
       v-model="showDialog"
       scrollable
       persistent
-      max-width="290"
+      max-width="300"
       @keydown.enter="applyAction"
       @keydown.esc="cancelAction"
     >
-      <v-card max-height="800px">
+      <v-card
+        max-height="60rem"
+      >
         <v-card-title class="text-h5">
           {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
