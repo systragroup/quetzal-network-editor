@@ -46,6 +46,7 @@ jobs:
           
   deploy:
     name: Deploy distribution
+    needs: build
     runs-on: ubuntu-latest
     steps:
         - name: Checkout Repository
@@ -53,5 +54,5 @@ jobs:
           
         - name: Push distribution subtree
           run: |
-            git branch
+            git subtree push --prefix dist origin dist
           
