@@ -22,6 +22,9 @@ jobs:
         with:
           cmd: install # will run `yarn install` command
           
+      - name: Compile Languages
+        run: yarn run i18n-compile
+          
       - name: Build Project
         uses: borales/actions-yarn@v3.0.0
         with:
