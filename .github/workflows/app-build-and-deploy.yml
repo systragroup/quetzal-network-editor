@@ -35,7 +35,7 @@ jobs:
         with:
           cmd: build # will run `yarn build` command
           
-      - name: Push to GitHub
+      - name: Push master to GitHub & Push dist subtree
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
@@ -43,16 +43,5 @@ jobs:
           git add .
           git commit -m "Build Release $REF"
           git push
-          
-  deploy:
-    name: Deploy distribution
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v2
-          
-        - name: Push distribution subtree
-          run: |
-            git subtree push --prefix dist origin dist
+          git subtree push --prefix dist origin dist
           
