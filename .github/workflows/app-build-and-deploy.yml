@@ -15,7 +15,9 @@ jobs:
       REF: ${{ github.ref }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          ref: master
         
       - name: Application Setup
         run: sh build/setup.sh <<< "$MAPBOX_PUBLIC_KEY"
