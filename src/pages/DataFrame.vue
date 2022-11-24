@@ -1,4 +1,5 @@
 <script>
+const $gettext = s => s
 
 export default {
   name: 'DataFrame',
@@ -10,11 +11,16 @@ export default {
       input: '',
       divHeight: 0,
       errorMessage: null,
+      tableChoices: [
+        { val: 'links', text: $gettext('Links Table') },
+        { val: 'nodes', text: $gettext('Nodes Table') },
+      ],
+      selectedTable: 'links',
     }
   },
 
-  computed: {
-
+  watch: {
+    selectedTable () { this.fetchData() },
   },
 
   mounted () {
@@ -24,8 +30,13 @@ export default {
   },
   methods: {
     fetchData () {
+      this.data = []
+      this.headers = []
       let header = new Set([])
-      this.$store.getters.links.features.forEach(element => {
+      const features = this.selectedTable === 'links'
+        ? this.$store.getters.links.features
+        : this.$store.getters.nodes.features
+      features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
         this.data.push(element.properties)
       })
@@ -43,7 +54,7 @@ export default {
       if (propsList.includes(this.input)) {
         this.errorMessage = 'already exist'
       } else {
-        this.$store.commit('addPropertie', { name: this.input })
+        this.$store.commit('addPropertie', { name: this.input, table: this.selectedTable })
         this.fetchData()
         this.input = ''
         this.errorMessage = ''
@@ -86,7 +97,18 @@ export default {
               <v-toolbar
                 flat
               >
-                <v-toolbar-title>{{ $gettext('Links Table') }}</v-toolbar-title>
+                <v-toolbar-title class="languages-container">
+                  <div
+                    v-for="(item, key) in tableChoices"
+                    :key="key"
+                    class="language"
+                    :class="[item.val === selectedTable ? 'active' : '']"
+                    :title="item.val"
+                    @click="()=> selectedTable=item.val"
+                  >
+                    {{ $gettext(item.text) }}
+                  </div>
+                </v-toolbar-title>
                 <v-divider
                   class="mx-4"
                   vertical
@@ -230,5 +252,25 @@ export default {
 .animate-layer {
   opacity: 0;
   transition: 1s;
+}
+.languages-container {
+  display: flex;
+}
+.language {
+  border-right: 1px solid $grey-light;
+  padding-right:10px;
+  padding-left:10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $grey-light;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.language.active, .language:hover {
+  color: $secondary;
+}
+.language:last-child {
+  border-right: 0;
 }
 </style>

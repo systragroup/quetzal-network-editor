@@ -13,9 +13,9 @@ msgstr ""
 "Generated-By: easygettext\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/App.vue:46 src/pages/Settings.vue:49 src/pages/Settings.vue:51
-#: src/pages/Settings.vue:61 src/pages/Settings.vue:62
-#: src/pages/Settings.vue:70 src/pages/Settings.vue:72
+#: src/App.vue:46 src/pages/Settings.vue:53 src/pages/Settings.vue:55
+#: src/pages/Settings.vue:65 src/pages/Settings.vue:66
+#: src/pages/Settings.vue:74 src/pages/Settings.vue:76
 msgid "_ctx"
 msgstr ""
 
@@ -32,15 +32,15 @@ msgstr "Anular"
 msgid "action"
 msgstr "acción"
 
-#: src/pages/DataFrame.vue:166
+#: src/pages/DataFrame.vue:174
 msgid "Add"
 msgstr "Ajouter"
 
-#: src/pages/DataFrame.vue:81
+#: src/pages/DataFrame.vue:89
 msgid "add field"
 msgstr ""
 
-#: src/pages/Import.vue:36
+#: src/pages/Import.vue:38
 msgid "Add Files"
 msgstr "Agregar archivos"
 
@@ -53,8 +53,8 @@ msgstr ""
 msgid "cancel"
 msgstr "Cancelar"
 
-#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:156
-#: src/pages/Home.vue:89 src/pages/Settings.vue:97
+#: src/components/SidePanel.vue:625 src/pages/DataFrame.vue:164
+#: src/pages/Home.vue:87 src/pages/Settings.vue:101
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -74,6 +74,10 @@ msgstr "Cerrar"
 msgid "Confirm"
 msgstr "Confirmar"
 
+#: src/pages/Home.vue:173
+msgid "Could not apply modification. Trip_id already exist"
+msgstr ""
+
 #: src/pages/Login.vue:146
 msgid "Create a network from scratch"
 msgstr "Crear un red desde cero"
@@ -92,7 +96,7 @@ msgstr "Línea de corte en el nodo"
 msgid "Cut Before Node"
 msgstr "Línea de corte desde el nodo"
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 msgid "Delete"
 msgstr "Eliminar "
 
@@ -113,7 +117,7 @@ msgstr "Eliminar parada"
 msgid "do not add .zip to the end"
 msgstr ""
 
-#: src/pages/Home.vue:45
+#: src/pages/Home.vue:56
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 "doble clic para editar línea, clic derecho para editar propiedades de la "
@@ -141,7 +145,7 @@ msgstr "Editar propiedades de la línea"
 msgid "Edit Node Info"
 msgstr "Editar información de nodo"
 
-#: src/pages/Home.vue:36
+#: src/pages/Home.vue:37
 msgid "Edit Properties"
 msgstr "Editar propiedades"
 
@@ -171,7 +175,7 @@ msgstr "Exportar"
 msgid "Export Only Visible"
 msgstr "Exportar lo visible"
 
-#: src/pages/Import.vue:96
+#: src/pages/Import.vue:148
 msgid "file is not a zip. Import aborted"
 msgstr "el archivo no es un zip. Importación anulada"
 
@@ -187,12 +191,12 @@ msgstr "Clic izquierdo sostenido para arrastrar"
 msgid "Import"
 msgstr "Importar"
 
-#: src/pages/Import.vue:34 src/pages/Import.vue:52
+#: src/pages/Import.vue:35 src/pages/Import.vue:54
 msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
 msgstr "el CRS es inválido. Usa CRS84 / EPSG:4326. Importación anulada"
 
 #: src/components/layout/NavigationDrawer.vue:62
-#: src/components/layout/NavigationDrawer.vue:76
+#: src/components/layout/NavigationDrawer.vue:76 src/pages/DataFrame.vue:59
 msgid "item"
 msgstr "ítem"
 
@@ -200,7 +204,7 @@ msgstr "ítem"
 msgid "Left click to add a stop"
 msgstr "Clic izquierdo para agregar una parada"
 
-#: src/components/Map.vue:68
+#: src/components/Map.vue:69
 #, fuzzy
 msgid "Left click to add an anchor point, right click to delete"
 msgstr ""
@@ -215,19 +219,20 @@ msgstr "Líneas"
 msgid "Link field to display when hovering a trip on the map"
 msgstr ""
 
-#: src/pages/Login.vue:59
+#: src/pages/Import.vue:56 src/pages/Login.vue:59
 msgid "Links"
 msgstr "Enlaces"
 
-#: src/pages/Import.vue:37 src/pages/Login.vue:42
+#: src/pages/Import.vue:39 src/pages/Login.vue:42
 msgid "Links and Nodes files must be geojson in EPSG:4326"
 msgstr "Los archivos de enlaces y nodos deben estar en geojson en EPSG:4326"
 
-#: src/pages/DataFrame.vue:52
+#: src/pages/DataFrame.vue:14
+#, fuzzy
 msgid "Links Table"
-msgstr ""
+msgstr "Enlaces"
 
-#: src/pages/Import.vue:66 src/pages/Login.vue:109
+#: src/pages/Import.vue:106 src/pages/Login.vue:109
 msgid "Load a zip file containing"
 msgstr "Cargar un archivo zip que contenga"
 
@@ -243,11 +248,11 @@ msgstr "Cargar Ejemplo Montréal"
 msgid "Map"
 msgstr "Mapa"
 
-#: src/pages/Home.vue:210
+#: src/pages/Home.vue:231
 msgid "modification aborted"
 msgstr "modificación abortada"
 
-#: src/pages/Home.vue:201
+#: src/pages/Home.vue:222
 msgid "modification applied"
 msgstr "modificación aplicada"
 
@@ -255,11 +260,11 @@ msgstr "modificación aplicada"
 msgid "multiple Values"
 msgstr ""
 
-#: src/pages/DataFrame.vue:130
+#: src/pages/DataFrame.vue:138
 msgid "name"
 msgstr ""
 
-#: src/pages/DataFrame.vue:117
+#: src/pages/DataFrame.vue:125
 msgid "New Field"
 msgstr ""
 
@@ -271,15 +276,20 @@ msgstr "Nuevo Proyecto"
 msgid "No"
 msgstr "No"
 
-#: src/pages/Login.vue:78
+#: src/pages/Import.vue:75 src/pages/Login.vue:78
 msgid "Nodes"
 msgstr "Nodos"
 
-#: src/pages/Import.vue:68 src/pages/Login.vue:111
+#: src/pages/DataFrame.vue:15
+#, fuzzy
+msgid "Nodes Table"
+msgstr "Nodos"
+
+#: src/pages/Import.vue:108 src/pages/Login.vue:111
 msgid "nodes.geojson and links.geojson"
 msgstr "nodes.geojson y links.geojson"
 
-#: src/pages/Import.vue:127
+#: src/pages/Import.vue:172
 msgid "Not a valid zip file. Import aborted"
 msgstr "No es una archivo zip válido. Importación anulada"
 
@@ -303,7 +313,7 @@ msgstr "Clic derecho para el menú contextual"
 msgid "Right click to edit properties"
 msgstr "Clic derecho para editar propiedades"
 
-#: src/pages/Home.vue:99 src/pages/Settings.vue:107
+#: src/pages/Home.vue:97 src/pages/Settings.vue:111
 msgid "Save"
 msgstr "Guardar"
 
@@ -311,7 +321,7 @@ msgstr "Guardar"
 msgid "Save Changes?"
 msgstr "¿Guardar cambios?"
 
-#: src/pages/Settings.vue:30 src/router/index.js:53
+#: src/pages/Settings.vue:34 src/router/index.js:53
 msgid "Settings"
 msgstr ""
 
@@ -341,11 +351,11 @@ msgstr ""
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/pages/Import.vue:29
+#: src/pages/Import.vue:30
 msgid "there is duplicated links index. Import aborted"
 msgstr "hay índices de enlaces duplicados. Importación anulada"
 
-#: src/pages/Import.vue:45
+#: src/pages/Import.vue:47
 msgid "there is duplicated nodes index. Import aborted"
 msgstr "hay índices de nodos duplicados. Importación anulada"
 

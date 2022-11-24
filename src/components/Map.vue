@@ -1,6 +1,6 @@
 <script>
 import Mapbox from 'mapbox-gl'
-import { MglMap, MglNavigationControl } from 'vue-mapbox'
+import { MglMap, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
@@ -14,6 +14,7 @@ export default {
   components: {
     MglMap,
     MglNavigationControl,
+    MglScaleControl,
     StaticLinks,
     EditorLinks,
   },
@@ -234,6 +235,8 @@ export default {
     @click="addPoint"
     @mouseup="rightClickMap"
   >
+    <MglScaleControl position="bottom-right" />
+
     <MglNavigationControl position="bottom-right" />
     <template v-if="mapIsLoaded">
       <StaticLinks

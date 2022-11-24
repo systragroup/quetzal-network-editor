@@ -74,6 +74,8 @@ export default {
       <v-card
         class="card"
         :class="{'shake':shake}"
+        @keydown.enter="submit"
+        @keydown.esc="cancel"
       >
         <v-card-title class="subtitle">
           {{ $gettext('Settings') }}

@@ -30,6 +30,21 @@ export default {
   },
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
+    orderedForm () {
+      // order editor Form in alphatical order
+      const ordered = Object.keys(this.editorForm).sort().reduce(
+        (obj, key) => {
+          // do not display disabled fields
+          if (!this.editorForm[key].disabled) {
+            obj[key] = this.editorForm[key]
+          }
+
+          return obj
+        },
+        {},
+      )
+      return ordered
+    },
   },
   created () {
     this.editorTrip = this.$store.getters.editorTrip
@@ -65,7 +80,7 @@ export default {
         const lineAttributes = this.$store.getters.lineAttributes
         let features = structuredClone(this.$store.getters.links.features)
         features = features.filter(link => this.groupTripIds.includes(link.properties.trip_id))
-        const uneditable = []
+        const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
         const form = {}
         lineAttributes.forEach(key => {
           const val = new Set(features.map(link => link.properties[key]))
@@ -75,8 +90,6 @@ export default {
             placeholder: val.size > 1,
           }
         })
-
-        delete form.trip_id
 
         this.editorForm = form
         this.lingering = event.lingering
@@ -91,19 +104,17 @@ export default {
         this.editorForm = this.editorForm[0].properties
 
         // filter properties to only the one that are editable.
-        const filteredKeys = this.$store.getters.lineAttributes
-        const uneditable = ['a', 'b', 'index', 'link_sequence']
-        const filtered = Object.keys(this.editorForm)
-          .filter(key => !filteredKeys.includes(key))
-          .reduce((obj, key) => {
-            obj[key] = {
-              value: this.editorForm[key],
-              disabled: uneditable.includes(key),
-              placeholder: false,
-            }
-            return obj
-          }, {})
-        this.editorForm = filtered
+        const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
+        const form = {}
+        const lineAttributes = this.$store.getters.lineAttributes
+        lineAttributes.forEach(key => {
+          form[key] = {
+            value: this.editorForm[key],
+            disabled: uneditable.includes(key),
+            placeholder: false,
+          }
+        })
+        this.editorForm = form
         this.showDialog = true
       } else if (this.action === 'Edit Node Info') {
         this.selectedNode = event.selectedFeature.properties
@@ -156,6 +167,20 @@ export default {
           this.$store.commit('editNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
           break
         case 'Edit Line Info':
+          // check if trip_id was changed and if it already exist.
+          if ((this.editorForm.trip_id.value !== this.$store.getters.editorTrip) &&
+          this.$store.getters.tripId.includes(this.editorForm.trip_id.value)) {
+            // reset all. just like abortChanges but without the abort changes notification
+            this.lingering = true // if not, applyAction is call after and the notification is overwrite.
+            this.editorTrip = null
+            this.$store.commit('setEditorTrip', { tripId: null, changeBounds: false })
+            this.action = null
+            this.$store.commit('changeNotification', {
+              text: $gettext('Could not apply modification. Trip_id already exist'),
+              autoClose: true,
+              color: 'red darken-2',
+            })
+          }
           this.$store.commit('editLineInfo', this.editorForm)
           break
         case 'Edit Group Info':
@@ -225,40 +250,43 @@ export default {
   <section class="map-view">
     <v-dialog
       v-model="showDialog"
+      scrollable
       persistent
-      max-width="290"
+      max-width="300"
       @keydown.enter="applyAction"
       @keydown.esc="cancelAction"
     >
-      <v-card>
+      <v-card
+        max-height="60rem"
+      >
         <v-card-title class="text-h5">
           {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
+        <v-divider />
 
         <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info'].includes(action)">
-          <v-container>
-            <v-col cols="12">
-              <v-text-field
-                v-for="(value, key) in editorForm"
-                :key="key"
-                v-model="value['value']"
-                :label="key"
-                :placeholder="value['placeholder']? $gettext('multiple Values'):''"
-                :persistent-placeholder=" value['placeholder']? true:false "
-                :disabled="value['disabled']"
+          <v-list>
+            <v-text-field
+              v-for="(value, key) in orderedForm"
+              :key="key"
+              v-model="value['value']"
+              :label="key"
+              :placeholder="value['placeholder']? $gettext('multiple Values'):''"
+              :persistent-placeholder=" value['placeholder']? true:false "
+              :disabled="value['disabled']"
+            >
+              <template
+                v-if="key==='route_color'"
+                v-slot:append
               >
-                <template
-                  v-if="key==='route_color'"
-                  v-slot:append
-                >
-                  <color-picker
-                    v-model="value['value']"
-                  />
-                </template>
-              </v-text-field>
-            </v-col>
-          </v-container>
+                <color-picker
+                  v-model="value['value']"
+                />
+              </template>
+            </v-text-field>
+          </v-list>
         </v-card-text>
+        <v-divider />
 
         <v-card-actions>
           <v-spacer />
