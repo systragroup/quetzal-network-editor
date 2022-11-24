@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAPBOX_PUBLIC_KEY: ${{ secrets.MAPBOX_PUBLIC_KEY }}
+      REF: ${{ github.ref }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -38,10 +39,8 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git branch
           git add .
-          git status
-          git commit -m "Build Release"
+          git commit -m "Build Release $REF"
           git push
           
   deploy:
