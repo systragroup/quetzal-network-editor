@@ -43,3 +43,15 @@ jobs:
           git status
           git commit -m "Build Release"
           git push
+          
+  deploy:
+    name: Deploy distribution
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v2
+          
+        - name: Push distribution subtree
+          run: |
+            git branch
+          
