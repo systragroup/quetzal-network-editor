@@ -53,6 +53,6 @@ jobs:
           
         - name: Push distribution subtree
           run: |
-            git subtree add --prefix dist origin dist --squash
+            git subtree pull --prefix dist origin dist --squash
             git subtree push --prefix dist origin dist
           
