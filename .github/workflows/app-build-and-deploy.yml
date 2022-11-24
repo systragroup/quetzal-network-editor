@@ -1,0 +1,57 @@
+name: Application Build and Deploy
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    #tags:
+    #  - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    branch: 
+      - test-action
+     
+jobs:
+  build:
+    name: Build and Commit
+    runs-on: ubuntu-latest
+    env:
+      MAPBOX_PUBLIC_KEY: ${{ secrets.MAPBOX_PUBLIC_KEY }}
+      REF: ${{ github.ref }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
+      - name: Application Setup
+        run: sh build/setup.sh <<< "$MAPBOX_PUBLIC_KEY"
+        
+      - name: Install Dependencies
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install # will run `yarn install` command
+          
+      - name: Compile Languages
+        run: yarn run i18n-compile
+          
+      - name: Build Project
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: build # will run `yarn build` command
+          
+      - name: Push to GitHub
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Build Release $REF"
+          git push
+          
+  deploy:
+    name: Deploy distribution
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v2
+          
+        - name: Push distribution subtree
+          run: |
+            git subtree push --prefix dist origin dist
+          
