@@ -1,0 +1,23 @@
+name: Application Build and Deploy
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    branches:
+      - master # Push events to matching v*, i.e. v1.0, v20.15.10
+     
+jobs:
+  build:
+    name: Push Dist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          ref: master
+
+      - name: Push dist subtree
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git subtree push --prefix dist origin dist
