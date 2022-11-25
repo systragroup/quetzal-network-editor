@@ -16,9 +16,7 @@ jobs:
         with:
           ref: master
 
-      - name: Push dist subtree
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git fetch origin dist
-          git subtree push --prefix dist origin dist
+      - uses: nxtlvlsoftware/git-subtree-action@1.1
+        with:
+          repo: 'systragroup/quetzal-network-editor'
+          path: 'dist'
