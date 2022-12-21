@@ -656,14 +656,14 @@ export default {
       // apply new node geometry
       linksA.forEach(link => link.geometry.coordinates = [
         state.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
-        link.geometry.coordinates[1],
+        ...link.geometry.coordinates.slice(1),
       ])
       // same for nodes b
       const linksB = state.links.features.filter(
         link => link.properties.trip_id !== state.editorTrip).filter(
         item => editorNodesList.includes(item.properties.b))
       linksB.forEach(link => link.geometry.coordinates = [
-        link.geometry.coordinates[0],
+        ...link.geometry.coordinates.slice(0, -1),
         state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
       ])
 
