@@ -3,6 +3,28 @@
 import JSZip from 'jszip'
 const $gettext = s => s
 
+async function extractZip (file) {
+  const ZIP = new JSZip()
+  const zip = await ZIP.loadAsync(file)
+  const filesNames = Object.keys(zip.files)
+  // process ZIP file content here
+  const result = { links: null, nodes: null }
+  for (let i = 0; i < 2; i++) {
+    if (zip.files[filesNames[i]].name.slice(-7) === 'geojson') {
+      const str = await zip.file(filesNames[i]).async('string')
+      const content = JSON.parse(str)
+      if (content.features[0].geometry.type === 'LineString') {
+        result.links = content
+      } else if (content.features[0].geometry.type === 'Point') {
+        result.nodes = content
+      }
+    }
+  }
+  if (result.links == null) { throw new Error(`There is no valid link.geojson in ${file.name}`) }
+  if (result.nodes == null) { throw new Error(`There is no valid nodes.geojson in ${file.name}`) }
+  return result
+}
+
 export default {
   name: 'Import',
   data () {
@@ -136,7 +158,7 @@ export default {
       }
     },
 
-    readZip (event) {
+    async readZip (event) {
       this.loading.zip = true
       const files = event.target.files
       // there is a file
@@ -150,28 +172,31 @@ export default {
         this.errorMessage = $gettext('file is not a zip. Import aborted')
         return
       }
-      const zip = new JSZip()
-      zip.loadAsync(files[0])
-        .then((zip) => {
-          // process ZIP file content here
-          // eslint-disable-next-line no-var
-          // var counter = 0
-          Object.keys(zip.files).forEach((key) => {
-            if (zip.files[key].name.slice(-7) === 'geojson') {
-              let fileName = key.split('/')
-              fileName = fileName[fileName.length - 1]
-              // if (fileName.includes('links') | fileName.includes('nodes')) { counter++ }
-              zip.file(key).async('string').then((str) => {
-                const content = JSON.parse(str)
-                if (fileName.includes('links')) {
-                  this.loadedLinks = content
-                } else if (fileName.includes('nodes')) {
-                  this.loadedNodes = content
-                }
-              }).catch(() => { }) // remove alert, this happen when there is more file in the zip, ex: DS_STORE
-            }
-          })
-        }, () => { this.errorMessage = $gettext('Not a valid zip file. Import aborted'); this.loading.zip = false })
+      // read every selected zip and create a list of promises.
+      // each promises contain {links, nodes}
+      const PromisesList = []
+      for (let i = 0; i < files.length; i++) {
+        const res = extractZip(files[i])
+        PromisesList.push(res)
+      }
+      // when all files are read
+      Promise.all(PromisesList).then(files => {
+        // asign first file to links and node var
+        const links = files[0].links
+        const nodes = files[0].nodes
+        // for each other files concat, concat to links and nodes
+        for (let i = 1; i < files.length; i++) {
+          links.features.push(...files[i].links.features)
+          nodes.features.push(...files[i].nodes.features)
+        }
+        // then its finish
+        this.loadedLinks = links
+        this.loadedNodes = nodes
+        this.loading.zip = false
+      }).catch(err => {
+        this.loading.zip = false
+        this.errorMessage = err
+      })
     },
   },
 }
@@ -262,6 +287,7 @@ export default {
             type="file"
             style="display: none"
             accept=".zip"
+            multiple="multiple"
             @change="readZip"
           >
         </v-card-text>
