@@ -23,6 +23,8 @@ async function extractZip (file) {
       }
     }
   }
+  if (result.links == null) { throw new Error(`There is no valid link.geojson in ${file.name}`) }
+  if (result.nodes == null) { throw new Error(`There is no valid nodes.geojson in ${file.name}`) }
   return result
 }
 
@@ -271,7 +273,7 @@ export default {
                   {{ 'zip' }}
                 </v-btn>
               </template>
-              <span>{{ $gettext("Load a zip file containing") }}</span>
+              <span>{{ $gettext("Load zip files containing") }}</span>
               <br>
               <span>{{ $gettext("nodes.geojson and links.geojson") }}</span>
             </v-tooltip>
