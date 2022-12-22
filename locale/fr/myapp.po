@@ -73,11 +73,11 @@ msgstr "Fermer"
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/pages/Home.vue:173
+#: src/pages/Home.vue:177
 msgid "Could not apply modification. Trip_id already exist"
 msgstr "Les modifications n'ont pas pu être appliquées. Le trip_id existe déjà"
 
-#: src/pages/Login.vue:146
+#: src/pages/Login.vue:147
 msgid "Create a network from scratch"
 msgstr "Créer un réseau à partir de zéro"
 
@@ -114,7 +114,7 @@ msgstr "Supprimer l'arrêt"
 msgid "do not add .zip to the end"
 msgstr "n'ajouté pas de .zip à la fin"
 
-#: src/pages/Home.vue:56
+#: src/pages/Home.vue:60
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 "Double clique pour modifier une ligne, clique droit pour modifier les "
@@ -149,7 +149,7 @@ msgstr "Modifier"
 msgid "Edit Visibles Properties"
 msgstr "Modifier les propriétés des visibles"
 
-#: src/pages/Login.vue:161
+#: src/pages/Login.vue:162
 msgid "Example"
 msgstr "Exemple"
 
@@ -169,7 +169,7 @@ msgstr "Nom du fichier"
 msgid "Export Only Visible"
 msgstr "Exporter les visibles"
 
-#: src/pages/Import.vue:148
+#: src/pages/Import.vue:170
 msgid "file is not a zip. Import aborted"
 msgstr ""
 
@@ -185,7 +185,7 @@ msgstr "Click gauche pour glisser"
 msgid "Import"
 msgstr "Importer"
 
-#: src/pages/Import.vue:35 src/pages/Import.vue:54
+#: src/pages/Import.vue:57 src/pages/Import.vue:76
 msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
 msgstr "CRS invalide, utiliser CRS84 / EPSG:4326. Import annulé"
 
@@ -223,7 +223,7 @@ msgstr ""
 msgid "Links Table"
 msgstr "Table des Liens"
 
-#: src/pages/Import.vue:106 src/pages/Login.vue:109
+#: src/pages/Import.vue:106
 msgid "Load a zip file containing"
 msgstr "Charger un zip"
 
@@ -231,19 +231,23 @@ msgstr "Charger un zip"
 msgid "Load Files"
 msgstr "Charger les Fichiers"
 
-#: src/pages/Login.vue:167
+#: src/pages/Login.vue:168
 msgid "Load Montréal Example"
 msgstr "Charger l'exemple de Montréal"
+
+#: src/pages/Login.vue:109
+msgid "Load zip files containing"
+msgstr "Charger des zips"
 
 #: src/router/index.js:39
 msgid "Map"
 msgstr "Carte"
 
-#: src/pages/Home.vue:231
+#: src/pages/Home.vue:235
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/pages/Home.vue:222
+#: src/pages/Home.vue:226
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
@@ -259,11 +263,11 @@ msgstr "nom"
 msgid "New Field"
 msgstr "Nouveau Champ"
 
-#: src/pages/Login.vue:140 src/router/index.js:25
+#: src/pages/Login.vue:141 src/router/index.js:25
 msgid "New Project"
 msgstr "Nouveau Projet"
 
-#: src/components/SidePanel.vue:635 src/pages/Login.vue:206
+#: src/components/SidePanel.vue:635 src/pages/Login.vue:207
 msgid "No"
 msgstr "Non"
 
@@ -279,11 +283,7 @@ msgstr "Table des Noeuds"
 msgid "nodes.geojson and links.geojson"
 msgstr ""
 
-#: src/pages/Import.vue:172
-msgid "Not a valid zip file. Import aborted"
-msgstr ""
-
-#: src/pages/Login.vue:194
+#: src/pages/Login.vue:195
 msgid "Overwrite current Project ?"
 msgstr "Écraser le projet en cours ?"
 
@@ -343,11 +343,11 @@ msgstr "Table"
 msgid "the name of the exported zip file"
 msgstr "Le nom du fichier .zip à l'export."
 
-#: src/pages/Import.vue:30
+#: src/pages/Import.vue:52
 msgid "there is duplicated links index. Import aborted"
 msgstr "il y a un index de liens en double. Importation interrompue"
 
-#: src/pages/Import.vue:47
+#: src/pages/Import.vue:69
 msgid "there is duplicated nodes index. Import aborted"
 msgstr "il y a un index de noeud en double. Importation interrompue"
 
@@ -359,7 +359,7 @@ msgstr "indéfini"
 msgid "value"
 msgstr "valeur"
 
-#: src/components/SidePanel.vue:644 src/pages/Login.vue:215
+#: src/components/SidePanel.vue:644 src/pages/Login.vue:216
 msgid "Yes"
 msgstr "Oui"
 

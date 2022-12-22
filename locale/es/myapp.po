@@ -74,11 +74,11 @@ msgstr "Cerrar"
 msgid "Confirm"
 msgstr "Confirmar"
 
-#: src/pages/Home.vue:173
+#: src/pages/Home.vue:177
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
-#: src/pages/Login.vue:146
+#: src/pages/Login.vue:147
 msgid "Create a network from scratch"
 msgstr "Crear un red desde cero"
 
@@ -117,7 +117,7 @@ msgstr "Eliminar parada"
 msgid "do not add .zip to the end"
 msgstr ""
 
-#: src/pages/Home.vue:56
+#: src/pages/Home.vue:60
 msgid "double click to edit line, right click to edit line properties"
 msgstr ""
 "doble clic para editar línea, clic derecho para editar propiedades de la "
@@ -154,7 +154,7 @@ msgstr "Editar propiedades"
 msgid "Edit Visibles Properties"
 msgstr "Editar propiedades de la línea"
 
-#: src/pages/Login.vue:161
+#: src/pages/Login.vue:162
 msgid "Example"
 msgstr "Ejemplo"
 
@@ -175,7 +175,7 @@ msgstr "Exportar"
 msgid "Export Only Visible"
 msgstr "Exportar lo visible"
 
-#: src/pages/Import.vue:148
+#: src/pages/Import.vue:170
 msgid "file is not a zip. Import aborted"
 msgstr "el archivo no es un zip. Importación anulada"
 
@@ -191,7 +191,7 @@ msgstr "Clic izquierdo sostenido para arrastrar"
 msgid "Import"
 msgstr "Importar"
 
-#: src/pages/Import.vue:35 src/pages/Import.vue:54
+#: src/pages/Import.vue:57 src/pages/Import.vue:76
 msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
 msgstr "el CRS es inválido. Usa CRS84 / EPSG:4326. Importación anulada"
 
@@ -232,7 +232,7 @@ msgstr "Los archivos de enlaces y nodos deben estar en geojson en EPSG:4326"
 msgid "Links Table"
 msgstr "Enlaces"
 
-#: src/pages/Import.vue:106 src/pages/Login.vue:109
+#: src/pages/Import.vue:106
 msgid "Load a zip file containing"
 msgstr "Cargar un archivo zip que contenga"
 
@@ -240,19 +240,24 @@ msgstr "Cargar un archivo zip que contenga"
 msgid "Load Files"
 msgstr "Cargar archivos"
 
-#: src/pages/Login.vue:167
+#: src/pages/Login.vue:168
 msgid "Load Montréal Example"
 msgstr "Cargar Ejemplo Montréal"
+
+#: src/pages/Login.vue:109
+#, fuzzy
+msgid "Load zip files containing"
+msgstr "Cargar un archivo zip que contenga"
 
 #: src/router/index.js:39
 msgid "Map"
 msgstr "Mapa"
 
-#: src/pages/Home.vue:231
+#: src/pages/Home.vue:235
 msgid "modification aborted"
 msgstr "modificación abortada"
 
-#: src/pages/Home.vue:222
+#: src/pages/Home.vue:226
 msgid "modification applied"
 msgstr "modificación aplicada"
 
@@ -268,11 +273,11 @@ msgstr ""
 msgid "New Field"
 msgstr ""
 
-#: src/pages/Login.vue:140 src/router/index.js:25
+#: src/pages/Login.vue:141 src/router/index.js:25
 msgid "New Project"
 msgstr "Nuevo Proyecto"
 
-#: src/components/SidePanel.vue:635 src/pages/Login.vue:206
+#: src/components/SidePanel.vue:635 src/pages/Login.vue:207
 msgid "No"
 msgstr "No"
 
@@ -289,11 +294,7 @@ msgstr "Nodos"
 msgid "nodes.geojson and links.geojson"
 msgstr "nodes.geojson y links.geojson"
 
-#: src/pages/Import.vue:172
-msgid "Not a valid zip file. Import aborted"
-msgstr "No es una archivo zip válido. Importación anulada"
-
-#: src/pages/Login.vue:194
+#: src/pages/Login.vue:195
 msgid "Overwrite current Project ?"
 msgstr "¿Sobrescribir proyecto actual?"
 
@@ -351,11 +352,11 @@ msgstr ""
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/pages/Import.vue:30
+#: src/pages/Import.vue:52
 msgid "there is duplicated links index. Import aborted"
 msgstr "hay índices de enlaces duplicados. Importación anulada"
 
-#: src/pages/Import.vue:47
+#: src/pages/Import.vue:69
 msgid "there is duplicated nodes index. Import aborted"
 msgstr "hay índices de nodos duplicados. Importación anulada"
 
@@ -367,9 +368,12 @@ msgstr ""
 msgid "value"
 msgstr ""
 
-#: src/components/SidePanel.vue:644 src/pages/Login.vue:215
+#: src/components/SidePanel.vue:644 src/pages/Login.vue:216
 msgid "Yes"
 msgstr "Sí"
+
+#~ msgid "Not a valid zip file. Import aborted"
+#~ msgstr "No es una archivo zip válido. Importación anulada"
 
 #~ msgid "Add Stop Inline"
 #~ msgstr "Agregar parada en línea"
