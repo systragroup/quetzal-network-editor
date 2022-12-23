@@ -9,10 +9,7 @@ import { store } from './store'
 import router from './router'
 import Vuetify from 'vuetify'
 import VueApexCharts from 'vue-apexcharts'
-import VueApollo from 'vue-apollo'
-import ApolloClient from 'apollo-client'
-import { HttpLink } from 'apollo-link-http'
-import { InMemoryCache } from 'apollo-cache-inmemory'
+
 import VueLocalStorage from 'vue-localstorage'
 
 import 'promise-polyfill/src/polyfill'
@@ -71,7 +68,6 @@ Vue.use(GetTextPlugin, {
   translations,
   silent: true,
 })
-Vue.use(VueApollo)
 
 Vue.use(VueLocalStorage)
 
@@ -115,30 +111,6 @@ const vuetify = new Vuetify({
   },
 })
 
-const apolloClient = new ApolloClient({
-  link: new HttpLink({
-    uri: backUri,
-    fetch,
-    headers: {},
-  }),
-  cache: new InMemoryCache({
-    addTypename: false,
-  }),
-  defaultOptions: {
-    query: {
-      fetchPolicy: 'no-cache',
-      errorPolicy: 'all',
-    },
-    watchQuery: {
-      fetchPolicy: 'no-cache',
-      errorPolicy: 'ignore',
-    },
-  },
-})
-const apolloProvider = new VueApollo({
-  defaultClient: apolloClient,
-})
-
 Vue.mixin(languageMixin)
 
 Vue.mixin({
@@ -170,7 +142,6 @@ const app = new Vue({
   router,
   store,
   vuetify,
-  apolloProvider,
   render: h => h(App),
   template: '<App/>',
 })
