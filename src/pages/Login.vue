@@ -1,7 +1,5 @@
 <script>
 
-import linksExample from '@static/links_exemple.geojson'
-import nodesExample from '@static/nodes_exemple.geojson'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import JSZip from 'jszip'
@@ -116,8 +114,16 @@ export default {
     },
 
     loadExample () {
-      this.loadedLinks = linksExample
-      this.loadedNodes = nodesExample
+      const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/static/'
+      fetch(url + 'links_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedLinks = out })
+        .catch(err => { alert(err) })
+
+      fetch(url + 'nodes_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedNodes = out })
+        .catch(err => { alert(err) })
     },
     newProject () {
       this.loadedLinks = linksBase
