@@ -100,9 +100,12 @@ yarn run i18n-compile
 ```
 
 ### Deployement and releases 
-After building the application with `yarn run build`, create a commit and a release naming the version.
+After merging developements on master, create a new release with a release name and information about the changes. Make sure that the release is set as the latest release.
 
-After the release has been commited, push the distribution as a subtree:
+Creating a release will automatically launch the application build using GitHub Actions.
+
+After build is done, you need to push the dist as a subtree:
+
 ```
 git subtree push --prefix dist origin dist
 ```
