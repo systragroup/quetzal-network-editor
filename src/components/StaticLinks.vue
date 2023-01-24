@@ -1,12 +1,11 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer, MglPopup } from 'vue-mapbox'
-
+import { MglGeojsonLayer } from 'vue-mapbox'
+import mapboxgl from 'mapbox-gl'
 export default {
   name: 'StaticLinks',
   components: {
     MglGeojsonLayer,
-    MglPopup,
   },
   props: ['map', 'showedTrips', 'isEditorMode'],
   events: ['rightClick'],
@@ -16,11 +15,6 @@ export default {
       visibleNodes: {},
       visibleLinks: {},
 
-      popup: {
-        coordinates: [0, 0],
-        showed: false,
-        content: null,
-      },
     }
   },
   computed: {
@@ -73,15 +67,14 @@ export default {
   methods: {
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
-      this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
-        event.mapboxEvent.lngLat.lat,
-      ]
-      this.popup.content = event.mapboxEvent.features[0].properties.popupContent
-      this.popup.showed = true
+      this.popup = new mapboxgl.Popup({ closeButton: false })
+        .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+        .setHTML(event.mapboxEvent.features[0].properties.popupContent)
+        .addTo(event.map)
     },
     leaveLink (event) {
+      if (this.popup.isOpen()) this.popup.remove()
       event.map.getCanvas().style.cursor = ''
-      this.popup.showed = false
     },
     setHiddenFeatures (method = 'all', trips = []) {
       // get visible links and nodes.
@@ -150,13 +143,11 @@ export default {
     },
     selectLine (event) {
       event.mapboxEvent.preventDefault() // prevent map control
-      this.popup.showed = false
       // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$store.commit('changeNotification', { text: '', autoClose: true })
     },
     editLineProperties (event) {
-      this.popup.showed = false
       // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$emit('rightClick', { action: 'Edit Line Info', lingering: false })
@@ -223,14 +214,6 @@ export default {
         },
       }"
     />
-
-    <MglPopup
-      :close-button="false"
-      :showed="popup.showed"
-      :coordinates="popup.coordinates"
-    >
-      {{ popup.content }}
-    </MglPopup>
   </section>
 </template>
 <style lang="scss" scoped>
