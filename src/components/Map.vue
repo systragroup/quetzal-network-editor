@@ -3,6 +3,7 @@ import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
+import RoadLinks from './RoadLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import arrowImageAnchor from '@static/arrow_anchor.png'
@@ -17,6 +18,7 @@ export default {
     MglScaleControl,
     StaticLinks,
     EditorLinks,
+    RoadLinks,
   },
   props: {
     selectedTrips: {
@@ -238,6 +240,15 @@ export default {
     <MglScaleControl position="bottom-right" />
 
     <MglNavigationControl position="bottom-right" />
+    <template v-if="mapIsLoaded">
+      <RoadLinks
+        :map="map"
+        :showed-trips="selectedTrips"
+        :is-editor-mode="isEditorMode"
+        @rightClick="(e) => $emit('clickFeature',e)"
+      />
+    </template>
+
     <template v-if="mapIsLoaded">
       <StaticLinks
         :map="map"

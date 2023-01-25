@@ -3,6 +3,8 @@
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip } from '../components/utils/utils.js'
+import road_links from '@static/road_links.geojson'
+import road_nodes from '@static/road_nodes.geojson'
 
 export default {
   name: 'Login',
@@ -26,10 +28,12 @@ export default {
   watch: {
     loadedLinks (value) {
       this.$store.commit('loadLinks', value)
+      this.$store.commit('loadrLinks', road_links)
       this.loading.links = false
     },
     loadedNodes (value) {
       this.$store.commit('loadNodes', value)
+      this.$store.commit('loadrNodes', road_nodes)
       this.loading.nodes = false
     },
     localFilesAreLoaded (val) {

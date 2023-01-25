@@ -23,7 +23,7 @@ import pt from 'vuetify/es5/locale/pt'
 import translations from './translations.json'
 
 import App from './App.vue'
-import { mapboxPublicKey, backUri } from '@src/config.js'
+import { mapboxPublicKey } from '@src/config.js'
 
 console.assert(mapboxPublicKey)
 
@@ -72,8 +72,8 @@ Vue.use(GetTextPlugin, {
 Vue.use(VueLocalStorage)
 
 Vue.config.productionTip = false
-Vue.config.devtools = false
-Vue.config.performance = false
+Vue.config.devtools = true
+Vue.config.performance = true
 
 const vuetify = new Vuetify({
   theme: {
@@ -83,8 +83,10 @@ const vuetify = new Vuetify({
     themes: {
       light: {
         primary: '#B5E0D6',
+        primarydark: '#7EBAAC',
         secondary: '#2C3E4E',
         secondarydark: '#1A242C',
+        secondarylight: '#334453',
         lightgrey: '#E3E4E6',
         mediumgrey: '#9E9E9E',
         darkgrey: '#5B5B5C',

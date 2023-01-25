@@ -61,12 +61,14 @@ export default {
   created () {
     this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
     this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
+
     this.setHiddenFeatures()
   },
 
   methods: {
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
+      if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
       this.popup = new mapboxgl.Popup({ closeButton: false })
         .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
         .setHTML(event.mapboxEvent.features[0].properties.popupContent)

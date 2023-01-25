@@ -1,11 +1,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import linksModule from './links.js'
+import rlinksModule from './rlinks.js'
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   modules: {
     links: linksModule,
+    rlinks: rlinksModule,
   },
 
   state: {
@@ -16,7 +18,7 @@ export const store = new Vuex.Store({
     changeNotification (state, payload) {
       state.notification = payload
     },
-    changeLeftPanel (state, newUser) {
+    changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
     },
   },
