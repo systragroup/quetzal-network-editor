@@ -22,7 +22,6 @@ export default {
       // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
       selectedFilter: '',
       vmodelSelectedFilter: '',
-      roadMode: false,
     }
   },
   computed: {

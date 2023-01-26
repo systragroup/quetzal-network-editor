@@ -75,5 +75,6 @@ export default {
   getters: {
     rlinks: (state) => state.rlinks,
     rnodes: (state) => state.rnodes,
+    rlineAttributes: (state) => state.rlineAttributes,
   },
 }

@@ -22,18 +22,15 @@ export default {
       // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
       selectedFilter: '',
       vmodelSelectedFilter: '',
-      roadMode: false,
     }
   },
   computed: {
     filterChoices () { return this.$store.getters.rlineAttributes },
-    editorTrip () { return this.$store.getters.editorTrip },
-
     tripId () { return this.$store.getters.tripId },
     arrayUniqueTripId () {
       // drop duplicates links trips. each line is a trip here.
-      const arrayUniqueByKey = [...new Map(this.$store.getters.links.features.map(item =>
-        [item.properties.trip_id, item.properties])).values()]
+      const arrayUniqueByKey = [...new Map(this.$store.getters.rlinks.features.map(item =>
+        [item.properties.index, item.properties])).values()]
       return arrayUniqueByKey
     },
     filteredCat () {
@@ -47,21 +44,21 @@ export default {
     classifiedTripId () {
       // return this list of object, {cat_name, tripId list}
       const classifiedTripId = []
-      const undefinedCat = { name: $gettext('undefined'), tripId: [] }
+      const undefinedCat = { name: $gettext('undefined'), index: [] }
       this.filteredCat.forEach(c => {
         const arr = this.arrayUniqueTripId.filter(
           item => item[this.selectedFilter] === c,
-        ).map((item) => item.trip_id)
+        ).map((item) => item.index)
 
         // regroup all null values into a single list 'undefined'
         if (c === null | c === '' | c === undefined) {
-          undefinedCat.tripId.push(...arr)
+          undefinedCat.index.push(...arr)
         } else {
-          classifiedTripId.push({ name: c, tripId: arr })
+          classifiedTripId.push({ name: c, index: arr })
         }
       })
       // if there was undefined Categories, append it at the end.
-      if (undefinedCat.tripId.length > 0) {
+      if (undefinedCat.index.length > 0) {
         classifiedTripId.push(undefinedCat)
       }
       return classifiedTripId
@@ -73,6 +70,7 @@ export default {
       this.$emit('update-tripList', val)
     },
     tripId (newVal, oldVal) {
+      console.log(newVal, oldVal)
       if (newVal.length < oldVal.length) {
         // if a trip is deleted. we remove it, no remapping.
         this.tripList = this.tripList.filter((trip) => newVal.includes(trip))
@@ -113,29 +111,16 @@ export default {
   },
   created () {
     this.tripList = this.selectedTrips
-    this.selectedFilter = 'route_type'
+    this.selectedFilter = 'highway'
     this.vmodelSelectedFilter = this.selectedFilter
   },
 
   methods: {
 
-    editButton (value) {
-      if (this.editorTrip === value) {
-        this.showDialog = true
-      } else {
-        this.$store.commit('setEditorTrip', { tripId: value, changeBounds: true })
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
-      }
-    },
-
     propertiesButton (value) {
       // select the TripId and open dialog
       if (typeof value === 'object') {
         this.$emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
-      } else if (!this.editorTrip) {
-        this.$store.commit('setEditorTrip', { tripId: value, changeBounds: false })
-        this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
-        // just open dialog
       } else {
         this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
         this.$store.commit('changeNotification', { text: '', autoClose: true })
@@ -327,7 +312,7 @@ export default {
                 icon
                 class="ma-1"
                 v-bind="attrs"
-                :disabled="editorTrip!=null? true: false"
+                :disabled="false"
                 v-on="on"
                 @click.stop="propertiesButton(value.tripId)"
               >
@@ -347,7 +332,7 @@ export default {
                 icon
                 class="ma-1"
                 v-bind="attrs"
-                :disabled="editorTrip ? true: false"
+                :disabled="false"
                 v-on="on"
                 @click.stop="deleteButton({trip:value.tripId, message:value.name})"
               >
@@ -385,10 +370,8 @@ export default {
                   hide-details
                 />
               </v-list-item-action>
-              <v-list-item-title v-if="item==editorTrip">
-                <strong>{{ item }}</strong>
-              </v-list-item-title>
-              <v-list-item-title v-else>
+
+              <v-list-item-title>
                 {{ item }}
               </v-list-item-title>
 
@@ -401,11 +384,11 @@ export default {
                     icon
                     class="ma-1"
                     v-bind="attrs"
-                    :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                    :disabled="false"
                     v-on="on"
                     @click="propertiesButton(item)"
                   >
-                    <v-icon :color="item == editorTrip? 'regular':'regular' ">
+                    <v-icon :color="'regular' ">
                       fas fa-list
                     </v-icon>
                   </v-btn>
@@ -422,7 +405,7 @@ export default {
                     icon
                     class="ma-1"
                     v-bind="attrs"
-                    :disabled="editorTrip ? true: false"
+                    :disabled=" false"
                     v-on="on"
                     @click="deleteButton({trip:item,message:item})"
                   >
@@ -444,7 +427,7 @@ export default {
       <v-divider />
     </v-card>
     <v-card class="mx-auto">
-      <v-list-item v-if="editorTrip ? true: false">
+      <v-list-item>
         <v-tooltip
           right
           open-delay="500"
@@ -464,32 +447,6 @@ export default {
           </template>
           <span>{{ $gettext("Edit Line geometry") }}</span>
         </v-tooltip>
-
-        <v-btn
-          @click="$emit('abortChanges')"
-        >
-          <v-icon
-            small
-            left
-          >
-            fas fa-times-circle
-          </v-icon>
-          {{ $gettext("Abort") }}
-        </v-btn>
-        <v-btn
-          color="primary"
-          @click="$emit('confirmChanges')"
-        >
-          <v-icon
-            small
-            left
-          >
-            fas fa-save
-          </v-icon>
-          {{ $gettext("Confirm") }}
-        </v-btn>
-      </v-list-item>
-      <v-list-item v-show="editorTrip ? false: true">
         <v-spacer />
 
         <v-tooltip
