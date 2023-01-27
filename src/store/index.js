@@ -12,6 +12,7 @@ export const store = new Vuex.Store({
 
   state: {
     notification: {},
+    anchorMode: false,
     showLeftPanel: true,
   },
   mutations: {
@@ -21,9 +22,16 @@ export const store = new Vuex.Store({
     changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
     },
+    setAnchorMode (state, payload) {
+      state.anchorMode = payload
+    },
+    changeAnchorMode (state) {
+      state.anchorMode = !state.anchorMode
+    },
   },
   getters: {
     notification: (state) => state.notification,
+    anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
   },
 })

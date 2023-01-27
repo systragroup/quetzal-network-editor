@@ -24,7 +24,6 @@ export default {
     newLink: {},
     newNode: {},
     changeBounds: true,
-    anchorMode: false,
     speed: 20, // 20KmH for time (speed/distance)
     popupContent: 'trip_id',
     outputName: 'output',
@@ -77,13 +76,6 @@ export default {
       state.editorTrip = null
       state.tripId = []
       state.selectedTrips = []
-    },
-
-    setAnchorMode (state, payload) {
-      state.anchorMode = payload
-    },
-    changeAnchorMode (state) {
-      state.anchorMode = !state.anchorMode
     },
 
     getLinksProperties (state) {
@@ -763,7 +755,6 @@ export default {
     lineAttributes: (state) => state.lineAttributes,
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
-    anchorMode: (state) => state.anchorMode,
     nodesHeader: (state) => state.nodesHeader,
     linksHeader: (state) => state.linksHeader,
     anchorNodes: (state) => {

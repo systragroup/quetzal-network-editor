@@ -245,7 +245,8 @@ export default {
         :map="map"
         :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"
-        @rightClick="(e) => $emit('clickFeature',e)"
+        :anchor-mode="anchorMode"
+        @clickFeature="(e) => $emit('clickFeature',e)"
       />
     </template>
 

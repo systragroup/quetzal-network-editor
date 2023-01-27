@@ -73,7 +73,7 @@ Vue.use(VueLocalStorage)
 
 Vue.config.productionTip = false
 Vue.config.devtools = true
-Vue.config.performance = true
+Vue.config.performance = false
 
 const vuetify = new Vuetify({
   theme: {

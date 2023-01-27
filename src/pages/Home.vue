@@ -141,7 +141,7 @@ export default {
       } else if (['Cut Before Node', 'Cut After Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
-      } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
+      } else if (['Add Stop Inline', 'Add Anchor Inline', 'Add Road Node Inline', 'Add Road Anchor Inline'].includes(this.action)) {
         this.selectedLink = event.selectedFeature.properties
         this.cursorPosition = event.lngLat
         this.applyAction()
@@ -202,6 +202,13 @@ export default {
             selectedLink: this.selectedLink,
             lngLat: this.cursorPosition,
             nodes: 'anchorNodes',
+          })
+          break
+        case 'Add Road Node Inline':
+          this.$store.commit('addRoadNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'rnodes',
           })
           break
       }
