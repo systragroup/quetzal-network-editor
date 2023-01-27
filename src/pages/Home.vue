@@ -30,6 +30,7 @@ export default {
   },
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
+    selectedrIndex () { return this.$store.getters.selectedrIndex },
     orderedForm () {
       // order editor Form in alphatical order
       const ordered = Object.keys(this.editorForm).sort().reduce(
@@ -53,19 +54,18 @@ export default {
         this.$store.commit('changeAnchorMode')
       }
     })
-    // window.addEventListener('keyup', (e) => {
-    //  if (e.key === 'Control') {
-    //    this.$store.commit('changeAnchorMode')
-    //  }
-    // })
     this.$store.commit('changeNotification',
       { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
   },
 
   methods: {
 
-    updateSelectedTrips (val) {
-      this.$store.commit('changeSelectedTrips', val)
+    updateSelectedTrips (event) {
+      if (event.type === 'links') {
+        this.$store.commit('changeSelectedTrips', event.data)
+      } else if (event.type === 'rlinks') {
+        this.$store.commit('changeVisibleRoads', event.data)
+      }
     },
 
     actionClick (event) {
@@ -312,6 +312,7 @@ export default {
 
     <SidePanel
       :selected-trips="selectedTrips"
+      :selectedr-index="selectedrIndex"
       @update-tripList="updateSelectedTrips"
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"

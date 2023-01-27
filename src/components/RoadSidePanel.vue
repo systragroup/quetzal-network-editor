@@ -4,12 +4,8 @@ const $gettext = s => s
 const short = require('short-uuid')
 
 export default {
-  name: 'LinksSidePanel',
+  name: 'RoadSidePanel',
   components: {
-  },
-  model: {
-    prop: 'selectedTrips',
-    event: 'update-tripList',
   },
   props: ['selectedTrips', 'height'], // height is here to resize with the windows...
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine'],
@@ -26,85 +22,41 @@ export default {
   },
   computed: {
     filterChoices () { return this.$store.getters.rlineAttributes },
-    tripId () { return this.$store.getters.tripId },
-    arrayUniqueTripId () {
-      // drop duplicates links trips. each line is a trip here.
-      const arrayUniqueByKey = [...new Map(this.$store.getters.rlinks.features.map(item =>
-        [item.properties.index, item.properties])).values()]
-      return arrayUniqueByKey
-    },
+    tripId () { return this.$store.getters.rindexList },
     filteredCat () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(this.arrayUniqueTripId.map(
-        item => item[this.selectedFilter])))
+      const val = Array.from(new Set(this.$store.getters.rlinks.features.map(
+        item => item.properties[this.selectedFilter])))
       return val
     },
 
-    classifiedTripId () {
-      // return this list of object, {cat_name, tripId list}
-      const classifiedTripId = []
-      const undefinedCat = { name: $gettext('undefined'), index: [] }
-      this.filteredCat.forEach(c => {
-        const arr = this.arrayUniqueTripId.filter(
-          item => item[this.selectedFilter] === c,
-        ).map((item) => item.index)
-
-        // regroup all null values into a single list 'undefined'
-        if (c === null | c === '' | c === undefined) {
-          undefinedCat.index.push(...arr)
-        } else {
-          classifiedTripId.push({ name: c, index: arr })
-        }
-      })
-      // if there was undefined Categories, append it at the end.
-      if (undefinedCat.index.length > 0) {
-        classifiedTripId.push(undefinedCat)
-      }
-      return classifiedTripId
-    },
   },
 
   watch: {
     tripList (val) {
-      this.$emit('update-tripList', val)
+      this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: val })
     },
-    tripId (newVal, oldVal) {
-      console.log(newVal, oldVal)
-      if (newVal.length < oldVal.length) {
-        // if a trip is deleted. we remove it, no remapping.
-        this.tripList = this.tripList.filter((trip) => newVal.includes(trip))
-      } else if (newVal.length > oldVal.length) {
-        // if a trip is added, we add it!
-        const newTrip = newVal.filter(item => !oldVal.includes(item))[0]
-        this.tripList.push(newTrip)
-      } else {
-        // if a trip name changes.
-        // update TripList v-model when a trip_id is changed.
-        const dict = {}
-        oldVal.forEach(
-          function (key, i) {
-            dict[key] = newVal[i]
-          })
-        this.tripList = this.tripList.map((trip) => dict[trip])
-      }
-    },
+
     vmodelSelectedFilter (newVal, oldVal) {
       this.selectedFilter = newVal
       // prevent group larger than 500.
-      if (this.filteredCat.length > 500) {
+      if (this.filteredCat.length > 1000000) {
         // if it is larger, return to oldValue
         this.selectedFilter = oldVal
         // display error message
         this.$store.commit('changeNotification',
           {
-            text: $gettext('Cannot filter by this field. There is more than 500 groups'),
+            text: $gettext('Cannot filter by this field. There is more than 1 000 000 groups'),
             autoClose: true,
             color: 'red darken-2',
           })
         // return the value in the v-select as the old Value
         // eslint-disable-next-line no-return-assign
-        this.$nextTick(() => this.vmodelSelectedFilter = oldVal)
+        this.$nextTick(() => { this.vmodelSelectedFilter = oldVal })
+      } else {
+        // reset tripList
+        this.tripList = []
       }
     },
 
@@ -139,20 +91,14 @@ export default {
       this.$emit('deleteButton', obj)
     },
     showAll () {
-      if (this.tripList === this.tripId) {
+      if (this.tripList === this.filteredCat) {
         this.tripList = []
       } else {
-        this.tripList = this.tripId
+        this.tripList = this.filteredCat
       }
     },
     showGroup (val) {
-      // at least one value is selected in the group : uncheck all
-      if (val.some(value => this.tripList.includes(value))) {
-        this.tripList = this.tripList.filter(trip => !val.includes(trip))
-      // none are selected : select All.
-      } else {
-        this.tripList = Array.from(new Set([...this.tripList, ...val]))
-      }
+      this.tripList = Array.from(new Set([...this.tripList, ...val]))
     },
 
   },
@@ -262,15 +208,33 @@ export default {
           color="secondary"
         />
       </v-list-item>
-      <v-list-group
-        v-for="(value, key) in classifiedTripId"
-        :key="String(value.name) + String(key)"
-        color="secondary"
-        :value="false"
-        no-action
+
+      <v-virtual-scroll
+        :items="filteredCat"
+        :item-height="45"
       >
-        <template v-slot:activator>
-          <v-list-item-action>
+        <template v-slot="{ item }">
+          <v-list-item
+            :key="String(item)"
+            class="pl-2"
+          >
+            <v-list-item-action>
+              <v-checkbox
+                v-model="tripList"
+                class="pl-2"
+                :on-icon="'fa-eye fa'"
+                :off-icon="'fa-eye-slash fa'"
+                :color="'primary'"
+                :value="item"
+                size="10"
+                hide-details
+              />
+            </v-list-item-action>
+
+            <v-list-item-title>
+              {{ item }}
+            </v-list-item-title>
+
             <v-tooltip
               bottom
               open-delay="500"
@@ -278,151 +242,46 @@ export default {
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   icon
+                  class="ma-1"
                   v-bind="attrs"
+                  :disabled="false"
                   v-on="on"
-                  @click.stop="showGroup(value.tripId)"
+                  @click="propertiesButton(item)"
                 >
-                  <v-icon class="list-item-icon">
-                    {{ value.tripId.some(val => tripList.includes(val))
-                      ? 'fa-eye fa' :
-                        'fa-eye-slash fa' }}
+                  <v-icon :color="'regular' ">
+                    fas fa-list
                   </v-icon>
                 </v-btn>
               </template>
-              <span>
-                {{ value.tripId.some(val => tripList.includes(val))
-                  ? $gettext("Hide All"):
-                    $gettext("Show All") }}
-              </span>
+              <span>{{ $gettext("Edit Line Properties") }}</span>
             </v-tooltip>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>
-              <strong>
-                {{ value.name=='undefined'? $gettext(value.name): value.name }}
-              </strong>
-            </v-list-item-title>
-          </v-list-item-content>
-          <v-tooltip
-            bottom
-            open-delay="500"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                icon
-                class="ma-1"
-                v-bind="attrs"
-                :disabled="false"
-                v-on="on"
-                @click.stop="propertiesButton(value.tripId)"
-              >
-                <v-icon color="regular">
-                  fas fa-list
-                </v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $gettext("Edit Group Properties") }}</span>
-          </v-tooltip>
-          <v-tooltip
-            bottom
-            open-delay="500"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                icon
-                class="ma-1"
-                v-bind="attrs"
-                :disabled="false"
-                v-on="on"
-                @click.stop="deleteButton({trip:value.tripId, message:value.name})"
-              >
-                <v-icon
-                  small
-                  color="regular"
-                >
-                  fas fa-trash
-                </v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $gettext("Delete Group") }}</span>
-          </v-tooltip>
-        </template>
 
-        <v-virtual-scroll
-          :items="value.tripId"
-          :item-height="45"
-          :height="Math.min(height-220, 45*value.tripId.length+3)"
-        >
-          <template v-slot="{ item }">
-            <v-list-item
-              :key="item"
-              class="pl-2"
+            <v-tooltip
+              bottom
+              open-delay="500"
             >
-              <v-list-item-action>
-                <v-checkbox
-                  v-model="tripList"
-                  class="pl-2"
-                  :on-icon="'fa-eye fa'"
-                  :off-icon="'fa-eye-slash fa'"
-                  :color="'primary'"
-                  :value="item"
-                  size="10"
-                  hide-details
-                />
-              </v-list-item-action>
-
-              <v-list-item-title>
-                {{ item }}
-              </v-list-item-title>
-
-              <v-tooltip
-                bottom
-                open-delay="500"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    class="ma-1"
-                    v-bind="attrs"
-                    :disabled="false"
-                    v-on="on"
-                    @click="propertiesButton(item)"
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  class="ma-1"
+                  v-bind="attrs"
+                  :disabled=" false"
+                  v-on="on"
+                  @click="deleteButton({trip:item,message:item})"
+                >
+                  <v-icon
+                    small
+                    color="regular"
                   >
-                    <v-icon :color="'regular' ">
-                      fas fa-list
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $gettext("Edit Line Properties") }}</span>
-              </v-tooltip>
-
-              <v-tooltip
-                bottom
-                open-delay="500"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    class="ma-1"
-                    v-bind="attrs"
-                    :disabled=" false"
-                    v-on="on"
-                    @click="deleteButton({trip:item,message:item})"
-                  >
-                    <v-icon
-                      small
-                      color="regular"
-                    >
-                      fas fa-trash
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $gettext("Delete Line") }}</span>
-              </v-tooltip>
-            </v-list-item>
-          </template>
-        </v-virtual-scroll>
-      </v-list-group>
+                    fas fa-trash
+                  </v-icon>
+                </v-btn>
+              </template>
+              <span>{{ $gettext("Delete Line") }}</span>
+            </v-tooltip>
+          </v-list-item>
+        </template>
+      </v-virtual-scroll>
 
       <v-divider />
     </v-card>

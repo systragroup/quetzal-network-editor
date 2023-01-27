@@ -18,25 +18,24 @@ export default {
     }
   },
   computed: {
-    selectedPopupContent () { return this.$store.getters.popupContent },
-    rnodes () { return this.$store.getters.rnodes },
-    rlinks () { return this.$store.getters.rlinks },
+    selectedPopupContent () { return this.$store.getters.roadPopupContent },
+    rnodes () { return this.$store.getters.visiblerNodes },
+    rlinks () { return this.$store.getters.visiblerLinks },
   },
 
   watch: {
-
   },
   created () {
-
   },
 
   methods: {
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
+
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
       this.popup = new mapboxgl.Popup({ closeButton: false })
         .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-        .setHTML(event.mapboxEvent.features[0].properties.popupContent)
+        .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
         .addTo(event.map)
     },
     leaveLink (event) {

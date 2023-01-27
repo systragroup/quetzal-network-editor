@@ -7,10 +7,7 @@ export default {
   name: 'LinksSidePanel',
   components: {
   },
-  model: {
-    prop: 'selectedTrips',
-    event: 'update-tripList',
-  },
+
   props: ['selectedTrips', 'height'], // height is here to resize with the windows...
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine'],
 

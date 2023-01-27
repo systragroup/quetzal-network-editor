@@ -7,19 +7,15 @@ export default {
     LinksSidePanel,
     RoadSidePanel,
   },
-  model: {
-    prop: 'selectedTrips',
-    event: 'update-tripList',
-  },
-  props: ['selectedTrips'],
+  props: ['selectedTrips', 'selectedrIndex'],
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine'],
 
   data () {
     return {
       showLeftPanelContent: true,
       height: null,
-      tab: 0,
-      roadMode: false,
+      tab: 1,
+      roadMode: true,
     }
   },
   computed: {
@@ -98,7 +94,7 @@ export default {
               v-if="!roadMode"
               :height="height"
               :selected-trips="selectedTrips"
-              @update-tripList="(e) => $emit('update-tripList',e)"
+              @update-tripList="(e) => $emit('update-tripList', {type: 'links', data: e})"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
               @abortChanges="(e) => $emit('abortChanges',e)"
               @deleteButton="(e) => $emit('deleteButton',e)"
@@ -107,8 +103,8 @@ export default {
             <RoadSidePanel
               v-if="roadMode"
               :height="height"
-              :selected-trips="selectedTrips"
-              @update-tripList="(e) => $emit('update-tripList',e)"
+              :selected-trips="selectedrIndex"
+              @update-tripList="(e) => $emit('update-tripList',{type: 'rlinks', data: e})"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
               @abortChanges="(e) => $emit('abortChanges',e)"
               @deleteButton="(e) => $emit('deleteButton',e)"

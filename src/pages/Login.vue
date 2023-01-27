@@ -6,6 +6,12 @@ import { extractZip } from '../components/utils/utils.js'
 import road_links from '@static/road_links.geojson'
 import road_nodes from '@static/road_nodes.geojson'
 
+// rlinks.features.forEach(link => link.properties._hidden = true)
+// const ls = ['rlink_1', 'rlins_2', 'rlink_10']
+// rlinks.features.filter(link => ls.includes(link.properties.index)).forEach(link => link.properties._hidden = false)
+// const test = rlinks.features.filter(link => link.properties._hidden === false)
+// console.log(test)
+
 export default {
   name: 'Login',
   data () {
