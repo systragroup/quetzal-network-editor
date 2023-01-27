@@ -3,6 +3,7 @@
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 import ColorPicker from '../components/utils/ColorPicker.vue'
+
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
 

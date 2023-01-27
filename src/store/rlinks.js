@@ -80,7 +80,6 @@ export default {
     },
     changeVisibleRoads (state, payload) {
       // trips list of visible trip_id.
-      console.log(state.selectedrIndex, payload.data)
       state.selectedrIndex = payload.data
       const cat = payload.category
       // eslint-disable-next-line max-len
@@ -88,6 +87,7 @@ export default {
       state.visiblerLinks.features = state.rlinks.features.filter(link => state.selectedrIndex.includes(link.properties[cat]))
       console.log('links updated')
       this.commit('getVisiblerNodes')
+
       console.log('nodes updadted')
     },
     getVisiblerNodes (state) {
