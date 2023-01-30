@@ -211,6 +211,13 @@ export default {
             nodes: 'rnodes',
           })
           break
+        case 'Add Road Anchor Inline':
+          this.$store.commit('addRoadNodeInline', {
+            selectedLink: this.selectedLink,
+            lngLat: this.cursorPosition,
+            nodes: 'anchorrNodes',
+          })
+          break
       }
       if (!this.lingering) {
         this.confirmChanges()

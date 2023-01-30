@@ -2,6 +2,10 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
+import booleanContains from '@turf/boolean-contains'
+import buffer from '@turf/buffer'
+import bboxPolygon from '@turf/bbox-polygon'
+
 export default {
   name: 'StaticLinks',
   components: {
@@ -16,6 +20,15 @@ export default {
       visibleNodes: {},
       visibleLinks: {},
       disablePopup: false,
+      editorRnodes: {},
+      renderedrLinks: {},
+      renderedrNodes: {},
+      renderedAnchorrNodes: {},
+      bbox: null,
+      minZoom: {
+        nodes: 15,
+        links: 10,
+      },
 
     }
   },
@@ -23,19 +36,56 @@ export default {
     selectedPopupContent () { return this.$store.getters.roadPopupContent },
     rnodes () { return this.$store.getters.visiblerNodes },
     rlinks () { return this.$store.getters.visiblerLinks },
-    anchorrNodes () { return this.anchorMode ? this.$store.getters.anchorrNodes : this.$store.getters.rnodesHeader },
+    anchorrNodes () {
+      return this.anchorMode ? this.$store.getters.anchorrNodes(this.renderedrLinks) : this.$store.getters.rnodesHeader
+    },
 
   },
 
   watch: {
-    anchorMode (val) {
-      console.log('anchor', val)
-    },
+
   },
   created () {
+    this.renderedrNodes = structuredClone(this.$store.getters.rnodesHeader)
+    this.renderedAnchorrNodes = structuredClone(this.$store.getters.rnodesHeader)
+    this.renderedrLinks = structuredClone(this.$store.getters.rlinksHeader)
+    // TODO: only activate when we are editing roadlinks (when tab is selected.)
+    // we could also have 2 component, one static and one editable.
+    this.map.on('dragend', () => this.getBounds())
+    this.map.on('zoomend', () => this.getBounds())
   },
 
   methods: {
+    getBounds () {
+      // should change to a road edition mode too.
+      if (!this.isEditorMode) {
+      // get map bounds and return only the features inside of it.
+      // this way, only the visible links and node are rendered and updating is fast
+      // (i.e. moving a node in real time)
+      // note only line inside the bbox (buffured) are visible.
+        const bounds = this.map.getBounds()
+        // create a BBOX with a 500m buffer
+        this.bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.5)
+        // only get the geojson if the zoom level is bigger than the min.
+        // if not, getting all anchorpoint would be very intensive!!
+        // this way, only a small number of anchor points are computed
+        if (this.map.getZoom() > this.minZoom.links) {
+          this.renderedrLinks.features = this.rlinks.features.filter(link => booleanContains(this.bbox, link))
+        } else {
+          this.renderedrLinks.features = []
+        }
+        if (this.map.getZoom() > this.minZoom.nodes) {
+          this.renderedrNodes.features = this.rnodes.features.filter(node => booleanContains(this.bbox, node))
+          this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
+        } else {
+          this.renderedrNodes.features = []
+          this.renderedAnchorrNodes.features = []
+        }
+      } else {
+        this.renderedrNodes = this.rnodes
+        this.renderedrLinks = this.rlinks
+      }
+    },
     onCursor (event) {
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
       if (!this.disablePopup) {
@@ -62,23 +112,23 @@ export default {
     },
 
     offCursor (event) {
-      if (this.hoveredStateId !== null) {
-        if (this.popup.isOpen()) this.popup.remove()
-        // eslint-disable-next-line max-len
-        if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId.layerId) && event.layerId === 'rlinks')) {
-          // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
-          if (this.keepHovering) {
-            this.dragNode = true
-            // normal behaviours, hovering is false
-          } else {
-            this.map.getCanvas().style.cursor = ''
-            this.map.setFeatureState(
-              { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-              { hover: false },
-            )
-            this.hoveredStateId = null
-            this.$emit('offHover', event)
-          }
+      // todo: error warning is throw sometime when we move a node over another node or anchor.
+      if (this.popup.isOpen()) this.popup.remove()
+      // eslint-disable-next-line max-len
+
+      if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId?.layerId) && event.layerId === 'rlinks')) {
+        // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
+        if (this.keepHovering) {
+          this.dragNode = true
+          // normal behaviours, hovering is false
+        } else {
+          this.map.getCanvas().style.cursor = ''
+          this.map.setFeatureState(
+            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+            { hover: false },
+          )
+          this.hoveredStateId = null
+          this.$emit('offHover', event)
         }
       }
     },
@@ -99,6 +149,7 @@ export default {
               lngLat: event.mapboxEvent.lngLat,
             }
             this.$emit('clickFeature', click)
+            this.getBounds()
           }
         }
       }
@@ -116,8 +167,9 @@ export default {
         this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
         // disable popup
         this.disablePopup = true
-
-        this.$store.commit('getConnectedLinks', { selectedNode: this.selectedFeature })
+        if (this.hoveredStateId.layerId === 'rnodes') {
+          this.$store.commit('getConnectedLinks', { selectedNode: this.selectedFeature })
+        }
         // get position
         this.map.on('mousemove', this.onMove)
       }
@@ -127,7 +179,9 @@ export default {
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode) {
         if (this.hoveredStateId.layerId === 'anchorrNodes') {
-          this.$store.commit('moveAnchor', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          this.$store.commit('moverAnchor', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
+          this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
         } else {
           this.$store.commit('moverNode', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
         }
@@ -154,7 +208,7 @@ export default {
       source-id="rlinks"
       :source="{
         type: 'geojson',
-        data: rlinks,
+        data: renderedrLinks,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -162,10 +216,10 @@ export default {
       :layer="{
         interactive: true,
         type: 'line',
-        minzoom: 10,
+        minzoom: minZoom.links,
         paint: {
           'line-color': '#B5E0D6',
-          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.1, 1],
+          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.5, 1],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 2],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
 
@@ -179,7 +233,7 @@ export default {
       source-id="rnodes"
       :source="{
         type: 'geojson',
-        data: rnodes,
+        data: renderedrNodes,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -187,7 +241,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'circle',
-        minzoom: 15,
+        minzoom: minZoom.nodes,
         paint: {
           'circle-color': ['case', ['boolean', isEditorMode, false],'#9E9E9E', '#2C3E4E'],
           'circle-stroke-color': '#ffffff',
@@ -203,7 +257,7 @@ export default {
       source-id="anchorrNodes"
       :source="{
         type: 'geojson',
-        data: anchorrNodes,
+        data: renderedAnchorrNodes,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -211,7 +265,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'circle',
-        minzoom: 15,
+        minzoom: minZoom.nodes,
         paint: {
           'circle-color': '#ffffff',
           'circle-opacity':0.5,
@@ -224,6 +278,8 @@ export default {
       @click="selectClick"
       @mouseover="onCursor"
       @mouseleave="offCursor"
+      @mousedown="moveNode"
+      @mouseup="stopMovingNode"
     />
   </section>
 </template>

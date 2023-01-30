@@ -23,6 +23,7 @@ export default {
     connectedLinks: [],
     roadPopupContent: 'highway',
     roadEditionMode: false,
+    speed: 20,
   },
 
   mutations: {
@@ -153,7 +154,6 @@ export default {
       console.log('add to visiblerlink')
       state.visiblerLinks.features.push(link2)
       state.visiblerNodes.features.push(state.newrNode.features[0])
-
       // update actual rlinks and rnodes
       state.rlinks.features.filter((link) => link.properties.index === link1.properties.index)[0] = link1
       state.rlinks.features.push(link2)
@@ -175,20 +175,30 @@ export default {
         this.commit('splitrLink', { selectedFeature: selectedFeature, offset: offset, sliceIndex: sliceIndex })
         // Anchor Nodes
       } else {
-        this.commit('addAnchorNode', {
+        this.commit('addAnchorrNode', {
           selectedLink: payload.selectedLink,
           coordinates: snapped.geometry.coordinates,
           sliceIndex: sliceIndex,
         })
       }
     },
+    addAnchorrNode (state, payload) {
+      const linkIndex = payload.selectedLink.index
+      const featureIndex = state.visiblerLinks.features.findIndex(link => link.properties.index === linkIndex)
+      // changing link change visible rLinks as it is an observer.
+      const link = state.visiblerLinks.features[featureIndex]
+      link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
+    },
 
     getConnectedLinks (state, payload) {
       const nodeIndex = payload.selectedNode.properties.index
-      state.connectedLinks = [
-        state.visiblerLinks.features.filter(link => link.properties.b === nodeIndex)[0],
-        state.visiblerLinks.features.filter(link => link.properties.a === nodeIndex)[0],
-      ]
+      console.log(state.visiblerLinks.features.filter(link => link.properties.b === nodeIndex))
+      console.log(state.visiblerLinks.features.filter(link => link.properties.a === nodeIndex))
+      // get links connected to the node
+      state.connectedLinks = {
+        b: state.visiblerLinks.features.filter(link => link.properties.b === nodeIndex),
+        a: state.visiblerLinks.features.filter(link => link.properties.a === nodeIndex),
+      }
     },
     moverNode (state, payload) {
       const nodeIndex = payload.selectedNode.properties.index
@@ -197,26 +207,39 @@ export default {
       newNode.geometry.coordinates = payload.lngLat
 
       // changing links
-      const link1 = state.connectedLinks[0]
-      const link2 = state.connectedLinks[1]
+
       // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
-      if (link1) {
+      state.connectedLinks.b.forEach(link => {
         // note: props are unchanged. even tho the length change, the time and length are unchanged.
-        link1.geometry.coordinates = [...link1.geometry.coordinates.slice(0, -1), payload.lngLat]
+        link.geometry.coordinates = [...link.geometry.coordinates.slice(0, -1), payload.lngLat]
         // update time and distance
-        const distance = length(link1)
-        link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
+        const distance = length(link)
+        link.properties.length = Number((distance * 1000).toFixed(0)) // metres
         const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
-        link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
-      }
-      if (link2) {
-        link2.geometry.coordinates = [payload.lngLat, ...link2.geometry.coordinates.slice(1)]
+        link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      })
+      state.connectedLinks.a.forEach(link => {
+        link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
         // update time and distance
-        const distance = length(link2)
-        link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
+        const distance = length(link)
+        link.properties.length = Number((distance * 1000).toFixed(0)) // metres
         const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
-        link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
-      }
+        link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      })
+    },
+    moverAnchor (state, payload) {
+      const linkIndex = payload.selectedNode.properties.linkIndex
+      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const link = state.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
+        payload.lngLat,
+        ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+
+      // update time and distance
+      const distance = length(link)
+      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
 
   },
@@ -224,6 +247,7 @@ export default {
   getters: {
     rlinks: (state) => state.rlinks,
     rnodes: (state) => state.rnodes,
+    rlinksHeader: (state) => state.rlinksHeader,
     rnodesHeader: (state) => state.rnodesHeader,
     rlineAttributes: (state) => state.rlineAttributes,
     rindexList: (state) => state.rindexList,
@@ -231,16 +255,18 @@ export default {
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
     roadPopupContent: (state) => state.roadPopupContent,
-    anchorrNodes: (state) => {
+    anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)
-      state.visiblerLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
+      renderedLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index
           feature.geometry.coordinates.slice(1, -1).forEach(
-            (point, idx) => nodes.features.push({
-              properties: { index: short.generate(), linkIndex: linkIndex, coordinatedIndex: idx + 1 },
-              geometry: { coordinates: point, type: 'Point' },
-            }),
+            (point, idx) => nodes.features.push(Point(
+              point,
+              { index: short.generate(), linkIndex: linkIndex, coordinatedIndex: idx + 1 },
+            ),
+            ),
+
           )
         },
       )
