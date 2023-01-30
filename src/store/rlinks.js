@@ -215,7 +215,8 @@ export default {
         // update time and distance
         const distance = length(link)
         link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        // const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / link.properties.speed * 3600
         link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       })
       state.connectedLinks.a.forEach(link => {
@@ -223,7 +224,8 @@ export default {
         // update time and distance
         const distance = length(link)
         link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        // const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / link.properties.speed * 3600
         link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       })
     },
@@ -240,6 +242,13 @@ export default {
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
       const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+    },
+    deleteAnchorrNode (state, payload) {
+      const linkIndex = payload.selectedNode.properties.linkIndex
+      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const link = state.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
+        ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
 
   },

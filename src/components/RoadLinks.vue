@@ -155,6 +155,17 @@ export default {
       }
     },
 
+    contextMenuNode (event) {
+      if (this.hoveredStateId?.layerId === 'rnodes') {
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+      } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedFeature })
+        this.getBounds()
+      }
+    },
+
     moveNode (event) {
       if (event.mapboxEvent.originalEvent.button === 0 &
       ['rnodes', 'anchorrNodes'].includes(this.hoveredStateId.layerId)) {
@@ -250,7 +261,12 @@ export default {
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         },
       }"
-      v-on="isEditorMode ? { } : { mouseenter: onCursor, mouseleave: offCursor, click: selectClick, mousedown: moveNode, mouseup: stopMovingNode }"
+      v-on="isEditorMode ? { } : { mouseenter: onCursor,
+                                   mouseleave: offCursor,
+                                   click: selectClick,
+                                   mousedown: moveNode,
+                                   mouseup: stopMovingNode,
+                                   contextmenu:contextMenuNode }"
     />
 
     <MglGeojsonLayer
@@ -280,6 +296,7 @@ export default {
       @mouseleave="offCursor"
       @mousedown="moveNode"
       @mouseup="stopMovingNode"
+      @contextmenu="contextMenuNode"
     />
   </section>
 </template>
