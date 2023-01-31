@@ -1,6 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer } from 'vue-mapbox'
+import { MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
 import booleanContains from '@turf/boolean-contains'
 import buffer from '@turf/buffer'
@@ -10,6 +10,7 @@ export default {
   name: 'StaticLinks',
   components: {
     MglGeojsonLayer,
+    MglImageLayer,
   },
   props: ['map', 'showedTrips', 'isEditorMode', 'anchorMode'],
   events: ['clickFeature'],
@@ -108,7 +109,7 @@ export default {
           { hover: true },
         )
       }
-      this.$emit('onHover', { selectedId: this.hoveredStateId.id })
+      this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id })
     },
 
     offCursor (event) {
@@ -150,14 +151,35 @@ export default {
             }
             this.$emit('clickFeature', click)
             this.getBounds()
+          } else if (this.hoveredStateId.layerId === 'rnodes') {
+            const click = {
+              selectedFeature: this.selectedFeature,
+              action: 'Edit rNode Info',
+              lngLat: event.mapboxEvent.lngLat,
+            }
+            this.$emit('clickFeature', click)
           }
         }
       }
     },
 
+    linkRightClick (event) {
+      if (this.hoveredStateId.layerId === 'rlinks') {
+        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        const click = {
+          selectedFeature: this.selectedFeature,
+          action: 'Edit rLink Info',
+          lngLat: event.mapboxEvent.lngLat,
+        }
+        this.$emit('clickFeature', click)
+      }
+    },
+
     contextMenuNode (event) {
       if (this.hoveredStateId?.layerId === 'rnodes') {
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+        // const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+        console.log(' this is tricky. how to connect links there are 4-8 links connected to a node?')
       } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
         this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
@@ -237,7 +259,25 @@ export default {
         },
 
       }"
-      v-on="isEditorMode ? { } : { mouseenter: onCursor, mouseleave: offCursor, click: selectClick }"
+      v-on="isEditorMode ? { } : { mouseenter: onCursor, mouseleave: offCursor, click: selectClick, contextmenu: linkRightClick }"
+    />
+    <MglImageLayer
+      source-id="rlinks"
+      type="symbol"
+      source="rlinks"
+      layer-id="arrow-rlinks"
+      :layer="{
+        type: 'symbol',
+        minzoom: minZoom.nodes,
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 100,
+          'icon-ignore-placement': true,
+          'icon-image':['case', ['boolean', anchorMode, false], 'arrowAnchor','arrow'],
+          'icon-size': 0.5,
+          'icon-rotate': 90
+        }
+      }"
     />
 
     <MglGeojsonLayer

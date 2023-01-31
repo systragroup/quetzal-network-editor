@@ -244,7 +244,7 @@ export default {
                   icon
                   class="ma-1"
                   v-bind="attrs"
-                  :disabled="false"
+                  :disabled="true"
                   v-on="on"
                   @click="propertiesButton(item)"
                 >
@@ -265,7 +265,7 @@ export default {
                   icon
                   class="ma-1"
                   v-bind="attrs"
-                  :disabled=" false"
+                  :disabled="true"
                   v-on="on"
                   @click="deleteButton({trip:item,message:item})"
                 >

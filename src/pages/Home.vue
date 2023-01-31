@@ -95,19 +95,28 @@ export default {
         this.editorForm = form
         this.lingering = event.lingering
         this.showDialog = true
-      } else if (this.action === 'Edit Link Info') {
+      } else if (['Edit Link Info', 'Edit rLink Info'].includes(this.action)) {
         // link is clicked on the map
         this.selectedLink = event.selectedFeature.properties
+        let uneditable = []
+        let lineAttributes = []
         // map selected link doesnt return properties with null value. we need
         // to get the links in the store with the selected index.
-        this.editorForm = this.$store.getters.editorLinks.features.filter(
-          (link) => link.properties.index === this.selectedLink.index)
+        if (this.action === 'Edit Link Info') {
+          uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
+          lineAttributes = this.$store.getters.lineAttributes
+          this.editorForm = this.$store.getters.editorLinks.features.filter(
+            (link) => link.properties.index === this.selectedLink.index)
+        } else {
+          uneditable = ['a', 'b', 'index']
+          lineAttributes = this.$store.getters.rlineAttributes
+          this.editorForm = this.$store.getters.visiblerLinks.features.filter(
+            (link) => link.properties.index === this.selectedLink.index)
+        }
         this.editorForm = this.editorForm[0].properties
 
         // filter properties to only the one that are editable.
-        const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
         const form = {}
-        const lineAttributes = this.$store.getters.lineAttributes
         lineAttributes.forEach(key => {
           form[key] = {
             value: this.editorForm[key],
@@ -117,14 +126,18 @@ export default {
         })
         this.editorForm = form
         this.showDialog = true
-      } else if (this.action === 'Edit Node Info') {
+      } else if (['Edit Node Info', 'Edit rNode Info'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         // map selected node doesnt not return properties with nanulln value.
         // we need to get the node in the store with the selected index.
-        this.editorForm = this.$store.getters.editorNodes.features.filter(
-          (node) => node.properties.index === this.selectedNode.index)
+        if (this.action === 'Edit Node Info') {
+          this.editorForm = this.$store.getters.editorNodes.features.filter(
+            (node) => node.properties.index === this.selectedNode.index)
+        } else {
+          this.editorForm = this.$store.getters.visiblerNodes.features.filter(
+            (node) => node.properties.index === this.selectedNode.index)
+        }
         this.editorForm = this.editorForm[0].properties
-
         // filter properties to only the one that are editable.
         const uneditable = ['index']
         const filtered = Object.keys(this.editorForm)
@@ -204,6 +217,12 @@ export default {
             nodes: 'anchorNodes',
           })
           break
+        case 'Edit rLink Info':
+          this.$store.commit('editrLinkInfo', { selectedLinkId: this.selectedLink.index, info: this.editorForm })
+          break
+        case 'Edit rNode Info':
+          this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
+          break
         case 'Add Road Node Inline':
           this.$store.commit('addRoadNodeInline', {
             selectedLink: this.selectedLink,
@@ -279,7 +298,7 @@ export default {
         </v-card-title>
         <v-divider />
 
-        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info'].includes(action)">
+        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info','Edit rLink Info', 'Edit rNode Info'].includes(action)">
           <v-list>
             <v-text-field
               v-for="(value, key) in orderedForm"

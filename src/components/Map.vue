@@ -213,6 +213,13 @@ export default {
         this.$store.commit('setNewLink', { action: this.selectedAction })
       }
     },
+    onHoverrNode (event) {
+      if (event.layerId === 'rnodes') {
+        // this.selectedAction = 'Draw New rLink'
+        // this.$store.commit('setNewrLink', { action: this.selectedAction })
+
+      }
+    },
     offHover (event) {
       // put back drawmode offHover only if action is not null
       if (this.selectedAction) {
@@ -246,6 +253,8 @@ export default {
         :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"
         :anchor-mode="anchorMode"
+        @onHover="onHoverrNode"
+        @offHover="offHover"
         @clickFeature="(e) => $emit('clickFeature',e)"
       />
     </template>

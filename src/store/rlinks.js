@@ -110,6 +110,33 @@ export default {
       state.visiblerNodes.features = state.rnodes.features.filter(node => rNodesList.includes(node.properties.index))
     },
 
+    editrLinkInfo (state, payload) {
+      // get selected link in editorLinks and modify the changes attributes.
+      const { selectedLinkId, info } = payload
+      const props = Object.keys(info)
+      state.rlinks.features.filter(
+        function (link) {
+          if (link.properties.index === selectedLinkId) {
+            props.forEach((key) => link.properties[key] = info[key].value)
+          }
+        },
+      )
+      this.commit('getEditorLineInfo')
+    },
+    editrNodeInfo (state, payload) {
+      // get selected node in editorNodes and modify the changes attributes.
+      const { selectedNodeId, info } = payload
+      const props = Object.keys(info)
+      state.rnode.features.filter(
+        // eslint-disable-next-line array-callback-return
+        function (node) {
+          if (node.properties.index === selectedNodeId) {
+            props.forEach((key) => node.properties[key] = info[key].value)
+          }
+        },
+      )
+    },
+
     createNewrNode (state, payload) {
       const newNode = structuredClone(state.rnodesHeader)
       const nodeProperties = {}
