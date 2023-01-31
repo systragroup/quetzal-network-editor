@@ -108,8 +108,9 @@ export default {
           { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
           { hover: true },
         )
+
+        this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id })
       }
-      this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id })
     },
 
     offCursor (event) {

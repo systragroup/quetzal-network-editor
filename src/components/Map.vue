@@ -43,6 +43,7 @@ export default {
       drawLink: null,
       mouseout: false,
       selectedNodeId: null,
+      connectedDrawLink: false,
     }
   },
   computed: {
@@ -70,6 +71,7 @@ export default {
     },
     anchorMode (val) {
       if (val) {
+        this.drawMode = false
         this.$store.commit('changeNotification',
           { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
       } else {
@@ -94,7 +96,6 @@ export default {
     },
 
     drawMode (val) {
-      console.log('drawmode', val)
       // set layer visible if drawMode is true
       // check if layer exist. will bug if it is check befere rendering the layer
       if (this.map.getStyle().layers.filter(layer => layer.id === 'drawLink').length > 0) {
@@ -109,10 +110,11 @@ export default {
     editorTrip (val) {
       if (val) {
         this.isEditorMode = true
+        this.connectedDrawLink = false
       }
     },
     isEditorMode (val) {
-      if (val && this.editorNodes.features.length > 0) {
+      if (val && this.editorNodes.features.length > 0 && !this.anchorMode) {
         this.drawMode = true
       } else {
         this.drawMode = false
@@ -174,15 +176,18 @@ export default {
     },
 
     draw (event) {
-      // there is no mousein event, so if drawlink was put nonvisible by mouseout, we cancel here.
-      if (this.drawMode && this.mouseout) {
-        this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
-        this.mouseout = false
-      }
-      if (this.drawMode && this.map.loaded() && !this.anchorMode) {
+      // do not update position on connected link, this makes the node sticky
+      if (!this.connectedDrawLink) {
+        // there is no mousein event, so if drawlink was put nonvisible by mouseout, we cancel here.
+        if (this.drawMode && this.mouseout) {
+          this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
+          this.mouseout = false
+        }
+        if (this.drawMode && this.map.loaded() && !this.anchorMode) {
         // update draw line with new geometry.
-        const geometry = [this.drawLink.geometry.coordinates[0], Object.values(event.mapboxEvent.lngLat)]
-        this.drawLink = Linestring(geometry)
+          const geometry = [this.drawLink.geometry.coordinates[0], Object.values(event.mapboxEvent.lngLat)]
+          this.drawLink = Linestring(geometry)
+        }
       }
     },
     addPoint (event) {
@@ -219,7 +224,6 @@ export default {
       // no drawing when we hover on link or node
       this.hoverId = event.selectedId
       if (this.drawMode) { this.map.setLayoutProperty('drawLink', 'visibility', 'none') }
-      // console.log(event)
       // change hook when we hover first or last node.
       if ([this.$store.getters.lastNodeId, this.$store.getters.firstNodeId].includes(this.hoverId)) {
         const node = this.$store.getters.editorNodes.features.filter(node =>
@@ -231,18 +235,18 @@ export default {
     },
     onHoverrNode (event) {
       if (event?.layerId === 'rnodes') {
-        console.log('onHover')
         if (this.drawMode) {
-          console.log('connect')
+          // nodes are sticky. drawlink chanche size and style
+          this.connectedDrawLink = true
         } else {
+          this.connectedDrawLink = false
           const node = this.$store.getters.visiblerNodes.features.filter(node =>
             node.properties.index === event.selectedId)
           this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
+          this.drawMode = true
+          this.connectedDrawLink = false
         }
 
-        this.drawMode = true
-
-        // this.map.setLayoutProperty('drawLink', 'visibility', 'none')
         // this.selectedAction = 'Draw New rLink'
         // this.$store.commit('setNewrLink', { action: this.selectedAction })
       }
@@ -252,8 +256,12 @@ export default {
       this.hoverId = null
       // const geometry = [this.drawLink.geometry.coordinates[0], this.drawLink.geometry.coordinates[0]]
       // this.drawLink = Linestring(geometry)
-      if (this.drawMode) { this.map.setLayoutProperty('drawLink', 'visibility', 'visible') }
+      if (this.drawMode) {
+        this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
+        this.connectedDrawLink = false
+      }
     },
+    clickFeature (e) { this.$emit('clickFeature', e) },
 
   },
 
@@ -264,7 +272,6 @@ export default {
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
     map-style="mapbox://styles/mapbox/light-v9?optimize=true"
-
     @load="onMapLoaded"
     @mousemove="draw"
     @mouseout="resetDraw()"
@@ -280,9 +287,7 @@ export default {
         :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"
         :anchor-mode="anchorMode"
-        @onHover="onHoverrNode"
-        @offHover="offHover"
-        @clickFeature="(e) => $emit('clickFeature',e)"
+        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverrNode, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
 
@@ -299,9 +304,7 @@ export default {
       <EditorLinks
         :map="map"
         :anchor-mode="anchorMode"
-        @clickFeature="(e) => $emit('clickFeature',e)"
-        @onHover="onHover"
-        @offHover="offHover"
+        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
     <template v-if="mapIsLoaded">
@@ -321,8 +324,9 @@ export default {
           paint: {
             'line-opacity': 1,
             'line-color': '#7EBAAC',
-            'line-width': 3,
-            'line-dasharray': [0, 2, 4]
+            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
+            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
+
           }
         }"
       />
