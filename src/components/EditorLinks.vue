@@ -9,7 +9,7 @@ export default {
     MglImageLayer,
     MglGeojsonLayer,
   },
-  props: ['map', 'drawMode', 'anchorMode'],
+  props: ['map', 'anchorMode'],
   events: ['clickFeature', 'onHover', 'offHover'],
   data () {
     return {
@@ -37,17 +37,6 @@ export default {
   },
 
   watch: {
-    drawMode (val) {
-      // set layer visible if drawMode is true
-      // check if layer exist. will bug if it is check befere rendering the layer
-      if (this.map.getStyle().layers.filter(layer => layer.id === 'drawLink').length > 0) {
-        if (val) {
-          this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
-        } else {
-          this.map.setLayoutProperty('drawLink', 'visibility', 'none')
-        }
-      }
-    },
 
   },
   created () {
@@ -271,28 +260,6 @@ export default {
           'icon-image':['case', ['boolean', anchorMode, false], 'arrowAnchor','arrow'],
           'icon-size': 0.5,
           'icon-rotate': 90
-        }
-      }"
-    />
-
-    <MglGeojsonLayer
-      v-if="drawMode"
-      source-id="drawLink"
-      :source="{
-        type: 'geojson',
-        data: $store.getters.newLink,
-        buffer: 0,
-        generateId: true,
-      }"
-      layer-id="drawLink"
-      :layer="{
-        type: 'line',
-        minzoom: 2,
-        paint: {
-          'line-opacity': ['case', ['boolean', anchorMode, false], 0, 1],
-          'line-color': '#7EBAAC',
-          'line-width': 3,
-          'line-dasharray': [0, 2, 4]
         }
       }"
     />

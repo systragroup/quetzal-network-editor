@@ -206,7 +206,7 @@ export default {
         drop_off_type: 0,
       }
       // create link
-      const tempLink = JSON.parse(JSON.stringify(state.editorLinks))
+      const tempLink = structuredClone(state.editorLinks)
       // if there is no link to copy, create one. (new Line)
       if (tempLink.features.length === 0) {
         // copy Line properties.
@@ -284,7 +284,7 @@ export default {
         coordinates: payload,
         type: 'Point',
       }
-      // Copy specified node
+      // Copy specified nodenewNode
       const nodeFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
       state.editorNodes.features = [nodeFeatures]
     },
@@ -317,14 +317,16 @@ export default {
     },
 
     applyNewLink (state, payload) {
+      // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
+      this.commit('setNewLink', { action: payload.action })
       const distance = length(state.newLink)
       state.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
       const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
       state.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
 
       const action = state.newLink.action
-      this.commit('editNewLink', payload)
+      this.commit('editNewLink', payload.geom)
       if (action === 'Extend Line Upward') {
         state.editorLinks.features.push(state.newLink.features[0])
         state.editorNodes.features.push(state.newNode.features[0])
@@ -333,8 +335,6 @@ export default {
         state.editorNodes.features.splice(0, 0, state.newNode.features[0])
         state.editorLinks.features.forEach(link => link.properties.link_sequence += 1)
       }
-      // reset new link with updated editorLinks
-      this.commit('setNewLink', { action: action })
     },
 
     deleteNode (state, payload) {
