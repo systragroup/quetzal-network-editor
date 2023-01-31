@@ -42,7 +42,7 @@ export default {
       mapDiv: null,
       drawLink: null,
       mouseout: false,
-      selectedNodeId: null,
+      selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
     }
   },
@@ -127,13 +127,15 @@ export default {
     'firstNode.geometry.coordinates' (val) {
       if (this.editorTrip) {
         this.drawLink = Linestring([val, val])
-        this.selectedNodeId = this.firstNode.properties.index
+        this.selectedNode.layerId = 'nodes'
+        this.selectedNode.id = this.firstNode.properties.index
       }
     },
     'lastNode.geometry.coordinates' (val) {
       if (this.editorTrip) {
         this.drawLink = Linestring([val, val])
-        this.selectedNodeId = this.lastNode.properties.index
+        this.selectedNode.layerId = 'nodes'
+        this.selectedNode.id = this.lastNode.properties.index
       }
     },
   },
@@ -192,17 +194,23 @@ export default {
     },
     addPoint (event) {
       // for a new Line
-      if (this.editorNodes.features.length === 0 && this.editorTrip) {
-        this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
-      }
-      if (this.drawMode & !this.anchorMode & !this.hoverId) {
-        const action = (this.selectedNodeId === this.$store.getters.lastNodeId)
-          ? 'Extend Line Upward'
-          : 'Extend Line Downward'
-        const pointGeom = Object.values(event.mapboxEvent.lngLat)
+      if (this.selectedNode.layerId === 'rnodes') {
+        console.log(this.selectedNode)
+      } else {
+        if (this.editorNodes.features.length === 0 && this.editorTrip) {
+          console.log('1')
+          this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
+          this.$store.commit('changeNotification', { text: '', autoClose: true })
+        }
+        if (this.drawMode & !this.anchorMode & !this.hoverId) {
+          console.log('2')
+          const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
+            ? 'Extend Line Upward'
+            : 'Extend Line Downward'
+          const pointGeom = Object.values(event.mapboxEvent.lngLat)
 
-        this.$store.commit('applyNewLink', { nodeId: this.selectedNodeId, geom: pointGeom, action: action })
+          this.$store.commit('applyNewLink', { nodeId: this.selectedNode.id, geom: pointGeom, action: action })
+        }
       }
     },
     resetDraw (event) {
@@ -222,6 +230,7 @@ export default {
     },
     onHover (event) {
       // no drawing when we hover on link or node
+
       this.hoverId = event.selectedId
       if (this.drawMode) { this.map.setLayoutProperty('drawLink', 'visibility', 'none') }
       // change hook when we hover first or last node.
@@ -229,12 +238,15 @@ export default {
         const node = this.$store.getters.editorNodes.features.filter(node =>
           node.properties.index === event.selectedId)
         this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
-        this.selectedNodeId = this.hoverId
+        this.selectedNode.id = this.hoverId
+        this.selectedNode.layerId = event.layerId
+
         this.drawMode = true
       }
     },
     onHoverrNode (event) {
       if (event?.layerId === 'rnodes') {
+        this.hoverId = event.selectedId
         if (this.drawMode) {
           // nodes are sticky. drawlink chanche size and style
           this.connectedDrawLink = true
@@ -245,6 +257,8 @@ export default {
           this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
           this.drawMode = true
           this.connectedDrawLink = false
+          this.selectedNode.id = this.hoverId
+          this.selectedNode.layerId = event.layerId
         }
 
         // this.selectedAction = 'Draw New rLink'
