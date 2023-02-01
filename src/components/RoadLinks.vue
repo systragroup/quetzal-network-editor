@@ -27,7 +27,7 @@ export default {
       renderedAnchorrNodes: {},
       bbox: null,
       minZoom: {
-        nodes: 15,
+        nodes: 14,
         links: 10,
       },
 
@@ -65,8 +65,8 @@ export default {
       // (i.e. moving a node in real time)
       // note only line inside the bbox (buffured) are visible.
         const bounds = this.map.getBounds()
-        // create a BBOX with a 500m buffer
-        this.bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.5)
+        // create a BBOX with a 800m buffer
+        this.bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.8)
         // only get the geojson if the zoom level is bigger than the min.
         // if not, getting all anchorpoint would be very intensive!!
         // this way, only a small number of anchor points are computed
@@ -282,7 +282,7 @@ export default {
           'symbol-placement': 'line',
           'symbol-spacing': 100,
           'icon-ignore-placement': true,
-          'icon-image':['case', ['boolean', anchorMode, false], 'arrowAnchor','arrow'],
+          'icon-image':'rArrow',
           'icon-size': 0.5,
           'icon-rotate': 90
         }

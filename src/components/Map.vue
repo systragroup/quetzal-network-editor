@@ -6,6 +6,7 @@ import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
+import rArrowImage from '@static/rArrow.png'
 import arrowImageAnchor from '@static/arrow_anchor.png'
 import Linestring from 'turf-linestring'
 
@@ -172,6 +173,13 @@ export default {
         }
         event.map.addImage('arrowAnchor', image)
       })
+      event.map.loadImage(rArrowImage, function (err, image) {
+        if (err) {
+          console.error('err image', err)
+          return
+        }
+        event.map.addImage('rArrow', image)
+      })
       this.map = event.map
       event.map.dragRotate.disable()
       this.mapIsLoaded = true
@@ -276,7 +284,13 @@ export default {
         this.connectedDrawLink = false
       }
     },
-    clickFeature (e) { this.$emit('clickFeature', e) },
+    clickFeature (event) {
+      // when we move a rNode, we need to update drawlink as it is link to this moved node.
+      if (event.action === 'Move rNode') {
+        this.drawLink = Linestring([event.lngLat, event.lngLat])
+      }
+      this.$emit('clickFeature', event)
+    },
 
   },
 
