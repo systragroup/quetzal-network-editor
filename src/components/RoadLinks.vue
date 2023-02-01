@@ -212,12 +212,20 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode) {
+        const click = {
+          selectedFeature: this.selectedFeature,
+          action: null,
+          lngLat: Object.values(event.lngLat),
+        }
         if (this.hoveredStateId.layerId === 'anchorrNodes') {
-          this.$store.commit('moverAnchor', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          click.action = 'Move rAnchor'
+          this.$emit('clickFeature', click)
           // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
-          this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
+          this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
+            booleanContains(this.bbox, node))
         } else {
-          this.$store.commit('moverNode', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          click.action = 'Move rNode'
+          this.$emit('clickFeature', click)
         }
       }
     },

@@ -245,6 +245,7 @@ export default {
       }
     },
     onHoverrNode (event) {
+      console.log(event.selectedId)
       if (event?.layerId === 'rnodes') {
         this.hoverId = event.selectedId
         if (this.drawMode) {

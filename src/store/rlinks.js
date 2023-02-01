@@ -93,7 +93,6 @@ export default {
       state.selectedrIndex = payload.data
       const cat = payload.category
       // eslint-disable-next-line max-len
-      console.log('in func')
       state.visiblerLinks.features = state.rlinks.features.filter(link => state.selectedrIndex.includes(link.properties[cat]))
       console.log('links updated')
       this.commit('getVisiblerNodes')
@@ -219,8 +218,6 @@ export default {
 
     getConnectedLinks (state, payload) {
       const nodeIndex = payload.selectedNode.properties.index
-      console.log(state.visiblerLinks.features.filter(link => link.properties.b === nodeIndex))
-      console.log(state.visiblerLinks.features.filter(link => link.properties.a === nodeIndex))
       // get links connected to the node
       state.connectedLinks = {
         b: state.visiblerLinks.features.filter(link => link.properties.b === nodeIndex),

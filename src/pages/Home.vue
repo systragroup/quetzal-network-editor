@@ -158,6 +158,10 @@ export default {
         this.selectedLink = event.selectedFeature.properties
         this.cursorPosition = event.lngLat
         this.applyAction()
+      } else if (['Move rNode', 'Move rAnchor'].includes(this.action)) {
+        this.selectedNode = event.selectedFeature
+        this.cursorPosition = event.lngLat
+        this.applyAction()
       }
     },
 
@@ -236,6 +240,12 @@ export default {
             lngLat: this.cursorPosition,
             nodes: 'anchorrNodes',
           })
+          break
+        case 'Move rNode':
+          this.$store.commit('moverNode', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Move rAnchor':
+          this.$store.commit('moverAnchor', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
           break
       }
       if (!this.lingering) {
