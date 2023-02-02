@@ -91,24 +91,45 @@ export default {
         this.editorForm = form
         this.lingering = event.lingering
         this.showDialog = true
-      } else if (['Edit Link Info', 'Edit rLink Info'].includes(this.action)) {
+      } else if (this.action === 'Edit Link Info') {
         // link is clicked on the map
         this.selectedLink = event.selectedFeature.properties
         let uneditable = []
         let lineAttributes = []
         // map selected link doesnt return properties with null value. we need
         // to get the links in the store with the selected index.
-        if (this.action === 'Edit Link Info') {
-          uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
-          lineAttributes = this.$store.getters.lineAttributes
-          this.editorForm = this.$store.getters.editorLinks.features.filter(
-            (link) => link.properties.index === this.selectedLink.index)
-        } else {
-          uneditable = ['a', 'b', 'index']
-          lineAttributes = this.$store.getters.rlineAttributes
-          this.editorForm = this.$store.getters.visiblerLinks.features.filter(
-            (link) => link.properties.index === this.selectedLink.index)
-        }
+
+        uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
+        lineAttributes = this.$store.getters.lineAttributes
+        this.editorForm = this.$store.getters.editorLinks.features.filter(
+          (link) => link.properties.index === this.selectedLink.index)
+
+        this.editorForm = this.editorForm[0].properties
+
+        // filter properties to only the one that are editable.
+        const form = {}
+        lineAttributes.forEach(key => {
+          form[key] = {
+            value: this.editorForm[key],
+            disabled: uneditable.includes(key),
+            placeholder: false,
+          }
+        })
+        this.editorForm = form
+        this.showDialog = true
+      } else if (this.action === 'Edit rLink Info') {
+        // link is clicked on the map
+        this.selectedLink = event.selectedFeature[0]
+        let uneditable = []
+        let lineAttributes = []
+        // map selected link doesnt return properties with null value. we need
+        // to get the links in the store with the selected index.
+
+        uneditable = ['a', 'b', 'index']
+        lineAttributes = this.$store.getters.rlineAttributes
+        this.editorForm = this.$store.getters.visiblerLinks.features.filter(
+          (link) => link.properties.index === this.selectedLink)
+
         this.editorForm = this.editorForm[0].properties
 
         // filter properties to only the one that are editable.
@@ -154,7 +175,7 @@ export default {
         this.selectedLink = event.selectedFeature.properties
         this.cursorPosition = event.lngLat
         this.applyAction()
-      } else if (['Add Road Node Inline', 'Add Road Anchor Inline'].includes(this.action)) {
+      } else if (['Add Road Node Inline', 'Add Road Anchor Inline', 'Delete rLink'].includes(this.action)) {
         this.selectedLink = event.selectedFeature
         this.cursorPosition = event.lngLat
         this.applyAction()
@@ -222,7 +243,7 @@ export default {
           })
           break
         case 'Edit rLink Info':
-          this.$store.commit('editrLinkInfo', { selectedLinkId: this.selectedLink.index, info: this.editorForm })
+          this.$store.commit('editrLinkInfo', { selectedLinkId: this.selectedLink, info: this.editorForm })
           break
         case 'Edit rNode Info':
           this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
@@ -246,6 +267,9 @@ export default {
           break
         case 'Move rAnchor':
           this.$store.commit('moverAnchor', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Delete rLink':
+          this.$store.commit('deleterLink', { selectedLink: this.selectedLink })
           break
       }
       if (!this.lingering) {

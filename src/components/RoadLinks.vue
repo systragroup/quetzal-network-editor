@@ -1,16 +1,17 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
 import booleanContains from '@turf/boolean-contains'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
-
+const $gettext = s => s
 export default {
   name: 'StaticLinks',
   components: {
     MglGeojsonLayer,
     MglImageLayer,
+    MglPopup,
   },
   props: ['map', 'showedTrips', 'isEditorMode', 'anchorMode'],
   events: ['clickFeature'],
@@ -30,6 +31,12 @@ export default {
         nodes: 14,
         links: 10,
       },
+      contextMenu: {
+        coordinates: [0, 0],
+        showed: false,
+        actions: [],
+        feature: null,
+      },
 
     }
   },
@@ -48,6 +55,7 @@ export default {
     'rlinks.features' () {
       this.getBounds()
     },
+    anchorMode () { this.getBounds() },
 
   },
   created () {
@@ -167,15 +175,26 @@ export default {
 
     linkRightClick (event) {
       if (this.hoveredStateId.layerId === 'rlinks') {
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
-        const click = {
-          selectedFeature: this.selectedFeature,
-          action: 'Edit rLink Info',
-          lngLat: event.mapboxEvent.lngLat,
-        }
-        this.$emit('clickFeature', click)
+        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+        this.contextMenu.showed = true
+        this.contextMenu.feature = this.hoveredStateId.id
+        this.contextMenu.actions =
+          [
+            $gettext('Edit rLink Info'),
+            $gettext('Delete rLink'),
+          ]
       }
+    },
+    actionClick (event) {
+      const click = {
+        selectedFeature: event.feature,
+        action: event.action,
+        lngLat: event.coordinates,
+      }
+      this.$emit('clickFeature', click)
+
+      this.contextMenu.showed = false
+      this.contextMenu.type = null
     },
 
     contextMenuNode (event) {
@@ -351,6 +370,40 @@ export default {
       @mouseup="stopMovingNode"
       @contextmenu="contextMenuNode"
     />
+    <MglPopup
+      :close-button="false"
+      :showed="contextMenu.showed"
+      :coordinates="contextMenu.coordinates"
+      @close="contextMenu.showed=false"
+    >
+      <span
+        @mouseleave="contextMenu.showed=false"
+      >
+        <v-list
+          dense
+          flat
+        >
+          <v-list-item-group>
+            <v-list-item
+              v-for="action in contextMenu.actions"
+              :key="action.id"
+            >
+              <v-list-item-content>
+                <v-btn
+                  outlined
+                  small
+                  @click="actionClick({action: action,
+                                       feature: contextMenu.feature,
+                                       coordinates: contextMenu.coordinates})"
+                >
+                  {{ $gettext(action) }}
+                </v-btn>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </span>
+    </MglPopup>
   </section>
 </template>
 <style lang="scss" scoped>

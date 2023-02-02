@@ -327,6 +327,13 @@ export default {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
+    deleterLink (state, payload) {
+      const linkArr = payload.selectedLink
+      state.rlinks.features = state.rlinks.features.filter(link => !linkArr.includes(link.properties.index))
+      state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !linkArr.includes(link.properties.index))
+      console.log('getVisiblerNodes is slow')
+      this.commit('getVisiblerNodes')
+    },
 
   },
 
