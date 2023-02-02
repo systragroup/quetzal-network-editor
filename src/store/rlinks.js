@@ -177,40 +177,50 @@ export default {
       link2.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
       link2.properties.time = link2.properties.time * (1 - ratio)
-      console.log('add to visiblerlink')
+
       state.visiblerLinks.features.push(link2)
       state.visiblerNodes.features.push(state.newrNode.features[0])
       // update actual rlinks and rnodes
       state.rlinks.features.filter((link) => link.properties.index === link1.properties.index)[0] = link1
       state.rlinks.features.push(link2)
-      state.rnodes.features.push(state.newrNode.features[0])
     },
 
     addRoadNodeInline (state, payload) {
-      console.log(payload.selectedLink)
+      // payload: selectedLink : list of links index
+      // lngLat : object wit click geometry
+      // nodes : str. name of node to add (rnode, anchorrNodeS)
       // payload contain selectedLink and event.lngLat (clicked point)
-      const selectedFeature = state.visiblerLinks.features.filter((link) => payload.selectedLink.includes(link.properties.index))[0]
-      const linkGeom = Linestring(selectedFeature.geometry.coordinates)
-      const clickedPoint = Point(Object.values(payload.lngLat))
-      const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
-      const dist = length(linkGeom, { units: 'kilometers' }) // dist
-      // for multiString, gives the index of the closest one, add +1 for the slice.
-      const sliceIndex = snapped.properties.index + 1
-      const offset = snapped.properties.location / dist
-      if (payload.nodes === 'rnodes') {
-        this.commit('createNewrNode', snapped.geometry.coordinates)
-        this.commit('splitrLink', { selectedFeature: selectedFeature, offset: offset, sliceIndex: sliceIndex })
+      const selectedFeatures = state.visiblerLinks.features
+        .filter((link) => payload.selectedLink.includes(link.properties.index))
+      // for loop. for each selectedc links add the node and split.
+      for (let i = 0; i < selectedFeatures.length; i++) {
+        const linkGeom = Linestring(selectedFeatures[i].geometry.coordinates)
+        const clickedPoint = Point(Object.values(payload.lngLat))
+        const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
+        const dist = length(linkGeom, { units: 'kilometers' }) // dist
+        // for multiString, gives the index of the closest one, add +1 for the slice.
+        const sliceIndex = snapped.properties.index + 1
+        const offset = snapped.properties.location / dist
+        if (payload.nodes === 'rnodes') {
+          // only add one node, takes the first one.
+          if (i === 0) {
+            this.commit('createNewrNode', snapped.geometry.coordinates)
+            state.rnodes.features.push(state.newrNode.features[0])
+          }
+          this.commit('splitrLink', { selectedFeature: selectedFeatures[i], offset: offset, sliceIndex: sliceIndex })
+
         // Anchor Nodes
-      } else {
-        this.commit('addAnchorrNode', {
-          selectedLink: payload.selectedLink,
-          coordinates: snapped.geometry.coordinates,
-          sliceIndex: sliceIndex,
-        })
+        } else {
+          this.commit('addAnchorrNode', {
+            selectedLink: selectedFeatures[i],
+            coordinates: snapped.geometry.coordinates,
+            sliceIndex: sliceIndex,
+          })
+        }
       }
     },
     addAnchorrNode (state, payload) {
-      const linkIndex = payload.selectedLink.index
+      const linkIndex = payload.selectedLink.properties.index
       const featureIndex = state.visiblerLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link change visible rLinks as it is an observer.
       const link = state.visiblerLinks.features[featureIndex]
