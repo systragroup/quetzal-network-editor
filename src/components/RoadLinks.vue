@@ -44,6 +44,10 @@ export default {
   },
 
   watch: {
+    // when visible links changes, reload.
+    'rlinks.features' () {
+      this.getBounds()
+    },
 
   },
   created () {
@@ -111,7 +115,7 @@ export default {
           { hover: true },
         )
 
-        this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id[0] })
+        this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id })
       }
     },
 
@@ -155,7 +159,7 @@ export default {
               lngLat: event.mapboxEvent.lngLat,
             }
             this.$emit('clickFeature', click)
-            this.getBounds()
+            // this.getBounds()
           }
         }
       }
@@ -176,16 +180,16 @@ export default {
 
     contextMenuNode (event) {
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-      this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
+      this.selectedFeature = features.filter(item => this.hoveredStateId.id.includes(item.id))
       if (this.hoveredStateId?.layerId === 'rnodes') {
         const click = {
-          selectedFeature: this.selectedFeature,
+          selectedFeature: this.selectedFeature[0],
           action: 'Edit rNode Info',
           lngLat: event.mapboxEvent.lngLat,
         }
         this.$emit('clickFeature', click)
       } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
-        this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedFeature })
+        this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedFeature[0] })
         this.getBounds()
       }
     },

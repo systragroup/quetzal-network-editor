@@ -41,7 +41,6 @@ export default {
         },
         {},
       )
-      console.log(ordered)
       return ordered
     },
   },

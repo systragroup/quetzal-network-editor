@@ -40,6 +40,7 @@ export default {
       mapIsLoaded: false,
       drawMode: false,
       hoverId: null,
+      hoverLayer: null,
       mapDiv: null,
       drawLink: null,
       mouseout: false,
@@ -201,25 +202,24 @@ export default {
       }
     },
     addPoint (event) {
-      // for a new Line
-      if (this.selectedNode.layerId === 'rnodes') {
-        console.log(this.connectedDrawLink)
-        console.log(this.selectedNode)
-        console.log(this.hoverId)
-        const pointGeom = Object.values(event.mapboxEvent.lngLat)
-        // this.$store.commit('createrLink', { node_a: this.selectedNode.id, node_b: this.hoverId, geom: pointGeom })
-      } else {
-        if (this.editorNodes.features.length === 0 && this.editorTrip) {
-          this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
-          this.$store.commit('changeNotification', { text: '', autoClose: true })
-        }
-        if (this.drawMode & !this.anchorMode & !this.hoverId) {
-          const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
-            ? 'Extend Line Upward'
-            : 'Extend Line Downward'
+      if (this.drawMode) {
+        if (this.selectedNode.layerId === 'rnodes') {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
+          this.$store.commit('createrLink', { nodeIdA: this.selectedNode.id, nodeIdB: this.hoverId, geom: pointGeom, layerId: this.hoverLayer })
+        } else {
+        // for a new Line
+          if (this.editorNodes.features.length === 0 && this.editorTrip) {
+            this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
+            this.$store.commit('changeNotification', { text: '', autoClose: true })
+          }
+          if (this.drawMode & !this.anchorMode & !this.hoverId) {
+            const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
+              ? 'Extend Line Upward'
+              : 'Extend Line Downward'
+            const pointGeom = Object.values(event.mapboxEvent.lngLat)
 
-          this.$store.commit('applyNewLink', { nodeId: this.selectedNode.id, geom: pointGeom, action: action })
+            this.$store.commit('applyNewLink', { nodeId: this.selectedNode.id, geom: pointGeom, action: action })
+          }
         }
       }
     },
@@ -254,27 +254,32 @@ export default {
         this.drawMode = true
       }
     },
-    onHoverrNode (event) {
+    onHoverRoad (event) {
       if (event?.layerId === 'rnodes') {
-        this.hoverId = event.selectedId
+        this.hoverLayer = event.layerId
+        this.hoverId = event.selectedId[0]
         if (this.drawMode) {
           // nodes are sticky. drawlink chanche size and style
           this.connectedDrawLink = true
         } else {
           this.connectedDrawLink = false
           const node = this.$store.getters.visiblerNodes.features.filter(node =>
-            node.properties.index === event.selectedId)
+            node.properties.index === event.selectedId[0])
           this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
           this.drawMode = true
           this.connectedDrawLink = false
           this.selectedNode.id = this.hoverId
           this.selectedNode.layerId = event.layerId
         }
+      } else if (event?.layerId === 'rlinks') {
+        this.hoverLayer = event.layerId
+        this.hoverId = event.selectedId
       }
     },
     offHover (event) {
       // put back visible draw line
       this.hoverId = null
+      this.hoverLayer = null
       if (this.drawMode) {
         this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
         this.connectedDrawLink = false
@@ -286,7 +291,11 @@ export default {
         this.drawMode = false
         // this.drawLink = Linestring([event.lngLat, event.lngLat])
       }
-      this.$emit('clickFeature', event)
+      // prevent emitting add road node inline when drawmode is on.
+      // we will add the node inlne and create the new link in this component.
+      if (!(event.action === 'Add Road Node Inline' && this.drawMode)) {
+        this.$emit('clickFeature', event)
+      }
     },
 
   },
@@ -313,7 +322,7 @@ export default {
         :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"
         :anchor-mode="anchorMode"
-        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverrNode, offHover:offHover,clickFeature: clickFeature}"
+        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
 

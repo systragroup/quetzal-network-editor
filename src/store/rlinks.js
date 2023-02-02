@@ -22,7 +22,6 @@ export default {
     visiblerNodes: {},
     connectedLinks: [],
     roadPopupContent: 'highway',
-    roadEditionMode: false,
     speed: 20,
   },
 
@@ -179,17 +178,15 @@ export default {
       link2.properties.time = link2.properties.time * (1 - ratio)
 
       state.visiblerLinks.features.push(link2)
-      state.visiblerNodes.features.push(state.newrNode.features[0])
       // update actual rlinks and rnodes
       state.rlinks.features.filter((link) => link.properties.index === link1.properties.index)[0] = link1
       state.rlinks.features.push(link2)
     },
 
     addRoadNodeInline (state, payload) {
-      // payload: selectedLink : list of links index
+      // selectedLink : list of links index
       // lngLat : object wit click geometry
       // nodes : str. name of node to add (rnode, anchorrNodeS)
-      // payload contain selectedLink and event.lngLat (clicked point)
       const selectedFeatures = state.visiblerLinks.features
         .filter((link) => payload.selectedLink.includes(link.properties.index))
       // for loop. for each selectedc links add the node and split.
@@ -205,6 +202,7 @@ export default {
           // only add one node, takes the first one.
           if (i === 0) {
             this.commit('createNewrNode', snapped.geometry.coordinates)
+            state.visiblerNodes.features.push(state.newrNode.features[0])
             state.rnodes.features.push(state.newrNode.features[0])
           }
           this.commit('splitrLink', { selectedFeature: selectedFeatures[i], offset: offset, sliceIndex: sliceIndex })
@@ -225,6 +223,49 @@ export default {
       // changing link change visible rLinks as it is an observer.
       const link = state.visiblerLinks.features[featureIndex]
       link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
+    },
+    createrLink (state, payload) {
+      // nodeIdA: node id, nodeIdB: node id, geom: array geom where we clicked, layerId: str. the layer id rnodes, rlinks
+      // 3 cases.
+      // 1) click on the map. create a node b then connect.
+      // 2) click on a node. create a link between node a and b
+      // 3) click on a link. create node inline b then create link a to b.
+      // create a node if we click on the map (case 1)
+      if (!payload.nodeIdB) {
+        this.commit('createNewrNode', payload.geom)
+        state.visiblerNodes.features.push(state.newrNode.features[0])
+        state.rnodes.features.push(state.newrNode.features[0])
+        payload.nodeIdB = state.newrNode.features[0].properties.index
+      } else if (payload.layerId === 'rlinks') {
+        // create a node inline and then the new link
+        this.commit('addRoadNodeInline', { selectedLink: payload.nodeIdB, lngLat: payload.geom, nodes: 'rnodes' })
+        payload.nodeIdB = state.newrNode.features[0].properties.index
+      }
+      const rnodeA = state.visiblerNodes.features.filter(node => node.properties.index === payload.nodeIdA)[0]
+      const rnodeB = state.visiblerNodes.features.filter(node => node.properties.index === payload.nodeIdB)[0]
+
+      const linkGeometry = {
+        coordinates: [rnodeA.geometry.coordinates, rnodeB.geometry.coordinates],
+        type: 'LineString',
+      }
+
+      const linkProperties = {}
+      // set default links values
+      state.rlineAttributes.forEach((key) => linkProperties[key] = null)
+      linkProperties.index = 'rlink_' + short.generate()
+      linkProperties.a = payload.nodeIdA
+      linkProperties.b = payload.nodeIdB
+      linkProperties.highway = 'quenedi'
+      // add length, speed, time now that we have a geometry.
+      const distance = length(linkGeometry)
+      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      linkProperties.length = Number((distance * 1000).toFixed(0)) // metres
+      linkProperties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      linkProperties.speed = Number(state.speed) // rounded to 0 decimals
+
+      const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
+      state.visiblerLinks.features.push(linkFeature)
+      state.rlinks.features.push(linkFeature)
     },
 
     getConnectedLinks (state, payload) {
