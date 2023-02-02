@@ -36,15 +36,12 @@ export default {
       // order editor Form in alphatical order
       const ordered = Object.keys(this.editorForm).sort().reduce(
         (obj, key) => {
-          // do not display disabled fields
-          if (!this.editorForm[key].disabled) {
-            obj[key] = this.editorForm[key]
-          }
-
+          obj[key] = this.editorForm[key]
           return obj
         },
         {},
       )
+      console.log(ordered)
       return ordered
     },
   },
@@ -133,7 +130,7 @@ export default {
         if (this.action === 'Edit Node Info') {
           this.editorForm = this.$store.getters.editorNodes.features.filter(
             (node) => node.properties.index === this.selectedNode.index)
-        } else {
+        } else if (this.action === 'Edit rNode Info') {
           this.editorForm = this.$store.getters.visiblerNodes.features.filter(
             (node) => node.properties.index === this.selectedNode.index)
         }
@@ -154,8 +151,12 @@ export default {
       } else if (['Cut Before Node', 'Cut After Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
-      } else if (['Add Stop Inline', 'Add Anchor Inline', 'Add Road Node Inline', 'Add Road Anchor Inline'].includes(this.action)) {
+      } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
         this.selectedLink = event.selectedFeature.properties
+        this.cursorPosition = event.lngLat
+        this.applyAction()
+      } else if (['Add Road Node Inline', 'Add Road Anchor Inline'].includes(this.action)) {
+        this.selectedLink = event.selectedFeature
         this.cursorPosition = event.lngLat
         this.applyAction()
       } else if (['Move rNode', 'Move rAnchor'].includes(this.action)) {

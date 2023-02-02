@@ -193,7 +193,7 @@ export default {
           this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
           this.mouseout = false
         }
-        if (this.drawMode && this.map.loaded() && !this.anchorMode) {
+        if (this.drawMode && !this.anchorMode) {
         // update draw line with new geometry.
           const geometry = [this.drawLink.geometry.coordinates[0], Object.values(event.mapboxEvent.lngLat)]
           this.drawLink = Linestring(geometry)
@@ -203,15 +203,17 @@ export default {
     addPoint (event) {
       // for a new Line
       if (this.selectedNode.layerId === 'rnodes') {
+        console.log(this.connectedDrawLink)
         console.log(this.selectedNode)
+        console.log(this.hoverId)
+        const pointGeom = Object.values(event.mapboxEvent.lngLat)
+        // this.$store.commit('createrLink', { node_a: this.selectedNode.id, node_b: this.hoverId, geom: pointGeom })
       } else {
         if (this.editorNodes.features.length === 0 && this.editorTrip) {
-          console.log('1')
           this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
           this.$store.commit('changeNotification', { text: '', autoClose: true })
         }
         if (this.drawMode & !this.anchorMode & !this.hoverId) {
-          console.log('2')
           const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
             ? 'Extend Line Upward'
             : 'Extend Line Downward'
@@ -269,16 +271,11 @@ export default {
           this.selectedNode.id = this.hoverId
           this.selectedNode.layerId = event.layerId
         }
-
-        // this.selectedAction = 'Draw New rLink'
-        // this.$store.commit('setNewrLink', { action: this.selectedAction })
       }
     },
     offHover (event) {
-      // put back drawmode offHover only if action is not null
+      // put back visible draw line
       this.hoverId = null
-      // const geometry = [this.drawLink.geometry.coordinates[0], this.drawLink.geometry.coordinates[0]]
-      // this.drawLink = Linestring(geometry)
       if (this.drawMode) {
         this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
         this.connectedDrawLink = false
@@ -287,7 +284,8 @@ export default {
     clickFeature (event) {
       // when we move a rNode, we need to update drawlink as it is link to this moved node.
       if (event.action === 'Move rNode') {
-        this.drawLink = Linestring([event.lngLat, event.lngLat])
+        this.drawMode = false
+        // this.drawLink = Linestring([event.lngLat, event.lngLat])
       }
       this.$emit('clickFeature', event)
     },

@@ -187,8 +187,9 @@ export default {
     },
 
     addRoadNodeInline (state, payload) {
+      console.log(payload.selectedLink)
       // payload contain selectedLink and event.lngLat (clicked point)
-      const selectedFeature = state.visiblerLinks.features.filter((link) => link.properties.index === payload.selectedLink.index)[0]
+      const selectedFeature = state.visiblerLinks.features.filter((link) => payload.selectedLink.includes(link.properties.index))[0]
       const linkGeom = Linestring(selectedFeature.geometry.coordinates)
       const clickedPoint = Point(Object.values(payload.lngLat))
       const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
@@ -219,9 +220,10 @@ export default {
     getConnectedLinks (state, payload) {
       const nodeIndex = payload.selectedNode.properties.index
       // get links connected to the node
+      // use rLinks as we could moidified links that are not visible moving a node.
       state.connectedLinks = {
-        b: state.visiblerLinks.features.filter(link => link.properties.b === nodeIndex),
-        a: state.visiblerLinks.features.filter(link => link.properties.a === nodeIndex),
+        b: state.rlinks.features.filter(link => link.properties.b === nodeIndex),
+        a: state.rlinks.features.filter(link => link.properties.a === nodeIndex),
       }
     },
     moverNode (state, payload) {

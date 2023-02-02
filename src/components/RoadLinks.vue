@@ -99,38 +99,41 @@ export default {
         this.map.getCanvas().style.cursor = 'pointer'
         if (this.hoveredStateId !== null) {
           this.map.setFeatureState(
-            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
             { hover: false },
           )
         }
-        this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id }
+        // get a list of all overID. if there is multiple superposed link get all of them!
+        const uniqueArray = [...new Set(event.mapboxEvent.features.map(item => item.id))]
+        this.hoveredStateId = { layerId: event.layerId, id: uniqueArray }
         this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
           { hover: true },
         )
 
-        this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id })
+        this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id[0] })
       }
     },
 
     offCursor (event) {
       // todo: error warning is throw sometime when we move a node over another node or anchor.
       if (this.popup.isOpen()) this.popup.remove()
+      if (this.hoveredStateId !== null) {
       // eslint-disable-next-line max-len
-
-      if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId?.layerId) && event.layerId === 'rlinks')) {
+        if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId?.layerId) && event.layerId === 'rlinks')) {
         // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
-        if (this.keepHovering) {
-          this.dragNode = true
+          if (this.keepHovering) {
+            this.dragNode = true
           // normal behaviours, hovering is false
-        } else {
-          this.map.getCanvas().style.cursor = ''
-          this.map.setFeatureState(
-            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
-            { hover: false },
-          )
-          this.hoveredStateId = null
-          this.$emit('offHover', event)
+          } else {
+            this.map.getCanvas().style.cursor = ''
+            this.map.setFeatureState(
+              { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
+              { hover: false },
+            )
+            this.hoveredStateId = null
+            this.$emit('offHover', event)
+          }
         }
       }
     },
@@ -138,8 +141,9 @@ export default {
     selectClick (event) {
       if (this.hoveredStateId !== null) {
         // Get the highlighted feature
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        // const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+        // this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
+        this.selectedFeature = this.hoveredStateId.id
         // Emit a click base on layer type (node or link)
 
         if (this.selectedFeature !== null) {
@@ -152,13 +156,6 @@ export default {
             }
             this.$emit('clickFeature', click)
             this.getBounds()
-          } else if (this.hoveredStateId.layerId === 'rnodes') {
-            const click = {
-              selectedFeature: this.selectedFeature,
-              action: 'Edit rNode Info',
-              lngLat: event.mapboxEvent.lngLat,
-            }
-            this.$emit('clickFeature', click)
           }
         }
       }
@@ -167,7 +164,7 @@ export default {
     linkRightClick (event) {
       if (this.hoveredStateId.layerId === 'rlinks') {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
         const click = {
           selectedFeature: this.selectedFeature,
           action: 'Edit rLink Info',
@@ -178,12 +175,16 @@ export default {
     },
 
     contextMenuNode (event) {
+      const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+      this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
       if (this.hoveredStateId?.layerId === 'rnodes') {
-        // const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        console.log(' this is tricky. how to connect links there are 4-8 links connected to a node?')
+        const click = {
+          selectedFeature: this.selectedFeature,
+          action: 'Edit rNode Info',
+          lngLat: event.mapboxEvent.lngLat,
+        }
+        this.$emit('clickFeature', click)
       } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
         this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedFeature })
         this.getBounds()
       }
@@ -198,7 +199,7 @@ export default {
         this.keepHovering = true
         // get selected node
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
         // disable popup
         this.disablePopup = true
         if (this.hoveredStateId.layerId === 'rnodes') {
@@ -312,7 +313,6 @@ export default {
       }"
       v-on="isEditorMode ? { } : { mouseenter: onCursor,
                                    mouseleave: offCursor,
-                                   click: selectClick,
                                    mousedown: moveNode,
                                    mouseup: stopMovingNode,
                                    contextmenu:contextMenuNode }"
