@@ -91,7 +91,7 @@ export default {
               <v-tab>{{ $gettext("Road Links") }}</v-tab>
             </v-tabs>
             <LinksSidePanel
-              v-if="!roadMode"
+              v-show="!roadMode"
               :height="height"
               :selected-trips="selectedTrips"
               @update-tripList="(e) => $emit('update-tripList', {type: 'links', data: e})"
@@ -101,7 +101,7 @@ export default {
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />
             <RoadSidePanel
-              v-if="roadMode"
+              v-show="roadMode"
               :height="height"
               :selected-trips="selectedrIndex"
               @update-tripList="(e) => $emit('update-tripList',{type: 'rlinks', data: e})"

@@ -206,6 +206,7 @@ export default {
         if (this.selectedNode.layerId === 'rnodes') {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
           this.$store.commit('createrLink', { nodeIdA: this.selectedNode.id, nodeIdB: this.hoverId, geom: pointGeom, layerId: this.hoverLayer })
+          this.$refs.roadref.getBounds()
         } else {
         // for a new Line
           if (this.editorNodes.features.length === 0 && this.editorTrip) {
@@ -318,6 +319,7 @@ export default {
     <MglNavigationControl position="bottom-right" />
     <template v-if="mapIsLoaded">
       <RoadLinks
+        ref="roadref"
         :map="map"
         :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"

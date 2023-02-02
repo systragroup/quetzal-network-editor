@@ -13,7 +13,6 @@ export default {
     rnodes: {},
     rlinksHeader: {},
     rnodesHeader: {},
-    rindexList: [],
     selectedrIndex: [],
     rlineAttributes: [],
     rnodeAttributes: [],
@@ -37,9 +36,7 @@ export default {
         state.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
         this.commit('getrLinksProperties')
-        this.commit('getrIndexList')
         // set all trips visible
-        // this.commit('addVisible', state.rindexList)
         // state.filesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
@@ -84,21 +81,17 @@ export default {
       header = Array.from(header)
       state.rnodeAttributes = header
     },
-    getrIndexList (state) {
-      state.rindexList = Array.from(new Set(state.rlinks.features.map(item => item.properties.index)))
-    },
+
     changeVisibleRoads (state, payload) {
       // trips list of visible trip_id.
       state.selectedrIndex = payload.data
       const cat = payload.category
       // eslint-disable-next-line max-len
       state.visiblerLinks.features = state.rlinks.features.filter(link => state.selectedrIndex.includes(link.properties[cat]))
-      console.log('links updated')
       this.commit('getVisiblerNodes')
-
-      console.log('nodes updadted')
     },
     getVisiblerNodes (state) {
+      console.log('get rnodes')
       // payload contain nodes. state.nodes or state.editorNodes
       // find the nodes in the editor links
       const a = state.visiblerLinks.features.map(item => item.properties.a)
@@ -111,21 +104,23 @@ export default {
     editrLinkInfo (state, payload) {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedLinkId, info } = payload
-      const props = Object.keys(info)
-      state.rlinks.features.filter(
-        function (link) {
-          if (link.properties.index === selectedLinkId) {
-            props.forEach((key) => link.properties[key] = info[key].value)
-          }
-        },
-      )
+      for (let i = 0; i < selectedLinkId.length; i++) {
+        const props = Object.keys(info[i])
+        state.rlinks.features.filter(
+          function (link) {
+            if (link.properties.index === selectedLinkId[i]) {
+              props.forEach((key) => link.properties[key] = info[i][key].value)
+            }
+          },
+        )
+      }
       this.commit('getEditorLineInfo')
     },
     editrNodeInfo (state, payload) {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedNodeId, info } = payload
       const props = Object.keys(info)
-      state.rnode.features.filter(
+      state.rnodes.features.filter(
         // eslint-disable-next-line array-callback-return
         function (node) {
           if (node.properties.index === selectedNodeId) {
@@ -343,7 +338,6 @@ export default {
     rlinksHeader: (state) => state.rlinksHeader,
     rnodesHeader: (state) => state.rnodesHeader,
     rlineAttributes: (state) => state.rlineAttributes,
-    rindexList: (state) => state.rindexList,
     selectedrIndex: (state) => state.selectedrIndex,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
@@ -365,6 +359,22 @@ export default {
       )
 
       return nodes
+    },
+    rlinksForm: (state) => (linkIndex) => {
+      const uneditable = ['a', 'b', 'index']
+      const editorForm = state.visiblerLinks.features.filter(
+        (link) => link.properties.index === linkIndex)[0].properties
+
+      // filter properties to only the one that are editable.
+      const form = {}
+      state.rlineAttributes.forEach(key => {
+        form[key] = {
+          value: editorForm[key],
+          disabled: uneditable.includes(key),
+          placeholder: false,
+        }
+      })
+      return form
     },
   },
 }

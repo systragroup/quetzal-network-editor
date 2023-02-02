@@ -22,7 +22,6 @@ export default {
   },
   computed: {
     filterChoices () { return this.$store.getters.rlineAttributes },
-    tripId () { return this.$store.getters.rindexList },
     filteredCat () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
@@ -61,7 +60,7 @@ export default {
     },
 
   },
-  created () {
+  mounted () {
     this.tripList = this.selectedTrips
     this.selectedFilter = 'highway'
     this.vmodelSelectedFilter = this.selectedFilter
@@ -126,7 +125,7 @@ export default {
             </v-icon>
           </v-btn>
         </template>
-        <span>{{ tripList == tripId? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ tripList.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         bottom

@@ -27,6 +27,7 @@ export default {
       deleteMessage: '',
       lingering: true,
       groupTripIds: [],
+      selectedTab: 0,
     }
   },
   computed: {
@@ -34,15 +35,23 @@ export default {
     selectedrIndex () { return this.$store.getters.selectedrIndex },
     orderedForm () {
       // order editor Form in alphatical order
-      const ordered = Object.keys(this.editorForm).sort().reduce(
+      let form = this.editorForm
+      // if we have tab. there is a list of form
+      if (form.length >= 1) {
+        form = form[this.selectedTab]
+      }
+      const ordered = Object.keys(form).sort().reduce(
         (obj, key) => {
-          obj[key] = this.editorForm[key]
+          obj[key] = form[key]
           return obj
         },
         {},
       )
       return ordered
     },
+  },
+  watch: {
+
   },
   created () {
     this.editorTrip = this.$store.getters.editorTrip
@@ -118,30 +127,9 @@ export default {
         this.editorForm = form
         this.showDialog = true
       } else if (this.action === 'Edit rLink Info') {
-        // link is clicked on the map
-        this.selectedLink = event.selectedFeature[0]
-        let uneditable = []
-        let lineAttributes = []
-        // map selected link doesnt return properties with null value. we need
-        // to get the links in the store with the selected index.
-
-        uneditable = ['a', 'b', 'index']
-        lineAttributes = this.$store.getters.rlineAttributes
-        this.editorForm = this.$store.getters.visiblerLinks.features.filter(
-          (link) => link.properties.index === this.selectedLink)
-
-        this.editorForm = this.editorForm[0].properties
-
-        // filter properties to only the one that are editable.
-        const form = {}
-        lineAttributes.forEach(key => {
-          form[key] = {
-            value: this.editorForm[key],
-            disabled: uneditable.includes(key),
-            placeholder: false,
-          }
-        })
-        this.editorForm = form
+        this.selectedLink = event.selectedFeature
+        this.selectedTab = 0
+        this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
         this.showDialog = true
       } else if (['Edit Node Info', 'Edit rNode Info'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
@@ -327,11 +315,22 @@ export default {
       <v-card
         max-height="60rem"
       >
+        <v-tabs
+          v-if=" (editorForm.length > 1) "
+          v-model="selectedTab"
+          grow
+        >
+          <v-tab
+            v-for="link in selectedLink"
+            :key="link"
+          >
+            {{ link }}
+          </v-tab>
+        </v-tabs>
         <v-card-title class="text-h5">
           {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
-
         <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info','Edit rLink Info', 'Edit rNode Info'].includes(action)">
           <v-list>
             <v-text-field

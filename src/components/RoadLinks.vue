@@ -51,10 +51,6 @@ export default {
   },
 
   watch: {
-    // when visible links changes, reload.
-    'rlinks.features' () {
-      this.getBounds()
-    },
     anchorMode () { this.getBounds() },
 
   },
@@ -70,12 +66,13 @@ export default {
 
   methods: {
     getBounds () {
+      console.log(this.rnodes.features.length)
       // should change to a road edition mode too.
       if (!this.isEditorMode) {
-      // get map bounds and return only the features inside of it.
-      // this way, only the visible links and node are rendered and updating is fast
-      // (i.e. moving a node in real time)
-      // note only line inside the bbox (buffured) are visible.
+        // get map bounds and return only the features inside of it.
+        // this way, only the visible links and node are rendered and updating is fast
+        // (i.e. moving a node in real time)
+        // note only line inside the bbox (buffured) are visible.
         const bounds = this.map.getBounds()
         // create a BBOX with a 800m buffer
         this.bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.8)
@@ -88,8 +85,8 @@ export default {
           this.renderedrLinks.features = []
         }
         if (this.map.getZoom() > this.minZoom.nodes) {
-          this.renderedrNodes.features = this.rnodes.features.filter(node => booleanContains(this.bbox, node))
-          this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
+          this.renderedrNodes.features = structuredClone(this.rnodes.features.filter(node => booleanContains(this.bbox, node)))
+          this.renderedAnchorrNodes.features = structuredClone(this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node)))
         } else {
           this.renderedrNodes.features = []
           this.renderedAnchorrNodes.features = []
@@ -200,16 +197,19 @@ export default {
     contextMenuNode (event) {
       const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
       this.selectedFeature = features.filter(item => this.hoveredStateId.id.includes(item.id))
-      if (this.hoveredStateId?.layerId === 'rnodes') {
-        const click = {
-          selectedFeature: this.selectedFeature[0],
-          action: 'Edit rNode Info',
-          lngLat: event.mapboxEvent.lngLat,
+
+      if (this.selectedFeature.length > 0) {
+        if (this.hoveredStateId?.layerId === 'rnodes') {
+          const click = {
+            selectedFeature: this.selectedFeature[0],
+            action: 'Edit rNode Info',
+            lngLat: event.mapboxEvent.lngLat,
+          }
+          this.$emit('clickFeature', click)
+        } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
+          this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedFeature[0] })
+          this.getBounds()
         }
-        this.$emit('clickFeature', click)
-      } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
-        this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedFeature[0] })
-        this.getBounds()
       }
     },
 
