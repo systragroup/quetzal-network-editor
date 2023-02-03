@@ -136,6 +136,7 @@ export default {
             icon
             class="ma-2"
             color="white"
+            :disabled="true"
             v-bind="attrs"
             v-on="on"
             @click="propertiesButton(tripList)"
@@ -211,10 +212,11 @@ export default {
       <v-virtual-scroll
         :items="filteredCat"
         :item-height="45"
+        :height="height-75"
       >
         <template v-slot="{ item }">
           <v-list-item
-            :key="String(item)"
+            :key="item"
             class="pl-2"
           >
             <v-list-item-action>
@@ -306,26 +308,6 @@ export default {
           <span>{{ $gettext("Edit Line geometry") }}</span>
         </v-tooltip>
         <v-spacer />
-
-        <v-tooltip
-          bottom
-          open-delay="500"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              v-bind="attrs"
-              color="primary"
-              class="text--primary"
-              fab
-              small
-              v-on="on"
-              @click="createNewLine"
-            >
-              <v-icon>fas fa-plus</v-icon>
-            </v-btn>
-          </template>
-          <span>{{ $gettext("Create new Line") }}</span>
-        </v-tooltip>
       </v-list-item>
     </v-card>
     <v-dialog

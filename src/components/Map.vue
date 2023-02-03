@@ -29,6 +29,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    isRoadMode: {
+      type: Boolean,
+      default: false,
+    },
 
   },
   events: ['clickFeature'],
@@ -321,10 +325,10 @@ export default {
       <RoadLinks
         ref="roadref"
         :map="map"
-        :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"
+        :is-road-mode="isRoadMode"
         :anchor-mode="anchorMode"
-        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+        v-on="isEditorMode? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
 

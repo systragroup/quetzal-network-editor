@@ -8,14 +8,14 @@ export default {
     RoadSidePanel,
   },
   props: ['selectedTrips', 'selectedrIndex'],
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine'],
+  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine', 'isRoadMode'],
 
   data () {
     return {
       showLeftPanelContent: true,
       height: null,
-      tab: 1,
-      roadMode: true,
+      tab: 0,
+      roadMode: false,
     }
   },
   computed: {
@@ -40,6 +40,7 @@ export default {
       } else {
         this.roadMode = false
       }
+      this.$emit('isRoadMode', this.roadMode)
     },
   },
 

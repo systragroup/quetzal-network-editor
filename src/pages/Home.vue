@@ -28,6 +28,7 @@ export default {
       lingering: true,
       groupTripIds: [],
       selectedTab: 0,
+      isRoadMode: false,
     }
   },
   computed: {
@@ -385,9 +386,11 @@ export default {
       @abortChanges="abortChanges"
       @deleteButton="deleteButton"
       @propertiesButton="actionClick"
+      @isRoadMode="(e) => isRoadMode = e"
     />
     <Map
       :selected-trips="selectedTrips"
+      :is-road-mode="isRoadMode"
       @clickFeature="actionClick"
     />
   </section>

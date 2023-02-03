@@ -91,7 +91,6 @@ export default {
       this.commit('getVisiblerNodes')
     },
     getVisiblerNodes (state) {
-      console.log('get rnodes')
       // payload contain nodes. state.nodes or state.editorNodes
       // find the nodes in the editor links
       const a = state.visiblerLinks.features.map(item => item.properties.a)
@@ -326,7 +325,6 @@ export default {
       const linkArr = payload.selectedLink
       state.rlinks.features = state.rlinks.features.filter(link => !linkArr.includes(link.properties.index))
       state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !linkArr.includes(link.properties.index))
-      console.log('getVisiblerNodes is slow')
       this.commit('getVisiblerNodes')
     },
 
