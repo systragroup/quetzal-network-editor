@@ -11,14 +11,26 @@ async function extractZip (file) {
       const str = await zip.file(filesNames[i]).async('string')
       const content = JSON.parse(str)
       if (content.features[0].geometry.type === 'LineString') {
-        result.links = content
+        if (filesNames[i].includes('road')) {
+          result.road_links = content
+        } else {
+          result.links = content
+        }
       } else if (content.features[0].geometry.type === 'Point') {
-        result.nodes = content
+        if (filesNames[i].includes('road')) {
+          result.road_nodes = content
+        } else {
+          result.nodes = content
+        }
       }
     }
   }
-  if (result.links == null) { throw new Error(`There is no valid link.geojson in ${file.name}`) }
-  if (result.nodes == null) { throw new Error(`There is no valid nodes.geojson in ${file.name}`) }
+  if ((result.links == null) && (result.road_links == null)) {
+    throw new Error(`There is no valid link or road_links in ${file.name}`)
+  }
+  if ((result.nodes == null) && result.road_nodes == null) {
+    throw new Error(`There is no valid nodes or road_nodes in ${file.name}`)
+  }
   return result
 }
 

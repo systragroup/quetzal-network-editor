@@ -245,7 +245,7 @@ export default {
             {{ $gettext("Load Files") }}
           </div>
           <div>
-            {{ $gettext("Links and Nodes files must be geojson in EPSG:4326") }}
+            {{ $gettext("Links and Nodes files must be geojson in EPSG:4326.") }}
           </div>
           <div class=" text-xs-center">
             <v-btn
@@ -297,7 +297,11 @@ export default {
               </template>
               <span>{{ $gettext("Load zip files containing") }}</span>
               <br>
-              <span>{{ $gettext("nodes.geojson and links.geojson") }}</span>
+              <span>{{ $gettext("nodes.geojson and links.geojson or") }}</span>
+              <br>
+              <span>{{ $gettext("road_nodes.geojson and road_links.geojson") }}</span>
+              <br>
+              <span>{{ $gettext("or both the PT and road geojsons") }}</span>
             </v-tooltip>
           </div>
           <input
