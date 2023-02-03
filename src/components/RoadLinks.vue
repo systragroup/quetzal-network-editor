@@ -68,6 +68,10 @@ export default {
     this.map.on('dragend', () => this.getBounds())
     this.map.on('zoomend', () => this.getBounds())
   },
+  beforeDestroy () {
+    // remove arrow layer first as it depend on rlink layer
+    this.map.removeLayer('arrow-rlinks')
+  },
 
   methods: {
     getBounds () {

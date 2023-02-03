@@ -39,24 +39,6 @@ export default {
 
     vmodelSelectedFilter (newVal, oldVal) {
       this.selectedFilter = newVal
-      // prevent group larger than 500.
-      if (this.filteredCat.length > 1000000) {
-        // if it is larger, return to oldValue
-        this.selectedFilter = oldVal
-        // display error message
-        this.$store.commit('changeNotification',
-          {
-            text: $gettext('Cannot filter by this field. There is more than 1 000 000 groups'),
-            autoClose: true,
-            color: 'red darken-2',
-          })
-        // return the value in the v-select as the old Value
-        // eslint-disable-next-line no-return-assign
-        this.$nextTick(() => { this.vmodelSelectedFilter = oldVal })
-      } else {
-        // reset tripList
-        this.tripList = []
-      }
     },
 
   },

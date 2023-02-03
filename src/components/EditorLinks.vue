@@ -217,6 +217,7 @@ export default {
       // this will work with lag as it is the selectedFeature and not the highlighted one.
     },
   },
+
 }
 </script>
 <template>
