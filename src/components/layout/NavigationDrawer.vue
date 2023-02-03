@@ -45,7 +45,7 @@ export default {
     },
 
     saveFile () {
-      this.$store.commit('exportFiles')
+      this.$store.commit('exportFiles', 'all')
     },
 
   },

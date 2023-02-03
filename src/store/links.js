@@ -4,8 +4,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
-import JSZip from 'jszip'
-import saveAs from 'file-saver'
+
 const short = require('short-uuid')
 
 export default {
@@ -679,44 +678,6 @@ export default {
       this.commit('deleteUnusedNodes')
       // get tripId list
       this.commit('getTripId')
-    },
-
-    exportFiles (state, payload = []) {
-      const zip = new JSZip()
-      // const folder = zip.folder('output') // create a folder for the files.
-      let links = ''
-      let nodes = ''
-      // export only visible line (line selected)
-      if (payload.length >= 1) {
-        const tempLinks = structuredClone(state.links)
-        tempLinks.features = tempLinks.features.filter(link => payload.includes(link.properties.trip_id))
-        links = JSON.stringify(tempLinks)
-        // delete every every nodes not in links
-        const a = tempLinks.features.map(item => item.properties.a)
-        const b = tempLinks.features.map(item => item.properties.b)
-        const nodesInLinks = Array.from(new Set([...a, ...b]))
-        const tempNodes = structuredClone(state.nodes)
-        tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
-        nodes = JSON.stringify(tempNodes)
-
-      // export everything
-      } else {
-        links = JSON.stringify(state.links)
-        nodes = JSON.stringify(state.nodes)
-      }
-      // eslint-disable-next-line no-var
-      var blob = new Blob([links], { type: 'application/json' })
-      // use folder.file if you want to add it to a folder
-      zip.file('links.geojson', blob)
-      // eslint-disable-next-line no-var, no-redeclare
-      var blob = new Blob([nodes], { type: 'application/json' })
-      // use folder.file if you want to add it to a folder
-      zip.file('nodes.geojson', blob)
-      zip.generateAsync({ type: 'blob' })
-        .then(function (content) {
-          // see FileSaver.js
-          saveAs(content, state.outputName + '.zip')
-        })
     },
   },
 

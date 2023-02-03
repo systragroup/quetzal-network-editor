@@ -147,7 +147,7 @@ export default {
         <v-list>
           <v-list-item
             link
-            @click="$store.commit('exportFiles')"
+            @click="$store.commit('exportFiles','all')"
           >
             <v-list-item-title>
               {{ $gettext("Export All") }}
@@ -155,7 +155,7 @@ export default {
           </v-list-item>
           <v-list-item
             link
-            @click="$store.commit('exportFiles',tripList)"
+            @click="$store.commit('exportFiles','visible')"
           >
             <v-list-item-title>
               {{ $gettext("Export Only Visible") }}

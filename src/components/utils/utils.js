@@ -6,10 +6,13 @@ async function extractZip (file) {
   const filesNames = Object.keys(zip.files)
   // process ZIP file content here
   const result = { links: null, nodes: null, road_links: null, road_nodes: null }
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < filesNames.length; i++) {
     if (zip.files[filesNames[i]].name.slice(-7) === 'geojson') {
       const str = await zip.file(filesNames[i]).async('string')
       const content = JSON.parse(str)
+      if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs.properties.name)) {
+        alert('invalid CRS. use CRS84 / EPSG:4326')
+      }
       if (content.features[0].geometry.type === 'LineString') {
         if (filesNames[i].includes('road')) {
           result.road_links = content
