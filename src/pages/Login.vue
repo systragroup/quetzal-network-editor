@@ -3,8 +3,6 @@
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip } from '../components/utils/utils.js'
-import road_links from '@static/road_links_exemple.geojson'
-import road_nodes from '@static/road_nodes_exemple.geojson'
 
 // rlinks.features.forEach(link => link.properties._hidden = true)
 // const ls = ['rlink_1', 'rlins_2', 'rlink_10']
@@ -121,8 +119,16 @@ export default {
         .then(res => res.json())
         .then(out => { this.loadedNodes = out })
         .catch(err => { alert(err) })
-      this.loadedrLinks = road_links
-      this.loadedrNodes = road_nodes
+
+      fetch(url + 'road_links_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedrLinks = out })
+        .catch(err => { alert(err) })
+
+      fetch(url + 'road_nodes_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedrNodes = out })
+        .catch(err => { alert(err) })
     },
     newProject () {
       this.loadedLinks = linksBase
@@ -151,7 +157,13 @@ export default {
       if (this.choice === 'links') {
         fileReader.onload = evt => {
           try {
-            this.loadedLinks = JSON.parse(evt.target.result)
+            if (files[0].name.includes('road')) {
+              this.loadedrLinks = JSON.parse(evt.target.result)
+              this.loadedLinks = linksBase
+            } else {
+              this.loadedLinks = JSON.parse(evt.target.result)
+              this.loadedrLinks = linksBase
+            }
           } catch (e) {
             this.$store.commit('changeNotification', { text: e.message, autoClose: true, color: 'red darken-2' })
             this.loading[this.choice] = false
@@ -160,7 +172,13 @@ export default {
       } else if (this.choice === 'nodes') {
         fileReader.onload = evt => {
           try {
-            this.loadedNodes = JSON.parse(evt.target.result)
+            if (files[0].name.includes('road')) {
+              this.loadedrNodes = JSON.parse(evt.target.result)
+              this.loadedNodes = nodesBase
+            } else {
+              this.loadedNodes = JSON.parse(evt.target.result)
+              this.loadedrNodes = nodesBase
+            }
           } catch (e) {
             alert(e.message)
             this.loading[this.choice] = false

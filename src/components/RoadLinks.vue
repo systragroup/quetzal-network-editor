@@ -187,9 +187,9 @@ export default {
         lngLat: event.coordinates,
       }
       this.$emit('clickFeature', click)
-
       this.contextMenu.showed = false
       this.contextMenu.type = null
+      this.getBounds()
     },
 
     contextMenuNode (event) {
