@@ -31,9 +31,8 @@ export default {
     filesAreLoaded () { return this.$store.getters.filesAreLoaded },
     localFilesAreLoaded () {
       return !((Object.keys(this.loadedLinks).length === 0 ||
-                Object.keys(this.loadedNodes).length === 0 ||
-                Object.keys(this.loadedrLinks).length === 0 ||
-                Object.keys(this.loadedrNodes).length === 0))
+                Object.keys(this.loadedNodes).length === 0
+      ))
     },
   },
   watch: {
@@ -192,14 +191,13 @@ export default {
       // when all files are read
       Promise.all(PromisesList).then(files => {
         // asign first file to links and node var
-        console.log(files)
-        const links = files[0].links
-        const nodes = files[0].nodes
-        const rlinks = files[0].road_links
-        const rnodes = files[0].road_nodes
+        const links = structuredClone(linksBase)
+        const nodes = structuredClone(nodesBase)
+        const rlinks = structuredClone(linksBase)
+        const rnodes = structuredClone(nodesBase)
 
         // for each other files concat, concat to links and nodes
-        for (let i = 1; i < files.length; i++) {
+        for (let i = 0; i < files.length; i++) {
           if (files[i].links) { // group so there is no links read without nodes
             links.features.push(...files[i].links.features)
             nodes.features.push(...files[i].nodes.features)
@@ -211,10 +209,10 @@ export default {
         }
         // then its finish
         // if there was nothing, apply base one.
-        this.loadedLinks = links || linksBase
-        this.loadedNodes = nodes || nodesBase
-        this.loadedrLinks = rlinks || linksBase
-        this.loadedrNodes = rnodes || nodesBase
+        this.loadedLinks = links
+        this.loadedNodes = nodes
+        this.loadedrLinks = rlinks
+        this.loadedrNodes = rnodes
 
         this.loading.zip = false
       }).catch(err => {

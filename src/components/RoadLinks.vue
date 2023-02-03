@@ -43,6 +43,7 @@ export default {
   },
   computed: {
     selectedPopupContent () { return this.$store.getters.roadPopupContent },
+    selectedrIndex () { return this.$store.getters.selectedrIndex },
     rnodes () { return this.$store.getters.visiblerNodes },
     rlinks () { return this.$store.getters.visiblerLinks },
     anchorrNodes () {
@@ -53,12 +54,7 @@ export default {
 
   watch: {
     anchorMode () { this.getBounds() },
-    isRoadMode (val) {
-
-    },
-    isEditorMode (val) {
-
-    },
+    selectedrIndex (val) { this.getBounds() },
 
   },
   created () {

@@ -5,7 +5,7 @@ async function extractZip (file) {
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
   // process ZIP file content here
-  const result = { links: null, nodes: null }
+  const result = { links: null, nodes: null, road_links: null, road_nodes: null }
   for (let i = 0; i < 2; i++) {
     if (zip.files[filesNames[i]].name.slice(-7) === 'geojson') {
       const str = await zip.file(filesNames[i]).async('string')
