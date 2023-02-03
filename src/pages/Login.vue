@@ -3,8 +3,8 @@
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip } from '../components/utils/utils.js'
-import road_links from '@static/road_links.geojson'
-import road_nodes from '@static/road_nodes.geojson'
+import road_links from '@static/road_links_exemple.geojson'
+import road_nodes from '@static/road_nodes_exemple.geojson'
 
 // rlinks.features.forEach(link => link.properties._hidden = true)
 // const ls = ['rlink_1', 'rlins_2', 'rlink_10']
@@ -18,6 +18,8 @@ export default {
     return {
       loggedIn: false,
       loadedLinks: {},
+      loadedrLinks: {},
+      loadedrNodes: {},
       loadedNodes: {},
       choice: null,
       loading: { links: false, nodes: false, zip: false },
@@ -28,19 +30,26 @@ export default {
   computed: {
     filesAreLoaded () { return this.$store.getters.filesAreLoaded },
     localFilesAreLoaded () {
-      return !((Object.keys(this.loadedLinks).length === 0 || Object.keys(this.loadedNodes).length === 0))
+      return !((Object.keys(this.loadedLinks).length === 0 ||
+                Object.keys(this.loadedNodes).length === 0 ||
+                Object.keys(this.loadedrLinks).length === 0 ||
+                Object.keys(this.loadedrNodes).length === 0))
     },
   },
   watch: {
     loadedLinks (value) {
       this.$store.commit('loadLinks', value)
-      this.$store.commit('loadrLinks', linksBase)
       this.loading.links = false
     },
     loadedNodes (value) {
       this.$store.commit('loadNodes', value)
-      this.$store.commit('loadrNodes', nodesBase)
       this.loading.nodes = false
+    },
+    loadedrLinks (value) {
+      this.$store.commit('loadrLinks', value)
+    },
+    loadedrNodes (value) {
+      this.$store.commit('loadrNodes', value)
     },
     localFilesAreLoaded (val) {
       if (val) {
@@ -95,6 +104,7 @@ export default {
         // this only happen when both files are loaded.
         // remove links and nodes from store. (and filesAreLoaded)
         this.$store.commit('unloadFiles')
+        this.$store.commit('unloadrFiles')
         // handle click and open file explorer
         this.$refs.fileInput.click()
       }
@@ -112,10 +122,14 @@ export default {
         .then(res => res.json())
         .then(out => { this.loadedNodes = out })
         .catch(err => { alert(err) })
+      this.loadedrLinks = road_links
+      this.loadedrNodes = road_nodes
     },
     newProject () {
       this.loadedLinks = linksBase
       this.loadedNodes = nodesBase
+      this.loadedrLinks = linksBase
+      this.loadedrNodes = nodesBase
     },
 
     onFilePicked (event) {
@@ -178,16 +192,30 @@ export default {
       // when all files are read
       Promise.all(PromisesList).then(files => {
         // asign first file to links and node var
+        console.log(files)
         const links = files[0].links
         const nodes = files[0].nodes
+        const rlinks = files[0].road_links
+        const rnodes = files[0].road_nodes
+
         // for each other files concat, concat to links and nodes
         for (let i = 1; i < files.length; i++) {
-          links.features.push(...files[i].links.features)
-          nodes.features.push(...files[i].nodes.features)
+          if (files[i].links) { // group so there is no links read without nodes
+            links.features.push(...files[i].links.features)
+            nodes.features.push(...files[i].nodes.features)
+          }
+          if (files[i].road_links) {
+            rlinks.features.push(...files[i].road_links.features)
+            rnodes.features.push(...files[i].road_nodes.features)
+          }
         }
         // then its finish
-        this.loadedLinks = links
-        this.loadedNodes = nodes
+        // if there was nothing, apply base one.
+        this.loadedLinks = links || linksBase
+        this.loadedNodes = nodes || nodesBase
+        this.loadedrLinks = rlinks || linksBase
+        this.loadedrNodes = rnodes || nodesBase
+
         this.loading.zip = false
       }).catch(err => {
         this.loading.zip = false

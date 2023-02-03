@@ -20,6 +20,7 @@ export default {
     visiblerLinks: {},
     visiblerNodes: {},
     connectedLinks: [],
+    rfilesAreLoaded: { links: false, nodes: false },
     roadPopupContent: 'highway',
     speed: 20,
   },
@@ -37,7 +38,7 @@ export default {
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
         this.commit('getrLinksProperties')
         // set all trips visible
-        // state.filesAreLoaded.links = true
+        state.rfilesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
@@ -53,8 +54,17 @@ export default {
           coord => Math.round(Number(coord) * 1000000) / 1000000))
 
         this.commit('getrNodesProperties')
-        // state.filesAreLoaded.nodes = true
+        state.rfilesAreLoaded.nodes = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
+    },
+    unloadrFiles (state) {
+      // when we reload files (some were already loaded.)
+      state.rfilesAreLoaded = { links: false, nodes: false }
+      state.rlinks = {}
+      state.rnodes = {}
+      state.visiblerLinks = {}
+      state.visiblerNodes = {}
+      state.selectedrIndex = []
     },
     getrLinksProperties (state) {
       let header = new Set([])
