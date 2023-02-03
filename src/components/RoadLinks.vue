@@ -166,7 +166,7 @@ export default {
               lngLat: event.mapboxEvent.lngLat,
             }
             this.$emit('clickFeature', click)
-            // this.getBounds()
+            this.getBounds()
           }
         }
       }

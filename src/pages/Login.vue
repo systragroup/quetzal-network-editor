@@ -34,12 +34,12 @@ export default {
   watch: {
     loadedLinks (value) {
       this.$store.commit('loadLinks', value)
-      this.$store.commit('loadrLinks', road_links)
+      this.$store.commit('loadrLinks', linksBase)
       this.loading.links = false
     },
     loadedNodes (value) {
       this.$store.commit('loadNodes', value)
-      this.$store.commit('loadrNodes', road_nodes)
+      this.$store.commit('loadrNodes', nodesBase)
       this.loading.nodes = false
     },
     localFilesAreLoaded (val) {

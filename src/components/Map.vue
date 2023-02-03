@@ -212,11 +212,6 @@ export default {
           this.$store.commit('createrLink', { nodeIdA: this.selectedNode.id, nodeIdB: this.hoverId, geom: pointGeom, layerId: this.hoverLayer })
           this.$refs.roadref.getBounds()
         } else {
-        // for a new Line
-          if (this.editorNodes.features.length === 0 && this.editorTrip) {
-            this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
-            this.$store.commit('changeNotification', { text: '', autoClose: true })
-          }
           if (this.drawMode & !this.anchorMode & !this.hoverId) {
             const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
               ? 'Extend Line Upward'
@@ -225,6 +220,12 @@ export default {
 
             this.$store.commit('applyNewLink', { nodeId: this.selectedNode.id, geom: pointGeom, action: action })
           }
+        }
+      } else {
+        // for a new Line
+        if (this.editorNodes.features.length === 0 && this.editorTrip) {
+          this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
+          this.$store.commit('changeNotification', { text: '', autoClose: true })
         }
       }
     },
