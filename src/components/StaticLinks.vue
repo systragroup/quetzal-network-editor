@@ -82,6 +82,8 @@ export default {
       // get visible links and nodes.
       // const startTime = performance.now()
       if (method === 'all') {
+        this.visibleLinks.feature = []
+        this.visibleNodes.features = []
         // eslint-disable-next-line max-len
         this.visibleLinks.features = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
         // get all unique width

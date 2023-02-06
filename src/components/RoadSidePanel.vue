@@ -93,7 +93,7 @@ export default {
             @click="showAll()"
           >
             <v-icon class="list-item-icon">
-              fa-eye fa
+              {{ tripList.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa' }}
             </v-icon>
           </v-btn>
         </template>
