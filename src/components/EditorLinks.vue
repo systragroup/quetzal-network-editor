@@ -145,8 +145,13 @@ export default {
         }
       } else if (this.hoveredStateId?.layerId === 'anchorNodes') {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
-        this.$store.commit('deleteAnchorNode', { selectedNode: this.selectedFeature })
+        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)
+        const click = {
+          selectedFeature: this.selectedFeature[0],
+          action: 'Delete Anchor',
+          lngLat: null,
+        }
+        this.$emit('clickFeature', click)
       }
     },
 
@@ -197,10 +202,17 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode) {
+        const click = {
+          selectedFeature: this.selectedFeature,
+          action: null,
+          lngLat: Object.values(event.lngLat),
+        }
         if (this.hoveredStateId.layerId === 'anchorNodes') {
-          this.$store.commit('moveAnchor', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          click.action = 'Move Anchor'
+          this.$emit('clickFeature', click)
         } else {
-          this.$store.commit('moveNode', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          click.action = 'Move Node'
+          this.$emit('clickFeature', click)
         }
       }
     },

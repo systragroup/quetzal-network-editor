@@ -444,8 +444,8 @@ export default {
       link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
     },
     deleteAnchorNode (state, payload) {
-      const linkIndex = payload.selectedNode.properties.linkIndex
-      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const linkIndex = payload.selectedNode.linkIndex
+      const coordinatedIndex = payload.selectedNode.coordinatedIndex
       const link = state.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]

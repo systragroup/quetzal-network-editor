@@ -76,6 +76,7 @@ export default {
     },
 
     actionClick (event) {
+      console.log(event)
       this.action = event.action
 
       if (this.action === 'Edit Line Info') {
@@ -157,7 +158,7 @@ export default {
           }, {})
         this.editorForm = filtered
         this.showDialog = true
-      } else if (['Cut Before Node', 'Cut After Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
+      } else if (['Cut Before Node', 'Cut After Node', 'Move Stop', 'Delete Stop', 'Delete Anchor', 'Delete Road Anchor'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
       } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
@@ -168,7 +169,7 @@ export default {
         this.selectedLink = event.selectedFeature
         this.cursorPosition = event.lngLat
         this.applyAction()
-      } else if (['Move rNode', 'Move rAnchor'].includes(this.action)) {
+      } else if (['Move Node', 'Move Anchor', 'Move rNode', 'Move rAnchor'].includes(this.action)) {
         this.selectedNode = event.selectedFeature
         this.cursorPosition = event.lngLat
         this.applyAction()
@@ -231,6 +232,9 @@ export default {
             nodes: 'anchorNodes',
           })
           break
+        case 'Delete Anchor':
+          this.$store.commit('deleteAnchorNode', { selectedNode: this.selectedNode })
+          break
         case 'Edit rLink Info':
           this.$store.commit('editrLinkInfo', { selectedLinkId: this.selectedLink, info: this.editorForm })
           break
@@ -251,11 +255,20 @@ export default {
             nodes: 'anchorrNodes',
           })
           break
+        case 'Move Node':
+          this.$store.commit('moveNode', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Move Anchor':
+          this.$store.commit('moveAnchor', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
         case 'Move rNode':
           this.$store.commit('moverNode', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
           break
         case 'Move rAnchor':
           this.$store.commit('moverAnchor', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Delete Road Anchor':
+          this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedNode })
           break
         case 'Delete rLink':
           this.$store.commit('deleterLink', { selectedLink: this.selectedLink })

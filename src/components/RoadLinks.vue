@@ -205,7 +205,12 @@ export default {
           }
           this.$emit('clickFeature', click)
         } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
-          this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedFeature[0] })
+          const click = {
+            selectedFeature: this.selectedFeature[0],
+            action: 'Delete Road Anchor',
+            lngLat: null,
+          }
+          this.$emit('clickFeature', click)
           this.getBounds()
         }
       }

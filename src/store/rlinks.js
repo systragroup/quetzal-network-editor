@@ -325,8 +325,8 @@ export default {
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
     deleteAnchorrNode (state, payload) {
-      const linkIndex = payload.selectedNode.properties.linkIndex
-      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const linkIndex = payload.selectedNode.linkIndex
+      const coordinatedIndex = payload.selectedNode.coordinatedIndex
       const link = state.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
