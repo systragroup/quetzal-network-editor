@@ -37,4 +37,17 @@ async function extractZip (file) {
   return result
 }
 
-export { extractZip }
+function getGroupForm (features, lineAttributes, uneditable) {
+  const form = {}
+  lineAttributes.forEach(key => {
+    const val = new Set(features.map(link => link.properties[key]))
+    form[key] = {
+      value: val.size > 1 ? '' : [...val][0],
+      disabled: uneditable.includes(key),
+      placeholder: val.size > 1,
+    }
+  })
+  return form
+}
+
+export { extractZip, getGroupForm }

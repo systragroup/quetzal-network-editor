@@ -49,12 +49,20 @@ export default {
 
     propertiesButton (value) {
       // select the TripId and open dialog
-      if (typeof value === 'object') {
-        this.$emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
-      } else {
-        this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
-      }
+      this.$emit('propertiesButton', {
+        action: 'Edit Road Group Info',
+        lingering: false,
+        category: this.vmodelSelectedFilter,
+        group: value,
+      })
+
+      // if (typeof value === 'object') {
+      //   console.log('ob')
+      //
+      // } else {
+      //   this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
+      //   this.$store.commit('changeNotification', { text: '', autoClose: true })
+      // }
     },
 
     deleteButton (obj) {
@@ -217,7 +225,7 @@ export default {
                   icon
                   class="ma-1"
                   v-bind="attrs"
-                  :disabled="true"
+                  :disabled="false"
                   v-on="on"
                   @click="propertiesButton(item)"
                 >

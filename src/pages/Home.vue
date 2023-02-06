@@ -3,6 +3,7 @@
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 import ColorPicker from '../components/utils/ColorPicker.vue'
+import { getGroupForm } from '../components/utils/utils.js'
 
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
@@ -78,60 +79,44 @@ export default {
 
     actionClick (event) {
       this.action = event.action
-
       if (this.action === 'Edit Line Info') {
         this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
         this.lingering = event.lingering
         this.showDialog = true
       } else if (this.action === 'Edit Group Info') {
         this.groupTripIds = event.tripIds
-        const lineAttributes = this.$store.getters.lineAttributes
-        let features = structuredClone(this.$store.getters.links.features)
-        features = features.filter(link => this.groupTripIds.includes(link.properties.trip_id))
         const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
-        const form = {}
-        lineAttributes.forEach(key => {
-          const val = new Set(features.map(link => link.properties[key]))
-          form[key] = {
-            value: val.size > 1 ? '' : [...val][0],
-            disabled: uneditable.includes(key),
-            placeholder: val.size > 1,
-          }
-        })
+        const lineAttributes = this.$store.getters.lineAttributes
+        const features = structuredClone(this.$store.getters.links.features.filter(
+          link => this.groupTripIds.includes(link.properties.trip_id)))
 
-        this.editorForm = form
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
         this.lingering = event.lingering
         this.showDialog = true
       } else if (this.action === 'Edit Link Info') {
         // link is clicked on the map
         this.selectedLink = event.selectedFeature.properties
-        let uneditable = []
-        let lineAttributes = []
-        // map selected link doesnt return properties with null value. we need
-        // to get the links in the store with the selected index.
-
-        uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
-        lineAttributes = this.$store.getters.lineAttributes
-        this.editorForm = this.$store.getters.editorLinks.features.filter(
+        const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
+        const lineAttributes = this.$store.getters.lineAttributes
+        const features = this.$store.getters.editorLinks.features.filter(
           (link) => link.properties.index === this.selectedLink.index)
 
-        this.editorForm = this.editorForm[0].properties
-
-        // filter properties to only the one that are editable.
-        const form = {}
-        lineAttributes.forEach(key => {
-          form[key] = {
-            value: this.editorForm[key],
-            disabled: uneditable.includes(key),
-            placeholder: false,
-          }
-        })
-        this.editorForm = form
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
         this.showDialog = true
       } else if (this.action === 'Edit rLink Info') {
         this.selectedLink = event.selectedIndex
         this.selectedTab = 0
+
         this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
+        this.showDialog = true
+      } else if (this.action === 'Edit Road Group Info') {
+        const features = this.$store.getters.grouprLinks(event.category, event.group)
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters.rlineAttributes
+        const uneditable = ['index', 'length', 'a', 'b']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
         this.showDialog = true
       } else if (['Edit Node Info', 'Edit rNode Info'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
@@ -158,7 +143,8 @@ export default {
           }, {})
         this.editorForm = filtered
         this.showDialog = true
-      } else if (['Cut Before Node', 'Cut After Node', 'Move Stop', 'Delete Stop', 'Delete Anchor', 'Delete Road Anchor'].includes(this.action)) {
+      } else if (['Cut Before Node', 'Cut After Node',
+        'Move Stop', 'Delete Stop', 'Delete Anchor', 'Delete Road Anchor'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
       } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
@@ -237,6 +223,9 @@ export default {
           break
         case 'Edit rLink Info':
           this.$store.commit('editrLinkInfo', { selectedLinkId: this.selectedLink, info: this.editorForm })
+          break
+        case 'Edit Road Group Info':
+          this.$store.commit('editrGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
           break
         case 'Edit rNode Info':
           this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
@@ -345,7 +334,15 @@ export default {
           {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
-        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info','Edit rLink Info', 'Edit rNode Info'].includes(action)">
+        <v-card-text
+          v-if="['Edit Line Info',
+                 'Edit Link Info',
+                 'Edit Node Info',
+                 'Edit Group Info',
+                 'Edit rLink Info',
+                 'Edit Road Group Info',
+                 'Edit rNode Info'].includes(action)"
+        >
           <v-list>
             <v-text-field
               v-for="(value, key) in orderedForm"

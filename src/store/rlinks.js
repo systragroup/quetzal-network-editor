@@ -125,6 +125,7 @@ export default {
       }
       this.commit('getEditorLineInfo')
     },
+
     editrNodeInfo (state, payload) {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedNodeId, info } = payload
@@ -338,6 +339,21 @@ export default {
       this.commit('getVisiblerNodes')
     },
 
+    editrGroupInfo (state, payload) {
+      // edit line info on multiple trips at once.
+      const groupInfo = payload.info
+      const selectedLinks = payload.selectedLinks // observer of state.links
+      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
+      const props = Object.keys(groupInfo).filter(key =>
+        ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
+      // this is an oberver. modification will be applied to state.links.
+      selectedLinks.forEach(
+        (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
+      console.log('ok')
+      // get tripId list
+      // this.commit('getTripId')
+    },
+
   },
 
   getters: {
@@ -367,6 +383,9 @@ export default {
       )
 
       return nodes
+    },
+    grouprLinks: (state) => (category, group) => {
+      return state.rlinks.features.filter(link => group === link.properties[category])
     },
     rlinksForm: (state) => (linkIndex) => {
       const uneditable = ['a', 'b', 'index']
