@@ -20,6 +20,7 @@ export default {
       action: null,
       selectedNode: null,
       selectedLink: null,
+      selectedIndex: null,
       showDialog: false,
       editorForm: {},
       cursorPosition: [],
@@ -76,7 +77,6 @@ export default {
     },
 
     actionClick (event) {
-      console.log(event)
       this.action = event.action
 
       if (this.action === 'Edit Line Info') {
@@ -129,7 +129,7 @@ export default {
         this.editorForm = form
         this.showDialog = true
       } else if (this.action === 'Edit rLink Info') {
-        this.selectedLink = event.selectedFeature
+        this.selectedLink = event.selectedIndex
         this.selectedTab = 0
         this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
         this.showDialog = true
@@ -166,7 +166,7 @@ export default {
         this.cursorPosition = event.lngLat
         this.applyAction()
       } else if (['Add Road Node Inline', 'Add Road Anchor Inline', 'Delete rLink'].includes(this.action)) {
-        this.selectedLink = event.selectedFeature
+        this.selectedIndex = event.selectedIndex
         this.cursorPosition = event.lngLat
         this.applyAction()
       } else if (['Move Node', 'Move Anchor', 'Move rNode', 'Move rAnchor'].includes(this.action)) {
@@ -243,14 +243,14 @@ export default {
           break
         case 'Add Road Node Inline':
           this.$store.commit('addRoadNodeInline', {
-            selectedLink: this.selectedLink,
+            selectedIndex: this.selectedIndex,
             lngLat: this.cursorPosition,
             nodes: 'rnodes',
           })
           break
         case 'Add Road Anchor Inline':
           this.$store.commit('addRoadNodeInline', {
-            selectedLink: this.selectedLink,
+            selectedIndex: this.selectedIndex,
             lngLat: this.cursorPosition,
             nodes: 'anchorrNodes',
           })
@@ -271,7 +271,7 @@ export default {
           this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedNode })
           break
         case 'Delete rLink':
-          this.$store.commit('deleterLink', { selectedLink: this.selectedLink })
+          this.$store.commit('deleterLink', { selectedIndex: this.selectedIndex })
           break
       }
       if (!this.lingering) {

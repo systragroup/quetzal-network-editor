@@ -157,7 +157,7 @@ export default {
           if (this.hoveredStateId.layerId === 'rlinks') {
             const action = this.anchorMode ? 'Add Road Anchor Inline' : 'Add Road Node Inline'
             const click = {
-              selectedFeature: this.selectedFeature,
+              selectedIndex: this.selectedFeature,
               action: action,
               lngLat: event.mapboxEvent.lngLat,
             }
@@ -182,7 +182,7 @@ export default {
     },
     actionClick (event) {
       const click = {
-        selectedFeature: event.feature,
+        selectedIndex: event.feature,
         action: event.action,
         lngLat: event.coordinates,
       }

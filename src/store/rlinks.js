@@ -192,7 +192,7 @@ export default {
       // lngLat : object wit click geometry
       // nodes : str. name of node to add (rnode, anchorrNodeS)
       const selectedFeatures = state.visiblerLinks.features
-        .filter((link) => payload.selectedLink.includes(link.properties.index))
+        .filter((link) => payload.selectedIndex.includes(link.properties.index))
       // for loop. for each selectedc links add the node and split.
       for (let i = 0; i < selectedFeatures.length; i++) {
         const linkGeom = Linestring(selectedFeatures[i].geometry.coordinates)
@@ -242,7 +242,7 @@ export default {
         payload.nodeIdB = state.newrNode.features[0].properties.index
       } else if (payload.layerId === 'rlinks') {
         // create a node inline and then the new link
-        this.commit('addRoadNodeInline', { selectedLink: payload.nodeIdB, lngLat: payload.geom, nodes: 'rnodes' })
+        this.commit('addRoadNodeInline', { selectedIndex: payload.nodeIdB, lngLat: payload.geom, nodes: 'rnodes' })
         payload.nodeIdB = state.newrNode.features[0].properties.index
       }
       const rnodeA = state.visiblerNodes.features.filter(node => node.properties.index === payload.nodeIdA)[0]
@@ -332,7 +332,7 @@ export default {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
     deleterLink (state, payload) {
-      const linkArr = payload.selectedLink
+      const linkArr = payload.selectedIndex
       state.rlinks.features = state.rlinks.features.filter(link => !linkArr.includes(link.properties.index))
       state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !linkArr.includes(link.properties.index))
       this.commit('getVisiblerNodes')

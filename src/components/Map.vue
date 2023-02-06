@@ -211,7 +211,7 @@ export default {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
           this.$store.commit('createrLink', { nodeIdA: this.selectedNode.id, nodeIdB: this.hoverId, geom: pointGeom, layerId: this.hoverLayer })
           this.$refs.roadref.getBounds()
-        } else {
+        } else { // PT nodes
           if (this.drawMode & !this.anchorMode & !this.hoverId) {
             const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
               ? 'Extend Line Upward'
