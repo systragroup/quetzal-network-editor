@@ -192,7 +192,7 @@ export default {
       <v-virtual-scroll
         :items="filteredCat"
         :item-height="45"
-        :height="height-75"
+        :height="height-71"
       >
         <template v-slot="{ item }">
           <v-list-item

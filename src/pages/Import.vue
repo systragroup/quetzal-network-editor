@@ -1,5 +1,6 @@
 <script>
 import { extractZip } from '../components/utils/utils.js'
+
 const $gettext = s => s
 
 export default {

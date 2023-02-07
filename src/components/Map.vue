@@ -83,6 +83,16 @@ export default {
         this.$store.commit('changeNotification', { text: '', autoClose: true })
       }
     },
+    isRoadMode (val) {
+      if (!val) {
+        this.drawMode = false
+        this.$store.commit('changeNotification',
+          { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
+      } else {
+        this.$store.commit('changeNotification',
+          { text: $gettext('Left click to add a node, right click to edit'), autoClose: false })
+      }
+    },
 
     editorNodes (newVal, oldVal) {
       this.$store.commit('setAnchorMode', false)
@@ -322,7 +332,7 @@ export default {
         :is-editor-mode="isEditorMode"
         :is-road-mode="isRoadMode"
         :anchor-mode="anchorMode"
-        v-on="isEditorMode? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+        v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
 

@@ -63,8 +63,6 @@ export default {
         this.$store.commit('changeAnchorMode')
       }
     })
-    this.$store.commit('changeNotification',
-      { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
   },
 
   methods: {
