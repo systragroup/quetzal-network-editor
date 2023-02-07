@@ -30,12 +30,34 @@ export default {
   },
 
   watch: {
-    tripList (val) {
-      this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: val })
+    tripList (newVal, oldVal) {
+      let changes = ''
+
+      // console.log(newVal)
+      let method = 'add'
+      if (newVal === this.filteredCat) {
+        changes = newVal
+        method = 'showAll'
+      } else if (newVal.length === 0) {
+        changes = []
+        method = 'hideAll'
+      } else if (newVal.length < oldVal.length) {
+        // if a tripis unchecked. we remove it
+        changes = oldVal.filter(item => !newVal.includes(item))
+        method = 'remove'
+      } else if (newVal.length > oldVal.length) {
+        // if a trip is added, we add it!
+        changes = newVal.filter(item => !oldVal.includes(item))
+        method = 'add'
+      }
+      if (changes !== '') {
+        this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: changes, method: method })
+      }
     },
 
     vmodelSelectedFilter (newVal, oldVal) {
       this.selectedFilter = newVal
+      this.tripList = []
     },
 
   },
@@ -196,7 +218,7 @@ export default {
       >
         <template v-slot="{ item }">
           <v-list-item
-            :key="item"
+            :key="vmodelSelectedFilter.concat(item)"
             class="pl-2"
           >
             <v-list-item-action>

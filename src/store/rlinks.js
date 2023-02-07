@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /* eslint-disable array-callback-return */
 /* eslint-disable no-return-assign */
 import length from '@turf/length'
@@ -93,20 +94,67 @@ export default {
 
     changeVisibleRoads (state, payload) {
       // trips list of visible trip_id.
-      state.selectedrIndex = payload.data
+      console.log(payload)
+      const method = payload.method
+      const data = payload.data
       const cat = payload.category
-      // eslint-disable-next-line max-len
-      state.visiblerLinks.features = state.rlinks.features.filter(link => state.selectedrIndex.includes(link.properties[cat]))
-      this.commit('getVisiblerNodes')
+      let newLinks = null
+
+      switch (method) {
+        case 'showAll':
+          state.selectedrIndex = data
+          state.visiblerLinks.features = state.rlinks.features
+          break
+        case 'hideAll':
+          state.selectedrIndex = data
+          state.visiblerLinks.features = []
+          break
+        case 'add':
+          state.selectedrIndex.push(data[0])
+          newLinks = state.rlinks.features.filter(
+            link => link.properties[cat] === data[0])
+          state.visiblerLinks.features.push(...newLinks)
+          break
+        case 'remove':
+          state.selectedrIndex = state.selectedrIndex.filter(el => el !== data[0])
+          newLinks = state.visiblerLinks.features.filter(
+            link => link.properties[cat] === data[0])
+          state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !newLinks.includes(link))
+          break
+      }
+      console.log(state.selectedrIndex)
+      this.commit('getVisiblerNodes', { method: method, newLinks: newLinks })
     },
-    getVisiblerNodes (state) {
+    getVisiblerNodes (state, payload) {
       // payload contain nodes. state.nodes or state.editorNodes
       // find the nodes in the editor links
-      const a = state.visiblerLinks.features.map(item => item.properties.a)
-      const b = state.visiblerLinks.features.map(item => item.properties.b)
-      const rNodesList = Array.from(new Set([...a, ...b]))
-      // set nodes corresponding to trip id
-      state.visiblerNodes.features = state.rnodes.features.filter(node => rNodesList.includes(node.properties.index))
+      let a = []
+      let b = []
+      let rNodesList = []
+      switch (payload.method) {
+        case 'showAll':
+          state.visiblerNodes.features = state.rnodes.features
+          break
+        case 'hideAll':
+          state.visiblerNodes.features = []
+          break
+        case 'add':
+          a = payload.newLinks.map(item => item.properties.a)
+          b = payload.newLinks.map(item => item.properties.b)
+          rNodesList = Array.from(new Set([...a, ...b]))
+          // set nodes corresponding to trip id
+          state.visiblerNodes.features.push(...state.rnodes.features.filter(
+            node => rNodesList.includes(node.properties.index)))
+          break
+        case 'remove':
+          a = payload.newLinks.map(item => item.properties.a)
+          b = payload.newLinks.map(item => item.properties.b)
+          rNodesList = Array.from(new Set([...a, ...b]))
+          // set nodes corresponding to trip id
+          state.visiblerNodes.features = state.visiblerNodes.features.filter(
+            node => !rNodesList.includes(node.properties.index))
+          break
+      }
     },
 
     editrLinkInfo (state, payload) {
