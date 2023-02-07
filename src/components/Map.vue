@@ -103,7 +103,7 @@ export default {
     drawMode (val) {
       // set layer visible if drawMode is true
       // check if layer exist. will bug if it is check befere rendering the layer
-      if (this.map.getStyle().layers.filter(layer => layer.id === 'drawLink').length > 0) {
+      if (this.map?.getStyle().layers.filter(layer => layer.id === 'drawLink').length > 0) {
         if (val) {
           this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
         } else {
@@ -119,7 +119,8 @@ export default {
       }
     },
     isEditorMode (val) {
-      if (val && this.editorNodes.features.length > 0 && !this.anchorMode) {
+      // check if map is loaded too, there is a bug if not, when component is laoded in edition mode (changing page).
+      if (val && this.editorNodes.features.length > 0 && !this.anchorMode && this.mapIsLoaded) {
         this.drawMode = true
       } else {
         this.drawMode = false
@@ -145,6 +146,7 @@ export default {
     },
   },
   created () {
+    if (this.editorTrip) { this.isEditorMode = true }
     this.mapboxPublicKey = mapboxPublicKey
     this.drawLink = structuredClone(this.$store.getters.linksHeader)
   },

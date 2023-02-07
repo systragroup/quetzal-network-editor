@@ -61,7 +61,6 @@ export default {
   created () {
     this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
     this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
-
     this.setHiddenFeatures()
   },
 
