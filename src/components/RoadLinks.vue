@@ -287,7 +287,7 @@ export default {
         type: 'line',
         minzoom: minZoom.links,
         paint: {
-          'line-color': '#B5E0D6',
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.5, 1],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 2],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]

@@ -25,7 +25,6 @@ export default {
     changeBounds: true,
     speed: 20, // 20KmH for time (speed/distance)
     popupContent: 'trip_id',
-    outputName: 'output',
     lineAttributes: [],
     nodeAttributes: [],
 
@@ -122,12 +121,6 @@ export default {
     changeSelectedTrips (state, payload) {
       // trips list of visible trip_id.
       state.selectedTrips = payload
-    },
-
-    applySettings (state, payload) {
-      state.speed = payload.speed
-      state.popupContent = payload.popupContent
-      state.outputName = payload.outputName
     },
 
     setEditorTrip (state, payload) {
@@ -319,13 +312,15 @@ export default {
       // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
       this.commit('setNewLink', { action: payload.action })
+      this.commit('editNewLink', payload.geom)
+
       const distance = length(state.newLink)
       state.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
       const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+
       state.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
 
       const action = state.newLink.action
-      this.commit('editNewLink', payload.geom)
       if (action === 'Extend Line Upward') {
         state.editorLinks.features.push(state.newLink.features[0])
         state.editorNodes.features.push(state.newNode.features[0])
@@ -688,7 +683,6 @@ export default {
     links: (state) => state.links,
     nodes: (state) => state.nodes,
     speed: (state) => state.speed,
-    outputName: (state) => state.outputName,
     popupContent: (state) => state.popupContent,
     route_id: (state) => state.route_id,
     editorTrip: (state) => state.editorTrip,

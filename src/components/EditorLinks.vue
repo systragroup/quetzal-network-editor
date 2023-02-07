@@ -163,6 +163,7 @@ export default {
           selectedFeature: this.selectedFeature,
           action: 'Edit Link Info',
           lngLat: event.mapboxEvent.lngLat,
+          lingering: true,
         }
         this.$emit('clickFeature', click)
       }

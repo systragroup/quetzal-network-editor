@@ -74,7 +74,7 @@ export default {
       // header.delete('index')
       // add all default attributes
       const defaultAttributes = [
-        'index', 'a', 'b']
+        'index', 'a', 'b', 'route_color']
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.rlineAttributes = header

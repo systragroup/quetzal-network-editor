@@ -50,4 +50,14 @@ function getGroupForm (features, lineAttributes, uneditable) {
   return form
 }
 
-export { extractZip, getGroupForm }
+function indexAreUnique (geojson) {
+  // check if all index are unique in a geojson (links or nodes)
+  // return true if they are unique
+  let indexArr = []
+  if (geojson?.features.length > 0) {
+    indexArr = geojson.features.map(item => item.properties.index)
+    return (new Set(indexArr).size === indexArr.length)
+  } else { return true } // if its empty, return true
+}
+
+export { extractZip, getGroupForm, indexAreUnique }

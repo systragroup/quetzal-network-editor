@@ -2,7 +2,8 @@
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
-import { extractZip } from '../components/utils/utils.js'
+import { extractZip, indexAreUnique } from '../components/utils/utils.js'
+const $gettext = s => s
 
 // rlinks.features.forEach(link => link.properties._hidden = true)
 // const ls = ['rlink_1', 'rlins_2', 'rlink_10']
@@ -22,6 +23,7 @@ export default {
       choice: null,
       loading: { links: false, nodes: false, zip: false },
       showDialog: false,
+      errorMessage: '',
     }
   },
 
@@ -29,24 +31,34 @@ export default {
     filesAreLoaded () { return this.$store.getters.filesAreLoaded },
     localFilesAreLoaded () {
       return !((Object.keys(this.loadedLinks).length === 0 ||
-                Object.keys(this.loadedNodes).length === 0
+                Object.keys(this.loadedNodes).length === 0 ||
+                Object.keys(this.loadedrLinks).length === 0 ||
+                Object.keys(this.loadedrNodes).length === 0
       ))
     },
   },
   watch: {
     loadedLinks (value) {
-      this.$store.commit('loadLinks', value)
-      this.loading.links = false
+      if (value.features) {
+        this.$store.commit('loadLinks', value)
+        this.loading.links = false
+      }
     },
     loadedNodes (value) {
-      this.$store.commit('loadNodes', value)
-      this.loading.nodes = false
+      if (value.features) {
+        this.$store.commit('loadNodes', value)
+        this.loading.nodes = false
+      }
     },
     loadedrLinks (value) {
-      this.$store.commit('loadrLinks', value)
+      if (value.features) {
+        this.$store.commit('loadrLinks', value)
+      }
     },
     loadedrNodes (value) {
-      this.$store.commit('loadrNodes', value)
+      if (value.features) {
+        this.$store.commit('loadrNodes', value)
+      }
     },
     localFilesAreLoaded (val) {
       if (val) {
@@ -65,6 +77,14 @@ export default {
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})
       }, 1000)
+    },
+    error (message) {
+      this.errorMessage = message
+      this.loading = { links: false, nodes: false, zip: false }
+      this.loadedLinks = {}
+      this.loadedrLinks = {}
+      this.loadedrNodes = {}
+      this.loadedNodes = {}
     },
 
     buttonHandle (choice) {
@@ -227,10 +247,26 @@ export default {
         }
         // then its finish
         // if there was nothing, apply base one.
-        this.loadedLinks = links
-        this.loadedNodes = nodes
-        this.loadedrLinks = rlinks
-        this.loadedrNodes = rnodes
+        if (indexAreUnique(links)) {
+          this.loadedLinks = links
+        } else {
+          this.error($gettext('there is duplicated links index. Import aborted'))
+        }
+        if (indexAreUnique(nodes)) {
+          this.loadedNodes = nodes
+        } else {
+          this.error($gettext('there is duplicated nodes index. Import aborted'))
+        }
+        if (indexAreUnique(rlinks)) {
+          this.loadedrLinks = rlinks
+        } else {
+          this.error($gettext('there is duplicated road links index. Import aborted'))
+        }
+        if (indexAreUnique(rnodes)) {
+          this.loadedrNodes = rnodes
+        } else {
+          this.error($gettext('there is duplicated road nodes index. Import aborted'))
+        }
 
         this.loading.zip = false
       }).catch(err => {
@@ -373,6 +409,9 @@ export default {
               <span>{{ $gettext("Load Montréal Example") }}</span>
             </v-tooltip>
           </div>
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'red'}">
+          {{ errorMessage }}
         </v-card-text>
       </v-card>
     </div>

@@ -16,6 +16,8 @@ export const store = new Vuex.Store({
     notification: {},
     anchorMode: false,
     showLeftPanel: true,
+    outputName: 'output',
+
   },
   mutations: {
     changeNotification (state, payload) {
@@ -29,6 +31,11 @@ export const store = new Vuex.Store({
     },
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
+    },
+    applySettings (state, payload) {
+      state.links.speed = Number(payload.speed)
+      state.links.popupContent = payload.popupContent
+      state.outputName = payload.outputName
     },
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
@@ -83,7 +90,7 @@ export const store = new Vuex.Store({
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
-          saveAs(content, state.links.outputName + '.zip')
+          saveAs(content, state.outputName + '.zip')
         })
     },
   },
@@ -91,5 +98,7 @@ export const store = new Vuex.Store({
     notification: (state) => state.notification,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
+    outputName: (state) => state.outputName,
+
   },
 })
