@@ -349,7 +349,6 @@ export default {
       // this is an oberver. modification will be applied to state.links.
       selectedLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
-      console.log('ok')
       // get tripId list
       // this.commit('getTripId')
     },

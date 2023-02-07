@@ -271,9 +271,12 @@ export default {
           'symbol-placement': 'line',
           'symbol-spacing': 30,
           'icon-ignore-placement': true,
-          'icon-image':['case', ['boolean', anchorMode, false], 'arrowAnchor','arrow'],
+          'icon-image':'arrow',
           'icon-size': 0.5,
           'icon-rotate': 90
+        },
+        paint: {
+          'icon-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
         }
       }"
     />

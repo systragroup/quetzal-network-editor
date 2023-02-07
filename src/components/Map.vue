@@ -7,7 +7,6 @@ import RoadLinks from './RoadLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import rArrowImage from '@static/rArrow.png'
-import arrowImageAnchor from '@static/arrow_anchor.png'
 import Linestring from 'turf-linestring'
 
 // Filter links from selected line
@@ -169,21 +168,14 @@ export default {
           console.error('err image', err)
           return
         }
-        event.map.addImage('arrow', image)
-      })
-      event.map.loadImage(arrowImageAnchor, function (err, image) {
-        if (err) {
-          console.error('err image', err)
-          return
-        }
-        event.map.addImage('arrowAnchor', image)
+        event.map.addImage('arrow', image, { sdf: true })
       })
       event.map.loadImage(rArrowImage, function (err, image) {
         if (err) {
           console.error('err image', err)
           return
         }
-        event.map.addImage('rArrow', image)
+        event.map.addImage('rArrow', image, { sdf: true })
       })
       this.map = event.map
       event.map.dragRotate.disable()
@@ -246,7 +238,6 @@ export default {
     },
     onHover (event) {
       // no drawing when we hover on link or node
-
       this.hoverId = event.selectedId
       if (this.drawMode) { this.map.setLayoutProperty('drawLink', 'visibility', 'none') }
       // change hook when we hover first or last node.

@@ -312,6 +312,9 @@ export default {
           'icon-image':'rArrow',
           'icon-size': 0.5,
           'icon-rotate': 90
+        },
+        paint: {
+          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
         }
       }"
     />
