@@ -23,8 +23,7 @@ export default {
     newLink: {},
     newNode: {},
     changeBounds: true,
-    speed: 20, // 20KmH for time (speed/distance)
-    popupContent: 'trip_id',
+    linkSpeed: 20, // 20KmH for time (speed/distance)
     lineAttributes: [],
     nodeAttributes: [],
 
@@ -316,7 +315,7 @@ export default {
 
       const distance = length(state.newLink)
       state.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
 
       state.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
 
@@ -456,7 +455,7 @@ export default {
       // update time and distance
       const distance = length(link)
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
 
@@ -476,7 +475,7 @@ export default {
         // update time and distance
         const distance = length(link1)
         link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
         link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
       if (link2) {
@@ -484,7 +483,7 @@ export default {
         // update time and distance
         const distance = length(link2)
         link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
         link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
     },
@@ -682,8 +681,7 @@ export default {
     filesAreLoaded: (state) => state.filesAreLoaded.links === true & state.filesAreLoaded.nodes === true,
     links: (state) => state.links,
     nodes: (state) => state.nodes,
-    speed: (state) => state.speed,
-    popupContent: (state) => state.popupContent,
+    linkSpeed: (state) => state.linkSpeed,
     route_id: (state) => state.route_id,
     editorTrip: (state) => state.editorTrip,
     editorLinks: (state) => state.editorLinks,

@@ -21,8 +21,7 @@ export default {
     visiblerNodes: {},
     connectedLinks: [],
     rfilesAreLoaded: { links: false, nodes: false },
-    roadPopupContent: 'highway',
-    speed: 20,
+    roadSpeed: 20,
   },
 
   mutations: {
@@ -261,12 +260,13 @@ export default {
       linkProperties.a = payload.nodeIdA
       linkProperties.b = payload.nodeIdB
       linkProperties.highway = 'quenedi'
+      linkProperties.route_color = 'B5E0D6'
       // add length, speed, time now that we have a geometry.
       const distance = length(linkGeometry)
-      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / state.roadSpeed * 3600 // 20kmh hard code speed. time in secs
       linkProperties.length = Number((distance * 1000).toFixed(0)) // metres
       linkProperties.time = Number(time.toFixed(0)) // rounded to 0 decimals
-      linkProperties.speed = Number(state.speed) // rounded to 0 decimals
+      linkProperties.speed = Number(state.roadSpeed) // rounded to 0 decimals
 
       const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       state.visiblerLinks.features.push(linkFeature)
@@ -297,7 +297,7 @@ export default {
         // update time and distance
         const distance = length(link)
         link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        // const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        // const time = distance / state.roadSpeed * 3600 // 20kmh hard code speed. time in secs
         const time = distance / link.properties.speed * 3600
         link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       })
@@ -306,7 +306,7 @@ export default {
         // update time and distance
         const distance = length(link)
         link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        // const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        // const time = distance / state.roadSpeed * 3600 // 20kmh hard code speed. time in secs
         const time = distance / link.properties.speed * 3600
         link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       })
@@ -322,7 +322,7 @@ export default {
       // update time and distance
       const distance = length(link)
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / state.roadSpeed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
     deleteAnchorrNode (state, payload) {
@@ -359,13 +359,13 @@ export default {
   getters: {
     rlinks: (state) => state.rlinks,
     rnodes: (state) => state.rnodes,
+    roadSpeed: (state) => state.roadSpeed,
     rlinksHeader: (state) => state.rlinksHeader,
     rnodesHeader: (state) => state.rnodesHeader,
     rlineAttributes: (state) => state.rlineAttributes,
     selectedrIndex: (state) => state.selectedrIndex,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
-    roadPopupContent: (state) => state.roadPopupContent,
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)
       renderedLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(

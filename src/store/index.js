@@ -16,6 +16,8 @@ export const store = new Vuex.Store({
     notification: {},
     anchorMode: false,
     showLeftPanel: true,
+    linksPopupContent: 'trip_id',
+    roadsPopupContent: 'highway',
     outputName: 'output',
 
   },
@@ -33,8 +35,10 @@ export const store = new Vuex.Store({
       state.anchorMode = !state.anchorMode
     },
     applySettings (state, payload) {
-      state.links.speed = Number(payload.speed)
-      state.links.popupContent = payload.popupContent
+      state.links.linkSpeed = Number(payload.linkSpeed)
+      state.rlinks.roadSpeed = Number(payload.roadSpeed)
+      state.linksPopupContent = payload.linksPopupContent
+      state.roadsPopupContent = payload.roadsPopupContent
       state.outputName = payload.outputName
     },
     exportFiles (state, payload = 'all') {
@@ -98,6 +102,9 @@ export const store = new Vuex.Store({
     notification: (state) => state.notification,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
+    linksPopupContent: (state) => state.linksPopupContent,
+    roadsPopupContent: (state) => state.roadsPopupContent,
+
     outputName: (state) => state.outputName,
 
   },

@@ -168,7 +168,7 @@ export default {
       // it is a geojson
       if (files[0].name.slice(-7) !== 'geojson') {
         this.loading[this.choice] = false
-        alert('file is not a geojson')
+        $gettext('file is not a geojson')
         return
       }
 
@@ -217,7 +217,7 @@ export default {
       // it is a zip
       if (files[0].name.slice(-3) !== 'zip') {
         this.loading.zip = false
-        alert('file is not a zip')
+        this.errorMessage = $gettext('file is not a zip')
       }
       // read every selected zip and create a list of promises.
       // each promises contain {links, nodes}

@@ -18,7 +18,7 @@ export default {
     }
   },
   computed: {
-    selectedPopupContent () { return this.$store.getters.popupContent },
+    selectedPopupContent () { return this.$store.getters.linksPopupContent },
     links () {
       // remove unwanted features for faster computation
       const links = structuredClone(this.$store.getters.linksHeader)

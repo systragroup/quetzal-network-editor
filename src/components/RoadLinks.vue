@@ -42,7 +42,7 @@ export default {
     }
   },
   computed: {
-    selectedPopupContent () { return this.$store.getters.roadPopupContent },
+    selectedPopupContent () { return this.$store.getters.roadsPopupContent },
     selectedrIndex () { return this.$store.getters.selectedrIndex },
     rnodes () { return this.$store.getters.visiblerNodes },
     rlinks () { return this.$store.getters.visiblerLinks },

@@ -6,19 +6,33 @@ export default {
   data () {
     return {
 
-      speed: {
-        name: $gettext('speed'),
+      linkSpeed: {
+        name: $gettext('PT speed'),
         type: 'Number',
-        value: this.$store.getters.speed,
+        value: this.$store.getters.linkSpeed,
         units: 'km/h',
         hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
       },
-      popupContent: {
-        name: $gettext('Popup Content'),
+      roadSpeed: {
+        name: $gettext('PT speed'),
+        type: 'Number',
+        value: this.$store.getters.roadSpeed,
+        units: 'km/h',
+        hint: $gettext('Speed used to calculate road travel time when a link is drawn'),
+      },
+      linksPopupContent: {
+        name: $gettext('PT Popup Content'),
         type: 'String',
         choices: this.$store.getters.lineAttributes,
-        value: this.$store.getters.popupContent,
+        value: this.$store.getters.linksPopupContent,
         hint: $gettext('Link field to display when hovering a trip on the map'),
+      },
+      roadsPopupContent: {
+        name: $gettext('Road Popup Content'),
+        type: 'String',
+        choices: this.$store.getters.rlineAttributes,
+        value: this.$store.getters.roadsPopupContent,
+        hint: $gettext('Link field to display when hovering road link on the map'),
       },
       outputName: {
         name: $gettext('Export name'),
@@ -50,8 +64,10 @@ export default {
     submit () {
       if (this.$refs.form.validate()) {
         const payload = {
-          speed: this.speed.value,
-          popupContent: this.popupContent.value,
+          linkSpeed: this.linkSpeed.value,
+          roadSpeed: this.roadSpeed.value,
+          linksPopupContent: this.linksPopupContent.value,
+          roadsPopupContent: this.roadsPopupContent.value,
           outputName: this.outputName.value,
         }
         this.$store.commit('applySettings', payload)
@@ -89,21 +105,40 @@ export default {
             <v-container>
               <v-col>
                 <v-text-field
-                  v-model="speed.value"
-                  :type="speed.type"
-                  :label="$gettext(speed.name)"
-                  :suffix="speed.units"
-                  :hint="showHint? $gettext(speed.hint): ''"
+                  v-model="linkSpeed.value"
+                  :type="linkSpeed.type"
+                  :label="$gettext(linkSpeed.name)"
+                  :suffix="linkSpeed.units"
+                  :hint="showHint? $gettext(linkSpeed.hint): ''"
+                  :persistent-hint="showHint"
+                  :rules="rules"
+                  required
+                  @wheel="()=>{}"
+                />
+                <v-text-field
+                  v-model="roadSpeed.value"
+                  :type="roadSpeed.type"
+                  :label="$gettext(roadSpeed.name)"
+                  :suffix="roadSpeed.units"
+                  :hint="showHint? $gettext(roadSpeed.hint): ''"
                   :persistent-hint="showHint"
                   :rules="rules"
                   required
                   @wheel="()=>{}"
                 />
                 <v-select
-                  v-model="popupContent.value"
-                  :items="popupContent.choices"
-                  :label="$gettext(popupContent.name)"
-                  :hint="showHint? $gettext(popupContent.hint): ''"
+                  v-model="linksPopupContent.value"
+                  :items="linksPopupContent.choices"
+                  :label="$gettext(linksPopupContent.name)"
+                  :hint="showHint? $gettext(linksPopupContent.hint): ''"
+                  :persistent-hint="showHint"
+                  required
+                />
+                <v-select
+                  v-model="roadsPopupContent.value"
+                  :items="roadsPopupContent.choices"
+                  :label="$gettext(roadsPopupContent.name)"
+                  :hint="showHint? $gettext(roadsPopupContent.hint): ''"
                   :persistent-hint="showHint"
                   required
                 />
