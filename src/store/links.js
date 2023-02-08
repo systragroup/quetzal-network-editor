@@ -141,10 +141,10 @@ export default {
       // find the nodes in the editor links
       const a = state.editorLinks.features.map(item => item.properties.a)
       const b = state.editorLinks.features.map(item => item.properties.b)
-      const editorNodesList = Array.from(new Set([...a, ...b]))
+      const editorNodesList = new Set([...a, ...b])
       // set nodes corresponding to trip id
       const filtered = JSON.parse(JSON.stringify(payload.nodes))
-      filtered.features = filtered.features.filter(node => editorNodesList.includes(node.properties.index))
+      filtered.features = filtered.features.filter(node => editorNodesList.has(node.properties.index))
       state.editorNodes = filtered
     },
 
@@ -587,8 +587,8 @@ export default {
       // delete every every nodes not in links
       const a = state.links.features.map(item => item.properties.a)
       const b = state.links.features.map(item => item.properties.b)
-      const nodesInLinks = Array.from(new Set([...a, ...b]))
-      state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+      const nodesInLinks = new Set([...a, ...b])
+      state.nodes.features = state.nodes.features.filter(node => nodesInLinks.has(node.properties.index))
     },
 
     confirmChanges (state) { // apply change to Links
@@ -633,11 +633,11 @@ export default {
       // For every Links containing an editor Nodes. update Geometry.
       // (this is necessary when we move a node that is share between multiplde lines)
       // get a list of all links (excluding editorLinks) that contain the selected node
-      const editorNodesList = state.editorNodes.features.map(item => item.properties.index)
+      const editorNodesList = new Set(state.editorNodes.features.map(item => item.properties.index))
       // get list of link with a node A modifieed
       const linksA = state.links.features.filter(
         link => link.properties.trip_id !== state.editorTrip).filter(
-        item => editorNodesList.includes(item.properties.a))
+        item => editorNodesList.has(item.properties.a))
       // apply new node geometry
       linksA.forEach(link => link.geometry.coordinates = [
         state.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
@@ -646,7 +646,7 @@ export default {
       // same for nodes b
       const linksB = state.links.features.filter(
         link => link.properties.trip_id !== state.editorTrip).filter(
-        item => editorNodesList.includes(item.properties.b))
+        item => editorNodesList.has(item.properties.b))
       linksB.forEach(link => link.geometry.coordinates = [
         ...link.geometry.coordinates.slice(0, -1),
         state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,

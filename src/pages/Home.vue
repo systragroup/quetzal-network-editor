@@ -224,6 +224,8 @@ export default {
           break
         case 'Edit Road Group Info':
           this.$store.commit('editrGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
+          this.$refs.mapref.$refs.roadref.getBounds()
+
           break
         case 'Edit rNode Info':
           this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
@@ -397,6 +399,7 @@ export default {
       @isRoadMode="(e) => isRoadMode = e"
     />
     <Map
+      ref="mapref"
       :selected-trips="selectedTrips"
       :is-road-mode="isRoadMode"
       @clickFeature="actionClick"

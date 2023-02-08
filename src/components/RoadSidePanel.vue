@@ -66,7 +66,7 @@ export default {
   },
   mounted () {
     this.tripList = this.selectedrGoup
-    this.selectedFilter = 'highway'
+    this.selectedFilter = this.$store.getters.selectedrCategory
     this.vmodelSelectedFilter = this.selectedFilter
   },
 

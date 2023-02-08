@@ -14,6 +14,7 @@ export default {
     rnodes: {},
     rlinksHeader: {},
     rnodesHeader: {},
+    selectedrCategory: '',
     selectedrGroup: [],
     rlineAttributes: [],
     rnodeAttributes: [],
@@ -78,6 +79,12 @@ export default {
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.rlineAttributes = header
+
+      if (header.includes('highway')) {
+        state.selectedrCategory = 'highway'
+      } else {
+        state.selectedrCategory = header[0]
+      }
     },
     getrNodesProperties (state) {
       let header = new Set([])
@@ -97,7 +104,8 @@ export default {
       const method = payload.method
       const data = payload.data
       const cat = payload.category
-      let newLinks = null
+      state.selectedrCategory = cat
+      let tempLinks = null
 
       switch (method) {
         case 'showAll':
@@ -110,18 +118,25 @@ export default {
           break
         case 'add':
           state.selectedrGroup.push(data[0])
-          newLinks = state.rlinks.features.filter(
+          tempLinks = state.rlinks.features.filter(
             link => link.properties[cat] === data[0])
-          state.visiblerLinks.features.push(...newLinks)
+          state.visiblerLinks.features.push(...tempLinks)
           break
         case 'remove':
           state.selectedrGroup = state.selectedrGroup.filter(el => el !== data[0])
-          newLinks = state.visiblerLinks.features.filter(
-            link => link.properties[cat] === data[0])
-          state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !newLinks.includes(link))
+          tempLinks = new Set(state.visiblerLinks.features.filter(
+            link => link.properties[cat] === data[0]))
+          state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !tempLinks.has(link))
           break
       }
-      this.commit('getVisiblerNodes', { method: method, newLinks: newLinks })
+      this.commit('getVisiblerNodes', { method: method })
+    },
+
+    refreshVisibleRoads (state) {
+      const group = new Set(state.selectedrGroup)
+      const cat = state.selectedrCategory
+      state.visiblerLinks.features = state.rlinks.features.filter(link => group.has(link.properties[cat]))
+      this.commit('getVisiblerNodes', { method: 'update' })
     },
     getVisiblerNodes (state, payload) {
       // payload contain nodes. state.nodes or state.editorNodes
@@ -136,22 +151,25 @@ export default {
         case 'hideAll':
           state.visiblerNodes.features = []
           break
-        case 'add':
-          a = payload.newLinks.map(item => item.properties.a)
-          b = payload.newLinks.map(item => item.properties.b)
-          rNodesList = Array.from(new Set([...a, ...b]))
-          // set nodes corresponding to trip id
-          state.visiblerNodes.features.push(...state.rnodes.features.filter(
-            node => rNodesList.includes(node.properties.index)))
+        case 'add' || 'update':
+          // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
+          a = state.visiblerLinks.features.map(item => item.properties.a)
+          b = state.visiblerLinks.features.map(item => item.properties.b)
+          rNodesList = new Set([...a, ...b])
+          // use rnodes as they are new to visiblerNodes
+          state.visiblerNodes.features = state.rnodes.features.filter(
+            node => rNodesList.has(node.properties.index))
           break
-        case 'remove':
-          a = payload.newLinks.map(item => item.properties.a)
-          b = payload.newLinks.map(item => item.properties.b)
-          rNodesList = Array.from(new Set([...a, ...b]))
-          // set nodes corresponding to trip id
+        case 'remove' :
+          // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
+          a = state.visiblerLinks.features.map(item => item.properties.a)
+          b = state.visiblerLinks.features.map(item => item.properties.b)
+          rNodesList = new Set([...a, ...b])
+          // use visibleRnodes, as they are already inside of it.
           state.visiblerNodes.features = state.visiblerNodes.features.filter(
-            node => !rNodesList.includes(node.properties.index))
+            node => rNodesList.has(node.properties.index))
           break
+        // case 'refresh'
       }
     },
 
@@ -379,10 +397,11 @@ export default {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
     deleterLink (state, payload) {
-      const linkArr = payload.selectedIndex
-      state.rlinks.features = state.rlinks.features.filter(link => !linkArr.includes(link.properties.index))
-      state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !linkArr.includes(link.properties.index))
-      this.commit('getVisiblerNodes')
+      const linkArr = new Set(payload.selectedIndex)
+      const tempLinks = new Set(state.visiblerLinks.features.filter(link => linkArr.has(link.properties.index)))
+      state.rlinks.features = state.rlinks.features.filter(link => !tempLinks.has(link))
+      state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !tempLinks.has(link))
+      this.commit('getVisiblerNodes', { method: 'remove' })
     },
 
     editrGroupInfo (state, payload) {
@@ -395,6 +414,8 @@ export default {
       // this is an oberver. modification will be applied to state.links.
       selectedLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
+
+      this.commit('refreshVisibleRoads')
       // get tripId list
       // this.commit('getTripId')
     },
@@ -409,6 +430,7 @@ export default {
     rnodesHeader: (state) => state.rnodesHeader,
     rlineAttributes: (state) => state.rlineAttributes,
     selectedrGroup: (state) => state.selectedrGroup,
+    selectedrCategory: (state) => state.selectedrCategory,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
     anchorrNodes: (state) => (renderedLinks) => {
