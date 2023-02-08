@@ -6,7 +6,6 @@ import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
-import rArrowImage from '@static/rArrow.png'
 import Linestring from 'turf-linestring'
 
 // Filter links from selected line
@@ -182,13 +181,7 @@ export default {
         }
         event.map.addImage('arrow', image, { sdf: true })
       })
-      event.map.loadImage(rArrowImage, function (err, image) {
-        if (err) {
-          console.error('err image', err)
-          return
-        }
-        event.map.addImage('rArrow', image, { sdf: true })
-      })
+
       this.map = event.map
       event.map.dragRotate.disable()
       this.mapIsLoaded = true
