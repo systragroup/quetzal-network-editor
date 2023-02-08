@@ -90,7 +90,7 @@ export default {
     offCursor (event) {
       if (this.hoveredStateId !== null) {
         // eslint-disable-next-line max-len
-        if (!(['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId) && event.layerId === 'editorLinks')) {
+        if (!(['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId) && event?.layerId === 'editorLinks')) {
           // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
           if (this.keepHovering) {
             this.dragNode = true
@@ -197,12 +197,13 @@ export default {
         this.popupEditor.showed = false
         // get position
         this.map.on('mousemove', this.onMove)
+        this.map.on('mouseup', this.stopMovingNode)
       }
     },
     onMove (event) {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.map.loaded() && this.dragNode) {
+      if (this.map.loaded() && this.dragNode && this.selectedFeature) {
         const click = {
           selectedFeature: this.selectedFeature,
           action: null,
@@ -226,6 +227,9 @@ export default {
       this.keepHovering = false
       this.dragNode = false
       this.disablePopup = false
+      // call offCursor event, if we drag too quickly, it will not be call and the node will stay in hovering mode.
+      this.offCursor()
+      this.map.off('mouseup', this.stopMovingNode)
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
     },
@@ -304,7 +308,6 @@ export default {
       @mouseover="onCursor"
       @mouseleave="offCursor"
       @mousedown="moveNode"
-      @mouseup="stopMovingNode"
     />
 
     <MglGeojsonLayer
@@ -333,7 +336,6 @@ export default {
       @mouseover="onCursor"
       @mouseleave="offCursor"
       @mousedown="moveNode"
-      @mouseup="stopMovingNode"
       @contextmenu="contextMenuNode"
     />
 

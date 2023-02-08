@@ -139,7 +139,7 @@ export default {
         if (this.popup.isOpen()) this.popup.remove()
         if (this.hoveredStateId !== null) {
           // eslint-disable-next-line max-len
-          if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId?.layerId) && event.layerId === 'rlinks')) {
+          if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId?.layerId) && event?.layerId === 'rlinks')) {
             // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
             if (this.keepHovering) {
               this.dragNode = true
@@ -253,13 +253,14 @@ export default {
           }
           // get position
           this.map.on('mousemove', this.onMove)
+          this.map.on('mouseup', this.stopMovingNode)
         }
       }
     },
     onMove (event) {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.map.loaded() && this.dragNode) {
+      if (this.map.loaded() && this.dragNode && this.selectedFeature) {
         const click = {
           selectedFeature: this.selectedFeature,
           action: null,
@@ -286,6 +287,10 @@ export default {
         this.keepHovering = false
         this.dragNode = false
         this.disablePopup = false
+        // call offCursor event, if we drag too quickly, it will not be call and the node will stay in hovering mode.
+        this.offCursor()
+        this.map.off('mouseup', this.stopMovingNode)
+
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.}
       }
@@ -317,7 +322,10 @@ export default {
         },
 
       }"
-      v-on="isEditorMode ? { } : { mouseenter: onCursor, mouseleave: offCursor, click: selectClick, contextmenu: linkRightClick }"
+      v-on="isEditorMode ? { } : { mouseenter: onCursor,
+                                   mouseleave: offCursor,
+                                   click: selectClick,
+                                   contextmenu: linkRightClick }"
     />
     <MglImageLayer
       source-id="rlinks"
@@ -365,7 +373,6 @@ export default {
       v-on="isEditorMode ? { } : { mouseenter: onCursor,
                                    mouseleave: offCursor,
                                    mousedown: moveNode,
-                                   mouseup: stopMovingNode,
                                    contextmenu:contextMenuNode }"
     />
 
@@ -395,7 +402,6 @@ export default {
       @mouseover="onCursor"
       @mouseleave="offCursor"
       @mousedown="moveNode"
-      @mouseup="stopMovingNode"
       @contextmenu="contextMenuNode"
     />
     <MglPopup
