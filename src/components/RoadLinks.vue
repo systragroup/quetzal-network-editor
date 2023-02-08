@@ -43,7 +43,7 @@ export default {
   },
   computed: {
     selectedPopupContent () { return this.$store.getters.roadsPopupContent },
-    selectedrIndex () { return this.$store.getters.selectedrIndex },
+    selectedrGroup () { return this.$store.getters.selectedrGroup },
     rnodes () { return this.$store.getters.visiblerNodes },
     rlinks () { return this.$store.getters.visiblerLinks },
     anchorrNodes () {
@@ -54,7 +54,7 @@ export default {
 
   watch: {
     anchorMode () { this.getBounds() },
-    selectedrIndex (val) { this.getBounds() },
+    selectedrGroup (val) { this.getBounds() },
     isRoadMode (val) {
       if (val) {
         this.map.on('dragend', this.getBounds)

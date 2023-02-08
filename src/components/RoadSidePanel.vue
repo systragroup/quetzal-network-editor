@@ -4,7 +4,7 @@ export default {
   name: 'RoadSidePanel',
   components: {
   },
-  props: ['selectedTrips', 'height'], // height is here to resize with the windows...
+  props: ['selectedrGoup', 'height'], // height is here to resize with the windows...
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine'],
 
   data () {
@@ -30,17 +30,42 @@ export default {
   },
 
   watch: {
-    tripList (val) {
-      this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: val })
+    tripList (newVal, oldVal) {
+      let changes = ''
+
+      let method = 'add'
+      if (newVal === this.filteredCat) {
+        changes = newVal
+        method = 'showAll'
+      } else if (newVal.length === 0) {
+        changes = []
+        method = 'hideAll'
+      } else if (newVal.length < oldVal.length) {
+        // if a tripis unchecked. we remove it
+        changes = oldVal.filter(item => !newVal.includes(item))
+        method = 'remove'
+      } else if (newVal.length > oldVal.length) {
+        // if a trip is added, we add it!
+        changes = newVal.filter(item => !oldVal.includes(item))
+        method = 'add'
+      }
+      if (changes !== '') {
+        this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: changes, method: method })
+      }
     },
 
     vmodelSelectedFilter (newVal, oldVal) {
       this.selectedFilter = newVal
+      // only reset if we change the filter.
+      // when the component is loaded, oldVal is null and we dont want to overwrite tripList to [].
+      if (oldVal) {
+        this.tripList = []
+      }
     },
 
   },
   mounted () {
-    this.tripList = this.selectedTrips
+    this.tripList = this.selectedrGoup
     this.selectedFilter = 'highway'
     this.vmodelSelectedFilter = this.selectedFilter
   },
@@ -55,14 +80,6 @@ export default {
         category: this.vmodelSelectedFilter,
         group: value,
       })
-
-      // if (typeof value === 'object') {
-      //   console.log('ob')
-      //
-      // } else {
-      //   this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
-      //   this.$store.commit('changeNotification', { text: '', autoClose: true })
-      // }
     },
 
     deleteButton (obj) {
@@ -196,7 +213,7 @@ export default {
       >
         <template v-slot="{ item }">
           <v-list-item
-            :key="item"
+            :key="vmodelSelectedFilter.concat(item)"
             class="pl-2"
           >
             <v-list-item-action>

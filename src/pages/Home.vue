@@ -35,7 +35,7 @@ export default {
   },
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
-    selectedrIndex () { return this.$store.getters.selectedrIndex },
+    selectedrGroup () { return this.$store.getters.selectedrGroup },
     orderedForm () {
       // order editor Form in alphatical order
       let form = this.editorForm
@@ -388,7 +388,7 @@ export default {
 
     <SidePanel
       :selected-trips="selectedTrips"
-      :selectedr-index="selectedrIndex"
+      :selectedr-group="selectedrGroup"
       @update-tripList="updateSelectedTrips"
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"
