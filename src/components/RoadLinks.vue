@@ -337,7 +337,7 @@ export default {
         minzoom: minZoom.nodes,
         layout: {
           'symbol-placement': 'line',
-          'symbol-spacing': 100,
+          'symbol-spacing': 200,
           'icon-ignore-placement': true,
           'icon-image':'rArrow',
           'icon-size': 0.5,
