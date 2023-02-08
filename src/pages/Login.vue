@@ -3,8 +3,6 @@
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip, indexAreUnique } from '../components/utils/utils.js'
-import r_links from '@static/road_links_exemple.geojson'
-import r_nodes from '@static/road_nodes_exemple.geojson'
 const $gettext = s => s
 
 // rlinks.features.forEach(link => link.properties._hidden = true)
@@ -142,8 +140,15 @@ export default {
         .then(out => { this.loadedNodes = out })
         .catch(err => { alert(err) })
 
-      this.loadedrLinks = r_links
-      this.loadedrNodes = r_nodes
+      fetch(url + 'road_links_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedrLinks = out })
+        .catch(err => { alert(err) })
+
+      fetch(url + 'road_nodes_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedrNodes = out })
+        .catch(err => { alert(err) })
     },
     newProject () {
       this.loadedLinks = linksBase

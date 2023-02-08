@@ -14,7 +14,7 @@ export default {
     rnodes: {},
     rlinksHeader: {},
     rnodesHeader: {},
-    selectedrIndex: [],
+    selectedrGroup: [],
     rlineAttributes: [],
     rnodeAttributes: [],
     newrNode: {},
@@ -64,7 +64,7 @@ export default {
       state.rnodes = {}
       state.visiblerLinks = {}
       state.visiblerNodes = {}
-      state.selectedrIndex = []
+      state.selectedrGroup = []
     },
     getrLinksProperties (state) {
       let header = new Set([])
@@ -94,7 +94,6 @@ export default {
 
     changeVisibleRoads (state, payload) {
       // trips list of visible trip_id.
-      console.log(payload)
       const method = payload.method
       const data = payload.data
       const cat = payload.category
@@ -102,27 +101,26 @@ export default {
 
       switch (method) {
         case 'showAll':
-          state.selectedrIndex = data
+          state.selectedrGroup = data
           state.visiblerLinks.features = state.rlinks.features
           break
         case 'hideAll':
-          state.selectedrIndex = data
+          state.selectedrGroup = data
           state.visiblerLinks.features = []
           break
         case 'add':
-          state.selectedrIndex.push(data[0])
+          state.selectedrGroup.push(data[0])
           newLinks = state.rlinks.features.filter(
             link => link.properties[cat] === data[0])
           state.visiblerLinks.features.push(...newLinks)
           break
         case 'remove':
-          state.selectedrIndex = state.selectedrIndex.filter(el => el !== data[0])
+          state.selectedrGroup = state.selectedrGroup.filter(el => el !== data[0])
           newLinks = state.visiblerLinks.features.filter(
             link => link.properties[cat] === data[0])
           state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !newLinks.includes(link))
           break
       }
-      console.log(state.selectedrIndex)
       this.commit('getVisiblerNodes', { method: method, newLinks: newLinks })
     },
     getVisiblerNodes (state, payload) {
@@ -410,7 +408,7 @@ export default {
     rlinksHeader: (state) => state.rlinksHeader,
     rnodesHeader: (state) => state.rnodesHeader,
     rlineAttributes: (state) => state.rlineAttributes,
-    selectedrIndex: (state) => state.selectedrIndex,
+    selectedrGroup: (state) => state.selectedrGroup,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
     anchorrNodes: (state) => (renderedLinks) => {

@@ -7,7 +7,7 @@ export default {
     LinksSidePanel,
     RoadSidePanel,
   },
-  props: ['selectedTrips', 'selectedrIndex'],
+  props: ['selectedTrips', 'selectedrGroup'],
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine', 'isRoadMode'],
 
   data () {
@@ -104,7 +104,7 @@ export default {
             <RoadSidePanel
               v-show="roadMode"
               :height="height"
-              :selected-trips="selectedrIndex"
+              :selectedr-goup="selectedrGroup"
               @update-tripList="(e) => $emit('update-tripList',{type: 'rlinks', data: e})"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
               @abortChanges="(e) => $emit('abortChanges',e)"
