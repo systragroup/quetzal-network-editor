@@ -14,6 +14,7 @@ export default {
     rnodes: {},
     rlinksHeader: {},
     rnodesHeader: {},
+    selectedrCategory: '',
     selectedrGroup: [],
     rlineAttributes: [],
     rnodeAttributes: [],
@@ -78,6 +79,12 @@ export default {
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.rlineAttributes = header
+
+      if (header.includes('highway')) {
+        state.selectedrCategory = 'highway'
+      } else {
+        state.selectedrCategory = header[0]
+      }
     },
     getrNodesProperties (state) {
       let header = new Set([])
@@ -97,6 +104,7 @@ export default {
       const method = payload.method
       const data = payload.data
       const cat = payload.category
+      state.selectedrCategory = cat
       let tempLinks = null
 
       switch (method) {
@@ -123,6 +131,13 @@ export default {
       }
       this.commit('getVisiblerNodes', { method: method })
     },
+
+    refreshVisibleRoads (state) {
+      const group = new Set(state.selectedrGroup)
+      const cat = state.selectedrCategory
+      state.visiblerLinks.features = state.rlinks.features.filter(link => group.has(link.properties[cat]))
+      this.commit('getVisiblerNodes', { method: 'update' })
+    },
     getVisiblerNodes (state, payload) {
       // payload contain nodes. state.nodes or state.editorNodes
       // find the nodes in the editor links
@@ -136,7 +151,7 @@ export default {
         case 'hideAll':
           state.visiblerNodes.features = []
           break
-        case 'add':
+        case 'add' || 'update':
           // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
           a = state.visiblerLinks.features.map(item => item.properties.a)
           b = state.visiblerLinks.features.map(item => item.properties.b)
@@ -145,7 +160,7 @@ export default {
           state.visiblerNodes.features = state.rnodes.features.filter(
             node => rNodesList.has(node.properties.index))
           break
-        case 'remove':
+        case 'remove' :
           // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
           a = state.visiblerLinks.features.map(item => item.properties.a)
           b = state.visiblerLinks.features.map(item => item.properties.b)
@@ -154,6 +169,7 @@ export default {
           state.visiblerNodes.features = state.visiblerNodes.features.filter(
             node => rNodesList.has(node.properties.index))
           break
+        // case 'refresh'
       }
     },
 
@@ -381,8 +397,8 @@ export default {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
     deleterLink (state, payload) {
-      const linkArr = payload.selectedIndex
-      const tempLinks = new Set(state.visiblerLinks.features.filter(link => linkArr.includes(link.properties.index)))
+      const linkArr = new Set(payload.selectedIndex)
+      const tempLinks = new Set(state.visiblerLinks.features.filter(link => linkArr.has(link.properties.index)))
       state.rlinks.features = state.rlinks.features.filter(link => !tempLinks.has(link))
       state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !tempLinks.has(link))
       this.commit('getVisiblerNodes', { method: 'remove' })
@@ -398,6 +414,8 @@ export default {
       // this is an oberver. modification will be applied to state.links.
       selectedLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
+
+      this.commit('refreshVisibleRoads')
       // get tripId list
       // this.commit('getTripId')
     },
@@ -412,6 +430,7 @@ export default {
     rnodesHeader: (state) => state.rnodesHeader,
     rlineAttributes: (state) => state.rlineAttributes,
     selectedrGroup: (state) => state.selectedrGroup,
+    selectedrCategory: (state) => state.selectedrCategory,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
     anchorrNodes: (state) => (renderedLinks) => {

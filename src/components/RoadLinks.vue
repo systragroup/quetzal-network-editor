@@ -304,7 +304,7 @@ export default {
       source-id="rlinks"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedrLinks: rlinks,
+        data: isRoadMode? renderedrLinks : rlinks,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -339,8 +339,8 @@ export default {
           'symbol-placement': 'line',
           'symbol-spacing': 200,
           'icon-ignore-placement': true,
-          'icon-image':'rArrow',
-          'icon-size': 0.5,
+          'icon-image':'arrow',
+          'icon-size': 0.3,
           'icon-rotate': 90
         },
         paint: {

@@ -47,11 +47,11 @@ export default {
       let changes = ''
       if (newVal.length < oldVal.length) {
         // if a tripis unchecked. we remove it
-        changes = oldVal.filter(item => !newVal.includes(item))
+        changes = new Set(oldVal.filter(item => !newVal.includes(item)))
         this.setHiddenFeatures('remove', changes)
       } else if (newVal.length > oldVal.length) {
         // if a trip is added, we add it!
-        changes = newVal.filter(item => !oldVal.includes(item))
+        changes = new Set(newVal.filter(item => !oldVal.includes(item)))
         this.setHiddenFeatures('add', changes)
       } else {
         this.setHiddenFeatures()
@@ -108,13 +108,13 @@ export default {
           this.visibleNodes.features.push(...newNodes)
         })
       } else if (method === 'remove') {
-        this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.includes(link.properties.trip_id))
+        this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.has(link.properties.trip_id))
         const a = this.visibleLinks.features.map(item => item.properties.a)
         const b = this.visibleLinks.features.map(item => item.properties.b)
-        const ab = Array.from(new Set([...a, ...b]))
-        this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.includes(node.properties.index))
+        const ab = new Set([...a, ...b])
+        this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.has(node.properties.index))
       } else if (method === 'add') {
-        const newFeatures = this.links.features.filter(link => trips.includes(link.properties.trip_id))
+        const newFeatures = this.links.features.filter(link => trips.has(link.properties.trip_id))
         this.visibleLinks.features.push(...newFeatures)
         // get all unique value of width
         const widthArr = [...new Set(newFeatures.map(item => Number(item.properties.route_width)))]
