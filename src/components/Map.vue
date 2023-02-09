@@ -206,7 +206,20 @@ export default {
       if (this.drawMode) {
         if (this.selectedNode.layerId === 'rnodes') {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
-          this.$store.commit('createrLink', { nodeIdA: this.selectedNode.id, nodeIdB: this.hoverId, geom: pointGeom, layerId: this.hoverLayer })
+          const payload = {
+            nodeIdA: this.selectedNode.id,
+            nodeIdB: this.hoverId, // could be null, a node or a link.
+            geom: pointGeom,
+            layerId: this.hoverLayer,
+          }
+          // this action overwrite payload.nodeIdB to the actual newLink nodeB.
+          this.$store.commit('createrLink', payload)
+          this.drawMode = false
+          // then, create a hover (and off hover) to the new node b to continue drawing
+          this.onHoverRoad({ layerId: 'rnodes', selectedId: [payload.nodeIdB] })
+          this.offHover()
+
+          // onHoverRoad (event)
           this.$refs.roadref.getBounds()
         } else { // PT nodes
           if (this.drawMode & !this.anchorMode & !this.hoverId) {
@@ -261,17 +274,17 @@ export default {
         this.hoverLayer = event.layerId
         this.hoverId = event.selectedId[0]
         if (this.drawMode) {
-          // nodes are sticky. drawlink chanche size and style
+          // nodes are sticky. drawlink change size and style
           this.connectedDrawLink = true
         } else {
           this.connectedDrawLink = false
           const node = this.$store.getters.visiblerNodes.features.filter(node =>
-            node.properties.index === event.selectedId[0])
+            node.properties.index === this.hoverId)
           this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
           this.drawMode = true
           this.connectedDrawLink = false
           this.selectedNode.id = this.hoverId
-          this.selectedNode.layerId = event.layerId
+          this.selectedNode.layerId = this.hoverLayer
         }
       } else if (event?.layerId === 'rlinks') {
         this.hoverLayer = event.layerId

@@ -335,6 +335,7 @@ export default {
       const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       state.visiblerLinks.features.push(linkFeature)
       state.rlinks.features.push(linkFeature)
+      return linkFeature
     },
 
     getConnectedLinks (state, payload) {
@@ -433,6 +434,7 @@ export default {
     selectedrCategory: (state) => state.selectedrCategory,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
+    newrNode: (state) => state.newrNode,
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)
       renderedLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(

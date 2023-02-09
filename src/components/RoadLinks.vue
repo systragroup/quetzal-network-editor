@@ -287,8 +287,14 @@ export default {
         this.keepHovering = false
         this.dragNode = false
         this.disablePopup = false
-        // call offCursor event, if we drag too quickly, it will not be call and the node will stay in hovering mode.
-        this.offCursor()
+        // if we drag too quickly, offcursor it will not be call and the node will stay in hovering mode.
+        // calling offscursor will break the sticky node drawlink behaviour, so we only make its state back to hover-false
+        this.map.getCanvas().style.cursor = ''
+        this.map.setFeatureState(
+          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
+          { hover: false },
+        )
+        this.hoveredStateId = null
         this.map.off('mouseup', this.stopMovingNode)
 
       // emit a clickNode with the selected node.
