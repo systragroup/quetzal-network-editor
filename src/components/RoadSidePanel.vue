@@ -10,7 +10,7 @@ export default {
   data () {
     return {
       showDialog: false,
-      tripList: [],
+      tripList: this.selectedrGoup,
       // for some reason, the v-model does not update when i force it in a watcher or a method.
       // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
       selectedFilter: '',
@@ -51,6 +51,13 @@ export default {
       }
       if (changes !== '') {
         this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: changes, method: method })
+      }
+    },
+    selectedrGoup (newVal, oldVal) {
+      // check selected group in store. if it changes from another component
+      // (ex: draw line). we update tripList with it.
+      if (newVal.toString() !== this.tripList.toString()) {
+        this.tripList = newVal
       }
     },
 

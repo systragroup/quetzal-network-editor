@@ -136,7 +136,7 @@ export default {
       const group = new Set(state.selectedrGroup)
       const cat = state.selectedrCategory
       state.visiblerLinks.features = state.rlinks.features.filter(link => group.has(link.properties[cat]))
-      this.commit('getVisiblerNodes', { method: 'update' })
+      this.commit('getVisiblerNodes', { method: 'add' })
     },
     getVisiblerNodes (state, payload) {
       // payload contain nodes. state.nodes or state.editorNodes
@@ -151,7 +151,7 @@ export default {
         case 'hideAll':
           state.visiblerNodes.features = []
           break
-        case 'add' || 'update':
+        case 'add':
           // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
           a = state.visiblerLinks.features.map(item => item.properties.a)
           b = state.visiblerLinks.features.map(item => item.properties.b)
@@ -186,6 +186,7 @@ export default {
           },
         )
       }
+
       this.commit('getEditorLineInfo')
     },
 
@@ -333,9 +334,17 @@ export default {
       linkProperties.speed = Number(state.roadSpeed) // rounded to 0 decimals
 
       const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
-      state.visiblerLinks.features.push(linkFeature)
       state.rlinks.features.push(linkFeature)
-      return linkFeature
+
+      // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
+      const newLinkGroup = linkProperties[state.selectedrCategory]
+      if (!state.selectedrGroup.includes(newLinkGroup)) {
+        // if its not already selected, push it.
+        state.selectedrGroup.push(newLinkGroup)
+      } else {
+        // its already selected (visible), update visiblerlinks
+        state.visiblerLinks.features.push(linkFeature)
+      }
     },
 
     getConnectedLinks (state, payload) {

@@ -203,7 +203,6 @@ export default {
       }
     },
     addPoint (event) {
-      console.log('addPts')
       if (this.drawMode) {
         if (this.selectedNode.layerId === 'rnodes') {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
