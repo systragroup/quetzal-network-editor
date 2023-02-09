@@ -203,6 +203,7 @@ export default {
       }
     },
     addPoint (event) {
+      console.log('addPts')
       if (this.drawMode) {
         if (this.selectedNode.layerId === 'rnodes') {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
@@ -302,7 +303,7 @@ export default {
     },
     clickFeature (event) {
       // when we move a rNode, we need to update drawlink as it is link to this moved node.
-      if (event.action === 'Move rNode') {
+      if (['Move rNode', 'Delete rLink'].includes(event.action)) {
         this.drawMode = false
         // this.drawLink = Linestring([event.lngLat, event.lngLat])
       }
