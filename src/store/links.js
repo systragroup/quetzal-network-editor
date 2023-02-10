@@ -4,8 +4,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
-import JSZip from 'jszip'
-import saveAs from 'file-saver'
+
 const short = require('short-uuid')
 
 export default {
@@ -24,13 +23,29 @@ export default {
     newLink: {},
     newNode: {},
     changeBounds: true,
-    anchorMode: false,
-    speed: 20, // 20KmH for time (speed/distance)
-    popupContent: 'trip_id',
-    outputName: 'output',
+    linkSpeed: 20, // 20KmH for time (speed/distance)
     lineAttributes: [],
     nodeAttributes: [],
-
+    defaultAttributes: [
+      { name: 'index', type: 'String' },
+      { name: 'a', type: 'String' },
+      { name: 'b', type: 'String' },
+      { name: 'trip_id', type: 'String' },
+      { name: 'route_id', type: 'String' },
+      { name: 'agency_id', type: 'String' },
+      { name: 'route_long_name', type: 'String' },
+      { name: 'route_short_name', type: 'String' },
+      { name: 'route_type', type: 'String' },
+      { name: 'route_color', type: 'String' },
+      { name: 'length', type: 'Number' }, // float
+      { name: 'time', type: 'Number' }, // float
+      { name: 'headway', type: 'Number' }, // float
+      { name: 'route_width', type: 'Number' }, // float
+      { name: 'pickup_type', type: 'Number' }, // float
+      { name: 'drop_off_type', type: 'Number' }, // int
+      { name: 'link_sequence', type: 'Number' }, // int
+      { name: 'direction_id', type: 'Number' }, // int
+    ],
   },
 
   mutations: {
@@ -45,6 +60,7 @@ export default {
         // limit geometry precision to 6 digit
         state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+        this.commit('applyPropertiesTypes')
         this.commit('getTripId')
         // set all trips visible
         this.commit('changeSelectedTrips', state.tripId)
@@ -79,13 +95,6 @@ export default {
       state.selectedTrips = []
     },
 
-    setAnchorMode (state, payload) {
-      state.anchorMode = payload
-    },
-    changeAnchorMode (state) {
-      state.anchorMode = !state.anchorMode
-    },
-
     getLinksProperties (state) {
       let header = new Set([])
       state.links.features.forEach(element => {
@@ -93,13 +102,7 @@ export default {
       })
       // header.delete('index')
       // add all default attributes
-      const defaultAttributes = [
-        'index', 'a', 'b', 'length', 'time',
-        'pickup_type', 'drop_off_type', 'link_sequence',
-        'trip_id', 'headway', 'route_id', 'agency_id', 'direction_id',
-        'route_long_name', 'route_short_name',
-        'route_type', 'route_color', 'route_width',
-      ]
+      const defaultAttributes = state.defaultAttributes.map(attr => attr.name)
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.lineAttributes = header
@@ -133,12 +136,6 @@ export default {
       state.selectedTrips = payload
     },
 
-    applySettings (state, payload) {
-      state.speed = payload.speed
-      state.popupContent = payload.popupContent
-      state.outputName = payload.outputName
-    },
-
     setEditorTrip (state, payload) {
       // set Trip Id
       state.editorTrip = payload.tripId
@@ -158,10 +155,10 @@ export default {
       // find the nodes in the editor links
       const a = state.editorLinks.features.map(item => item.properties.a)
       const b = state.editorLinks.features.map(item => item.properties.b)
-      const editorNodesList = Array.from(new Set([...a, ...b]))
+      const editorNodesList = new Set([...a, ...b])
       // set nodes corresponding to trip id
       const filtered = JSON.parse(JSON.stringify(payload.nodes))
-      filtered.features = filtered.features.filter(node => editorNodesList.includes(node.properties.index))
+      filtered.features = filtered.features.filter(node => editorNodesList.has(node.properties.index))
       state.editorNodes = filtered
     },
 
@@ -214,7 +211,7 @@ export default {
         drop_off_type: 0,
       }
       // create link
-      const tempLink = JSON.parse(JSON.stringify(state.editorLinks))
+      const tempLink = structuredClone(state.editorLinks)
       // if there is no link to copy, create one. (new Line)
       if (tempLink.features.length === 0) {
         // copy Line properties.
@@ -292,7 +289,7 @@ export default {
         coordinates: payload,
         type: 'Point',
       }
-      // Copy specified node
+      // Copy specified nodenewNode
       const nodeFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
       state.editorNodes.features = [nodeFeatures]
     },
@@ -325,14 +322,18 @@ export default {
     },
 
     applyNewLink (state, payload) {
+      // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
+      this.commit('setNewLink', { action: payload.action })
+      this.commit('editNewLink', payload.geom)
+
       const distance = length(state.newLink)
       state.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+
       state.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
 
       const action = state.newLink.action
-      this.commit('editNewLink', payload)
       if (action === 'Extend Line Upward') {
         state.editorLinks.features.push(state.newLink.features[0])
         state.editorNodes.features.push(state.newNode.features[0])
@@ -341,8 +342,6 @@ export default {
         state.editorNodes.features.splice(0, 0, state.newNode.features[0])
         state.editorLinks.features.forEach(link => link.properties.link_sequence += 1)
       }
-      // reset new link with updated editorLinks
-      this.commit('setNewLink', { action: action })
     },
 
     deleteNode (state, payload) {
@@ -453,8 +452,8 @@ export default {
       link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
     },
     deleteAnchorNode (state, payload) {
-      const linkIndex = payload.selectedNode.properties.linkIndex
-      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const linkIndex = payload.selectedNode.linkIndex
+      const coordinatedIndex = payload.selectedNode.coordinatedIndex
       const link = state.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
@@ -470,7 +469,7 @@ export default {
       // update time and distance
       const distance = length(link)
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
 
@@ -490,7 +489,7 @@ export default {
         // update time and distance
         const distance = length(link1)
         link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
         link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
       if (link2) {
@@ -498,7 +497,7 @@ export default {
         // update time and distance
         const distance = length(link2)
         link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.speed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
         link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
     },
@@ -577,8 +576,11 @@ export default {
 
     appendNewFile (state, payload) {
       // append new links and node to the project (import page)
+      payload.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+        points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
       state.links.features.push(...payload.links.features)
       state.nodes.features.push(...payload.nodes.features)
+      this.commit('applyPropertiesTypes')
       this.commit('getLinksProperties')
       this.commit('getNodesProperties')
       this.commit('getTripId')
@@ -602,8 +604,8 @@ export default {
       // delete every every nodes not in links
       const a = state.links.features.map(item => item.properties.a)
       const b = state.links.features.map(item => item.properties.b)
-      const nodesInLinks = Array.from(new Set([...a, ...b]))
-      state.nodes.features = state.nodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+      const nodesInLinks = new Set([...a, ...b])
+      state.nodes.features = state.nodes.features.filter(node => nodesInLinks.has(node.properties.index))
     },
 
     confirmChanges (state) { // apply change to Links
@@ -648,11 +650,11 @@ export default {
       // For every Links containing an editor Nodes. update Geometry.
       // (this is necessary when we move a node that is share between multiplde lines)
       // get a list of all links (excluding editorLinks) that contain the selected node
-      const editorNodesList = state.editorNodes.features.map(item => item.properties.index)
+      const editorNodesList = new Set(state.editorNodes.features.map(item => item.properties.index))
       // get list of link with a node A modifieed
       const linksA = state.links.features.filter(
         link => link.properties.trip_id !== state.editorTrip).filter(
-        item => editorNodesList.includes(item.properties.a))
+        item => editorNodesList.has(item.properties.a))
       // apply new node geometry
       linksA.forEach(link => link.geometry.coordinates = [
         state.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
@@ -661,7 +663,7 @@ export default {
       // same for nodes b
       const linksB = state.links.features.filter(
         link => link.properties.trip_id !== state.editorTrip).filter(
-        item => editorNodesList.includes(item.properties.b))
+        item => editorNodesList.has(item.properties.b))
       linksB.forEach(link => link.geometry.coordinates = [
         ...link.geometry.coordinates.slice(0, -1),
         state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
@@ -688,43 +690,14 @@ export default {
       // get tripId list
       this.commit('getTripId')
     },
-
-    exportFiles (state, payload = []) {
-      const zip = new JSZip()
-      // const folder = zip.folder('output') // create a folder for the files.
-      let links = ''
-      let nodes = ''
-      // export only visible line (line selected)
-      if (payload.length >= 1) {
-        const tempLinks = structuredClone(state.links)
-        tempLinks.features = tempLinks.features.filter(link => payload.includes(link.properties.trip_id))
-        links = JSON.stringify(tempLinks)
-        // delete every every nodes not in links
-        const a = tempLinks.features.map(item => item.properties.a)
-        const b = tempLinks.features.map(item => item.properties.b)
-        const nodesInLinks = Array.from(new Set([...a, ...b]))
-        const tempNodes = structuredClone(state.nodes)
-        tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
-        nodes = JSON.stringify(tempNodes)
-
-      // export everything
-      } else {
-        links = JSON.stringify(state.links)
-        nodes = JSON.stringify(state.nodes)
-      }
-      // eslint-disable-next-line no-var
-      var blob = new Blob([links], { type: 'application/json' })
-      // use folder.file if you want to add it to a folder
-      zip.file('links.geojson', blob)
-      // eslint-disable-next-line no-var, no-redeclare
-      var blob = new Blob([nodes], { type: 'application/json' })
-      // use folder.file if you want to add it to a folder
-      zip.file('nodes.geojson', blob)
-      zip.generateAsync({ type: 'blob' })
-        .then(function (content) {
-          // see FileSaver.js
-          saveAs(content, state.outputName + '.zip')
-        })
+    applyPropertiesTypes (state) {
+      state.defaultAttributes.forEach(attr => {
+        if (attr.type === 'String') {
+          state.links.features.forEach(link => link.properties[attr.name] = String(link.properties[attr.name]))
+        } else if (attr.type === 'Number') {
+          state.links.features.forEach(link => link.properties[attr.name] = Number(link.properties[attr.name]))
+        }
+      })
     },
   },
 
@@ -734,9 +707,7 @@ export default {
     filesAreLoaded: (state) => state.filesAreLoaded.links === true & state.filesAreLoaded.nodes === true,
     links: (state) => state.links,
     nodes: (state) => state.nodes,
-    speed: (state) => state.speed,
-    outputName: (state) => state.outputName,
-    popupContent: (state) => state.popupContent,
+    linkSpeed: (state) => state.linkSpeed,
     route_id: (state) => state.route_id,
     editorTrip: (state) => state.editorTrip,
     editorLinks: (state) => state.editorLinks,
@@ -763,7 +734,6 @@ export default {
     lineAttributes: (state) => state.lineAttributes,
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
-    anchorMode: (state) => state.anchorMode,
     nodesHeader: (state) => state.nodesHeader,
     linksHeader: (state) => state.linksHeader,
     anchorNodes: (state) => {
@@ -782,5 +752,7 @@ export default {
 
       return nodes
     },
+    // this return the attribute type, of undefined.
+    attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
   },
 }

@@ -2,7 +2,8 @@
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
-import { extractZip } from '../components/utils/utils.js'
+import { extractZip, indexAreUnique } from '../components/utils/utils.js'
+const $gettext = s => s
 
 export default {
   name: 'Login',
@@ -10,27 +11,48 @@ export default {
     return {
       loggedIn: false,
       loadedLinks: {},
+      loadedrLinks: {},
+      loadedrNodes: {},
       loadedNodes: {},
       choice: null,
       loading: { links: false, nodes: false, zip: false },
       showDialog: false,
+      errorMessage: '',
     }
   },
 
   computed: {
     filesAreLoaded () { return this.$store.getters.filesAreLoaded },
     localFilesAreLoaded () {
-      return !((Object.keys(this.loadedLinks).length === 0 || Object.keys(this.loadedNodes).length === 0))
+      return !((Object.keys(this.loadedLinks).length === 0 ||
+                Object.keys(this.loadedNodes).length === 0 ||
+                Object.keys(this.loadedrLinks).length === 0 ||
+                Object.keys(this.loadedrNodes).length === 0
+      ))
     },
   },
   watch: {
     loadedLinks (value) {
-      this.$store.commit('loadLinks', value)
-      this.loading.links = false
+      if (value.features) {
+        this.$store.commit('loadLinks', value)
+        this.loading.links = false
+      }
     },
     loadedNodes (value) {
-      this.$store.commit('loadNodes', value)
-      this.loading.nodes = false
+      if (value.features) {
+        this.$store.commit('loadNodes', value)
+        this.loading.nodes = false
+      }
+    },
+    loadedrLinks (value) {
+      if (value.features) {
+        this.$store.commit('loadrLinks', value)
+      }
+    },
+    loadedrNodes (value) {
+      if (value.features) {
+        this.$store.commit('loadrNodes', value)
+      }
     },
     localFilesAreLoaded (val) {
       if (val) {
@@ -49,6 +71,14 @@ export default {
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})
       }, 1000)
+    },
+    error (message) {
+      this.errorMessage = message
+      this.loading = { links: false, nodes: false, zip: false }
+      this.loadedLinks = {}
+      this.loadedrLinks = {}
+      this.loadedrNodes = {}
+      this.loadedNodes = {}
     },
 
     buttonHandle (choice) {
@@ -85,6 +115,7 @@ export default {
         // this only happen when both files are loaded.
         // remove links and nodes from store. (and filesAreLoaded)
         this.$store.commit('unloadFiles')
+        this.$store.commit('unloadrFiles')
         // handle click and open file explorer
         this.$refs.fileInput.click()
       }
@@ -102,10 +133,22 @@ export default {
         .then(res => res.json())
         .then(out => { this.loadedNodes = out })
         .catch(err => { alert(err) })
+
+      fetch(url + 'road_links_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedrLinks = out })
+        .catch(err => { alert(err) })
+
+      fetch(url + 'road_nodes_exemple.geojson')
+        .then(res => res.json())
+        .then(out => { this.loadedrNodes = out })
+        .catch(err => { alert(err) })
     },
     newProject () {
       this.loadedLinks = linksBase
       this.loadedNodes = nodesBase
+      this.loadedrLinks = linksBase
+      this.loadedrNodes = nodesBase
     },
 
     onFilePicked (event) {
@@ -119,7 +162,7 @@ export default {
       // it is a geojson
       if (files[0].name.slice(-7) !== 'geojson') {
         this.loading[this.choice] = false
-        alert('file is not a geojson')
+        $gettext('file is not a geojson')
         return
       }
 
@@ -128,7 +171,13 @@ export default {
       if (this.choice === 'links') {
         fileReader.onload = evt => {
           try {
-            this.loadedLinks = JSON.parse(evt.target.result)
+            if (files[0].name.includes('road')) {
+              this.loadedrLinks = JSON.parse(evt.target.result)
+              this.loadedLinks = linksBase
+            } else {
+              this.loadedLinks = JSON.parse(evt.target.result)
+              this.loadedrLinks = linksBase
+            }
           } catch (e) {
             this.$store.commit('changeNotification', { text: e.message, autoClose: true, color: 'red darken-2' })
             this.loading[this.choice] = false
@@ -137,7 +186,13 @@ export default {
       } else if (this.choice === 'nodes') {
         fileReader.onload = evt => {
           try {
-            this.loadedNodes = JSON.parse(evt.target.result)
+            if (files[0].name.includes('road')) {
+              this.loadedrNodes = JSON.parse(evt.target.result)
+              this.loadedNodes = nodesBase
+            } else {
+              this.loadedNodes = JSON.parse(evt.target.result)
+              this.loadedrNodes = nodesBase
+            }
           } catch (e) {
             alert(e.message)
             this.loading[this.choice] = false
@@ -156,7 +211,7 @@ export default {
       // it is a zip
       if (files[0].name.slice(-3) !== 'zip') {
         this.loading.zip = false
-        alert('file is not a zip')
+        this.errorMessage = $gettext('file is not a zip')
       }
       // read every selected zip and create a list of promises.
       // each promises contain {links, nodes}
@@ -168,16 +223,45 @@ export default {
       // when all files are read
       Promise.all(PromisesList).then(files => {
         // asign first file to links and node var
-        const links = files[0].links
-        const nodes = files[0].nodes
+        const links = structuredClone(linksBase)
+        const nodes = structuredClone(nodesBase)
+        const rlinks = structuredClone(linksBase)
+        const rnodes = structuredClone(nodesBase)
+
         // for each other files concat, concat to links and nodes
-        for (let i = 1; i < files.length; i++) {
-          links.features.push(...files[i].links.features)
-          nodes.features.push(...files[i].nodes.features)
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].links) { // group so there is no links read without nodes
+            links.features.push(...files[i].links.features)
+            nodes.features.push(...files[i].nodes.features)
+          }
+          if (files[i].road_links) {
+            rlinks.features.push(...files[i].road_links.features)
+            rnodes.features.push(...files[i].road_nodes.features)
+          }
         }
         // then its finish
-        this.loadedLinks = links
-        this.loadedNodes = nodes
+        // if there was nothing, apply base one.
+        if (indexAreUnique(links)) {
+          this.loadedLinks = links
+        } else {
+          this.error($gettext('there is duplicated links index. Import aborted'))
+        }
+        if (indexAreUnique(nodes)) {
+          this.loadedNodes = nodes
+        } else {
+          this.error($gettext('there is duplicated nodes index. Import aborted'))
+        }
+        if (indexAreUnique(rlinks)) {
+          this.loadedrLinks = rlinks
+        } else {
+          this.error($gettext('there is duplicated road links index. Import aborted'))
+        }
+        if (indexAreUnique(rnodes)) {
+          this.loadedrNodes = rnodes
+        } else {
+          this.error($gettext('there is duplicated road nodes index. Import aborted'))
+        }
+
         this.loading.zip = false
       }).catch(err => {
         this.loading.zip = false
@@ -207,7 +291,7 @@ export default {
             {{ $gettext("Load Files") }}
           </div>
           <div>
-            {{ $gettext("Links and Nodes files must be geojson in EPSG:4326") }}
+            {{ $gettext("Links and Nodes files must be geojson in EPSG:4326.") }}
           </div>
           <div class=" text-xs-center">
             <v-btn
@@ -259,7 +343,11 @@ export default {
               </template>
               <span>{{ $gettext("Load zip files containing") }}</span>
               <br>
-              <span>{{ $gettext("nodes.geojson and links.geojson") }}</span>
+              <span>{{ $gettext("nodes.geojson and links.geojson or") }}</span>
+              <br>
+              <span>{{ $gettext("road_nodes.geojson and road_links.geojson") }}</span>
+              <br>
+              <span>{{ $gettext("or both the PT and road geojsons") }}</span>
             </v-tooltip>
           </div>
           <input
@@ -315,6 +403,9 @@ export default {
               <span>{{ $gettext("Load Montréal Example") }}</span>
             </v-tooltip>
           </div>
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'red'}">
+          {{ errorMessage }}
         </v-card-text>
       </v-card>
     </div>

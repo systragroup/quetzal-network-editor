@@ -1,11 +1,13 @@
 <script>
 import Mapbox from 'mapbox-gl'
-import { MglMap, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
+import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
+import RoadLinks from './RoadLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
-import arrowImageAnchor from '@static/arrow_anchor.png'
+import Linestring from 'turf-linestring'
+
 // Filter links from selected line
 const $gettext = s => s
 
@@ -15,27 +17,37 @@ export default {
     MglMap,
     MglNavigationControl,
     MglScaleControl,
+    MglGeojsonLayer,
     StaticLinks,
     EditorLinks,
+    RoadLinks,
   },
   props: {
     selectedTrips: {
       type: Array,
       default: () => [],
     },
+    isRoadMode: {
+      type: Boolean,
+      default: false,
+    },
 
   },
   events: ['clickFeature'],
   data () {
     return {
-      selectedAction: null,
       mapboxPublicKey: null,
       selectedFeature: null,
       isEditorMode: false,
       mapIsLoaded: false,
       drawMode: false,
       hoverId: null,
+      hoverLayer: null,
       mapDiv: null,
+      drawLink: null,
+      mouseout: false,
+      selectedNode: { id: null, layerId: null },
+      connectedDrawLink: false,
     }
   },
   computed: {
@@ -48,9 +60,6 @@ export default {
     },
     editorNodes () {
       return this.$store.getters.editorNodes
-    },
-    drawLine () {
-      return this.$store.getters.newLink
     },
     firstNode () {
       return this.$store.getters.firstNode
@@ -66,10 +75,16 @@ export default {
     },
     anchorMode (val) {
       if (val) {
+        this.drawMode = false
         this.$store.commit('changeNotification',
           { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
       } else {
         this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
+    },
+    isRoadMode (val) {
+      if (!val) {
+        this.drawMode = false
       }
     },
 
@@ -89,43 +104,55 @@ export default {
       }
     },
 
+    drawMode (val) {
+      // set layer visible if drawMode is true
+      // check if layer exist. will bug if it is check befere rendering the layer
+      if (this.map?.getStyle().layers.filter(layer => layer.id === 'drawLink').length > 0) {
+        if (val) {
+          this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
+        } else {
+          this.map.setLayoutProperty('drawLink', 'visibility', 'none')
+        }
+      }
+    },
+
     editorTrip (val) {
       if (val) {
         this.isEditorMode = true
+        this.connectedDrawLink = false
       }
     },
     isEditorMode (val) {
-      if (val && this.editorNodes.features.length > 0) {
-        this.selectedAction = 'Extend Line Upward'
+      // check if map is loaded too, there is a bug if not, when component is laoded in edition mode (changing page).
+      if (val && this.editorNodes.features.length > 0 && !this.anchorMode && this.mapIsLoaded) {
+        this.drawMode = true
       } else {
-        this.selectedAction = null
-      }
+        this.drawMode = false
+      }// remove drawmode if we quit edition mode.
       if (!val & this.drawMode) {
         this.drawMode = false
       }
     },
+    // when the first or last node change (delete or new) change the value of those nodes.
     'firstNode.geometry.coordinates' (val) {
       if (this.editorTrip) {
-        this.$store.commit('setNewLink', { action: this.selectedAction })
+        this.drawLink = Linestring([val, val])
+        this.selectedNode.layerId = 'nodes'
+        this.selectedNode.id = this.firstNode.properties.index
       }
     },
     'lastNode.geometry.coordinates' (val) {
       if (this.editorTrip) {
-        this.$store.commit('setNewLink', { action: this.selectedAction })
-      }
-    },
-
-    selectedAction (newVal, oldVal) {
-      if (['Extend Line Upward', 'Extend Line Downward'].includes(newVal)) {
-        this.$store.commit('setNewLink', { action: this.selectedAction })
-        this.drawMode = true
-      } else {
-        this.drawMode = false
+        this.drawLink = Linestring([val, val])
+        this.selectedNode.layerId = 'nodes'
+        this.selectedNode.id = this.lastNode.properties.index
       }
     },
   },
   created () {
+    if (this.editorTrip) { this.isEditorMode = true }
     this.mapboxPublicKey = mapboxPublicKey
+    this.drawLink = structuredClone(this.$store.getters.linksHeader)
   },
 
   methods: {
@@ -147,75 +174,137 @@ export default {
           console.error('err image', err)
           return
         }
-        event.map.addImage('arrow', image)
+        event.map.addImage('arrow', image, { sdf: true })
       })
-      event.map.loadImage(arrowImageAnchor, function (err, image) {
-        if (err) {
-          console.error('err image', err)
-          return
-        }
-        event.map.addImage('arrowAnchor', image)
-      })
+
       this.map = event.map
       event.map.dragRotate.disable()
       this.mapIsLoaded = true
     },
 
     draw (event) {
-      if (this.drawMode && this.map.loaded() && !this.anchorMode) {
-        // let index = this.drawLine.features.length-1
-        this.$store.commit('editNewLink', Object.values(event.mapboxEvent.lngLat))
+      // do not update position on connected link, this makes the node sticky
+      if (!this.connectedDrawLink) {
+        // there is no mousein event, so if drawlink was put nonvisible by mouseout, we cancel here.
+        if (this.drawMode && this.mouseout) {
+          this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
+          this.mouseout = false
+        }
+        if (this.drawMode && !this.anchorMode) {
+        // update draw line with new geometry.
+          const geometry = [this.drawLink.geometry.coordinates[0], Object.values(event.mapboxEvent.lngLat)]
+          this.drawLink = Linestring(geometry)
+        }
       }
     },
     addPoint (event) {
-      // for a new Line
-      if (this.editorNodes.features.length === 0 && this.editorTrip) {
-        this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
-        this.selectedAction = 'Extend Line Upward'
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
-      }
-      if (this.drawMode & !this.anchorMode) {
-        const pointGeom = Object.values(event.mapboxEvent.lngLat)
-        this.$store.commit('applyNewLink', pointGeom)
-        // console.log(this.mapDiv.style.width)
+      if (this.drawMode) {
+        if (this.selectedNode.layerId === 'rnodes') {
+          const pointGeom = Object.values(event.mapboxEvent.lngLat)
+          const payload = {
+            nodeIdA: this.selectedNode.id,
+            nodeIdB: this.hoverId, // could be null, a node or a link.
+            geom: pointGeom,
+            layerId: this.hoverLayer,
+          }
+          // this action overwrite payload.nodeIdB to the actual newLink nodeB.
+          this.$store.commit('createrLink', payload)
+          this.drawMode = false
+          // then, create a hover (and off hover) to the new node b to continue drawing
+          this.onHoverRoad({ layerId: 'rnodes', selectedId: [payload.nodeIdB] })
+          this.offHover()
+
+          // onHoverRoad (event)
+          this.$refs.roadref.getBounds()
+        } else { // PT nodes
+          if (this.drawMode & !this.anchorMode & !this.hoverId) {
+            const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
+              ? 'Extend Line Upward'
+              : 'Extend Line Downward'
+            const pointGeom = Object.values(event.mapboxEvent.lngLat)
+
+            this.$store.commit('applyNewLink', { nodeId: this.selectedNode.id, geom: pointGeom, action: action })
+          }
+        }
+      } else {
+        // for a new Line
+        if (this.editorNodes.features.length === 0 && this.editorTrip) {
+          this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
+          this.$store.commit('changeNotification', { text: '', autoClose: true })
+        }
       }
     },
     resetDraw (event) {
-      // reset draw line when we leave the map
-      if (this.drawMode && this.map.loaded() && !this.anchorMode) {
-        if (this.drawLine.action === 'Extend Line Upward') {
-          this.$store.commit('editNewLink', this.drawLine.features[0].geometry.coordinates[0])
-        } else {
-          this.$store.commit('editNewLink', this.drawLine.features[0].geometry.coordinates[1])
-        }
+      // reset draw line when we leave the map.
+      // there is no mouseIn event, so we track it with mouseout = true, and reapply visible on mousemove.
+      if (this.drawMode) {
+        this.mouseout = true
+        this.map.setLayoutProperty('drawLink', 'visibility', 'none')
       }
     },
 
     rightClickMap (event) {
-      // remove action when right click on map (and not link / nodes)
+      // remove drawmode when we right click on map
       if (event.mapboxEvent.originalEvent.button === 2 & !this.hoverId) {
-        this.selectedAction = null
+        this.drawMode = false
       }
     },
     onHover (event) {
       // no drawing when we hover on link or node
-      this.drawMode = false
       this.hoverId = event.selectedId
-      // console.log(event)
+      if (this.drawMode) { this.map.setLayoutProperty('drawLink', 'visibility', 'none') }
       // change hook when we hover first or last node.
-      if (this.hoverId === this.$store.getters.lastNodeId) {
-        this.selectedAction = 'Extend Line Upward'
-        this.$store.commit('setNewLink', { action: this.selectedAction })
-      } else if (this.hoverId === this.$store.getters.firstNodeId) {
-        this.selectedAction = 'Extend Line Downward'
-        this.$store.commit('setNewLink', { action: this.selectedAction })
+      if ([this.$store.getters.lastNodeId, this.$store.getters.firstNodeId].includes(this.hoverId)) {
+        const node = this.$store.getters.editorNodes.features.filter(node =>
+          node.properties.index === event.selectedId)
+        this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
+        this.selectedNode.id = this.hoverId
+        this.selectedNode.layerId = event.layerId
+
+        this.drawMode = true
+      }
+    },
+    onHoverRoad (event) {
+      if (event?.layerId === 'rnodes') {
+        this.hoverLayer = event.layerId
+        this.hoverId = event.selectedId[0]
+        if (this.drawMode) {
+          // nodes are sticky. drawlink change size and style
+          this.connectedDrawLink = true
+        } else {
+          this.connectedDrawLink = false
+          const node = this.$store.getters.visiblerNodes.features.filter(node =>
+            node.properties.index === this.hoverId)
+          this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
+          this.drawMode = true
+          this.connectedDrawLink = false
+          this.selectedNode.id = this.hoverId
+          this.selectedNode.layerId = this.hoverLayer
+        }
+      } else if (event?.layerId === 'rlinks') {
+        this.hoverLayer = event.layerId
+        this.hoverId = event.selectedId
       }
     },
     offHover (event) {
-      // put back drawmode offHover only if action is not null
-      if (this.selectedAction) {
-        this.hoverId = null
-        this.drawMode = true
+      // put back visible draw line
+      this.hoverId = null
+      this.hoverLayer = null
+      if (this.drawMode) {
+        this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
+        this.connectedDrawLink = false
+      }
+    },
+    clickFeature (event) {
+      // when we move a rNode, we need to update drawlink as it is link to this moved node.
+      if (['Move rNode', 'Delete rLink'].includes(event.action)) {
+        this.drawMode = false
+        // this.drawLink = Linestring([event.lngLat, event.lngLat])
+      }
+      // prevent emitting add road node inline when drawmode is on.
+      // we will add the node inlne and create the new link in this component.
+      if (!(event.action === 'Add Road Node Inline' && this.drawMode)) {
+        this.$emit('clickFeature', event)
       }
     },
 
@@ -228,16 +317,26 @@ export default {
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
     map-style="mapbox://styles/mapbox/light-v9?optimize=true"
-
     @load="onMapLoaded"
     @mousemove="draw"
-    @mouseout="resetDraw"
+    @mouseout="resetDraw()"
     @click="addPoint"
     @mouseup="rightClickMap"
   >
     <MglScaleControl position="bottom-right" />
 
     <MglNavigationControl position="bottom-right" />
+    <template v-if="mapIsLoaded">
+      <RoadLinks
+        ref="roadref"
+        :map="map"
+        :is-editor-mode="isEditorMode"
+        :is-road-mode="isRoadMode"
+        :anchor-mode="anchorMode"
+        v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+      />
+    </template>
+
     <template v-if="mapIsLoaded">
       <StaticLinks
         :map="map"
@@ -250,11 +349,32 @@ export default {
     <template v-if="mapIsLoaded">
       <EditorLinks
         :map="map"
-        :draw-mode="drawMode"
         :anchor-mode="anchorMode"
-        @clickFeature="(e) => $emit('clickFeature',e)"
-        @onHover="onHover"
-        @offHover="offHover"
+        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
+      />
+    </template>
+    <template v-if="mapIsLoaded">
+      <MglGeojsonLayer
+        v-if="drawMode"
+        source-id="drawLink"
+        :source="{
+          type: 'geojson',
+          data:drawLink,
+          buffer: 0,
+          generateId: true,
+        }"
+        layer-id="drawLink"
+        :layer="{
+          type: 'line',
+          minzoom: 2,
+          paint: {
+            'line-opacity': 1,
+            'line-color': '#7EBAAC',
+            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
+            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
+
+          }
+        }"
       />
     </template>
   </MglMap>

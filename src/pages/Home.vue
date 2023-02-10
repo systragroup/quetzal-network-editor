@@ -3,6 +3,8 @@
 import SidePanel from '../components/SidePanel.vue'
 import Map from '../components/Map.vue'
 import ColorPicker from '../components/utils/ColorPicker.vue'
+import { getGroupForm } from '../components/utils/utils.js'
+
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
 
@@ -19,6 +21,7 @@ export default {
       action: null,
       selectedNode: null,
       selectedLink: null,
+      selectedIndex: null,
       showDialog: false,
       editorForm: {},
       cursorPosition: [],
@@ -26,25 +29,35 @@ export default {
       deleteMessage: '',
       lingering: true,
       groupTripIds: [],
+      selectedTab: 0,
+      isRoadMode: false,
     }
   },
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
+    selectedrGroup () { return this.$store.getters.selectedrGroup },
     orderedForm () {
       // order editor Form in alphatical order
-      const ordered = Object.keys(this.editorForm).sort().reduce(
+      let form = this.editorForm
+      // if we have tab. there is a list of form
+      if (form.length >= 1) {
+        form = form[this.selectedTab]
+      }
+      // order keys in alphabetical order, and with disabled last
+      const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
+      keys.push(...Object.keys(form).filter(key => form[key].disabled).sort())
+      const ordered = keys.reduce(
         (obj, key) => {
-          // do not display disabled fields
-          if (!this.editorForm[key].disabled) {
-            obj[key] = this.editorForm[key]
-          }
-
+          obj[key] = form[key]
           return obj
         },
         {},
       )
       return ordered
     },
+  },
+  watch: {
+
   },
   created () {
     this.editorTrip = this.$store.getters.editorTrip
@@ -53,77 +66,79 @@ export default {
         this.$store.commit('changeAnchorMode')
       }
     })
-    // window.addEventListener('keyup', (e) => {
-    //  if (e.key === 'Control') {
-    //    this.$store.commit('changeAnchorMode')
-    //  }
-    // })
-    this.$store.commit('changeNotification',
-      { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
   },
 
   methods: {
 
-    updateSelectedTrips (val) {
-      this.$store.commit('changeSelectedTrips', val)
+    updateSelectedTrips (event) {
+      if (event.type === 'links') {
+        this.$store.commit('changeSelectedTrips', event.data)
+      } else if (event.type === 'rlinks') {
+        this.$store.commit('changeVisibleRoads', event.data)
+      }
     },
 
     actionClick (event) {
       this.action = event.action
-
       if (this.action === 'Edit Line Info') {
         this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
         this.lingering = event.lingering
         this.showDialog = true
       } else if (this.action === 'Edit Group Info') {
         this.groupTripIds = event.tripIds
-        const lineAttributes = this.$store.getters.lineAttributes
-        let features = structuredClone(this.$store.getters.links.features)
-        features = features.filter(link => this.groupTripIds.includes(link.properties.trip_id))
         const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
-        const form = {}
-        lineAttributes.forEach(key => {
-          const val = new Set(features.map(link => link.properties[key]))
-          form[key] = {
-            value: val.size > 1 ? '' : [...val][0],
-            disabled: uneditable.includes(key),
-            placeholder: val.size > 1,
-          }
-        })
+        const lineAttributes = this.$store.getters.lineAttributes
+        const features = structuredClone(this.$store.getters.links.features.filter(
+          link => this.groupTripIds.includes(link.properties.trip_id)))
 
-        this.editorForm = form
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
         this.lingering = event.lingering
         this.showDialog = true
       } else if (this.action === 'Edit Link Info') {
         // link is clicked on the map
         this.selectedLink = event.selectedFeature.properties
-        // map selected link doesnt return properties with null value. we need
-        // to get the links in the store with the selected index.
-        this.editorForm = this.$store.getters.editorLinks.features.filter(
-          (link) => link.properties.index === this.selectedLink.index)
-        this.editorForm = this.editorForm[0].properties
-
-        // filter properties to only the one that are editable.
         const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
-        const form = {}
         const lineAttributes = this.$store.getters.lineAttributes
-        lineAttributes.forEach(key => {
-          form[key] = {
-            value: this.editorForm[key],
-            disabled: uneditable.includes(key),
-            placeholder: false,
-          }
-        })
-        this.editorForm = form
+        const features = this.$store.getters.editorLinks.features.filter(
+          (link) => link.properties.index === this.selectedLink.index)
+
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
         this.showDialog = true
-      } else if (this.action === 'Edit Node Info') {
+      } else if (this.action === 'Edit rLink Info') {
+        this.selectedLink = event.selectedIndex
+        this.selectedTab = 0
+
+        this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
+        this.showDialog = true
+      } else if (this.action === 'Edit Road Group Info') {
+        const features = this.$store.getters.grouprLinks(event.category, event.group)
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters.rlineAttributes
+        const uneditable = ['index', 'length', 'a', 'b']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
+        this.showDialog = true
+      } else if (this.action === 'Edit Visible Road Info') {
+        const features = this.$store.getters.visiblerLinks.features
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters.rlineAttributes
+        const uneditable = ['index', 'length', 'a', 'b']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
+        this.showDialog = true
+      } else if (['Edit Node Info', 'Edit rNode Info'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         // map selected node doesnt not return properties with nanulln value.
         // we need to get the node in the store with the selected index.
-        this.editorForm = this.$store.getters.editorNodes.features.filter(
-          (node) => node.properties.index === this.selectedNode.index)
+        if (this.action === 'Edit Node Info') {
+          this.editorForm = this.$store.getters.editorNodes.features.filter(
+            (node) => node.properties.index === this.selectedNode.index)
+        } else if (this.action === 'Edit rNode Info') {
+          this.editorForm = this.$store.getters.visiblerNodes.features.filter(
+            (node) => node.properties.index === this.selectedNode.index)
+        }
         this.editorForm = this.editorForm[0].properties
-
         // filter properties to only the one that are editable.
         const uneditable = ['index']
         const filtered = Object.keys(this.editorForm)
@@ -137,11 +152,20 @@ export default {
           }, {})
         this.editorForm = filtered
         this.showDialog = true
-      } else if (['Cut Before Node', 'Cut After Node', 'Move Stop', 'Delete Stop'].includes(this.action)) {
+      } else if (['Cut Before Node', 'Cut After Node',
+        'Move Stop', 'Delete Stop', 'Delete Anchor', 'Delete Road Anchor'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         this.applyAction()
       } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
         this.selectedLink = event.selectedFeature.properties
+        this.cursorPosition = event.lngLat
+        this.applyAction()
+      } else if (['Add Road Node Inline', 'Add Road Anchor Inline', 'Delete rLink'].includes(this.action)) {
+        this.selectedIndex = event.selectedIndex
+        this.cursorPosition = event.lngLat
+        this.applyAction()
+      } else if (['Move Node', 'Move Anchor', 'Move rNode', 'Move rAnchor'].includes(this.action)) {
+        this.selectedNode = event.selectedFeature
         this.cursorPosition = event.lngLat
         this.applyAction()
       }
@@ -203,6 +227,58 @@ export default {
             nodes: 'anchorNodes',
           })
           break
+        case 'Delete Anchor':
+          this.$store.commit('deleteAnchorNode', { selectedNode: this.selectedNode })
+          break
+        case 'Edit rLink Info':
+          this.$store.commit('editrLinkInfo', { selectedLinkId: this.selectedLink, info: this.editorForm })
+          break
+        case 'Edit Road Group Info':
+          this.$store.commit('editrGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
+          this.$refs.mapref.$refs.roadref.getBounds()
+          break
+        case 'Edit Visible Road Info':
+          this.$store.commit('editrVisiblesInfo', { info: this.editorForm })
+          this.$refs.mapref.$refs.roadref.getBounds()
+          break
+        case 'Edit rNode Info':
+          this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
+          break
+        case 'Add Road Node Inline':
+          this.$store.commit('addRoadNodeInline', {
+            selectedIndex: this.selectedIndex,
+            lngLat: this.cursorPosition,
+            nodes: 'rnodes',
+          })
+          break
+        case 'Add Road Anchor Inline':
+          this.$store.commit('addRoadNodeInline', {
+            selectedIndex: this.selectedIndex,
+            lngLat: this.cursorPosition,
+            nodes: 'anchorrNodes',
+          })
+          break
+        case 'Move Node':
+          this.$store.commit('moveNode', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Move Anchor':
+          this.$store.commit('moveAnchor', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Move rNode':
+          this.$store.commit('moverNode', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Move rAnchor':
+          this.$store.commit('moverAnchor', { selectedNode: this.selectedNode, lngLat: this.cursorPosition })
+          break
+        case 'Delete Road Anchor':
+          this.$store.commit('deleteAnchorrNode', { selectedNode: this.selectedNode })
+          break
+        case 'Delete rLink':
+          this.$store.commit('deleterLink', { selectedIndex: this.selectedIndex })
+          break
+        case 'deleterGroup':
+          this.$store.commit('deleterGroup', this.tripToDelete)
+          break
       }
       if (!this.lingering) {
         this.confirmChanges()
@@ -237,9 +313,10 @@ export default {
       this.$store.commit('changeNotification', { text: $gettext('modification aborted'), autoClose: true })
     },
     deleteButton (selection) {
+      // could be a trip, or a roadLinks group
       this.tripToDelete = selection.trip
       this.deleteMessage = selection.message
-      this.action = 'deleteTrip'
+      this.action = selection.action
       this.showDialog = true
     },
 
@@ -259,21 +336,44 @@ export default {
       <v-card
         max-height="60rem"
       >
+        <v-tabs
+          v-if=" (editorForm.length > 1) "
+          v-model="selectedTab"
+          grow
+        >
+          <v-tab
+            v-for="link in selectedLink"
+            :key="link"
+          >
+            {{ link }}
+          </v-tab>
+        </v-tabs>
         <v-card-title class="text-h5">
-          {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
+          {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
-
-        <v-card-text v-if="['Edit Line Info', 'Edit Link Info', 'Edit Node Info','Edit Group Info'].includes(action)">
+        <v-card-text
+          v-if="['Edit Line Info',
+                 'Edit Link Info',
+                 'Edit Node Info',
+                 'Edit Group Info',
+                 'Edit rLink Info',
+                 'Edit Road Group Info',
+                 'Edit Visible Road Info',
+                 'Edit rNode Info'].includes(action)"
+        >
           <v-list>
             <v-text-field
               v-for="(value, key) in orderedForm"
               :key="key"
               v-model="value['value']"
               :label="key"
+              :filled="!value['disabled']"
+              :type="$store.getters.attributeType(key)"
               :placeholder="value['placeholder']? $gettext('multiple Values'):''"
               :persistent-placeholder=" value['placeholder']? true:false "
               :disabled="value['disabled']"
+              @wheel="$event.target.blur()"
             >
               <template
                 v-if="key==='route_color'"
@@ -312,14 +412,18 @@ export default {
 
     <SidePanel
       :selected-trips="selectedTrips"
+      :selectedr-group="selectedrGroup"
       @update-tripList="updateSelectedTrips"
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"
       @deleteButton="deleteButton"
       @propertiesButton="actionClick"
+      @isRoadMode="(e) => isRoadMode = e"
     />
     <Map
+      ref="mapref"
       :selected-trips="selectedTrips"
+      :is-road-mode="isRoadMode"
       @clickFeature="actionClick"
     />
   </section>

@@ -9,7 +9,7 @@ export default {
     MglImageLayer,
     MglGeojsonLayer,
   },
-  props: ['map', 'drawMode', 'anchorMode'],
+  props: ['map', 'anchorMode'],
   events: ['clickFeature', 'onHover', 'offHover'],
   data () {
     return {
@@ -37,17 +37,6 @@ export default {
   },
 
   watch: {
-    drawMode (val) {
-      // set layer visible if drawMode is true
-      // check if layer exist. will bug if it is check befere rendering the layer
-      if (this.map.getStyle().layers.filter(layer => layer.id === 'drawLink').length > 0) {
-        if (val) {
-          this.map.setLayoutProperty('drawLink', 'visibility', 'visible')
-        } else {
-          this.map.setLayoutProperty('drawLink', 'visibility', 'none')
-        }
-      }
-    },
 
   },
   created () {
@@ -101,7 +90,7 @@ export default {
     offCursor (event) {
       if (this.hoveredStateId !== null) {
         // eslint-disable-next-line max-len
-        if (!(['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId) && event.layerId === 'editorLinks')) {
+        if (!(['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId) && event?.layerId === 'editorLinks')) {
           // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
           if (this.keepHovering) {
             this.dragNode = true
@@ -156,8 +145,13 @@ export default {
         }
       } else if (this.hoveredStateId?.layerId === 'anchorNodes') {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
-        this.$store.commit('deleteAnchorNode', { selectedNode: this.selectedFeature })
+        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)
+        const click = {
+          selectedFeature: this.selectedFeature[0],
+          action: 'Delete Anchor',
+          lngLat: null,
+        }
+        this.$emit('clickFeature', click)
       }
     },
 
@@ -169,6 +163,7 @@ export default {
           selectedFeature: this.selectedFeature,
           action: 'Edit Link Info',
           lngLat: event.mapboxEvent.lngLat,
+          lingering: true,
         }
         this.$emit('clickFeature', click)
       }
@@ -202,16 +197,24 @@ export default {
         this.popupEditor.showed = false
         // get position
         this.map.on('mousemove', this.onMove)
+        this.map.on('mouseup', this.stopMovingNode)
       }
     },
     onMove (event) {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.map.loaded() && this.dragNode) {
+      if (this.map.loaded() && this.dragNode && this.selectedFeature) {
+        const click = {
+          selectedFeature: this.selectedFeature,
+          action: null,
+          lngLat: Object.values(event.lngLat),
+        }
         if (this.hoveredStateId.layerId === 'anchorNodes') {
-          this.$store.commit('moveAnchor', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          click.action = 'Move Anchor'
+          this.$emit('clickFeature', click)
         } else {
-          this.$store.commit('moveNode', { selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
+          click.action = 'Move Node'
+          this.$emit('clickFeature', click)
         }
       }
     },
@@ -224,10 +227,14 @@ export default {
       this.keepHovering = false
       this.dragNode = false
       this.disablePopup = false
+      // call offCursor event, if we drag too quickly, it will not be call and the node will stay in hovering mode.
+      this.offCursor()
+      this.map.off('mouseup', this.stopMovingNode)
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
     },
   },
+
 }
 </script>
 <template>
@@ -268,31 +275,12 @@ export default {
           'symbol-placement': 'line',
           'symbol-spacing': 30,
           'icon-ignore-placement': true,
-          'icon-image':['case', ['boolean', anchorMode, false], 'arrowAnchor','arrow'],
+          'icon-image':'arrow',
           'icon-size': 0.5,
           'icon-rotate': 90
-        }
-      }"
-    />
-
-    <MglGeojsonLayer
-      v-if="drawMode"
-      source-id="drawLink"
-      :source="{
-        type: 'geojson',
-        data: $store.getters.newLink,
-        buffer: 0,
-        generateId: true,
-      }"
-      layer-id="drawLink"
-      :layer="{
-        type: 'line',
-        minzoom: 2,
+        },
         paint: {
-          'line-opacity': ['case', ['boolean', anchorMode, false], 0, 1],
-          'line-color': '#7EBAAC',
-          'line-width': 3,
-          'line-dasharray': [0, 2, 4]
+          'icon-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
         }
       }"
     />
@@ -320,7 +308,6 @@ export default {
       @mouseover="onCursor"
       @mouseleave="offCursor"
       @mousedown="moveNode"
-      @mouseup="stopMovingNode"
     />
 
     <MglGeojsonLayer
@@ -349,7 +336,6 @@ export default {
       @mouseover="onCursor"
       @mouseleave="offCursor"
       @mousedown="moveNode"
-      @mouseup="stopMovingNode"
       @contextmenu="contextMenuNode"
     />
 
