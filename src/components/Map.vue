@@ -85,11 +85,6 @@ export default {
     isRoadMode (val) {
       if (!val) {
         this.drawMode = false
-        this.$store.commit('changeNotification',
-          { text: $gettext('double click to edit line, right click to edit line properties'), autoClose: false })
-      } else {
-        this.$store.commit('changeNotification',
-          { text: $gettext('Left click to add a node, right click to edit'), autoClose: false })
       }
     },
 
