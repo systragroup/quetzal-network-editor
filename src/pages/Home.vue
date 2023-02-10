@@ -365,6 +365,7 @@ export default {
               :key="key"
               v-model="value['value']"
               :label="key"
+              :type="$store.getters.attributeType(key)"
               :placeholder="value['placeholder']? $gettext('multiple Values'):''"
               :persistent-placeholder=" value['placeholder']? true:false "
               :disabled="value['disabled']"

@@ -49,9 +49,11 @@ export const store = new Vuex.Store({
       let rlinks = ''
       let rnodes = ''
       // export only visible line (line selected)
+      this.commit('applyPropertiesTypes')
       if (payload !== 'all') {
         const tempLinks = structuredClone(state.links.links)
-        tempLinks.features = tempLinks.features.filter(link => state.links.selectedTrips.includes(link.properties.trip_id))
+        tempLinks.features = tempLinks.features.filter(
+          link => state.links.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
         // delete every every nodes not in links
         const a = tempLinks.features.map(item => item.properties.a)
