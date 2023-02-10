@@ -344,7 +344,7 @@ export default {
                 v-bind="attrs"
                 :disabled="editorTrip ? true: false"
                 v-on="on"
-                @click.stop="deleteButton({trip:value.tripId, message:value.name})"
+                @click.stop="deleteButton({trip:value.tripId, message:value.name,action:'deleteTrip'})"
               >
                 <v-icon
                   small
@@ -439,7 +439,7 @@ export default {
                     v-bind="attrs"
                     :disabled="editorTrip ? true: false"
                     v-on="on"
-                    @click="deleteButton({trip:item,message:item})"
+                    @click="deleteButton({trip:item,message:item,action:'deleteTrip'})"
                   >
                     <v-icon
                       small

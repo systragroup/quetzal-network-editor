@@ -5,12 +5,6 @@ import nodesBase from '@static/nodes_base.geojson'
 import { extractZip, indexAreUnique } from '../components/utils/utils.js'
 const $gettext = s => s
 
-// rlinks.features.forEach(link => link.properties._hidden = true)
-// const ls = ['rlink_1', 'rlins_2', 'rlink_10']
-// rlinks.features.filter(link => ls.includes(link.properties.index)).forEach(link => link.properties._hidden = false)
-// const test = rlinks.features.filter(link => link.properties._hidden === false)
-// console.log(test)
-
 export default {
   name: 'Login',
   data () {

@@ -276,9 +276,9 @@ export default {
                   icon
                   class="ma-1"
                   v-bind="attrs"
-                  :disabled="true"
+                  :disabled="false"
                   v-on="on"
-                  @click="deleteButton({trip:item,message:item})"
+                  @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleterGroup'})"
                 >
                   <v-icon
                     small

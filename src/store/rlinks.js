@@ -413,10 +413,24 @@ export default {
     },
     deleterLink (state, payload) {
       const linkArr = new Set(payload.selectedIndex)
-      const tempLinks = new Set(state.visiblerLinks.features.filter(link => linkArr.has(link.properties.index)))
-      state.rlinks.features = state.rlinks.features.filter(link => !tempLinks.has(link))
-      state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !tempLinks.has(link))
+      state.rlinks.features = state.rlinks.features.filter(link => !linkArr.has(link.properties.index))
+      state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
       this.commit('getVisiblerNodes', { method: 'remove' })
+      this.commit('deleteUnusedrNodes')
+    },
+    deleterGroup (state, payload) {
+      const group = payload
+      const cat = state.selectedrCategory
+      state.rlinks.features = state.rlinks.features.filter(link => link.properties[cat] !== group)
+      this.commit('refreshVisibleRoads')
+      this.commit('deleteUnusedrNodes')
+    },
+    deleteUnusedrNodes (state) {
+      // delete every every nodes not in links
+      const a = state.rlinks.features.map(item => item.properties.a)
+      const b = state.rlinks.features.map(item => item.properties.b)
+      const nodesInLinks = new Set([...a, ...b])
+      state.rnodes.features = state.rnodes.features.filter(node => nodesInLinks.has(node.properties.index))
     },
 
     editrGroupInfo (state, payload) {

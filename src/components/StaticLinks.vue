@@ -142,7 +142,6 @@ export default {
         })
       }
       // const endTime = performance.now()
-      // console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
     },
     selectLine (event) {
       event.mapboxEvent.preventDefault() // prevent map control

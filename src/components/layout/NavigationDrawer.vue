@@ -29,7 +29,6 @@ export default {
     },
     getRouteTitle (route) {
       const tpl = this.$gettext('%{s}')
-      console.log(this.$gettextInterpolate(tpl, { s: route.title }))
       return this.$gettextInterpolate(tpl, { s: route.title })
     },
     handleClickMenuItem (route) {

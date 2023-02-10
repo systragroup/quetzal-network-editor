@@ -122,7 +122,6 @@ export default {
         const lineAttributes = this.$store.getters.rlineAttributes
         const uneditable = ['index', 'length', 'a', 'b']
         this.editorForm = getGroupForm(features, lineAttributes, uneditable)
-        console.log(this.editorForm)
         this.lingering = event.lingering
         this.showDialog = true
       } else if (['Edit Node Info', 'Edit rNode Info'].includes(this.action)) {
@@ -274,6 +273,9 @@ export default {
         case 'Delete rLink':
           this.$store.commit('deleterLink', { selectedIndex: this.selectedIndex })
           break
+        case 'deleterGroup':
+          this.$store.commit('deleterGroup', this.tripToDelete)
+          break
       }
       if (!this.lingering) {
         this.confirmChanges()
@@ -308,9 +310,10 @@ export default {
       this.$store.commit('changeNotification', { text: $gettext('modification aborted'), autoClose: true })
     },
     deleteButton (selection) {
+      // could be a trip, or a roadLinks group
       this.tripToDelete = selection.trip
       this.deleteMessage = selection.message
-      this.action = 'deleteTrip'
+      this.action = selection.action
       this.showDialog = true
     },
 
@@ -343,7 +346,7 @@ export default {
           </v-tab>
         </v-tabs>
         <v-card-title class="text-h5">
-          {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
+          {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
         <v-card-text
