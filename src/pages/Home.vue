@@ -116,6 +116,15 @@ export default {
         this.editorForm = getGroupForm(features, lineAttributes, uneditable)
         this.lingering = event.lingering
         this.showDialog = true
+      } else if (this.action === 'Edit Visible Road Info') {
+        const features = this.$store.getters.visiblerLinks.features
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters.rlineAttributes
+        const uneditable = ['index', 'length', 'a', 'b']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        console.log(this.editorForm)
+        this.lingering = event.lingering
+        this.showDialog = true
       } else if (['Edit Node Info', 'Edit rNode Info'].includes(this.action)) {
         this.selectedNode = event.selectedFeature.properties
         // map selected node doesnt not return properties with nanulln value.
@@ -225,7 +234,10 @@ export default {
         case 'Edit Road Group Info':
           this.$store.commit('editrGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
           this.$refs.mapref.$refs.roadref.getBounds()
-
+          break
+        case 'Edit Visible Road Info':
+          this.$store.commit('editrVisiblesInfo', { info: this.editorForm })
+          this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit rNode Info':
           this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
@@ -341,6 +353,7 @@ export default {
                  'Edit Group Info',
                  'Edit rLink Info',
                  'Edit Road Group Info',
+                 'Edit Visible Road Info',
                  'Edit rNode Info'].includes(action)"
         >
           <v-list>

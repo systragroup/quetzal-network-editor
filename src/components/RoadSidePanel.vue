@@ -88,6 +88,12 @@ export default {
         group: value,
       })
     },
+    editVisible () {
+      this.$emit('propertiesButton', {
+        action: 'Edit Visible Road Info',
+        lingering: false,
+      })
+    },
 
     deleteButton (obj) {
       // obj contain trip and message.
@@ -140,10 +146,10 @@ export default {
             icon
             class="ma-2"
             color="white"
-            :disabled="true"
+            :disabled="tripList.length===0? true: false"
             v-bind="attrs"
             v-on="on"
-            @click="propertiesButton(tripList)"
+            @click="editVisible()"
           >
             <v-icon class="list-item-icon">
               fas fa-list

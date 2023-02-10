@@ -137,6 +137,11 @@ export default {
       const cat = state.selectedrCategory
       state.visiblerLinks.features = state.rlinks.features.filter(link => group.has(link.properties[cat]))
       this.commit('getVisiblerNodes', { method: 'add' })
+      // when we rename a group (highway => test), are rename many group.
+      // remove nonexistant group in the selected group.
+      const possibleGroups = new Set(state.visiblerLinks.features.map(
+        item => item.properties[cat]))
+      state.selectedrGroup = [...possibleGroups].filter(x => group.has(x))
     },
     getVisiblerNodes (state, payload) {
       // payload contain nodes. state.nodes or state.editorNodes
@@ -426,8 +431,18 @@ export default {
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
 
       this.commit('refreshVisibleRoads')
-      // get tripId list
-      // this.commit('getTripId')
+    },
+    editrVisiblesInfo (state, payload) {
+      // edit line info on multiple trips at once.
+      const groupInfo = payload.info
+      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
+      const props = Object.keys(groupInfo).filter(key =>
+        ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
+      // this is an oberver. modification will be applied to state.links.
+      state.visiblerLinks.features.forEach(
+        (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
+
+      this.commit('refreshVisibleRoads')
     },
 
   },
