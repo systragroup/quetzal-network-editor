@@ -26,7 +26,26 @@ export default {
     linkSpeed: 20, // 20KmH for time (speed/distance)
     lineAttributes: [],
     nodeAttributes: [],
-
+    defaultAttributes: [
+      { name: 'index', type: 'String' },
+      { name: 'a', type: 'String' },
+      { name: 'b', type: 'String' },
+      { name: 'trip_id', type: 'String' },
+      { name: 'route_id', type: 'String' },
+      { name: 'agency_id', type: 'String' },
+      { name: 'route_long_name', type: 'String' },
+      { name: 'route_short_name', type: 'String' },
+      { name: 'route_type', type: 'String' },
+      { name: 'route_color', type: 'String' },
+      { name: 'length', type: 'Number' }, // float
+      { name: 'time', type: 'Number' }, // float
+      { name: 'headway', type: 'Number' }, // float
+      { name: 'route_width', type: 'Number' }, // float
+      { name: 'pickup_type', type: 'Number' }, // float
+      { name: 'drop_off_type', type: 'Number' }, // int
+      { name: 'link_sequence', type: 'Number' }, // int
+      { name: 'direction_id', type: 'Number' }, // int
+    ],
   },
 
   mutations: {
@@ -41,6 +60,7 @@ export default {
         // limit geometry precision to 6 digit
         state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+        this.commit('applyPropertiesTypes')
         this.commit('getTripId')
         // set all trips visible
         this.commit('changeSelectedTrips', state.tripId)
@@ -82,13 +102,7 @@ export default {
       })
       // header.delete('index')
       // add all default attributes
-      const defaultAttributes = [
-        'index', 'a', 'b', 'length', 'time',
-        'pickup_type', 'drop_off_type', 'link_sequence',
-        'trip_id', 'headway', 'route_id', 'agency_id', 'direction_id',
-        'route_long_name', 'route_short_name',
-        'route_type', 'route_color', 'route_width',
-      ]
+      const defaultAttributes = state.defaultAttributes.map(attr => attr.name)
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.lineAttributes = header
@@ -562,8 +576,11 @@ export default {
 
     appendNewFile (state, payload) {
       // append new links and node to the project (import page)
+      payload.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+        points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
       state.links.features.push(...payload.links.features)
       state.nodes.features.push(...payload.nodes.features)
+      this.commit('applyPropertiesTypes')
       this.commit('getLinksProperties')
       this.commit('getNodesProperties')
       this.commit('getTripId')
@@ -673,6 +690,15 @@ export default {
       // get tripId list
       this.commit('getTripId')
     },
+    applyPropertiesTypes (state) {
+      state.defaultAttributes.forEach(attr => {
+        if (attr.type === 'String') {
+          state.links.features.forEach(link => link.properties[attr.name] = String(link.properties[attr.name]))
+        } else if (attr.type === 'Number') {
+          state.links.features.forEach(link => link.properties[attr.name] = Number(link.properties[attr.name]))
+        }
+      })
+    },
   },
 
   getters: {
@@ -726,5 +752,7 @@ export default {
 
       return nodes
     },
+    // this return the attribute type, of undefined.
+    attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
   },
 }
