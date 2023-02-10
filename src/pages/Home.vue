@@ -369,6 +369,7 @@ export default {
               :placeholder="value['placeholder']? $gettext('multiple Values'):''"
               :persistent-placeholder=" value['placeholder']? true:false "
               :disabled="value['disabled']"
+              @wheel="$event.target.blur()"
             >
               <template
                 v-if="key==='route_color'"
