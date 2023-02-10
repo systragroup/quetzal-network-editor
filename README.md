@@ -15,42 +15,47 @@ To edit existing network, Quenedi takes two input files: **links** and **nodes**
 
 GeoJSON table describing network links (EPSG: 4326). [Exemple](static/links_exemple.geojson)
 
-Properties from link table are automatically splited into 2 categories: **links properties** and **lines properties**. Lines propertie should be constant accross all links of a line (with the same *trip_id*).
+Properties from link table are either required or optional. trip_id is non editable on individual links.
+Properties are typed. you should not use string in a Number properties (ex: direction_id = 'est' will result in a NaN).
 
-**Links properties** are:
-- ***index*** (non editable): unique identifier.
-- ***a*** (non editable): Id of the first node.
-- ***b*** (non editable): Id of the last node.
-- ***time***: Travel time along the link in seconds. set as Lenght/20kmh when a link is created or edited.
-- ***length*** : links geometry linestring length (meters)
-- ***link_sequence***: Order of link for a particular line.
-- ***pickup_type***: pickup method at node *a*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
-- ***drop_off_type***: drop off method at node *b*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
+**non editable** are:
+- ***index*** (String): unique identifier.
+- ***a*** (String): Id of the first node.
+- ***b*** (String): Id of the last node.
+- ***link_sequence*** (Number): Order of link for a particular trip_id.
 
-**Lines properties** are:
-- ***trip_id***: Line (or trip) identifier (i.e. 100 Est).
-- ***headway***: Line headway in seconds.
-- ***route_id*** (optional): Route identifier (i.e. 100).
-- ***agency_id*** (optional): Agency identifier.
-- ***direction_id*** (optional): Line direction (0: outbound travel, 1: inbound travel).
-- ***route_short_name*** (optional): Short name for the route.
-- ***route_long_name*** (optional): Long name for the route.
-- ***route_type*** (optional): Transportation mode for the line (e.g. bus, subway, tramway, etc.).
-- ***route_color*** (optional): Hex route color without '#' (i.e. 4287f5). Will be used for displaying lines.
-- ***route_width*** (optional): Line stroke width. Will be used for displaying lines. (by default 3)
+**editable** are:
+- ***trip_id*** (String): Line (or trip) identifier (i.e. 100 Est).
+- ***time*** (Number): Travel time along the link in seconds. set as Lenght/20kmh when a link is created or edited.
+- ***length*** (Number): links geometry linestring length (meters)
+- ***pickup_type*** (Number): pickup method at node *a*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
+- ***drop_off_type*** (Number): drop off method at node *b*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
+- ***headway*** (Number): Line headway in seconds.
 
-Any other properties in the table will be considered as link properties and values will be copied from the nearest link when creating a new link.
+**optional** are:
+- ***route_id*** (String): Route identifier (i.e. 100).
+- ***agency_id*** (String): Agency identifier.
+- ***direction_id*** (String): Line direction (0: outbound travel, 1: inbound travel).
+- ***route_short_name*** (String): Short name for the route.
+- ***route_long_name*** (String): Long name for the route.
+- ***route_type*** (String): Transportation mode for the line (e.g. bus, subway, tramway, etc.).
+- ***route_color*** (String): Hex route color without '#' (i.e. 4287f5). Will be used for displaying lines.
+- ***route_width*** (Number): Line stroke width. Will be used for displaying lines. (by default 3)
+
+Any other properties in the table will be editable but not typed.
 
 ### Nodes
 
 GeoJSON table describing network nodes (EPSG: 4326). [Exemple](static/nodes_exemple.geojson)
 
+nodes properties (except index) are not typed.
+
 **nodes properties** are:
-- ***index*** (non editable): Unique identifier.
+- ***index*** (String) (non editable): Unique identifier.
 - ***stop_name*** (optional): Name for the stop (by default *null*).
 - ***stop_code*** (optional): Code for the stop (by default *null*).
 
-Any other properties in the table will be copied from the nearest node when adding a new node.
+Any other properties in the table will be editable
 
 ## Developement Setup 
 
