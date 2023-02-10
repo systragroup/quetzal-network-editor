@@ -43,7 +43,10 @@ export default {
       if (form.length >= 1) {
         form = form[this.selectedTab]
       }
-      const ordered = Object.keys(form).sort().reduce(
+      // order keys in alphabetical order, and with disabled last
+      const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
+      keys.push(...Object.keys(form).filter(key => form[key].disabled).sort())
+      const ordered = keys.reduce(
         (obj, key) => {
           obj[key] = form[key]
           return obj
@@ -365,6 +368,7 @@ export default {
               :key="key"
               v-model="value['value']"
               :label="key"
+              :filled="!value['disabled']"
               :type="$store.getters.attributeType(key)"
               :placeholder="value['placeholder']? $gettext('multiple Values'):''"
               :persistent-placeholder=" value['placeholder']? true:false "
