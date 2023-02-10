@@ -14,7 +14,7 @@ export default {
         hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
       },
       roadSpeed: {
-        name: $gettext('PT speed'),
+        name: $gettext('Road speed'),
         type: 'Number',
         value: this.$store.getters.roadSpeed,
         units: 'km/h',
