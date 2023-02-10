@@ -85,7 +85,7 @@ export default {
     @keydown.enter="submit"
     @keydown.esc="cancel"
   >
-    <v-card-title class="text-h5">
+    <v-card-title class="subtitle">
       {{ $gettext('Settings') }}
     </v-card-title>
 
@@ -211,7 +211,8 @@ export default {
   font-size: 2em;
   color: $secondary !important;
   font-weight: bold;
-  margin: 40px;
+  padding:1rem
+
 }
 .card button {
   margin-top: 40px;

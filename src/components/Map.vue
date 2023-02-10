@@ -326,32 +326,38 @@ export default {
     @click="addPoint"
     @mouseup="rightClickMap"
   >
-    <v-btn
-      class="setting"
-      fab
-      small
-      @click="showSettings = !showSettings"
-    >
-      <v-icon
-        color="regular"
-      >
-        fa-solid fa-cog
-      </v-icon>
-    </v-btn>
-    <v-dialog
+    <v-menu
       v-model="showSettings"
-      transition="dialog=fade-transition"
-      scrollable
-      persistent
-      hide-overlay
-      no-click-animation
-      max-width="300"
+      :close-on-content-click="false"
+      :close-on-click="false"
+      :origin="'top right'"
+      transition="scale-transition"
+      :position-y="30"
+      :nudge-width="200"
+      offset-x
+      offset-y
     >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          class="setting"
+          fab
+          small
+          v-bind="attrs"
+          v-on="on"
+        >
+          <v-icon
+            color="regular"
+          >
+            fa-solid fa-cog
+          </v-icon>
+        </v-btn>
+      </template>
       <Settings
         v-if="showSettings"
         @submit="showSettings=false"
       />
-    </v-dialog>
+    </v-menu>
+
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
     <template v-if="mapIsLoaded">
