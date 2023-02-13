@@ -4,6 +4,7 @@ import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from '
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
+import Settings from './Settings.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
@@ -21,6 +22,7 @@ export default {
     StaticLinks,
     EditorLinks,
     RoadLinks,
+    Settings,
   },
   props: {
     selectedTrips: {
@@ -48,6 +50,7 @@ export default {
       mouseout: false,
       selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
+      showSettings: false,
     }
   },
   computed: {
@@ -323,8 +326,39 @@ export default {
     @click="addPoint"
     @mouseup="rightClickMap"
   >
-    <MglScaleControl position="bottom-right" />
+    <v-menu
+      v-model="showSettings"
+      :close-on-content-click="false"
+      :close-on-click="false"
+      :origin="'top right'"
+      transition="scale-transition"
+      :position-y="30"
+      :nudge-width="200"
+      offset-x
+      offset-y
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          class="setting"
+          fab
+          small
+          v-bind="attrs"
+          v-on="on"
+        >
+          <v-icon
+            color="regular"
+          >
+            fa-solid fa-cog
+          </v-icon>
+        </v-btn>
+      </template>
+      <Settings
+        v-if="showSettings"
+        @submit="showSettings=false"
+      />
+    </v-menu>
 
+    <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
     <template v-if="mapIsLoaded">
       <RoadLinks
@@ -384,5 +418,14 @@ export default {
   width: 100%;
 
 }
-
+.setting {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+}
+.my-custom-dialog {
+  position: absolute !important;
+  top: 10px !important;
+  right: 20px !important;
+}
 </style>

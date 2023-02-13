@@ -140,7 +140,7 @@ export default {
         }
         this.editorForm = this.editorForm[0].properties
         // filter properties to only the one that are editable.
-        const uneditable = ['index']
+        const uneditable = ['index', 'route_width']
         const filtered = Object.keys(this.editorForm)
           .reduce((obj, key) => {
             obj[key] = {
