@@ -19,27 +19,8 @@ export default {
   },
   computed: {
     selectedPopupContent () { return this.$store.getters.linksPopupContent },
-    links () {
-      // remove unwanted features for faster computation
-      const links = structuredClone(this.$store.getters.linksHeader)
-      // the popupContent column is added as it is acces by the map.
-      links.features = this.$store.getters.links.features.map((feature) => (
-        {
-          properties: {
-            trip_id: feature.properties.trip_id,
-            popupContent: feature.properties[this.selectedPopupContent],
-            a: feature.properties.a,
-            b: feature.properties.b,
-            route_color: feature.properties.route_color,
-            route_width: feature.properties.route_width,
-          },
-          geometry: feature.geometry,
-        }
-      ),
-      )
-      return links
-    },
-    nodes () { return structuredClone(this.$store.getters.nodes) },
+    links () { return this.$store.getters.links },
+    nodes () { return this.$store.getters.nodes },
   },
 
   watch: {
@@ -59,8 +40,6 @@ export default {
     },
   },
   created () {
-    this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
-    this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
     this.setHiddenFeatures()
   },
 
@@ -70,7 +49,7 @@ export default {
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
       this.popup = new mapboxgl.Popup({ closeButton: false })
         .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-        .setHTML(event.mapboxEvent.features[0].properties.popupContent)
+        .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
         .addTo(event.map)
     },
     leaveLink (event) {
@@ -79,12 +58,12 @@ export default {
     },
     setHiddenFeatures (method = 'all', trips = []) {
       // get visible links and nodes.
-      // const startTime = performance.now()
       if (method === 'all') {
-        this.visibleLinks.feature = []
-        this.visibleNodes.features = []
-        // eslint-disable-next-line max-len
-        this.visibleLinks.features = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
+        this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
+        this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
+        const showedTripsSet = new Set(this.showedTrips)
+        this.visibleLinks.features = this.links.features.filter(
+          link => showedTripsSet.has(link.properties.trip_id))
         // get all unique width
         const widthArr = [...new Set(this.visibleLinks.features.map(item => Number(item.properties.route_width)))]
         // create a dict {width:[node_index]}

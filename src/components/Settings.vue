@@ -68,6 +68,8 @@ export default {
         }
         this.$store.commit('applySettings', payload)
         this.$emit('submit', true)
+        this.$store.commit('changeNotification',
+          { text: $gettext('modification applied'), autoClose: true, color: 'success' })
       } else {
         this.shake = true
         setTimeout(() => {
