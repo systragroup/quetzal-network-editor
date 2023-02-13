@@ -23,7 +23,10 @@ export default {
       editorForm: {},
       cursorPosition: [],
       tripToDelete: null,
+      tripToClone: null,
+      cloneName: null,
       deleteMessage: '',
+      cloneMessage: '',
       lingering: true,
       groupTripIds: [],
     }
@@ -189,6 +192,9 @@ export default {
         case 'deleteTrip':
           this.$store.commit('deleteTrip', this.tripToDelete)
           break
+        case 'cloneTrip':
+          this.$store.commit('cloneTrip',  { tripId: this.tripToClone, name: this.cloneName })
+          break
         case 'Add Stop Inline':
           this.$store.commit('addNodeInline', {
             selectedLink: this.selectedLink,
@@ -243,6 +249,14 @@ export default {
       this.showDialog = true
     },
 
+    cloneButton (selection) {
+      this.tripToClone = selection.trip
+      this.cloneMessage = selection.message
+      this.action = 'cloneTrip'
+      this.cloneName = selection.trip + ' copy'
+      this.showDialog = true
+    },
+
   },
 }
 </script>
@@ -261,6 +275,9 @@ export default {
       >
         <v-card-title class="text-h5">
           {{ action == 'deleteTrip'? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
+          {{ action == 'cloneTrip'? $gettext("Duplicate") + ' '+ cloneMessage + '?': $gettext("Edit Properties") }}
+        </v-card-title>
+        <v-card-title class="text-h5">
         </v-card-title>
         <v-divider />
 
@@ -285,6 +302,14 @@ export default {
               </template>
             </v-text-field>
           </v-list>
+        </v-card-text>
+
+        <v-card-text v-if="['cloneTrip'].includes(action)">
+          <v-text-field
+              v-model="cloneName"
+              :label= "$gettext('New name')"
+            >
+          </v-text-field>
         </v-card-text>
         <v-divider />
 
@@ -316,6 +341,7 @@ export default {
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"
       @deleteButton="deleteButton"
+      @cloneButton="cloneButton"
       @propertiesButton="actionClick"
     />
     <Map

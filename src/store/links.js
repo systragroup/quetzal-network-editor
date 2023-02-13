@@ -20,6 +20,7 @@ export default {
     nodesHeader: {},
     linksHeader: {},
     tripId: [],
+    indexId: [],
     selectedTrips: [],
     newLink: {},
     newNode: {},
@@ -153,13 +154,47 @@ export default {
       this.commit('getEditorLineInfo')
     },
 
+    cloneTrip (state, payload) {
+      const cloned = structuredClone(state.links)
+      cloned.features = cloned.features.filter(link => link.properties.trip_id === payload.tripId)
+
+      for (let link of cloned.features) {
+        link.properties.trip_id = payload.name
+        //mettre dans l'autre sens » inverser 0 et 1 et leur coordonées
+        link.geometry.coordinates.reverse()
+        link.geometry.coordinates.forEach(i => i.reverse())
+        //inverser node a et b (propriétés)
+        link.properties.a = [link.properties.b, link.properties.b = link.properties.a][0]
+        //changer le link-sequence de tous les objets
+        //const list = []
+        //for (let a of link.properties.link_sequence) {
+          //list.push(a)
+        //}
+        //reverse la list et associer à chaque link
+        //link.properties.link_sequence = list[-1]
+        //changer la direction
+        if (link.properties.direction_id === 0) {
+          link.properties.direction_id = 1
+        } else {
+          link.properties.direction_id = 0
+        }
+        //changer nom de l'index
+        link.properties.index = 'link_' + short.generate()
+      }
+      //inverser l'ordre des features
+      cloned.features.reverse()
+      state.links.features.push(...cloned.features)
+      this.commit('getTripId')
+      console.log(cloned)
+    },
+
     getEditorNodes (state, payload) {
       // payload contain nodes. state.nodes or state.editorNodes
       // find the nodes in the editor links
       const a = state.editorLinks.features.map(item => item.properties.a)
       const b = state.editorLinks.features.map(item => item.properties.b)
       const editorNodesList = Array.from(new Set([...a, ...b]))
-      // set nodes corresponding to trip id
+      // set nodes corresponding to trip id      filtered.features = filtered.features.filter(node => editorNodesList.includes(node.properties.index))
       const filtered = JSON.parse(JSON.stringify(payload.nodes))
       filtered.features = filtered.features.filter(node => editorNodesList.includes(node.properties.index))
       state.editorNodes = filtered
@@ -201,6 +236,10 @@ export default {
 
     getTripId (state) {
       state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
+    },
+
+    getIndex (state) {
+      state.indexId = Array.from(new Set(state.links.features.map(item => item.properties.index)))
     },
 
     setNewLink (state, payload) {
@@ -742,6 +781,7 @@ export default {
     editorLinks: (state) => state.editorLinks,
     editorNodes: (state) => state.editorNodes,
     tripId: (state) => state.tripId,
+    indexId: (state) => state.indexId,
     selectedTrips: (state) => state.selectedTrips,
     editorLineInfo: (state) => state.editorLineInfo,
     newLink: (state) => state.newLink,

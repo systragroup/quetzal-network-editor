@@ -12,7 +12,7 @@ export default {
     event: 'update-tripList',
   },
   props: ['selectedTrips'],
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine'],
+  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'cloneButton', 'propertiesButton', 'newLine'],
 
   data () {
     return {
@@ -134,6 +134,7 @@ export default {
       this.height = this.$refs.leftPanel.clientHeight - 200
     },
 
+   
     editButton (value) {
       if (this.editorTrip === value) {
         this.showDialog = true
@@ -156,6 +157,11 @@ export default {
         this.$store.commit('changeNotification', { text: '', autoClose: true })
       }
     },
+
+    cloneButton (obj) {
+      this.$emit('cloneButton', obj)
+    },
+
     createNewLine () {
       const name = 'trip_' + short.generate()
       this.$store.commit('setEditorTrip', { tripId: name, changeBounds: false })
@@ -469,6 +475,27 @@ export default {
                           </v-btn>
                         </template>
                         <span>{{ $gettext("Edit Line Properties") }}</span>
+                      </v-tooltip>
+
+                      <v-tooltip
+                        bottom
+                        open-delay="500"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            class="ma-1"
+                            v-bind="attrs"
+                            :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                            v-on="on"
+                            @click="cloneButton({trip:item,message:item})"
+                          >
+                            <v-icon :color="item == editorTrip? 'regular':'regular' ">
+                              fas fa-clone
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $gettext("Duplicate") }}</span>
                       </v-tooltip>
 
                       <v-tooltip
