@@ -346,9 +346,6 @@ export default {
       if (!state.selectedrGroup.includes(newLinkGroup)) {
         // if its not already selected, push it.
         state.selectedrGroup.push(newLinkGroup)
-      } else {
-        // its already selected (visible), update visiblerlinks
-        state.visiblerLinks.features.push(linkFeature)
       }
     },
 
