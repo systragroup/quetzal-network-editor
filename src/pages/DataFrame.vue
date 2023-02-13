@@ -8,6 +8,7 @@ export default {
       data: [],
       headers: [],
       showDialog: false,
+      dialog: false,
       input: '',
       divHeight: 0,
       errorMessage: null,
@@ -44,6 +45,7 @@ export default {
       header.forEach(element => {
         this.headers.push({ text: element, value: element })
       })
+      header.push({ text: 'Actions', value: actions })
     },
     onResize () {
       this.divHeight = this.$refs.cardBox.clientHeight
@@ -65,6 +67,11 @@ export default {
       this.input = ''
       this.errorMessage = ''
       this.showDialog = false
+    },
+
+    test(selection) {
+      console.log(selection)
+        // changes in link properties dialog 
     },
   },
 }
@@ -93,6 +100,7 @@ export default {
             class="elevation-3"
             show-group-by
           >
+
             <template v-slot:top>
               <v-toolbar
                 flat
@@ -104,8 +112,7 @@ export default {
                     class="language"
                     :class="[item.val === selectedTable ? 'active' : '']"
                     :title="item.val"
-                    @click="()=> selectedTable=item.val"
-                  >
+                    @click="()=> selectedTable=item.val">
                     {{ $gettext(item.text) }}
                   </div>
                 </v-toolbar-title>
@@ -149,6 +156,18 @@ export default {
                 </v-card-actions>
               </v-toolbar>
             </template>
+
+            <template v-slot:item.actions="{ item }">
+              <v-btn
+                icon
+                class=" btn-links"
+                href="editField"
+                @click.prevent="dialog=true"
+              >
+                <v-icon>fas fa-pen</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $gettext("edit Line") }}</span> 
           </v-data-table>
         </div>
       </v-card>
@@ -200,6 +219,51 @@ export default {
             @click="addField"
           >
             {{ $gettext("Add") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog 
+      v-model="dialog" 
+      max-width="500px"
+      @keydown.enter="save({trip:item})"
+      @keydown.esc="cancel">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">Edit Item</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12" sm="6" md="4"
+                  v-for="(item, key) in headers"
+                  :key="key"
+                  :title="item.value"
+                  v-model="item.value"
+                  @click="test(item)">
+                <v-text-field 
+                  :label= "$gettext(item.value)"></v-text-field>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey"
+            text
+            @click="cancel"
+          >
+            {{ $gettext("Cancel") }}
+          </v-btn>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="save({index:item})"
+          >
+            {{ $gettext("Save") }}
           </v-btn>
         </v-card-actions>
       </v-card>
