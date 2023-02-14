@@ -10,51 +10,19 @@ export default {
   data () {
     return {
       loggedIn: false,
-      loadedLinks: {},
-      loadedrLinks: {},
-      loadedrNodes: {},
-      loadedNodes: {},
       choice: null,
       showDialog: false,
+      zipName: '',
+      message: [],
       errorMessage: '',
     }
   },
 
   computed: {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
-    linksAreLoaded () {
-      return !((Object.keys(this.loadedLinks).length === 0 || Object.keys(this.loadedNodes).length === 0))
-    },
-    rlinksAreLoaded () {
-      return !((Object.keys(this.loadedrLinks).length === 0 || Object.keys(this.loadedrNodes).length === 0))
-    },
 
   },
   watch: {
-    linksAreLoaded (val) {
-      if (val) {
-        if (IndexAreDifferent(this.loadedLinks, this.$store.getters.links) &&
-            IndexAreDifferent(this.loadedNodes, this.$store.getters.nodes)) {
-          this.$store.commit('appendNewLinks', { links: this.loadedLinks, nodes: this.loadedNodes })
-        } else {
-          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
-        }
-      }
-      this.loadedLinks = {}
-      this.loadedNodes = {}
-    },
-    rlinksAreLoaded (val) {
-      if (val) {
-        if (IndexAreDifferent(this.loadedrLinks, this.$store.getters.rlinks) &&
-            IndexAreDifferent(this.loadedrNodes, this.$store.getters.rnodes)) {
-          this.$store.commit('appendNewrLinks', { rlinks: this.loadedrLinks, rnodes: this.loadedrNodes })
-        } else {
-          this.error($gettext('there is duplicated road links or nodes index. Import aborted'))
-        }
-      }
-      this.loadedrLinks = {}
-      this.loadedrNodes = {}
-    },
 
   },
   mounted () {
@@ -67,17 +35,36 @@ export default {
         this.$router.push('/Home').catch(() => {})
       }, 1000)
     },
+
+    loadNetwork (links, nodes, type, zipName) {
+      if (type === 'PT') {
+        if (IndexAreDifferent(links, this.$store.getters.links) &&
+            IndexAreDifferent(nodes, this.$store.getters.nodes)) {
+          this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
+          if (zipName) this.message.push($gettext(`PT Links and nodes Loaded from ${zipName}`))
+        } else {
+          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
+        }
+      } else if (type === 'road') {
+        if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
+            IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
+          this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
+          if (zipName) this.message.push($gettext(`ROAD links and nodes Loaded from ${zipName}`))
+        } else {
+          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
+        }
+      }
+    },
+
     error (message) {
+      this.message = []
       this.errorMessage = message
       this.$store.commit('changeLoading', false)
-      this.loadedLinks = {}
-      this.loadedrLinks = {}
-      this.loadedrNodes = {}
-      this.loadedNodes = {}
     },
 
     buttonHandle (choice) {
       this.choice = choice
+      this.errorMessage = ''
       switch (this.choice) {
         case 'zip':
           this.$refs.zipInput.click()
@@ -110,42 +97,38 @@ export default {
     },
 
     async loadExample () {
-      this.errorMessage = ''
       this.$store.commit('changeLoading', true)
       const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/static/'
-      let fetchData = await fetch(url + 'links_exemple.geojson').then(res => res.json())
+      const links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
-      if (!fetchData) return
-      this.loadedLinks = fetchData
+      if (!links) return
 
-      fetchData = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
+      const nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
-      if (!fetchData) return
-      this.loadedNodes = fetchData
+      if (!nodes) return
 
-      fetchData = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
+      const rlinks = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
-      if (!fetchData) return
-      this.loadedrLinks = fetchData
+      if (!rlinks) return
 
-      fetchData = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
+      const rnodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
-      if (!fetchData) return
-      this.loadedrNodes = fetchData
+      if (!rnodes) return
+
+      this.loadNetwork(links, nodes, 'PT')
+      this.loadNetwork(rlinks, rnodes, 'road')
 
       this.$store.commit('changeLoading', false)
       this.loggedIn = true
       this.login()
     },
     newProject () {
-      this.loadedLinks = linksBase
-      this.loadedNodes = nodesBase
-      this.loadedrLinks = linksBase
-      this.loadedrNodes = nodesBase
+      this.loadNetwork(linksBase, nodesBase, 'PT')
+      this.loadNetwork(linksBase, nodesBase, 'road')
       this.loggedIn = true
       this.login()
     },
@@ -216,6 +199,7 @@ export default {
       }
       // read every selected zip and create a list of promises.
       // each promises contain {links, nodes}
+
       const PromisesList = []
       for (let i = 0; i < files.length; i++) {
         const res = extractZip(files[i])
@@ -228,11 +212,9 @@ export default {
         for (let i = 0; i < files.length; i++) {
           const file = files[i]
           if (Object.keys(file).includes('links') && Object.keys(file).includes('nodes')) {
-            this.loadedLinks = file.links
-            this.loadedNodes = file.nodes
+            this.loadNetwork(file.links, file.nodes, 'PT', file.zipName)
           } if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
-            this.loadedrLinks = file.road_links
-            this.loadedrNodes = file.road_nodes
+            this.loadNetwork(file.road_links, file.road_nodes, 'road', file.zipName)
           }
         }
 
@@ -269,7 +251,8 @@ export default {
           </div>
           <div class=" text-xs-center">
             <v-btn
-              :color=" Object.keys(loadedLinks).length != 0? 'primary': 'normal'"
+              :color=" 'normal'"
+              :disabled="true"
               @click="buttonHandle('links')"
             >
               <v-icon
@@ -281,7 +264,8 @@ export default {
               {{ $gettext('Links') }}
             </v-btn>
             <v-btn
-              :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
+              :disabled="true"
+              :color=" 'normal'"
               @click="buttonHandle('nodes')"
             >
               <v-icon
@@ -374,6 +358,14 @@ export default {
               <span>{{ $gettext("Load Montréal Example") }}</span>
             </v-tooltip>
           </div>
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'green'}">
+          <p
+            v-for="mess in message"
+            :key="mess"
+          >
+            {{ mess }}
+          </p>
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'red'}">
           {{ errorMessage }}

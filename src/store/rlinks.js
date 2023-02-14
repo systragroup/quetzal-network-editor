@@ -72,10 +72,10 @@ export default {
     },
     unloadrFiles (state) {
       // when we reload files (some were already loaded.)
-      state.rlinks = {}
-      state.rnodes = {}
-      state.visiblerLinks = {}
-      state.visiblerNodes = {}
+      state.rlinks.features = []
+      state.rnodes.features = []
+      state.visiblerLinks.feaures = []
+      state.visiblerNodes.feaures = []
       state.selectedrGroup = []
     },
     getrLinksProperties (state) {

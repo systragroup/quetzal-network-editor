@@ -84,8 +84,8 @@ export default {
     },
     unloadFiles (state) {
       // when we reload files (some were already loaded.)
-      state.links = {}
-      state.nodes = {}
+      state.links.features = []
+      state.nodes.features = []
       state.editorTrip = null
       state.tripId = []
       state.selectedTrips = []
@@ -576,8 +576,10 @@ export default {
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
       payload.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
         coord => Math.round(Number(coord) * 1000000) / 1000000))
-      state.links.features.push(...payload.links.features)
-      state.nodes.features.push(...payload.nodes.features)
+
+      // state.links.features.push(...payload.links.features) will crash with large array (stack size limit)
+      payload.links.features.forEach(link => state.links.features.push(link))
+      payload.nodes.features.forEach(node => state.nodes.features.push(node))
       this.commit('applyPropertiesTypes')
       this.commit('getLinksProperties')
       this.commit('getNodesProperties')
