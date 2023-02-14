@@ -12,9 +12,6 @@ export default {
     }
   },
   computed: {
-    isLoginPage () {
-      return this.$store.getters.route === 'Login'
-    },
   },
   created () {
     this.menuItems = Router.options.routes.concat({
@@ -53,7 +50,6 @@ export default {
 <template>
   <transition name="fade">
     <v-navigation-drawer
-      v-show="!isLoginPage"
       v-model="drawer"
       app
       class="drawer elevation-4"
@@ -81,7 +77,7 @@ export default {
           v-for="( item,key ) in getDisplayedRoutes()"
           :key="key"
           class="drawer-list-item"
-          :class="[ $store.getters.route === item.name ? 'drawer-list-item-selected' : '']"
+          :class="[ $route.name === item.name ? 'drawer-list-item-selected' : '']"
           :style="{marginTop: item.name === 'Export' ? 'auto' : '0'}"
           @click.native.stop
           @click="handleClickMenuItem(item)"

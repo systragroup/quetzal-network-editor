@@ -48,7 +48,7 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'Login' && !store.getters.filesAreLoaded) next({ name: 'Login' })
+  if (to.name !== 'Login' && store.getters.projectIsUndefined) next({ name: 'Login' })
   else if (to.path === 'login') next('Login')
   else next()
 })

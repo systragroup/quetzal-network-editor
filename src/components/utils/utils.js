@@ -5,7 +5,7 @@ async function extractZip (file) {
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
   // process ZIP file content here
-  const result = { links: null, nodes: null, road_links: null, road_nodes: null }
+  const result = {}
   for (let i = 0; i < filesNames.length; i++) {
     if (zip.files[filesNames[i]].name.slice(-7) === 'geojson') {
       const str = await zip.file(filesNames[i]).async('string')
@@ -60,4 +60,12 @@ function indexAreUnique (geojson) {
   } else { return true } // if its empty, return true
 }
 
-export { extractZip, getGroupForm, indexAreUnique }
+function IndexAreDifferent (geojsonA, geojsonB) {
+  // check if index are duplicated between geojsons (to append new links or nodes) (links or nodes)
+  // return true if they are all unique
+  const linksIndex = new Set(geojsonA.features.map(item => item.properties.index))
+  const newLinksIndex = new Set(geojsonB.features.map(item => item.properties.index))
+  return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
+}
+
+export { extractZip, getGroupForm, indexAreUnique, IndexAreDifferent }
