@@ -14,6 +14,7 @@ export const store = new Vuex.Store({
 
   state: {
     notification: {},
+    loading: false,
     anchorMode: false,
     showLeftPanel: true,
     linksPopupContent: 'trip_id',
@@ -24,6 +25,9 @@ export const store = new Vuex.Store({
   mutations: {
     changeNotification (state, payload) {
       state.notification = payload
+    },
+    changeLoading (state, payload) {
+      state.loading = payload
     },
     changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
@@ -101,13 +105,19 @@ export const store = new Vuex.Store({
     },
   },
   getters: {
+
     notification: (state) => state.notification,
+    loading: (state) => state.loading,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
     linksPopupContent: (state) => state.linksPopupContent,
     roadsPopupContent: (state) => state.roadsPopupContent,
-
     outputName: (state) => state.outputName,
+    projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
+    projectIsEmpty: (state) => {
+      return (state.links.links.features.length === 0 &&
+              state.rlinks.rlinks.features.length === 0)
+    },
 
   },
 })

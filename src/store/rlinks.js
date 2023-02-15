@@ -22,7 +22,6 @@ export default {
     visiblerLinks: {},
     visiblerNodes: {},
     connectedLinks: [],
-    rfilesAreLoaded: { links: false, nodes: false },
     roadSpeed: 20,
   },
 
@@ -39,7 +38,6 @@ export default {
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
         this.commit('getrLinksProperties')
         // set all trips visible
-        state.rfilesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
@@ -55,16 +53,29 @@ export default {
           coord => Math.round(Number(coord) * 1000000) / 1000000))
 
         this.commit('getrNodesProperties')
-        state.rfilesAreLoaded.nodes = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
+    },
+
+    appendNewrLinks (state, payload) {
+      // append new links and node to the project (import page)
+      payload.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+        points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+      payload.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+        coord => Math.round(Number(coord) * 1000000) / 1000000))
+      // state.rlinks.features.push(...payload.rlinks.features) will crash with large array (stack size limit)
+      payload.rlinks.features.forEach(link => state.rlinks.features.push(link))
+      payload.rnodes.features.forEach(node => state.rnodes.features.push(node))
+      this.commit('getrLinksProperties')
+      this.commit('getrNodesProperties')
+      // selectedrCategory
+      // selectedrGroup
     },
     unloadrFiles (state) {
       // when we reload files (some were already loaded.)
-      state.rfilesAreLoaded = { links: false, nodes: false }
-      state.rlinks = {}
-      state.rnodes = {}
-      state.visiblerLinks = {}
-      state.visiblerNodes = {}
+      state.rlinks.features = []
+      state.rnodes.features = []
+      state.visiblerLinks.feaures = []
+      state.visiblerNodes.feaures = []
       state.selectedrGroup = []
     },
     getrLinksProperties (state) {

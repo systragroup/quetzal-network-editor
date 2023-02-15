@@ -9,7 +9,6 @@ const short = require('short-uuid')
 
 export default {
   state: {
-    filesAreLoaded: { links: false, nodes: false },
     links: {},
     editorTrip: null,
     editorNodes: {},
@@ -66,7 +65,6 @@ export default {
         this.commit('changeSelectedTrips', state.tripId)
 
         this.commit('getLinksProperties')
-        state.filesAreLoaded.links = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
@@ -82,14 +80,12 @@ export default {
           coord => Math.round(Number(coord) * 1000000) / 1000000))
 
         this.commit('getNodesProperties')
-        state.filesAreLoaded.nodes = true
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     unloadFiles (state) {
       // when we reload files (some were already loaded.)
-      state.filesAreLoaded = { links: false, nodes: false }
-      state.links = {}
-      state.nodes = {}
+      state.links.features = []
+      state.nodes.features = []
       state.editorTrip = null
       state.tripId = []
       state.selectedTrips = []
@@ -574,16 +570,21 @@ export default {
       )
     },
 
-    appendNewFile (state, payload) {
+    appendNewLinks (state, payload) {
       // append new links and node to the project (import page)
       payload.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-      state.links.features.push(...payload.links.features)
-      state.nodes.features.push(...payload.nodes.features)
+      payload.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+        coord => Math.round(Number(coord) * 1000000) / 1000000))
+
+      // state.links.features.push(...payload.links.features) will crash with large array (stack size limit)
+      payload.links.features.forEach(link => state.links.features.push(link))
+      payload.nodes.features.forEach(node => state.nodes.features.push(node))
       this.commit('applyPropertiesTypes')
       this.commit('getLinksProperties')
       this.commit('getNodesProperties')
       this.commit('getTripId')
+      this.commit('changeSelectedTrips', state.tripId)
     },
 
     editGroupInfo (state, payload) {
@@ -702,9 +703,6 @@ export default {
   },
 
   getters: {
-    linksAreLoaded: (state) => state.filesAreLoaded.links,
-    nodesAreLoaded: (state) => state.filesAreLoaded.nodes,
-    filesAreLoaded: (state) => state.filesAreLoaded.links === true & state.filesAreLoaded.nodes === true,
     links: (state) => state.links,
     nodes: (state) => state.nodes,
     linkSpeed: (state) => state.linkSpeed,

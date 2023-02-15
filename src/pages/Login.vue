@@ -2,7 +2,7 @@
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
-import { extractZip, indexAreUnique } from '../components/utils/utils.js'
+import { extractZip, IndexAreDifferent } from '../components/utils/utils.js'
 const $gettext = s => s
 
 export default {
@@ -10,54 +10,33 @@ export default {
   data () {
     return {
       loggedIn: false,
-      loadedLinks: {},
-      loadedrLinks: {},
-      loadedrNodes: {},
-      loadedNodes: {},
       choice: null,
-      loading: { links: false, nodes: false, zip: false },
       showDialog: false,
+      loadedLinks: {},
+      loadedNodes: {},
+      loadedType: '',
+      zipName: '',
+      message: [],
       errorMessage: '',
     }
   },
 
   computed: {
-    filesAreLoaded () { return this.$store.getters.filesAreLoaded },
+    projectIsEmpty () { return this.$store.getters.projectIsEmpty },
+    localLinksLoaded () { return Object.keys(this.loadedLinks).length === 0 },
+    localNodesLoaded () { return Object.keys(this.loadedNodes).length === 0 },
     localFilesAreLoaded () {
-      return !((Object.keys(this.loadedLinks).length === 0 ||
-                Object.keys(this.loadedNodes).length === 0 ||
-                Object.keys(this.loadedrLinks).length === 0 ||
-                Object.keys(this.loadedrNodes).length === 0
-      ))
+      return !(this.localLinksLoaded || this.localNodesLoaded)
     },
+
   },
   watch: {
-    loadedLinks (value) {
-      if (value.features) {
-        this.$store.commit('loadLinks', value)
-        this.loading.links = false
-      }
-    },
-    loadedNodes (value) {
-      if (value.features) {
-        this.$store.commit('loadNodes', value)
-        this.loading.nodes = false
-      }
-    },
-    loadedrLinks (value) {
-      if (value.features) {
-        this.$store.commit('loadrLinks', value)
-      }
-    },
-    loadedrNodes (value) {
-      if (value.features) {
-        this.$store.commit('loadrNodes', value)
-      }
-    },
     localFilesAreLoaded (val) {
       if (val) {
-        this.loggedIn = true
-        this.login()
+        this.loadNetwork(this.loadedLinks, this.loadedNodes, this.loadedType, 'individual files')
+        this.loadedLinks = {}
+        this.loadedNodes = {}
+        this.loadedType = ''
       }
     },
 
@@ -72,97 +51,121 @@ export default {
         this.$router.push('/Home').catch(() => {})
       }, 1000)
     },
+
+    loadNetwork (links, nodes, type, zipName) {
+      if (type === 'PT') {
+        if (IndexAreDifferent(links, this.$store.getters.links) &&
+            IndexAreDifferent(nodes, this.$store.getters.nodes)) {
+          this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
+          if (zipName) this.message.push($gettext(`PT Links and nodes Loaded from ${zipName}`))
+        } else {
+          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
+        }
+      } else if (type === 'road') {
+        if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
+            IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
+          this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
+          if (zipName) this.message.push($gettext(`ROAD links and nodes Loaded from ${zipName}`))
+        } else {
+          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
+        }
+      }
+    },
+
     error (message) {
-      this.errorMessage = message
-      this.loading = { links: false, nodes: false, zip: false }
-      this.loadedLinks = {}
-      this.loadedrLinks = {}
-      this.loadedrNodes = {}
       this.loadedNodes = {}
+      this.loadedLinks = {}
+      this.loadedType = ''
+      this.message = []
+      this.errorMessage = message
+      this.$store.commit('changeLoading', false)
     },
 
     buttonHandle (choice) {
       this.choice = choice
-      if (!this.filesAreLoaded) {
-        if (choice === 'example') {
-          this.loadExample()
-        } else if (choice === 'newProject') {
-          this.newProject()
-        } else if (choice === 'zip') {
-          // read zip witjh links and nodes.
+      this.errorMessage = ''
+      switch (this.choice) {
+        case 'zip':
           this.$refs.zipInput.click()
-        } else {
-          // read json links or node (depending on choice)
+          break
+        case 'links':
           this.$refs.fileInput.click()
-        }
-      } else {
-        this.showDialog = true
+          document.getElementById('file-input').value = '' // clean it for next file
+          break
+        case 'nodes':
+          this.$refs.fileInput.click()
+          document.getElementById('file-input').value = '' // clean it for next file
+          break
+        case 'example':
+          this.projectIsEmpty ? this.loadExample() : this.showDialog = true
+          break
+        case 'newProject':
+          this.projectIsEmpty ? this.newProject() : this.showDialog = true
       }
     },
     applyDialog () {
       // this only happen when both files are loaded.
       // remove links and nodes from store. (and filesAreLoaded)
       this.$store.commit('unloadFiles')
+      this.$store.commit('unloadrFiles')
 
       if (this.choice === 'example') {
         this.loadExample()
       } else if (this.choice === 'newProject') {
         this.newProject()
-      } else if (this.choice === 'zip') {
-        // handle click and open file explorer
-        this.$refs.zipInput.click()
-      } else {
-        // this only happen when both files are loaded.
-        // remove links and nodes from store. (and filesAreLoaded)
-        this.$store.commit('unloadFiles')
-        this.$store.commit('unloadrFiles')
-        // handle click and open file explorer
-        this.$refs.fileInput.click()
       }
       this.showDialog = !this.showDialog
     },
 
-    loadExample () {
+    async loadExample () {
+      this.$store.commit('changeLoading', true)
       const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/static/'
-      fetch(url + 'links_exemple.geojson')
-        .then(res => res.json())
-        .then(out => { this.loadedLinks = out })
-        .catch(err => { alert(err) })
+      const links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
-      fetch(url + 'nodes_exemple.geojson')
-        .then(res => res.json())
-        .then(out => { this.loadedNodes = out })
-        .catch(err => { alert(err) })
+      if (!links) return
 
-      fetch(url + 'road_links_exemple.geojson')
-        .then(res => res.json())
-        .then(out => { this.loadedrLinks = out })
-        .catch(err => { alert(err) })
+      const nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
-      fetch(url + 'road_nodes_exemple.geojson')
-        .then(res => res.json())
-        .then(out => { this.loadedrNodes = out })
-        .catch(err => { alert(err) })
+      if (!nodes) return
+
+      const rlinks = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+
+      if (!rlinks) return
+
+      const rnodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+
+      if (!rnodes) return
+
+      this.loadNetwork(links, nodes, 'PT')
+      this.loadNetwork(rlinks, rnodes, 'road')
+
+      this.$store.commit('changeLoading', false)
+      this.loggedIn = true
+      this.login()
     },
     newProject () {
-      this.loadedLinks = linksBase
-      this.loadedNodes = nodesBase
-      this.loadedrLinks = linksBase
-      this.loadedrNodes = nodesBase
+      this.loadNetwork(linksBase, nodesBase, 'PT')
+      this.loadNetwork(linksBase, nodesBase, 'road')
+      this.loggedIn = true
+      this.login()
     },
 
     onFilePicked (event) {
-      this.loading[this.choice] = true
+      this.$store.commit('changeLoading', true)
       const files = event.target.files
       // there is a file
       if (!files.length) {
-        this.loading[this.choice] = false
+        this.$store.commit('changeLoading', false)
         return
       }
       // it is a geojson
       if (files[0].name.slice(-7) !== 'geojson') {
-        this.loading[this.choice] = false
-        $gettext('file is not a geojson')
+        this.$store.commit('changeLoading', false)
+        this.error($gettext('file is not a geojson'))
         return
       }
 
@@ -172,49 +175,56 @@ export default {
         fileReader.onload = evt => {
           try {
             if (files[0].name.includes('road')) {
-              this.loadedrLinks = JSON.parse(evt.target.result)
-              this.loadedLinks = linksBase
+              this.loadedLinks = JSON.parse(evt.target.result)
+              if (this.loadedType === 'PT') { this.error($gettext('road links loaded with PT nodes')); return }
+              this.loadedType = 'road'
             } else {
               this.loadedLinks = JSON.parse(evt.target.result)
-              this.loadedrLinks = linksBase
+              if (this.loadedType === 'road') { this.error($gettext('PT links loaded with road nodes')); return }
+              this.loadedType = 'PT'
             }
+            this.$store.commit('changeLoading', false)
           } catch (e) {
-            this.$store.commit('changeNotification', { text: e.message, autoClose: true, color: 'red darken-2' })
-            this.loading[this.choice] = false
+            this.error(e.message)
+            this.$store.commit('changeLoading', false)
           }
         }
       } else if (this.choice === 'nodes') {
         fileReader.onload = evt => {
           try {
             if (files[0].name.includes('road')) {
-              this.loadedrNodes = JSON.parse(evt.target.result)
-              this.loadedNodes = nodesBase
+              this.loadedNodes = JSON.parse(evt.target.result)
+              if (this.loadedType === 'PT') { this.error($gettext('road nodes loaded for PT links')); return }
+              this.loadedType = 'road'
             } else {
               this.loadedNodes = JSON.parse(evt.target.result)
-              this.loadedrNodes = nodesBase
+              if (this.loadedType === 'road') { this.error($gettext('PT nodes loaded for road links')); return }
+              this.loadedType = 'PT'
             }
+            this.$store.commit('changeLoading', false)
           } catch (e) {
-            alert(e.message)
-            this.loading[this.choice] = false
+            this.error(e.message)
+            this.$store.commit('changeLoading', false)
           }
         }
       }
     },
     async readZip (event) {
-      this.loading.zip = true
+      this.$store.commit('changeLoading', true)
       const files = event.target.files
       // there is a file
       if (!files.length) {
-        this.loading.zip = false
+        this.$store.commit('changeLoading', false)
         return
       }
       // it is a zip
       if (files[0].name.slice(-3) !== 'zip') {
-        this.loading.zip = false
+        this.$store.commit('changeLoading', false)
         this.errorMessage = $gettext('file is not a zip')
       }
       // read every selected zip and create a list of promises.
       // each promises contain {links, nodes}
+
       const PromisesList = []
       for (let i = 0; i < files.length; i++) {
         const res = extractZip(files[i])
@@ -223,48 +233,19 @@ export default {
       // when all files are read
       Promise.all(PromisesList).then(files => {
         // asign first file to links and node var
-        const links = structuredClone(linksBase)
-        const nodes = structuredClone(nodesBase)
-        const rlinks = structuredClone(linksBase)
-        const rnodes = structuredClone(nodesBase)
-
         // for each other files concat, concat to links and nodes
         for (let i = 0; i < files.length; i++) {
-          if (files[i].links) { // group so there is no links read without nodes
-            links.features.push(...files[i].links.features)
-            nodes.features.push(...files[i].nodes.features)
+          const file = files[i]
+          if (Object.keys(file).includes('links') && Object.keys(file).includes('nodes')) {
+            this.loadNetwork(file.links, file.nodes, 'PT', file.zipName)
+          } if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
+            this.loadNetwork(file.road_links, file.road_nodes, 'road', file.zipName)
           }
-          if (files[i].road_links) {
-            rlinks.features.push(...files[i].road_links.features)
-            rnodes.features.push(...files[i].road_nodes.features)
-          }
-        }
-        // then its finish
-        // if there was nothing, apply base one.
-        if (indexAreUnique(links)) {
-          this.loadedLinks = links
-        } else {
-          this.error($gettext('there is duplicated links index. Import aborted'))
-        }
-        if (indexAreUnique(nodes)) {
-          this.loadedNodes = nodes
-        } else {
-          this.error($gettext('there is duplicated nodes index. Import aborted'))
-        }
-        if (indexAreUnique(rlinks)) {
-          this.loadedrLinks = rlinks
-        } else {
-          this.error($gettext('there is duplicated road links index. Import aborted'))
-        }
-        if (indexAreUnique(rnodes)) {
-          this.loadedrNodes = rnodes
-        } else {
-          this.error($gettext('there is duplicated road nodes index. Import aborted'))
         }
 
-        this.loading.zip = false
+        this.$store.commit('changeLoading', false)
       }).catch(err => {
-        this.loading.zip = false
+        this.$store.commit('changeLoading', false)
         alert(err)
       })
     },
@@ -291,12 +272,14 @@ export default {
             {{ $gettext("Load Files") }}
           </div>
           <div>
+            {{ $gettext("Load multiple Transit or road network. Each network will be added to the current project") }}
+          </div>
+          <div>
             {{ $gettext("Links and Nodes files must be geojson in EPSG:4326.") }}
           </div>
           <div class=" text-xs-center">
             <v-btn
-              :loading="loading.links"
-              :color=" Object.keys(loadedLinks).length != 0? 'primary': 'normal'"
+              :color=" !localLinksLoaded? 'primary': 'normal'"
               @click="buttonHandle('links')"
             >
               <v-icon
@@ -308,8 +291,7 @@ export default {
               {{ $gettext('Links') }}
             </v-btn>
             <v-btn
-              :loading="loading.nodes"
-              :color=" Object.keys(loadedNodes).length != 0? 'primary': 'normal'"
+              :color=" !localNodesLoaded? 'primary': 'normal'"
               @click="buttonHandle('nodes')"
             >
               <v-icon
@@ -327,7 +309,6 @@ export default {
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   v-bind="attrs"
-                  :loading="loading.zip"
                   :color="'normal'"
                   v-on="on"
                   @click="buttonHandle('zip')"
@@ -351,6 +332,7 @@ export default {
             </v-tooltip>
           </div>
           <input
+            id="file-input"
             ref="fileInput"
             type="file"
             style="display: none"
@@ -381,7 +363,7 @@ export default {
                   {{ $gettext('New Project') }}
                 </v-btn>
               </template>
-              <span>{{ $gettext("Create a network from scratch") }}</span>
+              <span>{{ $gettext("Delete all network and start from scratch") }}</span>
             </v-tooltip>
           </div>
 
@@ -403,6 +385,14 @@ export default {
               <span>{{ $gettext("Load Montréal Example") }}</span>
             </v-tooltip>
           </div>
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'green'}">
+          <p
+            v-for="mess in message"
+            :key="mess"
+          >
+            {{ mess }}
+          </p>
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'red'}">
           {{ errorMessage }}
