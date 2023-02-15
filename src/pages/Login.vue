@@ -12,6 +12,9 @@ export default {
       loggedIn: false,
       choice: null,
       showDialog: false,
+      loadedLinks: {},
+      loadedNodes: {},
+      loadedType: '',
       zipName: '',
       message: [],
       errorMessage: '',
@@ -20,9 +23,22 @@ export default {
 
   computed: {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
+    localLinksLoaded () { return Object.keys(this.loadedLinks).length === 0 },
+    localNodesLoaded () { return Object.keys(this.loadedNodes).length === 0 },
+    localFilesAreLoaded () {
+      return !(this.localLinksLoaded || this.localNodesLoaded)
+    },
 
   },
   watch: {
+    localFilesAreLoaded (val) {
+      if (val) {
+        this.loadNetwork(this.loadedLinks, this.loadedNodes, this.loadedType, 'individual files')
+        this.loadedLinks = {}
+        this.loadedNodes = {}
+        this.loadedType = ''
+      }
+    },
 
   },
   mounted () {
@@ -57,6 +73,9 @@ export default {
     },
 
     error (message) {
+      this.loadedNodes = {}
+      this.loadedLinks = {}
+      this.loadedType = ''
       this.message = []
       this.errorMessage = message
       this.$store.commit('changeLoading', false)
@@ -71,9 +90,11 @@ export default {
           break
         case 'links':
           this.$refs.fileInput.click()
+          document.getElementById('file-input').value = '' // clean it for next file
           break
         case 'nodes':
           this.$refs.fileInput.click()
+          document.getElementById('file-input').value = '' // clean it for next file
           break
         case 'example':
           this.projectIsEmpty ? this.loadExample() : this.showDialog = true
@@ -154,11 +175,13 @@ export default {
         fileReader.onload = evt => {
           try {
             if (files[0].name.includes('road')) {
-              this.loadedrLinks = JSON.parse(evt.target.result)
-              this.loadedLinks = linksBase
+              this.loadedLinks = JSON.parse(evt.target.result)
+              if (this.loadedType === 'PT') { this.error($gettext('road links loaded with PT nodes')); return }
+              this.loadedType = 'road'
             } else {
               this.loadedLinks = JSON.parse(evt.target.result)
-              this.loadedrLinks = linksBase
+              if (this.loadedType === 'road') { this.error($gettext('PT links loaded with road nodes')); return }
+              this.loadedType = 'PT'
             }
             this.$store.commit('changeLoading', false)
           } catch (e) {
@@ -170,11 +193,13 @@ export default {
         fileReader.onload = evt => {
           try {
             if (files[0].name.includes('road')) {
-              this.loadedrNodes = JSON.parse(evt.target.result)
-              this.loadedNodes = nodesBase
+              this.loadedNodes = JSON.parse(evt.target.result)
+              if (this.loadedType === 'PT') { this.error($gettext('road nodes loaded for PT links')); return }
+              this.loadedType = 'road'
             } else {
               this.loadedNodes = JSON.parse(evt.target.result)
-              this.loadedrNodes = nodesBase
+              if (this.loadedType === 'road') { this.error($gettext('PT nodes loaded for road links')); return }
+              this.loadedType = 'PT'
             }
             this.$store.commit('changeLoading', false)
           } catch (e) {
@@ -247,12 +272,14 @@ export default {
             {{ $gettext("Load Files") }}
           </div>
           <div>
+            {{ $gettext("Load multiple Transit or road network. Each network will be added to the current project") }}
+          </div>
+          <div>
             {{ $gettext("Links and Nodes files must be geojson in EPSG:4326.") }}
           </div>
           <div class=" text-xs-center">
             <v-btn
-              :color=" 'normal'"
-              :disabled="true"
+              :color=" !localLinksLoaded? 'primary': 'normal'"
               @click="buttonHandle('links')"
             >
               <v-icon
@@ -264,8 +291,7 @@ export default {
               {{ $gettext('Links') }}
             </v-btn>
             <v-btn
-              :disabled="true"
-              :color=" 'normal'"
+              :color=" !localNodesLoaded? 'primary': 'normal'"
               @click="buttonHandle('nodes')"
             >
               <v-icon
@@ -306,6 +332,7 @@ export default {
             </v-tooltip>
           </div>
           <input
+            id="file-input"
             ref="fileInput"
             type="file"
             style="display: none"
@@ -336,7 +363,7 @@ export default {
                   {{ $gettext('New Project') }}
                 </v-btn>
               </template>
-              <span>{{ $gettext("Create a network from scratch") }}</span>
+              <span>{{ $gettext("Delete all network and start from scratch") }}</span>
             </v-tooltip>
           </div>
 
