@@ -9,7 +9,7 @@ export default {
   },
 
   props: ['selectedTrips', 'height'], // height is here to resize with the windows...
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine'],
+  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
 
   data () {
     return {
@@ -142,6 +142,10 @@ export default {
       this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
       this.$store.commit('changeNotification',
         { text: $gettext('Click on the map to start drawing'), autoClose: false })
+    },
+
+    cloneButton (obj) {
+      this.$emit('cloneButton', obj)
     },
 
     deleteButton (obj) {
@@ -426,6 +430,27 @@ export default {
                   </v-btn>
                 </template>
                 <span>{{ $gettext("Edit Line Properties") }}</span>
+              </v-tooltip>
+
+              <v-tooltip
+                bottom
+                open-delay="500"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    icon
+                    class="ma-1"
+                    v-bind="attrs"
+                    :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                    v-on="on"
+                    @click="cloneButton({trip:item,message:item})"
+                  >
+                    <v-icon :color="item == editorTrip? 'regular':'regular' ">
+                      fas fa-clone
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $gettext("Duplicate") }}</span>
               </v-tooltip>
 
               <v-tooltip

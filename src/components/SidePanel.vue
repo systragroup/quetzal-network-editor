@@ -8,7 +8,7 @@ export default {
     RoadSidePanel,
   },
   props: ['selectedTrips', 'selectedrGroup'],
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'deleteButton', 'propertiesButton', 'newLine', 'isRoadMode'],
+  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine', 'isRoadMode'],
 
   data () {
     return {
@@ -98,6 +98,7 @@ export default {
               @update-tripList="(e) => $emit('update-tripList', {type: 'links', data: e})"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
               @abortChanges="(e) => $emit('abortChanges',e)"
+              @cloneButton="(e) => $emit('cloneButton',e)"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />
