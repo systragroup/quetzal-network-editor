@@ -25,7 +25,7 @@ export default {
       linksPopupContent: {
         name: $gettext('PT Popup Content'),
         type: 'String',
-        choices: this.$store.getters.lineAttributes,
+        choices: this.$store.getters.linksPopupChoices,
         value: this.$store.getters.linksPopupContent,
         hint: $gettext('Link field to display when hovering a trip on the map'),
       },
