@@ -47,13 +47,15 @@ export default {
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-      this.popup = new mapboxgl.Popup({ closeButton: false })
-        .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-        .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
-        .addTo(event.map)
+      if (this.selectedPopupContent.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+        this.popup = new mapboxgl.Popup({ closeButton: false })
+          .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+          .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
+          .addTo(event.map)
+      }
     },
     leaveLink (event) {
-      if (this.popup.isOpen()) this.popup.remove()
+      if (this.popup?.isOpen()) this.popup.remove()
       event.map.getCanvas().style.cursor = ''
     },
     setHiddenFeatures (method = 'all', trips = []) {

@@ -107,7 +107,7 @@ export default {
       if (this.isRoadMode) {
         if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
         if (this.hoveredStateId === null || this.hoveredStateId.layerId === 'rlinks') {
-          if (!this.disablePopup) {
+          if (!this.disablePopup && this.selectedPopupContent.length > 0) {
             this.popup = new mapboxgl.Popup({ closeButton: false })
               .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
               .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
@@ -136,7 +136,7 @@ export default {
     offCursor (event) {
       if (this.isRoadMode) {
       // todo: error warning is throw sometime when we move a node over another node or anchor.
-        if (this.popup.isOpen()) this.popup.remove()
+        if (this.popup?.isOpen()) this.popup.remove()
         if (this.hoveredStateId !== null) {
           // eslint-disable-next-line max-len
           if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId?.layerId) && event?.layerId === 'rlinks')) {

@@ -476,6 +476,7 @@ export default {
     rlinksHeader: (state) => state.rlinksHeader,
     rnodesHeader: (state) => state.rnodesHeader,
     rlineAttributes: (state) => state.rlineAttributes,
+    roadPopupChoices: (state) => { const ls = structuredClone(state.rlineAttributes); ls.unshift([]); return ls },
     selectedrGroup: (state) => state.selectedrGroup,
     selectedrCategory: (state) => state.selectedrCategory,
     visiblerLinks: (state) => state.visiblerLinks,
