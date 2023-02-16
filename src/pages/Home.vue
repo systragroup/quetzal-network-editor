@@ -23,10 +23,14 @@ export default {
       selectedLink: null,
       selectedIndex: null,
       showDialog: false,
+      cloneDialog: false,
       editorForm: {},
       cursorPosition: [],
       tripToDelete: null,
-      deleteMessage: '',
+      tripToClone: null,
+      message: '',
+      cloneName: null,
+      errorMessage: null,
       lingering: true,
       groupTripIds: [],
       selectedTab: 0,
@@ -315,9 +319,32 @@ export default {
     deleteButton (selection) {
       // could be a trip, or a roadLinks group
       this.tripToDelete = selection.trip
-      this.deleteMessage = selection.message
+      this.message = selection.message
       this.action = selection.action
       this.showDialog = true
+    },
+
+    duplicate () {
+      if (this.$store.getters.tripId.includes(this.cloneName)) {
+        this.errorMessage = 'already exist'
+      } else {
+        this.$store.commit('cloneTrip', { tripId: this.tripToClone, name: this.cloneName })
+        this.errorMessage = ''
+        this.cloneDialog = false
+      }
+    },
+
+    cloneButton (selection) {
+      this.tripToClone = selection.trip
+      this.message = selection.message
+      // this.action = 'cloneTrip'
+      this.cloneName = selection.trip + ' copy'
+      this.cloneDialog = true
+    },
+
+    cancelClone () {
+      this.errorMessage = ''
+      this.cloneDialog = false
     },
 
   },
@@ -349,7 +376,7 @@ export default {
           </v-tab>
         </v-tabs>
         <v-card-title class="text-h5">
-          {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
+          {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ message + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
         <v-card-text
@@ -386,6 +413,12 @@ export default {
             </v-text-field>
           </v-list>
         </v-card-text>
+        <v-card-text v-if="['cloneTrip'].includes(action)">
+          <v-text-field
+            v-model="cloneName"
+            :label="$gettext('New name')"
+          />
+        </v-card-text>
         <v-divider />
 
         <v-card-actions>
@@ -410,6 +443,47 @@ export default {
       </v-card>
     </v-dialog>
 
+    <v-dialog
+      v-model="cloneDialog"
+      max-width="300"
+      @keydown.enter="duplicate()"
+      @keydown.esc="cancelClone"
+    >
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">{{ $gettext('Duplicate and reverse') }}</span>
+          <span class="text-h5">{{ message +' ?' }}</span>
+        </v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="cloneName"
+            :label="$gettext('New name')"
+          />
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'red'}">
+          {{ errorMessage }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="grey"
+            text
+            @click="cancelClone"
+          >
+            {{ $gettext("Cancel") }}
+          </v-btn>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="duplicate()"
+          >
+            {{ $gettext("Save") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <SidePanel
       :selected-trips="selectedTrips"
       :selectedr-group="selectedrGroup"
@@ -417,6 +491,7 @@ export default {
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"
       @deleteButton="deleteButton"
+      @cloneButton="cloneButton"
       @propertiesButton="actionClick"
       @isRoadMode="(e) => isRoadMode = e"
     />
