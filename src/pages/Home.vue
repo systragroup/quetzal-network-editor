@@ -481,7 +481,6 @@ export default {
             {{ $gettext("Save") }}
           </v-btn>
         </v-card-actions>
-        </v-divider.>
       </v-card>
     </v-dialog>
 
