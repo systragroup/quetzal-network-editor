@@ -119,7 +119,7 @@ export default {
 
     async loadExample () {
       this.$store.commit('changeLoading', true)
-      const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/static/'
+      const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
       const links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
