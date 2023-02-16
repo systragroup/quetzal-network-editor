@@ -30,6 +30,7 @@ export default {
       deleteMessage: '',
       cloneName: null,
       cloneMessage: '',
+      errorMessage: null,
       lingering: true,
       groupTripIds: [],
       selectedTab: 0,
@@ -216,10 +217,6 @@ export default {
         case 'deleteTrip':
           this.$store.commit('deleteTrip', this.tripToDelete)
           break
-        case 'cloneTrip':
-          this.$store.commit('cloneTrip',  { tripId: this.tripToClone, name: this.cloneName })
-          //faire un nouveau dialogue
-          break
         case 'Add Stop Inline':
           this.$store.commit('addNodeInline', {
             selectedLink: this.selectedLink,
@@ -327,12 +324,31 @@ export default {
       this.showDialog = true
     },
 
+    duplicate (selection) {
+      const propsList = []
+      const variables = this.$store.getters.tripId
+      variables.forEach(link => propsList.push(link))
+      if (propsList.includes(this.cloneName)) {
+        this.errorMessage = 'already exist'
+      } else {
+        this.$store.commit('cloneTrip',  { tripId: this.tripToClone, name: this.cloneName })
+        this.input = ''
+        this.errorMessage = ''
+        this.dialog = false
+      }
+    },
+
     cloneButton (selection) {
       this.tripToClone = selection.trip
       this.cloneMessage = selection.message
-      this.action = 'cloneTrip'
+      //this.action = 'cloneTrip'
       this.cloneName = selection.trip + ' copy'
-      this.showDialog = true
+      this.dialog = true
+    },
+
+    cancel () {
+      this.errorMessage = ''
+      this.dialog = false
     },
 
 
@@ -366,7 +382,6 @@ export default {
         </v-tabs>
         <v-card-title class="text-h5">
           {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
-          {{ ['cloneTrip'].includes(action)? $gettext("Duplicate") + ' '+ cloneMessage + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
         <v-card-text
@@ -427,6 +442,46 @@ export default {
             color="green darken-1"
             text
             @click="applyAction"
+          >
+            {{ $gettext("Save") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog 
+      v-model="dialog" 
+      max-width="300"
+      @keydown.enter="duplicate({trip:item})"
+      @keydown.esc="cancel">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">Duplicate</span>
+        </v-card-title>
+        <v-card-text>
+          <v-text-field
+              v-model="cloneName"
+              :label= "$gettext('New name')"
+            >
+          </v-text-field>
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'red'}">
+          {{ errorMessage }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey"
+            text
+            @click="cancel"
+          >
+            {{ $gettext("Cancel") }}
+          </v-btn>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="duplicate({index:item})"
           >
             {{ $gettext("Save") }}
           </v-btn>
