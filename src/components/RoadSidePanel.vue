@@ -19,20 +19,13 @@ export default {
   },
   computed: {
     filterChoices () { return this.$store.getters.rlineAttributes },
-    filteredCat () {
-      // for a given filter (key) get array of unique value
-      // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(this.$store.getters.rlinks.features.map(
-        item => item.properties[this.selectedFilter])))
-      return val
-    },
+    filteredCat () { return this.$store.getters.filteredrCategory },
 
   },
 
   watch: {
     tripList (newVal, oldVal) {
       let changes = ''
-
       let method = 'add'
       if (newVal === this.filteredCat) {
         changes = newVal
@@ -53,17 +46,19 @@ export default {
         this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: changes, method: method })
       }
     },
-    selectedrGoup (newVal, oldVal) {
+    selectedrGoup (newVal) {
       // check selected group in store. if it changes from another component
-      // (ex: draw line). we update tripList with it.
-      if (newVal.toString() !== this.tripList.toString()) {
-        this.tripList = newVal
+      const a = new Set(newVal)
+      const b = new Set(this.tripList)
+      if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
+        this.tripList = structuredClone(newVal)
       }
     },
 
     vmodelSelectedFilter (newVal, oldVal) {
       this.selectedFilter = newVal
       // only reset if we change the filter.
+      this.$store.commit('changeSelectedrFilter', this.selectedFilter)
       // when the component is loaded, oldVal is null and we dont want to overwrite tripList to [].
       if (oldVal) {
         this.tripList = []
@@ -73,7 +68,7 @@ export default {
   },
   mounted () {
     this.tripList = this.selectedrGoup
-    this.selectedFilter = this.$store.getters.selectedrCategory
+    this.selectedFilter = this.$store.getters.selectedrFilter
     this.vmodelSelectedFilter = this.selectedFilter
   },
 

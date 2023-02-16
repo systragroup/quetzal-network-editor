@@ -14,8 +14,9 @@ export default {
     rnodes: {},
     rlinksHeader: {},
     rnodesHeader: {},
-    selectedrCategory: '',
+    selectedrFilter: '',
     selectedrGroup: [],
+    filteredrCategory: [],
     rlineAttributes: [],
     rnodeAttributes: [],
     newrNode: {},
@@ -67,8 +68,11 @@ export default {
       payload.rnodes.features.forEach(node => state.rnodes.features.push(node))
       this.commit('getrLinksProperties')
       this.commit('getrNodesProperties')
-      // selectedrCategory
-      // selectedrGroup
+      this.commit('getFilteredrCat')
+      // state.selectedrGroup = Array.from(new Set(state.rlinks.features.map(
+      //  item => item.properties[this.selectedrFilter])))
+      // state.visiblerLinks = state.rlinks
+      // state.visiblerNodes = state.rnodes
     },
     unloadrFiles (state) {
       // when we reload files (some were already loaded.)
@@ -92,9 +96,9 @@ export default {
       state.rlineAttributes = header
 
       if (header.includes('highway')) {
-        state.selectedrCategory = 'highway'
+        state.selectedrFilter = 'highway'
       } else {
-        state.selectedrCategory = header[0]
+        state.selectedrFilter = header[0]
       }
     },
     getrNodesProperties (state) {
@@ -109,26 +113,39 @@ export default {
       header = Array.from(header)
       state.rnodeAttributes = header
     },
+    changeSelectedrFilter (state, payload) {
+      state.selectedrFilter = payload
+      this.commit('getFilteredrCat')
+    },
+    getFilteredrCat (state) {
+      // for a given filter (key) get array of unique value
+      // e.g. get ['bus','subway'] for route_type
+      const val = Array.from(new Set(state.rlinks.features.map(
+        item => item.properties[state.selectedrFilter])))
+      state.filteredrCategory = val
+    },
 
     changeVisibleRoads (state, payload) {
       // trips list of visible trip_id.
       const method = payload.method
       const data = payload.data
       const cat = payload.category
-      state.selectedrCategory = cat
+      state.selectedrFilter = cat
       let tempLinks = null
-
       switch (method) {
         case 'showAll':
           state.selectedrGroup = data
-          state.visiblerLinks.features = state.rlinks.features
+          // need to slice. so it doest change if we append to rlinks.
+          state.visiblerLinks.features = state.rlinks.features.slice()
           break
         case 'hideAll':
           state.selectedrGroup = data
           state.visiblerLinks.features = []
           break
         case 'add':
-          state.selectedrGroup.push(data[0])
+          if (!state.selectedrGroup.includes(data[0])) {
+            state.selectedrGroup.push(data[0])
+          }
           tempLinks = state.rlinks.features.filter(
             link => link.properties[cat] === data[0])
           state.visiblerLinks.features.push(...tempLinks)
@@ -145,7 +162,7 @@ export default {
 
     refreshVisibleRoads (state) {
       const group = new Set(state.selectedrGroup)
-      const cat = state.selectedrCategory
+      const cat = state.selectedrFilter
       state.visiblerLinks.features = state.rlinks.features.filter(link => group.has(link.properties[cat]))
       this.commit('getVisiblerNodes', { method: 'add' })
       // when we rename a group (highway => test), are rename many group.
@@ -353,10 +370,15 @@ export default {
       state.rlinks.features.push(linkFeature)
 
       // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
-      const newLinkGroup = linkProperties[state.selectedrCategory]
+      const newLinkGroup = linkProperties[state.selectedrFilter]
+      if (!state.filteredrCategory.includes(newLinkGroup)) {
+        state.filteredrCategory.push(newLinkGroup)
+      }
       if (!state.selectedrGroup.includes(newLinkGroup)) {
         // if its not already selected, push it.
         state.selectedrGroup.push(newLinkGroup)
+      } else {
+        state.visiblerLinks.features.push(linkFeature)
       }
     },
 
@@ -425,13 +447,15 @@ export default {
       state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
       this.commit('getVisiblerNodes', { method: 'remove' })
       this.commit('deleteUnusedrNodes')
+      this.commit('getFilteredrCat')
     },
     deleterGroup (state, payload) {
       const group = payload
-      const cat = state.selectedrCategory
+      const cat = state.selectedrFilter
       state.rlinks.features = state.rlinks.features.filter(link => link.properties[cat] !== group)
       this.commit('refreshVisibleRoads')
       this.commit('deleteUnusedrNodes')
+      this.commit('getFilteredrCat')
     },
     deleteUnusedrNodes (state) {
       // delete every every nodes not in links
@@ -453,6 +477,7 @@ export default {
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
 
       this.commit('refreshVisibleRoads')
+      this.commit('getFilteredrCat')
     },
     editrVisiblesInfo (state, payload) {
       // edit line info on multiple trips at once.
@@ -478,7 +503,8 @@ export default {
     rlineAttributes: (state) => state.rlineAttributes,
     roadPopupChoices: (state) => { const ls = structuredClone(state.rlineAttributes); ls.unshift([]); return ls },
     selectedrGroup: (state) => state.selectedrGroup,
-    selectedrCategory: (state) => state.selectedrCategory,
+    selectedrFilter: (state) => state.selectedrFilter,
+    filteredrCategory: (state) => state.filteredrCategory,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
     newrNode: (state) => state.newrNode,
