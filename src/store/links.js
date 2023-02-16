@@ -147,35 +147,33 @@ export default {
     },
 
     cloneTrip (state, payload) {
+      // clone and reversed a trip.
       const cloned = structuredClone(state.links)
       cloned.features = cloned.features.filter(link => link.properties.trip_id === payload.tripId)
-//empecher avant sauvegarder dans home
 
-        let link_sequence = cloned.features.length
-        for (let link of cloned.features) {
-          link.properties.trip_id = payload.name
-          //mettre dans l'autre sens » inverser 0 et 1 et leur coordonées
-          link.geometry.coordinates.reverse()//
-          //inverser node a et b (propriétés)
-          link.properties.a = [link.properties.b, link.properties.b = link.properties.a][0]
-          //changer le link-sequence de tous les objets
-          link.properties.link_sequence = link_sequence
-          link_sequence -= 1
-            //link.properties.link_sequence = list[a]
-          //changer la direction
-          if (link.properties.direction_id === 0) {
-            link.properties.direction_id = 1
-          } else {
-            link.properties.direction_id = 0
-          }
-          //changer nom de l'index
-          link.properties.index = 'link_' + short.generate()
+      let linkSequence = cloned.features.length
+      for (const link of cloned.features) {
+        link.properties.trip_id = payload.name
+        // mettre dans l'autre sens » inverser 0 et 1 et leur coordonées
+        link.geometry.coordinates.reverse()//
+        // inverser node a et b (propriétés)
+        link.properties.a = [link.properties.b, link.properties.b = link.properties.a][0]
+        // changer le link-sequence de tous les objets
+        link.properties.link_sequence = linkSequence
+        linkSequence -= 1
+        // changer la direction
+        if (link.properties.direction_id === 0) {
+          link.properties.direction_id = 1
+        } else {
+          link.properties.direction_id = 0
         }
-      //inverser l'ordre des features
+        // changer nom de l'index
+        link.properties.index = 'link_' + short.generate()
+      }
+      // inverser l'ordre des features
       cloned.features.reverse()
       state.links.features.push(...cloned.features)
       this.commit('getTripId')
-      console.log(cloned)
     },
     getEditorNodes (state, payload) {
       // payload contain nodes. state.nodes or state.editorNodes

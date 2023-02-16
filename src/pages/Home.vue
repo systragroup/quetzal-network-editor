@@ -23,13 +23,13 @@ export default {
       selectedLink: null,
       selectedIndex: null,
       showDialog: false,
+      cloneDialog: false,
       editorForm: {},
       cursorPosition: [],
       tripToDelete: null,
       tripToClone: null,
-      deleteMessage: '',
+      message: '',
       cloneName: null,
-      cloneMessage: '',
       errorMessage: null,
       lingering: true,
       groupTripIds: [],
@@ -319,38 +319,33 @@ export default {
     deleteButton (selection) {
       // could be a trip, or a roadLinks group
       this.tripToDelete = selection.trip
-      this.deleteMessage = selection.message
+      this.message = selection.message
       this.action = selection.action
       this.showDialog = true
     },
 
-    duplicate (selection) {
-      const propsList = []
-      const variables = this.$store.getters.tripId
-      variables.forEach(link => propsList.push(link))
-      if (propsList.includes(this.cloneName)) {
+    duplicate () {
+      if (this.$store.getters.tripId.includes(this.cloneName)) {
         this.errorMessage = 'already exist'
       } else {
-        this.$store.commit('cloneTrip',  { tripId: this.tripToClone, name: this.cloneName })
-        this.input = ''
+        this.$store.commit('cloneTrip', { tripId: this.tripToClone, name: this.cloneName })
         this.errorMessage = ''
-        this.dialog = false
+        this.cloneDialog = false
       }
     },
 
     cloneButton (selection) {
       this.tripToClone = selection.trip
-      this.cloneMessage = selection.message
-      //this.action = 'cloneTrip'
+      this.message = selection.message
+      // this.action = 'cloneTrip'
       this.cloneName = selection.trip + ' copy'
-      this.dialog = true
+      this.cloneDialog = true
     },
 
-    cancel () {
+    cancelClone () {
       this.errorMessage = ''
-      this.dialog = false
+      this.cloneDialog = false
     },
-
 
   },
 }
@@ -381,7 +376,7 @@ export default {
           </v-tab>
         </v-tabs>
         <v-card-title class="text-h5">
-          {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ deleteMessage + '?': $gettext("Edit Properties") }}
+          {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ message + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
         <v-card-text
@@ -420,10 +415,9 @@ export default {
         </v-card-text>
         <v-card-text v-if="['cloneTrip'].includes(action)">
           <v-text-field
-              v-model="cloneName"
-              :label= "$gettext('New name')"
-            >
-          </v-text-field>
+            v-model="cloneName"
+            :label="$gettext('New name')"
+          />
         </v-card-text>
         <v-divider />
 
@@ -449,31 +443,32 @@ export default {
       </v-card>
     </v-dialog>
 
-    <v-dialog 
-      v-model="dialog" 
+    <v-dialog
+      v-model="cloneDialog"
       max-width="300"
-      @keydown.enter="duplicate({trip:item})"
-      @keydown.esc="cancel">
+      @keydown.enter="duplicate()"
+      @keydown.esc="cancelClone"
+    >
       <v-card>
         <v-card-title>
-          <span class="text-h5">Duplicate</span>
+          <span class="text-h5">{{ $gettext('Duplicate and reverse') }}</span>
+          <span class="text-h5">{{ message +' ?' }}</span>
         </v-card-title>
         <v-card-text>
           <v-text-field
-              v-model="cloneName"
-              :label= "$gettext('New name')"
-            >
-          </v-text-field>
+            v-model="cloneName"
+            :label="$gettext('New name')"
+          />
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'red'}">
           {{ errorMessage }}
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             color="grey"
             text
-            @click="cancel"
+            @click="cancelClone"
           >
             {{ $gettext("Cancel") }}
           </v-btn>
@@ -481,11 +476,12 @@ export default {
           <v-btn
             color="green darken-1"
             text
-            @click="duplicate({index:item})"
+            @click="duplicate()"
           >
             {{ $gettext("Save") }}
           </v-btn>
         </v-card-actions>
+        </v-divider.>
       </v-card>
     </v-dialog>
 
