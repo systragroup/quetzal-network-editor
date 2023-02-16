@@ -107,7 +107,9 @@ export default {
       if (this.isRoadMode) {
         if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
         if (this.hoveredStateId === null || this.hoveredStateId.layerId === 'rlinks') {
-          if (!this.disablePopup) {
+          if (!this.disablePopup && this.selectedPopupContent.length > 0) {
+            console.log(this.selectedPopupContent)
+            console.log(this.selectedPopupContent === [])
             this.popup = new mapboxgl.Popup({ closeButton: false })
               .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
               .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
