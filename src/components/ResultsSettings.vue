@@ -81,7 +81,7 @@ export default {
   },
 }
 </script>
-<template>
+<template v-slot:append>
   <v-card
     :class="{'shake':shake}"
     @keydown.enter="submit"
