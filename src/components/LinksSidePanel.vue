@@ -140,8 +140,6 @@ export default {
       const name = 'trip_' + short.generate()
       this.$store.commit('setEditorTrip', { tripId: name, changeBounds: false })
       this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
-      this.$store.commit('changeNotification',
-        { text: $gettext('Click on the map to start drawing'), autoClose: false })
     },
 
     cloneButton (obj) {

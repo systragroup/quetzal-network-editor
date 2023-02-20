@@ -61,6 +61,10 @@ export default {
     },
   },
   watch: {
+    showDialog (val) {
+      // do not show a notification when dialog is on. sometim its over the confirm button
+      if (val) { this.$store.commit('changeNotification', { text: '', autoClose: true }) }
+    },
 
   },
   created () {
@@ -210,6 +214,10 @@ export default {
             })
           }
           this.$store.commit('editLineInfo', this.editorForm)
+          if (this.$store.getters.editorNodes.features.length === 0) {
+            this.$store.commit('changeNotification',
+              { text: $gettext('Click on the map to start drawing'), autoClose: false })
+          }
           break
         case 'Edit Group Info':
           this.$store.commit('editGroupInfo', { groupTripIds: this.groupTripIds, info: this.editorForm })
