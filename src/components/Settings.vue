@@ -91,6 +91,7 @@ export default {
 <template>
   <v-card
     :class="{'shake':shake}"
+    :max-width="300"
     @keydown.enter="submit"
     @keydown.esc="cancel"
   >

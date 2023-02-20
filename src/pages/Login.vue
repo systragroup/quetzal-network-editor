@@ -18,6 +18,7 @@ export default {
       zipName: '',
       message: [],
       errorMessage: '',
+      filesAdded: false,
     }
   },
 
@@ -57,6 +58,7 @@ export default {
         if (IndexAreDifferent(links, this.$store.getters.links) &&
             IndexAreDifferent(nodes, this.$store.getters.nodes)) {
           this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
+          this.filesAdded = true
           if (zipName) this.message.push($gettext(`PT Links and nodes Loaded from ${zipName}`))
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
@@ -65,6 +67,7 @@ export default {
         if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
             IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
           this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
+          this.filesAdded = true
           if (zipName) this.message.push($gettext(`ROAD links and nodes Loaded from ${zipName}`))
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
@@ -384,6 +387,15 @@ export default {
               </template>
               <span>{{ $gettext("Load Montréal Example") }}</span>
             </v-tooltip>
+          </div>
+          <div>
+            <v-btn
+              v-show="filesAdded"
+              color="primary"
+              @click="login()"
+            >
+              {{ $gettext('Go!') }}
+            </v-btn>
           </div>
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'green'}">
