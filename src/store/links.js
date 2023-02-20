@@ -735,6 +735,7 @@ export default {
     links: (state) => state.links,
     nodes: (state) => state.nodes,
     linkSpeed: (state) => state.linkSpeed,
+    linksIsEmpty: (state) => state.links.features.length === 0,
     route_id: (state) => state.route_id,
     editorTrip: (state) => state.editorTrip,
     editorLinks: (state) => state.editorLinks,
