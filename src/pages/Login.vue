@@ -59,7 +59,7 @@ export default {
             IndexAreDifferent(nodes, this.$store.getters.nodes)) {
           this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
           this.filesAdded = true
-          if (zipName) this.message.push($gettext(`PT Links and nodes Loaded from ${zipName}`))
+          if (zipName) this.message.push($gettext('PT Links and nodes Loaded from') + ' ' + zipName)
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
         }
@@ -68,7 +68,7 @@ export default {
             IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
           this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
           this.filesAdded = true
-          if (zipName) this.message.push($gettext(`ROAD links and nodes Loaded from ${zipName}`))
+          if (zipName) this.message.push($gettext('ROAD links and nodes Loaded from') + ' ' + zipName)
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
         }
@@ -403,11 +403,11 @@ export default {
             v-for="mess in message"
             :key="mess"
           >
-            {{ mess }}
+            {{ $gettext(mess) }}
           </p>
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'red'}">
-          {{ errorMessage }}
+          {{ $gettext(errorMessage) }}
         </v-card-text>
       </v-card>
     </div>
