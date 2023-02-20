@@ -111,10 +111,13 @@ export default {
         if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
         if (this.hoveredStateId === null || this.hoveredStateId.layerId === 'rlinks') {
           if (!this.disablePopup && this.selectedPopupContent.length > 0) {
-            this.popup = new mapboxgl.Popup({ closeButton: false })
-              .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-              .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
-              .addTo(event.map)
+            const selectedFeature = event.mapboxEvent.features[0]
+            if (selectedFeature.layer.id !== 'rnodes') {
+              this.popup = new mapboxgl.Popup({ closeButton: false })
+                .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+                .setHTML(selectedFeature.properties[this.selectedPopupContent])
+                .addTo(event.map)
+            }
           }
           this.map.getCanvas().style.cursor = 'pointer'
           if (this.hoveredStateId !== null) {
