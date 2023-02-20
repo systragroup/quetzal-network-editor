@@ -4,10 +4,12 @@ import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from '
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
-import Settings from './Settings.vue'
+
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
+
+const Settings = () => import('./Settings.vue')
 
 // Filter links from selected line
 const $gettext = s => s

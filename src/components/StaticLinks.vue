@@ -41,9 +41,14 @@ export default {
   },
   created () {
     this.setHiddenFeatures()
+    // this.map.on('dblclick', this.test)
   },
 
   methods: {
+    test (event) {
+      // event.preventDefault() // prevent map control
+      console.log(event)
+    },
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
