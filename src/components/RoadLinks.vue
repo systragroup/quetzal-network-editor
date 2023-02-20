@@ -98,6 +98,7 @@ export default {
         const nodeSet = new Set(this.renderedrNodes.features.map(node => node.properties.index))
         this.renderedrLinks.features = this.rlinks.features.filter(link => nodeSet.has(link.properties.a) | nodeSet.has(link.properties.b))
       } else if (this.map.getZoom() > this.minZoom.links) {
+        // ion this case. nodes are unloaded. we display links.
         this.renderedrLinks.features = this.rlinks.features
         this.renderedrNodes.features = []
         this.renderedAnchorrNodes.features = []

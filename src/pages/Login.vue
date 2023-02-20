@@ -150,8 +150,8 @@ export default {
     newProject () {
       this.loadNetwork(linksBase, nodesBase, 'PT')
       this.loadNetwork(linksBase, nodesBase, 'road')
-      this.loggedIn = true
-      this.login()
+      this.$store.commit('changeNotification', { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
+      this.message = []
     },
 
     onFilePicked (event) {
