@@ -352,7 +352,9 @@ export default {
           'symbol-spacing': 200,
           'icon-ignore-placement': true,
           'icon-image':'arrow',
-          'icon-size': 0.3,
+          'icon-size': ['case', ['has', 'oneway'],
+                        ['case',['to-boolean',['to-number',['get','oneway']]],0.3, 0],
+                        0.3],
           'icon-rotate': 90
         },
         paint: {
