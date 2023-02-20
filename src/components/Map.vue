@@ -6,12 +6,11 @@ import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
 import Settings from './Settings.vue'
-// import RoadLinks from './RoadLinks.vue'
-// import StaticLinks from './StaticLinks.vue'
-// import EditorLinks from './EditorLinks.vue'
+
 const StaticLinks = () => import('./StaticLinks.vue')
 const EditorLinks = () => import('./EditorLinks.vue')
 const RoadLinks = () => import('./RoadLinks.vue')
+
 
 // Filter links from selected line
 const $gettext = s => s

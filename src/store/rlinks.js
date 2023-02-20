@@ -512,6 +512,7 @@ export default {
     visiblerNodes: (state) => state.visiblerNodes,
     defaultHighway: (state) => state.defaultHighway,
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
+
     newrNode: (state) => state.newrNode,
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)
