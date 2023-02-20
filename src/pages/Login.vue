@@ -390,7 +390,7 @@ export default {
           </div>
           <div>
             <v-btn
-              v-show="filesAdded"
+              :disabled="!filesAdded"
               color="primary"
               @click="login()"
             >
