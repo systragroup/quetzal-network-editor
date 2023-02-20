@@ -23,6 +23,7 @@ export default {
     visiblerLinks: {},
     visiblerNodes: {},
     connectedLinks: [],
+    defaultHighway: 'quenedi',
     roadSpeed: 20,
   },
 
@@ -357,7 +358,8 @@ export default {
       linkProperties.index = 'rlink_' + short.generate()
       linkProperties.a = payload.nodeIdA
       linkProperties.b = payload.nodeIdB
-      linkProperties.highway = 'quenedi'
+      linkProperties.highway = state.defaultHighway // quenedi
+      if (state.rlineAttributes.includes('oneway')) { linkProperties.oneway = 1 }
       linkProperties.route_color = 'B5E0D6'
       // add length, speed, time now that we have a geometry.
       const distance = length(linkGeometry)
@@ -507,6 +509,7 @@ export default {
     filteredrCategory: (state) => state.filteredrCategory,
     visiblerLinks: (state) => state.visiblerLinks,
     visiblerNodes: (state) => state.visiblerNodes,
+    defaultHighway: (state) => state.defaultHighway,
     newrNode: (state) => state.newrNode,
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)

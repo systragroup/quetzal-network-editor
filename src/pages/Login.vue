@@ -18,6 +18,7 @@ export default {
       zipName: '',
       message: [],
       errorMessage: '',
+      filesAdded: false,
     }
   },
 
@@ -57,7 +58,8 @@ export default {
         if (IndexAreDifferent(links, this.$store.getters.links) &&
             IndexAreDifferent(nodes, this.$store.getters.nodes)) {
           this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
-          if (zipName) this.message.push($gettext(`PT Links and nodes Loaded from ${zipName}`))
+          this.filesAdded = true
+          if (zipName) this.message.push($gettext('PT Links and nodes Loaded from') + ' ' + zipName)
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
         }
@@ -65,7 +67,8 @@ export default {
         if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
             IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
           this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
-          if (zipName) this.message.push($gettext(`ROAD links and nodes Loaded from ${zipName}`))
+          this.filesAdded = true
+          if (zipName) this.message.push($gettext('ROAD links and nodes Loaded from') + ' ' + zipName)
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
         }
@@ -150,8 +153,8 @@ export default {
     newProject () {
       this.loadNetwork(linksBase, nodesBase, 'PT')
       this.loadNetwork(linksBase, nodesBase, 'road')
-      this.loggedIn = true
-      this.login()
+      this.$store.commit('changeNotification', { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
+      this.message = []
     },
 
     onFilePicked (event) {
@@ -385,17 +388,26 @@ export default {
               <span>{{ $gettext("Load Montréal Example") }}</span>
             </v-tooltip>
           </div>
+          <div>
+            <v-btn
+              :disabled="!filesAdded"
+              color="primary"
+              @click="login()"
+            >
+              {{ $gettext('Go!') }}
+            </v-btn>
+          </div>
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'green'}">
           <p
             v-for="mess in message"
             :key="mess"
           >
-            {{ mess }}
+            {{ $gettext(mess) }}
           </p>
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'red'}">
-          {{ errorMessage }}
+          {{ $gettext(errorMessage) }}
         </v-card-text>
       </v-card>
     </div>

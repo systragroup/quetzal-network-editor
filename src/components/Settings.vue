@@ -36,6 +36,12 @@ export default {
         value: this.$store.getters.roadsPopupContent,
         hint: $gettext('Link field to display when hovering road link on the map'),
       },
+      defaultHighway: {
+        name: $gettext('Road Highway name'),
+        type: 'String',
+        value: this.$store.getters.defaultHighway,
+        hint: $gettext('New road links Highway property name'),
+      },
       outputName: {
         name: $gettext('Export name'),
         type: 'String',
@@ -65,6 +71,7 @@ export default {
           linksPopupContent: this.linksPopupContent.value,
           roadsPopupContent: this.roadsPopupContent.value,
           outputName: this.outputName.value,
+          defaultHighway: this.defaultHighway.value,
         }
         this.$store.commit('applySettings', payload)
         this.$emit('submit', true)
@@ -84,6 +91,7 @@ export default {
 <template>
   <v-card
     :class="{'shake':shake}"
+    :max-width="300"
     @keydown.enter="submit"
     @keydown.esc="cancel"
   >
@@ -134,6 +142,16 @@ export default {
               :label="$gettext(roadsPopupContent.name)"
               :hint="showHint? $gettext(roadsPopupContent.hint): ''"
               :persistent-hint="showHint"
+              required
+            />
+            <v-text-field
+              v-model="defaultHighway.value"
+              :type="defaultHighway.type"
+              :label="$gettext(defaultHighway.name)"
+              :suffix="defaultHighway.units"
+              :hint="showHint? $gettext(defaultHighway.hint): ''"
+              :persistent-hint="showHint"
+              :rules="zipRules"
               required
             />
             <v-text-field

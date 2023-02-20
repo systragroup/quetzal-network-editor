@@ -13,24 +13,26 @@ msgstr ""
 "Generated-By: easygettext\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/App.vue:46 src/pages/Settings.vue:53 src/pages/Settings.vue:55
-#: src/pages/Settings.vue:65 src/pages/Settings.vue:67
-#: src/pages/Settings.vue:77 src/pages/Settings.vue:78
-#: src/pages/Settings.vue:86 src/pages/Settings.vue:87
-#: src/pages/Settings.vue:95 src/pages/Settings.vue:97
+#: src/App.vue:57 src/components/Settings.vue:49 src/components/Settings.vue:51
+#: src/components/Settings.vue:61 src/components/Settings.vue:63
+#: src/components/Settings.vue:73 src/components/Settings.vue:74
+#: src/components/Settings.vue:82 src/components/Settings.vue:83
+#: src/components/Settings.vue:91 src/components/Settings.vue:93
+#: src/components/Settings.vue:102 src/components/Settings.vue:104
+#: src/pages/Login.vue:201
 msgid "_ctx"
 msgstr "_ctx"
 
-#: src/components/layout/NavigationDrawer.vue:30
+#: src/components/layout/NavigationDrawer.vue:27
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr "%{s}"
 
-#: src/components/LinksSidePanel.vue:492
+#: src/components/LinksSidePanel.vue:524
 msgid "Abort"
 msgstr ""
 
-#: src/components/EditorLinks.vue:166 src/components/RoadLinks.vue:146
+#: src/components/EditorLinks.vue:166 src/components/RoadLinks.vue:148
 msgid "action"
 msgstr ""
 
@@ -42,8 +44,9 @@ msgstr ""
 msgid "add field"
 msgstr ""
 
-#: src/pages/Import.vue:38
-msgid "Add Files"
+#: src/pages/Login.vue:125 src/pages/Login.vue:130 src/pages/Login.vue:135
+#: src/pages/Login.vue:140
+msgid "An error occur fetching example on github"
 msgstr ""
 
 #: src/components/utils/ColorPicker.vue:58
@@ -54,9 +57,9 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:583 src/components/RoadSidePanel.vue:342
-#: src/pages/DataFrame.vue:164 src/pages/Home.vue:119
-#: src/pages/Settings.vue:122
+#: src/components/LinksSidePanel.vue:615 src/components/RoadSidePanel.vue:342
+#: src/components/Settings.vue:129 src/pages/DataFrame.vue:164
+#: src/pages/Home.vue:133 src/pages/Home.vue:200
 msgid "Cancel"
 msgstr ""
 
@@ -64,27 +67,23 @@ msgstr ""
 msgid "Cannot filter by this field. There is more than 500 groups"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:142
+#: src/pages/Home.vue:217
 msgid "Click on the map to start drawing"
 msgstr ""
 
-#: src/App.vue:40
+#: src/App.vue:51
 msgid "Close"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:510
+#: src/components/LinksSidePanel.vue:542
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Home.vue:201
+#: src/pages/Home.vue:209
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
-#: src/pages/Login.vue:153
-msgid "Create a network from scratch"
-msgstr ""
-
-#: src/components/LinksSidePanel.vue:544
+#: src/components/LinksSidePanel.vue:576
 msgid "Create new Line"
 msgstr ""
 
@@ -96,19 +95,23 @@ msgstr ""
 msgid "Cut Before Node"
 msgstr ""
 
-#: src/pages/Home.vue:59
+#: src/pages/Home.vue:61
 msgid "Delete"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:293
+#: src/pages/Login.vue:150
+msgid "Delete all network and start from scratch"
+msgstr ""
+
+#: src/components/LinksSidePanel.vue:294
 msgid "Delete Group"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:429 src/components/RoadSidePanel.vue:263
+#: src/components/LinksSidePanel.vue:461 src/components/RoadSidePanel.vue:263
 msgid "Delete Line"
 msgstr ""
 
-#: src/components/RoadLinks.vue:192
+#: src/components/RoadLinks.vue:200
 msgid "Delete rLink"
 msgstr ""
 
@@ -117,27 +120,31 @@ msgstr ""
 msgid "Delete Stop"
 msgstr ""
 
-#: src/pages/Settings.vue:51
+#: src/components/Settings.vue:59
 msgid "do not add .zip to the end"
 msgstr ""
 
-#: src/components/Map.vue:88
-msgid "double click to edit line, right click to edit line properties"
+#: src/components/LinksSidePanel.vue:429
+msgid "Duplicate"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:261
+#: src/pages/Home.vue:170
+msgid "Duplicate and reverse"
+msgstr ""
+
+#: src/components/LinksSidePanel.vue:262
 msgid "Edit Group Properties"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:366
+#: src/components/LinksSidePanel.vue:367
 msgid "Edit Line"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:475 src/components/RoadSidePanel.vue:304
+#: src/components/LinksSidePanel.vue:507 src/components/RoadSidePanel.vue:304
 msgid "Edit Line geometry"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:397 src/components/RoadSidePanel.vue:233
+#: src/components/LinksSidePanel.vue:398 src/components/RoadSidePanel.vue:233
 msgid "Edit Line Properties"
 msgstr ""
 
@@ -146,51 +153,51 @@ msgstr ""
 msgid "Edit Node Info"
 msgstr ""
 
-#: src/pages/Home.vue:59
+#: src/pages/Home.vue:61
 msgid "Edit Properties"
 msgstr ""
 
-#: src/components/RoadLinks.vue:191
+#: src/components/RoadLinks.vue:199
 msgid "Edit rLink Info"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:91 src/components/RoadSidePanel.vue:84
+#: src/components/LinksSidePanel.vue:92 src/components/RoadSidePanel.vue:84
 msgid "Edit Visibles Properties"
 msgstr ""
 
-#: src/pages/Login.vue:168
+#: src/pages/Login.vue:165
 msgid "Example"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:22
+#: src/components/layout/NavigationDrawer.vue:19
 msgid "Export"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:133 src/components/RoadSidePanel.vue:126
+#: src/components/LinksSidePanel.vue:134 src/components/RoadSidePanel.vue:126
 msgid "Export All"
 msgstr ""
 
-#: src/pages/Settings.vue:37
+#: src/components/Settings.vue:45
 msgid "Export name"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:147 src/components/RoadSidePanel.vue:140
+#: src/components/LinksSidePanel.vue:148 src/components/RoadSidePanel.vue:140
 msgid "Export Only Visible"
 msgstr ""
 
-#: src/pages/Login.vue:163
+#: src/pages/Login.vue:169
 msgid "file is not a geojson"
 msgstr ""
 
-#: src/pages/Login.vue:212
+#: src/pages/Login.vue:224
 msgid "file is not a zip"
 msgstr ""
 
-#: src/pages/Import.vue:149
-msgid "file is not a zip. Import aborted"
+#: src/pages/Login.vue:183
+msgid "Go!"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:63 src/components/LinksSidePanel.vue:217
+#: src/components/LinksSidePanel.vue:64 src/components/LinksSidePanel.vue:218
 #: src/components/RoadSidePanel.vue:55
 msgid "Hide All"
 msgstr ""
@@ -199,52 +206,40 @@ msgstr ""
 msgid "Hold left click to drag"
 msgstr ""
 
-#: src/router/index.js:32
+#: src/router/index.js:23
 msgid "Import"
 msgstr ""
 
-#: src/pages/Import.vue:36 src/pages/Import.vue:55
-msgid "invalid CRS. use CRS84 / EPSG:4326. Import aborted"
-msgstr ""
-
-#: src/components/layout/NavigationDrawer.vue:62
-#: src/components/layout/NavigationDrawer.vue:76 src/pages/DataFrame.vue:59
+#: src/components/layout/NavigationDrawer.vue:59
+#: src/components/layout/NavigationDrawer.vue:73 src/pages/DataFrame.vue:59
 msgid "item"
-msgstr ""
-
-#: src/components/Map.vue:91
-msgid "Left click to add a node, right click to edit"
 msgstr ""
 
 #: src/components/EditorLinks.vue:124
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/Map.vue:79
+#: src/components/Map.vue:83
 msgid "Left click to add an anchor point, right click to delete"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:96
+#: src/components/LinksSidePanel.vue:97
 msgid "Lines"
 msgstr ""
 
-#: src/pages/Settings.vue:27
+#: src/components/Settings.vue:29
 msgid "Link field to display when hovering a trip on the map"
 msgstr ""
 
-#: src/pages/Settings.vue:34
+#: src/components/Settings.vue:36
 msgid "Link field to display when hovering road link on the map"
 msgstr ""
 
-#: src/pages/Import.vue:56 src/pages/Login.vue:61
+#: src/pages/Login.vue:61
 msgid "Links"
 msgstr ""
 
-#: src/pages/Import.vue:39
-msgid "Links and Nodes files must be geojson in EPSG:4326"
-msgstr ""
-
-#: src/pages/Login.vue:44
+#: src/pages/Login.vue:45
 msgid "Links and Nodes files must be geojson in EPSG:4326."
 msgstr ""
 
@@ -252,35 +247,41 @@ msgstr ""
 msgid "Links Table"
 msgstr ""
 
-#: src/pages/Import.vue:106
-msgid "Load a zip file containing"
-msgstr ""
-
 #: src/pages/Login.vue:43
 msgid "Load Files"
 msgstr ""
 
-#: src/pages/Login.vue:174
+#: src/pages/Login.vue:171
 msgid "Load Montréal Example"
 msgstr ""
 
-#: src/pages/Login.vue:111
+#: src/pages/Login.vue:44
+msgid ""
+"Load multiple Transit or road network. Each network will be added to the "
+"current project"
+msgstr ""
+
+#: src/pages/Login.vue:107
 msgid "Load zip files containing"
 msgstr ""
 
-#: src/router/index.js:39
+#: src/router/index.js:31
 msgid "Map"
 msgstr ""
 
-#: src/pages/Home.vue:311
+#: src/pages/Login.vue:194
+msgid "mess"
+msgstr ""
+
+#: src/pages/Home.vue:323
 msgid "modification aborted"
 msgstr ""
 
-#: src/pages/Home.vue:302
+#: src/components/Settings.vue:78 src/pages/Home.vue:314
 msgid "modification applied"
 msgstr ""
 
-#: src/pages/Home.vue:84
+#: src/pages/Home.vue:86
 msgid "multiple Values"
 msgstr ""
 
@@ -292,16 +293,24 @@ msgstr ""
 msgid "New Field"
 msgstr ""
 
-#: src/pages/Login.vue:147 src/router/index.js:25
+#: src/pages/Home.vue:117 src/pages/Home.vue:180
+msgid "New name"
+msgstr ""
+
+#: src/pages/Login.vue:144
 msgid "New Project"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:593 src/components/RoadSidePanel.vue:352
-#: src/pages/Login.vue:219
+#: src/components/Settings.vue:42
+msgid "New road links Highway property name"
+msgstr ""
+
+#: src/components/LinksSidePanel.vue:625 src/components/RoadSidePanel.vue:352
+#: src/pages/Login.vue:236
 msgid "No"
 msgstr ""
 
-#: src/pages/Import.vue:75 src/pages/Login.vue:80
+#: src/pages/Login.vue:79
 msgid "Nodes"
 msgstr ""
 
@@ -309,35 +318,47 @@ msgstr ""
 msgid "Nodes Table"
 msgstr ""
 
-#: src/pages/Import.vue:108
-msgid "nodes.geojson and links.geojson"
-msgstr ""
-
-#: src/pages/Login.vue:113
+#: src/pages/Login.vue:109
 msgid "nodes.geojson and links.geojson or"
 msgstr ""
 
-#: src/pages/Login.vue:117
+#: src/pages/Login.vue:113
 msgid "or both the PT and road geojsons"
 msgstr ""
 
-#: src/pages/Login.vue:207
+#: src/pages/Login.vue:224
 msgid "Overwrite current Project ?"
+msgstr ""
+
+#: src/pages/Login.vue:154
+msgid "project overwrited"
 msgstr ""
 
 #: src/components/SidePanel.vue:54
 msgid "PT Links"
 msgstr ""
 
-#: src/pages/Settings.vue:23
+#: src/pages/Login.vue:60
+msgid "PT Links and nodes Loaded from"
+msgstr ""
+
+#: src/pages/Login.vue:184
+msgid "PT links loaded with road nodes"
+msgstr ""
+
+#: src/pages/Login.vue:202
+msgid "PT nodes loaded for road links"
+msgstr ""
+
+#: src/components/Settings.vue:25
 msgid "PT Popup Content"
 msgstr ""
 
-#: src/pages/Settings.vue:9
+#: src/components/Settings.vue:11
 msgid "PT speed"
 msgstr ""
 
-#: src/pages/Settings.vue:48
+#: src/components/Settings.vue:56
 msgid "Required"
 msgstr ""
 
@@ -349,19 +370,35 @@ msgstr ""
 msgid "Right click to edit properties"
 msgstr ""
 
+#: src/components/Settings.vue:39
+msgid "Road Highway name"
+msgstr ""
+
 #: src/components/SidePanel.vue:60
 msgid "Road Links"
 msgstr ""
 
-#: src/pages/Settings.vue:30
+#: src/pages/Login.vue:69
+msgid "ROAD links and nodes Loaded from"
+msgstr ""
+
+#: src/pages/Login.vue:180
+msgid "road links loaded with PT nodes"
+msgstr ""
+
+#: src/pages/Login.vue:198
+msgid "road nodes loaded for PT links"
+msgstr ""
+
+#: src/components/Settings.vue:32
 msgid "Road Popup Content"
 msgstr ""
 
-#: src/pages/Settings.vue:16
+#: src/components/Settings.vue:18
 msgid "Road speed"
 msgstr ""
 
-#: src/pages/Login.vue:115
+#: src/pages/Login.vue:111
 msgid "road_nodes.geojson and road_links.geojson"
 msgstr ""
 
@@ -369,70 +406,59 @@ msgstr ""
 msgid "Roads"
 msgstr ""
 
-#: src/pages/Home.vue:129 src/pages/Settings.vue:132
+#: src/components/Settings.vue:139 src/pages/Home.vue:143
+#: src/pages/Home.vue:210
 msgid "Save"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:571 src/components/RoadSidePanel.vue:330
+#: src/components/LinksSidePanel.vue:603 src/components/RoadSidePanel.vue:330
 msgid "Save Changes?"
 msgstr ""
 
-#: src/pages/Settings.vue:34 src/router/index.js:53
+#: src/components/Settings.vue:30
 msgid "Settings"
 msgstr ""
 
-#: src/pages/Settings.vue:49
+#: src/components/Settings.vue:57
 msgid "should be larger than 0"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:63 src/components/LinksSidePanel.vue:218
+#: src/components/LinksSidePanel.vue:64 src/components/LinksSidePanel.vue:219
 #: src/components/RoadSidePanel.vue:55
 msgid "Show All"
 msgstr ""
 
-#: src/pages/Settings.vue:20
+#: src/components/Settings.vue:22
 msgid "Speed used to calculate road travel time when a link is drawn"
 msgstr ""
 
-#: src/pages/Settings.vue:13
+#: src/components/Settings.vue:15
 msgid ""
 "Speed used to calculate travel time when a link is drawn, extend or a node "
 "is moved"
 msgstr ""
 
-#: src/router/index.js:46
+#: src/router/index.js:38
 msgid "Table"
 msgstr ""
 
-#: src/pages/Settings.vue:41
+#: src/components/Settings.vue:49
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/pages/Import.vue:31 src/pages/Login.vue:245
-msgid "there is duplicated links index. Import aborted"
-msgstr ""
-
-#: src/pages/Import.vue:48 src/pages/Login.vue:250
-msgid "there is duplicated nodes index. Import aborted"
-msgstr ""
-
-#: src/pages/Login.vue:255
-msgid "there is duplicated road links index. Import aborted"
-msgstr ""
-
-#: src/pages/Login.vue:260
-msgid "there is duplicated road nodes index. Import aborted"
+#: src/pages/Login.vue:62 src/pages/Login.vue:71
+msgid "there is duplicated links or nodes index. Import aborted"
 msgstr ""
 
 #: src/components/LinksSidePanel.vue:43
 msgid "undefined"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:229
+#: src/components/LinksSidePanel.vue:230
 msgid "value"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:602 src/components/RoadSidePanel.vue:361
-#: src/pages/Login.vue:228
+#: src/components/LinksSidePanel.vue:634 src/components/RoadSidePanel.vue:361
+#: src/pages/Login.vue:245
 msgid "Yes"
 msgstr ""

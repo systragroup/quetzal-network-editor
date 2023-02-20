@@ -43,6 +43,7 @@ export const store = new Vuex.Store({
       state.rlinks.roadSpeed = Number(payload.roadSpeed)
       state.linksPopupContent = payload.linksPopupContent
       state.roadsPopupContent = payload.roadsPopupContent
+      state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
     },
     exportFiles (state, payload = 'all') {

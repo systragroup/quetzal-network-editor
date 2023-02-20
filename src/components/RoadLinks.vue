@@ -29,7 +29,6 @@ export default {
       renderedAnchorrNodes: {},
       bbox: null,
       minZoom: {
-        nodes: 14,
         links: 9,
         rendered: 14,
       },
@@ -87,21 +86,24 @@ export default {
       // note only line inside the bbox (buffured) are visible.
       const bounds = this.map.getBounds()
       // create a BBOX with a 800m buffer
-      this.bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.8)
+      this.bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.2)
       // only get the geojson if the zoom level is bigger than the min.
       // if not, getting all anchorpoint would be very intensive!!
       // this way, only a small number of anchor points are computed
       if (this.map.getZoom() > this.minZoom.rendered) {
-        this.renderedrLinks.features = this.rlinks.features.filter(link => booleanContains(this.bbox, link))
-      } else if (this.map.getZoom() > this.minZoom.links) {
-        this.renderedrLinks.features = this.rlinks.features
-      } else {
-        this.renderedrLinks.features = []
-      }
-      if (this.map.getZoom() > this.minZoom.nodes) {
+        // this.renderedrLinks.features = this.rlinks.features.filter(link => booleanContains(this.bbox, link))
         this.renderedrNodes.features = this.rnodes.features.filter(node => booleanContains(this.bbox, node))
         this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
+
+        const nodeSet = new Set(this.renderedrNodes.features.map(node => node.properties.index))
+        this.renderedrLinks.features = this.rlinks.features.filter(link => nodeSet.has(link.properties.a) | nodeSet.has(link.properties.b))
+      } else if (this.map.getZoom() > this.minZoom.links) {
+        // ion this case. nodes are unloaded. we display links.
+        this.renderedrLinks.features = this.rlinks.features
+        this.renderedrNodes.features = []
+        this.renderedAnchorrNodes.features = []
       } else {
+        this.renderedrLinks.features = []
         this.renderedrNodes.features = []
         this.renderedAnchorrNodes.features = []
       }
@@ -346,13 +348,15 @@ export default {
       layer-id="arrow-rlinks"
       :layer="{
         type: 'symbol',
-        minzoom: minZoom.nodes,
+        minzoom: minZoom.rendered,
         layout: {
           'symbol-placement': 'line',
           'symbol-spacing': 200,
           'icon-ignore-placement': true,
           'icon-image':'arrow',
-          'icon-size': 0.3,
+          'icon-size': ['case', ['has', 'oneway'],
+                        ['case',['to-boolean',['to-number',['get','oneway']]],0.3, 0],
+                        0.3],
           'icon-rotate': 90
         },
         paint: {
@@ -373,7 +377,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'circle',
-        minzoom: minZoom.nodes,
+        minzoom: minZoom.rendered,
         paint: {
           'circle-color': ['case', ['boolean', isEditorMode, false],'#9E9E9E', '#2C3E4E'],
           'circle-stroke-color': '#ffffff',
@@ -400,7 +404,7 @@ export default {
       :layer="{
         interactive: true,
         type: 'circle',
-        minzoom: minZoom.nodes,
+        minzoom: minZoom.rendered,
         paint: {
           'circle-color': '#ffffff',
           'circle-opacity':0.5,

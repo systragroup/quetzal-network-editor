@@ -8,8 +8,7 @@ import RoadLinks from './RoadLinks.vue'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
-
-const Settings = () => import('./Settings.vue')
+import Settings from './Settings.vue'
 
 // Filter links from selected line
 const $gettext = s => s
