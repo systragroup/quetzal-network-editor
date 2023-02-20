@@ -10,8 +10,6 @@ import router from './router'
 import Vuetify from 'vuetify'
 import VueApexCharts from 'vue-apexcharts'
 
-import VueLocalStorage from 'vue-localstorage'
-
 import 'promise-polyfill/src/polyfill'
 
 import fr from 'vuetify/es5/locale/fr'
@@ -68,8 +66,6 @@ Vue.use(GetTextPlugin, {
   translations,
   silent: true,
 })
-
-Vue.use(VueLocalStorage)
 
 Vue.config.productionTip = false
 Vue.config.devtools = false
@@ -135,12 +131,7 @@ Vue.mixin({
 })
 
 const app = new Vue({
-  localStorage: {
-    info: {
-      type: Object,
-      default: {},
-    },
-  },
+
   router,
   store,
   vuetify,

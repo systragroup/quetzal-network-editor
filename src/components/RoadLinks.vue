@@ -30,7 +30,8 @@ export default {
       bbox: null,
       minZoom: {
         nodes: 14,
-        links: 10,
+        links: 9,
+        rendered: 14,
       },
       contextMenu: {
         coordinates: [0, 0],
@@ -90,8 +91,10 @@ export default {
       // only get the geojson if the zoom level is bigger than the min.
       // if not, getting all anchorpoint would be very intensive!!
       // this way, only a small number of anchor points are computed
-      if (this.map.getZoom() > this.minZoom.links) {
+      if (this.map.getZoom() > this.minZoom.rendered) {
         this.renderedrLinks.features = this.rlinks.features.filter(link => booleanContains(this.bbox, link))
+      } else if (this.map.getZoom() > this.minZoom.links) {
+        this.renderedrLinks.features = this.rlinks.features
       } else {
         this.renderedrLinks.features = []
       }

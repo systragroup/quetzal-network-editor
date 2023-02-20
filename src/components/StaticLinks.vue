@@ -14,6 +14,7 @@ export default {
     return {
       visibleNodes: {},
       visibleLinks: {},
+      selectedFeatures: [],
 
     }
   },
@@ -38,23 +39,30 @@ export default {
         this.setHiddenFeatures()
       }
     },
+    isEditorMode (val) {
+      val ? this.map.off('dblclick', this.selectLine) : this.map.on('dblclick', this.selectLine)
+    },
   },
   created () {
     this.setHiddenFeatures()
+    this.map.on('dblclick', this.selectLine)
   },
 
   methods: {
+
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
+      this.selectedFeatures = event.mapboxEvent.features
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
       if (this.selectedPopupContent.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
         this.popup = new mapboxgl.Popup({ closeButton: false })
           .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-          .setHTML(event.mapboxEvent.features[0].properties[this.selectedPopupContent])
+          .setHTML(this.selectedFeatures[0].properties[this.selectedPopupContent])
           .addTo(event.map)
       }
     },
     leaveLink (event) {
+      this.selectedFeatures = []
       if (this.popup?.isOpen()) this.popup.remove()
       event.map.getCanvas().style.cursor = ''
     },
@@ -124,11 +132,27 @@ export default {
       }
       // const endTime = performance.now()
     },
-    selectLine (event) {
-      event.mapboxEvent.preventDefault() // prevent map control
-      // eslint-disable-next-line max-len
-      this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
-      this.$store.commit('changeNotification', { text: '', autoClose: true })
+    selectLine (e) {
+      e.preventDefault() // prevent map control
+      // if we are not hovering. select closest link (within 5 pixels)
+      if (this.selectedFeatures.length === 0) {
+        // Set `bbox` as 5px reactangle area around clicked point.
+        const bbox = [
+          [e.point.x - 5, e.point.y - 5],
+          [e.point.x + 5, e.point.y + 5],
+        ]
+        // Find features intersecting the bounding box.
+        this.selectedFeatures = this.map.queryRenderedFeatures(bbox, {
+          layers: ['links'],
+        })
+      }
+      // do nothing if nothing is clicked (clicking on map, not on a link)
+      if (this.selectedFeatures.length > 0) {
+        // set. the first one as editor mode
+        // eslint-disable-next-line max-len
+        this.$store.commit('setEditorTrip', { tripId: this.selectedFeatures[0].properties.trip_id, changeBounds: false })
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
     },
     editLineProperties (event) {
       // eslint-disable-next-line max-len
@@ -169,7 +193,7 @@ export default {
           'line-cap': 'round',
         }
       }"
-      v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine, contextmenu:editLineProperties }"
+      v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:editLineProperties }"
     />
 
     <MglGeojsonLayer

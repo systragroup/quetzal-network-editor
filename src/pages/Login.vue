@@ -49,7 +49,7 @@ export default {
       // Leave time for animation to end (.animate-login and .animate-layer css rules)
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})
-      }, 1000)
+      }, 300)
     },
 
     loadNetwork (links, nodes, type, zipName) {
