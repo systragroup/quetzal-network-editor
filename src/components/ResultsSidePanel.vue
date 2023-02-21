@@ -306,9 +306,8 @@ export default {
   background-color: $primary-dark;
   transition: 0.3s;
   position: absolute;
-  display:flex;
+  display: flex;
   z-index: 20;
-
 }
 .left-panel-close {
 transition:0.3s

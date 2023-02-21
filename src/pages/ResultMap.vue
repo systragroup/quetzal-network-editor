@@ -72,10 +72,16 @@ export default {
       :display-settings="displaySettings"
       @submit="applySettings"
     />
-    <MapLegend
-      :color-scale="colorScale"
-      :display-settings="displaySettings"
-    />
+    <div class="left-panel">
+      <div
+        :class="$store.getters.showLeftPanel ? 'legend-open elevation-4' : 'legend-close elevation-4'"
+      >
+        <MapLegend
+          :color-scale="colorScale"
+          :display-settings="displaySettings"
+        />
+      </div>
+    </div>
 
     <MapResults
       :links="visibleLinks"
@@ -91,20 +97,40 @@ export default {
   display: flex;
 
 }
-.legend {
-  left: 30%;
-  top:90%;
+.left-panel {
+  height: 100%;
+  position: absolute;
+
+}
+.legend-open {
+  left: 350px;
+  top: 80%;
   width: 160px;
   z-index: 3;
   display: flex;
   position: relative;
   align-items: center;
   justify-content: center;
+  transition: 0.3s;
   height: 50px;
   background-color: rgb(255, 255, 255);
   border: thin solid rgb(196, 196, 196);
-
 }
+.legend-close {
+  left: 50px;
+  top: 80%;
+  width: 160px;
+  z-index: 3;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  height: 50px;
+  background-color: rgb(255, 255, 255);
+  border: thin solid rgb(196, 196, 196);
+}
+
 .hist {
   position: relative;
   bottom: -10px;
