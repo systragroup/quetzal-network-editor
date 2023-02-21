@@ -17,7 +17,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['links', 'nodes', 'selectedTrips', 'selectedFeature'],
+  props: ['links', 'selectedTrips', 'selectedFeature'],
 
   data () {
     return {

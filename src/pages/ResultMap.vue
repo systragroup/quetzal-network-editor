@@ -3,9 +3,6 @@
 import ResultsSidePanel from '../components/ResultsSidePanel.vue'
 import MapResults from '../components/MapResults.vue'
 import ResultsSettings from '../components/ResultsSettings.vue'
-import chroma from 'chroma-js'
-import linksBase from '@static/links_base.geojson'
-
 import loadedLinks from '../../example/loaded_links.geojson'
 import loadedNodes from '../../example/loaded_nodes.geojson'
 export default {
@@ -25,12 +22,7 @@ export default {
         nodes: 14,
         links: 8,
       },
-      links: loadedLinks,
-      visibleLinks: linksBase,
-      nodes: loadedNodes,
-      tripId: [],
       selectedTrips: [],
-      filterChoices: [],
       showSettings: false,
       selectedFeature: 'volume',
       maxWidth: 10,
@@ -40,46 +32,34 @@ export default {
 
     }
   },
+  computed: {
+    links () { return this.$store.getters['results/links'] },
+    visibleLinks () { return this.$store.getters['results/visibleLinks'] },
+    tripId () { return this.$store.getters['results/tripId'] },
+    filterChoices () { return this.$store.getters['results/lineAttributes'] },
+  },
   watch: {
     selectedTrips (val) {
-      this.updateVisibles()
-      this.UpdateSelectedFeature()
+      this.$store.commit('results/changeSelectedTrips', val)
+      this.$store.commit('results/updateSelectedFeature', {
+        selectedFeature: this.selectedFeature,
+        maxWidth: this.maxWidth,
+        minWidth: this.minWidth,
+        numStep: this.numStep,
+        scale: this.scale,
+      })
     },
-
+  },
+  beforeCreate () {
+    this.$store.commit('results/loadLinks', loadedLinks)
+    this.$store.commit('results/loadNodes', loadedNodes)
   },
   created () {
-    this.tripId = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
-    this.selectedTrips = this.tripId
-    const header = new Set([])
-    this.links.features.forEach(element => { Object.keys(element.properties).forEach(key => header.add(key)) })
-    this.filterChoices = Array.from(header)
+    this.selectedTrips = structuredClone(this.$store.getters['results/selectedTrips'])
   },
 
   methods: {
-    UpdateSelectedFeature () {
-      console.log(this.visibleLinks.features[0])
-      const key = this.selectedFeature
-      const featureArr = this.visibleLinks.features.map(link => link.properties[key])
-      const maxVal = Math.max.apply(Math, featureArr)
-      const minVal = Math.min.apply(Math, featureArr)
 
-      this.visibleLinks.features.forEach(
-        // eslint-disable-next-line no-return-assign
-        link => link.properties.display_width =
-        ((this.maxWidth - this.minWidth) * ((link.properties[key] - minVal) / (maxVal - minVal))) + this.minWidth,
-      )
-      const colorScale = chroma.scale('OrRd').padding([0.2, 0])
-        .domain([this.minWidth, this.maxWidth], this.scale).classes(this.numStep)
-
-      this.visibleLinks.features.forEach(
-        // eslint-disable-next-line no-return-assign
-        link => link.properties.display_color = colorScale(link.properties.display_width).hex(),
-      )
-    },
-    updateVisibles () {
-      const tripSet = new Set(this.selectedTrips)
-      this.visibleLinks.features = this.links.features.filter(link => tripSet.has(link.properties.trip_id))
-    },
     changeSettings (payload) {
       this.selectedFeature = payload.selectedFeature
       this.maxWidth = Number(payload.maxWidth)
@@ -87,7 +67,13 @@ export default {
       this.numStep = Number(payload.numStep)
       this.scale = payload.scale
       this.showSettings = false
-      this.UpdateSelectedFeature()
+      this.$store.commit('results/updateSelectedFeature', {
+        selectedFeature: this.selectedFeature,
+        maxWidth: this.maxWidth,
+        minWidth: this.minWidth,
+        numStep: this.numStep,
+        scale: this.scale,
+      })
     },
   },
 }
@@ -140,7 +126,6 @@ export default {
     </v-menu>
     <MapResults
       :links="visibleLinks"
-      :nodes="nodes"
       :selected-trips="selectedTrips"
       :selected-feature="selectedFeature"
     />
