@@ -3,8 +3,12 @@ const $gettext = s => s
 
 export default {
   name: 'ResultsSettings',
-  props: ['selectedFeature', 'maxWidth', 'minWidth', 'numStep', 'scale'],
-  events: ['submit'],
+  model: {
+    prop: 'show',
+    event: 'update-show',
+  },
+  props: ['show', 'displaySettings'],
+  events: ['update-show', 'submit'],
 
   data () {
     return {
@@ -12,35 +16,36 @@ export default {
       parameters: [{
         name: $gettext('selectedFeature'),
         type: 'String',
-        value: this.selectedFeature,
+        choices: this.$store.getters['results/lineAttributes'],
+        value: this.displaySettings.selectedFeature,
         units: '',
         hint: $gettext('selectedFeature'),
       },
       {
         name: $gettext('maxWidth'),
         type: 'Number',
-        value: this.maxWidth,
+        value: this.displaySettings.maxWidth,
         units: 'cm?',
         hint: $gettext('maxWidth'),
       },
       {
         name: $gettext('minWidth'),
         type: 'Number',
-        value: this.minWidth,
+        value: this.displaySettings.minWidth,
         units: 'cm?',
         hint: $gettext('minWidth'),
       },
       {
         name: $gettext('numStep'),
         type: 'Number',
-        value: this.numStep,
+        value: this.displaySettings.numStep,
         units: 'int',
         hint: $gettext('numStep'),
       },
       {
         name: $gettext('scale'),
         type: 'String',
-        value: this.scale,
+        value: this.displaySettings.scale,
         units: '',
         hint: $gettext('scale'),
       },
@@ -54,22 +59,36 @@ export default {
         v => !!v || $gettext('Required'),
         v => v >= 0 || $gettext('should be larger than 0'),
       ],
-      showDialog: true,
+      showDialog: false,
     }
+  },
+  watch: {
+    showDialog (val) {
+      this.$emit('update-show', val)
+    },
+  },
+  created () {
+    this.showDialog = this.show
   },
 
   methods: {
+    reset () {
+      this.parameters[0].value = this.displaySettings.selectedFeature
+      this.parameters[1].value = this.displaySettings.maxWidth
+      this.parameters[2].value = this.displaySettings.minWidth
+      this.parameters[3].value = this.displaySettings.numStep
+      this.parameters[4].value = this.displaySettings.scale
+    },
     submit () {
       if (this.$refs.form.validate()) {
-        const payload = {
+        this.$emit('submit', {
           selectedFeature: this.parameters[0].value,
-          maxWidth: this.parameters[1].value,
-          minWidth: this.parameters[2].value,
-          numStep: this.parameters[3].value,
+          maxWidth: Number(this.parameters[1].value),
+          minWidth: Number(this.parameters[2].value),
+          numStep: Number(this.parameters[3].value),
           scale: this.parameters[4].value,
-        }
-
-        this.$emit('submit', payload)
+        })
+        this.showDialog = false
       } else {
         this.shake = true
         setTimeout(() => {
@@ -77,70 +96,110 @@ export default {
         }, 500)
       }
     },
-    cancel () { this.$emit('submit', false) },
+    cancel () {
+      this.showDialog = false
+      this.reset()
+    },
   },
 }
 </script>
-<template v-slot:append>
-  <v-card
-    :class="{'shake':shake}"
-    @keydown.enter="submit"
-    @keydown.esc="cancel"
+<template>
+  <v-menu
+    v-model="showDialog"
+    :close-on-content-click="false"
+    :close-on-click="false"
+    :origin="'top right'"
+    transition="scale-transition"
+    :position-y="30"
+    :nudge-width="200"
+    offset-x
+    offset-y
   >
-    <v-card-title class="subtitle">
-      {{ $gettext('Settings') }}
-    </v-card-title>
+    <template v-slot:activator="{ on, attrs }">
+      <div class="setting">
+        <v-btn
+          fab
+          small
+          v-bind="attrs"
+          v-on="on"
+        >
+          <v-icon
+            color="regular"
+          >
+            fa-solid fa-cog
+          </v-icon>
+        </v-btn>
+      </div>
+    </template>
+    <v-card
+      :class="{'shake':shake}"
+      @keydown.enter="submit"
+      @keydown.esc="cancel"
+    >
+      <v-card-title class="subtitle">
+        {{ $gettext('Settings') }}
+      </v-card-title>
 
-    <v-card-text>
-      <v-form
-        ref="form"
-        lazy-validation
-      >
-        <v-container>
-          <v-col>
-            <v-text-field
-              v-for="(item,key) in parameters"
-              :key="key"
-              v-model="item.value"
-              :type="item.type"
-              :label="$gettext(item.name)"
-              :suffix="item.units"
-              :hint="showHint? $gettext(item.hint): ''"
-              :persistent-hint="showHint"
-              required
-              @wheel="()=>{}"
-            />
-          </v-col>
-        </v-container>
-      </v-form>
-    </v-card-text>
-    <v-card-actions>
-      <v-btn
-        color="grey"
-        text
-        @click="cancel"
-      >
-        {{ $gettext("Cancel") }}
-      </v-btn>
+      <v-card-text>
+        <v-form
+          ref="form"
+          lazy-validation
+        >
+          <v-container>
+            <v-col>
+              <v-select
+                v-model="parameters[0].value"
+                :items="parameters[0].choices"
+                :label="$gettext(parameters[0].name)"
+                :hint="showHint? $gettext(parameters[0].hint): ''"
+                :persistent-hint="showHint"
+                required
+              />
+              <v-text-field
+                v-for="(item,key) in parameters.slice(1)"
+                :key="key"
+                v-model="item.value"
+                :type="item.type"
+                :disabled="item.name==='scale'"
+                :label="$gettext(item.name)"
+                :suffix="item.units"
+                :hint="showHint? $gettext(item.hint): ''"
+                :persistent-hint="showHint"
+                required
+                @wheel="()=>{}"
+              />
+            </v-col>
+          </v-container>
+        </v-form>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn
+          color="grey"
+          text
+          @click="cancel"
+        >
+          {{ $gettext("Cancel") }}
+        </v-btn>
 
-      <v-btn
-        color="green darken-1"
-        text
-        @click="submit"
-      >
-        {{ $gettext("Save") }}
-      </v-btn>
+        <v-btn
+          color="green darken-1"
+          text
+          @click="submit"
+        >
+          {{ $gettext("Save") }}
+        </v-btn>
 
-      <v-spacer />
-      <v-btn
-        icon
-        small
-        @click="showHint = !showHint"
-      >
-        <v-icon>far fa-question-circle small</v-icon>
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+        <v-spacer />
+        <v-btn
+          icon
+          small
+          @click="showHint = !showHint"
+        >
+          <v-icon>far fa-question-circle small</v-icon>
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-menu>
 </template>
 <style lang="scss" scoped>
 
@@ -150,6 +209,17 @@ export default {
   font-weight: bold;
   padding:1rem
 
+}
+
+.setting {
+  left: 98%;
+  width: 0px;
+  z-index: 2;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
 }
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;

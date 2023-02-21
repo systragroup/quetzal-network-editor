@@ -3,6 +3,7 @@
 import ResultsSidePanel from '../components/ResultsSidePanel.vue'
 import MapResults from '../components/MapResults.vue'
 import ResultsSettings from '../components/ResultsSettings.vue'
+import MapLegend from '../components/utils/MapLegend.vue'
 import loadedLinks from '../../example/loaded_links.geojson'
 import loadedNodes from '../../example/loaded_nodes.geojson'
 export default {
@@ -11,6 +12,7 @@ export default {
     ResultsSidePanel,
     MapResults,
     ResultsSettings,
+    MapLegend,
 
   },
 
@@ -24,11 +26,6 @@ export default {
       },
       selectedTrips: [],
       showSettings: false,
-      selectedFeature: 'volume',
-      maxWidth: 10,
-      minWidth: 1,
-      numStep: 10,
-      scale: 'equal', // 'log'
 
     }
   },
@@ -37,17 +34,13 @@ export default {
     visibleLinks () { return this.$store.getters['results/visibleLinks'] },
     tripId () { return this.$store.getters['results/tripId'] },
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
+    displaySettings () { return this.$store.getters['results/displaySettings'] },
+    colorScale () { return this.$store.getters['results/colorScale'] },
   },
   watch: {
     selectedTrips (val) {
       this.$store.commit('results/changeSelectedTrips', val)
-      this.$store.commit('results/updateSelectedFeature', {
-        selectedFeature: this.selectedFeature,
-        maxWidth: this.maxWidth,
-        minWidth: this.minWidth,
-        numStep: this.numStep,
-        scale: this.scale,
-      })
+      this.$store.commit('results/updateSelectedFeature')
     },
   },
   beforeCreate () {
@@ -59,21 +52,8 @@ export default {
   },
 
   methods: {
-
-    changeSettings (payload) {
-      this.selectedFeature = payload.selectedFeature
-      this.maxWidth = Number(payload.maxWidth)
-      this.minWidth = Number(payload.minWidth)
-      this.numStep = Number(payload.numStep)
-      this.scale = payload.scale
-      this.showSettings = false
-      this.$store.commit('results/updateSelectedFeature', {
-        selectedFeature: this.selectedFeature,
-        maxWidth: this.maxWidth,
-        minWidth: this.minWidth,
-        numStep: this.numStep,
-        scale: this.scale,
-      })
+    applySettings (payload) {
+      this.$store.commit('results/applySettings', payload)
     },
   },
 }
@@ -86,48 +66,21 @@ export default {
       :filter-choices="filterChoices"
       :trip-id="tripId"
     />
-    <v-menu
+
+    <ResultsSettings
       v-model="showSettings"
-      :close-on-content-click="false"
-      :close-on-click="false"
-      :origin="'top right'"
-      transition="scale-transition"
-      :position-y="30"
-      :nudge-width="200"
-      offset-x
-      offset-y
-    >
-      <template v-slot:activator="{ on, attrs }">
-        <div class="setting">
-          <v-btn
+      :display-settings="displaySettings"
+      @submit="applySettings"
+    />
+    <MapLegend
+      :color-scale="colorScale"
+      :display-settings="displaySettings"
+    />
 
-            fab
-            small
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon
-              color="regular"
-            >
-              fa-solid fa-cog
-            </v-icon>
-          </v-btn>
-        </div>
-      </template>
-      <ResultsSettings
-        :selected-feature="selectedFeature"
-        :max-width="maxWidth"
-        :min-width="minWidth"
-        :num-step="numStep"
-        :scale="scale"
-
-        @submit="changeSettings"
-      />
-    </v-menu>
     <MapResults
       :links="visibleLinks"
       :selected-trips="selectedTrips"
-      :selected-feature="selectedFeature"
+      :selected-feature="displaySettings.selectedFeature"
     />
   </section>
 </template>
@@ -138,15 +91,28 @@ export default {
   display: flex;
 
 }
-
-.setting {
-  left: 98%;
-  width: 0px;
-  z-index: 2;
+.legend {
+  left: 30%;
+  top:90%;
+  width: 160px;
+  z-index: 3;
   display: flex;
   position: relative;
   align-items: center;
   justify-content: center;
   height: 50px;
+  background-color: rgb(255, 255, 255);
+  border: thin solid rgb(196, 196, 196);
+
 }
+.hist {
+  position: relative;
+  bottom: -10px;
+  flex-grow: 1;
+  height: 20px;
+  background-color: rgba(231, 17, 17);
+  text-align: center;
+  width:10px;
+}
+
 </style>

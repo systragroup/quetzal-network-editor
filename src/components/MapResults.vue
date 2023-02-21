@@ -1,7 +1,6 @@
 <script>
 
-import Mapbox from 'mapbox-gl'
-
+import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
@@ -23,6 +22,7 @@ export default {
     return {
       mapIsLoaded: false,
       mapboxPublicKey: null,
+      selectedLinks: [],
       minZoom: {
         nodes: 14,
         links: 8,
@@ -41,7 +41,7 @@ export default {
 
   methods: {
     onMapLoaded (event) {
-      const bounds = new Mapbox.LngLatBounds()
+      const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
 
       this.links.features.forEach(link => {
@@ -67,6 +67,23 @@ export default {
       event.map.dragRotate.disable()
       this.mapIsLoaded = true
     },
+    enterLink (event) {
+      event.map.getCanvas().style.cursor = 'pointer'
+      this.selectedLinks = event.mapboxEvent.features
+      if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
+      if (this.selectedFeature.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+        const val = this.selectedLinks[0].properties[this.selectedFeature]
+        this.popup = new mapboxgl.Popup({ closeButton: false })
+          .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+          .setHTML(`${this.selectedFeature}: <br> ${val}`)
+          .addTo(event.map)
+      }
+    },
+    leaveLink (event) {
+      this.selectedLinks = []
+      if (this.popup?.isOpen()) this.popup.remove()
+      event.map.getCanvas().style.cursor = ''
+    },
 
   },
 }
@@ -78,7 +95,6 @@ export default {
     map-style="mapbox://styles/mapbox/light-v9?optimize=true"
     @load="onMapLoaded"
   >
-    <slot />
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
 
@@ -109,6 +125,8 @@ export default {
         }
 
       }"
+      @mouseenter="enterLink"
+      @mouseleave="leaveLink"
     />
 
     <MglImageLayer
