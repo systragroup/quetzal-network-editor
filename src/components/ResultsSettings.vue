@@ -144,44 +144,12 @@ export default {
 </template>
 <style lang="scss" scoped>
 
-.layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
-  display: flex;
-  flex-flow: row;
-  justify-content: center;
-  align-items: center;
-}
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
-}
-.card {
-  width: 500px;
-  overflow-y: auto;
-  padding: 40px;
-}
-.title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 3.5em;
-  color: $primary !important;
-  font-weight: bold;
-}
 .subtitle {
   font-size: 2em;
   color: $secondary !important;
   font-weight: bold;
   padding:1rem
 
-}
-.card button {
-  margin-top: 40px;
 }
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;

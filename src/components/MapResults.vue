@@ -17,7 +17,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['visibleLinks', 'nodes', 'selectedTrips', 'selectedFeature'],
+  props: ['links', 'nodes', 'selectedTrips', 'selectedFeature'],
 
   data () {
     return {
@@ -44,7 +44,7 @@ export default {
       const bounds = new Mapbox.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
 
-      this.visibleLinks.features.forEach(link => {
+      this.links.features.forEach(link => {
         bounds.extend([link.geometry.coordinates[0],
           link.geometry.coordinates[link.geometry.coordinates.length - 1]])
       })
@@ -86,7 +86,7 @@ export default {
       source-id="links"
       :source="{
         type: 'geojson',
-        data: visibleLinks,
+        data: links,
         buffer: 0,
         promoteId: 'index',
       }"

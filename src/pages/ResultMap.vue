@@ -57,6 +57,7 @@ export default {
 
   methods: {
     UpdateSelectedFeature () {
+      console.log(this.visibleLinks.features[0])
       const key = this.selectedFeature
       const featureArr = this.visibleLinks.features.map(link => link.properties[key])
       const maxVal = Math.max.apply(Math, featureArr)
@@ -81,9 +82,9 @@ export default {
     },
     changeSettings (payload) {
       this.selectedFeature = payload.selectedFeature
-      this.maxWidth = payload.maxWidth
-      this.minWidth = payload.minWidth
-      this.numStep = payload.numStep
+      this.maxWidth = Number(payload.maxWidth)
+      this.minWidth = Number(payload.minWidth)
+      this.numStep = Number(payload.numStep)
       this.scale = payload.scale
       this.showSettings = false
       this.UpdateSelectedFeature()
@@ -99,26 +100,21 @@ export default {
       :filter-choices="filterChoices"
       :trip-id="tripId"
     />
-    <MapResults
-      :visible-links="visibleLinks"
-      :nodes="nodes"
-      :selected-trips="selectedTrips"
-      :selected-feature="selectedFeature"
+    <v-menu
+      v-model="showSettings"
+      :close-on-content-click="false"
+      :close-on-click="false"
+      :origin="'top right'"
+      transition="scale-transition"
+      :position-y="30"
+      :nudge-width="200"
+      offset-x
+      offset-y
     >
-      <v-menu
-        v-model="showSettings"
-        :close-on-content-click="false"
-        :close-on-click="false"
-        :origin="'top right'"
-        transition="scale-transition"
-        :position-y="30"
-        :nudge-width="200"
-        offset-x
-        offset-y
-      >
-        <template v-slot:activator="{ on, attrs }">
+      <template v-slot:activator="{ on, attrs }">
+        <div class="setting">
           <v-btn
-            class="setting"
+
             fab
             small
             v-bind="attrs"
@@ -130,18 +126,24 @@ export default {
               fa-solid fa-cog
             </v-icon>
           </v-btn>
-        </template>
-        <ResultsSettings
-          :selected-feature="selectedFeature"
-          :max-width="maxWidth"
-          :min-width="minWidth"
-          :num-step="numStep"
-          :scale="scale"
+        </div>
+      </template>
+      <ResultsSettings
+        :selected-feature="selectedFeature"
+        :max-width="maxWidth"
+        :min-width="minWidth"
+        :num-step="numStep"
+        :scale="scale"
 
-          @submit="changeSettings"
-        />
-      </v-menu>
-    </MapResults>
+        @submit="changeSettings"
+      />
+    </v-menu>
+    <MapResults
+      :links="visibleLinks"
+      :nodes="nodes"
+      :selected-trips="selectedTrips"
+      :selected-feature="selectedFeature"
+    />
   </section>
 </template>
 <style lang="scss" scoped>
@@ -153,8 +155,13 @@ export default {
 }
 
 .setting {
-  position: absolute;
-  top: 10px;
-  right: 20px;
+  left: 98%;
+  width: 0px;
+  z-index: 2;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
 }
 </style>
