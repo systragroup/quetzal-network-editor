@@ -2,8 +2,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@page/Login.vue'
 import { store } from '../store/index.js'
-const Home = () => import('@page/Home.vue')
-const DataFrame = () => import('@page/DataFrame.vue')
+import Home from '@page/Home.vue'
+import DataFrame from '@page/DataFrame.vue'
 
 Vue.use(Router)
 

@@ -6,11 +6,9 @@ import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
 import Settings from './Settings.vue'
-
-const StaticLinks = () => import('./StaticLinks.vue')
-const EditorLinks = () => import('./EditorLinks.vue')
-const RoadLinks = () => import('./RoadLinks.vue')
-
+import StaticLinks from './StaticLinks.vue'
+import EditorLinks from './EditorLinks.vue'
+import RoadLinks from './RoadLinks.vue'
 
 // Filter links from selected line
 const $gettext = s => s
@@ -371,7 +369,7 @@ export default {
 
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
-    <template v-if="mapIsLoaded && !$store.getters.rlinksIsEmpty">
+    <template v-if="mapIsLoaded">
       <RoadLinks
         ref="roadref"
         :map="map"
@@ -381,8 +379,7 @@ export default {
         v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
-    <!-- for lazy-load. only load if there is road links -->
-    <template v-if="mapIsLoaded && !$store.getters.linksIsEmpty">
+    <template v-if="mapIsLoaded">
       <StaticLinks
         :map="map"
         :showed-trips="selectedTrips"
@@ -390,8 +387,7 @@ export default {
         @rightClick="(e) => $emit('clickFeature',e)"
       />
     </template>
-    <!-- for lazy-load. only load if there is links. or if we activate editor mode (create new link) -->
-    <template v-if="mapIsLoaded && (!$store.getters.linksIsEmpty || isEditorMode)">
+    <template v-if="mapIsLoaded">
       <EditorLinks
         :map="map"
         :anchor-mode="anchorMode"
