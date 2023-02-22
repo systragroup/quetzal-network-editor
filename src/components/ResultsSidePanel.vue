@@ -28,6 +28,7 @@ export default {
   },
   computed: {
     showLeftPanel () { return this.$store.getters.showLeftPanel },
+    windowHeight () { return this.$store.getters.windowHeight - 200 },
     arrayUniqueTripId () {
       // drop duplicates links trips. each line is a trip here.
       const arrayUniqueByKey = [...new Map(this.links.features.map(item =>
@@ -121,16 +122,13 @@ export default {
   },
 
   created () {
-    this.height = (window.innerHeight - 80) - 20 * 3 - 60
     this.tripList = this.selectedTrips
     this.selectedFilter = 'route_type'
     this.vmodelSelectedFilter = this.selectedFilter
   },
 
   methods: {
-    onResize () {
-      this.height = this.$refs.leftPanel.clientHeight - 250
-    },
+
     showAll () {
       if (this.tripList === this.tripId) {
         this.tripList = []
@@ -170,9 +168,6 @@ export default {
     <transition name="fade">
       <div
         v-show="showLeftPanelContent"
-        id="left-panel"
-        ref="leftPanel"
-        v-resize="onResize"
         class="left-panel-content"
       >
         <div>
@@ -206,7 +201,7 @@ export default {
             <v-card
               max-width="100%"
               min-width="100%"
-              :height="height"
+              :height="windowHeight"
               class="mx-auto scrollable"
             >
               <v-list-item>
