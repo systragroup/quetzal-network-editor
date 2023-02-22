@@ -40,6 +40,10 @@ export default {
       this.snackbar = false
       this.$store.notification = {}
     },
+    onResize () {
+      // -50 for the ToolBar
+      this.$store.commit('changeWindowHeight', this.$refs.container.clientHeight - 50)
+    },
   },
 }
 </script>
@@ -47,6 +51,8 @@ export default {
   <v-app class="app">
     <NavigationDrawer />
     <div
+      ref="container"
+      v-resize="onResize"
       class="container"
     >
       <Toolbar />

@@ -17,6 +17,7 @@ export const store = new Vuex.Store({
     loading: false,
     anchorMode: false,
     showLeftPanel: true,
+    windowHeight: 0,
     linksPopupContent: 'trip_id',
     roadsPopupContent: 'highway',
     outputName: 'output',
@@ -28,6 +29,9 @@ export const store = new Vuex.Store({
     },
     changeLoading (state, payload) {
       state.loading = payload
+    },
+    changeWindowHeight (state, payload) {
+      state.windowHeight = payload
     },
     changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
@@ -109,6 +113,7 @@ export const store = new Vuex.Store({
 
     notification: (state) => state.notification,
     loading: (state) => state.loading,
+    windowHeight: (state) => state.windowHeight,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
     linksPopupContent: (state) => state.linksPopupContent,

@@ -13,13 +13,13 @@ export default {
   data () {
     return {
       showLeftPanelContent: true,
-      height: null,
       tab: 0,
       roadMode: false,
     }
   },
   computed: {
     showLeftPanel () { return this.$store.getters.showLeftPanel },
+    windowHeight () { return this.$store.getters.windowHeight - 200 },
   },
 
   watch: {
@@ -41,16 +41,6 @@ export default {
         this.roadMode = false
       }
       this.$emit('isRoadMode', this.roadMode)
-    },
-  },
-
-  created () {
-    this.height = (window.innerHeight - 80) - 20 * 3 - 60
-  },
-
-  methods: {
-    onResize () {
-      this.height = this.$refs.leftPanel.clientHeight - 250
     },
   },
 
@@ -77,7 +67,6 @@ export default {
         v-show="showLeftPanelContent"
         id="left-panel"
         ref="leftPanel"
-        v-resize="onResize"
         class="left-panel-content"
       >
         <div>
@@ -93,7 +82,7 @@ export default {
             </v-tabs>
             <LinksSidePanel
               v-show="!roadMode"
-              :height="height"
+              :height="windowHeight"
               :selected-trips="selectedTrips"
               @update-tripList="(e) => $emit('update-tripList', {type: 'links', data: e})"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
@@ -104,7 +93,7 @@ export default {
             />
             <RoadSidePanel
               v-show="roadMode"
-              :height="height"
+              :height="windowHeight"
               :selectedr-goup="selectedrGroup"
               @update-tripList="(e) => $emit('update-tripList',{type: 'rlinks', data: e})"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
