@@ -26,11 +26,11 @@ export default {
       },
       selectedTrips: [],
       showSettings: false,
-      height: 0,
 
     }
   },
   computed: {
+    windowHeight () { return this.$store.getters.windowHeight - 100 },
     links () { return this.$store.getters['results/links'] },
     visibleLinks () { return this.$store.getters['results/visibleLinks'] },
     tripId () { return this.$store.getters['results/tripId'] },
@@ -49,15 +49,10 @@ export default {
     this.$store.commit('results/loadNodes', loadedNodes)
   },
   created () {
-    this.height = (window.innerHeight - 80) - 20 * 3 - 60
     this.selectedTrips = structuredClone(this.$store.getters['results/selectedTrips'])
-    console.log(this.height)
   },
 
   methods: {
-    onResize () {
-      this.height = this.$refs.leftPanel.clientHeight - 150
-    },
     applySettings (payload) {
       this.$store.commit('results/applySettings', payload)
     },
@@ -78,15 +73,10 @@ export default {
       :display-settings="displaySettings"
       @submit="applySettings"
     />
-    <div
-      id="left-panel"
-      ref="leftPanel"
-      v-resize="onResize"
-      class="left-panel"
-    >
+    <div class="left-panel">
       <div
         :class="$store.getters.showLeftPanel ? 'legend-open elevation-4' : 'legend-close elevation-4'"
-        :style="{'top':`${height}px`}"
+        :style="{'top':`${windowHeight}px`}"
       >
         <MapLegend
           :color-scale="colorScale"
