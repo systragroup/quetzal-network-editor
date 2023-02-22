@@ -24,7 +24,7 @@ export default {
         nodes: 14,
         links: 8,
       },
-      selectedTrips: [],
+      selectedGroup: [],
       showSettings: false,
 
     }
@@ -33,23 +33,24 @@ export default {
     windowHeight () { return this.$store.getters.windowHeight - 100 },
     links () { return this.$store.getters['results/links'] },
     visibleLinks () { return this.$store.getters['results/visibleLinks'] },
-    tripId () { return this.$store.getters['results/tripId'] },
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
+    filteredCategory () { return this.$store.getters['results/filteredCategory'] },
     displaySettings () { return this.$store.getters['results/displaySettings'] },
     colorScale () { return this.$store.getters['results/colorScale'] },
   },
   watch: {
-    selectedTrips (val) {
-      this.$store.commit('results/changeSelectedTrips', val)
-      this.$store.commit('results/updateSelectedFeature')
-    },
+    selectedGroup (val) { console.log(val) },
+    // selectedTrips (val) {
+    //  this.$store.commit('results/changeSelectedTrips', val)
+    //  this.$store.commit('results/updateSelectedFeature')
+    // },
   },
   beforeCreate () {
     this.$store.commit('results/loadLinks', loadedLinks)
     this.$store.commit('results/loadNodes', loadedNodes)
   },
   created () {
-    this.selectedTrips = structuredClone(this.$store.getters['results/selectedTrips'])
+    this.selectedGroup = structuredClone(this.$store.getters['results/selectedGroup'])
   },
 
   methods: {
@@ -62,10 +63,9 @@ export default {
 <template>
   <section class="map-view">
     <ResultsSidePanel
-      v-model="selectedTrips"
-      :links="links"
+      v-model="selectedGroup"
       :filter-choices="filterChoices"
-      :trip-id="tripId"
+      :filtered-cat="filteredCategory"
     />
 
     <ResultsSettings
@@ -87,7 +87,6 @@ export default {
 
     <MapResults
       :links="visibleLinks"
-      :selected-trips="selectedTrips"
       :selected-feature="displaySettings.selectedFeature"
     />
   </section>

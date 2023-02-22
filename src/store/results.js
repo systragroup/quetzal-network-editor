@@ -11,9 +11,12 @@ export default {
     nodes: {},
     linksHeader: {},
     nodesHeader: {},
-    tripId: [],
-    selectedTrips: [],
+    filteredCategory: [],
     lineAttributes: [],
+    selectedGroup: {
+      selectedFilter: '',
+      selectedCategory: [],
+    },
     displaySettings: {
       selectedFeature: 'volume',
       maxWidth: 10,
@@ -37,10 +40,12 @@ export default {
         // limit geometry precision to 6 digit
         state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-        this.commit('results/getTripId')
+
         // set all trips visible
-        this.commit('results/changeSelectedTrips', state.tripId)
+        // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('results/getLinksProperties')
+        this.commit('results/getFilteredCategory')
+        state.selectedGroup.selectedCategory = state.filteredCategory
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     loadNodes (state, payload) {
@@ -56,9 +61,6 @@ export default {
         // this.commit('getNodesProperties')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
-    getTripId (state) {
-      state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
-    },
     changeSelectedTrips (state, payload) {
       // trips list of visible trip_id.
       state.selectedTrips = payload
@@ -71,6 +73,11 @@ export default {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       state.lineAttributes = Array.from(header)
+      if (header.has('route_type')) {
+        state.selectedGroup.selectedFilter = 'trip_id'
+      } else {
+        state.selectedGroup.selectedFilter = header[0]
+      }
     },
     applySettings (state, payload) {
       state.displaySettings.selectedFeature = payload.selectedFeature
@@ -80,8 +87,13 @@ export default {
       state.displaySettings.scale = payload.scale
       this.commit('results/updateSelectedFeature')
     },
-    getColorScale (state) {
 
+    getFilteredCategory (state) {
+      // for a given filter (key) get array of unique value
+      // e.g. get ['bus','subway'] for route_type
+      const val = Array.from(new Set(state.links.features.map(
+        item => item.properties[state.selectedGroup.selectedFilter])))
+      state.filteredCategory = val
     },
 
     updateSelectedFeature (state) {
@@ -123,9 +135,10 @@ export default {
     nodes: (state) => state.nodes,
     linksHeader: (state) => state.linksHeader,
     nodesHeader: (state) => state.nodesHeader,
-    tripId: (state) => state.tripId,
+    filteredCategory: (state) => state.filteredCategory,
     selectedTrips: (state) => state.selectedTrips,
     lineAttributes: (state) => state.lineAttributes,
+    selectedGroup: (state) => state.selectedGroup,
     displaySettings: (state) => state.displaySettings,
     selectedFeature: (state) => state.displaySettings.selectedFeature,
     maxWidth: (state) => state.displaySettings.maxWidth,
