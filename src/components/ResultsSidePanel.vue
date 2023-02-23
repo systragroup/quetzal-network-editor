@@ -40,7 +40,7 @@ export default {
         this.showLeftPanelContent = false
       }
     },
-    selectedCat (val, old) {
+    selectedCat (val) {
       this.$emit('update-selectedCategory', val)
     },
     selectedFilter (val) {

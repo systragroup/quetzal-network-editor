@@ -1,4 +1,5 @@
 <script>
+import chroma from 'chroma-js'
 const $gettext = s => s
 
 export default {
@@ -51,7 +52,7 @@ export default {
       {
         name: $gettext('color map'),
         type: 'String',
-        choices: ['RdYlBu', 'OrRd', 'Spectral', 'YlGnBu'],
+        choices: Object.keys(chroma.brewer).slice(0, 36),
         value: this.displaySettings.cmap,
         units: '',
         hint: $gettext('cmap to use'),
@@ -79,6 +80,15 @@ export default {
   },
 
   methods: {
+    getColor (scale) {
+      const arr = []
+      const colorScale = chroma.scale(scale).padding([0.2, 0])
+        .domain([0, 100]).classes(25)
+      for (let i = 0; i < 100; i++) {
+        arr.push(colorScale(i).hex())
+      }
+      return arr
+    },
     reset () {
       this.parameters[0].value = this.displaySettings.selectedFeature
       this.parameters[1].value = this.displaySettings.maxWidth
@@ -185,7 +195,19 @@ export default {
                 :hint="showHint? $gettext(parameters[5].hint): ''"
                 :persistent-hint="showHint"
                 required
-              />
+              >
+                <template v-slot:item="{item}">
+                  <div class="gradient">
+                    <span
+                      v-for="(color,key) in getColor(item)"
+                      :key="key"
+                      class="grad-step"
+                      :style="{'backgroundColor':color}"
+                    />
+                    <span class="domain-title">{{ item }}</span>
+                  </div>
+                </template>
+              </v-select>
             </v-col>
           </v-container>
         </v-form>
@@ -220,6 +242,31 @@ export default {
   </v-menu>
 </template>
 <style lang="scss" scoped>
+
+.gradient {
+    width: 60%;
+    white-space: nowrap;
+    position: relative;
+    display: inline-block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+}
+
+.gradient .domain-title {
+    position: absolute;
+    padding-left:0.5rem;
+    padding-top:0.5rem;
+    text-align: center;
+    font-size: 16px;
+
+}
+
+.grad-step {
+    display: inline-block;
+    height: 40px;
+    width: 1%;
+}
 
 .subtitle {
   font-size: 2em;
