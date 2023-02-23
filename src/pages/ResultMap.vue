@@ -24,7 +24,7 @@ export default {
         nodes: 14,
         links: 8,
       },
-      selectedGroup: [],
+      selectedGroup: structuredClone(this.$store.getters['results/selectedGroup']),
       showSettings: false,
 
     }
@@ -34,23 +34,28 @@ export default {
     links () { return this.$store.getters['results/links'] },
     visibleLinks () { return this.$store.getters['results/visibleLinks'] },
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
-    filteredCategory () { return this.$store.getters['results/filteredCategory'] },
     displaySettings () { return this.$store.getters['results/displaySettings'] },
     colorScale () { return this.$store.getters['results/colorScale'] },
+    filteredCategory () {
+      // for a given filter (key) get array of unique value
+      // e.g. get ['bus','subway'] for route_type
+      const val = Array.from(new Set(this.links.features.map(
+        item => item.properties[this.selectedGroup.selectedFilter])))
+      return val
+    },
   },
   watch: {
-    selectedGroup (val) { console.log(val) },
-    // selectedTrips (val) {
-    //  this.$store.commit('results/changeSelectedTrips', val)
-    //  this.$store.commit('results/updateSelectedFeature')
-    // },
+    selectedGroup (val) {
+      this.$store.commit('results/changeSelectedGroup', val)
+      this.$store.commit('results/updateSelectedFeature')
+    },
+
   },
   beforeCreate () {
     this.$store.commit('results/loadLinks', loadedLinks)
     this.$store.commit('results/loadNodes', loadedNodes)
   },
   created () {
-    this.selectedGroup = structuredClone(this.$store.getters['results/selectedGroup'])
   },
 
   methods: {

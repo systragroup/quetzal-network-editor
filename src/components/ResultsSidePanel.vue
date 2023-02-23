@@ -1,5 +1,4 @@
 <script>
-const $gettext = s => s
 
 export default {
   name: 'SidePanel',
@@ -43,34 +42,29 @@ export default {
     selectedCat (val) {
       this.$emit('update-selectedGroup', { selectedCategory: val, selectedFilter: this.selectedFilter })
     },
-    selectedFilter (val) {
-      this.$emit('update-selectedGroup', { selectedCategory: this.selectedCat, selectedFilter: val })
+    selectedFilter (newVal, oldVal) {
+      if (oldVal) { // when created, we dont want to emit
+        this.$emit('update-selectedGroup', { selectedCategory: [], selectedFilter: newVal })
+      }
     },
   },
 
   created () {
     this.selectedCat = this.selectedGroup.selectedCategory
     this.selectedFilter = this.selectedGroup.selectedFilter
+    this.selectedCat = this.filteredCat
   },
 
   methods: {
 
     showAll () {
-      if (this.tripList === this.tripId) {
-        this.tripList = []
+      if (this.selectedCat.length === this.filteredCat.length) {
+        this.selectedCat = []
       } else {
-        this.tripList = this.tripId
+        this.selectedCat = this.filteredCat
       }
     },
-    showGroup (val) {
-      // at least one value is selected in the group : uncheck all
-      if (val.some(value => this.tripList.includes(value))) {
-        this.tripList = this.tripList.filter(trip => !val.includes(trip))
-      // none are selected : select All.
-      } else {
-        this.tripList = Array.from(new Set([...this.tripList, ...val]))
-      }
-    },
+
   },
 
 }

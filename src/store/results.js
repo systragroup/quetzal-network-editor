@@ -11,7 +11,6 @@ export default {
     nodes: {},
     linksHeader: {},
     nodesHeader: {},
-    filteredCategory: [],
     lineAttributes: [],
     selectedGroup: {
       selectedFilter: '',
@@ -44,8 +43,6 @@ export default {
         // set all trips visible
         // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('results/getLinksProperties')
-        this.commit('results/getFilteredCategory')
-        state.selectedGroup.selectedCategory = state.filteredCategory
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     loadNodes (state, payload) {
@@ -61,11 +58,10 @@ export default {
         // this.commit('getNodesProperties')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
-    changeSelectedTrips (state, payload) {
+    changeSelectedGroup (state, payload) {
       // trips list of visible trip_id.
-      state.selectedTrips = payload
-      const tripSet = new Set(state.selectedTrips)
-      state.visibleLinks.features = state.links.features.filter(link => tripSet.has(link.properties.trip_id))
+      state.selectedGroup = payload
+      this.commit('results/refreshVisibleLinks')
     },
     getLinksProperties (state) {
       const header = new Set([])
@@ -73,11 +69,15 @@ export default {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       state.lineAttributes = Array.from(header)
-      if (header.has('route_type')) {
-        state.selectedGroup.selectedFilter = 'trip_id'
-      } else {
-        state.selectedGroup.selectedFilter = header[0]
-      }
+      const selectedFilter = header.has('route_type') ? 'route_type' : header[0]
+
+      const val = Array.from(new Set(state.links.features.map(
+        item => item.properties[selectedFilter])))
+
+      this.commit('results/changeSelectedGroup', {
+        selectedFilter: selectedFilter,
+        selectedCategory: val,
+      })
     },
     applySettings (state, payload) {
       state.displaySettings.selectedFeature = payload.selectedFeature
@@ -86,14 +86,7 @@ export default {
       state.displaySettings.numStep = payload.numStep
       state.displaySettings.scale = payload.scale
       this.commit('results/updateSelectedFeature')
-    },
-
-    getFilteredCategory (state) {
-      // for a given filter (key) get array of unique value
-      // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(state.links.features.map(
-        item => item.properties[state.selectedGroup.selectedFilter])))
-      state.filteredCategory = val
+      this.commit('results/refreshVisibleLinks')
     },
 
     updateSelectedFeature (state) {
@@ -121,11 +114,11 @@ export default {
         // eslint-disable-next-line no-return-assign
         link => link.properties.display_color = colorScale(link.properties.display_width).hex(),
       )
-      this.commit('results/refreshVisibleLinks')
     },
     refreshVisibleLinks (state) {
-      const tripSet = new Set(state.selectedTrips)
-      state.visibleLinks.features = state.links.features.filter(link => tripSet.has(link.properties.trip_id))
+      const group = new Set(state.selectedGroup.selectedCategory)
+      const cat = state.selectedGroup.selectedFilter
+      state.visibleLinks.features = state.links.features.filter(link => group.has(link.properties[cat]))
     },
   },
 
@@ -135,7 +128,6 @@ export default {
     nodes: (state) => state.nodes,
     linksHeader: (state) => state.linksHeader,
     nodesHeader: (state) => state.nodesHeader,
-    filteredCategory: (state) => state.filteredCategory,
     selectedTrips: (state) => state.selectedTrips,
     lineAttributes: (state) => state.lineAttributes,
     selectedGroup: (state) => state.selectedGroup,
