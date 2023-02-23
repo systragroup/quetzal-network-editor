@@ -257,8 +257,12 @@ export default {
           const file = files[i]
           if (Object.keys(file).includes('links') && Object.keys(file).includes('nodes')) {
             this.loadNetwork(file.links, file.nodes, 'PT', file.zipName)
-          } if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
+          }
+          if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
             this.loadNetwork(file.road_links, file.road_nodes, 'road', file.zipName)
+          }
+          if (Object.keys(file).includes('loaded_links') && Object.keys(file).includes('loaded_nodes')) {
+            this.loadNetwork(file.loaded_links, file.loaded_nodes, 'loaded', file.zipName)
           }
         }
 

@@ -23,9 +23,9 @@ export default {
         nodes: 14,
         links: 8,
       },
-      selectedGroup: structuredClone(this.$store.getters['results/selectedGroup']),
       showSettings: false,
       selectedLayer: 'links',
+      selectedCategory: [],
 
     }
   },
@@ -36,18 +36,19 @@ export default {
     visibleLinks () { return this.$store.getters['results/visibleLinks'] },
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
     displaySettings () { return this.$store.getters['results/displaySettings'] },
+    selectedFilter () { return this.$store.getters['results/selectedFilter'] },
     colorScale () { return this.$store.getters['results/colorScale'] },
     filteredCategory () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
       const val = Array.from(new Set(this.links.features.map(
-        item => item.properties[this.selectedGroup.selectedFilter])))
+        item => item.properties[this.selectedFilter])))
       return val
     },
   },
   watch: {
-    selectedGroup (val) {
-      this.$store.commit('results/changeSelectedGroup', val)
+    selectedCategory (val) {
+      this.$store.commit('results/changeSelectedCategory', val)
       this.$store.commit('results/updateSelectedFeature')
     },
 
@@ -59,6 +60,10 @@ export default {
   methods: {
     applySettings (payload) {
       this.$store.commit('results/applySettings', payload)
+    },
+    updateSelectedFilter (val) {
+      this.$store.commit('results/changeSelectedFilter', val)
+      this.$store.commit('results/updateSelectedFeature')
     },
     changeLayer (layer) {
       this.selectedLayer = layer
@@ -73,18 +78,23 @@ export default {
           this.$store.commit('results/loadLinks', this.$store.getters['llinks/links'])
           break
       }
+      // this.selectedFilter = this.$store.getters['results/selectedFilter']
+      this.selectedCategory = this.$store.getters['results/selectedCategory']
     },
+
   },
 }
 </script>
 <template>
   <section class="map-view">
     <ResultsSidePanel
-      v-model="selectedGroup"
+      v-model="selectedCategory"
+      :selected-filter="selectedFilter"
       :layer-choices="availableLayers"
       :selected-layer="selectedLayer"
       :filter-choices="filterChoices"
       :filtered-cat="filteredCategory"
+      @update-selectedFilter="updateSelectedFilter"
       @select-layer="changeLayer"
     />
 

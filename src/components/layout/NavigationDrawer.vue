@@ -78,7 +78,7 @@ export default {
           :key="key"
           class="drawer-list-item"
           :class="[ $route.name === item.name ? 'drawer-list-item-selected' : '']"
-          :style="{marginTop: item.name === 'Export' ? 'auto' : '0'}"
+          :style="{marginTop: item.name === 'Export' ? 'auto' : item.name ==='ResultMap'? '5rem' : '0' }"
           @click.native.stop
           @click="handleClickMenuItem(item)"
         >

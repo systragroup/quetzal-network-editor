@@ -16,7 +16,6 @@ export default {
       parameters: [{
         name: $gettext('selectedFeature'),
         type: 'String',
-        choices: this.featureChoices,
         value: this.displaySettings.selectedFeature,
         units: '',
         hint: $gettext('selectedFeature'),
@@ -25,14 +24,14 @@ export default {
         name: $gettext('maxWidth'),
         type: 'Number',
         value: this.displaySettings.maxWidth,
-        units: 'cm?',
+        units: 'a.u.',
         hint: $gettext('maxWidth'),
       },
       {
         name: $gettext('minWidth'),
         type: 'Number',
         value: this.displaySettings.minWidth,
-        units: 'cm?',
+        units: 'a.u.',
         hint: $gettext('minWidth'),
       },
       {
@@ -48,6 +47,14 @@ export default {
         value: this.displaySettings.scale,
         units: '',
         hint: $gettext('scale'),
+      },
+      {
+        name: $gettext('color map'),
+        type: 'String',
+        choices: ['RdYlBu', 'OrRd', 'Spectral', 'YlGnBu'],
+        value: this.displaySettings.cmap,
+        units: '',
+        hint: $gettext('cmap to use'),
       },
 
       ],
@@ -74,11 +81,11 @@ export default {
   methods: {
     reset () {
       this.parameters[0].value = this.displaySettings.selectedFeature
-      this.parameters[0].choices = this.featureChoices
       this.parameters[1].value = this.displaySettings.maxWidth
       this.parameters[2].value = this.displaySettings.minWidth
       this.parameters[3].value = this.displaySettings.numStep
       this.parameters[4].value = this.displaySettings.scale
+      this.parameters[5].value = this.displaySettings.cmap
     },
     submit () {
       if (this.$refs.form.validate()) {
@@ -88,6 +95,7 @@ export default {
           minWidth: Number(this.parameters[2].value),
           numStep: Number(this.parameters[3].value),
           scale: this.parameters[4].value,
+          cmap: this.parameters[5].value,
         })
         this.showDialog = false
         this.reset()
@@ -151,14 +159,14 @@ export default {
             <v-col>
               <v-select
                 v-model="parameters[0].value"
-                :items="parameters[0].choices"
+                :items="featureChoices"
                 :label="$gettext(parameters[0].name)"
                 :hint="showHint? $gettext(parameters[0].hint): ''"
                 :persistent-hint="showHint"
                 required
               />
               <v-text-field
-                v-for="(item,key) in parameters.slice(1)"
+                v-for="(item,key) in parameters.slice(1,-1)"
                 :key="key"
                 v-model="item.value"
                 :type="item.type"
@@ -169,6 +177,14 @@ export default {
                 :persistent-hint="showHint"
                 required
                 @wheel="()=>{}"
+              />
+              <v-select
+                v-model="parameters[5].value"
+                :items="parameters[5].choices"
+                :label="$gettext(parameters[5].name)"
+                :hint="showHint? $gettext(parameters[5].hint): ''"
+                :persistent-hint="showHint"
+                required
               />
             </v-col>
           </v-container>

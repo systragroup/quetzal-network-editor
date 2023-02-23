@@ -8,14 +8,12 @@ export default {
   state: {
     links: {},
     visibleLinks: {},
-    nodes: {},
     linksHeader: {},
+    nodes: {},
     nodesHeader: {},
     lineAttributes: [],
-    selectedGroup: {
-      selectedFilter: '',
-      selectedCategory: [],
-    },
+    selectedFilter: '',
+    selectedCategory: [],
     displaySettings: {
       selectedFeature: 'volume',
       maxWidth: 10,
@@ -24,6 +22,7 @@ export default {
       scale: 'equal', // 'log'
       minVal: 0,
       maxVal: 1,
+      cmap: 'OrRd',
     },
 
   },
@@ -58,26 +57,24 @@ export default {
         // this.commit('getNodesProperties')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
-    changeSelectedGroup (state, payload) {
-      // trips list of visible trip_id.
-      state.selectedGroup = payload
+    changeSelectedFilter (state, payload) {
+      state.selectedFilter = payload
       this.commit('results/refreshVisibleLinks')
     },
+    changeSelectedCategory (state, payload) {
+      state.selectedCategory = payload
+      this.commit('results/refreshVisibleLinks')
+    },
+
     getLinksProperties (state) {
       const header = new Set([])
       state.links.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       state.lineAttributes = Array.from(header)
-      const selectedFilter = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : state.lineAttributes[0]
-
-      const val = Array.from(new Set(state.links.features.map(
-        item => item.properties[selectedFilter])))
-
-      this.commit('results/changeSelectedGroup', {
-        selectedFilter: selectedFilter,
-        selectedCategory: val,
-      })
+      state.selectedFilter = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : state.lineAttributes[0]
+      state.selectedCategory = Array.from(new Set(state.links.features.map(
+        item => item.properties[state.selectedFilter])))
     },
     applySettings (state, payload) {
       state.displaySettings.selectedFeature = payload.selectedFeature
@@ -85,6 +82,7 @@ export default {
       state.displaySettings.minWidth = payload.minWidth
       state.displaySettings.numStep = payload.numStep
       state.displaySettings.scale = payload.scale
+      state.displaySettings.cmap = payload.cmap
       this.commit('results/updateSelectedFeature')
       this.commit('results/refreshVisibleLinks')
     },
@@ -95,6 +93,7 @@ export default {
       const minWidth = state.displaySettings.minWidth
       const scale = state.displaySettings.scale
       const numStep = state.displaySettings.numStep
+      const cmap = state.displaySettings.cmap
 
       const featureArr = state.visibleLinks.features.map(link => link.properties[key])
       const minVal = Math.min.apply(Math, featureArr)
@@ -107,7 +106,7 @@ export default {
         ((maxWidth - minWidth) * ((link.properties[key] - minVal) /
          (maxVal - minVal))) + minWidth,
       )
-      const colorScale = chroma.scale('OrRd').padding([0.2, 0])
+      const colorScale = chroma.scale(cmap).padding([0.2, 0])
         .domain([minWidth, maxWidth], scale).classes(numStep)
 
       state.visibleLinks.features.forEach(
@@ -116,8 +115,8 @@ export default {
       )
     },
     refreshVisibleLinks (state) {
-      const group = new Set(state.selectedGroup.selectedCategory)
-      const cat = state.selectedGroup.selectedFilter
+      const group = new Set(state.selectedCategory)
+      const cat = state.selectedFilter
       state.visibleLinks.features = state.links.features.filter(link => group.has(link.properties[cat]))
     },
   },
@@ -130,7 +129,8 @@ export default {
     nodesHeader: (state) => state.nodesHeader,
     selectedTrips: (state) => state.selectedTrips,
     lineAttributes: (state) => state.lineAttributes,
-    selectedGroup: (state) => state.selectedGroup,
+    selectedFilter: (state) => state.selectedFilter,
+    selectedCategory: (state) => state.selectedCategory,
     displaySettings: (state) => state.displaySettings,
     selectedFeature: (state) => state.displaySettings.selectedFeature,
     maxWidth: (state) => state.displaySettings.maxWidth,
@@ -139,7 +139,7 @@ export default {
     scale: (state) => state.displaySettings.scale,
     colorScale: (state) => {
       const arr = []
-      const colorScale = chroma.scale('OrRd').padding([0.2, 0])
+      const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.2, 0])
         .domain([0, 100], state.displaySettings.scale).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
         arr.push(colorScale(i).hex())

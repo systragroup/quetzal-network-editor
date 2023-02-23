@@ -6,11 +6,11 @@ export default {
 
   },
   model: {
-    prop: 'selectedGroup',
-    event: 'update-selectedGroup',
+    prop: 'selectedCategory',
+    event: 'update-selectedCategory',
   },
-  props: ['selectedGroup', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer'],
-  events: ['update-selectedGroup', 'select-layer'],
+  props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer'],
+  events: ['update-selectedCategory', 'select-layer', 'update-selected-filter'],
 
   data () {
     return {
@@ -20,7 +20,7 @@ export default {
       showDialog: false,
       openMenu: false,
       selectedCat: [],
-      selectedFilter: '',
+      vmodelSelectedFilter: '',
     }
   },
   computed: {
@@ -40,20 +40,28 @@ export default {
         this.showLeftPanelContent = false
       }
     },
-    selectedCat (val) {
-      this.$emit('update-selectedGroup', { selectedCategory: val, selectedFilter: this.selectedFilter })
+    selectedCat (val, old) {
+      this.$emit('update-selectedCategory', val)
     },
-    selectedFilter (newVal, oldVal) {
+    selectedFilter (val) {
+      // when we change seledted filter from other component (changing layer.)
+      if (val !== this.vmodelSelectedFilter) {
+        this.vmodelSelectedFilter = val
+        this.selectedCat = this.selectedCategory
+      }
+    },
+
+    vmodelSelectedFilter (newVal, oldVal) {
       if (oldVal) { // when created, we dont want to emit
-        this.$emit('update-selectedGroup', { selectedCategory: [], selectedFilter: newVal })
+        this.$emit('update-selectedFilter', newVal)
+        this.selectedCat = [] // remove all selected
       }
     },
   },
 
   created () {
-    this.selectedCat = this.selectedGroup.selectedCategory
-    this.selectedFilter = this.selectedGroup.selectedFilter
-    this.selectedCat = this.filteredCat
+    this.selectedCat = this.selectedCategory
+    this.vmodelSelectedFilter = this.selectedFilter
   },
 
   methods: {
@@ -160,7 +168,7 @@ export default {
             >
               <v-list-item>
                 <v-select
-                  v-model="selectedFilter"
+                  v-model="vmodelSelectedFilter"
                   :items="filterChoices"
                   prepend-icon="fas fa-filter"
                   label="filter"
@@ -176,7 +184,7 @@ export default {
               >
                 <template v-slot="{ item }">
                   <v-list-item
-                    :key="selectedFilter.concat(item)"
+                    :key="vmodelSelectedFilter.concat(item)"
                     class="pl-2"
                   >
                     <v-list-item-action>

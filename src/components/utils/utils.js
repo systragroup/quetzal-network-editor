@@ -16,23 +16,27 @@ async function extractZip (file) {
       if (content.features[0].geometry.type === 'LineString') {
         if (filesNames[i].includes('road')) {
           result.road_links = content
+        } else if (filesNames[i].includes('loaded')) {
+          result.loaded_links = content
         } else {
           result.links = content
         }
       } else if (content.features[0].geometry.type === 'Point') {
         if (filesNames[i].includes('road')) {
           result.road_nodes = content
+        } else if (filesNames[i].includes('loaded')) {
+          result.loaded_nodes = content
         } else {
           result.nodes = content
         }
       }
     }
   }
-  if ((result.links == null) && (result.road_links == null)) {
-    throw new Error(`There is no valid link or road_links in ${file.name}`)
+  if ((result.links == null) && (result.road_links == null) && (result.loaded_links == null)) {
+    throw new Error(`There is no valid link, loaded_links or road_links in ${file.name}`)
   }
-  if ((result.nodes == null) && result.road_nodes == null) {
-    throw new Error(`There is no valid nodes or road_nodes in ${file.name}`)
+  if ((result.nodes == null) && (result.road_nodes == null) && (result.loaded_nodes == null)) {
+    throw new Error(`There is no valid nodes, loaded_nodes or road_nodes in ${file.name}`)
   }
   return result
 }

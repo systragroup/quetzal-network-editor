@@ -43,7 +43,7 @@ const router = new Router({
       path: '/ResultMap',
       name: ResultMap.name,
       component: ResultMap,
-      icon: 'fa-solid fa-map',
+      icon: 'fa-solid fa-layer-group',
       title: $gettext('Results Map'),
     },
     {
