@@ -7,7 +7,7 @@ export default {
     prop: 'show',
     event: 'update-show',
   },
-  props: ['show', 'displaySettings'],
+  props: ['show', 'displaySettings', 'featureChoices'],
   events: ['update-show', 'submit'],
 
   data () {
@@ -16,7 +16,7 @@ export default {
       parameters: [{
         name: $gettext('selectedFeature'),
         type: 'String',
-        choices: this.$store.getters['results/lineAttributes'],
+        choices: this.featureChoices,
         value: this.displaySettings.selectedFeature,
         units: '',
         hint: $gettext('selectedFeature'),
@@ -74,6 +74,7 @@ export default {
   methods: {
     reset () {
       this.parameters[0].value = this.displaySettings.selectedFeature
+      this.parameters[0].choices = this.featureChoices
       this.parameters[1].value = this.displaySettings.maxWidth
       this.parameters[2].value = this.displaySettings.minWidth
       this.parameters[3].value = this.displaySettings.numStep
@@ -89,6 +90,7 @@ export default {
           scale: this.parameters[4].value,
         })
         this.showDialog = false
+        this.reset()
       } else {
         this.shake = true
         setTimeout(() => {

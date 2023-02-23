@@ -69,7 +69,7 @@ export default {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       state.lineAttributes = Array.from(header)
-      const selectedFilter = header.has('route_type') ? 'route_type' : header[0]
+      const selectedFilter = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : state.lineAttributes[0]
 
       const val = Array.from(new Set(state.links.features.map(
         item => item.properties[selectedFilter])))

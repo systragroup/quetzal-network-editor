@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import linksModule from './links.js'
+import llinksModule from './llinks.js'
 import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
 import JSZip from 'jszip'
@@ -11,6 +12,7 @@ export const store = new Vuex.Store({
   modules: {
     links: linksModule,
     rlinks: rlinksModule,
+    llinks: llinksModule,
     results: resultsModule,
   },
 
@@ -126,6 +128,7 @@ export const store = new Vuex.Store({
       return (state.links.links.features.length === 0 &&
               state.rlinks.rlinks.features.length === 0)
     },
+    availableLayers: (state) => { return ['links', 'rlinks', 'llinks'] },
 
   },
 })

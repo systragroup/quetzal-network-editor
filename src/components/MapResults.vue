@@ -38,6 +38,10 @@ export default {
   created () {
     this.mapboxPublicKey = mapboxPublicKey
   },
+  beforeDestroy () {
+    // remove arrow layer first as it depend on rlink layer
+    this.map.removeLayer('arrow')
+  },
 
   methods: {
     onMapLoaded (event) {
@@ -133,7 +137,7 @@ export default {
       source-id="links"
       type="symbol"
       source="links"
-      layer-id="arrow-rlinks"
+      layer-id="arrow"
       :layer="{
         type: 'symbol',
         minzoom: minZoom.nodes,

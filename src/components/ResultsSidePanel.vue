@@ -9,8 +9,8 @@ export default {
     prop: 'selectedGroup',
     event: 'update-selectedGroup',
   },
-  props: ['selectedGroup', 'filterChoices', 'filteredCat'],
-  events: ['update-selectedGroup'],
+  props: ['selectedGroup', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer'],
+  events: ['update-selectedGroup', 'select-layer'],
 
   data () {
     return {
@@ -18,6 +18,7 @@ export default {
       height: null,
       editorTrip: false,
       showDialog: false,
+      openMenu: false,
       selectedCat: [],
       selectedFilter: '',
     }
@@ -115,10 +116,41 @@ export default {
               </v-tooltip>
 
               <v-spacer />
-              {{ $gettext("Roads") }}
+              <v-menu
+                v-model="openMenu"
+                close-delay="100"
+                offset-y
+                transition="slide-y-transition"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <span
+                    v-bind="attrs"
+                    v-on="on"
+                  >{{ selectedLayer }}</span>
+                </template>
+                <v-list>
+                  <v-list-item
+                    v-for="(layer,key) in layerChoices"
+                    :key="key"
+                    link
+                  >
+                    <v-list-item-title @click="()=>$emit('select-layer',layer)">
+                      {{ layer }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
               <v-spacer />
 
-              <v-spacer />
+              <v-btn
+                icon
+                class="ma-2"
+                color="white"
+                dark
+                @click="openMenu=!openMenu"
+              >
+                <v-icon> {{ openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}</v-icon>
+              </v-btn>
             </v-card-title>
             <v-card
               max-width="100%"

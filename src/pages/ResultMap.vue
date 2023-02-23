@@ -4,8 +4,7 @@ import ResultsSidePanel from '../components/ResultsSidePanel.vue'
 import MapResults from '../components/MapResults.vue'
 import ResultsSettings from '../components/ResultsSettings.vue'
 import MapLegend from '../components/utils/MapLegend.vue'
-import loadedLinks from '../../example/loaded_links.geojson'
-import loadedNodes from '../../example/loaded_nodes.geojson'
+
 export default {
   name: 'ResultMap',
   components: {
@@ -26,11 +25,13 @@ export default {
       },
       selectedGroup: structuredClone(this.$store.getters['results/selectedGroup']),
       showSettings: false,
+      selectedLayer: 'links',
 
     }
   },
   computed: {
     windowHeight () { return this.$store.getters.windowHeight - 100 },
+    availableLayers () { return this.$store.getters.availableLayers },
     links () { return this.$store.getters['results/links'] },
     visibleLinks () { return this.$store.getters['results/visibleLinks'] },
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
@@ -51,16 +52,27 @@ export default {
     },
 
   },
-  beforeCreate () {
-    this.$store.commit('results/loadLinks', loadedLinks)
-    this.$store.commit('results/loadNodes', loadedNodes)
-  },
   created () {
+    this.changeLayer(this.selectedLayer)
   },
 
   methods: {
     applySettings (payload) {
       this.$store.commit('results/applySettings', payload)
+    },
+    changeLayer (layer) {
+      this.selectedLayer = layer
+      switch (layer) {
+        case 'links':
+          this.$store.commit('results/loadLinks', this.$store.getters.links)
+          break
+        case 'rlinks':
+          this.$store.commit('results/loadLinks', this.$store.getters.rlinks)
+          break
+        case 'llinks':
+          this.$store.commit('results/loadLinks', this.$store.getters['llinks/links'])
+          break
+      }
     },
   },
 }
@@ -69,13 +81,17 @@ export default {
   <section class="map-view">
     <ResultsSidePanel
       v-model="selectedGroup"
+      :layer-choices="availableLayers"
+      :selected-layer="selectedLayer"
       :filter-choices="filterChoices"
       :filtered-cat="filteredCategory"
+      @select-layer="changeLayer"
     />
 
     <ResultsSettings
       v-model="showSettings"
       :display-settings="displaySettings"
+      :feature-choices="filterChoices"
       @submit="applySettings"
     />
     <div class="left-panel">
