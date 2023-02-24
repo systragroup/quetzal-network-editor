@@ -252,7 +252,7 @@ export default {
         type: 'line',
         minzoom: 2,
         paint: {
-          'line-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
+          'line-color': ['case', ['boolean', anchorMode, false],$vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
         }
@@ -280,7 +280,7 @@ export default {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
+          'icon-color': ['case', ['boolean', anchorMode, false], $vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
         }
       }"
     />

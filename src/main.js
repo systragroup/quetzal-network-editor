@@ -89,6 +89,8 @@ const vuetify = new Vuetify({
         mediumgrey: '#9E9E9E',
         darkgrey: '#5B5B5C',
         accent: '#2C3E4E',
+        linksprimary: '#7EBAAC',
+        linkssecondary: '#B5E0D6',
         chart: {
           lightgreen: '#CDDC39',
           darkgreen: '#4CAF50',
@@ -103,12 +105,14 @@ const vuetify = new Vuetify({
       dark: {
         primary: '#2196F3',
         primarydark: '#191919',
-        secondary: '263238',
+        secondary: '#263238',
         secondarydark: '#fff',
         mediumgrey: '#575757',
         background: '#000000',
         white: '#000000',
         success: '#2196F3',
+        linksprimary: '#2196F3',
+        linkssecondary: '#90CAF9',
         chart: {
           lightgreen: '#CDDC39',
           darkgreen: '#4CAF50',

@@ -270,7 +270,7 @@ export default {
 
 .subtitle {
   font-size: 2em;
-  color: $secondary !important;
+  color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding:1rem
 

@@ -89,7 +89,7 @@ export default {
     >
       <v-icon
         small
-        color="secondary"
+        color="secondarydark"
       >
         {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
       </v-icon>
@@ -108,9 +108,9 @@ export default {
               >
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
+                    :style="{color: 'white'}"
                     icon
                     class="ma-2"
-                    color="white"
                     v-bind="attrs"
                     v-on="on"
                     @click="showAll()"
@@ -132,6 +132,7 @@ export default {
               >
                 <template v-slot:activator="{ on, attrs }">
                   <span
+                    class="title"
                     v-bind="attrs"
                     v-on="on"
                   >{{ selectedLayer }}</span>
@@ -142,7 +143,9 @@ export default {
                     :key="key"
                     link
                   >
-                    <v-list-item-title @click="()=>$emit('select-layer',layer)">
+                    <v-list-item-title
+                      @click="()=>$emit('select-layer',layer)"
+                    >
                       {{ layer }}
                     </v-list-item-title>
                   </v-list-item>
@@ -151,9 +154,9 @@ export default {
               <v-spacer />
 
               <v-btn
+                :style="{color: 'white'}"
                 icon
                 class="ma-2"
-                color="white"
                 dark
                 @click="openMenu=!openMenu"
               >
@@ -221,6 +224,9 @@ export default {
   position: absolute;
   display: flex;
   z-index: 20;
+}
+.title  {
+  color:white;
 }
 .left-panel-close {
 transition:0.3s

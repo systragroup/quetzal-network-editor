@@ -414,7 +414,7 @@ export default {
           minzoom: 2,
           paint: {
             'line-opacity': 1,
-            'line-color': '#7EBAAC',
+            'line-color': $vuetify.theme.currentTheme.linksprimary,
             'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
             'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 
