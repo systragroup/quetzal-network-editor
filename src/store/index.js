@@ -25,7 +25,6 @@ export const store = new Vuex.Store({
     linksPopupContent: 'trip_id',
     roadsPopupContent: 'highway',
     outputName: 'output',
-    mapStyle: 'mapbox://styles/mapbox/light-v9?optimize=true',
 
   },
   mutations: {
@@ -40,13 +39,6 @@ export const store = new Vuex.Store({
     },
     changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
-    },
-    changeMapStyle (state, payload) {
-      if (payload) {
-        state.mapStyle = 'mapbox://styles/mapbox/dark-v9?optimize=true'
-      } else {
-        state.mapStyle = 'mapbox://styles/mapbox/light-v9?optimize=true'
-      }
     },
     setAnchorMode (state, payload) {
       state.anchorMode = payload
@@ -126,7 +118,6 @@ export const store = new Vuex.Store({
     notification: (state) => state.notification,
     loading: (state) => state.loading,
     windowHeight: (state) => state.windowHeight,
-    mapStyle: (state) => state.mapStyle,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
     linksPopupContent: (state) => state.linksPopupContent,

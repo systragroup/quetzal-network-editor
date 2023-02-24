@@ -24,7 +24,7 @@ export default {
         links: 8,
       },
       showSettings: false,
-      selectedLayer: 'links',
+      selectedLayer: 'llinks',
       selectedCategory: [],
 
     }

@@ -53,10 +53,14 @@ export default {
       connectedDrawLink: false,
       showSettings: false,
 
-      mapStyle: 'mapbox://styles/mapbox/light-v9?optimize=true',
     }
   },
   computed: {
+    mapStyle () {
+      return this.$vuetify.theme.dark
+        ? 'mapbox://styles/mapbox/dark-v9?optimize=true'
+        : 'mapbox://styles/mapbox/light-v9?optimize=true'
+    },
     showLeftPanel () {
       return this.$store.getters.showLeftPanel
     },
@@ -329,10 +333,10 @@ export default {
 </script>
 <template>
   <MglMap
-    :key="$store.getters.mapStyle"
+    :key="mapStyle"
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
-    :map-style="$store.getters.mapStyle"
+    :map-style="mapStyle"
     @load="onMapLoaded"
     @mousemove="draw"
     @mouseout="resetDraw()"

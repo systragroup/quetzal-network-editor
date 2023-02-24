@@ -51,6 +51,7 @@ const languageMixin = {
 Vue.component('Apexchart', VueApexCharts)
 
 const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr', 'es', 'de', 'pt'])
+const darkMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
 Vue.use(Vuetify)
 Vue.use(GetTextPlugin, {
@@ -73,10 +74,12 @@ Vue.config.performance = false
 
 const vuetify = new Vuetify({
   theme: {
+    dark: !!darkMode,
     options: {
       customProperties: true,
     },
     themes: {
+
       light: {
         primary: '#B5E0D6',
         primarydark: '#7EBAAC',

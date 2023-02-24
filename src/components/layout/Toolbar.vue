@@ -4,21 +4,12 @@ export default {
   computed: {
 
   },
+
   methods: {
     handleChangeLanguage (lang) {
       this.$vuetify.lang.current = lang
       this.$language.current = lang
     },
-    changeTheme (event) {
-      if (event) {
-        this.$vuetify.theme.dark = true
-        this.$store.commit('changeMapStyle', true)
-      } else {
-        this.$vuetify.theme.dark = false
-        this.$store.commit('changeMapStyle', false)
-      }
-    },
-
   },
 }
 </script>
@@ -52,8 +43,8 @@ export default {
     </div>
     <div class="switch">
       <v-switch
+        v-model="$vuetify.theme.dark"
         append-icon="fas fa-moon"
-        @change="changeTheme"
       />
     </div>
 
