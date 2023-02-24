@@ -26,6 +26,8 @@ export default {
       showSettings: false,
       selectedLayer: 'llinks',
       selectedCategory: [],
+      form: {},
+      showDialog: false,
 
     }
   },
@@ -81,6 +83,10 @@ export default {
       // this.selectedFilter = this.$store.getters['results/selectedFilter']
       this.selectedCategory = this.$store.getters['results/selectedCategory']
     },
+    featureClicked (event) {
+      this.form = event
+      this.showDialog = true
+    },
 
   },
 }
@@ -119,7 +125,47 @@ export default {
     <MapResults
       :links="visibleLinks"
       :selected-feature="displaySettings.selectedFeature"
+      @selectClick="featureClicked"
     />
+
+    <v-dialog
+      v-model="showDialog"
+      scrollable
+      persistent
+      max-width="300"
+      @keydown.enter="showDialog=false"
+      @keydown.esc="showDialog=false"
+    >
+      <v-card max-height="60rem">
+        <v-card-title class="text-h5">
+          {{ $gettext("link Properties") }}
+        </v-card-title>
+        <v-divider />
+        <v-card-text>
+          <v-list>
+            <v-text-field
+              v-for="(value, key) in form"
+              :key="key"
+              :value="value"
+              :label="key"
+              filled
+              readonly
+            />
+          </v-list>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="success"
+            text
+            @click="showDialog=false"
+          >
+            {{ $gettext("ok") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </section>
 </template>
 <style lang="scss" scoped>

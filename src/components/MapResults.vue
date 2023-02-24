@@ -17,6 +17,7 @@ export default {
 
   },
   props: ['links', 'selectedFeature'],
+  events: ['selectClick'],
 
   data () {
     return {
@@ -104,6 +105,9 @@ export default {
       if (this.popup?.isOpen()) this.popup.remove()
       event.map.getCanvas().style.cursor = ''
     },
+    selectClick (event) {
+      if (this.selectedLinks?.length > 0) this.$emit('selectClick', this.selectedLinks[0].properties)
+    },
 
   },
 }
@@ -148,6 +152,7 @@ export default {
       }"
       @mouseenter="enterLink"
       @mouseleave="leaveLink"
+      @click="selectClick"
     />
 
     <MglImageLayer

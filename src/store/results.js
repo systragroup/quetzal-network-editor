@@ -23,6 +23,8 @@ export default {
       minVal: 0, // option to blocked them. so its an input and its not recompute
       maxVal: 1,
       cmap: 'OrRd',
+      showNaN: true,
+      reverseColor: false,
     },
 
   },
@@ -83,6 +85,8 @@ export default {
       state.displaySettings.numStep = payload.numStep
       state.displaySettings.scale = payload.scale
       state.displaySettings.cmap = payload.cmap
+      state.displaySettings.showNaN = payload.showNaN
+      state.displaySettings.reverseColor = payload.reverseColor
       this.commit('results/updateSelectedFeature')
       this.commit('results/refreshVisibleLinks')
     },
@@ -94,8 +98,9 @@ export default {
       const scale = state.displaySettings.scale
       const numStep = state.displaySettings.numStep
       const cmap = state.displaySettings.cmap
-
-      const featureArr = state.visibleLinks.features.map(link => link.properties[key])
+      const featureArr = state.visibleLinks.features.filter(
+        link => link.properties[key]).map(
+        link => link.properties[key])
       const minVal = Math.min.apply(Math, featureArr)
       const maxVal = Math.max.apply(Math, featureArr)
       state.displaySettings.minVal = minVal
@@ -106,18 +111,24 @@ export default {
         ((maxWidth - minWidth) * ((link.properties[key] - minVal) /
          (maxVal - minVal))) + minWidth,
       )
+      const domain = state.displaySettings.reverseColor ? [maxVal, minVal] : [minVal, maxVal]
+
       const colorScale = chroma.scale(cmap).padding([0.2, 0])
-        .domain([minWidth, maxWidth], scale).classes(numStep)
+        .domain(domain, scale).classes(numStep)
 
       state.visibleLinks.features.forEach(
         // eslint-disable-next-line no-return-assign
-        link => link.properties.display_color = colorScale(link.properties.display_width).hex(),
+        link => link.properties.display_color = colorScale(link.properties[key]).hex(),
       )
     },
     refreshVisibleLinks (state) {
       const group = new Set(state.selectedCategory)
       const cat = state.selectedFilter
       state.visibleLinks.features = state.links.features.filter(link => group.has(link.properties[cat]))
+      if (!state.displaySettings.showNaN) {
+        const key = state.displaySettings.selectedFeature
+        state.visibleLinks.features = state.visibleLinks.features.filter(link => link.properties[key])
+      }
     },
   },
 
@@ -139,8 +150,9 @@ export default {
     scale: (state) => state.displaySettings.scale,
     colorScale: (state) => {
       const arr = []
+      const domain = state.displaySettings.reverseColor ? [100, 0] : [0, 100]
       const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.2, 0])
-        .domain([0, 100], state.displaySettings.scale).classes(state.displaySettings.numStep)
+        .domain(domain, state.displaySettings.scale).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
         arr.push(colorScale(i).hex())
       }

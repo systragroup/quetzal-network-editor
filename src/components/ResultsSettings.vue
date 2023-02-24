@@ -57,16 +57,27 @@ export default {
         units: '',
         hint: $gettext('cmap to use'),
       },
+      {
+        name: $gettext('show NaN'),
+        value: this.displaySettings.showNaN,
+        hint: $gettext('Hide NaN on map and color map'),
+      },
+      {
+        name: $gettext('reverse color'),
+        value: this.displaySettings.reverseColor,
+        hint: $gettext('reverse color scale'),
+      },
 
       ],
       errorMessage: null,
       showHint: false,
       shake: false,
 
-      rules: [
-        v => !!v || $gettext('Required'),
-        v => v >= 0 || $gettext('should be larger than 0'),
-      ],
+      rules: {
+        required: v => !!v || $gettext('Required'),
+        largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
+        nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
+      },
       showDialog: false,
     }
   },
@@ -96,6 +107,8 @@ export default {
       this.parameters[3].value = this.displaySettings.numStep
       this.parameters[4].value = this.displaySettings.scale
       this.parameters[5].value = this.displaySettings.cmap
+      this.parameters[6].value = this.displaySettings.showNaN
+      this.parameters[7].value = this.displaySettings.reverseColor
     },
     submit () {
       if (this.$refs.form.validate()) {
@@ -106,6 +119,8 @@ export default {
           numStep: Number(this.parameters[3].value),
           scale: this.parameters[4].value,
           cmap: this.parameters[5].value,
+          showNaN: this.parameters[6].value,
+          reverseColor: this.parameters[7].value,
         })
         this.showDialog = false
         this.reset()
@@ -144,7 +159,7 @@ export default {
           v-on="on"
         >
           <v-icon
-            color="regular"
+            :color="!isFinite(displaySettings.maxVal)?'error':'regular'"
           >
             fa-solid fa-cog
           </v-icon>
@@ -208,6 +223,14 @@ export default {
                   </div>
                 </template>
               </v-select>
+              <v-switch
+                v-model="parameters[6].value"
+                :label="parameters[6].name"
+              />
+              <v-switch
+                v-model="parameters[7].value"
+                :label="parameters[7].name"
+              />
             </v-col>
           </v-container>
         </v-form>
