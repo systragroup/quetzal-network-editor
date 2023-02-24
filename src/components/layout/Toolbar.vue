@@ -9,6 +9,10 @@ export default {
       this.$vuetify.lang.current = lang
       this.$language.current = lang
     },
+    changeTheme (event) {
+      console.log(event)
+    },
+
   },
 }
 </script>
@@ -39,6 +43,7 @@ export default {
         <span>GitHub</span>
       </v-tooltip>
     </div>
+    <v-switch v-model="$vuetify.theme.dark" />
 
     <div>
       <v-menu

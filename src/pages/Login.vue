@@ -475,7 +475,8 @@ export default {
 .layout-overlay {
   height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color:var(--v-background-base);
+  opacity: 0.5;
   position: absolute;
 }
 .card {
@@ -490,12 +491,13 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 3.5em;
-  color: $primary !important;
+  color: var(--v-primary-base);
+
   font-weight: bold;
 }
 .subtitle {
   font-size: 2em;
-  color: $secondary !important;
+  color: var(--v-secondary-base) !important;
   font-weight: bold;
   margin: 40px;
 }
