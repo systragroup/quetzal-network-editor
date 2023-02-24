@@ -144,8 +144,8 @@ export default {
   justify-content: center;
   transition: 0.3s;
   height: 50px;
-  background-color: rgb(255, 255, 255);
-  border: thin solid rgb(196, 196, 196);
+  background-color: var(--v-white-base);
+  border: thin solid var(--v-mediumgrey-base);
 }
 .legend-close {
   left: 50px;
@@ -157,7 +157,7 @@ export default {
   justify-content: center;
   transition: 0.3s;
   height: 50px;
-  background-color: rgb(255, 255, 255);
+  background-color: var(--v-lightgrey);
   border: thin solid rgb(196, 196, 196);
 }
 

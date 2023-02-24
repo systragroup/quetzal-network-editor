@@ -102,13 +102,13 @@ export default {
 </template>
 <style lang="scss" scoped>
 .drawer {
-  background-color: $secondary !important;
+  background-color: var(--v-secondary-base) !important;
 }
 .drawer-header {
   width: 100%;
   height: 50px;
   border-bottom: 1px solid white;
-  background-color: $secondary;
+  background-color: var(--v-secondary-base);
   color: white;
   display: flex;
   align-items: center;
@@ -135,9 +135,9 @@ export default {
   color: white;
 }
 .drawer-list-item-selected {
-  background-color: $secondary-dark;
+  background-color: var(--v-secondary-base);
 }
 .drawer-list-item:hover {
-  background-color: $secondary-dark;
+  background-color: var(--v-secondary-base);
 }
 </style>

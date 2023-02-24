@@ -73,7 +73,7 @@ export default {
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
             <v-tabs
               v-model="tab"
-              background-color="secondarylight"
+              background-color="secondary"
               dark
               grow
             >
@@ -108,10 +108,9 @@ export default {
   </section>
 </template>
 <style lang="scss" scoped>
-@import "src/scss/variables.scss";
 .left-panel {
   height: 100%;
-  background-color: $primary-dark;
+  background-color:var(--v-primarydark-base);
   transition: 0.3s;
   position: absolute;
   display:flex;
@@ -138,7 +137,7 @@ transition:0.3s
   left: 100%;
   width: 25px;
   z-index: 1;
-  background-color: $primary-dark;
+  background-color: var(--v-primarydark-base);
   display: flex;
   position: relative;
   align-items: center;

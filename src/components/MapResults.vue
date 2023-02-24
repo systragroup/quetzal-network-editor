@@ -31,20 +31,32 @@ export default {
     }
   },
   computed: {
+    mapStyle () { return this.$store.getters.mapStyle },
 
   },
   watch: {
+    mapStyle (val) {
+      if (this.map) {
+        this.map.removeLayer('arrow')
+        this.map.removeLayer('links')
+        this.mapIsLoaded = false
+      }
+    },
   },
   created () {
     this.mapboxPublicKey = mapboxPublicKey
   },
   beforeDestroy () {
     // remove arrow layer first as it depend on rlink layer
-    this.map.removeLayer('arrow')
+    if (this.map) {
+      this.map.removeLayer('arrow')
+    }
   },
 
   methods: {
     onMapLoaded (event) {
+      if (this.map) this.map.remove()
+
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
 
@@ -94,9 +106,10 @@ export default {
 </script>
 <template>
   <MglMap
+    :key="mapStyle"
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
-    map-style="mapbox://styles/mapbox/light-v9?optimize=true"
+    :map-style="mapStyle"
     @load="onMapLoaded"
   >
     <MglScaleControl position="bottom-right" />

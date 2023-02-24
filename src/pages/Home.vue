@@ -441,7 +441,7 @@ export default {
           </v-btn>
 
           <v-btn
-            color="green darken-1"
+            color="success"
             text
             @click="applyAction"
           >

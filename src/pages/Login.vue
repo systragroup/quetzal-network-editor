@@ -476,7 +476,7 @@ export default {
   height: 100%;
   width: 100%;
   background-color:var(--v-background-base);
-  opacity: 0.5;
+
   position: absolute;
 }
 .card {
@@ -497,7 +497,7 @@ export default {
 }
 .subtitle {
   font-size: 2em;
-  color: var(--v-secondary-base) !important;
+  color: var(--v-secondarydark-base) !important;
   font-weight: bold;
   margin: 40px;
 }

@@ -52,10 +52,11 @@ export default {
       selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
       showSettings: false,
+
+      mapStyle: 'mapbox://styles/mapbox/light-v9?optimize=true',
     }
   },
   computed: {
-
     showLeftPanel () {
       return this.$store.getters.showLeftPanel
     },
@@ -74,6 +75,7 @@ export default {
     anchorMode () { return this.$store.getters.anchorMode },
   },
   watch: {
+
     showLeftPanel () {
       setTimeout(() => this.map.resize(), 250)
     },
@@ -161,6 +163,7 @@ export default {
 
   methods: {
     onMapLoaded (event) {
+      if (this.map) this.map.remove(); this.mapIsLoaded = false
       const bounds = new Mapbox.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if (this.$store.getters.links.features.length > 0) {
@@ -326,9 +329,10 @@ export default {
 </script>
 <template>
   <MglMap
+    :key="$store.getters.mapStyle"
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
-    map-style="mapbox://styles/mapbox/light-v9?optimize=true"
+    :map-style="$store.getters.mapStyle"
     @load="onMapLoaded"
     @mousemove="draw"
     @mouseout="resetDraw()"

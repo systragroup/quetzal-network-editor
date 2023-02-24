@@ -43,6 +43,7 @@ export default {
       val ? this.map.off('dblclick', this.selectLine) : this.map.on('dblclick', this.selectLine)
     },
   },
+
   created () {
     this.setHiddenFeatures()
     this.map.on('dblclick', this.selectLine)

@@ -10,7 +10,13 @@ export default {
       this.$language.current = lang
     },
     changeTheme (event) {
-      console.log(event)
+      if (event) {
+        this.$vuetify.theme.dark = true
+        this.$store.commit('changeMapStyle', true)
+      } else {
+        this.$vuetify.theme.dark = false
+        this.$store.commit('changeMapStyle', false)
+      }
     },
 
   },
@@ -20,9 +26,10 @@ export default {
   <v-toolbar
     :class="'app-toolbar elevation-4'"
     dense
-    color="white"
   >
-    <div>Quetzal Network Editor</div>
+    <div class="app-name">
+      Quetzal Network Editor
+    </div>
 
     <v-spacer />
     <div>
@@ -43,8 +50,22 @@ export default {
         <span>GitHub</span>
       </v-tooltip>
     </div>
-    <v-switch v-model="$vuetify.theme.dark" />
+    <div class="switch">
+      <v-switch
+        append-icon="fas fa-moon"
+        @change="changeTheme"
+      />
+    </div>
 
+    <!--
+    <v-checkbox
+      v-model="$vuetify.theme.dark"
+      class="switch"
+      color="purple"
+      off-icon="fas fa-moon"
+      on-icon="fas fa-sun"
+    />
+    -->
     <div>
       <v-menu
         offset-y
@@ -90,8 +111,21 @@ export default {
 .project-name {
   font-size: 1.3em;
 }
+.app-name {
+  font-size: 1.2em;
+  color:var(--v-secondarydark-base);
+}
 .languages-container {
   display: flex;
+}
+.switch {
+  display: flex;
+  padding-top: 1rem;
+  padding-left:1rem;
+  align-items: center;
+  justify-content: center;
+  color: $grey-light;
+  cursor: pointer;
 }
 .language {
   width: 50px;
@@ -103,7 +137,7 @@ export default {
   transition: 0.3s;
 }
 .language.active, .language:hover {
-  color: $secondary;
+  color:var(--v-secondarydark-base);
 }
 .language:last-child {
   border-right: 0;
