@@ -191,7 +191,7 @@ export default {
                 required
               />
               <v-text-field
-                v-for="(item,key) in parameters.slice(1,-1)"
+                v-for="(item,key) in parameters.slice(1,5)"
                 :key="key"
                 v-model="item.value"
                 :type="item.type"

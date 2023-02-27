@@ -111,15 +111,25 @@ export default {
         ((maxWidth - minWidth) * ((link.properties[key] - minVal) /
          (maxVal - minVal))) + minWidth,
       )
-      const domain = state.displaySettings.reverseColor ? [maxVal, minVal] : [minVal, maxVal]
 
       const colorScale = chroma.scale(cmap).padding([0.2, 0])
-        .domain(domain, scale).classes(numStep)
+        .domain([0, 1], scale).classes(numStep)
 
-      state.visibleLinks.features.forEach(
-        // eslint-disable-next-line no-return-assign
-        link => link.properties.display_color = colorScale(link.properties[key]).hex(),
-      )
+      if (state.displaySettings.reverseColor) {
+        state.visibleLinks.features.forEach(
+          link => link.properties.display_color = colorScale(
+            (-link.properties[key] + maxVal) /
+            (maxVal - minVal),
+          ).hex(),
+        )
+      } else {
+        state.visibleLinks.features.forEach(
+          link => link.properties.display_color = colorScale(
+            (link.properties[key] - minVal) /
+            (maxVal - minVal),
+          ).hex(),
+        )
+      }
     },
     refreshVisibleLinks (state) {
       const group = new Set(state.selectedCategory)
@@ -150,11 +160,14 @@ export default {
     scale: (state) => state.displaySettings.scale,
     colorScale: (state) => {
       const arr = []
-      const domain = state.displaySettings.reverseColor ? [100, 0] : [0, 100]
       const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.2, 0])
-        .domain(domain, state.displaySettings.scale).classes(state.displaySettings.numStep)
+        .domain([0, 100], state.displaySettings.scale).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
-        arr.push(colorScale(i).hex())
+        if (state.displaySettings.reverseColor) {
+          arr.push(colorScale(-i + 100).hex())
+        } else {
+          arr.push(colorScale(i).hex())
+        }
       }
       return arr
     },
