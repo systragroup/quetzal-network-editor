@@ -195,7 +195,7 @@ export default {
                 :key="key"
                 v-model="item.value"
                 :type="item.type"
-                :disabled="item.name==='scale'"
+
                 :label="$gettext(item.name)"
                 :suffix="item.units"
                 :hint="showHint? $gettext(item.hint): ''"

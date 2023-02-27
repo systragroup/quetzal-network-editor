@@ -3,6 +3,20 @@
 
 import chroma from 'chroma-js'
 
+function remap (val, minVal, maxVal, reverse, scale) {
+  let res = 0
+  if (reverse) {
+    res = (-val + maxVal) / (maxVal - minVal)
+  } else {
+    res = (val - minVal) / (maxVal - minVal)
+  }
+  if (scale === 'sqrt') {
+    res = Math.sqrt(res)
+  } else if (scale === 'log') {
+    res = res >= 0 ? Math.log10(10 * res) : 0
+  }
+  return res
+}
 export default {
   namespaced: true,
   state: {
@@ -112,24 +126,15 @@ export default {
          (maxVal - minVal))) + minWidth,
       )
 
-      const colorScale = chroma.scale(cmap).padding([0.2, 0])
+      const colorScale = chroma.scale(cmap).padding([0.1, 0])
         .domain([0, 1], scale).classes(numStep)
 
-      if (state.displaySettings.reverseColor) {
-        state.visibleLinks.features.forEach(
-          link => link.properties.display_color = colorScale(
-            (-link.properties[key] + maxVal) /
-            (maxVal - minVal),
-          ).hex(),
-        )
-      } else {
-        state.visibleLinks.features.forEach(
-          link => link.properties.display_color = colorScale(
-            (link.properties[key] - minVal) /
-            (maxVal - minVal),
-          ).hex(),
-        )
-      }
+      const reverse = state.displaySettings.reverseColor
+
+      state.visibleLinks.features.forEach(
+        link => link.properties.display_color = colorScale(
+          remap(link.properties[key], minVal, maxVal, reverse, scale)).hex(),
+      )
     },
     refreshVisibleLinks (state) {
       const group = new Set(state.selectedCategory)
@@ -160,14 +165,10 @@ export default {
     scale: (state) => state.displaySettings.scale,
     colorScale: (state) => {
       const arr = []
-      const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.2, 0])
-        .domain([0, 100], state.displaySettings.scale).classes(state.displaySettings.numStep)
+      const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.1, 0])
+        .domain([0, 1]).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
-        if (state.displaySettings.reverseColor) {
-          arr.push(colorScale(-i + 100).hex())
-        } else {
-          arr.push(colorScale(i).hex())
-        }
+        arr.push(colorScale(remap(i, 0, 100, state.displaySettings.reverseColor, state.displaySettings.scale)))
       }
       return arr
     },
