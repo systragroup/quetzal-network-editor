@@ -18,6 +18,7 @@ export const store = new Vuex.Store({
 
   state: {
     notification: {},
+    darkMode: false,
     loading: false,
     anchorMode: false,
     showLeftPanel: true,
@@ -30,6 +31,9 @@ export const store = new Vuex.Store({
   mutations: {
     changeNotification (state, payload) {
       state.notification = payload
+    },
+    changeDarkMode (state, payload) {
+      state.darkMode = payload
     },
     changeLoading (state, payload) {
       state.loading = payload
@@ -129,6 +133,13 @@ export const store = new Vuex.Store({
               state.rlinks.rlinks.features.length === 0)
     },
     availableLayers: (state) => { return ['links', 'rlinks', 'llinks'] },
+    mapStyle: (state) => {
+      if (state.darkMode) {
+        return 'mapbox://styles/mapbox/dark-v11?optimize=true'
+      } else {
+        return 'mapbox://styles/mapbox/light-v11?optimize=true'
+      }
+    },
 
   },
 })

@@ -32,11 +32,7 @@ export default {
     }
   },
   computed: {
-    mapStyle () {
-      return this.$vuetify.theme.dark
-        ? 'mapbox://styles/mapbox/dark-v9?optimize=true'
-        : 'mapbox://styles/mapbox/light-v9?optimize=true'
-    },
+    mapStyle () { return this.$store.getters.mapStyle },
 
   },
   watch: {

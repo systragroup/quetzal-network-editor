@@ -64,7 +64,6 @@ export default {
       >
         <v-icon
           small
-          color="white"
         >
           {{ mini ? 'fa fa-bars' : 'fas fa-angle-left' }}
         </v-icon>

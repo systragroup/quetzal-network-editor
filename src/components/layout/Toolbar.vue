@@ -4,6 +4,11 @@ export default {
   computed: {
 
   },
+  watch: {
+    '$vuetify.theme.dark' (val) {
+      this.$store.commit('changeDarkMode', val)
+    },
+  },
 
   methods: {
     handleChangeLanguage (lang) {

@@ -3,13 +3,14 @@
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip, IndexAreDifferent } from '../components/utils/utils.js'
-
+import OSMImporter from '../components/utils/OSMImporter.vue'
 import loadedLinks from '../../example/loaded_links.geojson'
 import loadedNodes from '../../example/loaded_nodes.geojson'
 const $gettext = s => s
 
 export default {
   name: 'Login',
+  components: { OSMImporter },
   data () {
     return {
       loggedIn: false,
@@ -407,6 +408,9 @@ export default {
               </template>
               <span>{{ $gettext("Load Montréal Example") }}</span>
             </v-tooltip>
+          </div>
+          <div>
+            <OSMImporter />
           </div>
           <div>
             <v-btn
