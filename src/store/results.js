@@ -33,7 +33,7 @@ export default {
       maxWidth: 10,
       minWidth: 1,
       numStep: 100,
-      scale: 'equal', // 'log'
+      scale: 'linear', // 'log'
       minVal: 0, // option to blocked them. so its an input and its not recompute
       maxVal: 1,
       cmap: 'OrRd',

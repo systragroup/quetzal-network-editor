@@ -46,6 +46,7 @@ export default {
         name: $gettext('scale'),
         type: 'String',
         value: this.displaySettings.scale,
+        choices: ['linear', 'sqrt', 'log'],
         units: '',
         hint: $gettext('scale'),
       },
@@ -191,7 +192,7 @@ export default {
                 required
               />
               <v-text-field
-                v-for="(item,key) in parameters.slice(1,5)"
+                v-for="(item,key) in parameters.slice(1,4)"
                 :key="key"
                 v-model="item.value"
                 :type="item.type"
@@ -203,6 +204,15 @@ export default {
                 required
                 @wheel="()=>{}"
               />
+              <v-select
+                v-model="parameters[4].value"
+                :items="parameters[4].choices"
+                :label="$gettext(parameters[4].name)"
+                :hint="showHint? $gettext(parameters[4].hint): ''"
+                :persistent-hint="showHint"
+                required
+              />
+
               <v-select
                 v-model="parameters[5].value"
                 :items="parameters[5].choices"
