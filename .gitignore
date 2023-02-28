@@ -1,7 +1,6 @@
 .DS_Store
 *~
 node_modules/
-/dist/
 reports/
 .npmrc
 /src/config.js
