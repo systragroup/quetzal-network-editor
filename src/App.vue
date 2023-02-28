@@ -2,6 +2,8 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 
+import linksBase from '@static/links_base.geojson'
+import nodesBase from '@static/nodes_base.geojson'
 export default {
   name: 'App',
   components: {
@@ -17,8 +19,8 @@ export default {
     notification () {
       return this.$store.getters.notification
     },
-    isLoginPage () {
-      return this.$store.getters.route === 'Login'
+    loading () {
+      return this.$store.getters.loading
     },
   },
   watch: {
@@ -26,10 +28,21 @@ export default {
       this.snackbar = !!this.notification.text
     },
   },
+  created () {
+    // init links and node to empty one (new project)
+    this.$store.commit('loadLinks', linksBase)
+    this.$store.commit('loadrLinks', linksBase)
+    this.$store.commit('loadNodes', nodesBase)
+    this.$store.commit('loadrNodes', nodesBase)
+  },
   methods: {
     closeSnackbar () {
       this.snackbar = false
       this.$store.notification = {}
+    },
+    onResize () {
+      // -50 for the ToolBar
+      this.$store.commit('changeWindowHeight', this.$refs.container.clientHeight - 50)
     },
   },
 }
@@ -38,14 +51,21 @@ export default {
   <v-app class="app">
     <NavigationDrawer />
     <div
+      ref="container"
+      v-resize="onResize"
       class="container"
-      :class="[isLoginPage ? 'login' : '']"
     >
       <Toolbar />
       <transition name="fade">
         <router-view />
       </transition>
     </div>
+    <v-overlay :value="loading">
+      <v-progress-circular
+        indeterminate
+        size="64"
+      />
+    </v-overlay>
     <v-snackbar
       v-model="snackbar"
       :timeout="notification.autoClose ? 3000 : -1"

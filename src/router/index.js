@@ -1,11 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@page/Login.vue'
-import Home from '@page/Home.vue'
-import Import from '@page/Import.vue'
-import DataFrame from '@page/DataFrame.vue'
-import Settings from '@page/Settings.vue'
 import { store } from '../store/index.js'
+import Home from '@page/Home.vue'
+import DataFrame from '@page/DataFrame.vue'
 
 Vue.use(Router)
 
@@ -21,16 +19,10 @@ const router = new Router({
       path: '/',
       name: Login.name,
       component: Login,
-      icon: 'fa-solid fa-home',
-      title: $gettext('New Project'),
-    },
-    {
-      path: '/Import',
-      name: Import.name,
-      component: Import,
       icon: 'fa-solid fa-upload',
       title: $gettext('Import'),
     },
+
     {
       path: '/Home',
       name: Home.name,
@@ -45,18 +37,11 @@ const router = new Router({
       icon: 'fa-solid fa-table',
       title: $gettext('Table'),
     },
-    {
-      path: '/Settings',
-      name: Settings.name,
-      component: Settings,
-      icon: 'fa-solid fa-cog',
-      title: $gettext('Settings'),
-    },
   ],
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'Login' && !store.getters.filesAreLoaded) next({ name: 'Login' })
+  if (to.name !== 'Login' && store.getters.projectIsUndefined) next({ name: 'Login' })
   else if (to.path === 'login') next('Login')
   else next()
 })

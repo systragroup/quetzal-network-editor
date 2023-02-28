@@ -1,12 +1,11 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer, MglPopup } from 'vue-mapbox'
-
+import { MglGeojsonLayer } from 'vue-mapbox'
+import mapboxgl from 'mapbox-gl'
 export default {
   name: 'StaticLinks',
   components: {
     MglGeojsonLayer,
-    MglPopup,
   },
   props: ['map', 'showedTrips', 'isEditorMode'],
   events: ['rightClick'],
@@ -15,37 +14,14 @@ export default {
     return {
       visibleNodes: {},
       visibleLinks: {},
+      selectedFeatures: [],
 
-      popup: {
-        coordinates: [0, 0],
-        showed: false,
-        content: null,
-      },
     }
   },
   computed: {
-    selectedPopupContent () { return this.$store.getters.popupContent },
-    links () {
-      // remove unwanted features for faster computation
-      const links = structuredClone(this.$store.getters.linksHeader)
-      // the popupContent column is added as it is acces by the map.
-      links.features = this.$store.getters.links.features.map((feature) => (
-        {
-          properties: {
-            trip_id: feature.properties.trip_id,
-            popupContent: feature.properties[this.selectedPopupContent],
-            a: feature.properties.a,
-            b: feature.properties.b,
-            route_color: feature.properties.route_color,
-            route_width: feature.properties.route_width,
-          },
-          geometry: feature.geometry,
-        }
-      ),
-      )
-      return links
-    },
-    nodes () { return structuredClone(this.$store.getters.nodes) },
+    selectedPopupContent () { return this.$store.getters.linksPopupContent },
+    links () { return this.$store.getters.links },
+    nodes () { return this.$store.getters.nodes },
   },
 
   watch: {
@@ -53,42 +29,51 @@ export default {
       let changes = ''
       if (newVal.length < oldVal.length) {
         // if a tripis unchecked. we remove it
-        changes = oldVal.filter(item => !newVal.includes(item))
+        changes = new Set(oldVal.filter(item => !newVal.includes(item)))
         this.setHiddenFeatures('remove', changes)
       } else if (newVal.length > oldVal.length) {
         // if a trip is added, we add it!
-        changes = newVal.filter(item => !oldVal.includes(item))
+        changes = new Set(newVal.filter(item => !oldVal.includes(item)))
         this.setHiddenFeatures('add', changes)
       } else {
         this.setHiddenFeatures()
       }
     },
+    isEditorMode (val) {
+      val ? this.map.off('dblclick', this.selectLine) : this.map.on('dblclick', this.selectLine)
+    },
   },
   created () {
-    this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
-    this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
     this.setHiddenFeatures()
+    this.map.on('dblclick', this.selectLine)
   },
 
   methods: {
+
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
-      this.popup.coordinates = [event.mapboxEvent.lngLat.lng,
-        event.mapboxEvent.lngLat.lat,
-      ]
-      this.popup.content = event.mapboxEvent.features[0].properties.popupContent
-      this.popup.showed = true
+      this.selectedFeatures = event.mapboxEvent.features
+      if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
+      if (this.selectedPopupContent.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+        this.popup = new mapboxgl.Popup({ closeButton: false })
+          .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+          .setHTML(this.selectedFeatures[0].properties[this.selectedPopupContent])
+          .addTo(event.map)
+      }
     },
     leaveLink (event) {
+      this.selectedFeatures = []
+      if (this.popup?.isOpen()) this.popup.remove()
       event.map.getCanvas().style.cursor = ''
-      this.popup.showed = false
     },
     setHiddenFeatures (method = 'all', trips = []) {
       // get visible links and nodes.
-      // const startTime = performance.now()
       if (method === 'all') {
-        // eslint-disable-next-line max-len
-        this.visibleLinks.features = this.links.features.filter(link => this.showedTrips.includes(link.properties.trip_id))
+        this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
+        this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
+        const showedTripsSet = new Set(this.showedTrips)
+        this.visibleLinks.features = this.links.features.filter(
+          link => showedTripsSet.has(link.properties.trip_id))
         // get all unique width
         const widthArr = [...new Set(this.visibleLinks.features.map(item => Number(item.properties.route_width)))]
         // create a dict {width:[node_index]}
@@ -112,13 +97,13 @@ export default {
           this.visibleNodes.features.push(...newNodes)
         })
       } else if (method === 'remove') {
-        this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.includes(link.properties.trip_id))
+        this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.has(link.properties.trip_id))
         const a = this.visibleLinks.features.map(item => item.properties.a)
         const b = this.visibleLinks.features.map(item => item.properties.b)
-        const ab = Array.from(new Set([...a, ...b]))
-        this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.includes(node.properties.index))
+        const ab = new Set([...a, ...b])
+        this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.has(node.properties.index))
       } else if (method === 'add') {
-        const newFeatures = this.links.features.filter(link => trips.includes(link.properties.trip_id))
+        const newFeatures = this.links.features.filter(link => trips.has(link.properties.trip_id))
         this.visibleLinks.features.push(...newFeatures)
         // get all unique value of width
         const widthArr = [...new Set(newFeatures.map(item => Number(item.properties.route_width)))]
@@ -146,17 +131,30 @@ export default {
         })
       }
       // const endTime = performance.now()
-      // console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
     },
-    selectLine (event) {
-      event.mapboxEvent.preventDefault() // prevent map control
-      this.popup.showed = false
-      // eslint-disable-next-line max-len
-      this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
-      this.$store.commit('changeNotification', { text: '', autoClose: true })
+    selectLine (e) {
+      e.preventDefault() // prevent map control
+      // if we are not hovering. select closest link (within 5 pixels)
+      if (this.selectedFeatures.length === 0) {
+        // Set `bbox` as 5px reactangle area around clicked point.
+        const bbox = [
+          [e.point.x - 5, e.point.y - 5],
+          [e.point.x + 5, e.point.y + 5],
+        ]
+        // Find features intersecting the bounding box.
+        this.selectedFeatures = this.map.queryRenderedFeatures(bbox, {
+          layers: ['links'],
+        })
+      }
+      // do nothing if nothing is clicked (clicking on map, not on a link)
+      if (this.selectedFeatures.length > 0) {
+        // set. the first one as editor mode
+        // eslint-disable-next-line max-len
+        this.$store.commit('setEditorTrip', { tripId: this.selectedFeatures[0].properties.trip_id, changeBounds: false })
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
     },
     editLineProperties (event) {
-      this.popup.showed = false
       // eslint-disable-next-line max-len
       this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$emit('rightClick', { action: 'Edit Line Info', lingering: false })
@@ -195,7 +193,7 @@ export default {
           'line-cap': 'round',
         }
       }"
-      v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, dblclick: selectLine, contextmenu:editLineProperties }"
+      v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:editLineProperties }"
     />
 
     <MglGeojsonLayer
@@ -223,14 +221,6 @@ export default {
         },
       }"
     />
-
-    <MglPopup
-      :close-button="false"
-      :showed="popup.showed"
-      :coordinates="popup.coordinates"
-    >
-      {{ popup.content }}
-    </MglPopup>
   </section>
 </template>
 <style lang="scss" scoped>

@@ -10,8 +10,6 @@ import router from './router'
 import Vuetify from 'vuetify'
 import VueApexCharts from 'vue-apexcharts'
 
-import VueLocalStorage from 'vue-localstorage'
-
 import 'promise-polyfill/src/polyfill'
 
 import fr from 'vuetify/es5/locale/fr'
@@ -23,7 +21,7 @@ import pt from 'vuetify/es5/locale/pt'
 import translations from './translations.json'
 
 import App from './App.vue'
-import { mapboxPublicKey, backUri } from '@src/config.js'
+import { mapboxPublicKey } from '@src/config.js'
 
 console.assert(mapboxPublicKey)
 
@@ -69,8 +67,6 @@ Vue.use(GetTextPlugin, {
   silent: true,
 })
 
-Vue.use(VueLocalStorage)
-
 Vue.config.productionTip = false
 Vue.config.devtools = false
 Vue.config.performance = false
@@ -83,8 +79,10 @@ const vuetify = new Vuetify({
     themes: {
       light: {
         primary: '#B5E0D6',
+        primarydark: '#7EBAAC',
         secondary: '#2C3E4E',
         secondarydark: '#1A242C',
+        secondarylight: '#334453',
         lightgrey: '#E3E4E6',
         mediumgrey: '#9E9E9E',
         darkgrey: '#5B5B5C',
@@ -133,12 +131,7 @@ Vue.mixin({
 })
 
 const app = new Vue({
-  localStorage: {
-    info: {
-      type: Object,
-      default: {},
-    },
-  },
+
   router,
   store,
   vuetify,

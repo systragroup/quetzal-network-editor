@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 POT_FILE="locale/myapp.pot"
 # shellcheck disable=SC2046
 yarn run gettext-extract \
