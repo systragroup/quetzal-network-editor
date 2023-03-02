@@ -114,6 +114,7 @@ const vuetify = new Vuetify({
         background: '#000000',
         white: '#000000',
         success: '#2196F3',
+        accent: '#d3c1b1',
         linksprimary: '#2196F3',
         linkssecondary: '#90CAF9',
         chart: {

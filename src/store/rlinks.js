@@ -25,6 +25,7 @@ export default {
     connectedLinks: [],
     defaultHighway: 'quenedi',
     roadSpeed: 20,
+    rlinksDefaultColor: '2196F3',
   },
 
   mutations: {
@@ -360,7 +361,7 @@ export default {
       linkProperties.b = payload.nodeIdB
       linkProperties.highway = state.defaultHighway // quenedi
       if (state.rlineAttributes.includes('oneway')) { linkProperties.oneway = 1 }
-      linkProperties.route_color = 'B5E0D6'
+      linkProperties.route_color = state.rlinksDefaultColor
       // add length, speed, time now that we have a geometry.
       const distance = length(linkGeometry)
       const time = distance / state.roadSpeed * 3600 // 20kmh hard code speed. time in secs

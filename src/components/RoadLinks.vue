@@ -334,7 +334,7 @@ export default {
         minzoom: minZoom.links,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
-          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.5, 1],
+          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 2],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
 
@@ -384,7 +384,7 @@ export default {
         type: 'circle',
         minzoom: minZoom.rendered,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.secondary],
+          'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.accent],
           'circle-stroke-color': $vuetify.theme.currentTheme.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 3],
@@ -415,7 +415,7 @@ export default {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': '#2C3E4E',
+          'circle-stroke-color': $vuetify.theme.currentTheme.white,
           'circle-stroke-width': 2,
         },
       }"

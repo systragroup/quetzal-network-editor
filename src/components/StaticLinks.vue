@@ -215,7 +215,7 @@ export default {
         minzoom: 12,
         maxzoom: 18,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false],$vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.secondary],
+          'circle-color': ['case', ['boolean', isEditorMode, false],$vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.accent],
           'circle-stroke-color': $vuetify.theme.currentTheme.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['has', 'route_width'],

@@ -299,7 +299,7 @@ export default {
         type: 'circle',
         minzoom: 2,
         paint: {
-          'circle-color': '#2C3E4E',
+          'circle-color': $vuetify.theme.currentTheme.accent,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         }
