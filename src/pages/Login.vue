@@ -3,10 +3,14 @@
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip, IndexAreDifferent } from '../components/utils/utils.js'
+import OSMImporter from '../components/utils/OSMImporter.vue'
+import loadedLinks from '../../example/loaded_links.geojson'
+import loadedNodes from '../../example/loaded_nodes.geojson'
 const $gettext = s => s
 
 export default {
   name: 'Login',
+  components: { OSMImporter },
   data () {
     return {
       loggedIn: false,
@@ -69,6 +73,15 @@ export default {
           this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
           this.filesAdded = true
           if (zipName) this.message.push($gettext('ROAD links and nodes Loaded from') + ' ' + zipName)
+        } else {
+          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
+        }
+      } else if (type === 'loaded') {
+        if (IndexAreDifferent(links, this.$store.getters['llinks/links']) &&
+            IndexAreDifferent(nodes, this.$store.getters['llinks/nodes'])) {
+          this.$store.commit('llinks/appendNewLinks', { links: links, nodes: nodes })
+          this.filesAdded = true
+          if (zipName) this.message.push($gettext('Results links and nodes Loaded from') + ' ' + zipName)
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
         }
@@ -146,6 +159,9 @@ export default {
       this.loadNetwork(links, nodes, 'PT')
       this.loadNetwork(rlinks, rnodes, 'road')
 
+      this.$store.commit('llinks/loadLinks', loadedLinks)
+      this.$store.commit('llinks/loadNodes', loadedNodes)
+
       this.$store.commit('changeLoading', false)
       this.loggedIn = true
       this.login()
@@ -153,6 +169,7 @@ export default {
     newProject () {
       this.loadNetwork(linksBase, nodesBase, 'PT')
       this.loadNetwork(linksBase, nodesBase, 'road')
+      this.loadNetwork(linksBase, nodesBase, 'loaded')
       this.$store.commit('changeNotification', { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
       this.message = []
     },
@@ -241,8 +258,12 @@ export default {
           const file = files[i]
           if (Object.keys(file).includes('links') && Object.keys(file).includes('nodes')) {
             this.loadNetwork(file.links, file.nodes, 'PT', file.zipName)
-          } if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
+          }
+          if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
             this.loadNetwork(file.road_links, file.road_nodes, 'road', file.zipName)
+          }
+          if (Object.keys(file).includes('loaded_links') && Object.keys(file).includes('loaded_nodes')) {
+            this.loadNetwork(file.loaded_links, file.loaded_nodes, 'loaded', file.zipName)
           }
         }
 
@@ -389,6 +410,9 @@ export default {
             </v-tooltip>
           </div>
           <div>
+            <OSMImporter />
+          </div>
+          <div>
             <v-btn
               :disabled="!filesAdded"
               color="primary"
@@ -455,7 +479,8 @@ export default {
 .layout-overlay {
   height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color:var(--v-background-base);
+
   position: absolute;
 }
 .card {
@@ -470,12 +495,13 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 3.5em;
-  color: $primary !important;
+  color: var(--v-primary-base);
+
   font-weight: bold;
 }
 .subtitle {
   font-size: 2em;
-  color: $secondary !important;
+  color: var(--v-secondarydark-base) !important;
   font-weight: bold;
   margin: 40px;
 }

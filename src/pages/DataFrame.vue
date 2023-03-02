@@ -212,6 +212,7 @@ export default {
   width: calc(100%);
   height: calc(100% - 50px);
   display: flex;
+  background-color:  var(--v-background-base);
   justify-content: center;
   align-items: center;
 }

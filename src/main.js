@@ -51,6 +51,7 @@ const languageMixin = {
 Vue.component('Apexchart', VueApexCharts)
 
 const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr', 'es', 'de', 'pt'])
+const darkMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
 Vue.use(Vuetify)
 Vue.use(GetTextPlugin, {
@@ -68,25 +69,31 @@ Vue.use(GetTextPlugin, {
 })
 
 Vue.config.productionTip = false
-Vue.config.devtools = false
+Vue.config.devtools = true
 Vue.config.performance = false
 
 const vuetify = new Vuetify({
   theme: {
+    dark: !!darkMode,
     options: {
       customProperties: true,
     },
     themes: {
+
       light: {
         primary: '#B5E0D6',
         primarydark: '#7EBAAC',
         secondary: '#2C3E4E',
         secondarydark: '#1A242C',
         secondarylight: '#334453',
+        background: '#808080',
         lightgrey: '#E3E4E6',
+        white: '#fff',
         mediumgrey: '#9E9E9E',
         darkgrey: '#5B5B5C',
         accent: '#2C3E4E',
+        linksprimary: '#7EBAAC',
+        linkssecondary: '#B5E0D6',
         chart: {
           lightgreen: '#CDDC39',
           darkgreen: '#4CAF50',
@@ -98,6 +105,30 @@ const vuetify = new Vuetify({
           yellow: '#FFC107',
         },
       },
+      dark: {
+        primary: '#2196F3',
+        primarydark: '#191919',
+        secondary: '#263238',
+        secondarydark: '#fff',
+        mediumgrey: '#575757',
+        background: '#000000',
+        white: '#000000',
+        success: '#2196F3',
+        linksprimary: '#2196F3',
+        linkssecondary: '#90CAF9',
+        chart: {
+          lightgreen: '#CDDC39',
+          darkgreen: '#4CAF50',
+          lightblue: '#00BCD4',
+          darkblue: '#2196F3',
+          purple: '#673AB7',
+          pink: '#E91E63',
+          orange: '#FF7B30',
+          yellow: '#FFC107',
+        },
+
+      },
+
     },
   },
   icons: {

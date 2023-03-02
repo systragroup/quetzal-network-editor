@@ -1,9 +1,11 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@page/Login.vue'
+import ResultPicture from '@page/ResultPicture.vue'
 import { store } from '../store/index.js'
 import Home from '@page/Home.vue'
 import DataFrame from '@page/DataFrame.vue'
+import ResultMap from '@page/ResultMap.vue'
 
 Vue.use(Router)
 
@@ -36,6 +38,20 @@ const router = new Router({
       component: DataFrame,
       icon: 'fa-solid fa-table',
       title: $gettext('Table'),
+    },
+    {
+      path: '/ResultMap',
+      name: ResultMap.name,
+      component: ResultMap,
+      icon: 'fa-solid fa-layer-group',
+      title: $gettext('Results Map'),
+    },
+    {
+      path: '/ResultPicture',
+      name: ResultPicture.name,
+      component: ResultPicture,
+      icon: 'fas fa-images',
+      title: $gettext('Results Pictures'),
     },
   ],
 })

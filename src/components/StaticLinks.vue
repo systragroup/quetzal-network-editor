@@ -43,6 +43,7 @@ export default {
       val ? this.map.off('dblclick', this.selectLine) : this.map.on('dblclick', this.selectLine)
     },
   },
+
   created () {
     this.setHiddenFeatures()
     this.map.on('dblclick', this.selectLine)
@@ -180,7 +181,7 @@ export default {
         minzoom: 1,
         maxzoom: 18,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.1, 1],
           'line-width': ['case', ['has', 'route_width'],
                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
@@ -211,8 +212,8 @@ export default {
         minzoom: 12,
         maxzoom: 18,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false],'#9E9E9E', '#2C3E4E'],
-          'circle-stroke-color': '#ffffff',
+          'circle-color': ['case', ['boolean', isEditorMode, false],$vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.secondary],
+          'circle-stroke-color': $vuetify.theme.currentTheme.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['has', 'route_width'],
                             ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],

@@ -120,7 +120,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             v-bind="attrs"
             v-on="on"
             @click="showAll()"
@@ -140,7 +140,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             :disabled="tripList.length===0? true: false"
             v-bind="attrs"
             v-on="on"
@@ -155,7 +155,10 @@ export default {
       </v-tooltip>
 
       <v-spacer />
-      {{ $gettext("Roads") }}
+      <span :style="{color: 'white'}">
+        {{ $gettext("Roads") }}
+      </span>
+
       <v-spacer />
 
       <v-spacer />
@@ -169,7 +172,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             dark
             v-bind="attrs"
             v-on="on"

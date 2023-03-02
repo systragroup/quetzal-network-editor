@@ -52,10 +52,11 @@ export default {
       selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
       showSettings: false,
+
     }
   },
   computed: {
-
+    mapStyle () { return this.$store.getters.mapStyle },
     showLeftPanel () {
       return this.$store.getters.showLeftPanel
     },
@@ -74,6 +75,7 @@ export default {
     anchorMode () { return this.$store.getters.anchorMode },
   },
   watch: {
+
     showLeftPanel () {
       setTimeout(() => this.map.resize(), 250)
     },
@@ -161,6 +163,7 @@ export default {
 
   methods: {
     onMapLoaded (event) {
+      if (this.map) this.map.remove(); this.mapIsLoaded = false
       const bounds = new Mapbox.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if (this.$store.getters.links.features.length > 0) {
@@ -326,9 +329,10 @@ export default {
 </script>
 <template>
   <MglMap
+    :key="mapStyle"
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
-    map-style="mapbox://styles/mapbox/light-v9?optimize=true"
+    :map-style="mapStyle"
     @load="onMapLoaded"
     @mousemove="draw"
     @mouseout="resetDraw()"
@@ -410,7 +414,7 @@ export default {
           minzoom: 2,
           paint: {
             'line-opacity': 1,
-            'line-color': '#7EBAAC',
+            'line-color': $vuetify.theme.currentTheme.linksprimary,
             'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
             'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 

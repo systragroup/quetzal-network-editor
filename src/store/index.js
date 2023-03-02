@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import linksModule from './links.js'
+import llinksModule from './llinks.js'
 import rlinksModule from './rlinks.js'
+import resultsModule from './results.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 Vue.use(Vuex)
@@ -10,10 +12,13 @@ export const store = new Vuex.Store({
   modules: {
     links: linksModule,
     rlinks: rlinksModule,
+    llinks: llinksModule,
+    results: resultsModule,
   },
 
   state: {
     notification: {},
+    darkMode: false,
     loading: false,
     anchorMode: false,
     showLeftPanel: true,
@@ -26,6 +31,9 @@ export const store = new Vuex.Store({
   mutations: {
     changeNotification (state, payload) {
       state.notification = payload
+    },
+    changeDarkMode (state, payload) {
+      state.darkMode = payload
     },
     changeLoading (state, payload) {
       state.loading = payload
@@ -123,6 +131,14 @@ export const store = new Vuex.Store({
     projectIsEmpty: (state) => {
       return (state.links.links.features.length === 0 &&
               state.rlinks.rlinks.features.length === 0)
+    },
+    availableLayers: (state) => { return ['links', 'rlinks', 'llinks'] },
+    mapStyle: (state) => {
+      if (state.darkMode) {
+        return 'mapbox://styles/mapbox/dark-v11?optimize=true'
+      } else {
+        return 'mapbox://styles/mapbox/light-v11?optimize=true'
+      }
     },
 
   },

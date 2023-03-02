@@ -269,6 +269,8 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode && this.selectedFeature) {
+        console.time('test_timer')
+
         const click = {
           selectedFeature: this.selectedFeature,
           action: null,
@@ -284,6 +286,7 @@ export default {
           click.action = 'Move rNode'
           this.$emit('clickFeature', click)
         }
+        console.timeEnd('test_timer')
       }
     },
     stopMovingNode (event) {
@@ -328,7 +331,7 @@ export default {
         type: 'line',
         minzoom: minZoom.links,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.5, 1],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 2],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
@@ -360,7 +363,7 @@ export default {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
+          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
         }
       }"
     />
@@ -379,8 +382,8 @@ export default {
         type: 'circle',
         minzoom: minZoom.rendered,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false],'#9E9E9E', '#2C3E4E'],
-          'circle-stroke-color': '#ffffff',
+          'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.secondary],
+          'circle-stroke-color': $vuetify.theme.currentTheme.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 3],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
