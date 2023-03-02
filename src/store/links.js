@@ -192,20 +192,31 @@ export default {
       const uneditable = ['index', 'length', 'a', 'b', 'link_sequence']
       // empty trip, when its a newLine
       if (state.editorLinks.features.length === 0) {
-        function getDefaultValue (key) {
-          const defaultValue = { route_width: 3, route_color: '00BCD4' }
-          return defaultValue[key] || null
+        const defaultValue = {
+          route_id: 'quenedi_1',
+          agency_id: 'quenedi',
+          route_long_name: 'new_quenedi_route',
+          route_short_name: '1',
+          route_type: 'quenedi',
+          route_color: '00BCD4',
+          route_width: 3,
+          headway: 600,
+          pickup_type: 0,
+          drop_off_type: 0,
+          direction_id: 0,
         }
 
+        console.log(state.lineAttributes)
         state.lineAttributes.forEach(key => {
           form[key] = {
-            value: getDefaultValue[key],
+            value: defaultValue[key],
             disabled: uneditable.includes(key),
             placeholder: false,
           }
         })
 
         form.trip_id = { value: state.editorTrip, disabled: false, placeholder: false }
+        console.log(form)
       } else {
         const features = state.editorLinks.features
 
