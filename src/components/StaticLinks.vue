@@ -54,11 +54,14 @@ export default {
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
       this.selectedFeatures = event.mapboxEvent.features
+
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
       if (this.selectedPopupContent.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+        let htmlContent = this.selectedPopupContent.map(prop => `${prop}: <b>${this.selectedFeatures[0].properties[prop]}</b>`)
+        htmlContent = htmlContent.join('<br> ')
         this.popup = new mapboxgl.Popup({ closeButton: false })
           .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-          .setHTML(this.selectedFeatures[0].properties[this.selectedPopupContent])
+          .setHTML(htmlContent)
           .addTo(event.map)
       }
     },

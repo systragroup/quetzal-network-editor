@@ -367,7 +367,7 @@ export default {
       </template>
       <Settings
         v-if="showSettings"
-        @submit="showSettings=false"
+        @submit="() => showSettings=false"
       />
     </v-menu>
 
