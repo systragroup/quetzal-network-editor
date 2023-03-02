@@ -23,6 +23,7 @@ export default {
     newNode: {},
     changeBounds: true,
     linkSpeed: 20, // 20KmH for time (speed/distance)
+    linksDefaultColor: '2196F3',
     lineAttributes: [],
     nodeAttributes: [],
     defaultAttributes: [
@@ -198,7 +199,7 @@ export default {
           route_long_name: 'QUENEDI 1',
           route_short_name: 'Q1',
           route_type: 'quenedi',
-          route_color: '00BCD4',
+          route_color: state.linksDefaultColor,
           route_width: 3,
           headway: 600,
           pickup_type: 0,

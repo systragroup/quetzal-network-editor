@@ -34,6 +34,8 @@ export const store = new Vuex.Store({
     },
     changeDarkMode (state, payload) {
       state.darkMode = payload
+      state.rlinks.rlinksDefaultColor = state.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
+      state.links.linksDefaultColor = state.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
     },
     changeLoading (state, payload) {
       state.loading = payload
