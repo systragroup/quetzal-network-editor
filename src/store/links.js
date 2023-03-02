@@ -743,7 +743,6 @@ export default {
     tripId: (state) => state.tripId,
     selectedTrips: (state) => state.selectedTrips,
     editorLineInfo: (state) => state.editorLineInfo,
-    linksPopupChoices: (state) => { const ls = structuredClone(state.lineAttributes); ls.unshift([]); return ls },
     newLink: (state) => state.newLink,
     newNode: (state) => state.newNode,
     firstNodeId: (state) => state.editorNodes.features.length > 1

@@ -23,8 +23,8 @@ export const store = new Vuex.Store({
     anchorMode: false,
     showLeftPanel: true,
     windowHeight: 0,
-    linksPopupContent: 'trip_id',
-    roadsPopupContent: 'highway',
+    linksPopupContent: ['trip_id'],
+    roadsPopupContent: ['highway'],
     outputName: 'output',
 
   },

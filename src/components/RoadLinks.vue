@@ -115,9 +115,11 @@ export default {
           if (!this.disablePopup && this.selectedPopupContent.length > 0) {
             const selectedFeature = event.mapboxEvent.features[0]
             if (selectedFeature.layer.id !== 'rnodes') {
+              let htmlContent = this.selectedPopupContent.map(prop => `${prop}: <b>${selectedFeature.properties[prop]}</b>`)
+              htmlContent = htmlContent.join('<br> ')
               this.popup = new mapboxgl.Popup({ closeButton: false })
                 .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-                .setHTML(selectedFeature.properties[this.selectedPopupContent])
+                .setHTML(htmlContent)
                 .addTo(event.map)
             }
           }
