@@ -24,7 +24,7 @@ export default {
         links: 8,
       },
       showSettings: false,
-      selectedLayer: 'llinks',
+      selectedLayer: 'zones',
       selectedCategory: [],
       form: {},
       showDialog: false,
@@ -71,13 +71,16 @@ export default {
       this.selectedLayer = layer
       switch (layer) {
         case 'links':
-          this.$store.commit('results/loadLinks', this.$store.getters.links)
+          this.$store.commit('results/loadLinks', { geojson: this.$store.getters.links, type: 'links' })
           break
         case 'rlinks':
-          this.$store.commit('results/loadLinks', this.$store.getters.rlinks)
+          this.$store.commit('results/loadLinks', { geojson: this.$store.getters.rlinks, type: 'links' })
           break
         case 'llinks':
-          this.$store.commit('results/loadLinks', this.$store.getters['llinks/links'])
+          this.$store.commit('results/loadLinks', { geojson: this.$store.getters['llinks/links'], type: 'links' })
+          break
+        case 'zones':
+          this.$store.commit('results/loadLinks', { geojson: this.$store.getters['zones/zones'], type: 'zones' })
           break
       }
       // this.selectedFilter = this.$store.getters['results/selectedFilter']

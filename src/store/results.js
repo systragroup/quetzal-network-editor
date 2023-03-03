@@ -20,6 +20,7 @@ function remap (val, minVal, maxVal, reverse, scale) {
 export default {
   namespaced: true,
   state: {
+    type: 'links',
     links: {},
     visibleLinks: {},
     linksHeader: {},
@@ -45,16 +46,13 @@ export default {
 
   mutations: {
     loadLinks (state, payload) {
-      state.links = structuredClone(payload)
+      state.links = structuredClone(payload.geojson)
+      state.type = payload.type
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = { ...state.links }
         linksHeader.features = []
         state.linksHeader = linksHeader
         state.visibleLinks = structuredClone(linksHeader)
-        // limit geometry precision to 6 digit
-        state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-          points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-
         // set all trips visible
         // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('results/getLinksProperties')
@@ -66,10 +64,6 @@ export default {
         const nodesHeader = { ...state.nodes }
         nodesHeader.features = []
         state.nodesHeader = nodesHeader
-        // limit geometry precision to 6 digit
-        state.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-          coord => Math.round(Number(coord) * 1000000) / 1000000))
-
         // this.commit('getNodesProperties')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
@@ -148,6 +142,7 @@ export default {
   },
 
   getters: {
+    type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
     nodes: (state) => state.nodes,

@@ -33,13 +33,18 @@ export default {
   },
   computed: {
     mapStyle () { return this.$store.getters.mapStyle },
+    layerType () { return this.$store.getters['results/type'] },
 
   },
   watch: {
     mapStyle (val) {
       if (this.map) {
-        this.map.removeLayer('arrow')
-        this.map.removeLayer('links')
+        try {
+          this.map.removeLayer('arrow')
+          this.map.removeLayer('links')
+          this.map.removeLayer('zones')
+        } catch {}
+
         this.mapIsLoaded = false
       }
     },
@@ -50,7 +55,9 @@ export default {
   beforeDestroy () {
     // remove arrow layer first as it depend on rlink layer
     if (this.map) {
-      this.map.removeLayer('arrow')
+      try {
+        this.map.removeLayer('arrow')
+      } catch {}
     }
   },
 
@@ -60,11 +67,17 @@ export default {
 
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-
-      this.links.features.forEach(link => {
-        bounds.extend([link.geometry.coordinates[0],
-          link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-      })
+      if (this.layerType === 'zones') {
+        this.links.features.forEach(link => {
+          bounds.extend([link.geometry.coordinates[0][0][0],
+            link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
+        })
+      } else {
+        this.links.features.forEach(link => {
+          bounds.extend([link.geometry.coordinates[0],
+            link.geometry.coordinates[link.geometry.coordinates.length - 1]])
+        })
+      }
 
       // for empty (new) project, do not fit bounds around the links geometries.
       if (Object.keys(bounds).length !== 0) {
@@ -120,6 +133,7 @@ export default {
     <MglNavigationControl position="bottom-right" />
 
     <MglGeojsonLayer
+      v-if="layerType == 'links'"
       source-id="links"
       :source="{
         type: 'geojson',
@@ -152,6 +166,7 @@ export default {
     />
 
     <MglImageLayer
+      v-if="layerType == 'links'"
       source-id="links"
       type="symbol"
       source="links"
@@ -171,6 +186,25 @@ export default {
         },
         paint: {
           'icon-color': ['case', ['has', 'display_color'], ['get', 'display_color'], '#B5E0D6'],
+
+        }
+      }"
+    />
+    <MglGeojsonLayer
+      v-if="layerType == 'zones'"
+      source-id="polygon"
+      :source="{
+        type: 'geojson',
+        data: links,
+        promoteId: 'index',
+      }"
+      layer-id="poly"
+      :layer="{
+        interactive: true,
+        type: 'fill',
+        'paint': {
+          'fill-color':['case', ['has', 'display_color'],['get', 'display_color'], $vuetify.theme.currentTheme.linksprimary],
+          'fill-opacity': 0.9,
 
         }
       }"

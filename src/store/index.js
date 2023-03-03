@@ -4,6 +4,7 @@ import linksModule from './links.js'
 import llinksModule from './llinks.js'
 import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
+import zonesModule from './zones.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 Vue.use(Vuex)
@@ -13,6 +14,7 @@ export const store = new Vuex.Store({
     links: linksModule,
     rlinks: rlinksModule,
     llinks: llinksModule,
+    zones: zonesModule,
     results: resultsModule,
   },
 
@@ -134,7 +136,7 @@ export const store = new Vuex.Store({
       return (state.links.links.features.length === 0 &&
               state.rlinks.rlinks.features.length === 0)
     },
-    availableLayers: (state) => { return ['links', 'rlinks', 'llinks'] },
+    availableLayers: (state) => { return ['links', 'rlinks', 'llinks', 'zones'] },
     mapStyle: (state) => {
       if (state.darkMode) {
         return 'mapbox://styles/mapbox/dark-v11?optimize=true'
