@@ -216,6 +216,7 @@ export default {
       @mouseenter="enterLink"
       @mouseleave="leaveLink"
       @click="zoneClick"
+      @contextmenu="zoneClick"
     />
   </MglMap>
 </template>
