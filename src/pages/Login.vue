@@ -2,12 +2,8 @@
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
-import { extractZip, IndexAreDifferent } from '../components/utils/utils.js'
+import { extractZip, IndexAreDifferent, unzip } from '../components/utils/utils.js'
 import OSMImporter from '../components/utils/OSMImporter.vue'
-import loadedLinks from '../../example/loaded_links.geojson'
-import loadedNodes from '../../example/loaded_nodes.geojson'
-import zones from '../../example/zones.geojson'
-import mat from '../../example/full_zones.json'
 
 const $gettext = s => s
 
@@ -49,15 +45,14 @@ export default {
     },
 
   },
-  mounted () {
+  async  mounted () {
     this.$store.commit('changeNotification', '')
   },
   methods: {
     login () {
       // Leave time for animation to end (.animate-login and .animate-layer css rules)
       setTimeout(() => {
-        // this.$router.push('/Home').catch(() => {})
-        this.$router.push('/ResultMap').catch(() => {})
+        this.$router.push('/Home').catch(() => {})
       }, 300)
     },
 
@@ -140,35 +135,39 @@ export default {
     async loadExample () {
       this.$store.commit('changeLoading', true)
       const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
-      const links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
 
+      let links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
       if (!links) return
-
-      const nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
+      let nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-
       if (!nodes) return
-
-      const rlinks = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-
-      if (!rlinks) return
-
-      const rnodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-
-      if (!rnodes) return
-
       this.loadNetwork(links, nodes, 'PT')
-      this.loadNetwork(rlinks, rnodes, 'road')
 
-      this.$store.commit('llinks/loadLinks', loadedLinks)
-      this.$store.commit('llinks/loadNodes', loadedNodes)
+      links = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+      if (!links) return
+      nodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+      if (!nodes) return
+      this.loadNetwork(links, nodes, 'road')
 
-      this.$store.commit('zones/loadZones', { zones: zones, mat: mat })
-      console.log(mat)
-      console.log(zones)
+      links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+      if (!links) return
+      nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+      if (!nodes) return
+      this.loadNetwork(links, nodes, 'loaded')
+
+      // this is zones and mat. reuse var to save memory
+      links = await fetch(url + 'zones.geojson').then(res => res.json())
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+      if (!links) return
+      nodes = await fetch(url + 'full_zones.zip').then(res => unzip(res.blob()))
+        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+      if (!nodes) return
+      this.$store.commit('zones/loadZones', { zones: links, mat: nodes })
 
       this.$store.commit('changeLoading', false)
       this.loggedIn = true

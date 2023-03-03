@@ -72,4 +72,14 @@ function IndexAreDifferent (geojsonA, geojsonB) {
   return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
 }
 
-export { extractZip, getGroupForm, indexAreUnique, IndexAreDifferent }
+async function unzip (file) {
+  // unzip a file and return a json (solo json zipped)
+  const ZIP = new JSZip()
+  const zip = await ZIP.loadAsync(file)
+  const filesNames = Object.keys(zip.files)
+  const str = await zip.file(filesNames[0]).async('string')
+  const content = JSON.parse(str)
+  return content
+}
+
+export { extractZip, getGroupForm, indexAreUnique, IndexAreDifferent, unzip }

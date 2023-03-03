@@ -17,17 +17,18 @@ export default {
       state.properties = Object.keys(state.mat)
       state.selectedProperty = state.properties[0]
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.zones.crs.properties.name)) {
-        // state.zones.features.forEach(zone => zone.geometry.coordinates = zone.geometry.coordinates.map(
-        //  points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-
+        // if init with nothing, do nothing.
+        if (state.zones.features.length > 0) {
         // init the property with the first zone index
-        const initIndex = state.zones.features[0].properties.index
-        // for each properties in matrix, init the zones to the fist value.
-        state.properties.forEach(
-          prop =>
-            state.zones.features.forEach(
-              zone => zone.properties[prop] = state.mat[prop][initIndex][zone.properties.index]),
-        )
+          const initIndex = state.zones.features[0].properties.index
+          // for each properties in matrix, init the zones to the fist value.
+
+          state.properties.forEach(
+            prop =>
+              state.zones.features.forEach(
+                zone => zone.properties[prop] = state.mat[prop][initIndex][zone.properties.index]),
+          )
+        }
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     changeZone (state, payload) {
