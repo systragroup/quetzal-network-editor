@@ -16,7 +16,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['links', 'selectedFeature'],
+  props: ['links', 'selectedFeature', 'opacity'],
   events: ['selectClick'],
 
   data () {
@@ -33,13 +33,17 @@ export default {
   },
   computed: {
     mapStyle () { return this.$store.getters.mapStyle },
+    layerType () { return this.$store.getters['results/type'] },
 
   },
   watch: {
     mapStyle (val) {
-      if (this.map) {
+      if (this.map && this.layerType === 'links') {
         this.map.removeLayer('arrow')
         this.map.removeLayer('links')
+        this.mapIsLoaded = false
+      } else if (this.map && this.layerType === 'zones') {
+        this.map.removeLayer('zones')
         this.mapIsLoaded = false
       }
     },
@@ -49,7 +53,8 @@ export default {
   },
   beforeDestroy () {
     // remove arrow layer first as it depend on rlink layer
-    if (this.map) {
+    // console.log(this.map)
+    if (this.map.getLayer('arrow')) {
       this.map.removeLayer('arrow')
     }
   },
@@ -57,14 +62,19 @@ export default {
   methods: {
     onMapLoaded (event) {
       if (this.map) this.map.remove()
-
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-
-      this.links.features.forEach(link => {
-        bounds.extend([link.geometry.coordinates[0],
-          link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-      })
+      if (this.layerType === 'zones') {
+        this.links.features.forEach(link => {
+          bounds.extend([link.geometry.coordinates[0][0][0],
+            link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
+        })
+      } else {
+        this.links.features.forEach(link => {
+          bounds.extend([link.geometry.coordinates[0],
+            link.geometry.coordinates[link.geometry.coordinates.length - 1]])
+        })
+      }
 
       // for empty (new) project, do not fit bounds around the links geometries.
       if (Object.keys(bounds).length !== 0) {
@@ -88,7 +98,7 @@ export default {
       event.map.getCanvas().style.cursor = 'pointer'
       this.selectedLinks = event.mapboxEvent.features
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-      if (this.selectedFeature.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+      if (this.selectedFeature.length > 0 && this.layerType !== 'zones') { // do not show popup if nothing is selected
         const val = this.selectedLinks[0].properties[this.selectedFeature]
         this.popup = new mapboxgl.Popup({ closeButton: false })
           .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
@@ -102,7 +112,16 @@ export default {
       event.map.getCanvas().style.cursor = ''
     },
     selectClick (event) {
-      if (this.selectedLinks?.length > 0) this.$emit('selectClick', this.selectedLinks[0].properties)
+      this.selectedLinks = event.mapboxEvent.features
+      if (this.selectedLinks?.length > 0) {
+        this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'featureClick' })
+      }
+    },
+    zoneClick (event) {
+      this.selectedLinks = event.mapboxEvent.features
+      if (this.selectedLinks?.length > 0) {
+        this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'zoneClick' })
+      }
     },
 
   },
@@ -120,6 +139,7 @@ export default {
     <MglNavigationControl position="bottom-right" />
 
     <MglGeojsonLayer
+      v-if="layerType == 'links'"
       source-id="links"
       :source="{
         type: 'geojson',
@@ -135,7 +155,7 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'display_color'],['get', 'display_color'], '#B5E0D6'],
           'line-offset': ['*',0.5,['to-number', ['get', 'display_width']]],
-          'line-opacity':1,
+          'line-opacity':opacity/100,
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0],
           'line-width':['to-number', ['get', 'display_width']],
 
@@ -152,6 +172,7 @@ export default {
     />
 
     <MglImageLayer
+      v-if="layerType == 'links'"
       source-id="links"
       type="symbol"
       source="links"
@@ -171,9 +192,34 @@ export default {
         },
         paint: {
           'icon-color': ['case', ['has', 'display_color'], ['get', 'display_color'], '#B5E0D6'],
+          'icon-opacity':opacity/100,
 
         }
       }"
+    />
+    <MglGeojsonLayer
+      v-if="layerType == 'zones'"
+      source-id="polygon"
+      :source="{
+        type: 'geojson',
+        data: links,
+        promoteId: 'index',
+      }"
+      layer-id="zones"
+      :layer="{
+        interactive: true,
+        type: 'fill',
+        'paint': {
+          'fill-color':['case', ['has', 'display_color'],['get', 'display_color'],
+                        $vuetify.theme.currentTheme.linksprimary],
+          'fill-opacity': opacity/100,
+
+        }
+      }"
+      @mouseenter="enterLink"
+      @mouseleave="leaveLink"
+      @click="zoneClick"
+      @contextmenu="selectClick"
     />
   </MglMap>
 </template>

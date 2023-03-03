@@ -20,6 +20,7 @@ function remap (val, minVal, maxVal, reverse, scale) {
 export default {
   namespaced: true,
   state: {
+    type: 'links',
     links: {},
     visibleLinks: {},
     linksHeader: {},
@@ -37,6 +38,7 @@ export default {
       minVal: 0, // option to blocked them. so its an input and its not recompute
       maxVal: 1,
       cmap: 'OrRd',
+      opacity: 100,
       showNaN: true,
       reverseColor: false,
     },
@@ -45,19 +47,20 @@ export default {
 
   mutations: {
     loadLinks (state, payload) {
-      state.links = structuredClone(payload)
+      state.links = payload.geojson
+      state.type = payload.type
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = { ...state.links }
         linksHeader.features = []
         state.linksHeader = linksHeader
         state.visibleLinks = structuredClone(linksHeader)
-        // limit geometry precision to 6 digit
-        state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-          points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-
         // set all trips visible
         // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('results/getLinksProperties')
+
+        if (payload.selectedFeature) {
+          state.displaySettings.selectedFeature = payload.selectedFeature
+        }
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     loadNodes (state, payload) {
@@ -66,12 +69,13 @@ export default {
         const nodesHeader = { ...state.nodes }
         nodesHeader.features = []
         state.nodesHeader = nodesHeader
-        // limit geometry precision to 6 digit
-        state.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-          coord => Math.round(Number(coord) * 1000000) / 1000000))
-
         // this.commit('getNodesProperties')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
+    },
+    updateLinks (state, payload) {
+      state.links = payload
+      this.commit('results/updateSelectedFeature')
+      this.commit('results/refreshVisibleLinks')
     },
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
@@ -99,6 +103,7 @@ export default {
       state.displaySettings.numStep = payload.numStep
       state.displaySettings.scale = payload.scale
       state.displaySettings.cmap = payload.cmap
+      state.displaySettings.opacity = payload.opacity
       state.displaySettings.showNaN = payload.showNaN
       state.displaySettings.reverseColor = payload.reverseColor
       this.commit('results/updateSelectedFeature')
@@ -148,6 +153,7 @@ export default {
   },
 
   getters: {
+    type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
     nodes: (state) => state.nodes,
@@ -163,6 +169,7 @@ export default {
     minWidth: (state) => state.displaySettings.minWidth,
     numStep: (state) => state.displaySettings.numStep,
     scale: (state) => state.displaySettings.scale,
+    opacity: (state) => state.displaySettings.opacity,
     colorScale: (state) => {
       const arr = []
       const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.1, 0])

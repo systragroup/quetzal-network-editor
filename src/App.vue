@@ -36,6 +36,7 @@ export default {
     this.$store.commit('loadNodes', nodesBase)
     this.$store.commit('loadrNodes', nodesBase)
     this.$store.commit('llinks/loadNodes', nodesBase)
+    this.$store.commit('zones/loadZones', { zones: linksBase, mat: {} })
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
   },
   methods: {

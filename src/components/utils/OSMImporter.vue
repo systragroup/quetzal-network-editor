@@ -62,6 +62,7 @@ export default {
       const bbox = bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat])
       this.poly = buffer(bbox, -0.1 * (bounds._ne.lat - bounds._sw.lat), { units: 'degrees' })
       this.poly.geometry.coordinates[0] = this.poly.geometry.coordinates[0].reverse()
+      console.log(this.poly)
     },
   },
 

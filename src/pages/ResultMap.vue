@@ -24,7 +24,7 @@ export default {
         links: 8,
       },
       showSettings: false,
-      selectedLayer: 'llinks',
+      selectedLayer: 'zones',
       selectedCategory: [],
       form: {},
       showDialog: false,
@@ -71,21 +71,46 @@ export default {
       this.selectedLayer = layer
       switch (layer) {
         case 'links':
-          this.$store.commit('results/loadLinks', this.$store.getters.links)
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.links,
+            type: 'links',
+            selectedFeature: 'headway',
+          })
           break
         case 'rlinks':
-          this.$store.commit('results/loadLinks', this.$store.getters.rlinks)
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.rlinks,
+            type: 'links',
+            selectedFeature: 'speed',
+          })
           break
         case 'llinks':
-          this.$store.commit('results/loadLinks', this.$store.getters['llinks/links'])
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters['llinks/links'],
+            type: 'links',
+            selectedFeature: 'volume',
+          })
+          break
+        case 'zones':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters['zones/zones'],
+            type: 'zones',
+            selectedFeature: this.$store.getters['zones/selectedProperty'],
+          })
           break
       }
       // this.selectedFilter = this.$store.getters['results/selectedFilter']
       this.selectedCategory = this.$store.getters['results/selectedCategory']
     },
     featureClicked (event) {
-      this.form = event
-      this.showDialog = true
+      if (event.action === 'featureClick') {
+        this.form = event.feature
+        this.showDialog = true
+      } else {
+        this.$store.commit('zones/changeZone', { index: event.feature.index })
+        this.$store.commit('results/updateLinks', this.$store.getters['zones/zones'])
+        this.$store.commit('results/refreshVisibleLinks')
+      }
     },
 
   },
@@ -123,8 +148,10 @@ export default {
     </div>
 
     <MapResults
+      :key="$store.getters['results/type']"
       :links="visibleLinks"
       :selected-feature="displaySettings.selectedFeature"
+      :opacity="displaySettings.opacity"
       @selectClick="featureClicked"
     />
 
