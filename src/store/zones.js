@@ -13,7 +13,10 @@ export default {
   mutations: {
     loadZones (state, payload) {
       state.zones = structuredClone(payload.zones)
-      state.mat = payload.mat
+
+      Object.keys(payload.mat).forEach(
+        key => { state.mat[key + ' (OD)'] = payload.mat[key] })
+
       state.properties = Object.keys(state.mat)
       state.selectedProperty = state.properties[0]
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.zones.crs.properties.name)) {
