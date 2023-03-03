@@ -102,6 +102,7 @@ export default {
       switch (this.choice) {
         case 'zip':
           this.$refs.zipInput.click()
+          document.getElementById('zip-input').value = '' // clean it for next file
           break
         case 'links':
           this.$refs.fileInput.click()
@@ -371,6 +372,7 @@ export default {
             @change="onFilePicked"
           >
           <input
+            id="zip-input"
             ref="zipInput"
             type="file"
             style="display: none"

@@ -43,6 +43,7 @@ export default {
         if (this.map.getLayer('links')) this.map.removeLayer('links')
         if (this.map.getLayer('zones')) this.map.removeLayer('zones')
         this.mapIsLoaded = false
+        this.saveMapPosition()
       }
     },
   },
@@ -55,6 +56,7 @@ export default {
     if (this.map.getLayer('arrow')) {
       this.map.removeLayer('arrow')
     }
+    this.saveMapPosition()
   },
 
   methods: {
@@ -140,7 +142,6 @@ export default {
     :map-style="mapStyle"
     :center="$store.getters.mapCenter"
     :zoom="$store.getters.mapZoom"
-    @beforeDestroy="saveMapPosition"
     @load="onMapLoaded"
   >
     <MglScaleControl position="bottom-right" />

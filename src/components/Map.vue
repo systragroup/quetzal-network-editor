@@ -93,6 +93,9 @@ export default {
         this.drawMode = false
       }
     },
+    mapStyle (val) {
+      this.saveMapPosition()
+    },
 
     editorNodes (newVal, oldVal) {
       this.$store.commit('setAnchorMode', false)
@@ -350,7 +353,6 @@ export default {
     @mouseout="resetDraw()"
     @click="addPoint"
     @mouseup="rightClickMap"
-    @beforeDestroy="saveMapPosition"
   >
     <v-menu
       v-model="showSettings"
