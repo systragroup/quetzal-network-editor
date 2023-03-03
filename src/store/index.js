@@ -144,7 +144,7 @@ export const store = new Vuex.Store({
       return (state.links.links.features.length === 0 &&
               state.rlinks.rlinks.features.length === 0)
     },
-    availableLayers: (state) => { return ['links', 'rlinks', 'llinks', 'zones'] },
+    availableLayers: (state) => { return ['zones', 'links', 'rlinks', 'llinks', 'nodes', 'rnodes', 'lnodes'] },
     mapStyle: (state) => {
       if (state.darkMode) {
         return 'mapbox://styles/mapbox/dark-v11?optimize=true'

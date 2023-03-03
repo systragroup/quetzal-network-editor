@@ -91,6 +91,27 @@ export default {
             selectedFeature: 'volume',
           })
           break
+        case 'nodes':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.nodes,
+            type: 'nodes',
+            selectedFeature: 'boardings',
+          })
+          break
+        case 'rnodes':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.rnodes,
+            type: 'nodes',
+            selectedFeature: 'boardings',
+          })
+          break
+        case 'lnodes':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters['llinks/nodes'],
+            type: 'nodes',
+            selectedFeature: 'boardings',
+          })
+          break
         case 'zones':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters['zones/zones'],

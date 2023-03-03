@@ -42,6 +42,7 @@ export default {
         if (this.map.getLayer('arrow')) this.map.removeLayer('arrow')
         if (this.map.getLayer('links')) this.map.removeLayer('links')
         if (this.map.getLayer('zones')) this.map.removeLayer('zones')
+        if (this.map.getLayer('nodes')) this.map.removeLayer('nodes')
         this.mapIsLoaded = false
         this.saveMapPosition()
       }
@@ -174,6 +175,33 @@ export default {
           'line-cap': 'round',
         }
 
+      }"
+      @mouseenter="enterLink"
+      @mouseleave="leaveLink"
+      @click="selectClick"
+    />
+    <MglGeojsonLayer
+      v-if="layerType == 'nodes'"
+      source-id="nodes"
+      :source="{
+        type: 'geojson',
+        data: links,
+        buffer: 0,
+        promoteId: 'index',
+      }"
+      layer-id="nodes"
+      :layer="{
+        interactive: true,
+        type: 'circle',
+        minzoom: minZoom.links,
+        paint: {
+          'circle-color': ['case', ['has', 'display_color'],['get', 'display_color'], '#B5E0D6'],
+          'circle-radius':['to-number', ['get', 'display_width']],
+          'circle-opacity':opacity/100,
+        },
+        layout: {
+          'circle-sort-key': ['to-number',['get', 'display_width']],
+        }
       }"
       @mouseenter="enterLink"
       @mouseleave="leaveLink"
