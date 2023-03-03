@@ -4,8 +4,8 @@ import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip, IndexAreDifferent } from '../components/utils/utils.js'
 import OSMImporter from '../components/utils/OSMImporter.vue'
-// import loadedLinks from '../../example/loaded_links.geojson'
-// import loadedNodes from '../../example/loaded_nodes.geojson'
+import loadedLinks from '../../example/loaded_links.geojson'
+import loadedNodes from '../../example/loaded_nodes.geojson'
 import zones from '../../example/zones.geojson'
 import mat from '../../example/full_zones.json'
 
@@ -161,10 +161,10 @@ export default {
       if (!rnodes) return
 
       this.loadNetwork(links, nodes, 'PT')
-      // this.loadNetwork(rlinks, rnodes, 'road')
+      this.loadNetwork(rlinks, rnodes, 'road')
 
-      // this.$store.commit('llinks/loadLinks', loadedLinks)
-      // this.$store.commit('llinks/loadNodes', loadedNodes)
+      this.$store.commit('llinks/loadLinks', loadedLinks)
+      this.$store.commit('llinks/loadNodes', loadedNodes)
 
       this.$store.commit('zones/loadZones', { zones: zones, mat: mat })
       console.log(mat)

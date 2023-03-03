@@ -271,8 +271,6 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode && this.selectedFeature) {
-        console.time('test_timer')
-
         const click = {
           selectedFeature: this.selectedFeature,
           action: null,
@@ -288,7 +286,6 @@ export default {
           click.action = 'Move rNode'
           this.$emit('clickFeature', click)
         }
-        console.timeEnd('test_timer')
       }
     },
     stopMovingNode (event) {
@@ -415,7 +412,7 @@ export default {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': $vuetify.theme.currentTheme.white,
+          'circle-stroke-color': $vuetify.theme.currentTheme.darkgrey,
           'circle-stroke-width': 2,
         },
       }"

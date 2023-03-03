@@ -20,11 +20,14 @@ export default {
         // state.zones.features.forEach(zone => zone.geometry.coordinates = zone.geometry.coordinates.map(
         //  points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
 
-        // init the property with the first zone index and the first property in the matrix.
+        // init the property with the first zone index
         const initIndex = state.zones.features[0].properties.index
-        state.zones.features.forEach(
-          zone => zone.properties[state.selectedProperty] =
-           state.mat[state.selectedProperty][initIndex][zone.properties.index])
+        // for each properties in matrix, init the zones to the fist value.
+        state.properties.forEach(
+          prop =>
+            state.zones.features.forEach(
+              zone => zone.properties[prop] = state.mat[prop][initIndex][zone.properties.index]),
+        )
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     changeZone (state, payload) {
@@ -40,5 +43,6 @@ export default {
 
   getters: {
     zones: (state) => state.zones,
+    selectedProperty: (state) => state.selectedProperty,
   },
 }

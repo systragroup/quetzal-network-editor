@@ -112,12 +112,15 @@ export default {
       event.map.getCanvas().style.cursor = ''
     },
     selectClick (event) {
-      if (this.selectedLinks?.length > 0) this.$emit('selectClick', this.selectedLinks[0].properties)
+      this.selectedLinks = event.mapboxEvent.features
+      if (this.selectedLinks?.length > 0) {
+        this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'featureClick' })
+      }
     },
     zoneClick (event) {
       this.selectedLinks = event.mapboxEvent.features
       if (this.selectedLinks?.length > 0) {
-        this.$emit('selectClick', this.selectedLinks[0].properties)
+        this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'zoneClick' })
       }
     },
 
@@ -216,7 +219,7 @@ export default {
       @mouseenter="enterLink"
       @mouseleave="leaveLink"
       @click="zoneClick"
-      @contextmenu="zoneClick"
+      @contextmenu="selectClick"
     />
   </MglMap>
 </template>

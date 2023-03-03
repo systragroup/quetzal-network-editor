@@ -57,6 +57,10 @@ export default {
         // set all trips visible
         // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('results/getLinksProperties')
+
+        if (payload.selectedFeature) {
+          state.displaySettings.selectedFeature = payload.selectedFeature
+        }
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     loadNodes (state, payload) {
