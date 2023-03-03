@@ -87,8 +87,14 @@ export default {
       this.selectedCategory = this.$store.getters['results/selectedCategory']
     },
     featureClicked (event) {
-      this.form = event
-      this.showDialog = true
+      if (this.selectedLayer !== 'zones') {
+        this.form = event
+        this.showDialog = true
+      } else {
+        this.$store.commit('zones/changeZone', { index: event.index })
+        this.$store.commit('results/updateLinks', this.$store.getters['zones/zones'])
+        this.$store.commit('results/refreshVisibleLinks')
+      }
     },
 
   },
@@ -126,8 +132,10 @@ export default {
     </div>
 
     <MapResults
+      :key="$store.getters['results/type']"
       :links="visibleLinks"
       :selected-feature="displaySettings.selectedFeature"
+      :opacity="displaySettings.opacity"
       @selectClick="featureClicked"
     />
 

@@ -43,6 +43,13 @@ export default {
         hint: $gettext('numStep'),
       },
       {
+        name: $gettext('opacity'),
+        type: 'Number',
+        value: this.displaySettings.opacity,
+        units: 'number',
+        hint: $gettext('opacity'),
+      },
+      {
         name: $gettext('scale'),
         type: 'String',
         value: this.displaySettings.scale,
@@ -106,10 +113,11 @@ export default {
       this.parameters[1].value = this.displaySettings.maxWidth
       this.parameters[2].value = this.displaySettings.minWidth
       this.parameters[3].value = this.displaySettings.numStep
-      this.parameters[4].value = this.displaySettings.scale
-      this.parameters[5].value = this.displaySettings.cmap
-      this.parameters[6].value = this.displaySettings.showNaN
-      this.parameters[7].value = this.displaySettings.reverseColor
+      this.parameters[4].value = this.displaySettings.opacity
+      this.parameters[5].value = this.displaySettings.scale
+      this.parameters[6].value = this.displaySettings.cmap
+      this.parameters[7].value = this.displaySettings.showNaN
+      this.parameters[8].value = this.displaySettings.reverseColor
     },
     submit () {
       if (this.$refs.form.validate()) {
@@ -118,10 +126,11 @@ export default {
           maxWidth: Number(this.parameters[1].value),
           minWidth: Number(this.parameters[2].value),
           numStep: Number(this.parameters[3].value),
-          scale: this.parameters[4].value,
-          cmap: this.parameters[5].value,
-          showNaN: this.parameters[6].value,
-          reverseColor: this.parameters[7].value,
+          opacity: Number(this.parameters[4].value),
+          scale: this.parameters[5].value,
+          cmap: this.parameters[6].value,
+          showNaN: this.parameters[7].value,
+          reverseColor: this.parameters[8].value,
         })
         this.showDialog = false
         this.reset()
@@ -205,19 +214,19 @@ export default {
                 @wheel="()=>{}"
               />
               <v-select
-                v-model="parameters[4].value"
-                :items="parameters[4].choices"
-                :label="$gettext(parameters[4].name)"
-                :hint="showHint? $gettext(parameters[4].hint): ''"
+                v-model="parameters[5].value"
+                :items="parameters[5].choices"
+                :label="$gettext(parameters[5].name)"
+                :hint="showHint? $gettext(parameters[5].hint): ''"
                 :persistent-hint="showHint"
                 required
               />
 
               <v-select
-                v-model="parameters[5].value"
-                :items="parameters[5].choices"
-                :label="$gettext(parameters[5].name)"
-                :hint="showHint? $gettext(parameters[5].hint): ''"
+                v-model="parameters[6].value"
+                :items="parameters[6].choices"
+                :label="$gettext(parameters[6].name)"
+                :hint="showHint? $gettext(parameters[6].hint): ''"
                 :persistent-hint="showHint"
                 required
               >
@@ -233,13 +242,28 @@ export default {
                   </div>
                 </template>
               </v-select>
-              <v-switch
-                v-model="parameters[6].value"
-                :label="parameters[6].name"
-              />
+
+              <v-slider
+                v-model="parameters[4].value"
+                class="align-center"
+                inverse-label
+                :label="parameters[4].name"
+                :max="100"
+                thumb-label
+                :min="0"
+                hide-details
+              >
+                <template v-slot:thumb-label="{ value }">
+                  {{ value +'%' }}
+                </template>
+              </v-slider>
               <v-switch
                 v-model="parameters[7].value"
                 :label="parameters[7].name"
+              />
+              <v-switch
+                v-model="parameters[8].value"
+                :label="parameters[8].name"
               />
             </v-col>
           </v-container>

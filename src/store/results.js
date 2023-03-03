@@ -38,6 +38,7 @@ export default {
       minVal: 0, // option to blocked them. so its an input and its not recompute
       maxVal: 1,
       cmap: 'OrRd',
+      opacity: 100,
       showNaN: true,
       reverseColor: false,
     },
@@ -46,7 +47,7 @@ export default {
 
   mutations: {
     loadLinks (state, payload) {
-      state.links = structuredClone(payload.geojson)
+      state.links = payload.geojson
       state.type = payload.type
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = { ...state.links }
@@ -66,6 +67,11 @@ export default {
         state.nodesHeader = nodesHeader
         // this.commit('getNodesProperties')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
+    },
+    updateLinks (state, payload) {
+      state.links = payload
+      this.commit('results/updateSelectedFeature')
+      this.commit('results/refreshVisibleLinks')
     },
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
@@ -93,6 +99,7 @@ export default {
       state.displaySettings.numStep = payload.numStep
       state.displaySettings.scale = payload.scale
       state.displaySettings.cmap = payload.cmap
+      state.displaySettings.opacity = payload.opacity
       state.displaySettings.showNaN = payload.showNaN
       state.displaySettings.reverseColor = payload.reverseColor
       this.commit('results/updateSelectedFeature')
@@ -158,6 +165,7 @@ export default {
     minWidth: (state) => state.displaySettings.minWidth,
     numStep: (state) => state.displaySettings.numStep,
     scale: (state) => state.displaySettings.scale,
+    opacity: (state) => state.displaySettings.opacity,
     colorScale: (state) => {
       const arr = []
       const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.1, 0])

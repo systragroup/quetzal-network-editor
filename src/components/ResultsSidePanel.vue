@@ -54,7 +54,7 @@ export default {
     vmodelSelectedFilter (newVal, oldVal) {
       if (oldVal) { // when created, we dont want to emit
         this.$emit('update-selectedFilter', newVal)
-        this.selectedCat = [] // remove all selected
+        this.selectedCat = this.selectedCategory // show all. when we change layer
       }
     },
   },

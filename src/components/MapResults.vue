@@ -16,7 +16,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['links', 'selectedFeature'],
+  props: ['links', 'selectedFeature', 'opacity'],
   events: ['selectClick'],
 
   data () {
@@ -38,13 +38,12 @@ export default {
   },
   watch: {
     mapStyle (val) {
-      if (this.map) {
-        try {
-          this.map.removeLayer('arrow')
-          this.map.removeLayer('links')
-          this.map.removeLayer('zones')
-        } catch {}
-
+      if (this.map && this.layerType === 'links') {
+        this.map.removeLayer('arrow')
+        this.map.removeLayer('links')
+        this.mapIsLoaded = false
+      } else if (this.map && this.layerType === 'zones') {
+        this.map.removeLayer('zones')
         this.mapIsLoaded = false
       }
     },
@@ -54,17 +53,15 @@ export default {
   },
   beforeDestroy () {
     // remove arrow layer first as it depend on rlink layer
-    if (this.map) {
-      try {
-        this.map.removeLayer('arrow')
-      } catch {}
+    // console.log(this.map)
+    if (this.map.getLayer('arrow')) {
+      this.map.removeLayer('arrow')
     }
   },
 
   methods: {
     onMapLoaded (event) {
       if (this.map) this.map.remove()
-
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if (this.layerType === 'zones') {
@@ -101,7 +98,7 @@ export default {
       event.map.getCanvas().style.cursor = 'pointer'
       this.selectedLinks = event.mapboxEvent.features
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-      if (this.selectedFeature.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+      if (this.selectedFeature.length > 0 && this.layerType !== 'zones') { // do not show popup if nothing is selected
         const val = this.selectedLinks[0].properties[this.selectedFeature]
         this.popup = new mapboxgl.Popup({ closeButton: false })
           .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
@@ -116,6 +113,12 @@ export default {
     },
     selectClick (event) {
       if (this.selectedLinks?.length > 0) this.$emit('selectClick', this.selectedLinks[0].properties)
+    },
+    zoneClick (event) {
+      this.selectedLinks = event.mapboxEvent.features
+      if (this.selectedLinks?.length > 0) {
+        this.$emit('selectClick', this.selectedLinks[0].properties)
+      }
     },
 
   },
@@ -149,7 +152,7 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'display_color'],['get', 'display_color'], '#B5E0D6'],
           'line-offset': ['*',0.5,['to-number', ['get', 'display_width']]],
-          'line-opacity':1,
+          'line-opacity':opacity/100,
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0],
           'line-width':['to-number', ['get', 'display_width']],
 
@@ -186,6 +189,7 @@ export default {
         },
         paint: {
           'icon-color': ['case', ['has', 'display_color'], ['get', 'display_color'], '#B5E0D6'],
+          'icon-opacity':opacity/100,
 
         }
       }"
@@ -198,16 +202,20 @@ export default {
         data: links,
         promoteId: 'index',
       }"
-      layer-id="poly"
+      layer-id="zones"
       :layer="{
         interactive: true,
         type: 'fill',
         'paint': {
-          'fill-color':['case', ['has', 'display_color'],['get', 'display_color'], $vuetify.theme.currentTheme.linksprimary],
-          'fill-opacity': 0.9,
+          'fill-color':['case', ['has', 'display_color'],['get', 'display_color'],
+                        $vuetify.theme.currentTheme.linksprimary],
+          'fill-opacity': opacity/100,
 
         }
       }"
+      @mouseenter="enterLink"
+      @mouseleave="leaveLink"
+      @click="zoneClick"
     />
   </MglMap>
 </template>

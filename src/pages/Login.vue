@@ -161,7 +161,7 @@ export default {
       if (!rnodes) return
 
       this.loadNetwork(links, nodes, 'PT')
-      this.loadNetwork(rlinks, rnodes, 'road')
+      // this.loadNetwork(rlinks, rnodes, 'road')
 
       // this.$store.commit('llinks/loadLinks', loadedLinks)
       // this.$store.commit('llinks/loadNodes', loadedNodes)
