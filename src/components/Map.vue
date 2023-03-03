@@ -160,8 +160,18 @@ export default {
     this.mapboxPublicKey = mapboxPublicKey
     this.drawLink = structuredClone(this.$store.getters.linksHeader)
   },
+  beforeDestroy () {
+    this.saveMapPosition()
+  },
 
   methods: {
+    saveMapPosition () {
+      const center = this.map.getCenter()
+      this.$store.commit('saveMapPosition', {
+        mapCenter: [center.lng, center.lat],
+        mapZoom: this.map.getZoom(),
+      })
+    },
     onMapLoaded (event) {
       if (this.map) this.map.remove(); this.mapIsLoaded = false
       const bounds = new Mapbox.LngLatBounds()
@@ -333,11 +343,14 @@ export default {
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
     :map-style="mapStyle"
+    :center="$store.getters.mapCenter"
+    :zoom="$store.getters.mapZoom"
     @load="onMapLoaded"
     @mousemove="draw"
     @mouseout="resetDraw()"
     @click="addPoint"
     @mouseup="rightClickMap"
+    @beforeDestroy="saveMapPosition"
   >
     <v-menu
       v-model="showSettings"

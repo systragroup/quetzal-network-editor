@@ -28,6 +28,8 @@ export const store = new Vuex.Store({
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
     outputName: 'output',
+    mapCenter: [-73.570337, 45.498310],
+    mapZoom: 11,
 
   },
   mutations: {
@@ -47,6 +49,10 @@ export const store = new Vuex.Store({
     },
     changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
+    },
+    saveMapPosition (state, payload) {
+      state.mapCenter = payload.mapCenter
+      state.mapZoom = payload.mapZoom
     },
     setAnchorMode (state, payload) {
       state.anchorMode = payload
@@ -125,6 +131,8 @@ export const store = new Vuex.Store({
 
     notification: (state) => state.notification,
     loading: (state) => state.loading,
+    mapCenter: (state) => state.mapCenter,
+    mapZoom: (state) => state.mapZoom,
     windowHeight: (state) => state.windowHeight,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,

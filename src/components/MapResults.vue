@@ -38,12 +38,10 @@ export default {
   },
   watch: {
     mapStyle (val) {
-      if (this.map && this.layerType === 'links') {
-        this.map.removeLayer('arrow')
-        this.map.removeLayer('links')
-        this.mapIsLoaded = false
-      } else if (this.map && this.layerType === 'zones') {
-        this.map.removeLayer('zones')
+      if (this.map) {
+        if (this.map.getLayer('arrow')) this.map.removeLayer('arrow')
+        if (this.map.getLayer('links')) this.map.removeLayer('links')
+        if (this.map.getLayer('zones')) this.map.removeLayer('zones')
         this.mapIsLoaded = false
       }
     },
@@ -60,6 +58,13 @@ export default {
   },
 
   methods: {
+    saveMapPosition () {
+      const center = this.map.getCenter()
+      this.$store.commit('saveMapPosition', {
+        mapCenter: [center.lng, center.lat],
+        mapZoom: this.map.getZoom(),
+      })
+    },
     onMapLoaded (event) {
       if (this.map) this.map.remove()
       const bounds = new mapboxgl.LngLatBounds()
@@ -133,6 +138,9 @@ export default {
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
     :map-style="mapStyle"
+    :center="$store.getters.mapCenter"
+    :zoom="$store.getters.mapZoom"
+    @beforeDestroy="saveMapPosition"
     @load="onMapLoaded"
   >
     <MglScaleControl position="bottom-right" />
