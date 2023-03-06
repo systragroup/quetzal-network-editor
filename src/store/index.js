@@ -1,10 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import linksModule from './links.js'
-import llinksModule from './llinks.js'
 import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
-import zonesModule from './zones.js'
+import layerModule from './layer.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 Vue.use(Vuex)
@@ -13,8 +12,6 @@ export const store = new Vuex.Store({
   modules: {
     links: linksModule,
     rlinks: rlinksModule,
-    llinks: llinksModule,
-    zones: zonesModule,
     results: resultsModule,
   },
 
@@ -30,6 +27,7 @@ export const store = new Vuex.Store({
     outputName: 'output',
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
+    availableLayers: ['links', 'rlinks', 'nodes', 'rnodes'],
 
   },
   mutations: {
@@ -67,6 +65,23 @@ export const store = new Vuex.Store({
       state.roadsPopupContent = payload.roadsPopupContent
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
+    },
+    loadLayer (state, payload) {
+      const moduleName = payload.fileName // todo: check if name exist Object.keys(this._modules.root._children)
+      this.registerModule(moduleName, layerModule)
+      switch (payload.type) {
+        case 'zones':
+          this.commit(`${moduleName}/loadZones`, payload)
+          break
+        case 'links':
+          this.commit(`${moduleName}/loadLinks`, payload)
+          break
+        case 'nodes':
+          this.commit(`${moduleName}/loadNodes`, payload)
+          break
+      }
+      // const test = Object.keys(this._modules.root._children).filter(module => !state.availableLayers.includes(module))
+      state.availableLayers.push(moduleName)
     },
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
@@ -144,7 +159,7 @@ export const store = new Vuex.Store({
       return (state.links.links.features.length === 0 &&
               state.rlinks.rlinks.features.length === 0)
     },
-    availableLayers: (state) => { return ['zones', 'links', 'rlinks', 'llinks', 'nodes', 'rnodes', 'lnodes'] },
+    availableLayers: (state) => state.availableLayers,
     mapStyle: (state) => {
       if (state.darkMode) {
         return 'mapbox://styles/mapbox/dark-v11?optimize=true'

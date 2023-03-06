@@ -45,7 +45,7 @@ export default {
     },
 
   },
-  async  mounted () {
+  mounted () {
     this.$store.commit('changeNotification', '')
   },
   methods: {
@@ -57,6 +57,15 @@ export default {
     },
 
     loadNetwork (links, nodes, type, zipName) {
+      if (!Object.keys(links.features[0].properties).includes('index')) {
+        this.error($gettext('there is no index in links. Import aborted'))
+        return
+      }
+      if (!Object.keys(nodes.features[0].properties).includes('index')) {
+        this.error($gettext('there is no index in nodes. Import aborted'))
+        return
+      }
+
       if (type === 'PT') {
         if (IndexAreDifferent(links, this.$store.getters.links) &&
             IndexAreDifferent(nodes, this.$store.getters.nodes)) {
@@ -156,20 +165,23 @@ export default {
       links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
       if (!links) return
+      this.$store.commit('loadLayer', { fileName: 'loaded_links', type: 'links', links: links })
+
       nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
       if (!nodes) return
-      this.loadNetwork(links, nodes, 'loaded')
+
+      this.$store.commit('loadLayer', { fileName: 'loaded_nodes', type: 'nodes', nodes: nodes })
 
       // this is zones and mat. reuse var to save memory
       links = await fetch(url + 'zones.geojson').then(res => res.json())
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
       if (!links) return
-      nodes = await fetch(url + 'full_zones.zip').then(res => unzip(res.blob()))
+      nodes = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
         .catch(() => { this.error($gettext('An error occur fetching example on github')) })
       if (!nodes) return
-      this.$store.commit('zones/loadZones', { zones: links, mat: nodes })
 
+      this.$store.commit('loadLayer', { fileName: 'zones', type: 'zones', zones: links, mat: nodes })
       this.$store.commit('changeLoading', false)
       this.loggedIn = true
       this.login()
@@ -177,8 +189,8 @@ export default {
     newProject () {
       this.loadNetwork(linksBase, nodesBase, 'PT')
       this.loadNetwork(linksBase, nodesBase, 'road')
-      this.loadNetwork(linksBase, nodesBase, 'loaded')
-      this.$store.commit('changeNotification', { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
+      this.$store.commit('changeNotification',
+        { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
       this.message = []
     },
 
@@ -264,14 +276,12 @@ export default {
         // for each other files concat, concat to links and nodes
         for (let i = 0; i < files.length; i++) {
           const file = files[i]
+          console.log(file)
           if (Object.keys(file).includes('links') && Object.keys(file).includes('nodes')) {
             this.loadNetwork(file.links, file.nodes, 'PT', file.zipName)
           }
           if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
             this.loadNetwork(file.road_links, file.road_nodes, 'road', file.zipName)
-          }
-          if (Object.keys(file).includes('loaded_links') && Object.keys(file).includes('loaded_nodes')) {
-            this.loadNetwork(file.loaded_links, file.loaded_nodes, 'loaded', file.zipName)
           }
         }
 

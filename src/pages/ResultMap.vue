@@ -24,7 +24,7 @@ export default {
         links: 8,
       },
       showSettings: false,
-      selectedLayer: 'zones',
+      selectedLayer: 'links',
       selectedCategory: [],
       form: {},
       showDialog: false,
@@ -84,13 +84,6 @@ export default {
             selectedFeature: 'speed',
           })
           break
-        case 'llinks':
-          this.$store.commit('results/loadLinks', {
-            geojson: this.$store.getters['llinks/links'],
-            type: 'links',
-            selectedFeature: 'volume',
-          })
-          break
         case 'nodes':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.nodes,
@@ -105,18 +98,10 @@ export default {
             selectedFeature: 'boardings',
           })
           break
-        case 'lnodes':
+        default:
           this.$store.commit('results/loadLinks', {
-            geojson: this.$store.getters['llinks/nodes'],
-            type: 'nodes',
-            selectedFeature: 'boardings',
-          })
-          break
-        case 'zones':
-          this.$store.commit('results/loadLinks', {
-            geojson: this.$store.getters['zones/zones'],
-            type: 'zones',
-            selectedFeature: this.$store.getters['zones/selectedProperty'],
+            geojson: this.$store.getters[`${layer}/layer`],
+            type: this.$store.getters[`${layer}/type`],
           })
           break
       }
@@ -129,7 +114,7 @@ export default {
         this.showDialog = true
       } else {
         this.$store.commit('zones/changeZone', { index: event.feature.index })
-        this.$store.commit('results/updateLinks', this.$store.getters['zones/zones'])
+        this.$store.commit('results/updateLinks', this.$store.getters['zones/layer'])
         this.$store.commit('results/refreshVisibleLinks')
       }
     },
