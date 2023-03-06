@@ -24,8 +24,6 @@ export default {
     links: {},
     visibleLinks: {},
     linksHeader: {},
-    nodes: {},
-    nodesHeader: {},
     lineAttributes: [],
     selectedFilter: '',
     selectedCategory: [],
@@ -63,15 +61,7 @@ export default {
         }
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
-    loadNodes (state, payload) {
-      state.nodes = JSON.parse(JSON.stringify(payload))
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.nodes.crs.properties.name)) {
-        const nodesHeader = { ...state.nodes }
-        nodesHeader.features = []
-        state.nodesHeader = nodesHeader
-        // this.commit('getNodesProperties')
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
-    },
+
     updateLinks (state, payload) {
       state.links = payload
       this.commit('results/updateSelectedFeature')
@@ -156,9 +146,7 @@ export default {
     type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
-    nodes: (state) => state.nodes,
     linksHeader: (state) => state.linksHeader,
-    nodesHeader: (state) => state.nodesHeader,
     selectedTrips: (state) => state.selectedTrips,
     lineAttributes: (state) => state.lineAttributes,
     selectedFilter: (state) => state.selectedFilter,

@@ -13,7 +13,6 @@ export default {
 
   data () {
     return {
-
       parameters: [{
         name: $gettext('selectedFeature'),
         type: 'String',
@@ -91,8 +90,11 @@ export default {
   },
   watch: {
     showDialog (val) {
+      this.reset()
       this.$emit('update-show', val)
     },
+    // when we change layer
+    featureChoices () { this.reset() },
   },
   created () {
     this.showDialog = this.show
@@ -132,8 +134,7 @@ export default {
           showNaN: this.parameters[7].value,
           reverseColor: this.parameters[8].value,
         })
-        this.showDialog = false
-        this.reset()
+        // this.showDialog = false
       } else {
         this.shake = true
         setTimeout(() => {
@@ -143,7 +144,6 @@ export default {
     },
     cancel () {
       this.showDialog = false
-      this.reset()
     },
   },
 }
@@ -183,6 +183,18 @@ export default {
     >
       <v-card-title class="subtitle">
         {{ $gettext('Settings') }}
+        <v-spacer />
+        <v-btn
+          icon
+          small
+          @click="cancel"
+        >
+          <v-icon
+            color="regular"
+          >
+            fa-solid fa-times
+          </v-icon>
+        </v-btn>
       </v-card-title>
 
       <v-card-text>
