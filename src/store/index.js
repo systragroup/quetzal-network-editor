@@ -4,6 +4,7 @@ import linksModule from './links.js'
 import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
+import runModule from './run.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 Vue.use(Vuex)
@@ -13,6 +14,7 @@ export const store = new Vuex.Store({
     links: linksModule,
     rlinks: rlinksModule,
     results: resultsModule,
+    run: runModule,
   },
 
   state: {

@@ -23,10 +23,11 @@ export default {
       vmodelSelectedFilter: '',
     }
   },
+
   computed: {
     showLeftPanel () { return this.$store.getters.showLeftPanel },
     windowHeight () { return this.$store.getters.windowHeight - 130 },
-
+    running () { return this.$store.getters['run/running'] },
   },
 
   watch: {
@@ -65,7 +66,6 @@ export default {
   },
 
   methods: {
-
     showAll () {
       if (this.selectedCat.length === this.filteredCat.length) {
         this.selectedCat = []
@@ -73,9 +73,10 @@ export default {
         this.selectedCat = this.filteredCat
       }
     },
-
+    run () {
+      this.$store.dispatch('run/startExecution')
+    },
   },
-
 }
 </script>
 <template>
@@ -211,6 +212,13 @@ export default {
               </v-virtual-scroll>
             </v-card>
           </div>
+          <v-btn
+            :loading="running"
+            :disabled="running"
+            @click="run()"
+          >
+            TEST API
+          </v-btn>
         </div>
       </div>
     </transition>
