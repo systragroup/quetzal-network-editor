@@ -32,11 +32,8 @@ export default {
     // init links and node to empty one (new project)
     this.$store.commit('loadLinks', linksBase)
     this.$store.commit('loadrLinks', linksBase)
-    this.$store.commit('llinks/loadLinks', linksBase)
     this.$store.commit('loadNodes', nodesBase)
     this.$store.commit('loadrNodes', nodesBase)
-    this.$store.commit('llinks/loadNodes', nodesBase)
-    this.$store.commit('zones/loadZones', { zones: linksBase, mat: {} })
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
   },
   methods: {

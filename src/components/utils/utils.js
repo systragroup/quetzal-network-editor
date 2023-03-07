@@ -1,4 +1,5 @@
 import JSZip from 'jszip'
+import { store } from '../../store/index.js'
 
 async function extractZip (file) {
   const ZIP = new JSZip()
@@ -7,36 +8,40 @@ async function extractZip (file) {
   // process ZIP file content here
   const result = { zipName: file.name }
   for (let i = 0; i < filesNames.length; i++) {
+    const str = await zip.file(filesNames[i]).async('string')
+    const content = JSON.parse(str)
     if (zip.files[filesNames[i]].name.slice(-7) === 'geojson') {
-      const str = await zip.file(filesNames[i]).async('string')
-      const content = JSON.parse(str)
       if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs.properties.name)) {
         alert('invalid CRS. use CRS84 / EPSG:4326')
       }
       if (content.features[0].geometry.type === 'LineString') {
         if (filesNames[i].includes('road')) {
           result.road_links = content
-        } else if (filesNames[i].includes('loaded')) {
-          result.loaded_links = content
-        } else {
+        } else if (filesNames[i].slice(0, 5) === 'links') {
           result.links = content
+        } else {
+          result[filesNames[i]] = content
         }
       } else if (content.features[0].geometry.type === 'Point') {
         if (filesNames[i].includes('road')) {
           result.road_nodes = content
-        } else if (filesNames[i].includes('loaded')) {
-          result.loaded_nodes = content
-        } else {
+        } else if (filesNames[i].slice(0, 5) === 'nodes') {
           result.nodes = content
+        } else {
+          result[filesNames[i]] = content
         }
+      } else {
+        result[filesNames[i]] = content
       }
+    } else {
+      result[filesNames[i]] = content
     }
   }
-  if ((result.links == null) && (result.road_links == null) && (result.loaded_links == null)) {
-    throw new Error(`There is no valid link, loaded_links or road_links in ${file.name}`)
+  if ((result.links == null) && (result.road_links == null)) {
+    throw new Error(`There is no valid link or road_links in ${file.name}`)
   }
-  if ((result.nodes == null) && (result.road_nodes == null) && (result.loaded_nodes == null)) {
-    throw new Error(`There is no valid nodes, loaded_nodes or road_nodes in ${file.name}`)
+  if ((result.nodes == null) && (result.road_nodes == null)) {
+    throw new Error(`There is no valid nodes or road_nodes in ${file.name}`)
   }
   return result
 }
@@ -72,6 +77,22 @@ function IndexAreDifferent (geojsonA, geojsonB) {
   return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
 }
 
+function createIndex (geojson, type, prefix) {
+  // not done. we should check links and node as there is nodes index in links (a,b)
+  switch (type) {
+    case 'PT':
+      // eslint-disable-next-line no-case-declarations
+      const len = store.getters.links.features.length
+      // eslint-disable-next-line no-return-assign
+      geojson.features.forEach((feat, index) => feat.properties.index = prefix + (index + len))
+      break
+    case 'road':
+      break
+  }
+}
+
+function geojsonVerification (geojson, type) {}
+
 async function unzip (file) {
   // unzip a file and return a json (solo json zipped)
   const ZIP = new JSZip()
@@ -82,4 +103,4 @@ async function unzip (file) {
   return content
 }
 
-export { extractZip, getGroupForm, indexAreUnique, IndexAreDifferent, unzip }
+export { extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip }
