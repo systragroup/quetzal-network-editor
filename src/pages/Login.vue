@@ -1,3 +1,4 @@
+<!-- eslint-disable no-case-declarations -->
 <script>
 
 import linksBase from '@static/links_base.geojson'
@@ -68,7 +69,6 @@ export default {
           this.error($gettext('there is no index in nodes. Import aborted'))
           return
         }
-
       }
 
       if (type === 'PT') {
@@ -141,8 +141,11 @@ export default {
           this.$refs.fileInput.click()
           document.getElementById('file-input').value = '' // clean it for next file
           break
-        case 'example':
-          this.projectIsEmpty ? this.loadExample() : this.showDialog = true
+        case 'example1':
+          this.projectIsEmpty ? this.loadExample(['PT', 'road']) : this.showDialog = true
+          break
+        case 'example2':
+          this.projectIsEmpty ? this.loadExample(['PT', 'road', 'loaded', 'zones']) : this.showDialog = true
           break
         case 'newProject':
           this.projectIsEmpty ? this.newProject() : this.showDialog = true
@@ -154,54 +157,63 @@ export default {
       this.$store.commit('unloadFiles')
       this.$store.commit('unloadrFiles')
 
-      if (this.choice === 'example') {
-        this.loadExample()
+      if (this.choice === 'example1') {
+        this.loadExample(['PT', 'road'])
+      } else if (this.choice === 'example2') {
+        this.loadExample(['PT', 'road', 'loaded', 'zones'])
       } else if (this.choice === 'newProject') {
         this.newProject()
       }
       this.showDialog = !this.showDialog
     },
 
-    async loadExample () {
+    async loadExample (filesToLoads) {
       this.$store.commit('changeLoading', true)
       const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
+      let links = {}
+      let nodes = {}
+      if (filesToLoads.includes('PT')) {
+        links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!links) return
+        nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!nodes) return
+        this.loadNetwork(links, nodes, 'PT')
+      }
+      if (filesToLoads.includes('road')) {
+        links = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!links) return
+        nodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!nodes) return
+        this.loadNetwork(links, nodes, 'road')
+      }
+      if (filesToLoads.includes('loaded')) {
+        links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!links) return
+        this.$store.commit('loadLayer', { fileName: 'loaded_links', type: 'links', links: links })
 
-      let links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!links) return
-      let nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!nodes) return
-      this.loadNetwork(links, nodes, 'PT')
+        nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!nodes) return
 
-      links = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!links) return
-      nodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!nodes) return
-      this.loadNetwork(links, nodes, 'road')
+        this.$store.commit('loadLayer', { fileName: 'loaded_nodes', type: 'nodes', nodes: nodes })
+      }
+      if (filesToLoads.includes('zones')) {
+        links = await fetch(url + 'zones.geojson').then(res => res.json())
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!links) return
+        nodes = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
+          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
+        if (!nodes) return
 
-      links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!links) return
-      this.$store.commit('loadLayer', { fileName: 'loaded_links', type: 'links', links: links })
-
-      nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!nodes) return
-
-      this.$store.commit('loadLayer', { fileName: 'loaded_nodes', type: 'nodes', nodes: nodes })
-
+        this.$store.commit('loadLayer', { fileName: 'zones', type: 'zones', zones: links, mat: nodes })
+      }
       // this is zones and mat. reuse var to save memory
-      links = await fetch(url + 'zones.geojson').then(res => res.json())
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!links) return
-      nodes = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
-        .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-      if (!nodes) return
 
-      this.$store.commit('loadLayer', { fileName: 'zones', type: 'zones', zones: links, mat: nodes })
       this.$store.commit('changeLoading', false)
       this.loggedIn = true
       this.login()
@@ -445,22 +457,42 @@ export default {
           </div>
 
           <div>
-            <v-tooltip
-              bottom
-              open-delay="500"
+            <v-menu
+              offset-y
+              open-on-hover
+              nudge-left="70"
+              close-delay="100"
+              transition="slide-y-transition"
             >
-              <template v-slot:activator="{ on, attrs }">
+              <template v-slot:activator="{ on: on,attrs:attrs }">
                 <v-btn
-                  x-small
+                  small
                   v-bind="attrs"
-                  @click="buttonHandle('example')"
+                  @click="()=>buttonHandle('example1')"
                   v-on="on"
                 >
-                  {{ $gettext('Example') }}
+                  {{ $gettext('example') }}
                 </v-btn>
               </template>
-              <span>{{ $gettext("Load Montréal Example") }}</span>
-            </v-tooltip>
+              <v-list>
+                <v-list-item
+                  link
+                  @click="()=>buttonHandle('example1')"
+                >
+                  <v-list-item-title>
+                    {{ $gettext("PT & Road") }}
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  link
+                  @click="()=>buttonHandle('example2')"
+                >
+                  <v-list-item-title>
+                    {{ $gettext("PT, Road, Zones, OD & Results") }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
           <div>
             <OSMImporter />
