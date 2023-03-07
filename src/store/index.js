@@ -68,7 +68,9 @@ export const store = new Vuex.Store({
     },
     loadLayer (state, payload) {
       const moduleName = payload.fileName // todo: check if name exist Object.keys(this._modules.root._children)
-      this.registerModule(moduleName, layerModule)
+      if (!Object.keys(this._modules.root._children).includes(moduleName)) {
+        this.registerModule(moduleName, layerModule)
+      }
       switch (payload.type) {
         case 'zones':
           this.commit(`${moduleName}/loadZones`, payload)
@@ -80,7 +82,9 @@ export const store = new Vuex.Store({
           this.commit(`${moduleName}/loadNodes`, payload)
           break
       }
-      state.availableLayers.push(moduleName)
+      if (!state.availableLayers.includes(moduleName)) {
+        state.availableLayers.push(moduleName)
+      }
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
