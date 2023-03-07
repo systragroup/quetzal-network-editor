@@ -80,9 +80,15 @@ export const store = new Vuex.Store({
           this.commit(`${moduleName}/loadNodes`, payload)
           break
       }
-      // const test = Object.keys(this._modules.root._children).filter(module => !state.availableLayers.includes(module))
       state.availableLayers.push(moduleName)
     },
+    unloadLayers (state) {
+      const moduleToDelete = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'results'].includes(x))
+      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
+      state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
+    },
+
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
       // const folder = zip.folder('output') // create a folder for the files.
