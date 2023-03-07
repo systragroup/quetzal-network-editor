@@ -19,6 +19,7 @@ export default {
   actions: {
     startExecution ({ commit, dispatch }) {
       let data = {
+        // eslint-disable-next-line no-useless-escape
         input: '{\"launcher_arg\":{\"scenario\":\"base\", \"training_folder\":\"/tmp\"}}',
         stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-paris',
       }
