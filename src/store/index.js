@@ -70,7 +70,9 @@ export const store = new Vuex.Store({
     },
     loadLayer (state, payload) {
       const moduleName = payload.fileName // todo: check if name exist Object.keys(this._modules.root._children)
-      this.registerModule(moduleName, layerModule)
+      if (!Object.keys(this._modules.root._children).includes(moduleName)) {
+        this.registerModule(moduleName, layerModule)
+      }
       switch (payload.type) {
         case 'zones':
           this.commit(`${moduleName}/loadZones`, payload)
@@ -82,9 +84,17 @@ export const store = new Vuex.Store({
           this.commit(`${moduleName}/loadNodes`, payload)
           break
       }
-      // const test = Object.keys(this._modules.root._children).filter(module => !state.availableLayers.includes(module))
-      state.availableLayers.push(moduleName)
+      if (!state.availableLayers.includes(moduleName)) {
+        state.availableLayers.push(moduleName)
+      }
     },
+    unloadLayers (state) {
+      const moduleToDelete = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'results'].includes(x))
+      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
+      state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
+    },
+
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
       // const folder = zip.folder('output') // create a folder for the files.

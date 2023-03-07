@@ -6,7 +6,7 @@ async function extractZip (file) {
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
   // process ZIP file content here
-  const result = { zipName: file.name }
+  const result = { zipName: file.name, files: [] }
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
     const content = JSON.parse(str)
@@ -16,33 +16,28 @@ async function extractZip (file) {
       }
       if (content.features[0].geometry.type === 'LineString') {
         if (filesNames[i].includes('road')) {
-          result.road_links = content
+          result.files.push({ data: content, type: 'road_links', fileName: filesNames[i] })
         } else if (filesNames[i].slice(0, 5) === 'links') {
-          result.links = content
+          result.files.push({ data: content, type: 'links', fileName: filesNames[i] })
         } else {
-          result[filesNames[i]] = content
+          result.files.push({ data: content, type: 'layerLinks', fileName: filesNames[i] })
         }
       } else if (content.features[0].geometry.type === 'Point') {
         if (filesNames[i].includes('road')) {
-          result.road_nodes = content
+          result.files.push({ data: content, type: 'road_nodes', fileName: filesNames[i] })
         } else if (filesNames[i].slice(0, 5) === 'nodes') {
-          result.nodes = content
+          result.files.push({ data: content, type: 'nodes', fileName: filesNames[i] })
         } else {
-          result[filesNames[i]] = content
+          result.files.push({ data: content, type: 'layerNodes', fileName: filesNames[i] })
         }
-      } else {
-        result[filesNames[i]] = content
+      } else if (['MultiPolygon', 'Polygon'].includes(content.features[0].geometry.type)) {
+        result.files.push({ data: content, type: 'zones', fileName: filesNames[i] })
       }
     } else {
-      result[filesNames[i]] = content
+      result.files.push({ data: content, type: 'json', fileName: filesNames[i] })
     }
   }
-  if ((result.links == null) && (result.road_links == null)) {
-    throw new Error(`There is no valid link or road_links in ${file.name}`)
-  }
-  if ((result.nodes == null) && (result.road_nodes == null)) {
-    throw new Error(`There is no valid nodes or road_nodes in ${file.name}`)
-  }
+
   return result
 }
 
