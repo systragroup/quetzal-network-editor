@@ -88,6 +88,7 @@ export const store = new Vuex.Store({
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
     },
+
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
       // const folder = zip.folder('output') // create a folder for the files.

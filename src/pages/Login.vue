@@ -68,6 +68,7 @@ export default {
           this.error($gettext('there is no index in nodes. Import aborted'))
           return
         }
+
       }
 
       if (type === 'PT') {

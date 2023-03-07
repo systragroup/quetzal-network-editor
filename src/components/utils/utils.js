@@ -37,6 +37,7 @@ async function extractZip (file) {
       result.files.push({ data: content, type: 'json', fileName: filesNames[i] })
     }
   }
+
   return result
 }
 
