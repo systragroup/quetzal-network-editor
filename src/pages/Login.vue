@@ -57,13 +57,17 @@ export default {
     },
 
     loadNetwork (links, nodes, type, zipName) {
-      if (!Object.keys(links.features[0].properties).includes('index')) {
-        this.error($gettext('there is no index in links. Import aborted'))
-        return
+      if (links.features.length > 0) {
+        if (!Object.keys(links.features[0].properties).includes('index')) {
+          this.error($gettext('there is no index in links. Import aborted'))
+          return
+        }
       }
-      if (!Object.keys(nodes.features[0].properties).includes('index')) {
-        this.error($gettext('there is no index in nodes. Import aborted'))
-        return
+      if (nodes.features.length > 0) {
+        if (!Object.keys(nodes.features[0].properties).includes('index')) {
+          this.error($gettext('there is no index in nodes. Import aborted'))
+          return
+        }
       }
 
       if (type === 'PT') {
@@ -84,16 +88,31 @@ export default {
         } else {
           this.error($gettext('there is duplicated links or nodes index. Import aborted'))
         }
-      } else if (type === 'loaded') {
-        if (IndexAreDifferent(links, this.$store.getters['llinks/links']) &&
-            IndexAreDifferent(nodes, this.$store.getters['llinks/nodes'])) {
-          this.$store.commit('llinks/appendNewLinks', { links: links, nodes: nodes })
-          this.filesAdded = true
-          if (zipName) this.message.push($gettext('Results links and nodes Loaded from') + ' ' + zipName)
-        } else {
-          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
-        }
       }
+    },
+    loadStaticLayer (files, zipName) {
+      // load links and nodes geojson as static layers.
+      files.filter(file => (file.type === 'layerLinks')).forEach(
+        file => {
+          this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'links', links: file.data })
+          this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
+        })
+      files.filter(file => (file.type === 'layerNodes')).forEach(
+        file => {
+          this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'nodes', nodes: file.data })
+          this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
+        })
+      // for zones. find the corresponding json file (mat) or nothing.
+      files.filter(file => (file.type === 'zones')).forEach(
+        file => {
+          const zoneData = file.data
+          const fileName = file.fileName.slice(0, -8)
+          let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
+          matData = matData || {}
+          this.$store.commit('loadLayer', { fileName: fileName, type: 'zones', zones: zoneData, mat: matData })
+          this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matData) this.message.push(file.fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
+        })
     },
 
     error (message) {
@@ -189,6 +208,8 @@ export default {
     newProject () {
       this.loadNetwork(linksBase, nodesBase, 'PT')
       this.loadNetwork(linksBase, nodesBase, 'road')
+      this.$store.commit('unloadLayers')
+
       this.$store.commit('changeNotification',
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
       this.message = []
@@ -271,18 +292,30 @@ export default {
         PromisesList.push(res)
       }
       // when all files are read
-      Promise.all(PromisesList).then(files => {
+      Promise.all(PromisesList).then(zipFiles => {
         // asign first file to links and node var
         // for each other files concat, concat to links and nodes
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i]
-          console.log(file)
-          if (Object.keys(file).includes('links') && Object.keys(file).includes('nodes')) {
-            this.loadNetwork(file.links, file.nodes, 'PT', file.zipName)
+        for (let i = 0; i < zipFiles.length; i++) {
+          const files = zipFiles[i].files
+          const zipName = zipFiles[i].zipName
+          const importPT = files.filter(file => ['links', 'nodes'].includes(file.type)).length === 2
+          const importRoad = files.filter(file => ['road_links', 'road_nodes'].includes(file.type)).length === 2
+          if (importPT) {
+            this.loadNetwork(
+              files.filter(file => file.type === 'links')[0].data,
+              files.filter(file => file.type === 'nodes')[0].data,
+              'PT',
+              zipName)
+          } if (importRoad) {
+            this.loadNetwork(
+              files.filter(file => file.type === 'road_links')[0].data,
+              files.filter(file => file.type === 'road_nodes')[0].data,
+              'road',
+              zipName)
           }
-          if (Object.keys(file).includes('road_links') && Object.keys(file).includes('road_nodes')) {
-            this.loadNetwork(file.road_links, file.road_nodes, 'road', file.zipName)
-          }
+          this.loadStaticLayer(
+            files.filter(file => !['links', 'nodes', 'road_links', 'road_nodes'].includes(file.type)),
+            zipName)
         }
 
         this.$store.commit('changeLoading', false)
