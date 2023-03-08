@@ -309,11 +309,11 @@ export default {
               @click="$store.commit('changeAnchorMode')"
             >
               <v-icon small>
-                fas fa-bezier-curve
+                fas fa-anchor
               </v-icon>
             </v-btn>
           </template>
-          <span>{{ $gettext("Edit Line geometry") }}</span>
+          <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
         </v-tooltip>
         <v-spacer />
       </v-list-item>

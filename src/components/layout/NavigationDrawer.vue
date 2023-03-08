@@ -9,6 +9,7 @@ export default {
       drawer: true,
       mini: true,
       menuItems: [],
+      version: '4.0',
     }
   },
   computed: {
@@ -95,6 +96,12 @@ export default {
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
+        <v-list-item
+          class="version-number"
+          :style="{marginBottom:'-1rem'}"
+        >
+          <span>{{ version }}</span>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
   </transition>
@@ -117,14 +124,21 @@ export default {
 .drawer-list {
   height: calc(100% - 50px);
   display: flex;
+
   flex-direction: column;
   padding: 20px 0;
 }
 .drawer-list-item {
   padding: 0 13px !important;
   justify-content: flex-start !important;
+  color:white !important;
   flex: 0;
   transition: 0.3s;
+}
+.version-number {
+  justify-content: flex-start ;
+  color:white !important;
+  flex: 0;
 }
 .drawer-list-item-icon {
   display: flex !important;
