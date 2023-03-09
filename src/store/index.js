@@ -5,12 +5,14 @@ import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
 import runModule from './run.js'
+import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   modules: {
+    user: userModule,
     links: linksModule,
     rlinks: rlinksModule,
     results: resultsModule,
@@ -155,7 +157,6 @@ export const store = new Vuex.Store({
     },
   },
   getters: {
-
     notification: (state) => state.notification,
     loading: (state) => state.loading,
     mapCenter: (state) => state.mapCenter,

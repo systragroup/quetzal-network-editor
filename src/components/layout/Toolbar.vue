@@ -1,8 +1,13 @@
 <script>
 export default {
   name: 'Toolbar',
+  data () {
+    return {
+      dialog: true,
+    }
+  },
   computed: {
-
+    loggedIn () { return this.$store.getters.loggedIn },
   },
   watch: {
     '$vuetify.theme.dark' (val) {
@@ -90,6 +95,25 @@ export default {
           </v-list-item>
         </v-list>
       </v-menu>
+    </div>
+    <div>
+      <v-btn
+        icon
+        href="https://quetzal.auth.ca-central-1.amazoncognito.com/login?client_id=4ogc4cfai1flu81djcmgf08n0c&response_type=token&scope=aws.cognito.signin.user.admin+email+openid+phone&redirect_uri=http://localhost:8081//callback"
+        target="_blank"
+        @click="()=>$store.commit('changeLoggedIn',!loggedIn)"
+      >
+        <v-avatar
+          v-if="loggedIn"
+          size="34"
+          color="primary"
+        >
+          <span class="white--text text-h6">SB</span>
+        </v-avatar>
+        <v-icon v-else>
+          fas fa-sign-in-alt
+        </v-icon>
+      </v-btn>
     </div>
   </v-toolbar>
 </template>
