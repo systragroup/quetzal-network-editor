@@ -73,9 +73,6 @@ export default {
         this.selectedCat = this.filteredCat
       }
     },
-    run () {
-      this.$store.dispatch('run/startExecution')
-    },
   },
 }
 </script>
@@ -212,13 +209,6 @@ export default {
               </v-virtual-scroll>
             </v-card>
           </div>
-          <v-btn
-            :loading="running"
-            :disabled="running"
-            @click="run()"
-          >
-            TEST API
-          </v-btn>
         </div>
       </div>
     </transition>
