@@ -103,22 +103,33 @@ export default {
       </v-menu>
     </div>
     <div>
-      <v-btn
-        icon
-        @click="()=>login()"
+      <Profile
+        v-if="loggedIn"
+        @logout="()=>logout()"
+      />
+      <v-tooltip
+        v-else
+        bottom
+        open-delay="250"
       >
-        <Profile
-          v-if="loggedIn"
-          @logout="()=>logout()"
-        />
-
-        <v-icon v-else>
-          fas fa-sign-in-alt
-        </v-icon>
-      </v-btn>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            icon
+            v-bind="attrs"
+            v-on="on"
+            @click="login"
+          >
+            <v-icon>
+              fas fa-sign-in-alt
+            </v-icon>
+          </v-btn>
+        </template>
+        <span>{{ $gettext('login / signin') }}</span>
+      </v-tooltip>
     </div>
   </v-toolbar>
 </template>
+
 <style lang="scss" scoped>
 .app-toolbar {
   z-index: 100;
