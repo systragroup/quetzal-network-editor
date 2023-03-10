@@ -1,56 +1,19 @@
 <script>
 
-const $gettext = s => s
-
 export default {
   name: 'Run',
-  data () {
-    return {
-      // this is doing Nothing. we should rename it id DynamoDB, we do not want to copy and delete the S3 bucket.
-      // in DynamoDB, we could have the project name (changable) and the s3 bucket reference (not changeable)
-      projectName: {
-        name: 'Project Name',
-        text: $gettext('project Name'),
-        type: 'String',
-        value: 'Project Name',
-        hint: $gettext('Change project Name'),
-        rules: ['required'],
-      },
-      parameters: [
-        {
-          cat: 'config',
-          name: 'energy_cost',
-          text: $gettext('Energy Cost'),
-          type: 'Number',
-          value: 302,
-          units: '$/KWH',
-          hint: $gettext('energy cost for optimization'),
-          rules: ['required', 'nonNegative'],
-        },
-        {
-          cat: 'config',
-          name: 'time_cost',
-          text: $gettext('waiting time Cost'),
-          type: 'Number',
-          value: 6543,
-          units: '$/mins',
-          hint: $gettext('waiting time cost for optimization'),
-          rules: ['required', 'nonNegative'],
-        },
-      ],
-      rules: {
-        required: v => !!v || $gettext('Required'),
-        largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
-        nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
-      },
-      errorMessage: null,
-      showHint: false,
-      shake: false,
-    }
+  computed: {
+    steps () { return this.$store.getters['run/steps'] },
+    running () { return this.$store.getters['run/running'] },
+    currentStep () { return this.$store.getters['run/currentStep'] },
+    error () { return this.$store.getters['run/error'] },
   },
   methods: {
     run () {
       this.$store.dispatch('run/startExecution')
+    },
+    stopRun () {
+      this.$store.dispatch('run/stopExecution')
     },
   },
 }
@@ -59,85 +22,47 @@ export default {
 <template>
   <v-container class="ma-0 pa-2">
     <v-row>
-      <v-col order="1">
-        <v-card class="card" >
-          <v-card-title class="subtitle">
-            {{ $gettext('Settings') }}
-          </v-card-title>
-          <v-card-text>
-            <v-form
-              ref="form"
-              lazy-validation
-            >
-              <v-container>
-                <v-col>
-                  <v-text-field
-                    v-model="projectName.value"
-                    :type="projectName.type"
-                    disabled
-                    :label="$gettext(projectName.text)"
-                    :hint="showHint? $gettext(projectName.hint): ''"
-                    :persistent-hint="showHint"
-                    :rules="projectName.rules.map((rule) => rules[rule])"
-                    required
-                  />
-
-                  <v-text-field
-                    v-for="(item,key) in parameters.slice(1)"
-                    :key="key"
-                    v-model="item.value"
-                    :type="item.type"
-                    :label="$gettext(item.text)"
-                    :suffix="item.units"
-                    :hint="showHint? $gettext(item.hint): ''"
-                    :persistent-hint="showHint"
-                    :rules="item.rules.map((rule) => rules[rule])"
-                    required
-                    @wheel="()=>{}"
-                  />
-                </v-col>
-              </v-container>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn
-              color="grey"
-              text
-              @click="cancel"
-            >
-              {{ $gettext("Cancel") }}
-            </v-btn>
-
-            <v-btn
-              color="green darken-1"
-              text
-              @click="submit"
-            >
-              {{ $gettext("Save") }}
-            </v-btn>
-            <v-spacer />
-            <v-btn
-              icon
-              small
-              @click="showHint = !showHint"
-            >
-              <v-icon>far fa-question-circle small</v-icon>
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
+      <v-col order="1" />
       <v-col order="2">
         <v-card class="card">
-          <v-card-actions>
+          <v-stepper
+            v-model="currentStep"
+            vertical
+          >
+            <v-container
+              v-for="(step, i) in steps"
+              :key="i+1"
+            >
+              <v-stepper-step
+                :complete="currentStep > i+1"
+                :step="i+1"
+                :rules="[() => !(i+1 == currentStep) || !error]"
+              >
+                {{ step.name }}
+              </v-stepper-step>
+              <v-stepper-content
+                :step="i+1"
+              >
+                <v-btn
+                  v-if="running"
+                  color="grey"
+                  text
+                  @click="stopRun()"
+                >
+                  {{ $gettext("Abort") }}
+                </v-btn>
+              </v-stepper-content>
+            </v-container>
             <v-btn
               :loading="running"
               :disabled="running"
+              text
               color="green darken-1"
               @click="run()"
             >
               {{ $gettext("Run Simulation") }}
             </v-btn>
-          </v-card-actions>
+          </v-stepper>
         </v-card>
       </v-col>
     </v-row>
@@ -193,6 +118,13 @@ export default {
   margin: 40px;
 }
 .card button {
-  margin-top: 40px;
+  margin-top: 0px;
 }
+.v-stepper__content {
+  border-left: 1px solid rgba(0,0,0,.12);
+}
+.v-sheet.v-stepper:not(.v-sheet--outlined) {
+  box-shadow: none;
+}
+
 </style>

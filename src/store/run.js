@@ -3,25 +3,64 @@ import { axiosClient } from '@src/axiosClient.js'
 export default {
   namespaced: true,
   state: {
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-paris',
+    steps: [{ name: 'Loading Steps...' }],
     running: false,
     executionArn: '',
+    currentStep: 0,
+    error: false,
   },
   mutations: {
+    setSteps (state, payload) {
+      state.steps = payload
+    },
     startExecution (state, payload) {
+      state.error = false
       state.running = true
+      state.currentStep = 1
       state.executionArn = payload.executionArn
     },
     terminateExecution (state) {
       state.running = false
+      state.error = true
       state.executionArn = ''
+    },
+    succeedExecution (state) {
+      state.running = false
+      state.currentStep = state.steps.length + 1
+      state.executionArn = ''
+    },
+    updateCurrentStep (state, payload) {
+      const stepNames = state.steps.map(a => a.name)
+      state.currentStep = stepNames.indexOf(payload.name) + 1
     },
   },
   actions: {
-    startExecution ({ commit, dispatch }) {
+    getSteps ({ state, commit }) {
+      let data = { stateMachineArn: state.stateMachineArn }
+      axiosClient.post('/describe/model',
+        data = JSON.stringify(data),
+      ).then(
+        response => {
+          const def = JSON.parse(response.data.definition)
+          const steps = [{ name: def.StartAt }]
+          let next = def.States[def.StartAt].Next
+          while (true) {
+            steps.push({ name: next })
+            if (def.States[next].Next === undefined) break
+            next = def.States[next].Next
+          }
+          commit('setSteps', steps)
+        }).catch(
+        err => {
+          console.log(err)
+        })
+    },
+    startExecution ({ state, commit, dispatch }) {
       let data = {
         // eslint-disable-next-line no-useless-escape
         input: '{\"launcher_arg\":{\"scenario\":\"base\", \"training_folder\":\"/tmp\"}}',
-        stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-paris',
+        stateMachineArn: state.stateMachineArn,
       }
       axiosClient.post('',
         data = JSON.stringify(data),
@@ -43,7 +82,7 @@ export default {
           response => {
             this.status = response.data.status
             if (this.status === 'SUCCEEDED') {
-              commit('terminateExecution')
+              commit('succeedExecution')
               clearInterval(intervalId)
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.status)) {
               commit('terminateExecution')
@@ -53,11 +92,43 @@ export default {
           err => {
             console.log(err)
           })
+        data = { executionArn: state.executionArn, includeExecutionData: false, reverseOrder: true }
+        axiosClient.post('/history',
+          data = JSON.stringify(data),
+        ).then(
+          response => {
+            for (const e in response.data.events) {
+              const event = response.data.events[e]
+              if (event.type === 'TaskStateEntered') {
+                commit('updateCurrentStep', event.stateEnteredEventDetails)
+                break
+              }
+            }
+          }).catch(
+          err => {
+            console.log(err)
+          })
       }, 5000)
+    },
+    stopExecution ({ state, commit }) {
+      let data = { executionArn: state.executionArn }
+      axiosClient.post('/abort',
+        data = JSON.stringify(data),
+      ).then(
+        response => {
+          commit('terminateExecution', response.data)
+          // Maybe we sould wait for back to say that execution is terminated (but the wait is awkward)
+        }).catch(
+        err => {
+          console.log(err)
+        })
     },
   },
   getters: {
+    steps: (state) => state.steps,
     running: (state) => state.running,
+    currentStep: (state) => state.currentStep,
     executionArn: (state) => state.executionArn,
+    error: (state) => state.error,
   },
 }
