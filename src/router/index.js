@@ -1,11 +1,12 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Login from '@page/Login.vue'
+import Import from '@page/Import.vue'
 import ResultPicture from '@page/ResultPicture.vue'
-import { store } from '../store/index.js'
+import auth from '../auth'
 import Home from '@page/Home.vue'
 import DataFrame from '@page/DataFrame.vue'
 import ResultMap from '@page/ResultMap.vue'
+import { store } from '../store/index.js'
 
 Vue.use(Router)
 
@@ -19,12 +20,11 @@ const router = new Router({
   routes: [
     {
       path: '/',
-      name: Login.name,
-      component: Login,
+      name: Import.name,
+      component: Import,
       icon: 'fa-solid fa-upload',
       title: $gettext('Import'),
     },
-
     {
       path: '/Home',
       name: Home.name,
@@ -53,13 +53,29 @@ const router = new Router({
       icon: 'fas fa-images',
       title: $gettext('Results Pictures'),
     },
+    {
+      path: '/callback',
+      name: 'callback',
+      beforeEnter: (to, from, next) => {
+        const currUrl = window.location.href
+        auth.auth.parseCognitoWebResponse(currUrl)
+        next('/')
+      },
+    },
+    {
+      path: '/signout',
+      name: 'signout',
+      beforeEnter: (to, from, next) => {
+        next('/')
+      },
+    },
   ],
 })
 
-router.beforeEach((to, from, next) => {
-  if (to.name !== 'Login' && store.getters.projectIsUndefined) next({ name: 'Login' })
-  else if (to.path === 'login') next('Login')
-  else next()
-})
+// router.beforeEach((to, from, next) => {
+//  if (to.name !== 'Import' && store.getters.projectIsUndefined) next({ name: 'Import' })
+//  else if (to.path === 'Import') next('Import')
+//  else next()
+// })
 
 export default router

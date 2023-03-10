@@ -3,6 +3,7 @@ export default {
   namespaced: false,
   state: {
     cognitoInfo: {},
+    accesToken: '',
     loggedIn: false,
     loadingState: true,
     errorLoadingState: false,
@@ -17,6 +18,9 @@ export default {
     },
     setCognitoInfo (state, payload) {
       state.cognitoInfo = payload
+    },
+    setAccessToken (state, payload) {
+      state.accesToken = payload
     },
   },
 

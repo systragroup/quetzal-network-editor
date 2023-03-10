@@ -4,6 +4,8 @@ import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
+import auth from './auth'
+
 export default {
   name: 'App',
   components: {
@@ -35,6 +37,11 @@ export default {
     this.$store.commit('loadNodes', nodesBase)
     this.$store.commit('loadrNodes', nodesBase)
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
+
+    if (auth.auth.isUserSignedIn()) {
+      // console.log(auth.auth.getSignInUserSession().getAccessToken().jwtToken)
+      auth.login()
+    }
   },
   methods: {
     closeSnackbar () {

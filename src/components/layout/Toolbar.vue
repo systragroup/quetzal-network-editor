@@ -1,4 +1,6 @@
 <script>
+import auth from '../../auth'
+
 export default {
   name: 'Toolbar',
   data () {
@@ -16,6 +18,13 @@ export default {
   },
 
   methods: {
+    login () {
+      if (this.loggedIn) auth.logout()
+      else {
+        auth.login()
+        // console.log(auth.auth.isUserSignedIn())
+      }
+    },
     handleChangeLanguage (lang) {
       this.$vuetify.lang.current = lang
       this.$language.current = lang
@@ -99,9 +108,7 @@ export default {
     <div>
       <v-btn
         icon
-        href="https://quetzal.auth.ca-central-1.amazoncognito.com/login?client_id=4ogc4cfai1flu81djcmgf08n0c&response_type=token&scope=aws.cognito.signin.user.admin+email+openid+phone&redirect_uri=http://localhost:8081//callback"
-        target="_blank"
-        @click="()=>$store.commit('changeLoggedIn',!loggedIn)"
+        @click="()=>login()"
       >
         <v-avatar
           v-if="loggedIn"
