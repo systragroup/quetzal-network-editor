@@ -37,8 +37,6 @@ export default {
     v-model="menu"
     :close-on-content-click="false"
     :nudge-width="200"
-    open-on-hover
-    close-delay="100"
     offset-x
     offset-y
   >
