@@ -10,7 +10,7 @@ const REDIRECT_URI_SIGNOUT = process.env.VUE_APP_COGNITO_REDIRECT_URI_SIGNOUT
 const authData = {
   ClientId: CLIENT_ID, // Your client id here
   AppWebDomain: APP_DOMAIN,
-  TokenScopesArray: ['openid', 'email'],
+  TokenScopesArray: ['openid'],
   RedirectUriSignIn: REDIRECT_URI,
   RedirectUriSignOut: REDIRECT_URI_SIGNOUT,
   UserPoolId: USERPOOL_ID,
@@ -34,10 +34,11 @@ auth.userhandler = {
   onSuccess: function (result) {
     // console.log('On Success result', result)
     store.commit('setAccessToken', result.accessToken.jwtToken)
-    store.commit('setLoggedIn', true)
+    store.commit('setCognitoGroups', auth.getSignInUserSession().getIdToken().payload['cognito:groups'])
+
     getUserInfo().then(response => {
-      // console.log(response)
       store.commit('setCognitoInfo', response)
+      store.commit('setLoggedIn', true)
     })
   },
   onFailure: function (err) {

@@ -1,8 +1,9 @@
 <script>
 import auth from '../../auth'
-
+import Profile from '../utils/Profile.vue'
 export default {
   name: 'Toolbar',
+  components: { Profile },
   data () {
     return {
       dialog: true,
@@ -19,12 +20,12 @@ export default {
 
   methods: {
     login () {
-      if (this.loggedIn) auth.logout()
-      else {
-        auth.login()
-        // console.log(auth.auth.isUserSignedIn())
-      }
+      auth.login()
     },
+    logout () {
+      auth.logout()
+    },
+
     handleChangeLanguage (lang) {
       this.$vuetify.lang.current = lang
       this.$language.current = lang
@@ -72,16 +73,6 @@ export default {
         append-icon="fas fa-moon"
       />
     </div>
-
-    <!--
-    <v-checkbox
-      v-model="$vuetify.theme.dark"
-      class="switch"
-      color="purple"
-      off-icon="fas fa-moon"
-      on-icon="fas fa-sun"
-    />
-    -->
     <div>
       <v-menu
         offset-y
@@ -104,7 +95,7 @@ export default {
             :key="lang"
             :class="language"
 
-            @click="handleChangeLanguage(lang)"
+            @click="()=>handleChangeLanguage(lang)"
           >
             {{ language.toUpperCase() }}
           </v-list-item>
@@ -116,13 +107,11 @@ export default {
         icon
         @click="()=>login()"
       >
-        <v-avatar
+        <Profile
           v-if="loggedIn"
-          size="34"
-          color="primary"
-        >
-          <span class="white--text text-h6">SB</span>
-        </v-avatar>
+          @logout="()=>logout()"
+        />
+
         <v-icon v-else>
           fas fa-sign-in-alt
         </v-icon>
