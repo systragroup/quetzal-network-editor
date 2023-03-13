@@ -212,8 +212,8 @@ export default {
           :items="filterChoices"
           prepend-icon="fas fa-filter"
           label="filter"
-          item-color="secondary"
-          color="secondary"
+          item-color="secondarydark"
+          color="secondarydark"
         />
       </v-list-item>
 
