@@ -23,6 +23,12 @@ export default {
     :class="'app-toolbar elevation-4'"
     dense
   >
+    <v-img
+      :src="require('@static/systra_logo.png')"
+      contain
+      max-width="6rem"
+    />
+    <span class="copyright">©</span>
     <div class="app-name">
       Quetzal Network Editor
     </div>
@@ -109,6 +115,13 @@ export default {
 }
 .app-name {
   font-size: 1.2em;
+  padding-left: 1.2rem;
+  color:var(--v-secondarydark-base);
+}
+.copyright {
+  font-size: 0.9rem;
+  padding-left: 5px;
+  padding-top: 1rem;
   color:var(--v-secondarydark-base);
 }
 .languages-container {
