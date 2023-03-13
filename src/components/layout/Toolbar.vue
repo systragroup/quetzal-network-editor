@@ -1,9 +1,14 @@
 <script>
+import Profile from '../utils/Profile.vue'
 export default {
   name: 'Toolbar',
-  computed: {
-
+  components: { Profile },
+  data () {
+    return {
+      dialog: true,
+    }
   },
+
   watch: {
     '$vuetify.theme.dark' (val) {
       this.$store.commit('changeDarkMode', val)
@@ -58,16 +63,6 @@ export default {
         append-icon="fas fa-moon"
       />
     </div>
-
-    <!--
-    <v-checkbox
-      v-model="$vuetify.theme.dark"
-      class="switch"
-      color="purple"
-      off-icon="fas fa-moon"
-      on-icon="fas fa-sun"
-    />
-    -->
     <div>
       <v-menu
         offset-y
@@ -90,15 +85,19 @@ export default {
             :key="lang"
             :class="language"
 
-            @click="handleChangeLanguage(lang)"
+            @click="()=>handleChangeLanguage(lang)"
           >
             {{ language.toUpperCase() }}
           </v-list-item>
         </v-list>
       </v-menu>
     </div>
+    <div>
+      <Profile />
+    </div>
   </v-toolbar>
 </template>
+
 <style lang="scss" scoped>
 .app-toolbar {
   z-index: 100;

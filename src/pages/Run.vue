@@ -1,7 +1,12 @@
 <script>
 
+import ParamForm from '../components/ParamForm.vue'
+
 export default {
   name: 'Run',
+  components: {
+    ParamForm,
+  },
   computed: {
     steps () { return this.$store.getters['run/steps'] },
     running () { return this.$store.getters['run/running'] },
@@ -21,74 +26,76 @@ export default {
 
 </script>
 <template>
-  <v-container class="ma-0 pa-2">
-    <v-row>
-      <v-col order="1" />
-      <v-col order="2">
-        <v-card class="card">
-          <v-stepper
-            v-model="currentStep"
-            vertical
+  <v-row class="ma-0 pa-2 background">
+    <v-col order="1">
+      <ParamForm />
+    </v-col>
+    <v-col order="2">
+      <v-card class="card">
+        <v-card-title class="subtitle">
+          {{ $gettext('Scenario Simulation') }}
+        </v-card-title>
+        <v-stepper
+          v-model="currentStep"
+          vertical
+          style="background-color:var(--v-background-lighten4);"
+        >
+          <v-alert
+            v-if="!synchronized"
+            dense
+            outlined
+            text
+            type="warning"
           >
-            <v-alert
-              v-if="!synchronized"
-              dense
-              outlined
-              text
-              type="warning"
+            {{ $gettext("Results are not synchronized with latest modifications. \
+            Please relauch simulation to update results.") }}
+          </v-alert>
+          <v-alert
+            v-if="error"
+            dense
+            outlined
+            text
+            type="error"
+          >
+            {{ $gettext("Simulation ended with an execution error or have been aborted. \
+            Please relauch simulation. If the problem persist, contact us.") }}
+          </v-alert>
+          <v-btn
+            :loading="running"
+            :disabled="running"
+            color="success"
+            @click="run()"
+          >
+            <v-icon small style="margin-right: 10px;">fa-solid fa-play</v-icon>
+            {{ $gettext("Run Simulation") }}
+          </v-btn>
+          <v-btn
+            :disabled="!running"
+            color="grey"
+            text
+            @click="stopRun()"
+          >
+            {{ $gettext("Abort") }}
+          </v-btn>
+          <v-container
+            v-for="(step, i) in steps"
+            :key="i+1"
+          >
+            <v-stepper-content
+              :step="i+1"
+            />
+            <v-stepper-step
+              :complete="currentStep > i+1"
+              :step="i+1"
+              :rules="[() => !(i+1 == currentStep) || !error]"
             >
-              {{ $gettext("Results are not synchronized with latest modifications. \
-              Please relauch simulation to update results.") }}
-            </v-alert>
-            <v-alert
-              v-if="error"
-              dense
-              outlined
-              text
-              type="error"
-            >
-              {{ $gettext("Simulation ended with an execution error or have been aborted. \
-              Please relauch simulation. If the problem persist, contact us.") }}
-            </v-alert>
-            <v-btn
-              :loading="running"
-              :disabled="running"
-              color="green darken-1"
-              @click="run()"
-              style="margin-bottom: 15px;"
-            >
-              <v-icon small style="margin-right: 10px;">fa-solid fa-play</v-icon>
-              {{ $gettext("Run Simulation") }}
-            </v-btn>
-            <v-container
-              v-for="(step, i) in steps"
-              :key="i+1"
-            >
-              <v-stepper-content
-                :step="i+1"
-              >
-                <v-btn
-                  v-if="running"
-                  color="grey"
-                  text
-                  @click="stopRun()"
-                >
-                  {{ $gettext("Abort") }}
-                </v-btn>
-              </v-stepper-content>
-              <v-stepper-step
-                :complete="currentStep > i+1"
-                :step="i+1"
-                :rules="[() => !(i+1 == currentStep) || !error]"
-              >
-                {{ step.name }}
-              </v-stepper-step>
-            </v-container>
-          </v-stepper>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+              {{ step.name }}
+            </v-stepper-step>
+          </v-container>
+        </v-stepper>
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 <style lang="scss" scoped>
 .container {
@@ -118,8 +125,16 @@ export default {
   overflow-y: auto;
   padding: 40px;
 }
-.row{
-  height: calc(100% - 50px)
+
+.v-card__text {
+  max-height: 80%;
+  overflow-y: auto;
+}
+.row {
+  height: calc(100% - 38px)
+}
+.col {
+  max-height: 100%;
 }
 .title {
   display: flex;
@@ -132,19 +147,21 @@ export default {
 }
 .subtitle {
   font-size: 2em;
-  color: $secondary !important;
+  color:var(--v-secondary-dark);
   font-weight: bold;
   margin: 40px;
+  margin-left: 0px;
 }
 .card button {
   margin-top: 0px;
 }
 .v-stepper__content {
-  border-left: 1px solid rgba(0,0,0,.12);
+  border-left: 4px solid rgba(0,0,0,.12);
 }
 .v-sheet.v-stepper:not(.v-sheet--outlined) {
   box-shadow: none;
 }
-
-
+.background {
+  background-color:var(--v-background-base);
+}
 </style>
