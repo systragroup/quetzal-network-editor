@@ -111,6 +111,7 @@ const vuetify = new Vuetify({
         primarydark: '#191919',
         secondary: '#263238',
         secondarydark: '#fff',
+        lightgrey: '#403f3f',
         mediumgrey: '#575757',
         darkgrey: '#d9d9db',
         background: '#000000',

@@ -24,39 +24,51 @@ export default {
 }
 </script>
 <template>
-  <section>
-    <div class="layout">
-      <v-card
-        v-for="(img,key) in imgs"
-        :key="key"
-        class="card"
-      >
-        <v-img
-          :src="img"
-          :lazy-src="img"
-          contain
-          class="image-fit"
-        />
-      </v-card>
+  <section class="layout">
+    <div
+      v-for="(img,key) in imgs"
+      :key="key"
+      class="gallery"
+    >
+      <v-img
+
+        :src="img"
+        :lazy-src="img"
+        contain
+      />
     </div>
   </section>
 </template>
 <style lang="scss" scoped>
+
 .layout {
-  position: absolute;
-  height:100%;
-  width: calc(100%);
-  margin:20px;
-  padding: 100px;
+  background-color:var(--v-white-base);
   display: flex;
+  height: 100%;
   align-items: center;
   flex-direction: column;
   overflow-y: scroll;
 }
-.card {
-  max-height: 100%;
-  padding: 100px;
-  margin: 50px;
+div.gallery {
+  margin: 5px;
+  background-color: var(--v-white-base);
+  border: 1px solid var(--v-mediumgrey-base);
+  float: left;
+  width: 900px;
+}
+
+div.gallery:hover {
+  border: 1px solid var(--v-darkgrey-base);
+}
+
+div.gallery img {
+  width: 100%;
+  height: auto;
+}
+
+div.desc {
+  padding: 15px;
+  text-align: center;
 }
 .image-fit{
   height: 100%;
