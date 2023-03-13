@@ -56,7 +56,7 @@ div.gallery {
   background-color: var(--v-white-base);
   border: 1px solid var(--v-lightgrey-base);
   float: left;
-  width: 50%;
+  width: 50rem;
 }
 
 div.gallery:hover {

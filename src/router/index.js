@@ -73,7 +73,6 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-  console.log(to, from)
   if ((!['Import', 'callback', 'signout'].includes(to.name)) &&
       store.getters.projectIsUndefined) next({ name: 'Import' })
   else if (to.path === 'Import') next('Import')

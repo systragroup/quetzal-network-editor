@@ -43,6 +43,7 @@ auth.userhandler = {
   },
   onFailure: function (err) {
     store.commit('setLoggedOut')
+    alert('Login failed due to ' + err)
     router.go({ path: '/error', query: { message: 'Login failed due to ' + err } })
   },
 }
