@@ -72,10 +72,12 @@ const router = new Router({
   ],
 })
 
-// router.beforeEach((to, from, next) => {
-//  if (to.name !== 'Import' && store.getters.projectIsUndefined) next({ name: 'Import' })
-//  else if (to.path === 'Import') next('Import')
-//  else next()
-// })
+router.beforeEach((to, from, next) => {
+  console.log(to, from)
+  if ((!['Import', 'callback', 'signout'].includes(to.name)) &&
+      store.getters.projectIsUndefined) next({ name: 'Import' })
+  else if (to.path === 'Import') next('Import')
+  else next()
+})
 
 export default router
