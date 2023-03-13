@@ -18,7 +18,10 @@ msgstr ""
 #: src/components/ResultsSettings.vue:128
 #: src/components/ResultsSettings.vue:129
 #: src/components/ResultsSettings.vue:137
-#: src/components/ResultsSettings.vue:138 src/components/Settings.vue:49
+#: src/components/ResultsSettings.vue:138
+#: src/components/ResultsSettings.vue:161
+#: src/components/ResultsSettings.vue:175
+#: src/components/ResultsSettings.vue:180 src/components/Settings.vue:49
 #: src/components/Settings.vue:51 src/components/Settings.vue:61
 #: src/components/Settings.vue:63 src/components/Settings.vue:73
 #: src/components/Settings.vue:74 src/components/Settings.vue:84
@@ -260,6 +263,11 @@ msgstr ""
 #, fuzzy
 msgid "file is not a zip"
 msgstr "Kein .zip Format erkannt. Import abgebrochen."
+
+#: src/components/LinksSidePanel.vue:182
+#: src/components/ResultsSidePanel.vue:151 src/components/RoadSidePanel.vue:172
+msgid "filter"
+msgstr ""
 
 #: src/pages/Home.vue:60
 msgid ""

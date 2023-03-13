@@ -12,6 +12,9 @@ msgstr ""
 #: src/components/ResultsSettings.vue:129
 #: src/components/ResultsSettings.vue:137
 #: src/components/ResultsSettings.vue:138
+#: src/components/ResultsSettings.vue:161
+#: src/components/ResultsSettings.vue:175
+#: src/components/ResultsSettings.vue:180
 #: src/components/Settings.vue:49
 #: src/components/Settings.vue:51
 #: src/components/Settings.vue:61
@@ -272,6 +275,12 @@ msgstr ""
 
 #: src/pages/Import.vue:294
 msgid "file is not a zip"
+msgstr ""
+
+#: src/components/LinksSidePanel.vue:182
+#: src/components/ResultsSidePanel.vue:151
+#: src/components/RoadSidePanel.vue:172
+msgid "filter"
 msgstr ""
 
 #: src/pages/Home.vue:60

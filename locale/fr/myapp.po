@@ -18,7 +18,10 @@ msgstr ""
 #: src/components/ResultsSettings.vue:128
 #: src/components/ResultsSettings.vue:129
 #: src/components/ResultsSettings.vue:137
-#: src/components/ResultsSettings.vue:138 src/components/Settings.vue:49
+#: src/components/ResultsSettings.vue:138
+#: src/components/ResultsSettings.vue:161
+#: src/components/ResultsSettings.vue:175
+#: src/components/ResultsSettings.vue:180 src/components/Settings.vue:49
 #: src/components/Settings.vue:51 src/components/Settings.vue:61
 #: src/components/Settings.vue:63 src/components/Settings.vue:73
 #: src/components/Settings.vue:74 src/components/Settings.vue:84
@@ -272,6 +275,11 @@ msgstr "le fichier n'est pas un geojson"
 msgid "file is not a zip"
 msgstr "le fichier n'est pas un zip"
 
+#: src/components/LinksSidePanel.vue:182
+#: src/components/ResultsSidePanel.vue:151 src/components/RoadSidePanel.vue:172
+msgid "filter"
+msgstr "filtre"
+
 #: src/pages/Home.vue:60
 msgid ""
 "Full name of a route.This name is generally more descriptive         than "
@@ -344,15 +352,13 @@ msgstr "Lignes"
 
 #: src/components/Settings.vue:29
 msgid "Link field to display when hovering a trip on the map"
-msgstr ""
-"Propriété des liens TC à afficher lorsqu'on survole sur la carte"
+msgstr "Propriété des liens TC à afficher lorsqu'on survole sur la carte"
 
 #: src/components/Settings.vue:36
 msgid "Link field to display when hovering road link on the map"
 msgstr "Propriété des routes à afficher lorsqu'on survole sur la carte"
 
 #: src/pages/ResultMap.vue:75
-#, fuzzy
 msgid "link Properties"
 msgstr "Modifier"
 
@@ -451,7 +457,6 @@ msgid "New Field"
 msgstr "Nouveau Champ"
 
 #: src/pages/Home.vue:106
-#, fuzzy
 msgid "new field name"
 msgstr "nouveau champ"
 
@@ -703,8 +708,9 @@ msgstr "marque de transport en commun ou agence de transport en commun"
 msgid ""
 "Travel time on the link. set as length / speed when a link is created or "
 "edited (seconds)"
-msgstr "Temps de parcours sur le lien. Défini comme distance / vitesse "
-"quand un lien est créé ou modifier (secondes)"
+msgstr ""
+"Temps de parcours sur le lien. Défini comme distance / vitesse quand un lien "
+"est créé ou modifier (secondes)"
 
 #: src/components/LinksSidePanel.vue:43
 msgid "undefined"
@@ -716,8 +722,7 @@ msgstr "valeur"
 
 #: src/pages/Home.vue:66
 msgid "width to display on the map"
-msgstr ""
-"Largeur à afficher sur la carte"
+msgstr "Largeur à afficher sur la carte"
 
 #: src/components/LinksSidePanel.vue:641 src/components/RoadSidePanel.vue:366
 #: src/pages/Import.vue:289

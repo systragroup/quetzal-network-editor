@@ -211,7 +211,7 @@ export default {
           v-model="vmodelSelectedFilter"
           :items="filterChoices"
           prepend-icon="fas fa-filter"
-          label="filter"
+          :label="$gettext('filter')"
           item-color="secondarydark"
           color="secondarydark"
         />
