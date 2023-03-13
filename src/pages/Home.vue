@@ -35,6 +35,34 @@ export default {
       groupTripIds: [],
       selectedTab: 0,
       isRoadMode: false,
+      showHint: true,
+      hints: {
+        agency_id: $gettext('transit brand or transit agency'),
+        direction_id: $gettext('direction of travel for a trip. used to separate trips by directions. ex: 0 - Travel in one direction. 1 - Travel in the opposite direction '),
+        drop_off_type: $gettext('0 - Regularly scheduled drop off.\
+                                  1 - No drop off available.\
+                                  2 - Must phone agency to arrange drop off.\
+                                  3 - Must coordinate with driver to arrange drop off.'),
+        headway: $gettext('Time between departures in seconds'),
+        pickup_type: $gettext('0 - Regularly scheduled pickup.\
+                        1 - No pickup available.\
+                        2 - Must phone agency to arrange pickup.\
+                        3 - Must coordinate with driver to arrange pickup'),
+        route_color: $gettext('color to display on the map (i.e. FFFFFF)'),
+        route_id: $gettext('Identifies a route. Often a string'),
+        route_long_name: $gettext("Full name of a route. This name is generally more descriptive than the route_short_name and often includes the route's destination or stop"),
+        route_short_name: $gettext('Short name of a route. This will often be a short, abstract identifier like "32", "100X", or "Green"'),
+        route_type: $gettext('Indicates the type of transportation used on a route. subway, metro, rail, bus, ferry, tram, etc'),
+        route_width: $gettext('width to display on the map'),
+        time: $gettext('Travel time on the link. set as length / speed when a link is created or edited (seconds)'),
+        trip_id: $gettext('Line (or trip) identifier (i.e. 100 Est). Links are group by trip_id in Quetzal-network-editor.'),
+        length: $gettext('links geometry linestring length (meters)'),
+        highway: $gettext('Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)'),
+        speed: $gettext('speed on the link (Km/h)'),
+        test: $gettext(''),
+
+      },
+
     }
   },
   computed: {
@@ -58,6 +86,16 @@ export default {
         {},
       )
       return ordered
+    },
+    editForm () {
+      return ['Edit Line Info',
+        'Edit Link Info',
+        'Edit Node Info',
+        'Edit Group Info',
+        'Edit rLink Info',
+        'Edit Road Group Info',
+        'Edit Visible Road Info',
+        'Edit rNode Info'].includes(this.action)
     },
   },
   watch: {
@@ -388,14 +426,7 @@ export default {
         </v-card-title>
         <v-divider />
         <v-card-text
-          v-if="['Edit Line Info',
-                 'Edit Link Info',
-                 'Edit Node Info',
-                 'Edit Group Info',
-                 'Edit rLink Info',
-                 'Edit Road Group Info',
-                 'Edit Visible Road Info',
-                 'Edit rNode Info'].includes(action)"
+          v-if="editForm"
         >
           <v-list>
             <v-text-field
@@ -403,6 +434,8 @@ export default {
               :key="key"
               v-model="value['value']"
               :label="key"
+              :hint="showHint? $gettext(hints[key]): ''"
+              :persistent-hint="showHint"
               :filled="!value['disabled']"
               :type="$store.getters.attributeType(key)"
               :placeholder="value['placeholder']? $gettext('multiple Values'):''"
@@ -430,6 +463,14 @@ export default {
         <v-divider />
 
         <v-card-actions>
+          <v-btn
+            v-if="editForm"
+            icon
+            x-small
+            @click="()=>showHint = !showHint"
+          >
+            <v-icon>far fa-question-circle small</v-icon>
+          </v-btn>
           <v-spacer />
 
           <v-btn
