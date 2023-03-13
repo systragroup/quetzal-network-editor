@@ -400,11 +400,11 @@ msgstr "Charger des zips"
 msgid "Loaded from"
 msgstr "chargé depuis"
 
-#: src/components/layout/Toolbar.vue:131
+#: src/components/utils/Profile.vue:127
 msgid "login / signin"
 msgstr "connexion / inscription"
 
-#: src/components/utils/Profile.vue:86
+#: src/components/utils/Profile.vue:95
 msgid "logout"
 msgstr "déconnexion"
 
@@ -473,7 +473,7 @@ msgid "New road links Highway property name"
 msgstr "Type de route (Highway) des nouveux liens routiers"
 
 #: src/components/LinksSidePanel.vue:632 src/components/RoadSidePanel.vue:357
-#: src/pages/Import.vue:280
+#: src/components/utils/Profile.vue:164 src/pages/Import.vue:280
 msgid "No"
 msgstr "Non"
 
@@ -544,6 +544,10 @@ msgstr "Vitesse TC"
 #: src/pages/Import.vue:203
 msgid "PT, Road, Zones, OD & Results"
 msgstr "TC, Routes, Zones, OD et Résultats"
+
+#: src/components/utils/Profile.vue:146
+msgid "Redirect"
+msgstr "Redirigé"
 
 #: src/components/ResultsSettings.vue:83 src/components/Settings.vue:56
 msgid "Required"
@@ -696,6 +700,10 @@ msgid "there is no index in nodes. Import aborted"
 msgstr ""
 "il y a des index de liens ou de noeds en double. Importation interrompue"
 
+#: src/components/utils/Profile.vue:152
+msgid "This will ERASE the current project"
+msgstr "Le projet en cours sera ÉCRASÉ"
+
 #: src/pages/Home.vue:53
 msgid "Time between departures in seconds"
 msgstr "Temps entre chaque départ en secondes"
@@ -725,7 +733,7 @@ msgid "width to display on the map"
 msgstr "Largeur à afficher sur la carte"
 
 #: src/components/LinksSidePanel.vue:641 src/components/RoadSidePanel.vue:366
-#: src/pages/Import.vue:289
+#: src/components/utils/Profile.vue:173 src/pages/Import.vue:289
 msgid "Yes"
 msgstr "Oui"
 

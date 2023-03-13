@@ -397,11 +397,11 @@ msgstr ""
 msgid "Loaded from"
 msgstr ""
 
-#: src/components/layout/Toolbar.vue:131
+#: src/components/utils/Profile.vue:127
 msgid "login / signin"
 msgstr ""
 
-#: src/components/utils/Profile.vue:86
+#: src/components/utils/Profile.vue:95
 msgid "logout"
 msgstr ""
 
@@ -471,6 +471,7 @@ msgstr ""
 
 #: src/components/LinksSidePanel.vue:632
 #: src/components/RoadSidePanel.vue:357
+#: src/components/utils/Profile.vue:164
 #: src/pages/Import.vue:280
 msgid "No"
 msgstr ""
@@ -543,6 +544,10 @@ msgstr ""
 
 #: src/pages/Import.vue:203
 msgid "PT, Road, Zones, OD & Results"
+msgstr ""
+
+#: src/components/utils/Profile.vue:146
+msgid "Redirect"
 msgstr ""
 
 #: src/components/ResultsSettings.vue:83
@@ -696,6 +701,10 @@ msgstr ""
 msgid "there is no index in nodes. Import aborted"
 msgstr ""
 
+#: src/components/utils/Profile.vue:152
+msgid "This will ERASE the current project"
+msgstr ""
+
 #: src/pages/Home.vue:53
 msgid "Time between departures in seconds"
 msgstr ""
@@ -722,6 +731,7 @@ msgstr ""
 
 #: src/components/LinksSidePanel.vue:641
 #: src/components/RoadSidePanel.vue:366
+#: src/components/utils/Profile.vue:173
 #: src/pages/Import.vue:289
 msgid "Yes"
 msgstr ""
