@@ -36,6 +36,14 @@ export default {
       selectedTab: 0,
       isRoadMode: false,
       showHint: true,
+      newFieldName: null,
+      rules: {
+        newField: [
+          val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
+          val => val !== '' || $gettext('cannot add empty field'),
+        ],
+      },
+
       hints: {
         agency_id: $gettext('transit brand or transit agency'),
         direction_id: $gettext('direction of travel for a trip. used to separate trips by directions. ex: 0 - Travel in one direction. 1 - Travel in the opposite direction '),
@@ -392,6 +400,45 @@ export default {
       this.errorMessage = ''
       this.cloneDialog = false
     },
+    addField () {
+      let form = {}
+      if (Array.isArray(this.editorForm)) {
+        form = structuredClone(this.editorForm[this.selectedTab])
+      } else {
+        form = structuredClone(this.editorForm)
+      }
+
+      // do not append if its null, empty or already exist.
+
+      if ((Object.keys(form).includes(this.newFieldName)) |
+      (this.newFieldName === '') | (!this.newFieldName)) {
+        // put ' ' so the rule error is diplayed.
+        if (!this.newFieldName) this.newFieldName = ''
+      } else {
+        // need to rewrite editorForm object to be updated in DOM
+        if (Array.isArray(this.editorForm)) {
+          const tempArr = structuredClone(this.editorForm)
+          tempArr.forEach(el => el[this.newFieldName] = { disabled: false, placeholder: false, value: undefined })
+          this.editorForm = null
+          this.editorForm = tempArr
+        } else {
+          form[this.newFieldName] = { disabled: false, placeholder: false, value: undefined }
+          this.editorForm = {}
+          this.editorForm = form
+        }
+
+        if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(this.action)) {
+          this.$store.commit('addPropertie', { name: this.newFieldName, table: 'links' })
+        } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(this.action)) {
+          this.$store.commit('addRoadPropertie', { name: this.newFieldName, table: 'rlinks' })
+        } else if (this.action === 'Edit Node Info') {
+          this.$store.commit('addPropertie', { name: this.newFieldName, table: 'nodes' })
+        } else if (this.action === 'Edit rNode Info') {
+          this.$store.commit('addRoadPropertie', { name: this.newFieldName, table: 'rnodes' })
+        }
+        this.newFieldName = null // null so there is no rules error.
+      }
+    },
 
   },
 }
@@ -450,6 +497,27 @@ export default {
                 <color-picker
                   v-model="value['value']"
                 />
+              </template>
+            </v-text-field>
+            <v-text-field
+              v-model="newFieldName"
+              label="add field"
+              placeholder="new field name"
+              filled
+              :rules="rules.newField"
+              @keydown.enter.stop="addField"
+              @wheel="$event.target.blur()"
+            >
+              <template v-slot:append-outer>
+                <v-btn
+                  color="primary"
+                  class="text--primary"
+                  fab
+                  x-small
+                  @click="addField"
+                >
+                  <v-icon>fas fa-plus</v-icon>
+                </v-btn>
               </template>
             </v-text-field>
           </v-list>

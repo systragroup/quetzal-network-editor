@@ -115,6 +115,18 @@ export default {
       header = Array.from(header)
       state.rnodeAttributes = header
     },
+    addRoadPropertie (state, payload) {
+      // when a new line properties is added (in dataframe page)
+      if (payload.table === 'rlinks') {
+        state.rlinks.features.map(link => link.properties[payload.name] = null)
+        state.visiblerLinks.features.map(link => link.properties[payload.name] = null)
+        state.rlineAttributes.push(payload.name) // could put that at applied. so we can cancel
+      } else {
+        state.rnodes.features.map(node => node.properties[payload.name] = null)
+        state.visiblerNodes.features.map(node => node.properties[payload.name] = null)
+      }
+    },
+
     changeSelectedrFilter (state, payload) {
       state.selectedrFilter = payload
       this.commit('getFilteredrCat')
