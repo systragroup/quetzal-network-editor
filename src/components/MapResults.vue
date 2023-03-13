@@ -26,7 +26,7 @@ export default {
       selectedLinks: [],
       minZoom: {
         nodes: 14,
-        links: 8,
+        links: 2,
       },
 
     }

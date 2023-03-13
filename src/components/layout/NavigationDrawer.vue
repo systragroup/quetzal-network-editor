@@ -9,7 +9,7 @@ export default {
       drawer: true,
       mini: true,
       menuItems: [],
-      version: '4.0',
+      version: 'V4.0',
     }
   },
   computed: {
@@ -98,7 +98,7 @@ export default {
         </v-list-item>
         <v-list-item
           class="version-number"
-          :style="{marginBottom:'-1rem'}"
+          :style="{fontSize:24 - 2*version.length+'px'}"
         >
           <span>{{ version }}</span>
         </v-list-item>
@@ -138,6 +138,7 @@ export default {
 .version-number {
   justify-content: flex-start ;
   color:white !important;
+  margin-bottom:-1rem;
   flex: 0;
 }
 .drawer-list-item-icon {

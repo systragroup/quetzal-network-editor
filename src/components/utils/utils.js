@@ -10,10 +10,14 @@ async function extractZip (file) {
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
     const content = JSON.parse(str)
+
     if (zip.files[filesNames[i]].name.slice(-7) === 'geojson') {
+      console.log(content)
+      console.log(filesNames[i])
       if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs.properties.name)) {
         alert('invalid CRS. use CRS84 / EPSG:4326')
       }
+
       if (content.features[0].geometry.type === 'LineString') {
         if (filesNames[i].includes('road')) {
           result.files.push({ data: content, type: 'road_links', fileName: filesNames[i] })
@@ -32,6 +36,7 @@ async function extractZip (file) {
         }
       } else if (['MultiPolygon', 'Polygon'].includes(content.features[0].geometry.type)) {
         result.files.push({ data: content, type: 'zones', fileName: filesNames[i] })
+        console.log('ehe')
       }
     } else {
       result.files.push({ data: content, type: 'json', fileName: filesNames[i] })

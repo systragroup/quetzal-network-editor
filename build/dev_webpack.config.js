@@ -5,7 +5,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const WriteFilePlugin = require('write-file-webpack-plugin')
 const path = require('path')
-
+const Dotenv = require('dotenv-webpack')
 module.exports = {
   mode: 'development',
   target: 'web',
@@ -104,6 +104,7 @@ module.exports = {
       filename: 'build.css',
       chunkFilename: '[id].css',
     }),
+    new Dotenv({ path: './.env.development' }),
   ],
   optimization: {
     splitChunks: {

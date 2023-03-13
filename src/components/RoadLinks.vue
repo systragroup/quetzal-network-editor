@@ -29,7 +29,7 @@ export default {
       renderedAnchorrNodes: {},
       bbox: null,
       minZoom: {
-        links: 9,
+        links: 2,
         rendered: 14,
       },
       contextMenu: {

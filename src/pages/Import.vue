@@ -9,7 +9,7 @@ import OSMImporter from '../components/utils/OSMImporter.vue'
 const $gettext = s => s
 
 export default {
-  name: 'Login',
+  name: 'Import',
   components: { OSMImporter },
   data () {
     return {

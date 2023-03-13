@@ -123,9 +123,11 @@ export default {
       // when a new line properties is added (in dataframe page)
       if (payload.table === 'links') {
         state.links.features.map(link => link.properties[payload.name] = null)
-        state.lineAttributes.push(payload.name)
+        state.editorLinks.features.map(link => link.properties[payload.name] = null)
+        state.lineAttributes.push(payload.name) // could put that at applied. so we can cancel
       } else {
         state.nodes.features.map(node => node.properties[payload.name] = null)
+        state.editorNodes.features.map(node => node.properties[payload.name] = null)
       }
     },
     changeSelectedTrips (state, payload) {

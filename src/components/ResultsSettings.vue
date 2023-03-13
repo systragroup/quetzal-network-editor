@@ -259,7 +259,7 @@ export default {
                 v-model="parameters[4].value"
                 class="align-center"
                 inverse-label
-                :label="parameters[4].name"
+                :label="$gettext(parameters[4].name)"
                 :max="100"
                 thumb-label
                 :min="0"
@@ -271,11 +271,11 @@ export default {
               </v-slider>
               <v-switch
                 v-model="parameters[7].value"
-                :label="parameters[7].name"
+                :label="$gettext(parameters[7].name)"
               />
               <v-switch
                 v-model="parameters[8].value"
-                :label="parameters[8].name"
+                :label="$gettext(parameters[8].name)"
               />
             </v-col>
           </v-container>
