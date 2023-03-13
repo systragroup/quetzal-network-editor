@@ -13,6 +13,8 @@ export default {
     }
   },
   computed: {
+    runError () { return this.$store.getters['run/error'] },
+    runSychronized () { return this.$store.getters['run/synchronized'] },
   },
   created () {
     this.menuItems = Router.options.routes.concat({
@@ -83,7 +85,22 @@ export default {
           @click="handleClickMenuItem(item)"
         >
           <v-list-item-action class="drawer-list-item-icon">
+            <v-badge
+              v-if="item.name==='Run' && (runError || !runSychronized)"
+              offset-x="6px"
+              offset-y="11px"
+              :color="runError ? 'error' : !runSychronized ? 'warning' : ''"
+              :icon="(runError || !runSychronized) ? 'fa-solid fa-exclamation' : ''"
+            >
+              <v-icon
+                small
+                :title="$gettext(item.title)"
+              >
+                {{ item.icon }}
+              </v-icon>
+            </v-badge>
             <v-icon
+              v-else
               small
               :title="$gettext(item.title)"
             >

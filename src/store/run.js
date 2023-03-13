@@ -9,6 +9,7 @@ export default {
     executionArn: '',
     currentStep: 0,
     error: false,
+    synchronized: true,
   },
   mutations: {
     setSteps (state, payload) {
@@ -130,5 +131,6 @@ export default {
     currentStep: (state) => state.currentStep,
     executionArn: (state) => state.executionArn,
     error: (state) => state.error,
+    synchronized: (state) => state.synchronized,
   },
 }

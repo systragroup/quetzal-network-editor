@@ -7,6 +7,7 @@ export default {
     running () { return this.$store.getters['run/running'] },
     currentStep () { return this.$store.getters['run/currentStep'] },
     error () { return this.$store.getters['run/error'] },
+    synchronized () { return this.$store.getters['run/synchronized'] },
   },
   methods: {
     run () {
@@ -29,17 +30,40 @@ export default {
             v-model="currentStep"
             vertical
           >
+            <v-alert
+              v-if="!synchronized"
+              dense
+              outlined
+              text
+              type="warning"
+            >
+              {{ $gettext("Results are not synchronized with latest modifications. \
+              Please relauch simulation to update results.") }}
+            </v-alert>
+            <v-alert
+              v-if="error"
+              dense
+              outlined
+              text
+              type="error"
+            >
+              {{ $gettext("Simulation ended with an execution error or have been aborted. \
+              Please relauch simulation. If the problem persist, contact us.") }}
+            </v-alert>
+            <v-btn
+              :loading="running"
+              :disabled="running"
+              color="green darken-1"
+              @click="run()"
+              style="margin-bottom: 15px;"
+            >
+              <v-icon small style="margin-right: 10px;">fa-solid fa-play</v-icon>
+              {{ $gettext("Run Simulation") }}
+            </v-btn>
             <v-container
               v-for="(step, i) in steps"
               :key="i+1"
             >
-              <v-stepper-step
-                :complete="currentStep > i+1"
-                :step="i+1"
-                :rules="[() => !(i+1 == currentStep) || !error]"
-              >
-                {{ step.name }}
-              </v-stepper-step>
               <v-stepper-content
                 :step="i+1"
               >
@@ -52,16 +76,14 @@ export default {
                   {{ $gettext("Abort") }}
                 </v-btn>
               </v-stepper-content>
+              <v-stepper-step
+                :complete="currentStep > i+1"
+                :step="i+1"
+                :rules="[() => !(i+1 == currentStep) || !error]"
+              >
+                {{ step.name }}
+              </v-stepper-step>
             </v-container>
-            <v-btn
-              :loading="running"
-              :disabled="running"
-              text
-              color="green darken-1"
-              @click="run()"
-            >
-              {{ $gettext("Run Simulation") }}
-            </v-btn>
           </v-stepper>
         </v-card>
       </v-col>
@@ -69,9 +91,6 @@ export default {
   </v-container>
 </template>
 <style lang="scss" scoped>
-* {
-  margin: 0px;
-}
 .container {
   width: 100%;
   overflow: hidden;
@@ -126,5 +145,6 @@ export default {
 .v-sheet.v-stepper:not(.v-sheet--outlined) {
   box-shadow: none;
 }
+
 
 </style>
