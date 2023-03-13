@@ -79,14 +79,15 @@ export default {
       :timeout="notification.autoClose ? 3000 : -1"
       transition="slide-y-reverse-transition"
       :color="notification.color? notification.color : 'white'"
-      class="snackbar"
       :class="`snackbar-${notification.type}`"
     >
-      {{ $gettext(notification.text) }}
+      <span class="snackbar-text">
+        {{ $gettext(notification.text) }}
+      </span>
       <template v-slot:action="{ attrs }">
         <v-btn
           small
-          color="secondary"
+          color="secondarydark"
           text
           v-bind="attrs"
           @click="closeSnackbar"
@@ -103,6 +104,9 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+.snackbar-text{
+  color:var(--v-secondarydark-base);
 }
 .container {
   height: 100%;
