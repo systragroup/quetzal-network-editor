@@ -48,13 +48,15 @@ export default {
   align-items: center;
   flex-direction: column;
   overflow-y: scroll;
+  padding-top: 15px;
+  padding-bottom: 60px;
 }
 div.gallery {
   margin: 5px;
   background-color: var(--v-white-base);
-  border: 1px solid var(--v-mediumgrey-base);
+  border: 1px solid var(--v-lightgrey-base);
   float: left;
-  width: 900px;
+  width: 50%;
 }
 
 div.gallery:hover {
