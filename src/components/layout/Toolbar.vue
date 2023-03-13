@@ -1,5 +1,4 @@
 <script>
-import auth from '../../auth'
 import Profile from '../utils/Profile.vue'
 export default {
   name: 'Toolbar',
@@ -9,9 +8,7 @@ export default {
       dialog: true,
     }
   },
-  computed: {
-    loggedIn () { return this.$store.getters.loggedIn },
-  },
+
   watch: {
     '$vuetify.theme.dark' (val) {
       this.$store.commit('changeDarkMode', val)
@@ -19,13 +16,6 @@ export default {
   },
 
   methods: {
-    login () {
-      auth.login()
-    },
-    logout () {
-      auth.logout()
-    },
-
     handleChangeLanguage (lang) {
       this.$vuetify.lang.current = lang
       this.$language.current = lang
@@ -103,29 +93,7 @@ export default {
       </v-menu>
     </div>
     <div>
-      <Profile
-        v-if="loggedIn"
-        @logout="()=>logout()"
-      />
-      <v-tooltip
-        v-else
-        bottom
-        open-delay="250"
-      >
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-            icon
-            v-bind="attrs"
-            v-on="on"
-            @click="login"
-          >
-            <v-icon>
-              fas fa-sign-in-alt
-            </v-icon>
-          </v-btn>
-        </template>
-        <span>{{ $gettext('login / signin') }}</span>
-      </v-tooltip>
+      <Profile />
     </div>
   </v-toolbar>
 </template>
