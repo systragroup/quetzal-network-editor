@@ -4,7 +4,6 @@ import Import from '@page/Import.vue'
 import ResultPicture from '@page/ResultPicture.vue'
 import auth from '../auth'
 import Home from '@page/Home.vue'
-import DataFrame from '@page/DataFrame.vue'
 import ResultMap from '@page/ResultMap.vue'
 import { store } from '../store/index.js'
 
@@ -31,13 +30,6 @@ const router = new Router({
       component: Home,
       icon: 'fa-solid fa-map',
       title: $gettext('Map'),
-    },
-    {
-      path: '/DataFrame',
-      name: DataFrame.name,
-      component: DataFrame,
-      icon: 'fa-solid fa-table',
-      title: $gettext('Table'),
     },
     {
       path: '/ResultMap',
