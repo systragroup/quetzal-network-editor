@@ -60,7 +60,13 @@ export default {
     startExecution ({ state, commit, dispatch }) {
       let data = {
         // eslint-disable-next-line no-useless-escape
-        input: '{\"launcher_arg\":{\"scenario\":\"base\", \"training_folder\":\"/tmp\"}}',
+        input: JSON.stringify({
+          scenario_path_S3: 'base/',
+          launcher_arg: {
+            scenario: 'base',
+            training_folder: '/tmp',
+          },
+        }),
         stateMachineArn: state.stateMachineArn,
       }
       axiosClient.post('',

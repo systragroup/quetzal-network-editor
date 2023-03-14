@@ -40,7 +40,7 @@ export default {
     this.$store.dispatch('run/getSteps')
 
     if (auth.auth.isUserSignedIn()) {
-      // console.log(auth.auth.getSignInUserSession().getAccessToken().jwtToken)
+      console.log(auth.auth.getSignInUserSession().getIdToken().jwtToken)
       auth.login()
     }
   },
