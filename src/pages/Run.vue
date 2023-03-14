@@ -75,7 +75,7 @@ export default {
             text
             @click="stopRun()"
           >
-            {{ $gettext("Abort") }}
+            {{ $gettext("Abort Simulation") }}
           </v-btn>
           <v-container
             v-for="(step, i) in steps"

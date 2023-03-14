@@ -32,7 +32,7 @@ msgstr ""
 msgid "_ctx"
 msgstr "_ctx"
 
-#: src/components/layout/NavigationDrawer.vue:28
+#: src/components/layout/NavigationDrawer.vue:30
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr "%{s}"
@@ -55,6 +55,10 @@ msgstr ""
 
 #: src/components/LinksSidePanel.vue:531
 msgid "Abort"
+msgstr ""
+
+#: src/pages/Run.vue:101
+msgid "Abort Simulation"
 msgstr ""
 
 #: src/components/EditorLinks.vue:166 src/components/RoadLinks.vue:148
@@ -83,10 +87,10 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
-#: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:202
-#: src/components/RoadSidePanel.vue:347 src/components/Settings.vue:133
-#: src/components/utils/OSMImporter.vue:161 src/pages/DataFrame.vue:164
-#: src/pages/Home.vue:180 src/pages/Home.vue:247
+#: src/components/LinksSidePanel.vue:622 src/components/ParamForm.vue:91
+#: src/components/ResultsSettings.vue:202 src/components/RoadSidePanel.vue:347
+#: src/components/Settings.vue:133 src/components/utils/OSMImporter.vue:161
+#: src/pages/DataFrame.vue:164 src/pages/Home.vue:180 src/pages/Home.vue:247
 msgid "Cancel"
 msgstr ""
 
@@ -96,6 +100,10 @@ msgstr ""
 
 #: src/components/LinksSidePanel.vue:96
 msgid "Cannot filter by this field. There is more than 500 groups"
+msgstr ""
+
+#: src/components/ParamForm.vue:13
+msgid "Change project Name"
 msgstr ""
 
 #: src/pages/Home.vue:267
@@ -108,6 +116,10 @@ msgstr ""
 
 #: src/components/ResultsSettings.vue:64
 msgid "cmap to use"
+msgstr ""
+
+#: src/components/ParamForm.vue:111
+msgid "Collapse all"
 msgstr ""
 
 #: src/components/ResultsSettings.vue:59
@@ -227,7 +239,11 @@ msgstr ""
 msgid "example"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:20
+#: src/components/ParamForm.vue:111
+msgid "Expand all"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:22
 msgid "Export"
 msgstr ""
 
@@ -291,7 +307,7 @@ msgstr ""
 msgid "Identifies a route. Often a string"
 msgstr ""
 
-#: src/router/index.js:26
+#: src/router/index.js:27
 msgid "Import"
 msgstr ""
 
@@ -305,10 +321,12 @@ msgid ""
 "         subway, metro, rail, bus, ferry, tram, etc"
 msgstr ""
 
+#: src/components/ParamForm.vue:58 src/components/ParamForm.vue:60
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
-#: src/components/layout/NavigationDrawer.vue:56
-#: src/components/layout/NavigationDrawer.vue:70 src/pages/DataFrame.vue:59
+#: src/components/layout/NavigationDrawer.vue:66
+#: src/components/layout/NavigationDrawer.vue:79
+#: src/components/layout/NavigationDrawer.vue:93 src/pages/DataFrame.vue:59
 msgid "item"
 msgstr ""
 
@@ -391,7 +409,7 @@ msgid ""
 "residential, primary)"
 msgstr ""
 
-#: src/router/index.js:33
+#: src/router/index.js:34
 msgid "Map"
 msgstr ""
 
@@ -484,6 +502,14 @@ msgstr ""
 msgid "Overwrite current Project ?"
 msgstr ""
 
+#: src/router/index.js:48
+msgid "Parameters and Run"
+msgstr ""
+
+#: src/components/ParamForm.vue:10
+msgid "project Name"
+msgstr ""
+
 #: src/pages/Import.vue:224
 msgid "project overwrited"
 msgstr ""
@@ -524,15 +550,22 @@ msgstr ""
 msgid "Redirect"
 msgstr ""
 
-#: src/components/ResultsSettings.vue:83 src/components/Settings.vue:56
+#: src/components/ParamForm.vue:163 src/components/ResultsSettings.vue:83
+#: src/components/Settings.vue:56
 msgid "Required"
 msgstr ""
 
-#: src/router/index.js:47
+#: src/pages/Run.vue:53
+msgid ""
+"Results are not synchronized with latest modifications.             Please "
+"relauch simulation to update results."
+msgstr ""
+
+#: src/router/index.js:55
 msgid "Results Map"
 msgstr ""
 
-#: src/router/index.js:54
+#: src/router/index.js:62
 msgid "Results Pictures"
 msgstr ""
 
@@ -588,8 +621,13 @@ msgstr ""
 msgid "Roads"
 msgstr ""
 
-#: src/components/ResultsSettings.vue:212 src/components/Settings.vue:143
-#: src/pages/Home.vue:190 src/pages/Home.vue:257
+#: src/pages/Run.vue:90
+msgid "Run Simulation"
+msgstr ""
+
+#: src/components/ParamForm.vue:101 src/components/ResultsSettings.vue:212
+#: src/components/Settings.vue:143 src/pages/Home.vue:190
+#: src/pages/Home.vue:257
 msgid "Save"
 msgstr ""
 
@@ -599,6 +637,14 @@ msgstr ""
 
 #: src/components/ResultsSettings.vue:51 src/components/ResultsSettings.vue:56
 msgid "scale"
+msgstr ""
+
+#: src/components/ParamForm.vue:24
+msgid "Scenario Settings"
+msgstr ""
+
+#: src/pages/Run.vue:33
+msgid "Scenario Simulation"
 msgstr ""
 
 #: src/components/ResultsSettings.vue:16 src/components/ResultsSettings.vue:20
@@ -615,11 +661,12 @@ msgid ""
 "         abstract identifier like \"32\", \"100X\", or \"Green\""
 msgstr ""
 
-#: src/components/ResultsSettings.vue:85
+#: src/components/ParamForm.vue:165 src/components/ResultsSettings.vue:85
 msgid "should be larger or equal to 0"
 msgstr ""
 
-#: src/components/ResultsSettings.vue:84 src/components/Settings.vue:57
+#: src/components/ParamForm.vue:164 src/components/ResultsSettings.vue:84
+#: src/components/Settings.vue:57
 msgid "should be larger than 0"
 msgstr ""
 
@@ -630,6 +677,12 @@ msgstr ""
 
 #: src/components/ResultsSettings.vue:67
 msgid "show NaN"
+msgstr ""
+
+#: src/pages/Run.vue:68
+msgid ""
+"Simulation ended with an execution error or have been aborted.             "
+"Please relauch simulation. If the problem persist, contact us."
 msgstr ""
 
 #: src/pages/Home.vue:72
@@ -646,7 +699,7 @@ msgid ""
 "is moved"
 msgstr ""
 
-#: src/router/index.js:40
+#: src/router/index.js:41
 msgid "Table"
 msgstr ""
 
