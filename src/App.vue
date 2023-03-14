@@ -5,6 +5,7 @@ import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import auth from './auth'
+import s3 from './AWSClient'
 
 export default {
   name: 'App',
@@ -41,6 +42,8 @@ export default {
     if (auth.auth.isUserSignedIn()) {
       // console.log(auth.auth.getSignInUserSession().getAccessToken().jwtToken)
       auth.login()
+      s3.login()
+      // s3.test()
     }
   },
   methods: {

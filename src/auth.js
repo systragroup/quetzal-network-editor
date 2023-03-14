@@ -7,6 +7,7 @@ const APP_DOMAIN = process.env.VUE_APP_COGNITO_APP_DOMAIN
 const REDIRECT_URI = process.env.VUE_APP_COGNITO_REDIRECT_URI
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const REDIRECT_URI_SIGNOUT = process.env.VUE_APP_COGNITO_REDIRECT_URI_SIGNOUT
+
 const authData = {
   ClientId: CLIENT_ID, // Your client id here
   AppWebDomain: APP_DOMAIN,
@@ -33,6 +34,8 @@ function getUserInfo () {
 auth.userhandler = {
   onSuccess: function (result) {
     // console.log('On Success result', result)
+
+    store.commit('setIdToken', result.getIdToken().jwtToken)
     store.commit('setAccessToken', result.accessToken.jwtToken)
     store.commit('setCognitoGroups', auth.getSignInUserSession().getIdToken().payload['cognito:groups'])
 
