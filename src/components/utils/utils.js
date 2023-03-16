@@ -4,7 +4,10 @@ import { store } from '../../store/index.js'
 async function extractZip (file) {
   const ZIP = new JSZip()
   const zip = await ZIP.loadAsync(file)
-  const filesNames = Object.keys(zip.files)
+  let filesNames = Object.keys(zip.files)
+  console.log(filesNames)
+  console.log(zip.files)
+  filesNames = filesNames.filter(name => !name.match(/^__MACOSX\//))
   // process ZIP file content here
   const result = { zipName: file.name, files: [] }
   for (let i = 0; i < filesNames.length; i++) {

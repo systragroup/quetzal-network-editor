@@ -5,6 +5,7 @@ export default {
     cognitoInfo: {},
     cognitoGroups: {},
     accesToken: '',
+    idToken: '',
     loggedIn: false,
     loadingState: true,
     errorLoadingState: false,
@@ -26,11 +27,16 @@ export default {
     setAccessToken (state, payload) {
       state.accesToken = payload
     },
+    setIdToken (state, payload) {
+      state.idToken = payload
+    },
   },
 
   getters: {
     loggedIn: (state) => state.loggedIn,
     cognitoInfo: (state) => state.cognitoInfo,
     cognitoGroups: (state) => state.cognitoGroups,
+    accesToken: (state) => state.accesToken,
+    idToken: (state) => state.idToken,
   },
 }
