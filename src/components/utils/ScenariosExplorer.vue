@@ -1,5 +1,5 @@
 <script>
-import auth from '../../auth'
+
 import s3 from '../../AWSClient'
 export default {
   name: 'ScenariosExplorer',
@@ -25,41 +25,33 @@ export default {
     model () { return this.$store.getters.model },
     scenario () { return this.$store.getters.scenario },
   },
-  watch: {
-    vmodelScen (val) {
-      this.$store.commit('setScenario', val)
-      s3.readJson(this.model, val + '/quenedi.json').then(resp => {
-        this.$router.push({ name: 'Import', query: { s3Path: resp.network_paths } })
-      })
-
-      // load project
-    },
-  },
+  mounted () { this.vmodelScen = this.scenario },
 
   methods: {
+    change (val) {
+      if (val && this.projectIsEmpty) {
+        this.loadProject()
+      } else {
+        this.showDialog = true
+      }
+    },
+    loadProject () {
+      this.$store.commit('setScenario', this.vmodelScen)
+      s3.readJson(this.model, this.vmodelScen + '/quenedi.json').then(resp => {
+        this.$router.push({ name: 'Import', query: { s3Path: resp.network_paths } })
+      })
+    },
 
-    login () {
-      if (this.projectIsEmpty) {
-        auth.login()
-      } else {
-        this.action = 'login'
-        this.showDialog = true
-      }
-    },
-    logout () {
-      if (this.projectIsEmpty) {
-        this.menu = false
-        auth.logout()
-      } else {
-        this.action = 'logout'
-        this.showDialog = true
-      }
-    },
     applyDialog () {
       this.menu = false
       this.showDialog = false
-      if (this.action === 'login') auth.login()
-      if (this.action === 'logout') auth.logout()
+      this.loadProject()
+    },
+    cancelDialog () {
+      // reset vmodel back to loaded scenario
+      this.vmodelScen = this.scenario
+      this.showDialog = false
+      this.menu = false
     },
 
   },
@@ -85,20 +77,22 @@ export default {
       </template>
       <v-card>
         <v-tabs
-          v-for="model in modelsList"
-          :key="model"
+          v-for="tab in modelsList"
+          :key="tab"
         >
-          <v-tab>{{ model }}</v-tab>
+          <v-tab>{{ tab }}</v-tab>
         </v-tabs>
         <v-list-item-group
           v-model="vmodelScen"
           color="primary"
+          @change="change"
         >
           <v-list-item
             v-for="scen in scenariosList"
             :key="scen.model + scen.scenario"
             :value="scen.scenario"
             two-line
+            :disabled="vmodelScen === scen.scenario"
           >
             <v-list-item-content>
               <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
@@ -108,6 +102,38 @@ export default {
         </v-list-item-group>
       </v-card>
     </v-menu>
+    <v-dialog
+      v-model="showDialog"
+      persistent
+      max-width="350"
+      @keydown.enter="applyDialog"
+      @keydown.esc="showDialog=false"
+    >
+      <v-card>
+        <v-card-title class="text-h4">
+          {{ $gettext("Load Scenario?") }}
+        </v-card-title>
+        <v-card-text class="text-h6">
+          {{ $gettext("This will ERASE the current project") }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="regular"
+            @click="cancelDialog"
+          >
+            {{ $gettext("No") }}
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            @click="applyDialog"
+          >
+            {{ $gettext("Yes") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </section>
 </template>
 <style lang="scss" scoped>

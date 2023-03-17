@@ -75,7 +75,7 @@ export default {
           nodes = content
         }
       }
-      this.loadNetwork(links, nodes, 'PT', 'Inputs DB')
+      this.loadNetwork(links, nodes, 'PT', 'DataBase')
 
       prefix = this.$store.getters.scenario + '/' + path.read_rlinks_path[0]
       filesNames = await s3.listFiles(this.$store.getters.model, prefix)
@@ -87,7 +87,7 @@ export default {
           nodes = content
         }
       }
-      this.loadNetwork(links, nodes, 'road', 'Inputs DB')
+      this.loadNetwork(links, nodes, 'road', 'DataBase')
 
       this.$router.replace({ query: null }) // remove query in url when page is load.
     },
