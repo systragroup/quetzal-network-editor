@@ -1,6 +1,6 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
-
+import s3 from '../AWSClient'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 import { extractZip, IndexAreDifferent, unzip } from '../components/utils/utils.js'
@@ -11,6 +11,7 @@ const $gettext = s => s
 export default {
   name: 'Import',
   components: { OSMImporter },
+
   data () {
     return {
       loggedIn: false,
@@ -30,12 +31,16 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     localLinksLoaded () { return Object.keys(this.loadedLinks).length === 0 },
     localNodesLoaded () { return Object.keys(this.loadedNodes).length === 0 },
+    s3Path () { return this.$route.query.s3Path },
     localFilesAreLoaded () {
       return !(this.localLinksLoaded || this.localNodesLoaded)
     },
 
   },
   watch: {
+    s3Path (val) {
+      if (val) this.loadFilesFromS3(val)
+    },
     localFilesAreLoaded (val) {
       if (val) {
         this.loadNetwork(this.loadedLinks, this.loadedNodes, this.loadedType, 'individual files')
@@ -48,6 +53,7 @@ export default {
   },
   mounted () {
     this.$store.commit('changeNotification', '')
+    if (this.s3Path) this.loadFilesFromS3(this.s3Path)
   },
   methods: {
     login () {
@@ -55,6 +61,35 @@ export default {
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})
       }, 300)
+    },
+    async loadFilesFromS3 (path) {
+      let prefix = this.$store.getters.scenario + '/' + path.read_links_path[0]
+      let filesNames = await s3.listFiles(this.$store.getters.model, prefix)
+      let links = {}
+      let nodes = {}
+      for (const file of filesNames) {
+        const content = await s3.readJson(this.$store.getters.model, file)
+        if (content.features[0].geometry.type === 'LineString') {
+          links = content
+        } else if (content.features[0].geometry.type === 'Point') {
+          nodes = content
+        }
+      }
+      this.loadNetwork(links, nodes, 'PT', 'Inputs DB')
+
+      prefix = this.$store.getters.scenario + '/' + path.read_rlinks_path[0]
+      filesNames = await s3.listFiles(this.$store.getters.model, prefix)
+      for (const file of filesNames) {
+        const content = await s3.readJson(this.$store.getters.model, file)
+        if (content.features[0].geometry.type === 'LineString') {
+          links = content
+        } else if (content.features[0].geometry.type === 'Point') {
+          nodes = content
+        }
+      }
+      this.loadNetwork(links, nodes, 'road', 'Inputs DB')
+
+      this.$router.replace({ query: null }) // remove query in url when page is load.
     },
 
     loadNetwork (links, nodes, type, zipName) {
