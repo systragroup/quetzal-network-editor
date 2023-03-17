@@ -3,15 +3,15 @@ export default {
   namespaced: false,
   state: {
     cognitoInfo: {},
-    cognitoGroups: {},
+    cognitoGroups: [],
     accesToken: '',
     idToken: '',
     loggedIn: false,
     loadingState: true,
     errorLoadingState: false,
     scenariosList: [],
-    model: 'quetzal-paris',
-    scenario: '',
+    model: null,
+    scenario: null,
   },
   mutations: {
     setLoggedIn (state) {
@@ -36,7 +36,9 @@ export default {
     setScenariosList (state, payload) {
       state.scenariosList = payload
     },
-
+    setModel (state, payload) {
+      state.model = payload
+    },
     setScenario (state, payload) {
       state.scenario = payload
     },
@@ -45,7 +47,7 @@ export default {
   getters: {
     loggedIn: (state) => state.loggedIn,
     cognitoInfo: (state) => state.cognitoInfo,
-    cognitoGroups: (state) => state.cognitoGroups,
+    cognitoGroups: (state) => state.cognitoGroups ? state.cognitoGroups : [null],
     accesToken: (state) => state.accesToken,
     idToken: (state) => state.idToken,
     scenariosList: (state) => state.scenariosList,

@@ -25,11 +25,13 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     loggedIn () { return this.$store.getters.loggedIn },
     scenariosList () { return this.$store.getters.scenariosList },
+    filterdScenarios () { return this.scenariosList.filter(scen => scen.model === this.model) },
     modelsList () { return this.$store.getters.cognitoGroups },
     model () { return this.$store.getters.model },
     scenario () { return this.$store.getters.scenario },
   },
-  mounted () { },
+  mounted () {
+  },
 
   methods: {
     change (val) {
@@ -65,7 +67,7 @@ export default {
         this.errorMessage = 'Please enter a name'
       } else if (this.input.includes('/')) {
         this.errorMessage = 'cannot have / in name'
-      } else if (this.scenariosList.map(p => p.scenario).includes(this.input)) {
+      } else if (this.filterdScenarios.map(p => p.scenario).includes(this.input)) {
         this.errorMessage = 'project already exist'
       } else {
         // eslint-disable-next-line max-len
@@ -92,7 +94,7 @@ export default {
 <template>
   <section>
     <v-menu
-      v-if="loggedIn"
+      v-if="loggedIn && modelsList"
       v-model="menu"
       :close-on-content-click="false"
 
@@ -104,7 +106,7 @@ export default {
           v-bind="attrs"
           v-on="on"
         >
-          {{ model + '/' + scenario }}
+          {{ scenario? model + '/' + scenario: $gettext('Projects') }}
         </div>
       </template>
       <v-card>
@@ -121,7 +123,7 @@ export default {
           @change="change"
         >
           <v-list-item
-            v-for="scen in scenariosList"
+            v-for="scen in filterdScenarios"
             :key="scen.model + scen.scenario"
             :value="scen.scenario"
             two-line

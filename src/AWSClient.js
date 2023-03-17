@@ -8,20 +8,20 @@ const s3Client = new AWS.S3({
   params: { region: REGION },
 })
 
-async function readJson (bucket = 'quetzal-paris', key = 'base/quenedi.json') {
+async function readJson (bucket = '', key = 'base/quenedi.json') {
   const params = { Bucket: bucket, Key: key }
   const response = await s3Client.getObject(params).promise() // await the promise
   const fileContent = JSON.parse(response.Body.toString('utf-8')) // can also do 'base64' here if desired
   return fileContent
 }
-async function listFiles (bucket = 'quetzal-paris', prefix = '') {
+async function listFiles (bucket = '', prefix = '') {
   const params = { Bucket: bucket, Prefix: prefix }
   const Content = await s3Client.listObjectsV2(params).promise()
   // return filname and remove empty name (empty folder)
   return Content.Contents.map(item => item.Key).filter(file => file !== prefix)
 }
 
-async function copyScenario (bucket = 'quetzal-paris', prefix = '', newName = 'new') {
+async function copyScenario (bucket = '', prefix = '', newName = 'new') {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   for (const file of response.Contents) {
@@ -39,7 +39,7 @@ async function copyScenario (bucket = 'quetzal-paris', prefix = '', newName = 'n
   }
 }
 
-async function getScenario (bucket = 'quetzal-paris') {
+async function getScenario (bucket = '') {
   // list all files in bucket
   const params = { Bucket: bucket }
   let moreToLoad = true
@@ -51,7 +51,7 @@ async function getScenario (bucket = 'quetzal-paris') {
       moreToLoad = IsTruncated
       params.ContinuationToken = NextContinuationToken
     }
-  } catch (err) { return err }
+  } catch (err) { return [] }
 
   // get list of scenarios (unique prefix)
   const scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))

@@ -43,6 +43,7 @@ export default {
       // console.log(auth.auth.getSignInUserSession().getAccessToken().jwtToken)
       auth.login()
       s3.login()
+      this.$store.commit('setModel', this.$store.getters.cognitoGroups[0])
       s3.getScenario(this.$store.getters.model).then(res => {
         this.$store.commit('setScenariosList', res)
       },
