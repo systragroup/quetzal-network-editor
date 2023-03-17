@@ -42,8 +42,8 @@ export default {
     if (auth.auth.isUserSignedIn()) {
       // console.log(auth.auth.getSignInUserSession().getAccessToken().jwtToken)
       auth.login()
-      // s3.login()
-      // s3.test()
+      s3.login()
+      s3.getScenario()
     }
   },
   methods: {

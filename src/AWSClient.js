@@ -8,9 +8,12 @@ const s3Client = new AWS.S3({
   params: { region: REGION },
 })
 
-function test () {
-  const params = { Bucket: 'quetzal-paris', Prefix: 'base' }
-  s3Client.listObjects(params).promise().then((item) => console.log(item.Contents)).catch(() => {})
+async function getScenario (bucket = 'quetzal-paris') {
+  const params = { Bucket: bucket }
+  const list = await s3Client.listObjects(params).promise().then((item) => item.Contents).catch(() => {})
+  console.log(list)
+  const test = new Set(list.map(name => name.Key.split('/')[0]))
+  console.log(test)
 }
 
 export default {
@@ -25,5 +28,5 @@ export default {
     })
     s3Client.config.credentials = AWS.config.credentials
   },
-  test,
+  getScenario,
 }

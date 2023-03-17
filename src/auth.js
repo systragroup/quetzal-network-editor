@@ -34,10 +34,10 @@ function getUserInfo () {
 auth.userhandler = {
   onSuccess: function (result) {
     // console.log('On Success result', result)
-
+    console.log(result.getIdToken())
     store.commit('setIdToken', result.getIdToken().jwtToken)
     store.commit('setAccessToken', result.accessToken.jwtToken)
-    store.commit('setCognitoGroups', auth.getSignInUserSession().getIdToken().payload['cognito:groups'])
+    store.commit('setCognitoGroups', result.getIdToken().payload['cognito:groups'])
 
     getUserInfo().then(response => {
       store.commit('setCognitoInfo', response)
