@@ -43,7 +43,7 @@ export default {
       // console.log(auth.auth.getSignInUserSession().getAccessToken().jwtToken)
       auth.login()
       s3.login()
-      s3.getScenario('quetzal-paris').then(res => {
+      s3.getScenario(this.$store.getters.model).then(res => {
         this.$store.commit('setScenariosList', res)
       },
       ).catch(err => console.error(err))

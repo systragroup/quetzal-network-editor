@@ -14,12 +14,31 @@ async function readJson (bucket = 'quetzal-paris', key = 'base/quenedi.json') {
   const fileContent = JSON.parse(response.Body.toString('utf-8')) // can also do 'base64' here if desired
   return fileContent
 }
-async function listFiles (bucket = 'quetzal-paris', prefix = 'base/') {
+async function listFiles (bucket = 'quetzal-paris', prefix = '') {
   const params = { Bucket: bucket, Prefix: prefix }
   const Content = await s3Client.listObjectsV2(params).promise()
   // return filname and remove empty name (empty folder)
   return Content.Contents.map(item => item.Key).filter(file => file !== prefix)
 }
+
+async function copyScenario (bucket = 'quetzal-paris', prefix = '', newName = 'new') {
+  const params = { Bucket: bucket, Prefix: prefix }
+  const response = await s3Client.listObjectsV2(params).promise()
+  for (const file of response.Contents) {
+    let newFile = file.Key.split('/')
+    newFile[0] = newName
+    newFile = newFile.join('/')
+    const copyParams = {
+      Bucket: bucket,
+      CopySource: bucket + '/' + file.Key,
+      Key: newFile,
+    }
+    s3Client.copyObject(copyParams, function (err, data) {
+      if (err) console.error(err, err.stack) // an error occurred
+    })
+  }
+}
+
 async function getScenario (bucket = 'quetzal-paris') {
   // list all files in bucket
   const params = { Bucket: bucket }
@@ -61,4 +80,5 @@ export default {
   getScenario,
   readJson,
   listFiles,
+  copyScenario,
 }

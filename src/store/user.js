@@ -36,6 +36,7 @@ export default {
     setScenariosList (state, payload) {
       state.scenariosList = payload
     },
+
     setScenario (state, payload) {
       state.scenario = payload
     },

@@ -14,6 +14,10 @@ export default {
       menu: false,
       showDialog: false,
       vmodelScen: '',
+      errorMessage: '',
+      copyDialog: false,
+      selectedScenario: null,
+      input: '',
 
     }
   },
@@ -25,14 +29,17 @@ export default {
     model () { return this.$store.getters.model },
     scenario () { return this.$store.getters.scenario },
   },
-  mounted () { this.vmodelScen = this.scenario },
+  mounted () { },
 
   methods: {
     change (val) {
-      if (val && this.projectIsEmpty) {
-        this.loadProject()
-      } else {
-        this.showDialog = true
+      console.log(val)
+      if (val) {
+        if (this.projectIsEmpty) {
+          this.loadProject()
+        } else {
+          this.showDialog = true
+        }
       }
     },
     loadProject () {
@@ -52,6 +59,31 @@ export default {
       this.vmodelScen = this.scenario
       this.showDialog = false
       this.menu = false
+    },
+    async copyProject () {
+      if (this.input === '') {
+        this.errorMessage = 'Please enter a name'
+      } else if (this.input.includes('/')) {
+        this.errorMessage = 'cannot have / in name'
+      } else if (this.scenariosList.map(p => p.scenario).includes(this.input)) {
+        this.errorMessage = 'project already exist'
+      } else {
+        // eslint-disable-next-line max-len
+        s3.copyScenario(this.model, this.selectedScenario, this.input).then(
+          () => {
+            s3.getScenario(this.model).then(
+              res => { this.$store.commit('setScenariosList', res) }).catch(
+              err => console.error(err))
+          },
+        ).catch(err => console.log(err))
+        this.closeCopy()
+      }
+    },
+    closeCopy () {
+      this.copyDialog = false
+      this.input = ''
+      this.selectedScenario = null
+      this.errorMessage = ''
     },
 
   },
@@ -85,6 +117,7 @@ export default {
         <v-list-item-group
           v-model="vmodelScen"
           color="primary"
+          :mandatory="vmodelScen? true:false"
           @change="change"
         >
           <v-list-item
@@ -92,12 +125,23 @@ export default {
             :key="scen.model + scen.scenario"
             :value="scen.scenario"
             two-line
-            :disabled="vmodelScen === scen.scenario"
           >
             <v-list-item-content>
               <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
               <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
             </v-list-item-content>
+            <v-btn
+              icon
+              class="ma-1"
+              @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
+            >
+              <v-icon
+                small
+                color="regular"
+              >
+                fas fa-copy
+              </v-icon>
+            </v-btn>
           </v-list-item>
         </v-list-item-group>
       </v-card>
@@ -130,6 +174,54 @@ export default {
             @click="applyDialog"
           >
             {{ $gettext("Yes") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
+      v-model="copyDialog"
+      persistent
+      max-width="290"
+      @keydown.enter="copyProject"
+      @keydown.esc="cancel"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $gettext("copy ") + selectedScenario }}
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-col cols="12">
+              <v-text-field
+                v-model="input"
+                autofocus
+                :label="$gettext('name')"
+              />
+            </v-col>
+          </v-container>
+        </v-card-text>
+        <v-card-text :style="{textAlign: 'center',color:'red'}">
+          {{ errorMessage }}
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+
+          <v-btn
+            color="grey"
+            text
+            @click="closeCopy"
+          >
+            {{ $gettext("Cancel") }}
+          </v-btn>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="copyProject"
+          >
+            {{ $gettext("ok") }}
           </v-btn>
         </v-card-actions>
       </v-card>

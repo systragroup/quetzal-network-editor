@@ -92,7 +92,7 @@ export const store = new Vuex.Store({
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results'].includes(x))
+        x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
     },

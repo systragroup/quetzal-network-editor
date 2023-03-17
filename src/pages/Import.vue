@@ -257,6 +257,7 @@ export default {
       this.loadNetwork(linksBase, nodesBase, 'PT')
       this.loadNetwork(linksBase, nodesBase, 'road')
       this.$store.commit('unloadLayers')
+      this.$store.commit('setScenario', '')
 
       this.$store.commit('changeNotification',
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
