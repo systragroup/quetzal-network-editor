@@ -75,6 +75,7 @@ async function getScenario (bucket) {
     scenList.push({ model: bucket, scenario: scen, lastModified: maxDate })
   }
   return scenList
+
 }
 
 export default {
@@ -89,6 +90,7 @@ export default {
     })
     s3Client.config.credentials = AWS.config.credentials
   },
+
   getScenario,
   readJson,
   listFiles,

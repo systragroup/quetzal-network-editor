@@ -58,6 +58,7 @@ export default {
       const resp = await s3.readJson(state.model, 'quenedi.config.json')
       commit('setConfig', resp)
     },
+
   },
 
   getters: {
