@@ -43,7 +43,6 @@ export default {
       auth.login()
       s3.login()
       this.$store.commit('setModel', this.$store.getters.cognitoGroups[0])
-
       this.$store.dispatch('getScenario')
     }
   },
