@@ -275,7 +275,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{ $gettext("copy ") + selectedScenario }}
+          {{ selectedScenario? $gettext("copy") +' '+ selectedScenario : $gettext('New Scenario') }}
         </v-card-title>
         <v-card-text>
           <v-container>

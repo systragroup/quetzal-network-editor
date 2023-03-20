@@ -61,18 +61,18 @@ msgstr "Abbrechen"
 msgid "action"
 msgstr "Aktion"
 
-#: src/pages/DataFrame.vue:174
-msgid "Add"
-msgstr "Hinzufügen"
-
-#: src/pages/DataFrame.vue:89 src/pages/Home.vue:105
+#: src/pages/Home.vue:105
 msgid "add field"
 msgstr "Feld hinzufügen"
 
-#: src/pages/Import.vue:174 src/pages/Import.vue:177 src/pages/Import.vue:183
-#: src/pages/Import.vue:186 src/pages/Import.vue:192 src/pages/Import.vue:197
-#: src/pages/Import.vue:204 src/pages/Import.vue:207
+#: src/pages/Import.vue:234 src/pages/Import.vue:237 src/pages/Import.vue:243
+#: src/pages/Import.vue:246 src/pages/Import.vue:252 src/pages/Import.vue:257
+#: src/pages/Import.vue:264 src/pages/Import.vue:267
 msgid "An error occur fetching example on github"
+msgstr ""
+
+#: src/components/ScenariosExplorer.vue:81
+msgid "An error occured"
 msgstr ""
 
 #: src/components/utils/ColorPicker.vue:58
@@ -84,9 +84,11 @@ msgid "cancel"
 msgstr "Abbrechen"
 
 #: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:202
-#: src/components/RoadSidePanel.vue:347 src/components/Settings.vue:133
-#: src/components/utils/OSMImporter.vue:161 src/pages/DataFrame.vue:164
-#: src/pages/Home.vue:180 src/pages/Home.vue:247
+#: src/components/RoadSidePanel.vue:347
+#: src/components/ScenariosExplorer.vue:237
+#: src/components/ScenariosExplorer.vue:314 src/components/Settings.vue:133
+#: src/components/utils/OSMImporter.vue:161 src/pages/Home.vue:180
+#: src/pages/Home.vue:247
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -122,6 +124,10 @@ msgstr ""
 msgid "Confirm"
 msgstr "Bestätigen"
 
+#: src/components/ScenariosExplorer.vue:274
+msgid "copy"
+msgstr ""
+
 #: src/pages/Home.vue:259
 msgid "Could not apply modification. Trip_id already exist"
 msgstr "Modifikation nicht anwendbar. Trip_id existiert bereits"
@@ -138,8 +144,13 @@ msgstr "Unterbrechen nach Knoten"
 msgid "Cut Before Node"
 msgstr "Unterbrechen vor Knoten"
 
-#: src/pages/Home.vue:64
+#: src/components/ScenariosExplorer.vue:246 src/pages/Home.vue:64
 msgid "Delete"
+msgstr "Löschen"
+
+#: src/components/ScenariosExplorer.vue:219
+#, fuzzy
+msgid "Delete "
 msgstr "Löschen"
 
 #: src/pages/Import.vue:156
@@ -255,11 +266,11 @@ msgstr ""
 msgid "field already exist"
 msgstr ""
 
-#: src/pages/Import.vue:239
+#: src/pages/Import.vue:299
 msgid "file is not a geojson"
 msgstr ""
 
-#: src/pages/Import.vue:294
+#: src/pages/Import.vue:354
 #, fuzzy
 msgid "file is not a zip"
 msgstr "Kein .zip Format erkannt. Import abgebrochen."
@@ -296,7 +307,7 @@ msgstr "Klicken und halten, um zu bewegen"
 msgid "Identifies a route. Often a string"
 msgstr ""
 
-#: src/router/index.js:26
+#: src/router/index.js:25
 msgid "Import"
 msgstr "Importieren"
 
@@ -313,7 +324,7 @@ msgstr ""
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
 #: src/components/layout/NavigationDrawer.vue:56
-#: src/components/layout/NavigationDrawer.vue:70 src/pages/DataFrame.vue:59
+#: src/components/layout/NavigationDrawer.vue:70
 msgid "item"
 msgstr "Element"
 
@@ -364,10 +375,6 @@ msgstr ""
 msgid "links geometry linestring length (meters)"
 msgstr ""
 
-#: src/pages/DataFrame.vue:14
-msgid "Links Table"
-msgstr "Tabelle Verbindungen"
-
 #: src/pages/Import.vue:48
 msgid "Load Files"
 msgstr "Dateien laden"
@@ -378,12 +385,16 @@ msgid ""
 "current project"
 msgstr ""
 
+#: src/components/ScenariosExplorer.vue:167
+msgid "Load Scenario?"
+msgstr ""
+
 #: src/pages/Import.vue:112
 msgid "Load zip files containing"
 msgstr ".zip Dateien hochladen welche enthalten:"
 
-#: src/pages/Import.vue:96 src/pages/Import.vue:101 src/pages/Import.vue:111
-#: src/pages/Import.vue:112
+#: src/pages/Import.vue:156 src/pages/Import.vue:161 src/pages/Import.vue:171
+#: src/pages/Import.vue:172
 msgid "Loaded from"
 msgstr ""
 
@@ -401,7 +412,7 @@ msgid ""
 "residential, primary)"
 msgstr ""
 
-#: src/router/index.js:33
+#: src/router/index.js:32
 msgid "Map"
 msgstr "Karte"
 
@@ -433,13 +444,9 @@ msgstr ""
 msgid "multiple Values"
 msgstr "Mehrere Werte"
 
-#: src/pages/DataFrame.vue:138
+#: src/components/ScenariosExplorer.vue:288
 msgid "name"
 msgstr "Name"
-
-#: src/pages/DataFrame.vue:125
-msgid "New Field"
-msgstr "Neues Feld"
 
 #: src/pages/Home.vue:106
 #, fuzzy
@@ -459,7 +466,17 @@ msgstr "Neues Projekt"
 msgid "New road links Highway property name"
 msgstr ""
 
+#: src/components/ScenariosExplorer.vue:139
+msgid "new scenario"
+msgstr ""
+
+#: src/components/ScenariosExplorer.vue:274
+#, fuzzy
+msgid "New Scenario"
+msgstr "Name"
+
 #: src/components/LinksSidePanel.vue:632 src/components/RoadSidePanel.vue:357
+#: src/components/ScenariosExplorer.vue:185
 #: src/components/utils/Profile.vue:164 src/pages/Import.vue:280
 msgid "No"
 msgstr "Nein"
@@ -467,10 +484,6 @@ msgstr "Nein"
 #: src/pages/Import.vue:84
 msgid "Nodes"
 msgstr "Knoten"
-
-#: src/pages/DataFrame.vue:15
-msgid "Nodes Table"
-msgstr "Tabelle Knoten"
 
 #: src/pages/Import.vue:114
 #, fuzzy
@@ -481,7 +494,7 @@ msgstr "nodes.geojson und links.geojson"
 msgid "numStep"
 msgstr ""
 
-#: src/pages/ResultMap.vue:109
+#: src/components/ScenariosExplorer.vue:324 src/pages/ResultMap.vue:109
 msgid "ok"
 msgstr ""
 
@@ -497,9 +510,14 @@ msgstr ""
 msgid "Overwrite current Project ?"
 msgstr "Aktuelles Projekt überschreiben?"
 
-#: src/pages/Import.vue:224
+#: src/pages/Import.vue:284
 msgid "project overwrited"
 msgstr ""
+
+#: src/components/ScenariosExplorer.vue:37
+#, fuzzy
+msgid "Projects"
+msgstr "Neues Projekt"
 
 #: src/pages/Import.vue:189
 msgid "PT & Road"
@@ -510,15 +528,15 @@ msgstr ""
 msgid "PT Links"
 msgstr "Verbindungen"
 
-#: src/pages/Import.vue:76
+#: src/pages/Import.vue:134
 msgid "PT Links and nodes Loaded from"
 msgstr ""
 
-#: src/pages/Import.vue:254
+#: src/pages/Import.vue:314
 msgid "PT links loaded with road nodes"
 msgstr ""
 
-#: src/pages/Import.vue:272
+#: src/pages/Import.vue:332
 msgid "PT nodes loaded for road links"
 msgstr ""
 
@@ -544,11 +562,11 @@ msgstr ""
 msgid "Required"
 msgstr "Erforderlich"
 
-#: src/router/index.js:47
+#: src/router/index.js:39
 msgid "Results Map"
 msgstr ""
 
-#: src/router/index.js:54
+#: src/router/index.js:46
 msgid "Results Pictures"
 msgstr ""
 
@@ -577,15 +595,15 @@ msgstr ""
 msgid "Road Links"
 msgstr "Verbindungen"
 
-#: src/pages/Import.vue:85
+#: src/pages/Import.vue:143
 msgid "ROAD links and nodes Loaded from"
 msgstr ""
 
-#: src/pages/Import.vue:250
+#: src/pages/Import.vue:310
 msgid "road links loaded with PT nodes"
 msgstr ""
 
-#: src/pages/Import.vue:268
+#: src/pages/Import.vue:328
 msgid "road nodes loaded for PT links"
 msgstr ""
 
@@ -619,6 +637,18 @@ msgstr "Änderungen speichern?"
 
 #: src/components/ResultsSettings.vue:51 src/components/ResultsSettings.vue:56
 msgid "scale"
+msgstr ""
+
+#: src/components/ScenariosExplorer.vue:105
+msgid "Scenario created"
+msgstr ""
+
+#: src/components/ScenariosExplorer.vue:75
+msgid "Scenario deleted"
+msgstr ""
+
+#: src/components/ScenariosExplorer.vue:97
+msgid "Scenario successfully copied"
 msgstr ""
 
 #: src/components/ResultsSettings.vue:16 src/components/ResultsSettings.vue:20
@@ -672,29 +702,30 @@ msgstr ""
 "Die Fahrtzeit wird mittels der Geschwindigkeit berechnet, wenn eine "
 "Verbindung gezeichnet, erweitert oder ein Knoten bewegt wird. "
 
-#: src/router/index.js:40
-msgid "Table"
-msgstr "Tabelle"
-
 #: src/components/Settings.vue:49
 msgid "the name of the exported zip file"
 msgstr "Name der exportierten .zip Datei"
 
-#: src/pages/Import.vue:78 src/pages/Import.vue:87
+#: src/components/ScenariosExplorer.vue:225
+msgid "The scenario will be permanently deleted"
+msgstr ""
+
+#: src/pages/Import.vue:136 src/pages/Import.vue:145
 #, fuzzy
 msgid "there is duplicated links or nodes index. Import aborted"
 msgstr "Es existieren mehrere Verbindungsindexe. Import abgebrochen"
 
-#: src/pages/Import.vue:60
+#: src/pages/Import.vue:118
 #, fuzzy
 msgid "there is no index in links. Import aborted"
 msgstr "Es existieren mehrere Verbindungsindexe. Import abgebrochen"
 
-#: src/pages/Import.vue:66
+#: src/pages/Import.vue:124
 #, fuzzy
 msgid "there is no index in nodes. Import aborted"
 msgstr "Es existieren mehrere Knotenindexe. Import abgebrochen"
 
+#: src/components/ScenariosExplorer.vue:173
 #: src/components/utils/Profile.vue:152
 #, fuzzy
 msgid "This will ERASE the current project"
@@ -728,9 +759,25 @@ msgid "width to display on the map"
 msgstr "Anzeigen bei Mouseover über einer Route auf der Karte."
 
 #: src/components/LinksSidePanel.vue:641 src/components/RoadSidePanel.vue:366
+#: src/components/ScenariosExplorer.vue:194
 #: src/components/utils/Profile.vue:173 src/pages/Import.vue:289
 msgid "Yes"
 msgstr "Ja"
+
+#~ msgid "Add"
+#~ msgstr "Hinzufügen"
+
+#~ msgid "Links Table"
+#~ msgstr "Tabelle Verbindungen"
+
+#~ msgid "New Field"
+#~ msgstr "Neues Feld"
+
+#~ msgid "Nodes Table"
+#~ msgstr "Tabelle Knoten"
+
+#~ msgid "Table"
+#~ msgstr "Tabelle"
 
 #~ msgid "Add Files"
 #~ msgstr "Dateien hinzufügen"
