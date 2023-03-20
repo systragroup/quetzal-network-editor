@@ -19,6 +19,7 @@ export default {
       errorMessage: '',
       copyDialog: false,
       selectedScenario: null,
+      scenarioToDelete: null,
       input: '',
       deleteDialog: false,
 
@@ -35,7 +36,7 @@ export default {
     scenario () { return this.$store.getters.scenario },
   },
   watch: {
-    menu (val) { if (this.scenariosList.length === 0 & val) this.$store.dispatch('getScenario') },
+    menu (val) { if (val) this.$store.dispatch('getScenario') },
   },
 
   methods: {
@@ -68,21 +69,21 @@ export default {
     deleteScenario () {
       this.menu = false
       this.deleteDialog = false
-      s3.deleteScenario(this.model, this.selectedScenario).then(resp => {
+      s3.deleteScenario(this.model, this.scenarioToDelete).then(resp => {
         this.menu = false
         this.deleteDialog = false
         this.$store.dispatch('getScenario')
         this.$store.commit('changeNotification',
-          { text: $gettext('scenario deleted'), autoClose: true, color: 'success' })
+          { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
       }).catch((err) => {
         this.menu = false
         this.deleteDialog = false
         console.error(err)
         this.$store.commit('changeNotification',
-          { text: $gettext('an error occured'), autoClose: true, color: 'error' })
+          { text: $gettext('An error occured'), autoClose: true, color: 'error' })
       })
     },
-    async copyProject () {
+    async createProject () {
       if (this.input === '') {
         this.errorMessage = 'Please enter a name'
       } else if (this.input.includes('/')) {
@@ -90,13 +91,28 @@ export default {
       } else if (this.filterdScenarios.map(p => p.scenario).includes(this.input)) {
         this.errorMessage = 'project already exist'
       } else {
-        // eslint-disable-next-line max-len
-        s3.copyScenario(this.model, this.selectedScenario, this.input).then(
-          () => { this.$store.dispatch('getScenario') },
-        ).catch(err => console.log(err))
+        if (this.selectedScenario) {
+          s3.copyScenario(this.model, this.selectedScenario, this.input).then(
+            () => {
+              this.$store.dispatch('getScenario')
+              this.$store.commit('changeNotification',
+                { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
+            },
+          ).catch(err => { console.error(err); this.selectedScenario = null })
+        } else {
+          s3.createFolder(this.model, this.input).then(
+            () => {
+              this.$store.dispatch('getScenario')
+              this.$store.commit('changeNotification',
+                { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
+            },
+          ).catch(err => { console.error(err); this.selectedScenario = null })
+        }
+
         this.closeCopy()
       }
     },
+
     closeCopy () {
       this.copyDialog = false
       this.input = ''
@@ -164,7 +180,7 @@ export default {
               icon
               :disabled="(scen.scenario===vmodelScen) || (protectedScen.includes(scen.scenario))"
               class="ma-1"
-              @click.stop="()=>{deleteDialog=true; selectedScenario=scen.scenario;}"
+              @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
             >
               <v-icon
                 small
@@ -179,7 +195,7 @@ export default {
         <v-list-item>
           <v-btn
             text
-            disabled
+            @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
           >
             {{ $gettext('new scenario') }}
           </v-btn>
@@ -226,7 +242,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h4">
-          {{ $gettext("Delete ")+ selectedScenario+' ?' }}
+          {{ $gettext("Delete ")+ scenarioToDelete+' ?' }}
         </v-card-title>
         <v-card-text class="text-h6">
           {{ $gettext("The scenario will be permanently deleted") }}
@@ -254,7 +270,7 @@ export default {
       v-model="copyDialog"
       persistent
       max-width="290"
-      @keydown.enter="copyProject"
+      @keydown.enter="createProject"
       @keydown.esc="cancel"
     >
       <v-card>
@@ -290,7 +306,7 @@ export default {
           <v-btn
             color="green darken-1"
             text
-            @click="copyProject"
+            @click="createProject"
           >
             {{ $gettext("ok") }}
           </v-btn>

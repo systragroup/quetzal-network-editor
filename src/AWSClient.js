@@ -50,6 +50,20 @@ async function deleteScenario (bucket, prefix) {
   return s3Client.deleteObjects(deleteParams).promise()
 }
 
+async function createFolder (bucket, key) {
+  // create an empty folder
+  if (key.slice(-1) !== '/') key = key + '/'
+  const params = { Bucket: bucket, Key: key, Body: '' }
+
+  s3Client.upload(params, function (err, data) {
+    if (err) {
+      console.log('Error creating the folder: ', err)
+    } else {
+      console.log('Successfully created a folder on S3')
+    }
+  })
+}
+
 async function getScenario (bucket) {
   // list all files in bucket
   const params = { Bucket: bucket }
@@ -75,7 +89,6 @@ async function getScenario (bucket) {
     scenList.push({ model: bucket, scenario: scen, lastModified: maxDate })
   }
   return scenList
-
 }
 
 export default {
@@ -96,4 +109,5 @@ export default {
   listFiles,
   copyScenario,
   deleteScenario,
+  createFolder,
 }
