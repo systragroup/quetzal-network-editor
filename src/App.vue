@@ -35,10 +35,6 @@ export default {
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
 
     if (auth.auth.isUserSignedIn()) {
-<<<<<<< HEAD
-      console.log(auth.auth.getSignInUserSession().getIdToken().jwtToken)
-=======
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
       auth.login()
       s3.login()
       this.$store.commit('setModel', this.$store.getters.cognitoGroups[0])
