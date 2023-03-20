@@ -94,12 +94,12 @@ export default {
       // then load other layers.
       prefix = this.$store.getters.scenario + '/' + path.output_paths[0]
       filesNames = await s3.listFiles(this.$store.getters.model, prefix)
-      const results = { zipName: 'DataBase output', files: [] }
+      const files = []
       for (const file of filesNames) {
         const content = await s3.readJson(this.$store.getters.model, file)
-        results.files.push(classFile(file, content))
+        files.push(classFile(file, content))
       }
-      this.loadStaticLayer(results, 'Database output')
+      this.loadStaticLayer(files, 'Database output')
     },
 
     loadNetwork (links, nodes, type, zipName) {
@@ -137,13 +137,15 @@ export default {
       }
     },
     loadStaticLayer (files, zipName) {
+      // filter links, road links and nodes if we dont want them before. in some case we want
+      // to load them as static links (if the loaded links are called links.geojson for example)
       // load links and nodes geojson as static layers.
-      files.filter(file => (file.type === 'layerLinks')).forEach(
+      files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
         file => {
           this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'links', links: file.data })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
-      files.filter(file => (file.type === 'layerNodes')).forEach(
+      files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
         file => {
           this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'nodes', nodes: file.data })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)

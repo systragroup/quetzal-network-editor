@@ -1,6 +1,8 @@
 <script>
 
 import s3 from '../../AWSClient'
+const $gettext = s => s
+
 export default {
   name: 'ScenariosExplorer',
   components: {
@@ -18,6 +20,7 @@ export default {
       copyDialog: false,
       selectedScenario: null,
       input: '',
+      deleteDialog: false,
 
     }
   },
@@ -45,9 +48,10 @@ export default {
     },
     loadProject () {
       this.$store.commit('setScenario', this.vmodelScen)
-      s3.readJson(this.model, this.vmodelScen + '/quenedi.json').then(resp => {
+      s3.readJson(this.model, 'quenedi.config.json').then(resp => {
         console.log(resp)
         this.$router.push({ name: 'Import', query: { s3Path: resp } })
+        this.menu = false
       })
     },
 
@@ -61,6 +65,25 @@ export default {
       this.vmodelScen = this.scenario
       this.showDialog = false
       this.menu = false
+    },
+    deleteScenario () {
+      this.menu = false
+      this.deleteDialog = false
+      s3.deleteScenario(this.model, this.selectedScenario).then(resp => {
+        this.menu = false
+        this.deleteDialog = false
+        s3.getScenario(this.model).then(
+          res => { this.$store.commit('setScenariosList', res) }).catch(
+          err => console.error(err))
+        this.$store.commit('changeNotification',
+          { text: $gettext('scenario deleted'), autoClose: true, color: 'success' })
+      }).catch((err) => {
+        this.menu = false
+        this.deleteDialog = false
+        console.error(err)
+        this.$store.commit('changeNotification',
+          { text: $gettext('an error occured'), autoClose: true, color: 'error' })
+      })
     },
     async copyProject () {
       if (this.input === '') {
@@ -144,8 +167,29 @@ export default {
                 fas fa-copy
               </v-icon>
             </v-btn>
+            <v-btn
+              icon
+              :disabled="scen.scenario===vmodelScen"
+              class="ma-1"
+              @click.stop="()=>{deleteDialog=true; selectedScenario=scen.scenario;}"
+            >
+              <v-icon
+                small
+                color="grey"
+              >
+                fas fa-trash
+              </v-icon>
+            </v-btn>
           </v-list-item>
+          <v-divider />
         </v-list-item-group>
+        <v-list-item>
+          <v-btn
+            text
+          >
+            new scenario
+          </v-btn>
+        </v-list-item>
       </v-card>
     </v-menu>
     <v-dialog
@@ -153,7 +197,7 @@ export default {
       persistent
       max-width="350"
       @keydown.enter="applyDialog"
-      @keydown.esc="showDialog=false"
+      @keydown.esc="cancelDialog"
     >
       <v-card>
         <v-card-title class="text-h4">
@@ -174,6 +218,38 @@ export default {
           <v-btn
             color="primary"
             @click="applyDialog"
+          >
+            {{ $gettext("Yes") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="deleteDialog"
+      persistent
+      max-width="350"
+      @keydown.enter="deleteScenario"
+      @keydown.esc="()=>deleteDialog=false"
+    >
+      <v-card>
+        <v-card-title class="text-h4">
+          {{ $gettext("Delete ")+ selectedScenario+' ?' }}
+        </v-card-title>
+        <v-card-text class="text-h6">
+          {{ $gettext("The scenario will be permanently deleted") }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="regular"
+            @click="()=>deleteDialog=false"
+          >
+            {{ $gettext("No") }}
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            @click="deleteScenario"
           >
             {{ $gettext("Yes") }}
           </v-btn>
