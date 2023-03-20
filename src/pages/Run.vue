@@ -14,6 +14,9 @@ export default {
     error () { return this.$store.getters['run/error'] },
     synchronized () { return this.$store.getters['run/synchronized'] },
   },
+  created () {
+    this.$store.dispatch('run/getSteps')
+  },
   methods: {
     run () {
       this.$store.dispatch('run/startExecution')

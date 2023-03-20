@@ -1,4 +1,5 @@
 <script>
+import parameters from '../../static/params.json'
 
 const $gettext = s => s
 export default {
@@ -15,152 +16,7 @@ export default {
         hint: $gettext('Change project Name'),
         rules: ['required'],
       },
-      parameters: [
-        {
-          cat: 'Footpaths',
-          params: [
-            {
-              name: 'max_time_between_tasks',
-              text: 'Max time between tasks',
-              type: 'Number',
-              value: 0,
-              units: 'mins',
-              hint: 'max waiting time before going back to the depot',
-              rules: ['required', 'largerThanZero'],
-            },
-            {
-              cat: 'config',
-              name: 'min_time_between_tasks',
-              text: 'Min time between tasks',
-              type: 'Number',
-              value: 0,
-              units: 'mins',
-              hint: 'minimum waiting time before each service, turnover time.',
-              rules: ['required', 'nonNegative'],
-            },
-            {
-              cat: 'config',
-              name: 'consumption',
-              text: 'bus consumption',
-              type: 'Number',
-              value: 0,
-              units: 'kwh/km',
-              hint: 'consumption.',
-              rules: ['required', 'nonNegative'],
-            },
-          ],
-        },
-        {
-          cat: 'Pathfinder',
-          params: [
-            {
-              cat: 'config',
-              name: 'max_energy',
-              text: 'effective Battery capacity',
-              type: 'Number',
-              value: 0,
-              units: 'KWH',
-              hint: 'battery capacity (including derating and operation margins)',
-              rules: ['required', 'largerThanZero'],
-            },
-            {
-              cat: 'config',
-              name: 'bus_cost',
-              text: 'bus Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/Bus',
-              hint: 'bus cost for optimization',
-              rules: [],
-            },
-            {
-              cat: 'config',
-              name: 'energy_cost',
-              text: 'Energy Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/KWH',
-              hint: 'energy cost for optimization',
-              rules: ['required', 'nonNegative'],
-            },
-            {
-              cat: 'config',
-              name: 'time_cost',
-              text: 'waiting time Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/mins',
-              hint: 'waiting time cost for optimization',
-              rules: ['required', 'nonNegative'],
-            },
-          ],
-        },
-        {
-          cat: 'Logit',
-          params: [
-            {
-              cat: 'config',
-              name: 'max_energy',
-              text: 'effective Battery capacity',
-              type: 'Number',
-              value: 0,
-              units: 'KWH',
-              hint: 'battery capacity (including derating and operation margins)',
-              rules: ['required', 'largerThanZero'],
-            },
-            {
-              cat: 'config',
-              name: 'bus_cost',
-              text: 'bus Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/Bus',
-              hint: 'bus cost for optimization',
-              rules: [],
-            },
-            {
-              cat: 'config',
-              name: 'energy_cost',
-              text: 'Energy Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/KWH',
-              hint: 'energy cost for optimization',
-              rules: ['required', 'nonNegative'],
-            },
-            {
-              cat: 'config',
-              name: 'time_cost',
-              text: 'waiting time Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/mins',
-              hint: 'waiting time cost for optimization',
-              rules: ['required', 'nonNegative'],
-            },
-            {
-              cat: 'config',
-              name: 'energy_cost2',
-              text: 'Energy Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/KWH',
-              hint: 'energy cost for optimization',
-              rules: ['required', 'nonNegative'],
-            },
-            {
-              cat: 'config',
-              name: 'time_cost2',
-              text: 'waiting time Cost',
-              type: 'Number',
-              value: 0,
-              units: '$/mins',
-              hint: 'waiting time cost for optimization',
-              rules: ['required', 'nonNegative'],
-            },
-          ],
-        },
-      ],
+      parameters: parameters,
       rules: {
         required: v => !!v || $gettext('Required'),
         largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
@@ -212,7 +68,7 @@ export default {
             :key="key"
           >
             <v-expansion-panel-header class="categorie">
-              {{ group.cat }}
+              {{ group.category }}
             </v-expansion-panel-header>
             <v-expansion-panel-content style="background-color:var(--v-background-lighten4) !important;">
               <v-text-field
