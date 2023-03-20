@@ -1,4 +1,4 @@
-
+import s3 from '../AWSClient'
 export default {
   namespaced: false,
   state: {
@@ -12,6 +12,7 @@ export default {
     scenariosList: [],
     model: null,
     scenario: null,
+    config: {},
   },
   mutations: {
     setLoggedIn (state) {
@@ -42,6 +43,21 @@ export default {
     setScenario (state, payload) {
       state.scenario = payload
     },
+    setConfig (state, payload) {
+      state.config = payload
+    },
+  },
+
+  actions: {
+    async getScenario ({ commit, state, dispatch }) {
+      const res = await s3.getScenario(state.model)
+      commit('setScenariosList', res)
+      dispatch('getConfig')
+    },
+    async getConfig ({ commit, state }) {
+      const resp = await s3.readJson(state.model, 'quenedi.config.json')
+      commit('setConfig', resp)
+    },
   },
 
   getters: {
@@ -53,5 +69,7 @@ export default {
     scenariosList: (state) => state.scenariosList,
     model: (state) => state.model,
     scenario: (state) => state.scenario,
+    config: (state) => state.config,
+    protected: (state) => state.config.protected ? state.config.protected : [],
   },
 }

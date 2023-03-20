@@ -11,9 +11,11 @@ const s3Client = new AWS.S3({
 async function readJson (bucket, key) {
   const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
   // const params = { Bucket: bucket, Key: key }
-  const response = await s3Client.getObject(params).promise() // await the promise
-  const fileContent = JSON.parse(response.Body.toString('utf-8')) // can also do 'base64' here if desired
-  return fileContent
+  try {
+    const response = await s3Client.getObject(params).promise() // await the promise
+    const fileContent = JSON.parse(response.Body.toString('utf-8')) // can also do 'base64' here if desired
+    return fileContent
+  } catch (err) { return err }
 }
 async function listFiles (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
@@ -48,7 +50,7 @@ async function deleteScenario (bucket, prefix) {
   return s3Client.deleteObjects(deleteParams).promise()
 }
 
-async function getScenario (bucket = '') {
+async function getScenario (bucket) {
   // list all files in bucket
   const params = { Bucket: bucket }
   let moreToLoad = true

@@ -100,6 +100,8 @@ export default {
         files.push(classFile(file, content))
       }
       this.loadStaticLayer(files, 'Database output')
+      this.loggedIn = true
+      this.login()
     },
 
     loadNetwork (links, nodes, type, zipName) {

@@ -28,6 +28,7 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     loggedIn () { return this.$store.getters.loggedIn },
     scenariosList () { return this.$store.getters.scenariosList },
+    protectedScen () { return this.$store.getters.protected },
     filterdScenarios () { return this.scenariosList.filter(scen => scen.model === this.model) },
     modelsList () { return this.$store.getters.cognitoGroups },
     model () { return this.$store.getters.model },
@@ -48,11 +49,8 @@ export default {
     },
     loadProject () {
       this.$store.commit('setScenario', this.vmodelScen)
-      s3.readJson(this.model, 'quenedi.config.json').then(resp => {
-        console.log(resp)
-        this.$router.push({ name: 'Import', query: { s3Path: resp } })
-        this.menu = false
-      })
+      this.$router.push({ name: 'Import', query: { s3Path: this.$store.getters.config } })
+      this.menu = false
     },
 
     applyDialog () {
@@ -72,9 +70,7 @@ export default {
       s3.deleteScenario(this.model, this.selectedScenario).then(resp => {
         this.menu = false
         this.deleteDialog = false
-        s3.getScenario(this.model).then(
-          res => { this.$store.commit('setScenariosList', res) }).catch(
-          err => console.error(err))
+        this.$store.dispatch('getScenario')
         this.$store.commit('changeNotification',
           { text: $gettext('scenario deleted'), autoClose: true, color: 'success' })
       }).catch((err) => {
@@ -95,11 +91,7 @@ export default {
       } else {
         // eslint-disable-next-line max-len
         s3.copyScenario(this.model, this.selectedScenario, this.input).then(
-          () => {
-            s3.getScenario(this.model).then(
-              res => { this.$store.commit('setScenariosList', res) }).catch(
-              err => console.error(err))
-          },
+          () => { this.$store.dispatch('getScenario') },
         ).catch(err => console.log(err))
         this.closeCopy()
       }
@@ -169,7 +161,7 @@ export default {
             </v-btn>
             <v-btn
               icon
-              :disabled="scen.scenario===vmodelScen"
+              :disabled="(scen.scenario===vmodelScen) || (protectedScen.includes(scen.scenario))"
               class="ma-1"
               @click.stop="()=>{deleteDialog=true; selectedScenario=scen.scenario;}"
             >
@@ -177,7 +169,7 @@ export default {
                 small
                 color="grey"
               >
-                fas fa-trash
+                {{ protectedScen.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
               </v-icon>
             </v-btn>
           </v-list-item>
