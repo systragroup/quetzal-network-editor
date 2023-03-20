@@ -110,8 +110,14 @@ export default {
       const featureArr = state.visibleLinks.features.filter(
         link => link.properties[key]).map(
         link => link.properties[key])
-      const minVal = Math.min.apply(Math, featureArr)
-      const maxVal = Math.max.apply(Math, featureArr)
+
+      const arrayMinMax = (arr) =>
+        arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
+          Number.POSITIVE_INFINITY,
+          Number.NEGATIVE_INFINITY,
+        ])
+
+      const [minVal, maxVal] = arrayMinMax(featureArr)
       state.displaySettings.minVal = minVal
       state.displaySettings.maxVal = maxVal
 
@@ -120,10 +126,8 @@ export default {
         ((maxWidth - minWidth) * ((link.properties[key] - minVal) /
          (maxVal - minVal))) + minWidth,
       )
-
       const colorScale = chroma.scale(cmap).padding([0.1, 0])
         .domain([0, 1], scale).classes(numStep)
-
       const reverse = state.displaySettings.reverseColor
 
       state.visibleLinks.features.forEach(

@@ -1,9 +1,7 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
-
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
-import { extractZip, IndexAreDifferent, unzip } from '../components/utils/utils.js'
+import s3 from '../AWSClient'
+import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import OSMImporter from '../components/utils/OSMImporter.vue'
 
 const $gettext = s => s
@@ -11,6 +9,7 @@ const $gettext = s => s
 export default {
   name: 'Import',
   components: { OSMImporter },
+
   data () {
     return {
       loggedIn: false,
@@ -30,12 +29,16 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     localLinksLoaded () { return Object.keys(this.loadedLinks).length === 0 },
     localNodesLoaded () { return Object.keys(this.loadedNodes).length === 0 },
+    s3Path () { return this.$route.query.s3Path },
     localFilesAreLoaded () {
       return !(this.localLinksLoaded || this.localNodesLoaded)
     },
 
   },
   watch: {
+    s3Path (val) {
+      if (val) this.loadFilesFromS3(val)
+    },
     localFilesAreLoaded (val) {
       if (val) {
         this.loadNetwork(this.loadedLinks, this.loadedNodes, this.loadedType, 'individual files')
@@ -48,6 +51,7 @@ export default {
   },
   mounted () {
     this.$store.commit('changeNotification', '')
+    if (this.s3Path) this.loadFilesFromS3(this.s3Path)
   },
   methods: {
     login () {
@@ -55,6 +59,59 @@ export default {
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})
       }, 300)
+    },
+    async loadFilesFromS3 (path) {
+      if (!this.projectIsEmpty) {
+        this.$store.commit('initNetworks')
+        this.$store.commit('unloadLayers')
+        this.message = []
+      }
+
+      this.$store.commit('changeLoading', true)
+      this.$router.replace({ query: null }) // remove query in url when page is load.
+      try {
+        let prefix = this.$store.getters.scenario + '/' + path.network_paths.read_links_path[0]
+        let filesNames = await s3.listFiles(this.$store.getters.model, prefix)
+        let links = {}
+        let nodes = {}
+        for (const file of filesNames) {
+          const content = await s3.readJson(this.$store.getters.model, file)
+          if (content.features[0].geometry.type === 'LineString') {
+            links = content
+          } else if (content.features[0].geometry.type === 'Point') {
+            nodes = content
+          }
+        }
+        if (filesNames.length > 0) this.loadNetwork(links, nodes, 'PT', 'DataBase')
+
+        prefix = this.$store.getters.scenario + '/' + path.network_paths.read_rlinks_path[0]
+        filesNames = await s3.listFiles(this.$store.getters.model, prefix)
+        for (const file of filesNames) {
+          const content = await s3.readJson(this.$store.getters.model, file)
+          if (content.features[0].geometry.type === 'LineString') {
+            links = content
+          } else if (content.features[0].geometry.type === 'Point') {
+            nodes = content
+          }
+        }
+        if (filesNames.length > 0) this.loadNetwork(links, nodes, 'road', 'DataBase')
+
+        // then load other layers.
+        prefix = this.$store.getters.scenario + '/' + path.output_paths[0]
+        filesNames = await s3.listFiles(this.$store.getters.model, prefix)
+        const files = []
+        for (const file of filesNames) {
+          const content = await s3.readJson(this.$store.getters.model, file)
+          files.push(classFile(file, content))
+        }
+        if (filesNames.length > 0) this.loadStaticLayer(files, 'Database output')
+        this.loggedIn = true
+        this.login()
+        this.$store.commit('changeLoading', false)
+      } catch (err) {
+        console.error(err)
+        this.$store.commit('changeLoading', false)
+      }
     },
 
     loadNetwork (links, nodes, type, zipName) {
@@ -92,13 +149,15 @@ export default {
       }
     },
     loadStaticLayer (files, zipName) {
+      // filter links, road links and nodes if we dont want them before. in some case we want
+      // to load them as static links (if the loaded links are called links.geojson for example)
       // load links and nodes geojson as static layers.
-      files.filter(file => (file.type === 'layerLinks')).forEach(
+      files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
         file => {
           this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'links', links: file.data })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
-      files.filter(file => (file.type === 'layerNodes')).forEach(
+      files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
         file => {
           this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'nodes', nodes: file.data })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
@@ -219,9 +278,9 @@ export default {
       this.login()
     },
     newProject () {
-      this.loadNetwork(linksBase, nodesBase, 'PT')
-      this.loadNetwork(linksBase, nodesBase, 'road')
+      this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
+      this.$store.commit('setScenario', '')
 
       this.$store.commit('changeNotification',
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })

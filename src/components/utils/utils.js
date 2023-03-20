@@ -1,46 +1,47 @@
 import JSZip from 'jszip'
 import { store } from '../../store/index.js'
 
+function classFile (name, content) {
+  if (name.slice(-7) === 'geojson') {
+    if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs?.properties.name)) {
+      alert('invalid CRS or undefined. use CRS84 / EPSG:4326')
+    }
+
+    if (content.features[0].geometry.type === 'LineString') {
+      if (name.includes('road')) {
+        return { data: content, type: 'road_links', fileName: name }
+      } else if (name.slice(0, 5) === 'links') {
+        return { data: content, type: 'links', fileName: name }
+      } else {
+        return { data: content, type: 'layerLinks', fileName: name }
+      }
+    } else if (content.features[0].geometry.type === 'Point') {
+      if (name.includes('road')) {
+        return { data: content, type: 'road_nodes', fileName: name }
+      } else if (name.slice(0, 5) === 'nodes') {
+        return { data: content, type: 'nodes', fileName: name }
+      } else {
+        return { data: content, type: 'layerNodes', fileName: name }
+      }
+    } else if (['MultiPolygon', 'Polygon'].includes(content.features[0].geometry.type)) {
+      return { data: content, type: 'zones', fileName: name }
+    }
+  } else {
+    return { data: content, type: 'json', fileName: name }
+  }
+}
+
 async function extractZip (file) {
   const ZIP = new JSZip()
   const zip = await ZIP.loadAsync(file)
-  const filesNames = Object.keys(zip.files)
+  let filesNames = Object.keys(zip.files)
+  filesNames = filesNames.filter(name => !name.match(/^__MACOSX\//))
   // process ZIP file content here
   const result = { zipName: file.name, files: [] }
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
     const content = JSON.parse(str)
-
-    if (zip.files[filesNames[i]].name.slice(-7) === 'geojson') {
-      console.log(content)
-      console.log(filesNames[i])
-      if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs.properties.name)) {
-        alert('invalid CRS. use CRS84 / EPSG:4326')
-      }
-
-      if (content.features[0].geometry.type === 'LineString') {
-        if (filesNames[i].includes('road')) {
-          result.files.push({ data: content, type: 'road_links', fileName: filesNames[i] })
-        } else if (filesNames[i].slice(0, 5) === 'links') {
-          result.files.push({ data: content, type: 'links', fileName: filesNames[i] })
-        } else {
-          result.files.push({ data: content, type: 'layerLinks', fileName: filesNames[i] })
-        }
-      } else if (content.features[0].geometry.type === 'Point') {
-        if (filesNames[i].includes('road')) {
-          result.files.push({ data: content, type: 'road_nodes', fileName: filesNames[i] })
-        } else if (filesNames[i].slice(0, 5) === 'nodes') {
-          result.files.push({ data: content, type: 'nodes', fileName: filesNames[i] })
-        } else {
-          result.files.push({ data: content, type: 'layerNodes', fileName: filesNames[i] })
-        }
-      } else if (['MultiPolygon', 'Polygon'].includes(content.features[0].geometry.type)) {
-        result.files.push({ data: content, type: 'zones', fileName: filesNames[i] })
-        console.log('ehe')
-      }
-    } else {
-      result.files.push({ data: content, type: 'json', fileName: filesNames[i] })
-    }
+    result.files.push(classFile(filesNames[i], content))
   }
 
   return result
@@ -103,4 +104,4 @@ async function unzip (file) {
   return content
 }
 
-export { extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip }
+export { extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile }
