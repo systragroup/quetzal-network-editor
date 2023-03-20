@@ -38,6 +38,14 @@ async function copyScenario (bucket = '', prefix = '', newName = 'new') {
     })
   }
 }
+async function deleteScenario (bucket, prefix) {
+  const params = { Bucket: bucket, Prefix: prefix }
+  const response = await s3Client.listObjectsV2(params).promise()
+  const arr = []
+  response.Contents.forEach(file => arr.push({ Key: file.Key }))
+  const deleteParams = { Bucket: bucket, Delete: { Objects: arr } }
+  return s3Client.deleteObjects(deleteParams).promise()
+}
 
 async function getScenario (bucket = '') {
   // list all files in bucket
@@ -81,4 +89,5 @@ export default {
   readJson,
   listFiles,
   copyScenario,
+  deleteScenario,
 }
