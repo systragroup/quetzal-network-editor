@@ -3,7 +3,7 @@
 import s3 from '../AWSClient'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
-import { extractZip, IndexAreDifferent, unzip } from '../components/utils/utils.js'
+import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import OSMImporter from '../components/utils/OSMImporter.vue'
 
 const $gettext = s => s
@@ -63,7 +63,9 @@ export default {
       }, 300)
     },
     async loadFilesFromS3 (path) {
-      let prefix = this.$store.getters.scenario + '/' + path.read_links_path[0]
+      this.$router.replace({ query: null }) // remove query in url when page is load.
+
+      let prefix = this.$store.getters.scenario + '/' + path.network_paths.read_links_path[0]
       let filesNames = await s3.listFiles(this.$store.getters.model, prefix)
       let links = {}
       let nodes = {}
@@ -77,7 +79,7 @@ export default {
       }
       this.loadNetwork(links, nodes, 'PT', 'DataBase')
 
-      prefix = this.$store.getters.scenario + '/' + path.read_rlinks_path[0]
+      prefix = this.$store.getters.scenario + '/' + path.network_paths.read_rlinks_path[0]
       filesNames = await s3.listFiles(this.$store.getters.model, prefix)
       for (const file of filesNames) {
         const content = await s3.readJson(this.$store.getters.model, file)
@@ -89,7 +91,15 @@ export default {
       }
       this.loadNetwork(links, nodes, 'road', 'DataBase')
 
-      this.$router.replace({ query: null }) // remove query in url when page is load.
+      // then load other layers.
+      prefix = this.$store.getters.scenario + '/' + path.output_paths[0]
+      filesNames = await s3.listFiles(this.$store.getters.model, prefix)
+      const results = { zipName: 'DataBase output', files: [] }
+      for (const file of filesNames) {
+        const content = await s3.readJson(this.$store.getters.model, file)
+        results.files.push(classFile(file, content))
+      }
+      this.loadStaticLayer(results, 'Database output')
     },
 
     loadNetwork (links, nodes, type, zipName) {

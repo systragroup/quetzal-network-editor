@@ -46,7 +46,8 @@ export default {
     loadProject () {
       this.$store.commit('setScenario', this.vmodelScen)
       s3.readJson(this.model, this.vmodelScen + '/quenedi.json').then(resp => {
-        this.$router.push({ name: 'Import', query: { s3Path: resp.network_paths } })
+        console.log(resp)
+        this.$router.push({ name: 'Import', query: { s3Path: resp } })
       })
     },
 
