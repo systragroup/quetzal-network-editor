@@ -132,7 +132,7 @@ export default {
       persistent
       max-width="350"
       @keydown.enter="applyDialog"
-      @keydown.esc="showDialog=false"
+      @keydown.esc="()=>showDialog=false"
     >
       <v-card>
         <v-card-title class="text-h4">

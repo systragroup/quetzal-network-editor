@@ -34,8 +34,7 @@ export default {
   },
 
   methods: {
-    change (val) {
-      console.log(val)
+    selectScenario (val) {
       if (val) {
         if (this.projectIsEmpty) {
           this.loadProject()
@@ -92,9 +91,9 @@ export default {
 }
 </script>
 <template>
-  <section>
+  <section v-if="loggedIn && modelsList.length>0">
     <v-menu
-      v-if="loggedIn && modelsList"
+
       v-model="menu"
       :close-on-content-click="false"
 
@@ -120,7 +119,7 @@ export default {
           v-model="vmodelScen"
           color="primary"
           :mandatory="vmodelScen? true:false"
-          @change="change"
+          @change="selectScenario"
         >
           <v-list-item
             v-for="scen in filterdScenarios"

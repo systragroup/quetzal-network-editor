@@ -1,7 +1,6 @@
 import { CognitoAuth, StorageHelper } from 'amazon-cognito-auth-js'
 import router from './router'
 import { store } from '@src/store/index.js'
-import axios from 'axios'
 import jwtDecode from 'jwt-decode'
 
 const CLIENT_ID = process.env.VUE_APP_COGNITO_CLIENT_ID
@@ -20,29 +19,14 @@ const authData = {
 }
 const auth = new CognitoAuth(authData)
 
-function getUserInfo () {
-  const jwtToken = auth.getSignInUserSession().getAccessToken().jwtToken
-  const USERINFO_URL = 'https://' + auth.getAppWebDomain() + '/oauth2/userInfo'
-  const requestData = {
-    headers: {
-      Authorization: 'Bearer ' + jwtToken,
-    },
-  }
-  return axios.get(USERINFO_URL, requestData).then(response => {
-    return response.data
-  })
-}
-
 auth.userhandler = {
   onSuccess: function (result) {
     // console.log('On Success result', result)
     const idToken = result.getIdToken().jwtToken
     const sessionIdInfo = jwtDecode(idToken)
-    console.log('decode', sessionIdInfo)
     store.commit('setIdToken', idToken)
     store.commit('setAccessToken', result.accessToken.jwtToken)
     store.commit('setCognitoGroups', sessionIdInfo['cognito:groups'])
-
     store.commit('setCognitoInfo', sessionIdInfo)
     store.commit('setLoggedIn', true)
   },
@@ -76,6 +60,5 @@ export default {
     }
   },
   getUserInfoStorageKey,
-  getUserInfo,
 
 }

@@ -47,7 +47,7 @@ export default {
   getters: {
     loggedIn: (state) => state.loggedIn,
     cognitoInfo: (state) => state.cognitoInfo,
-    cognitoGroups: (state) => state.cognitoGroups ? state.cognitoGroups : [null],
+    cognitoGroups: (state) => state.cognitoGroups ? state.cognitoGroups : [],
     accesToken: (state) => state.accesToken,
     idToken: (state) => state.idToken,
     scenariosList: (state) => state.scenariosList,
