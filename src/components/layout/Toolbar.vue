@@ -1,8 +1,9 @@
 <script>
 import Profile from '../utils/Profile.vue'
+import ScenariosExplorer from '../ScenariosExplorer.vue'
 export default {
   name: 'Toolbar',
-  components: { Profile },
+  components: { Profile, ScenariosExplorer },
   data () {
     return {
       dialog: true,
@@ -38,6 +39,10 @@ export default {
       Quetzal Network Editor
     </div>
 
+    <v-spacer />
+    <div>
+      <ScenariosExplorer />
+    </div>
     <v-spacer />
     <div>
       <v-tooltip bottom>

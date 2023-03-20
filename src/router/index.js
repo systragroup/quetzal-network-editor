@@ -49,6 +49,7 @@ const router = new Router({
       path: '/callback',
       name: 'callback',
       beforeEnter: (to, from, next) => {
+        console.log('router')
         const currUrl = window.location.href
         auth.auth.parseCognitoWebResponse(currUrl)
         next('/')
@@ -64,11 +65,13 @@ const router = new Router({
   ],
 })
 
+// router.replace({ 'query.s3Path': null }) // remove query in url when page is load.
+
 router.beforeEach((to, from, next) => {
   if ((!['Import', 'callback', 'signout'].includes(to.name)) &&
-      store.getters.projectIsUndefined) next({ name: 'Import' })
-  else if (to.path === 'Import') next('Import')
-  else next()
+      store.getters.projectIsUndefined) {
+    next({ name: 'Import' })
+  } else next()
 })
 
 export default router

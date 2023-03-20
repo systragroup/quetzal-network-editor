@@ -8,6 +8,9 @@ import runModule from './run.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
+
+import linksBase from '@static/links_base.geojson'
+import nodesBase from '@static/nodes_base.geojson'
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
@@ -90,9 +93,15 @@ export const store = new Vuex.Store({
         state.availableLayers.push(moduleName)
       }
     },
+    initNetworks (state) {
+      this.commit('loadLinks', linksBase)
+      this.commit('loadrLinks', linksBase)
+      this.commit('loadNodes', nodesBase)
+      this.commit('loadrNodes', nodesBase)
+    },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results'].includes(x))
+        x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
     },
