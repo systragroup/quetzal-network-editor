@@ -2,6 +2,8 @@ import { CognitoAuth, StorageHelper } from 'amazon-cognito-auth-js'
 import router from './router'
 import { store } from '@src/store/index.js'
 import axios from 'axios'
+import jwtDecode from 'jwt-decode'
+
 const CLIENT_ID = process.env.VUE_APP_COGNITO_CLIENT_ID
 const APP_DOMAIN = process.env.VUE_APP_COGNITO_APP_DOMAIN
 const REDIRECT_URI = process.env.VUE_APP_COGNITO_REDIRECT_URI
@@ -34,15 +36,15 @@ function getUserInfo () {
 auth.userhandler = {
   onSuccess: function (result) {
     // console.log('On Success result', result)
-    // console.log(result.getIdToken())
-    store.commit('setIdToken', result.getIdToken().jwtToken)
+    const idToken = result.getIdToken().jwtToken
+    const sessionIdInfo = jwtDecode(idToken)
+    console.log('decode', sessionIdInfo)
+    store.commit('setIdToken', idToken)
     store.commit('setAccessToken', result.accessToken.jwtToken)
-    store.commit('setCognitoGroups', result.getIdToken().payload['cognito:groups'])
+    store.commit('setCognitoGroups', sessionIdInfo['cognito:groups'])
 
-    getUserInfo().then(response => {
-      store.commit('setCognitoInfo', response)
-      store.commit('setLoggedIn', true)
-    })
+    store.commit('setCognitoInfo', sessionIdInfo)
+    store.commit('setLoggedIn', true)
   },
   onFailure: function (err) {
     store.commit('setLoggedOut')

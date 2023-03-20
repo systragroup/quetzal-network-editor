@@ -32,6 +32,7 @@ export default {
 
     login () {
       if (this.projectIsEmpty) {
+        console.log('profile')
         auth.login()
       } else {
         this.action = 'login'

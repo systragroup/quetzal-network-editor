@@ -41,6 +41,7 @@ export default {
 
     if (auth.auth.isUserSignedIn()) {
       // console.log(auth.auth.getSignInUserSession().getAccessToken().jwtToken)
+      console.log('app.vue')
       auth.login()
       s3.login()
       this.$store.commit('setModel', this.$store.getters.cognitoGroups[0])
