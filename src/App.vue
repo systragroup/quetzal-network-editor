@@ -2,8 +2,6 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
 import auth from './auth'
 import s3 from './AWSClient'
 
@@ -33,10 +31,7 @@ export default {
   },
   created () {
     // init links and node to empty one (new project)
-    this.$store.commit('loadLinks', linksBase)
-    this.$store.commit('loadrLinks', linksBase)
-    this.$store.commit('loadNodes', nodesBase)
-    this.$store.commit('loadrNodes', nodesBase)
+    this.$store.commit('initNetworks')
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
 
     if (auth.auth.isUserSignedIn()) {

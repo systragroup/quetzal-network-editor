@@ -1,6 +1,6 @@
 <script>
 import Profile from '../utils/Profile.vue'
-import ScenariosExplorer from '../utils/ScenariosExplorer.vue'
+import ScenariosExplorer from '../ScenariosExplorer.vue'
 export default {
   name: 'Toolbar',
   components: { Profile, ScenariosExplorer },

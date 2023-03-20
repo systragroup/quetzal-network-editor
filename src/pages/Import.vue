@@ -1,8 +1,6 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
 import s3 from '../AWSClient'
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import OSMImporter from '../components/utils/OSMImporter.vue'
 
@@ -63,6 +61,12 @@ export default {
       }, 300)
     },
     async loadFilesFromS3 (path) {
+      if (!this.projectIsEmpty) {
+        this.$store.commit('initNetworks')
+        this.$store.commit('unloadLayers')
+        this.message = []
+      }
+
       this.$store.commit('changeLoading', true)
       this.$router.replace({ query: null }) // remove query in url when page is load.
       try {
@@ -274,8 +278,7 @@ export default {
       this.login()
     },
     newProject () {
-      this.loadNetwork(linksBase, nodesBase, 'PT')
-      this.loadNetwork(linksBase, nodesBase, 'road')
+      this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
       this.$store.commit('setScenario', '')
 

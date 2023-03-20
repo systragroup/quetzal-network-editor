@@ -1,6 +1,6 @@
 <script>
 
-import s3 from '../../AWSClient'
+import s3 from '../AWSClient'
 const $gettext = s => s
 
 export default {
@@ -34,7 +34,8 @@ export default {
     model () { return this.$store.getters.model },
     scenario () { return this.$store.getters.scenario },
   },
-  mounted () {
+  watch: {
+    menu (val) { if (this.scenariosList.length === 0 & val) this.$store.dispatch('getScenario') },
   },
 
   methods: {
@@ -178,8 +179,9 @@ export default {
         <v-list-item>
           <v-btn
             text
+            disabled
           >
-            new scenario
+            {{ $gettext('new scenario') }}
           </v-btn>
         </v-list-item>
       </v-card>
@@ -220,7 +222,6 @@ export default {
       v-model="deleteDialog"
       persistent
       max-width="350"
-      @keydown.enter="deleteScenario"
       @keydown.esc="()=>deleteDialog=false"
     >
       <v-card>
@@ -236,14 +237,14 @@ export default {
             color="regular"
             @click="()=>deleteDialog=false"
           >
-            {{ $gettext("No") }}
+            {{ $gettext("Cancel") }}
           </v-btn>
 
           <v-btn
-            color="primary"
+            color="error"
             @click="deleteScenario"
           >
-            {{ $gettext("Yes") }}
+            {{ $gettext("Delete") }}
           </v-btn>
         </v-card-actions>
       </v-card>
