@@ -99,19 +99,12 @@ msgstr "appliquer"
 msgid "cancel"
 msgstr "Annuler"
 
-<<<<<<< HEAD
-#: src/components/LinksSidePanel.vue:622 src/components/ParamForm.vue:91
-#: src/components/ResultsSettings.vue:202 src/components/RoadSidePanel.vue:347
-#: src/components/Settings.vue:133 src/components/utils/OSMImporter.vue:161
-#: src/pages/DataFrame.vue:164 src/pages/Home.vue:180 src/pages/Home.vue:247
-=======
 #: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:202
 #: src/components/RoadSidePanel.vue:347
 #: src/components/ScenariosExplorer.vue:237
 #: src/components/ScenariosExplorer.vue:314 src/components/Settings.vue:133
 #: src/components/utils/OSMImporter.vue:161 src/pages/Home.vue:180
 #: src/pages/Home.vue:247
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -342,11 +335,7 @@ msgstr "Click gauche pour glisser"
 msgid "Identifies a route. Often a string"
 msgstr "Identifie une route. Souvent un String"
 
-<<<<<<< HEAD
-#: src/router/index.js:27
-=======
 #: src/router/index.js:25
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Import"
 msgstr "Importer"
 
@@ -365,14 +354,8 @@ msgstr ""
 #: src/components/ParamForm.vue:58 src/components/ParamForm.vue:60
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
-<<<<<<< HEAD
-#: src/components/layout/NavigationDrawer.vue:66
-#: src/components/layout/NavigationDrawer.vue:79
-#: src/components/layout/NavigationDrawer.vue:93 src/pages/DataFrame.vue:59
-=======
 #: src/components/layout/NavigationDrawer.vue:56
 #: src/components/layout/NavigationDrawer.vue:70
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "item"
 msgstr ""
 
@@ -460,11 +443,7 @@ msgstr ""
 "Identifiant principal du type de rue, route. ex: (motorway, residential, "
 "primary)"
 
-<<<<<<< HEAD
-#: src/router/index.js:34
-=======
 #: src/router/index.js:32
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Map"
 msgstr "Carte"
 
@@ -558,7 +537,6 @@ msgstr "ou les geojsons TC et routier "
 msgid "Overwrite current Project ?"
 msgstr "Écraser le projet en cours ?"
 
-<<<<<<< HEAD
 #: src/router/index.js:48
 msgid "Parameters and Run"
 msgstr "Parametres et execution"
@@ -569,9 +547,7 @@ msgid "project Name"
 msgstr "Projet écrasée"
 
 #: src/pages/Import.vue:224
-=======
 #: src/pages/Import.vue:284
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "project overwrited"
 msgstr "Projet écrasée"
 
@@ -620,7 +596,6 @@ msgstr "Redirigé"
 msgid "Required"
 msgstr "Requis"
 
-<<<<<<< HEAD
 #: src/pages/Run.vue:53
 msgid ""
 "Results are not synchronized with latest modifications.             Please "
@@ -634,13 +609,6 @@ msgid "Results Map"
 msgstr "Carte des Résultats"
 
 #: src/router/index.js:62
-=======
-#: src/router/index.js:39
-msgid "Results Map"
-msgstr "Carte des Résultats"
-
-#: src/router/index.js:46
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Results Pictures"
 msgstr "images des Résultats"
 
@@ -714,7 +682,6 @@ msgstr "Sauvegarder ?"
 msgid "scale"
 msgstr "Échelle"
 
-<<<<<<< HEAD
 #: src/components/ParamForm.vue:24
 msgid "Scenario Settings"
 msgstr "Paramètres de simulation"
@@ -722,7 +689,7 @@ msgstr "Paramètres de simulation"
 #: src/pages/Run.vue:33
 msgid "Scenario Simulation"
 msgstr "Simulation du scénario"
-=======
+
 #: src/components/ScenariosExplorer.vue:105
 msgid "Scenario created"
 msgstr "Scénario créé"
@@ -734,7 +701,6 @@ msgstr "Scénario supprimé"
 #: src/components/ScenariosExplorer.vue:97
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 
 #: src/components/ResultsSettings.vue:16 src/components/ResultsSettings.vue:20
 msgid "selectedFeature"
@@ -797,13 +763,6 @@ msgstr ""
 "Vitesse utilisé pour calculer le temps de parcours lorsqu'un lien est "
 "ajouté, allongé ou déplacé"
 
-<<<<<<< HEAD
-#: src/router/index.js:41
-msgid "Table"
-msgstr "Table"
-
-=======
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 #: src/components/Settings.vue:49
 msgid "the name of the exported zip file"
 msgstr "Le nom du fichier .zip à l'export."

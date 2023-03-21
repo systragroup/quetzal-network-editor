@@ -87,19 +87,12 @@ msgstr "Anwenden"
 msgid "cancel"
 msgstr "Abbrechen"
 
-<<<<<<< HEAD
-#: src/components/LinksSidePanel.vue:622 src/components/ParamForm.vue:91
-#: src/components/ResultsSettings.vue:202 src/components/RoadSidePanel.vue:347
-#: src/components/Settings.vue:133 src/components/utils/OSMImporter.vue:161
-#: src/pages/DataFrame.vue:164 src/pages/Home.vue:180 src/pages/Home.vue:247
-=======
 #: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:202
 #: src/components/RoadSidePanel.vue:347
 #: src/components/ScenariosExplorer.vue:237
 #: src/components/ScenariosExplorer.vue:314 src/components/Settings.vue:133
 #: src/components/utils/OSMImporter.vue:161 src/pages/Home.vue:180
 #: src/pages/Home.vue:247
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -330,11 +323,7 @@ msgstr "Klicken und halten, um zu bewegen"
 msgid "Identifies a route. Often a string"
 msgstr ""
 
-<<<<<<< HEAD
-#: src/router/index.js:27
-=======
 #: src/router/index.js:25
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Import"
 msgstr "Importieren"
 
@@ -351,14 +340,8 @@ msgstr ""
 #: src/components/ParamForm.vue:58 src/components/ParamForm.vue:60
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
-<<<<<<< HEAD
-#: src/components/layout/NavigationDrawer.vue:66
-#: src/components/layout/NavigationDrawer.vue:79
-#: src/components/layout/NavigationDrawer.vue:93 src/pages/DataFrame.vue:59
-=======
 #: src/components/layout/NavigationDrawer.vue:56
 #: src/components/layout/NavigationDrawer.vue:70
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "item"
 msgstr "Element"
 
@@ -446,11 +429,7 @@ msgid ""
 "residential, primary)"
 msgstr ""
 
-<<<<<<< HEAD
-#: src/router/index.js:34
-=======
 #: src/router/index.js:32
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Map"
 msgstr "Karte"
 
@@ -548,7 +527,6 @@ msgstr ""
 msgid "Overwrite current Project ?"
 msgstr "Aktuelles Projekt überschreiben?"
 
-<<<<<<< HEAD
 #: src/router/index.js:48
 msgid "Parameters and Run"
 msgstr ""
@@ -558,9 +536,6 @@ msgid "project Name"
 msgstr ""
 
 #: src/pages/Import.vue:224
-=======
-#: src/pages/Import.vue:284
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "project overwrited"
 msgstr ""
 
@@ -613,7 +588,6 @@ msgstr ""
 msgid "Required"
 msgstr "Erforderlich"
 
-<<<<<<< HEAD
 #: src/pages/Run.vue:53
 msgid ""
 "Results are not synchronized with latest modifications.             Please "
@@ -625,13 +599,6 @@ msgid "Results Map"
 msgstr ""
 
 #: src/router/index.js:62
-=======
-#: src/router/index.js:39
-msgid "Results Map"
-msgstr ""
-
-#: src/router/index.js:46
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgid "Results Pictures"
 msgstr ""
 
@@ -709,7 +676,6 @@ msgstr "Änderungen speichern?"
 msgid "scale"
 msgstr ""
 
-<<<<<<< HEAD
 #: src/components/ParamForm.vue:24
 #, fuzzy
 msgid "Scenario Settings"
@@ -717,7 +683,8 @@ msgstr "Einstellungen"
 
 #: src/pages/Run.vue:33
 msgid "Scenario Simulation"
-=======
+msgstr ""
+
 #: src/components/ScenariosExplorer.vue:105
 msgid "Scenario created"
 msgstr ""
@@ -728,7 +695,6 @@ msgstr ""
 
 #: src/components/ScenariosExplorer.vue:97
 msgid "Scenario successfully copied"
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 msgstr ""
 
 #: src/components/ResultsSettings.vue:16 src/components/ResultsSettings.vue:20
@@ -789,13 +755,10 @@ msgstr ""
 "Die Fahrtzeit wird mittels der Geschwindigkeit berechnet, wenn eine "
 "Verbindung gezeichnet, erweitert oder ein Knoten bewegt wird. "
 
-<<<<<<< HEAD
 #: src/router/index.js:41
 msgid "Table"
 msgstr "Tabelle"
 
-=======
->>>>>>> 282da576f8a4d0958d9171e6000f50190826c185
 #: src/components/Settings.vue:49
 msgid "the name of the exported zip file"
 msgstr "Name der exportierten .zip Datei"

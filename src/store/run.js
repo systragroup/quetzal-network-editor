@@ -1,4 +1,4 @@
-import { axiosClient } from '@src/axiosClient.js'
+import { quetzalClient } from '@src/axiosClient.js'
 
 export default {
   namespaced: true,
@@ -39,7 +39,7 @@ export default {
   actions: {
     getSteps ({ state, commit }) {
       let data = { stateMachineArn: state.stateMachineArn }
-      axiosClient.post('/describe/model',
+      quetzalClient.client.post('/describe/model',
         data = JSON.stringify(data),
       ).then(
         response => {
@@ -69,7 +69,7 @@ export default {
         }),
         stateMachineArn: state.stateMachineArn,
       }
-      axiosClient.post('',
+      quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
         response => {
@@ -83,7 +83,7 @@ export default {
     pollExecution ({ commit, state }) {
       const intervalId = setInterval(() => {
         let data = { executionArn: state.executionArn }
-        axiosClient.post('/describe',
+        quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
         ).then(
           response => {
@@ -100,7 +100,7 @@ export default {
             console.log(err)
           })
         data = { executionArn: state.executionArn, includeExecutionData: false, reverseOrder: true }
-        axiosClient.post('/history',
+        quetzalClient.client.post('/history',
           data = JSON.stringify(data),
         ).then(
           response => {
@@ -119,7 +119,7 @@ export default {
     },
     stopExecution ({ state, commit }) {
       let data = { executionArn: state.executionArn }
-      axiosClient.post('/abort',
+      quetzalClient.client.post('/abort',
         data = JSON.stringify(data),
       ).then(
         response => {

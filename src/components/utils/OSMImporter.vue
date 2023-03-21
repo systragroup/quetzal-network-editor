@@ -3,6 +3,8 @@ import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from '
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
 import { mapboxPublicKey } from '@src/config.js'
+import { osmClient } from '@src/axiosClient.js'
+
 export default {
   name: 'OSMImporter',
   components: {
@@ -16,6 +18,7 @@ export default {
     return {
       mapboxPublicKey: null,
       showDialog: false,
+      bbox: null,
       poly: null,
       selectedHighway: null,
       highwayList: ['motorway',
@@ -30,7 +33,7 @@ export default {
         'secondary_link',
         'primary_link',
         'tertiary_link'],
-
+      tags: ['highway', 'maxspeed', 'lanes', 'name', 'oneway', 'surface'],
     }
   },
   computed: {
@@ -46,7 +49,7 @@ export default {
     },
   },
   created () {
-    this.selectedHighway = this.highwayList
+    this.selectedHighway = this.highwayList.filter(item => !['residential', 'unclassified'].includes(item))
     this.mapboxPublicKey = mapboxPublicKey
   },
   methods: {
@@ -58,11 +61,38 @@ export default {
       this.getBounds()
     },
     getBounds () {
-      const bounds = this.map.getBounds()
-      const bbox = bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat])
-      this.poly = buffer(bbox, -0.1 * (bounds._ne.lat - bounds._sw.lat), { units: 'degrees' })
+      this.bbox = this.map.getBounds()
+      const bbox = bboxPolygon([this.bbox._sw.lng, this.bbox._sw.lat, this.bbox._ne.lng, this.bbox._ne.lat])
+      this.poly = buffer(bbox, -0.1 * (this.bbox._ne.lat - this.bbox._sw.lat), { units: 'degrees' })
       this.poly.geometry.coordinates[0] = this.poly.geometry.coordinates[0].reverse()
-      console.log(this.poly)
+    },
+    importOSM () {
+      const bbox = [this.bbox._sw.lat, this.bbox._sw.lng, this.bbox._ne.lat, this.bbox._ne.lng]
+      let overpassQuery = `[out:json][timeout:180];
+        (
+        `
+      overpassQuery += this.selectedHighway.map(highway => `way["highway"="${highway}"](${bbox});\n`).join('')
+      overpassQuery += `);
+        out body;
+        >;
+        out skel qt;
+        `
+      let data = {
+        input: JSON.stringify({
+          overpass_query: overpassQuery,
+          tags: this.tags,
+        }),
+        stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
+      }
+      osmClient.post('',
+        data = JSON.stringify(data),
+      ).then(
+        response => {
+          console.log(response)
+        }).catch(
+        err => {
+          console.log(err)
+        })
     },
   },
 
@@ -189,6 +219,7 @@ export default {
             text
             outlined
             color="success"
+            @click="importOSM"
           >
             {{ $gettext("Download") }}
           </v-btn>
