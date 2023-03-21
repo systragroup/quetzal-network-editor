@@ -1,1 +1,2 @@
 env/**/* filter=secret diff=secret
+.env* filter=secret diff=secret
