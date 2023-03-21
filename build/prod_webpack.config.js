@@ -104,7 +104,7 @@ module.exports = {
       filename: 'build.css',
       chunkFilename: '[id].css',
     }),
-    new Dotenv({ path: './.env.production' }),
+    new Dotenv({ path: './env/.env.production' }),
   ],
   optimization: {
     splitChunks: {
