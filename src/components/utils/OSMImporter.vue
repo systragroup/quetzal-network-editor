@@ -2,9 +2,9 @@
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
-import { osmClient } from '@src/axiosClient.js'
-const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
-
+import s3 from '@src/AWSClient'
+import { quetzalClient } from '@src/axiosClient.js'
+import { v4 as uuid } from 'uuid'
 
 export default {
   name: 'OSMImporter',
@@ -17,7 +17,7 @@ export default {
 
   data () {
     return {
-      mapboxPublicKey: null,
+      mapboxPublicKey: process.env.VUE_APP_MAPBOX_PUBLIC_KEY,
       showDialog: false,
       bbox: null,
       poly: null,
@@ -35,6 +35,9 @@ export default {
         'primary_link',
         'tertiary_link'],
       tags: ['highway', 'maxspeed', 'lanes', 'name', 'oneway', 'surface'],
+      callID: uuid(),
+      importStatus: null,
+      bucketOSM: 'quenedi-osm',
     }
   },
   computed: {
@@ -51,7 +54,6 @@ export default {
   },
   created () {
     this.selectedHighway = this.highwayList.filter(item => !['residential', 'unclassified'].includes(item))
-    this.mapboxPublicKey = mapboxPublicKey
   },
   methods: {
     onMapLoaded (event) {
@@ -80,23 +82,53 @@ export default {
         `
       let data = {
         input: JSON.stringify({
-          overpass_query: overpassQuery,
+          overpassQuery: overpassQuery,
           tags: this.tags,
+          callID: this.callID,
         }),
+        name: this.callID,
         stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
       }
-      osmClient.client.post('',
+      quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
         response => {
-          console.log(response)
+          this.importStatus = 'RUNNING'
+          this.pollImport(response.data.executionArn)
         }).catch(
         err => {
           console.log(err)
         })
     },
-  },
+    pollImport (executionArn) {
+      const intervalId = setInterval(() => {
+        let data = { executionArn: executionArn }
+        quetzalClient.client.post('/describe',
+          data = JSON.stringify(data),
+        ).then(
+          response => {
+            this.importStatus = response.data.status
+            console.log(this.importStatus)
+            if (this.importStatus === 'SUCCEEDED') {
+              clearInterval(intervalId)
+              this.downloadOSMFromS3()
+            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.importStatus)) {
+              clearInterval(intervalId)
+            }
+          }).catch(
+          err => {
+            console.log(err)
+          })
+      }, 1000)
+    },
+    async downloadOSMFromS3 () {
+      console.log(this.callID.concat('/links.geojson'))
+      const rlinks = await s3.readJson(this.bucketOSM, this.callID.concat('/links.geojson'))
 
+      console.log(this.callID.concat('/nodes.geojson'))
+      const rnodes = await s3.readJson(this.bucketOSM, this.callID.concat('/nodes.geojson'))
+    }
+  },
 }
 </script>
 <template>
@@ -137,6 +169,18 @@ export default {
         <v-card-title>
           {{ $gettext("Import OSM network in bounding box") }}
         </v-card-title>
+        <v-card-subtitle>
+          <v-alert
+            v-if="importStatus == 'FAILED' || importStatus == 'TIMED_OUT' || importStatus == 'ABORTED'"
+            dense
+            outlined
+            text
+            type="error"
+          >
+            {{ $gettext("There as been an error while importing OSM network. \
+            Please try again. If the problem persist, contact us.") }}
+          </v-alert>
+        </v-card-subtitle>
         <v-card-actions>
           <MglMap
             :key="mapStyle"
@@ -220,6 +264,8 @@ export default {
             text
             outlined
             color="success"
+            :loading="importStatus == 'RUNNING'"
+            :disabled="importStatus == 'RUNNING'"
             @click="importOSM"
           >
             {{ $gettext("Download") }}
@@ -234,7 +280,7 @@ export default {
   max-width: 100rem;
   height: 30rem;
 }
-.dialog {
-
+.v-card__text {
+    padding: 0px 24px 0px;
 }
 </style>
