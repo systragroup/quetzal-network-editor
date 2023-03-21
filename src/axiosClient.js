@@ -1,5 +1,4 @@
 import axios from 'axios'
-import auth from './auth'
 
 const quetzalClient = {
   client: null,
@@ -30,7 +29,7 @@ const osmClient = {
         headers: {
           'Accept': '*/*',
           'Content-Type': 'text/plain',
-          'Authorization': auth.auth.getSignInUserSession().getIdToken().jwtToken,
+          'Authorization': idToken,
         },
       })
     } else {
