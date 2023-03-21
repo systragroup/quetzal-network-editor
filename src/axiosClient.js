@@ -3,38 +3,30 @@ import axios from 'axios'
 const quetzalClient = {
   client: null,
   login (idToken) {
-    if (idToken) {
-      this.client = axios.create({
-        baseURL: 'https://z0i1paj50k.execute-api.ca-central-1.amazonaws.com/dev',
-        withCredentials: false,
-        headers: {
-          'Accept': '*/*',
-          'Content-Type': 'text/plain',
-          'Authorization': idToken,
-        },
-      })
-    } else {
-      console.error('idToken is not defined')
-    }
+    this.client = axios.create({
+      baseURL: 'https://z0i1paj50k.execute-api.ca-central-1.amazonaws.com/dev',
+      withCredentials: false,
+      headers: {
+        'Accept': '*/*',
+        'Content-Type': 'text/plain',
+        'Authorization': idToken,
+      },
+    })
   },
 }
 
 const osmClient = {
   client: null,
   login (idToken) {
-    if (idToken) {
-      this.client = axios.create({
-        baseURL: 'https://icrzxorrf0.execute-api.ca-central-1.amazonaws.com/dev',
-        withCredentials: false,
-        headers: {
-          'Accept': '*/*',
-          'Content-Type': 'text/plain',
-          'Authorization': idToken,
-        },
-      })
-    } else {
-      console.error('idToken is not defined')
-    }
+    this.client = axios.create({
+      baseURL: 'https://icrzxorrf0.execute-api.ca-central-1.amazonaws.com/dev',
+      withCredentials: false,
+      headers: {
+        'Accept': '*/*',
+        'Content-Type': 'text/plain',
+        'Authorization': idToken,
+      },
+    })
   },
 }
 
