@@ -332,10 +332,20 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 2],
-          'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
-
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 3, 1],
+                         ['case', ['has', 'route_width'],
+                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                           ['to-number', ['get', 'route_width']],
+                           2], 2]],
+          'line-blur': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 1, 0],
+                        ['case', ['has', 'route_width'],
+                         ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                          ['to-number', ['get', 'route_width']],
+                          2], 2]],
         },
+        layout: {
+          'line-sort-key': ['to-number',['get', 'route_width']],
+        }
 
       }"
       v-on="isEditorMode ? { } : { mouseenter: onCursor,
@@ -356,10 +366,13 @@ export default {
           'symbol-spacing': 200,
           'icon-ignore-placement': true,
           'icon-image':'arrow',
-          'icon-size': ['case', ['has', 'oneway'],
-                        ['case',['to-boolean',['to-number',['get','oneway']]],0.3, 0],
-                        0.3],
-          'icon-rotate': 90
+          'icon-size': ['*',['case', ['has', 'oneway'],
+                             ['case',['to-boolean',['to-number',['get','oneway']]],0.15, 0],
+                             0.15], ['case', ['has', 'route_width'],
+                                     ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                                      ['to-number', ['get', 'route_width']],
+                                      2], 2]],
+          'icon-rotate': 90,
         },
         paint: {
           'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
