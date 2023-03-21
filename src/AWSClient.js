@@ -20,6 +20,7 @@ async function readJson (bucket, key) {
 async function listFiles (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
   const Content = await s3Client.listObjectsV2(params).promise()
+  console.log(Content)
   // return filname and remove empty name (empty folder)
   return Content.Contents.map(item => item.Key).filter(file => file !== prefix)
 }
