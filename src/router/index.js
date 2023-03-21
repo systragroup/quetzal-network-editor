@@ -4,6 +4,7 @@ import Import from '@page/Import.vue'
 import ResultPicture from '@page/ResultPicture.vue'
 import auth from '../auth'
 import Home from '@page/Home.vue'
+import Run from '@page/Run.vue'
 import ResultMap from '@page/ResultMap.vue'
 import { store } from '../store/index.js'
 
@@ -32,6 +33,13 @@ const router = new Router({
       title: $gettext('Map'),
     },
     {
+      path: '/Run',
+      name: Run.name,
+      component: Run,
+      icon: 'fa-solid fa-play',
+      title: $gettext('Parameters and Run'),
+    },
+    {
       path: '/ResultMap',
       name: ResultMap.name,
       component: ResultMap,
@@ -49,7 +57,6 @@ const router = new Router({
       path: '/callback',
       name: 'callback',
       beforeEnter: (to, from, next) => {
-        console.log('router')
         const currUrl = window.location.href
         auth.auth.parseCognitoWebResponse(currUrl)
         next('/')

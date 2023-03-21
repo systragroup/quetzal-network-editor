@@ -18,7 +18,6 @@ export default {
   data () {
     return {
       mapIsLoaded: false,
-      mapboxPublicKey: null,
       minZoom: {
         nodes: 14,
         links: 8,

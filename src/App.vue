@@ -4,6 +4,7 @@ import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 
 import auth from './auth'
 import s3 from './AWSClient'
+import { axiosClient } from './axiosClient'
 
 export default {
   name: 'App',
@@ -39,6 +40,7 @@ export default {
       s3.login()
       this.$store.commit('setModel', this.$store.getters.cognitoGroups[0])
       this.$store.dispatch('getScenario')
+      axiosClient.loginAll(this.$store.getters.idToken)
     }
   },
   methods: {

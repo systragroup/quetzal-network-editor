@@ -21,8 +21,7 @@ import pt from 'vuetify/es5/locale/pt'
 import translations from './translations.json'
 
 import App from './App.vue'
-import { mapboxPublicKey } from '@src/config.js'
-
+const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 console.assert(mapboxPublicKey)
 
 const languageMixin = {

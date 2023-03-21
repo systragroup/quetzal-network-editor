@@ -1,15 +1,13 @@
 <script>
 import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
-
-import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
 import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
-
+const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 const $gettext = s => s
 
