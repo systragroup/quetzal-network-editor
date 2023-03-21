@@ -3,8 +3,7 @@ import auth from './auth'
 
 const quetzalClient = {
   client: null,
-  login () {
-    const idToken = auth.auth.getSignInUserSession().getIdToken().jwtToken
+  login (idToken) {
     if (idToken) {
       this.client = axios.create({
         baseURL: 'https://z0i1paj50k.execute-api.ca-central-1.amazonaws.com/dev',
@@ -21,10 +20,9 @@ const quetzalClient = {
   },
 }
 
-const osmClient = axios.create({
+const osmClient = {
   client: null,
-  login () {
-    const idToken = auth.auth.getSignInUserSession().getIdToken().jwtToken
+  login (idToken) {
     if (idToken) {
       this.client = axios.create({
         baseURL: 'https://icrzxorrf0.execute-api.ca-central-1.amazonaws.com/dev',
@@ -39,12 +37,12 @@ const osmClient = axios.create({
       console.error('idToken is not defined')
     }
   },
-})
+}
 
 const axiosClient = {
-  loginAll () {
-    quetzalClient.login()
-    osmClient.login()
+  loginAll (idToken) {
+    quetzalClient.login(idToken)
+    osmClient.login(idToken)
   },
 }
 

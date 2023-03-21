@@ -84,7 +84,7 @@ export default {
         }),
         stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
       }
-      osmClient.post('',
+      osmClient.client.post('',
         data = JSON.stringify(data),
       ).then(
         response => {
