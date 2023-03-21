@@ -518,7 +518,6 @@ export default {
           <div>
             <v-menu
               offset-y
-              open-on-hover
               nudge-left="70"
               close-delay="100"
               transition="slide-y-transition"
@@ -527,7 +526,6 @@ export default {
                 <v-btn
                   small
                   v-bind="attrs"
-                  @click="()=>buttonHandle('example1')"
                   v-on="on"
                 >
                   {{ $gettext('example') }}
