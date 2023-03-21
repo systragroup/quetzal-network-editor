@@ -2,8 +2,8 @@
 
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
-import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
+const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 
 export default {
   name: 'ResultMap',

@@ -57,7 +57,6 @@ const router = new Router({
       path: '/callback',
       name: 'callback',
       beforeEnter: (to, from, next) => {
-        console.log('router')
         const currUrl = window.location.href
         auth.auth.parseCognitoWebResponse(currUrl)
         next('/')

@@ -2,8 +2,9 @@
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
-import { mapboxPublicKey } from '@src/config.js'
 import { osmClient } from '@src/axiosClient.js'
+const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
+
 
 export default {
   name: 'OSMImporter',
