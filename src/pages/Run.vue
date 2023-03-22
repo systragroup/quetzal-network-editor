@@ -152,7 +152,7 @@ export default {
   font-size: 2em;
   color:var(--v-secondary-dark);
   font-weight: bold;
-  margin: 40px;
+  margin: 10px;
   margin-left: 0px;
 }
 .card button {
