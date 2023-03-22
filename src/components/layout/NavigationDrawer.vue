@@ -1,9 +1,7 @@
 <script>
 import Router from '@src/router/index'
-import Badge from '../../../../../crypto/planeth/website/src/components/Badge.vue'
 
 export default {
-  components: { Badge },
   name: 'NavigationDrawer',
   data () {
     return {
