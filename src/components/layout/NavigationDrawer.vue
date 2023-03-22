@@ -2,7 +2,6 @@
 import Router from '@src/router/index'
 
 export default {
-  components: { Badge },
   name: 'NavigationDrawer',
   data () {
     return {
