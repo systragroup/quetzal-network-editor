@@ -43,6 +43,11 @@ export default {
       this.$emit('isRoadMode', this.roadMode)
     },
   },
+  created () {
+    if (this.$store.getters.links.features.length === 0 && !this.$store.getters.projectIsEmpty) {
+      this.tab = 1
+    }
+  },
 
 }
 </script>
