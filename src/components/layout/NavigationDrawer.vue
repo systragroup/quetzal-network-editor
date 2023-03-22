@@ -1,7 +1,9 @@
 <script>
 import Router from '@src/router/index'
+import Badge from '../../../../../crypto/planeth/website/src/components/Badge.vue'
 
 export default {
+  components: { Badge },
   name: 'NavigationDrawer',
   data () {
     return {
@@ -13,6 +15,7 @@ export default {
     }
   },
   computed: {
+    running () { return this.$store.getters['run/running'] },
     runError () { return this.$store.getters['run/error'] },
     runSychronized () { return this.$store.getters['run/synchronized'] },
   },
@@ -86,12 +89,20 @@ export default {
         >
           <v-list-item-action class="drawer-list-item-icon">
             <v-badge
-              v-if="item.name==='Run' && (runError || !runSychronized)"
-              offset-x="6px"
-              offset-y="11px"
+              v-if="item.name==='Run' && (running || runError || !runSychronized)"
+              :offset-x="running ? '12px' : '6px'"
+              :offset-y="running ? '10px' : '11px'"
               :color="runError ? 'error' : !runSychronized ? 'warning' : ''"
               :icon="(runError || !runSychronized) ? 'fa-solid fa-exclamation' : ''"
             >
+              <template v-slot:badge>
+                <v-progress-circular 
+                v-if="item.name==='Run' && (running)"
+                size="18"
+                width="4"
+                color="primary"
+                indeterminate />
+              </template>
               <v-icon
                 small
                 :title="$gettext(item.title)"
