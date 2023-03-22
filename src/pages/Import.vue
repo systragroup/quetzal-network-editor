@@ -66,39 +66,29 @@ export default {
         this.$store.commit('unloadLayers')
         this.message = []
       }
-
       this.$store.commit('changeLoading', true)
       this.$router.replace({ query: null }) // remove query in url when page is load.
+      let links = {}
+      let nodes = {}
+      const scen = this.$store.getters.scenario + '/'
+
       try {
-        let prefix = this.$store.getters.scenario + '/' + path.network_paths.read_links_path[0]
-        let filesNames = await s3.listFiles(this.$store.getters.model, prefix)
-        let links = {}
-        let nodes = {}
-        for (const file of filesNames) {
-          const content = await s3.readJson(this.$store.getters.model, file)
-          if (content.features[0].geometry.type === 'LineString') {
-            links = content
-          } else if (content.features[0].geometry.type === 'Point') {
-            nodes = content
-          }
+        let filesNames = await s3.listFiles(this.$store.getters.model, scen + path.network_paths.links)
+        if (filesNames.length > 0) {
+          links = await s3.readJson(this.$store.getters.model, scen + path.network_paths.links)
+          nodes = await s3.readJson(this.$store.getters.model, scen + path.network_paths.nodes)
+          this.loadNetwork(links, nodes, 'PT', 'DataBase')
         }
-        if (filesNames.length > 0) this.loadNetwork(links, nodes, 'PT', 'DataBase')
-
-        prefix = this.$store.getters.scenario + '/' + path.network_paths.read_rlinks_path[0]
-        filesNames = await s3.listFiles(this.$store.getters.model, prefix)
-        for (const file of filesNames) {
-          const content = await s3.readJson(this.$store.getters.model, file)
-          if (content.features[0].geometry.type === 'LineString') {
-            links = content
-          } else if (content.features[0].geometry.type === 'Point') {
-            nodes = content
-          }
+        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.network_paths.rlinks)
+        if (filesNames.length > 0) {
+          links = await s3.readJson(this.$store.getters.model,
+            this.$store.getters.scenario + '/' + path.network_paths.rlinks)
+          nodes = await s3.readJson(this.$store.getters.model,
+            this.$store.getters.scenario + '/' + path.network_paths.rnodes)
+          this.loadNetwork(links, nodes, 'road', 'DataBase')
         }
-        if (filesNames.length > 0) this.loadNetwork(links, nodes, 'road', 'DataBase')
-
         // then load other layers.
-        prefix = this.$store.getters.scenario + '/' + path.output_paths[0]
-        filesNames = await s3.listFiles(this.$store.getters.model, prefix)
+        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths[0])
         const files = []
         for (const file of filesNames) {
           const content = await s3.readJson(this.$store.getters.model, file)
