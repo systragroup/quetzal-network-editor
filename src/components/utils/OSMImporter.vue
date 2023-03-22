@@ -103,10 +103,7 @@ export default {
           response => {
             this.importStatus = 'RUNNING'
             this.pollImport(response.data.executionArn)
-          }).catch(
-          err => {
-            console.log(err)
-          })
+          }).catch(e => { console.log(err) })
       } else {
         this.showOverwriteDialog = true
       }
@@ -126,10 +123,7 @@ export default {
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.importStatus)) {
               clearInterval(intervalId)
             }
-          }).catch(
-          err => {
-            console.log(err)
-          })
+          }).catch(e => { console.log(e) })
       }, 1000)
     },
     async downloadOSMFromS3 () {
