@@ -70,6 +70,12 @@ export default {
     this.tripList = this.selectedrGoup
     this.selectedFilter = this.$store.getters.selectedrFilter
     this.vmodelSelectedFilter = this.selectedFilter
+
+    if (this.$store.getters.links.features.length === 0 &&
+    !this.$store.getters.projectIsEmpty &&
+    this.selectedrGoup.length === 0) {
+      this.showAll()
+    }
   },
 
   methods: {

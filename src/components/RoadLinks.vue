@@ -270,7 +270,7 @@ export default {
     onMove (event) {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.map.loaded() && this.dragNode && this.selectedFeature) {
+      if (this.dragNode && this.selectedFeature) {
         const click = {
           selectedFeature: this.selectedFeature,
           action: null,

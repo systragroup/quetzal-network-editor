@@ -26,18 +26,7 @@ export default {
 
   watch: {
     showedTrips (newVal, oldVal) {
-      let changes = ''
-      if (newVal.length < oldVal.length) {
-        // if a tripis unchecked. we remove it
-        changes = new Set(oldVal.filter(item => !newVal.includes(item)))
-        this.setHiddenFeatures('remove', changes)
-      } else if (newVal.length > oldVal.length) {
-        // if a trip is added, we add it!
-        changes = new Set(newVal.filter(item => !oldVal.includes(item)))
-        this.setHiddenFeatures('add', changes)
-      } else {
-        this.setHiddenFeatures()
-      }
+      this.setHiddenFeatures()
     },
     isEditorMode (val) {
       val ? this.map.off('dblclick', this.selectLine) : this.map.on('dblclick', this.selectLine)
@@ -45,6 +34,8 @@ export default {
   },
 
   created () {
+    this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
+    this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
     this.setHiddenFeatures()
     this.map.on('dblclick', this.selectLine)
   },
@@ -70,70 +61,38 @@ export default {
       if (this.popup?.isOpen()) this.popup.remove()
       event.map.getCanvas().style.cursor = ''
     },
-    setHiddenFeatures (method = 'all', trips = []) {
+    setHiddenFeatures () {
       // get visible links and nodes.
-      if (method === 'all') {
-        this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
-        this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
-        const showedTripsSet = new Set(this.showedTrips)
-        this.visibleLinks.features = this.links.features.filter(
-          link => showedTripsSet.has(link.properties.trip_id))
-        // get all unique width
-        const widthArr = [...new Set(this.visibleLinks.features.map(item => Number(item.properties.route_width)))]
-        // create a dict {width:[node_index]}
-        const widthDict = {}
-        widthArr.forEach(key => widthDict[key] = new Set())
-        this.visibleLinks.features.map(item =>
-          [item.properties.a, item.properties.b].forEach(
-            node => widthDict[Number(item.properties.route_width)].add(node)))
-        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
-        let totSet = new Set()
-        for (let i = 0; i < widthArr.length - 1; i++) {
-          const a = widthDict[widthArr[i + 1]]
-          const b = widthDict[widthArr[i]]
-          totSet = new Set([...totSet, ...b])
-          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
-        }
-        // for each width, get the nodes and add the width to the properties for rendering.
-        widthArr.forEach(key => {
-          const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
-          newNodes.map(node => node.properties.route_width = key)
-          this.visibleNodes.features.push(...newNodes)
-        })
-      } else if (method === 'remove') {
-        this.visibleLinks.features = this.visibleLinks.features.filter(link => !trips.has(link.properties.trip_id))
-        const a = this.visibleLinks.features.map(item => item.properties.a)
-        const b = this.visibleLinks.features.map(item => item.properties.b)
-        const ab = new Set([...a, ...b])
-        this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.has(node.properties.index))
-      } else if (method === 'add') {
-        const newFeatures = this.links.features.filter(link => trips.has(link.properties.trip_id))
-        this.visibleLinks.features.push(...newFeatures)
-        // get all unique value of width
-        const widthArr = [...new Set(newFeatures.map(item => Number(item.properties.route_width)))]
-        widthArr.sort(function (a, b) { return b - a }) // sort it
-        // create a dict {width:[node_index]}
-        const widthDict = {}
-        widthArr.forEach(key => widthDict[key] = new Set())
-        newFeatures.map(item =>
-          [item.properties.a, item.properties.b].forEach(
-            node => widthDict[Number(item.properties.route_width)].add(node)))
-        // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
-        let totSet = new Set()
-        for (let i = 0; i < widthArr.length - 1; i++) {
-          const a = widthDict[widthArr[i + 1]]
-          const b = widthDict[widthArr[i]]
-          totSet = new Set([...totSet, ...b])
-          widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
-        }
+      const showedTripsSet = new Set(this.showedTrips)
+      this.visibleLinks.features = this.links.features.filter(link => showedTripsSet.has(link.properties.trip_id))
+      const a = this.visibleLinks.features.map(item => item.properties.a)
+      const b = this.visibleLinks.features.map(item => item.properties.b)
+      const ab = new Set([...a, ...b])
+      this.visibleNodes.features = this.visibleNodes.features.filter(node => ab.has(node.properties.index))
 
-        // for each width, get the nodes and add the width to the properties for rendering.
-        widthArr.forEach(key => {
-          const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
-          newNodes.map(node => node.properties.route_width = key)
-          this.visibleNodes.features.push(...newNodes)
-        })
+      // get all unique width
+      const widthArr = [...new Set(this.visibleLinks.features.map(item => Number(item.properties.route_width)))]
+      // create a dict {width:[node_index]}
+      const widthDict = {}
+      widthArr.forEach(key => widthDict[key] = new Set())
+      this.visibleLinks.features.map(item =>
+        [item.properties.a, item.properties.b].forEach(
+          node => widthDict[Number(item.properties.route_width)].add(node)))
+      // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
+      let totSet = new Set()
+      for (let i = 0; i < widthArr.length - 1; i++) {
+        const a = widthDict[widthArr[i + 1]]
+        const b = widthDict[widthArr[i]]
+        totSet = new Set([...totSet, ...b])
+        widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
       }
+      // for each width, get the nodes and add the width to the properties for rendering.
+      widthArr.forEach(key => {
+        const newNodes = this.nodes.features.filter(node => widthDict[key].has(node.properties.index))
+        newNodes.map(node => node.properties.route_width = key)
+        this.visibleNodes.features.push(...newNodes)
+      })
+
       // const endTime = performance.now()
     },
     selectLine (e) {

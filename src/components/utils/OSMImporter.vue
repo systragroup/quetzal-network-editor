@@ -2,9 +2,9 @@
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
-import { osmClient } from '@src/axiosClient.js'
-const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
-
+import s3 from '@src/AWSClient'
+import { quetzalClient } from '@src/axiosClient.js'
+import { v4 as uuid } from 'uuid'
 
 export default {
   name: 'OSMImporter',
@@ -17,8 +17,9 @@ export default {
 
   data () {
     return {
-      mapboxPublicKey: null,
+      mapboxPublicKey: process.env.VUE_APP_MAPBOX_PUBLIC_KEY,
       showDialog: false,
+      showOverwriteDialog: false,
       bbox: null,
       poly: null,
       selectedHighway: null,
@@ -34,12 +35,21 @@ export default {
         'secondary_link',
         'primary_link',
         'tertiary_link'],
+      defaultHighway: ['motorway',
+        'motorway_link',
+        'trunk',
+        'primary',
+        'trunk_link',
+        'primary_link'],
       tags: ['highway', 'maxspeed', 'lanes', 'name', 'oneway', 'surface'],
+      callID: uuid(),
+      importStatus: null,
+      bucketOSM: 'quenedi-osm',
     }
   },
   computed: {
     mapStyle () { return this.$store.getters.mapStyle },
-
+    rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
   },
   watch: {
     showDialog (val) {
@@ -50,8 +60,7 @@ export default {
     },
   },
   created () {
-    this.selectedHighway = this.highwayList.filter(item => !['residential', 'unclassified'].includes(item))
-    this.mapboxPublicKey = mapboxPublicKey
+    this.selectedHighway = this.highwayList.filter(item => this.defaultHighway.includes(item))
   },
   methods: {
     onMapLoaded (event) {
@@ -68,35 +77,69 @@ export default {
       this.poly.geometry.coordinates[0] = this.poly.geometry.coordinates[0].reverse()
     },
     importOSM () {
-      const bbox = [this.bbox._sw.lat, this.bbox._sw.lng, this.bbox._ne.lat, this.bbox._ne.lng]
-      let overpassQuery = `[out:json][timeout:180];
-        (
-        `
-      overpassQuery += this.selectedHighway.map(highway => `way["highway"="${highway}"](${bbox});\n`).join('')
-      overpassQuery += `);
-        out body;
-        >;
-        out skel qt;
-        `
-      let data = {
-        input: JSON.stringify({
-          overpass_query: overpassQuery,
-          tags: this.tags,
-        }),
-        stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
+      if ( this.rlinksIsEmpty) {
+        const bbox = [this.bbox._sw.lat, this.bbox._sw.lng, this.bbox._ne.lat, this.bbox._ne.lng]
+        let overpassQuery = `[out:json][timeout:180];
+          (
+          `
+        overpassQuery += this.selectedHighway.map(highway => `way["highway"="${highway}"](${bbox});\n`).join('')
+        overpassQuery += `);
+          out body;
+          >;
+          out skel qt;
+          `
+        let data = {
+          input: JSON.stringify({
+            overpassQuery: overpassQuery,
+            tags: this.tags,
+            callID: this.callID,
+          }),
+          name: this.callID,
+          stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
+        }
+        quetzalClient.client.post('',
+          data = JSON.stringify(data),
+        ).then(
+          response => {
+            this.importStatus = 'RUNNING'
+            this.pollImport(response.data.executionArn)
+          }).catch(e => { console.log(err) })
+      } else {
+        this.showOverwriteDialog = true
       }
-      osmClient.client.post('',
-        data = JSON.stringify(data),
-      ).then(
-        response => {
-          console.log(response)
-        }).catch(
-        err => {
-          console.log(err)
-        })
     },
+    pollImport (executionArn) {
+      const intervalId = setInterval(() => {
+        let data = { executionArn: executionArn }
+        quetzalClient.client.post('/describe',
+          data = JSON.stringify(data),
+        ).then(
+          response => {
+            this.importStatus = response.data.status
+            console.log(this.importStatus)
+            if (this.importStatus === 'SUCCEEDED') {
+              clearInterval(intervalId)
+              this.downloadOSMFromS3()
+            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.importStatus)) {
+              clearInterval(intervalId)
+            }
+          }).catch(e => { console.log(e) })
+      }, 1000)
+    },
+    async downloadOSMFromS3 () {
+      const rlinks = await s3.readJson(this.bucketOSM, this.callID.concat('/links.geojson'))
+      this.$store.commit('loadrLinks', rlinks)
+      const rnodes = await s3.readJson(this.bucketOSM, this.callID.concat('/nodes.geojson'))
+      this.$store.commit('loadrNodes', rnodes)
+      await s3.deleteScenario(this.bucketOSM, this.callID)
+      this.$router.push('/Home').catch(() => {})
+    },
+    applyOverwriteDialog() {
+      this.$store.commit('unloadrFiles')
+      this.showOverwriteDialog = false
+      this.importOSM()
+    }
   },
-
 }
 </script>
 <template>
@@ -137,6 +180,18 @@ export default {
         <v-card-title>
           {{ $gettext("Import OSM network in bounding box") }}
         </v-card-title>
+        <v-card-subtitle>
+          <v-alert
+            v-if="importStatus == 'FAILED' || importStatus == 'TIMED_OUT' || importStatus == 'ABORTED'"
+            dense
+            outlined
+            text
+            type="error"
+          >
+            {{ $gettext("There as been an error while importing OSM network. \
+            Please try again. If the problem persist, contact us.") }}
+          </v-alert>
+        </v-card-subtitle>
         <v-card-actions>
           <MglMap
             :key="mapStyle"
@@ -220,12 +275,43 @@ export default {
             text
             outlined
             color="success"
+            :loading="importStatus == 'RUNNING'"
+            :disabled="importStatus == 'RUNNING'"
             @click="importOSM"
           >
             {{ $gettext("Download") }}
           </v-btn>
         </v-card-actions>
       </v-card>
+      <v-dialog
+      v-model="showOverwriteDialog"
+      persistent
+      max-width="500"
+      @keydown.enter="applyOverwriteDialog"
+      @keydown.esc="showOverwriteDialog=false"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $gettext("Overwrite current road network ?") }}
+        </v-card-title>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="regular"
+            @click="showOverwriteDialog = !showOverwriteDialog"
+          >
+            {{ $gettext("No") }}
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            @click="applyOverwriteDialog"
+          >
+            {{ $gettext("Yes") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     </v-dialog>
   </section>
 </template>
@@ -234,7 +320,7 @@ export default {
   max-width: 100rem;
   height: 30rem;
 }
-.dialog {
-
+.v-card__text {
+    padding: 0px 24px 0px;
 }
 </style>
