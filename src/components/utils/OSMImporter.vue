@@ -79,7 +79,7 @@ export default {
       this.poly.geometry.coordinates[0] = this.poly.geometry.coordinates[0].reverse()
     },
     importOSM () {
-      if ( this.rlinksIsEmpty) {
+      if (this.rlinksIsEmpty) {
         const bbox = [this.bbox._sw.lat, this.bbox._sw.lng, this.bbox._ne.lat, this.bbox._ne.lng]
         let overpassQuery = `[out:json][timeout:180];
           (
@@ -105,7 +105,7 @@ export default {
           response => {
             this.importStatus = 'RUNNING'
             this.pollImport(response.data.executionArn)
-          }).catch(e => { console.log(err) })
+          }).catch(err => { console.log(err) })
       } else {
         this.showOverwriteDialog = true
       }
@@ -136,11 +136,11 @@ export default {
       await s3.deleteScenario(this.bucketOSM, this.callID)
       this.$router.push('/Home').catch(() => {})
     },
-    applyOverwriteDialog() {
+    applyOverwriteDialog () {
       this.$store.commit('unloadrFiles')
       this.showOverwriteDialog = false
       this.importOSM()
-    }
+    },
   },
 }
 </script>
@@ -287,34 +287,34 @@ export default {
         </v-card-actions>
       </v-card>
       <v-dialog
-      v-model="showOverwriteDialog"
-      persistent
-      max-width="500"
-      @keydown.enter="applyOverwriteDialog"
-      @keydown.esc="showOverwriteDialog=false"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Overwrite current road network ?") }}
-        </v-card-title>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="showOverwriteDialog = !showOverwriteDialog"
-          >
-            {{ $gettext("No") }}
-          </v-btn>
+        v-model="showOverwriteDialog"
+        persistent
+        max-width="500"
+        @keydown.enter="applyOverwriteDialog"
+        @keydown.esc="showOverwriteDialog=false"
+      >
+        <v-card>
+          <v-card-title class="text-h5">
+            {{ $gettext("Overwrite current road network ?") }}
+          </v-card-title>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="regular"
+              @click="showOverwriteDialog = !showOverwriteDialog"
+            >
+              {{ $gettext("No") }}
+            </v-btn>
 
-          <v-btn
-            color="primary"
-            @click="applyOverwriteDialog"
-          >
-            {{ $gettext("Yes") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+            <v-btn
+              color="primary"
+              @click="applyOverwriteDialog"
+            >
+              {{ $gettext("Yes") }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-dialog>
   </section>
 </template>

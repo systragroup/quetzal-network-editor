@@ -1,6 +1,4 @@
 <script>
-import parameters from '../../static/params.json'
-
 const $gettext = s => s
 export default {
   name: 'Settings',
@@ -16,7 +14,6 @@ export default {
         hint: $gettext('Change project Name'),
         rules: ['required'],
       },
-      parameters: parameters,
       rules: {
         required: v => !!v || $gettext('Required'),
         largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
@@ -28,8 +25,7 @@ export default {
     }
   },
   computed: {
-  },
-  created () {
+    parameters () { return this.$store.getters['run/parameters'] },
   },
   mounted () {
     this.panel = [...Array(this.parameters.length).keys()].map((k, i) => i)
@@ -42,8 +38,17 @@ export default {
         this.panel = []
       }
     },
-    submit () {},
-    cancel () {},
+    change (e) {
+      // could put in store that the value changed.
+      // activate the Back to default button.
+      // when loaded, save or back to default is used, deactivate the button
+    },
+    reset () {
+      this.$store.dispatch('run/getParameters', {
+        model: this.$store.getters.model,
+        path: this.$store.getters.scenario + '/' + this.$store.getters.config.parameters_path,
+      })
+    },
   },
 }
 </script>
@@ -82,7 +87,7 @@ export default {
                 :persistent-hint="showHint"
                 :rules="item.rules.map((rule) => rules[rule])"
                 required
-                @wheel="()=>{}"
+                @change="change"
               />
             </v-expansion-panel-content>
           </v-expansion-panel>
@@ -93,17 +98,9 @@ export default {
       <v-btn
         color="grey"
         text
-        @click="cancel"
+        @click="reset"
       >
-        {{ $gettext("Cancel") }}
-      </v-btn>
-
-      <v-btn
-        color="success"
-        text
-        @click="submit"
-      >
-        {{ $gettext("Save") }}
+        {{ $gettext("back to default") }}
       </v-btn>
 
       <v-spacer />

@@ -51,6 +51,11 @@ export default {
     },
     loadProject () {
       this.$store.commit('setScenario', this.vmodelScen)
+      this.$store.dispatch('run/getParameters', {
+        model: this.model,
+        path: this.vmodelScen + '/' + this.$store.getters.config.parameters_path,
+      })
+
       this.$router.push({ name: 'Import', query: { s3Path: this.$store.getters.config } })
       this.menu = false
     },

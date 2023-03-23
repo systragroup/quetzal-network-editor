@@ -17,6 +17,7 @@ async function readJson (bucket, key) {
     return fileContent
   } catch (err) { return err }
 }
+
 async function listFiles (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
   const Content = await s3Client.listObjectsV2(params).promise()
@@ -120,4 +121,5 @@ export default {
   deleteScenario,
   createFolder,
   putObject,
+
 }
