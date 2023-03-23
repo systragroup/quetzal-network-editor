@@ -24,7 +24,7 @@ async function listFiles (bucket, prefix) {
   return Content.Contents.map(item => item.Key)
 }
 
-async function copyScenario (bucket, prefix, newName) {
+async function copyFolder (bucket, prefix, newName) {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   for (const file of response.Contents) {
@@ -41,7 +41,7 @@ async function copyScenario (bucket, prefix, newName) {
     })
   }
 }
-async function deleteScenario (bucket, prefix) {
+async function deleteFolder (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   const arr = []
@@ -117,8 +117,8 @@ export default {
   getScenario,
   readJson,
   listFiles,
-  copyScenario,
-  deleteScenario,
+  copyFolder,
+  deleteFolder,
   createFolder,
   putObject,
 
