@@ -18,8 +18,12 @@ export default {
     this.$store.dispatch('run/getSteps')
   },
   methods: {
-    run () {
-      this.$store.dispatch('run/startExecution')
+    async run () {
+      console.log('start')
+      this.$store.dispatch('exportToS3')
+      console.log('saved')
+      // this.$store.dispatch('run/startExecution')
+      console.log('run')
     },
     stopRun () {
       this.$store.dispatch('run/stopExecution')
@@ -69,7 +73,12 @@ export default {
             color="success"
             @click="run()"
           >
-            <v-icon small style="margin-right: 10px;">fa-solid fa-play</v-icon>
+            <v-icon
+              small
+              style="margin-right: 10px;"
+            >
+              fa-solid fa-play
+            </v-icon>
             {{ $gettext("Run Simulation") }}
           </v-btn>
           <v-btn
