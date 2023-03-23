@@ -107,7 +107,7 @@ export default {
         } else {
           try {
             // copy the parameters file from Base. this will create a new project .
-            await s3.copyFolder(this.model, 'base/' + this.$store.getters.config.parameters_path, this.input)
+            await s3.copyFolder(this.model, this.$store.getters.config.protected[0] + '/' + this.$store.getters.config.parameters_path, this.input)
             this.$store.dispatch('getScenario')
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
