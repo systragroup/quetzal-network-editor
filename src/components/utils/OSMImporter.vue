@@ -134,6 +134,7 @@ export default {
       const rnodes = await s3.readJson(this.bucketOSM, this.callID.concat('/nodes.geojson'))
       this.$store.commit('loadrNodes', rnodes)
       await s3.deleteFolder(this.bucketOSM, this.callID)
+      this.map.removeLayer('stroke')
       this.$router.push('/Home').catch(() => {})
     },
     applyOverwriteDialog () {
