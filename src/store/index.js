@@ -167,14 +167,21 @@ export const store = new Vuex.Store({
     },
   },
   actions: {
-    async exportToS3 ({ commit, state }) {
+    async exportToS3 ({ state, commit }) {
       // const res = await s3.getScenario(state.model)
-      console.log(state.user.config)
-      console.log(state.user.config.network_paths.write_links_path)
-      console.log(state.user.config.network_paths.write_rlinks_path)
-      const prefix = state.user.scenario + '/' + state.user.config.network_paths.write_links_path
-      const filesNames = await s3.listFiles(state.user.model, prefix)
-      console.log(filesNames)
+      commit('run/changeRunning', true)
+      const scen = state.user.scenario + '/'
+      const bucket = state.user.model
+      const paths = state.user.config.network_paths
+      // const res = ''
+      await s3.putObject(bucket, scen + paths.links, JSON.stringify(state.links.links))
+      // console.log(res)
+      await s3.putObject(bucket, scen + paths.nodes, JSON.stringify(state.links.nodes))
+      // console.log(res)
+      await s3.putObject(bucket, scen + paths.rlinks, JSON.stringify(state.rlinks.rlinks))
+      // console.log(res)
+      await s3.putObject(bucket, scen + paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      // console.log(res)
       // commit('setScenariosList', res)
     },
   },

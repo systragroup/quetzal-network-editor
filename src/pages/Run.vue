@@ -1,6 +1,7 @@
 <script>
 
 import ParamForm from '../components/ParamForm.vue'
+const $gettext = s => s
 
 export default {
   name: 'Run',
@@ -19,11 +20,17 @@ export default {
   },
   methods: {
     async run () {
-      console.log('start')
-      this.$store.dispatch('exportToS3')
-      console.log('saved')
-      // this.$store.dispatch('run/startExecution')
-      console.log('run')
+      this.$store.dispatch('exportToS3').then(
+        () => {
+          this.$store.commit('changeNotification',
+            { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
+          this.$store.dispatch('run/startExecution')
+        }).catch(
+        err => {
+          this.$store.commit('run/changeRunning', false)
+          console.error(err)
+          alert('error saving scenario')
+        })
     },
     stopRun () {
       this.$store.dispatch('run/stopExecution')
