@@ -5,6 +5,7 @@ import bboxPolygon from '@turf/bbox-polygon'
 import s3 from '@src/AWSClient'
 import { quetzalClient } from '@src/axiosClient.js'
 import { v4 as uuid } from 'uuid'
+import auth from '@src/auth.js'
 
 export default {
   name: 'OSMImporter',
@@ -45,6 +46,7 @@ export default {
       callID: uuid(),
       importStatus: null,
       bucketOSM: 'quenedi-osm',
+      isUserSignedIn: auth.auth.isUserSignedIn(),
     }
   },
   computed: {
@@ -150,6 +152,7 @@ export default {
     >
       <template v-slot:activator="{ on, attrs }">
         <v-btn
+          :disabled="!isUserSignedIn"
           :style="{margin:'15px'}"
           v-bind="attrs"
           :color="'normal'"
