@@ -62,6 +62,16 @@ async function createFolder (bucket, key) {
     }
   })
 }
+async function putObject (bucket, key, body = '') {
+  const params = {
+    Bucket: bucket,
+    Key: key,
+    Body: body,
+    ContentType: ' application/json',
+  }
+  const resp = await s3Client.putObject(params).promise()
+  return resp
+}
 
 async function getScenario (bucket) {
   // list all files in bucket
@@ -109,4 +119,5 @@ export default {
   copyScenario,
   deleteScenario,
   createFolder,
+  putObject,
 }

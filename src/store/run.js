@@ -26,6 +26,9 @@ export default {
       state.error = true
       state.executionArn = ''
     },
+    changeRunning (state, payload) {
+      state.running = payload
+    },
     succeedExecution (state) {
       state.running = false
       state.currentStep = state.steps.length + 1

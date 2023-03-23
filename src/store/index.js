@@ -8,6 +8,7 @@ import runModule from './run.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
+import s3 from '../AWSClient'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
@@ -163,6 +164,25 @@ export const store = new Vuex.Store({
           // see FileSaver.js
           saveAs(content, state.outputName + '.zip')
         })
+    },
+  },
+  actions: {
+    async exportToS3 ({ state, commit }) {
+      // const res = await s3.getScenario(state.model)
+      commit('run/changeRunning', true)
+      const scen = state.user.scenario + '/'
+      const bucket = state.user.model
+      const paths = state.user.config.network_paths
+      // const res = ''
+      await s3.putObject(bucket, scen + paths.links, JSON.stringify(state.links.links))
+      // console.log(res)
+      await s3.putObject(bucket, scen + paths.nodes, JSON.stringify(state.links.nodes))
+      // console.log(res)
+      await s3.putObject(bucket, scen + paths.rlinks, JSON.stringify(state.rlinks.rlinks))
+      // console.log(res)
+      await s3.putObject(bucket, scen + paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      // console.log(res)
+      // commit('setScenariosList', res)
     },
   },
   getters: {
