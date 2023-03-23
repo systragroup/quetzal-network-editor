@@ -1,4 +1,5 @@
 import { quetzalClient } from '@src/axiosClient.js'
+import s3 from '../AWSClient'
 
 export default {
   namespaced: true,
@@ -10,6 +11,7 @@ export default {
     currentStep: 0,
     error: false,
     synchronized: true,
+    parameters: [],
   },
   mutations: {
     setSteps (state, payload) {
@@ -38,8 +40,15 @@ export default {
       const stepNames = state.steps.map(a => a.name)
       state.currentStep = stepNames.indexOf(payload.name) + 1
     },
+    updateParameters (state, payload) {
+      state.parameters = payload
+    },
   },
   actions: {
+    async getParameters ({ state }, payload) {
+      const params = await s3.readJson(payload.model, payload.path)
+      state.parameters = params
+    },
     getSteps ({ state, commit }) {
       let data = { stateMachineArn: state.stateMachineArn }
       quetzalClient.client.post('/describe/model',
@@ -141,5 +150,6 @@ export default {
     executionArn: (state) => state.executionArn,
     error: (state) => state.error,
     synchronized: (state) => state.synchronized,
+    parameters: (state) => state.parameters,
   },
 }

@@ -51,6 +51,11 @@ export default {
     },
     loadProject () {
       this.$store.commit('setScenario', this.vmodelScen)
+      this.$store.dispatch('run/getParameters', {
+        model: this.model,
+        path: this.vmodelScen + '/' + this.$store.getters.config.parameters_path,
+      })
+
       this.$router.push({ name: 'Import', query: { s3Path: this.$store.getters.config } })
       this.menu = false
     },
@@ -69,7 +74,7 @@ export default {
     deleteScenario () {
       this.menu = false
       this.deleteDialog = false
-      s3.deleteScenario(this.model, this.scenarioToDelete).then(resp => {
+      s3.deleteFolder(this.model, this.scenarioToDelete).then(resp => {
         this.menu = false
         this.deleteDialog = false
         this.$store.dispatch('getScenario')
@@ -92,7 +97,7 @@ export default {
         this.errorMessage = 'project already exist'
       } else {
         if (this.selectedScenario) {
-          s3.copyScenario(this.model, this.selectedScenario, this.input).then(
+          s3.copyFolder(this.model, this.selectedScenario, this.input).then(
             () => {
               this.$store.dispatch('getScenario')
               this.$store.commit('changeNotification',
@@ -100,13 +105,13 @@ export default {
             },
           ).catch(err => { console.error(err); this.selectedScenario = null })
         } else {
-          s3.createFolder(this.model, this.input).then(
-            () => {
-              this.$store.dispatch('getScenario')
-              this.$store.commit('changeNotification',
-                { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
-            },
-          ).catch(err => { console.error(err); this.selectedScenario = null })
+          try {
+            // copy the parameters file from Base. this will create a new project .
+            await s3.copyFolder(this.model, this.$store.getters.config.protected[0] + '/' + this.$store.getters.config.parameters_path, this.input)
+            this.$store.dispatch('getScenario')
+            this.$store.commit('changeNotification',
+              { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
+          } catch (err) { console.error(err); this.selectedScenario = null }
         }
 
         this.closeCopy()
