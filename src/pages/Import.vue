@@ -87,12 +87,12 @@ export default {
             this.$store.getters.scenario + '/' + path.network_paths.rnodes)
           this.loadNetwork(links, nodes, 'road', 'DataBase')
         }
-        // then load other layers.
+        // then load results layers.
         filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths[0])
         const files = []
         for (const file of filesNames) {
           const content = await s3.readJson(this.$store.getters.model, file)
-          files.push(classFile(file, content))
+          files.push(classFile(file.split('/').slice(1).join('/'), content))
         }
         if (filesNames.length > 0) this.loadStaticLayer(files, 'Database output')
         this.loggedIn = true
