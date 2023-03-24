@@ -152,7 +152,7 @@ export default {
     visibleLinks: (state) => state.visibleLinks,
     linksHeader: (state) => state.linksHeader,
     selectedTrips: (state) => state.selectedTrips,
-    lineAttributes: (state) => state.lineAttributes,
+    lineAttributes: (state) => state.lineAttributes.sort(),
     selectedFilter: (state) => state.selectedFilter,
     selectedCategory: (state) => state.selectedCategory,
     displaySettings: (state) => state.displaySettings,
