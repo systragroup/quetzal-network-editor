@@ -1,6 +1,7 @@
 import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '../AWSClient'
 import { classFile } from '../components/utils/utils.js'
+const $gettext = s => s
 
 export default {
   namespaced: true,
@@ -36,6 +37,8 @@ export default {
       state.running = false
       state.currentStep = state.steps.length + 1
       state.executionArn = ''
+      this.commit('changeNotification',
+        { text: $gettext('simulation executed successfully!'), autoClose: false, color: 'success' })
     },
     updateCurrentStep (state, payload) {
       const stepNames = state.steps.map(a => a.name)

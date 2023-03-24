@@ -22,6 +22,7 @@ export default {
       scenarioToDelete: null,
       input: '',
       deleteDialog: false,
+      loading: false,
 
     }
   },
@@ -72,16 +73,13 @@ export default {
       this.menu = false
     },
     deleteScenario () {
-      this.menu = false
       this.deleteDialog = false
       s3.deleteFolder(this.model, this.scenarioToDelete).then(resp => {
-        this.menu = false
         this.deleteDialog = false
         this.$store.dispatch('getScenario')
         this.$store.commit('changeNotification',
           { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
       }).catch((err) => {
-        this.menu = false
         this.deleteDialog = false
         console.error(err)
         this.$store.commit('changeNotification',
@@ -96,25 +94,28 @@ export default {
       } else if (this.filterdScenarios.map(p => p.scenario).includes(this.input)) {
         this.errorMessage = 'project already exist'
       } else {
-        if (this.selectedScenario) {
-          s3.copyFolder(this.model, this.selectedScenario, this.input).then(
-            () => {
-              this.$store.dispatch('getScenario')
-              this.$store.commit('changeNotification',
-                { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
-            },
-          ).catch(err => { console.error(err); this.selectedScenario = null })
-        } else {
-          try {
+        try {
+          if (this.selectedScenario) {
+            // this is a copy
+            await s3.copyFolder(this.model, this.selectedScenario, this.input)
+            this.$store.commit('changeNotification',
+              { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
+          } else {
+            // this is a new project
             // copy the parameters file from Base. this will create a new project .
-            await s3.copyFolder(this.model, this.$store.getters.config.protected[0] + '/' + this.$store.getters.config.parameters_path, this.input)
-            this.$store.dispatch('getScenario')
+            const base = this.$store.getters.config.protected[0]
+            await s3.copyFolder(this.model, base + '/' + this.$store.getters.config.parameters_path, this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
-          } catch (err) { console.error(err); this.selectedScenario = null }
-        }
-
+          }
+        } catch (err) { console.error(err); this.selectedScenario = null }
         this.closeCopy()
+        this.loading = true
+        // wait 500ms to fetch the scenarios to make sure its available on the DB
+        setTimeout(() => {
+          this.$store.dispatch('getScenario').then(() => { this.loading = false })
+            .catch((err) => { console.error(err); this.loading = false })
+        }, 500)
       }
     },
 
@@ -131,8 +132,8 @@ export default {
 <template>
   <section v-if="loggedIn && modelsList.length>0">
     <v-menu
-
       v-model="menu"
+      :close-on-click="!showDialog && !deleteDialog && !copyDialog"
       :close-on-content-click="false"
 
       offset-y
@@ -194,6 +195,14 @@ export default {
                 {{ protectedScen.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
               </v-icon>
             </v-btn>
+          </v-list-item>
+          <v-list-item v-show="loading">
+            <v-spacer />
+            <v-progress-circular
+              color="primary"
+              indeterminate
+            />
+            <v-spacer />
           </v-list-item>
           <v-divider />
         </v-list-item-group>
