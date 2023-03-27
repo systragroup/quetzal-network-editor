@@ -79,7 +79,7 @@ export default {
 <template>
   <section
     :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
-    :style="{'width': showLeftPanel ? '300px' : '0px'}"
+    :style="{'width': showLeftPanel ? '350px' : '0px'}"
   >
     <div
       class="left-panel-toggle-btn elevation-4"

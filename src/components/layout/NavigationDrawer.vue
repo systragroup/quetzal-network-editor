@@ -9,7 +9,7 @@ export default {
       drawer: true,
       mini: true,
       menuItems: [],
-      version: 'V4.0',
+      version: 'V4.0.1',
     }
   },
   computed: {
@@ -94,12 +94,13 @@ export default {
               :icon="(runError || !runSychronized) ? 'fa-solid fa-exclamation' : ''"
             >
               <template v-slot:badge>
-                <v-progress-circular 
-                v-if="item.name==='Run' && (running)"
-                size="18"
-                width="4"
-                color="primary"
-                indeterminate />
+                <v-progress-circular
+                  v-if="item.name==='Run' && (running)"
+                  size="18"
+                  width="4"
+                  color="primary"
+                  indeterminate
+                />
               </template>
               <v-icon
                 small

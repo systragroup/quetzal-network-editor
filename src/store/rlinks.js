@@ -516,7 +516,7 @@ export default {
     roadSpeed: (state) => state.roadSpeed,
     rlinksHeader: (state) => state.rlinksHeader,
     rnodesHeader: (state) => state.rnodesHeader,
-    rlineAttributes: (state) => state.rlineAttributes,
+    rlineAttributes: (state) => state.rlineAttributes.sort(),
     selectedrGroup: (state) => state.selectedrGroup,
     selectedrFilter: (state) => state.selectedrFilter,
     filteredrCategory: (state) => state.filteredrCategory,

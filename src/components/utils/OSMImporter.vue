@@ -35,7 +35,8 @@ export default {
         'trunk_link',
         'secondary_link',
         'primary_link',
-        'tertiary_link'],
+        'tertiary_link',
+        'service'],
       defaultHighway: ['motorway',
         'motorway_link',
         'trunk',
@@ -134,6 +135,7 @@ export default {
       const rnodes = await s3.readJson(this.bucketOSM, this.callID.concat('/nodes.geojson'))
       this.$store.commit('loadrNodes', rnodes)
       await s3.deleteFolder(this.bucketOSM, this.callID)
+      this.map.removeLayer('stroke')
       this.$router.push('/Home').catch(() => {})
     },
     applyOverwriteDialog () {

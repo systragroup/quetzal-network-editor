@@ -771,7 +771,7 @@ export default {
       ? state.editorNodes.features.filter(
         (node) => node.properties.index === getters.lastNodeId)[0]
       : null,
-    lineAttributes: (state) => state.lineAttributes,
+    lineAttributes: (state) => state.lineAttributes.sort(),
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
     nodesHeader: (state) => state.nodesHeader,

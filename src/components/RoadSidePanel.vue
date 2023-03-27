@@ -70,6 +70,7 @@ export default {
     this.tripList = this.selectedrGoup
     this.selectedFilter = this.$store.getters.selectedrFilter
     this.vmodelSelectedFilter = this.selectedFilter
+    this.$store.commit('changeSelectedrFilter', this.selectedFilter)
 
     if (this.$store.getters.links.features.length === 0 &&
     !this.$store.getters.projectIsEmpty &&
@@ -101,7 +102,7 @@ export default {
       this.$emit('deleteButton', obj)
     },
     showAll () {
-      if (this.tripList === this.filteredCat) {
+      if (this.tripList.length === this.filteredCat.length) {
         this.tripList = []
       } else {
         this.tripList = this.filteredCat

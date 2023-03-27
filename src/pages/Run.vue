@@ -24,7 +24,7 @@ export default {
         () => {
           this.$store.commit('changeNotification',
             { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
-          this.$store.dispatch('run/startExecution')
+          this.$store.dispatch('run/startExecution', { scenario: this.$store.getters.scenario })
         }).catch(
         err => {
           this.$store.commit('run/changeRunning', false)
