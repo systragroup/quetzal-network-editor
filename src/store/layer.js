@@ -8,7 +8,6 @@ export default {
     mat: {},
     properties: [],
     type: null,
-    selectedProperty: '',
   }),
 
   mutations: {
@@ -18,7 +17,6 @@ export default {
       Object.keys(payload.mat).forEach(
         key => { state.mat[key + ' (OD)'] = payload.mat[key] })
       state.properties = Object.keys(state.mat)
-      state.selectedProperty = state.properties[0]
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
         // if init with nothing, do nothing.
         if (state.layer.features.length > 0) {
@@ -55,12 +53,16 @@ export default {
     },
 
     changeZone (state, payload) {
-      const index = payload.index
-      const row = state.mat[state.selectedProperty][index]
-      // apply new value to each zone. (zone_1 is selected, apply time to zone_1 to every zone)
-      // if there is no data, put null (ex: sparse matrix)
-      state.layer.features.forEach(
-        zone => zone.properties[state.selectedProperty] = row ? row[zone.properties.index] : null)
+      const selectedProperty = payload.selectedProperty
+
+      if (state.properties.includes(selectedProperty)) {
+        const index = payload.index
+        const row = state.mat[selectedProperty][index]
+        // apply new value to each zone. (zone_1 is selected, apply time to zone_1 to every zone)
+        // if there is no data, put null (ex: sparse matrix)
+        state.layer.features.forEach(
+          zone => zone.properties[selectedProperty] = row ? row[zone.properties.index] : null)
+      }
     },
 
   },
@@ -68,6 +70,5 @@ export default {
   getters: {
     layer: (state) => state.layer,
     type: (state) => state.type,
-    selectedProperty: (state) => state.selectedProperty,
   },
 }

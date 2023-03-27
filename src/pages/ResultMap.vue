@@ -112,8 +112,9 @@ export default {
         this.form = event.feature
         this.showDialog = true
       } else {
-        this.$store.commit('zones/changeZone', { index: event.feature.index })
-        this.$store.commit('results/updateLinks', this.$store.getters['zones/layer'])
+        const prop = this.displaySettings.selectedFeature
+        this.$store.commit(`${this.selectedLayer}/changeZone`, { index: event.feature.index, selectedProperty: prop })
+        this.$store.commit('results/updateLinks', this.$store.getters[`${this.selectedLayer}/layer`])
         this.$store.commit('results/refreshVisibleLinks')
       }
     },
