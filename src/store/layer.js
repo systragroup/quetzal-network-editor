@@ -63,6 +63,7 @@ export default {
         state.layer.features.forEach(
           zone => zone.properties[selectedProperty] = row ? row[zone.properties.index] : null)
       }
+      console.log(state.layer)
     },
 
   },

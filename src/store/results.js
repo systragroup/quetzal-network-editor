@@ -64,8 +64,8 @@ export default {
 
     updateLinks (state, payload) {
       state.links = payload
-      this.commit('results/updateSelectedFeature')
       this.commit('results/refreshVisibleLinks')
+      this.commit('results/updateSelectedFeature')
     },
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
@@ -96,8 +96,9 @@ export default {
       state.displaySettings.opacity = payload.opacity
       state.displaySettings.showNaN = payload.showNaN
       state.displaySettings.reverseColor = payload.reverseColor
-      this.commit('results/updateSelectedFeature')
       this.commit('results/refreshVisibleLinks')
+
+      this.commit('results/updateSelectedFeature')
     },
 
     updateSelectedFeature (state) {
