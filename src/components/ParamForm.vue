@@ -76,19 +76,33 @@ export default {
               {{ group.category }}
             </v-expansion-panel-header>
             <v-expansion-panel-content style="background-color:var(--v-background-lighten4) !important;">
-              <v-text-field
-                v-for="(item, key2) in group.params"
-                :key="key2"
-                v-model="item.value"
-                :type="item.type"
-                :label="$gettext(item.text)"
-                :suffix="item.units"
-                :hint="showHint? $gettext(item.hint): ''"
-                :persistent-hint="showHint"
-                :rules="item.rules.map((rule) => rules[rule])"
-                required
-                @change="change"
-              />
+              <li v-for="(item, key2) in group.params" :key="key2">
+                <v-text-field   
+                  v-if="typeof item.items === 'undefined'"
+                  v-model="item.value"
+                  :type="item.type"
+                  :label="$gettext(item.text)"
+                  :suffix="item.units"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                  :rules="item.rules.map((rule) => rules[rule])"
+                  required
+                  @wheel="()=>{}"
+                />
+                <v-select 
+                  v-else
+                  v-model="item.value"
+                  :type="item.type"
+                  :items="item.items"
+                  :label="$gettext(item.text)"
+                  :suffix="item.units"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                  :rules="item.rules.map((rule) => rules[rule])"
+                  required
+                  @wheel="()=>{}"
+                />                
+              </li>
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
