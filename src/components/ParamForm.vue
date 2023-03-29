@@ -90,7 +90,7 @@ export default {
                   @wheel="()=>{}"
                 />
                 <v-select 
-                  v-if="typeof item.items !== 'undefined'"
+                  v-else
                   v-model="item.value"
                   :type="item.type"
                   :items="item.items"
