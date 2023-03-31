@@ -126,7 +126,7 @@ export default {
               </v-icon>
             </v-badge>
             <v-badge
-              v-if="item.name==='Save' && saving"
+              v-else-if="item.name==='Save' && saving"
               :offset-x=" '12px' "
               :offset-y=" '10px' "
               :color=" ''"
