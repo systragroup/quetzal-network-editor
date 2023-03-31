@@ -167,9 +167,12 @@ export const store = new Vuex.Store({
     },
   },
   actions: {
-    async exportToS3 ({ state, commit }) {
+    async exportToS3 ({ state, commit }, payload) {
       // const res = await s3.getScenario(state.model)
-      commit('run/changeRunning', true)
+      if (payload !== 'saveOnly') {
+        commit('run/changeRunning', true)
+      }
+
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
       const networkPaths = state.user.config.network_paths

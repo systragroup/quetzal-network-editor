@@ -10,6 +10,7 @@ export default {
       mini: true,
       menuItems: [],
       version: 'V4.0.2',
+      saving: false,
     }
   },
   computed: {
@@ -19,6 +20,11 @@ export default {
   },
   created () {
     this.menuItems = Router.options.routes.concat({
+      name: 'Save',
+      icon: 'fa-solid fa-save',
+      title: this.$gettext('Save'),
+    })
+    this.menuItems = this.menuItems.concat({
       name: 'Export',
       icon: 'fa-solid fa-download',
       title: this.$gettext('Export'),
@@ -35,17 +41,26 @@ export default {
     handleClickMenuItem (route) {
       switch (route.name) {
         case 'Export':
-          this.saveFile()
+          this.$store.commit('exportFiles', 'all')
+          break
+        case 'Save':
+          this.saving = true
+          this.$store.dispatch('exportToS3', 'saveOnly').then(
+            () => {
+              this.saving = false
+              this.$store.commit('changeNotification',
+                { text: this.$gettext('Scenario saved'), autoClose: true, color: 'success' })
+            }).catch(
+            err => {
+              this.saving = false
+              alert('error saving scenario', err)
+            })
           break
         default :
           this.$router.push(route.path).catch(() => {})
           this.mini = true
           break
       }
-    },
-
-    saveFile () {
-      this.$store.commit('exportFiles', 'all')
     },
 
   },
@@ -80,8 +95,9 @@ export default {
           v-for="( item,key ) in getDisplayedRoutes()"
           :key="key"
           class="drawer-list-item"
-          :class="[ $route.name === item.name ? 'drawer-list-item-selected' : '']"
-          :style="{marginTop: item.name === 'Export' ? 'auto' : item.name ==='ResultMap'? '5rem' : '0' }"
+          :disabled="['Save'].includes(item.name) && !$store.getters.scenario"
+          :class="[ $route.name !== item.name ? 'drawer-list-item-selected' : '']"
+          :style="{marginTop: item.name === 'Save' ? 'auto' : item.name ==='ResultMap'? '5rem' : '0' }"
           @click.native.stop
           @click="handleClickMenuItem(item)"
         >
@@ -96,6 +112,27 @@ export default {
               <template v-slot:badge>
                 <v-progress-circular
                   v-if="item.name==='Run' && (running)"
+                  size="18"
+                  width="4"
+                  color="primary"
+                  indeterminate
+                />
+              </template>
+              <v-icon
+                small
+                :title="$gettext(item.title)"
+              >
+                {{ item.icon }}
+              </v-icon>
+            </v-badge>
+            <v-badge
+              v-if="item.name==='Save' && saving"
+              :offset-x=" '12px' "
+              :offset-y=" '10px' "
+              :color=" ''"
+            >
+              <template v-slot:badge>
+                <v-progress-circular
                   size="18"
                   width="4"
                   color="primary"
