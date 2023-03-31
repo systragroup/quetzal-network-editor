@@ -36,6 +36,7 @@ async function extractZip (file) {
   const zip = await ZIP.loadAsync(file)
   let filesNames = Object.keys(zip.files)
   filesNames = filesNames.filter(name => !name.match(/^__MACOSX\//))
+  filesNames = filesNames.filter(name => !name.endsWith('/'))
   // process ZIP file content here
   const result = { zipName: file.name, files: [] }
   for (let i = 0; i < filesNames.length; i++) {
