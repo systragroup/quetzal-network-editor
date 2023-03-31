@@ -74,6 +74,7 @@ export const store = new Vuex.Store({
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
     },
+
     loadLayer (state, payload) {
       const moduleName = payload.fileName // todo: check if name exist Object.keys(this._modules.root._children)
       if (!Object.keys(this._modules.root._children).includes(moduleName)) {

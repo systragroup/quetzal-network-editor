@@ -64,6 +64,7 @@ export default {
       if (!this.projectIsEmpty) {
         this.$store.commit('initNetworks')
         this.$store.commit('unloadLayers')
+        this.$store.commit('run/cleanRun')
         this.message = []
       }
       this.$store.commit('changeLoading', true)
@@ -273,6 +274,7 @@ export default {
       this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
       this.$store.commit('setScenario', '')
+      this.$store.commit('run/cleanRun')
 
       this.$store.commit('changeNotification',
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })

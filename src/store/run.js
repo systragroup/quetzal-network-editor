@@ -16,6 +16,15 @@ export default {
     parameters: [],
   },
   mutations: {
+    cleanRun (state) {
+      state.steps = [{ name: 'Loading Steps...' }]
+      state.running = false
+      state.executionArn = ''
+      state.currentStep = 0
+      state.error = false
+      state.synchronized = true
+      state.parameters = []
+    },
     setSteps (state, payload) {
       state.steps = payload
     },
