@@ -44,7 +44,7 @@ export default {
       const stepNames = state.steps.map(a => a.name)
       state.currentStep = stepNames.indexOf(payload.name) + 1
     },
-    updateParameters (state, payload) {
+    getLocalParameters (state, payload) {
       state.parameters = payload
     },
   },

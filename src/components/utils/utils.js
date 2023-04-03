@@ -62,7 +62,11 @@ function classFile2 (name, content, inputFolder = 'inputs/', outputFolder = 'out
       }
     }
   } else {
-    return { data: content, type: 'json', fileName: name }
+    if (name.slice(-11) === 'params.json') {
+      return { data: content, type: 'params.json', fileName: name }
+    } else {
+      return { data: content, type: 'json', fileName: name }
+    }
   }
 }
 
