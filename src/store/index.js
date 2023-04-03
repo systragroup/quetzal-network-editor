@@ -110,6 +110,7 @@ export const store = new Vuex.Store({
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
       const inputs = zip.folder('inputs') // create a folder for the files.
+      const outputs = zip.folder('outputs') // create a folder for the files.
       let links = ''
       let nodes = ''
       let rlinks = ''
@@ -159,6 +160,20 @@ export const store = new Vuex.Store({
         // use folder.file if you want to add it to a folder
         inputs.file('road_nodes.geojson', blob)
       }
+      const staticLayers = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
+      staticLayers.forEach(layer => {
+        const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
+        const name = layer.split('/').slice(-1)[0] + '.geojson'
+        // const name = layer.replace('/', '_') + '.geojson'
+        outputs.file(name, blob)
+        console.log(this.getters[`${layer}/mat`])
+        if (this.getters[`${layer}/mat`]) {
+          const blob = new Blob([JSON.stringify(this.getters[`${layer}/mat`])], { type: 'application/json' })
+          const name = layer.split('/').slice(-1)[0] + '.json'
+          outputs.file(name, blob)
+        }
+      })
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
