@@ -151,6 +151,10 @@ export const store = new Vuex.Store({
         // use folder.file if you want to add it to a folder
         inputs.file('road_nodes.geojson', blob)
       }
+      if (this.getters['run/parameters'].length > 0) {
+        const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
+        inputs.file('params.json', blob)
+      }
       const staticLayers = Object.keys(this._modules.root._children).filter(
         x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
       staticLayers.forEach(layer => {
