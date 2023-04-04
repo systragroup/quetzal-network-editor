@@ -76,12 +76,19 @@ async function extractZip (file) {
   let filesNames = Object.keys(zip.files)
   filesNames = filesNames.filter(name => !name.match(/^__MACOSX\//))
   filesNames = filesNames.filter(name => !name.endsWith('/'))
+
   // process ZIP file content here
   const result = { zipName: file.name, files: [] }
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
     const content = JSON.parse(str)
-    result.files.push(classFile2(filesNames[i], content))
+    if (filesNames[0].includes('inputs/') || filesNames[0].includes('outputs/')) {
+      // import with new fileStructure (inputs, outputs folder in zip)
+      result.files.push(classFile2(filesNames[i], content))
+    } else {
+      // legacy import, all in root.
+      result.files.push(classFile(filesNames[i], content))
+    }
   }
   return result
 }
