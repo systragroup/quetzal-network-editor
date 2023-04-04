@@ -111,7 +111,8 @@ export default {
       if (event.action === 'featureClick') {
         this.form = event.feature
         this.showDialog = true
-      } else {
+        // OD click.
+      } else if (this.$store.getters[`${this.selectedLayer}/hasOD`]) {
         const prop = this.displaySettings.selectedFeature
         this.$store.commit(`${this.selectedLayer}/changeZone`, { index: event.feature.index, selectedProperty: prop })
         this.$store.commit('results/updateLinks', this.$store.getters[`${this.selectedLayer}/layer`])

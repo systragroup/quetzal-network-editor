@@ -78,18 +78,28 @@ export default {
         context.commit('unloadLayers', null, { root: true })
         files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
           file => {
+            const data = file.data
+            const fileName = file.fileName.slice(0, -8)
+            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
+            matData = matData || {}
             context.commit('loadLayer', {
-              fileName: file.fileName.slice(0, -8),
+              fileName: fileName,
               type: 'links',
-              links: file.data,
+              zones: data,
+              data: matData,
             }, { root: true })
           })
         files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
           file => {
+            const data = file.data
+            const fileName = file.fileName.slice(0, -8)
+            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
+            matData = matData || {}
             context.commit('loadLayer', {
-              fileName: file.fileName.slice(0, -8),
+              fileName: fileName,
               type: 'nodes',
-              nodes: file.data,
+              zones: data,
+              data: matData,
             }, { root: true })
           })
         // for zones. find the corresponding json file (mat) or nothing.
@@ -103,7 +113,7 @@ export default {
               fileName: fileName,
               type: 'zones',
               zones: zoneData,
-              mat: matData,
+              data: matData,
             }, { root: true })
           })
       }
