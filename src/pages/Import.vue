@@ -164,8 +164,11 @@ export default {
           matData = matData || {}
           this.$store.commit('loadLayer', { fileName: fileName, type: 'zones', zones: zoneData, mat: matData })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matData) this.message.push(file.fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matData) this.message.push(file.fileName.slice(0, -8) + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
+      // load parameters if provided in inputs.
+      const params = files.filter(file => file.type === 'params.json')
+      if (params.length > 0) this.$store.commit('run/getLocalParameters', params[0].data)
     },
 
     error (message) {

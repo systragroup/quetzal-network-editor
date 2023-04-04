@@ -110,7 +110,8 @@ export const store = new Vuex.Store({
 
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
-      // const folder = zip.folder('output') // create a folder for the files.
+      const inputs = zip.folder('inputs') // create a folder for the files.
+      const outputs = zip.folder('outputs') // create a folder for the files.
       let links = ''
       let nodes = ''
       let rlinks = ''
@@ -144,22 +145,36 @@ export const store = new Vuex.Store({
         // eslint-disable-next-line no-var
         var blob = new Blob([links], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('links.geojson', blob)
+        inputs.file('links.geojson', blob)
         // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([nodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('nodes.geojson', blob)
+        inputs.file('nodes.geojson', blob)
       }
       if (JSON.parse(rlinks).features.length > 0) {
       // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([rlinks], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('road_links.geojson', blob)
+        inputs.file('road_links.geojson', blob)
         // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([rnodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('road_nodes.geojson', blob)
+        inputs.file('road_nodes.geojson', blob)
       }
+      const staticLayers = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
+      staticLayers.forEach(layer => {
+        const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
+        const name = layer.split('/').slice(-1)[0] + '.geojson'
+        // const name = layer.replace('/', '_') + '.geojson'
+        outputs.file(name, blob)
+        console.log(this.getters[`${layer}/mat`])
+        if (this.getters[`${layer}/mat`]) {
+          const blob = new Blob([JSON.stringify(this.getters[`${layer}/mat`])], { type: 'application/json' })
+          const name = layer.split('/').slice(-1)[0] + '.json'
+          outputs.file(name, blob)
+        }
+      })
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js

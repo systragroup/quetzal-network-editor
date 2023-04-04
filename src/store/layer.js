@@ -71,5 +71,16 @@ export default {
   getters: {
     layer: (state) => state.layer,
     type: (state) => state.type,
+    mat: (state) => {
+      // remove OD in matrix names.
+      // return null if there is no od.
+      const keys = Object.keys(state.mat)
+      if (keys.length > 0) {
+        const res = {}
+        keys.forEach(
+          key => { res[key.slice(0, -5)] = state.mat[key] })
+        return res
+      } else return null
+    },
   },
 }
