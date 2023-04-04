@@ -53,7 +53,6 @@ export default {
   },
   beforeDestroy () {
     // remove arrow layer first as it depend on rlink layer
-    // console.log(this.map)
     if (this.map.getLayer('arrow')) {
       this.map.removeLayer('arrow')
     }
@@ -174,7 +173,7 @@ export default {
           'line-offset': ['*',0.5,['to-number', ['get', 'display_width']]],
           'line-opacity':opacity/100,
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0],
-          'line-width':['to-number', ['get', 'display_width']],
+          'line-width':['case', ['has', 'display_width'], ['get', 'display_width'], 4],
 
         },
         layout: {
@@ -185,7 +184,8 @@ export default {
       }"
       @mouseenter="enterLink"
       @mouseleave="leaveLink"
-      @click="selectClick"
+      @click="zoneClick"
+      @contextmenu="selectClick"
     />
     <MglGeojsonLayer
       v-if="layerType == 'nodes'"
@@ -203,7 +203,8 @@ export default {
         minzoom: minZoom.links,
         paint: {
           'circle-color': ['case', ['has', 'display_color'],['get', 'display_color'], '#B5E0D6'],
-          'circle-radius':['to-number', ['get', 'display_width']],
+
+          'circle-radius':['case', ['has', 'display_width'], ['get', 'display_width'], 3],
           'circle-opacity':opacity/100,
         },
         layout: {
@@ -212,7 +213,8 @@ export default {
       }"
       @mouseenter="enterLink"
       @mouseleave="leaveLink"
-      @click="selectClick"
+      @click="zoneClick"
+      @contextmenu="selectClick"
     />
 
     <MglImageLayer

@@ -11,9 +11,9 @@ export default {
   }),
 
   mutations: {
-    loadZones (state, payload) {
-      state.type = 'zones'
-      state.layer = structuredClone(payload.zones)
+    createLayer (state, payload) {
+      state.type = payload.type
+      state.layer = structuredClone(payload.data)
       Object.keys(payload.mat).forEach(
         key => { state.mat[key + ' (OD)'] = payload.mat[key] })
       state.properties = Object.keys(state.mat)
@@ -23,7 +23,6 @@ export default {
         // init the property with the first zone index
           const initIndex = state.layer.features[0].properties.index
           // for each properties in matrix, init the zones to the fist value.
-
           state.properties.forEach(
             prop =>
               state.layer.features.forEach(
@@ -34,15 +33,15 @@ export default {
     },
 
     loadLinks (state, payload) {
-      state.layer = structuredClone(payload.links)
       state.type = 'links'
+      state.layer = structuredClone(payload.data)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
         state.layer.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
     loadNodes (state, payload) {
-      state.layer = structuredClone(payload.nodes)
+      state.layer = structuredClone(payload.data)
       state.type = 'nodes'
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
         state.layer.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
@@ -63,7 +62,6 @@ export default {
         state.layer.features.forEach(
           zone => zone.properties[selectedProperty] = row ? row[zone.properties.index] : null)
       }
-      console.log(state.layer)
     },
 
   },
@@ -71,6 +69,7 @@ export default {
   getters: {
     layer: (state) => state.layer,
     type: (state) => state.type,
+    hasOD: (state) => state.properties.length > 0,
     mat: (state) => {
       // remove OD in matrix names.
       // return null if there is no od.

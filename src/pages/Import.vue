@@ -147,24 +147,31 @@ export default {
       // load links and nodes geojson as static layers.
       files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
         file => {
-          this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'links', links: file.data })
+          const fileName = file.fileName.slice(0, -8)
+          let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
+          matData = matData || {}
+          this.$store.commit('loadLayer', { fileName: fileName, type: 'links', data: file.data, mat: matData })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matData) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
       files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
         file => {
-          this.$store.commit('loadLayer', { fileName: file.fileName.slice(0, -8), type: 'nodes', nodes: file.data })
+          const fileName = file.fileName.slice(0, -8)
+          let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
+          matData = matData || {}
+          this.$store.commit('loadLayer', { fileName: fileName, type: 'nodes', data: file.data, mat: matData })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matData) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
       // for zones. find the corresponding json file (mat) or nothing.
       files.filter(file => (file.type === 'zones')).forEach(
         file => {
-          const zoneData = file.data
           const fileName = file.fileName.slice(0, -8)
           let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
           matData = matData || {}
-          this.$store.commit('loadLayer', { fileName: fileName, type: 'zones', zones: zoneData, mat: matData })
+          this.$store.commit('loadLayer', { fileName: fileName, type: 'zones', data: file.data, mat: matData })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matData) this.message.push(file.fileName.slice(0, -8) + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matData) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
       // load parameters if provided in inputs.
       const params = files.filter(file => file.type === 'params.json')
@@ -249,13 +256,13 @@ export default {
         links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
           .catch(() => { this.error($gettext('An error occur fetching example on github')) })
         if (!links) return
-        this.$store.commit('loadLayer', { fileName: 'loaded_links', type: 'links', links: links })
+        this.$store.commit('loadLayer', { fileName: 'loaded_links', type: 'links', data: links, mat: {} })
 
         nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
           .catch(() => { this.error($gettext('An error occur fetching example on github')) })
         if (!nodes) return
 
-        this.$store.commit('loadLayer', { fileName: 'loaded_nodes', type: 'nodes', nodes: nodes })
+        this.$store.commit('loadLayer', { fileName: 'loaded_nodes', type: 'nodes', data: nodes, mat: {} })
       }
       if (filesToLoads.includes('zones')) {
         links = await fetch(url + 'zones.geojson').then(res => res.json())
@@ -265,7 +272,7 @@ export default {
           .catch(() => { this.error($gettext('An error occur fetching example on github')) })
         if (!nodes) return
 
-        this.$store.commit('loadLayer', { fileName: 'zones', type: 'zones', zones: links, mat: nodes })
+        this.$store.commit('loadLayer', { fileName: 'zones', type: 'zones', data: links, mat: nodes })
       }
       // this is zones and mat. reuse var to save memory
 
