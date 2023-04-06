@@ -59,8 +59,13 @@ export default {
   },
   actions: {
     async getParameters ({ state }, payload) {
-      const params = await s3.readJson(payload.model, payload.path)
-      state.parameters = params
+      try {
+        const params = await s3.readJson(payload.model, payload.path)
+        state.parameters = params
+      } catch (err) {
+        console.error(err)
+        state.parameters = []
+      }
     },
     async getOutputs (context) {
       const model = context.rootState.user.model
@@ -82,6 +87,11 @@ export default {
             const fileName = file.fileName.slice(0, -8)
             let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
             matData = matData || {}
+            const matDataExist = Object.keys(matData).length > 0
+            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+              this.error($gettext(fileName + ' there is no index. Import aborted'))
+              return
+            }
             context.commit('loadLayer', {
               fileName: fileName,
               type: 'links',
@@ -95,6 +105,11 @@ export default {
             const fileName = file.fileName.slice(0, -8)
             let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
             matData = matData || {}
+            const matDataExist = Object.keys(matData).length > 0
+            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+              this.error($gettext(fileName + ' there is no index. Import aborted'))
+              return
+            }
             context.commit('loadLayer', {
               fileName: fileName,
               type: 'nodes',
@@ -109,6 +124,11 @@ export default {
             const fileName = file.fileName.slice(0, -8)
             let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
             matData = matData || {}
+            const matDataExist = Object.keys(matData).length > 0
+            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+              this.error($gettext(fileName + ' there is no index. Import aborted'))
+              return
+            }
             context.commit('loadLayer', {
               fileName: fileName,
               type: 'zones',
