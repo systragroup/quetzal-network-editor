@@ -15,8 +15,9 @@ export default {
     return {
       menu: false,
       showDialog: false,
-      vmodelScen: '',
+      modelScen: '',
       localModel: '',
+      localScen: '',
       errorMessage: '',
       copyDialog: false,
       selectedScenario: null,
@@ -47,11 +48,14 @@ export default {
     },
   },
   mounted () {
+    this.localModel = this.modelsList[0]
   },
 
   methods: {
     selectScenario (val) {
-      if (val) {
+      this.modelScen = val.model + val.scenario
+      this.localScen = val.scenario
+      if (val.scenario) {
         if (this.projectIsEmpty) {
           this.loadProject()
         } else {
@@ -61,11 +65,11 @@ export default {
     },
     async loadProject () {
       this.$store.commit('setModel', this.localModel)
-      this.$store.commit('setScenario', this.vmodelScen)
+      this.$store.commit('setScenario', this.localScen)
       await this.$store.dispatch('getConfig')
       await this.$store.dispatch('run/getParameters', {
         model: this.localModel,
-        path: this.vmodelScen + '/' + this.$store.getters.config.parameters_path,
+        path: this.localScen + '/' + this.$store.getters.config.parameters_path,
       })
 
       this.$router.push({ name: 'Import', query: { s3Path: this.$store.getters.config } })
@@ -79,7 +83,8 @@ export default {
     },
     cancelDialog () {
       // reset vmodel back to loaded scenario
-      this.vmodelScen = this.scenario
+      this.modelScen = this.model + this.scenario
+      this.localScen = this.scenario
       this.showDialog = false
       this.menu = false
     },
@@ -170,17 +175,14 @@ export default {
             {{ tab }}
           </v-tab>
         </v-tabs>
-        <v-list-item-group
-          v-model="vmodelScen"
-          color="primary"
-          :mandatory="vmodelScen? true:false"
-          @change="selectScenario"
-        >
+        <v-list-item-group>
           <v-list-item
             v-for="scen in scenariosList"
             :key="scen.model + scen.scenario"
-            :value="scen.scenario"
+            :value="scen.model + scen.scenario"
+            :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
             two-line
+            @click="selectScenario(scen)"
           >
             <v-list-item-content>
               <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
@@ -200,7 +202,7 @@ export default {
             </v-btn>
             <v-btn
               icon
-              :disabled="(scen.scenario===vmodelScen) || (localConfig.protected.includes(scen.scenario))"
+              :disabled="(scen.model+scen.scenario===modelScen) || (localConfig.protected.includes(scen.scenario))"
               class="ma-1"
               @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
             >
@@ -350,5 +352,10 @@ export default {
   font-size: 1.2em;
   padding-left: 1.2rem;
   color:var(--v-secondarydark-base);
+}
+.is-active{
+  opacity:1;
+  background-color:var(--v-primary-base);
+
 }
 </style>
