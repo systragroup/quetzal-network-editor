@@ -24,9 +24,11 @@ auth.userhandler = {
     // console.log('On Success result', result)
     const idToken = result.getIdToken().jwtToken
     const sessionIdInfo = jwtDecode(idToken)
+    // TODO : trouver comment avoir une liste des bucket!!
+    const bucketList = (sessionIdInfo['cognito:groups'][0] === 'admin') ? ['quetzal-paris', 'quetzal-toronto'] : ['quetzal-paris']
     store.commit('setIdToken', idToken)
     store.commit('setAccessToken', result.accessToken.jwtToken)
-    store.commit('setCognitoGroups', sessionIdInfo['cognito:groups'])
+    store.commit('setBucketList', bucketList)
     store.commit('setCognitoInfo', sessionIdInfo)
     store.commit('setLoggedIn', true)
   },

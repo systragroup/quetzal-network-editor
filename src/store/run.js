@@ -59,8 +59,13 @@ export default {
   },
   actions: {
     async getParameters ({ state }, payload) {
-      const params = await s3.readJson(payload.model, payload.path)
-      state.parameters = params
+      try {
+        const params = await s3.readJson(payload.model, payload.path)
+        state.parameters = params
+      } catch (err) {
+        console.error(err)
+        state.parameters = []
+      }
     },
     async getOutputs (context) {
       const model = context.rootState.user.model

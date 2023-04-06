@@ -3,7 +3,7 @@ export default {
   namespaced: false,
   state: {
     cognitoInfo: {},
-    cognitoGroups: [],
+    bucketList: [],
     accesToken: '',
     idToken: '',
     loggedIn: false,
@@ -25,8 +25,8 @@ export default {
     setCognitoInfo (state, payload) {
       state.cognitoInfo = payload
     },
-    setCognitoGroups (state, payload) {
-      state.cognitoGroups = payload
+    setBucketList (state, payload) {
+      state.bucketList = payload
     },
     setAccessToken (state, payload) {
       state.accesToken = payload
@@ -49,10 +49,9 @@ export default {
   },
 
   actions: {
-    async getScenario ({ commit, state, dispatch }) {
-      const res = await s3.getScenario(state.model)
+    async getScenario ({ commit, state, dispatch }, payload) {
+      const res = await s3.getScenario(payload.model)
       commit('setScenariosList', res)
-      dispatch('getConfig')
     },
     async getConfig ({ commit, state }) {
       const resp = await s3.readJson(state.model, 'quenedi.config.json')
@@ -64,7 +63,7 @@ export default {
   getters: {
     loggedIn: (state) => state.loggedIn,
     cognitoInfo: (state) => state.cognitoInfo,
-    cognitoGroups: (state) => state.cognitoGroups ? state.cognitoGroups : [],
+    bucketList: (state) => state.bucketList ? state.bucketList : [],
     accesToken: (state) => state.accesToken,
     idToken: (state) => state.idToken,
     scenariosList: (state) => state.scenariosList,

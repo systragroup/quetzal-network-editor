@@ -188,11 +188,9 @@ export default {
             return
           }
           this.$store.commit('loadLayer', { fileName: fileName, type: 'zones', data: file.data, mat: matData })
-          console.log('loaded')
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
           if (matDataExist) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
-      console.log('end')
       // load parameters if provided in inputs.
       const params = files.filter(file => file.type === 'params.json')
       if (params.length > 0) this.$store.commit('run/getLocalParameters', params[0].data)
@@ -303,6 +301,7 @@ export default {
     newProject () {
       this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
+      this.$store.commit('setModel', '')
       this.$store.commit('setScenario', '')
       this.$store.commit('run/cleanRun')
 
