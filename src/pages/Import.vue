@@ -150,29 +150,49 @@ export default {
           const fileName = file.fileName.slice(0, -8)
           let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
           matData = matData || {}
+          const matDataExist = Object.keys(matData).length > 0
+          if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+            this.error($gettext(fileName + ' there is no index. Import aborted'))
+            return
+          }
+
           this.$store.commit('loadLayer', { fileName: fileName, type: 'links', data: file.data, mat: matData })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matData) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matDataExist) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
+
       files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
         file => {
           const fileName = file.fileName.slice(0, -8)
           let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
           matData = matData || {}
+          const matDataExist = Object.keys(matData).length > 0
+          if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+            this.error($gettext(fileName + ' there is no index. Import aborted'))
+            return
+          }
           this.$store.commit('loadLayer', { fileName: fileName, type: 'nodes', data: file.data, mat: matData })
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matData) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matDataExist) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
+
       // for zones. find the corresponding json file (mat) or nothing.
       files.filter(file => (file.type === 'zones')).forEach(
         file => {
           const fileName = file.fileName.slice(0, -8)
           let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
           matData = matData || {}
+          const matDataExist = Object.keys(matData).length > 0
+          if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+            this.error($gettext(fileName + ' there is no index. Import aborted'))
+            return
+          }
           this.$store.commit('loadLayer', { fileName: fileName, type: 'zones', data: file.data, mat: matData })
+          console.log('loaded')
           this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matData) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
+          if (matDataExist) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
         })
+      console.log('end')
       // load parameters if provided in inputs.
       const params = files.filter(file => file.type === 'params.json')
       if (params.length > 0) this.$store.commit('run/getLocalParameters', params[0].data)
