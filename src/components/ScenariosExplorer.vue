@@ -175,55 +175,53 @@ export default {
             {{ tab }}
           </v-tab>
         </v-tabs>
-        <v-list-item-group>
-          <v-list-item
-            v-for="scen in scenariosList"
-            :key="scen.model + scen.scenario"
-            :value="scen.model + scen.scenario"
-            :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
-            two-line
-            @click="selectScenario(scen)"
+        <v-list-item
+          v-for="scen in scenariosList"
+          :key="scen.model + scen.scenario"
+          :value="scen.model + scen.scenario"
+          :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
+          two-line
+          @click="selectScenario(scen)"
+        >
+          <v-list-item-content>
+            <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
+            <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
+          </v-list-item-content>
+          <v-btn
+            icon
+            class="ma-1"
+            @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
           >
-            <v-list-item-content>
-              <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
-              <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
-            </v-list-item-content>
-            <v-btn
-              icon
-              class="ma-1"
-              @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
+            <v-icon
+              small
+              color="regular"
             >
-              <v-icon
-                small
-                color="regular"
-              >
-                fas fa-copy
-              </v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              :disabled="(scen.model+scen.scenario===modelScen) || (localConfig.protected.includes(scen.scenario))"
-              class="ma-1"
-              @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+              fas fa-copy
+            </v-icon>
+          </v-btn>
+          <v-btn
+            icon
+            :disabled="(scen.model+scen.scenario===modelScen) || (localConfig.protected.includes(scen.scenario))"
+            class="ma-1"
+            @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+          >
+            <v-icon
+              small
+              color="grey"
             >
-              <v-icon
-                small
-                color="grey"
-              >
-                {{ localConfig.protected.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
-              </v-icon>
-            </v-btn>
-          </v-list-item>
-          <v-list-item v-show="loading">
-            <v-spacer />
-            <v-progress-circular
-              color="primary"
-              indeterminate
-            />
-            <v-spacer />
-          </v-list-item>
-          <v-divider />
-        </v-list-item-group>
+              {{ localConfig.protected.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
+            </v-icon>
+          </v-btn>
+        </v-list-item>
+        <v-list-item v-show="loading">
+          <v-spacer />
+          <v-progress-circular
+            color="primary"
+            indeterminate
+          />
+          <v-spacer />
+        </v-list-item>
+        <v-divider />
         <v-list-item>
           <v-btn
             text
