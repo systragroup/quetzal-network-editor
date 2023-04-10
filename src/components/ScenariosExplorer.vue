@@ -15,7 +15,9 @@ export default {
     return {
       menu: false,
       showDialog: false,
-      vmodelScen: '',
+      modelScen: '',
+      localModel: '',
+      localScen: '',
       errorMessage: '',
       copyDialog: false,
       selectedScenario: null,
@@ -23,6 +25,7 @@ export default {
       input: '',
       deleteDialog: false,
       loading: false,
+      localConfig: {},
 
     }
   },
@@ -30,19 +33,29 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     loggedIn () { return this.$store.getters.loggedIn },
     scenariosList () { return this.$store.getters.scenariosList },
-    protectedScen () { return this.$store.getters.protected },
-    filterdScenarios () { return this.scenariosList.filter(scen => scen.model === this.model) },
-    modelsList () { return this.$store.getters.cognitoGroups },
+    modelsList () { return this.$store.getters.bucketList },
     model () { return this.$store.getters.model },
     scenario () { return this.$store.getters.scenario },
   },
   watch: {
-    menu (val) { if (val) this.$store.dispatch('getScenario') },
+    menu (val) { if (val) this.$store.dispatch('getScenario', { model: this.localModel }) },
+    async localModel (val) {
+      this.$store.commit('setScenariosList', [])
+      this.loading = true
+      this.localConfig = await s3.readJson(val, 'quenedi.config.json')
+      await this.$store.dispatch('getScenario', { model: val })
+      this.loading = false
+    },
+  },
+  mounted () {
+    this.localModel = this.modelsList[0]
   },
 
   methods: {
     selectScenario (val) {
-      if (val) {
+      this.modelScen = val.model + val.scenario
+      this.localScen = val.scenario
+      if (val.scenario) {
         if (this.projectIsEmpty) {
           this.loadProject()
         } else {
@@ -50,11 +63,13 @@ export default {
         }
       }
     },
-    loadProject () {
-      this.$store.commit('setScenario', this.vmodelScen)
-      this.$store.dispatch('run/getParameters', {
-        model: this.model,
-        path: this.vmodelScen + '/' + this.$store.getters.config.parameters_path,
+    async loadProject () {
+      this.$store.commit('setModel', this.localModel)
+      this.$store.commit('setScenario', this.localScen)
+      await this.$store.dispatch('getConfig')
+      await this.$store.dispatch('run/getParameters', {
+        model: this.localModel,
+        path: this.localScen + '/' + this.$store.getters.config.parameters_path,
       })
 
       this.$router.push({ name: 'Import', query: { s3Path: this.$store.getters.config } })
@@ -68,15 +83,16 @@ export default {
     },
     cancelDialog () {
       // reset vmodel back to loaded scenario
-      this.vmodelScen = this.scenario
+      this.modelScen = this.model + this.scenario
+      this.localScen = this.scenario
       this.showDialog = false
       this.menu = false
     },
     deleteScenario () {
       this.deleteDialog = false
-      s3.deleteFolder(this.model, this.scenarioToDelete).then(resp => {
+      s3.deleteFolder(this.localModel, this.scenarioToDelete).then(resp => {
         this.deleteDialog = false
-        this.$store.dispatch('getScenario')
+        this.$store.dispatch('getScenario', { model: this.localModel })
         this.$store.commit('changeNotification',
           { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
       }).catch((err) => {
@@ -91,29 +107,29 @@ export default {
         this.errorMessage = 'Please enter a name'
       } else if (this.input.includes('/')) {
         this.errorMessage = 'cannot have / in name'
-      } else if (this.filterdScenarios.map(p => p.scenario).includes(this.input)) {
+      } else if (this.scenariosList.map(p => p.scenario).includes(this.input)) {
         this.errorMessage = 'project already exist'
       } else {
         try {
           if (this.selectedScenario) {
             // this is a copy
-            await s3.copyFolder(this.model, this.selectedScenario, this.input)
+            await s3.copyFolder(this.localModel, this.selectedScenario, this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
           } else {
             // this is a new project
             // copy the parameters file from Base. this will create a new project .
-            const base = this.$store.getters.config.protected[0]
-            await s3.copyFolder(this.model, base + '/' + this.$store.getters.config.parameters_path, this.input)
+            const base = this.localConfig.protected[0]
+            await s3.copyFolder(this.localModel, base + '/' + this.localConfig.parameters_path, this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
           }
-        } catch (err) { console.error(err); this.selectedScenario = null }
+        } catch (err) { alert(err); this.selectedScenario = null }
         this.closeCopy()
         this.loading = true
         // wait 500ms to fetch the scenarios to make sure its available on the DB
         setTimeout(() => {
-          this.$store.dispatch('getScenario').then(() => { this.loading = false })
+          this.$store.dispatch('getScenario', { model: this.localModel }).then(() => { this.loading = false })
             .catch((err) => { console.error(err); this.loading = false })
         }, 500)
       }
@@ -149,63 +165,63 @@ export default {
       </template>
       <v-card>
         <v-tabs
-          v-for="tab in modelsList"
-          :key="tab"
+          v-model="localModel"
         >
-          <v-tab>{{ tab }}</v-tab>
-        </v-tabs>
-        <v-list-item-group
-          v-model="vmodelScen"
-          color="primary"
-          :mandatory="vmodelScen? true:false"
-          @change="selectScenario"
-        >
-          <v-list-item
-            v-for="scen in filterdScenarios"
-            :key="scen.model + scen.scenario"
-            :value="scen.scenario"
-            two-line
+          <v-tab
+            v-for="tab in modelsList"
+            :key="tab"
+            :href="'#'+tab"
           >
-            <v-list-item-content>
-              <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
-              <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
-            </v-list-item-content>
-            <v-btn
-              icon
-              class="ma-1"
-              @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
+            {{ tab }}
+          </v-tab>
+        </v-tabs>
+        <v-list-item
+          v-for="scen in scenariosList"
+          :key="scen.model + scen.scenario"
+          :value="scen.model + scen.scenario"
+          :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
+          two-line
+          @click="selectScenario(scen)"
+        >
+          <v-list-item-content>
+            <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
+            <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
+          </v-list-item-content>
+          <v-btn
+            icon
+            class="ma-1"
+            @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
+          >
+            <v-icon
+              small
+              color="regular"
             >
-              <v-icon
-                small
-                color="regular"
-              >
-                fas fa-copy
-              </v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              :disabled="(scen.scenario===vmodelScen) || (protectedScen.includes(scen.scenario))"
-              class="ma-1"
-              @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+              fas fa-copy
+            </v-icon>
+          </v-btn>
+          <v-btn
+            icon
+            :disabled="(scen.model+scen.scenario===modelScen) || (localConfig.protected.includes(scen.scenario))"
+            class="ma-1"
+            @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+          >
+            <v-icon
+              small
+              color="grey"
             >
-              <v-icon
-                small
-                color="grey"
-              >
-                {{ protectedScen.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
-              </v-icon>
-            </v-btn>
-          </v-list-item>
-          <v-list-item v-show="loading">
-            <v-spacer />
-            <v-progress-circular
-              color="primary"
-              indeterminate
-            />
-            <v-spacer />
-          </v-list-item>
-          <v-divider />
-        </v-list-item-group>
+              {{ localConfig.protected.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
+            </v-icon>
+          </v-btn>
+        </v-list-item>
+        <v-list-item v-show="loading">
+          <v-spacer />
+          <v-progress-circular
+            color="primary"
+            indeterminate
+          />
+          <v-spacer />
+        </v-list-item>
+        <v-divider />
         <v-list-item>
           <v-btn
             text
@@ -334,5 +350,10 @@ export default {
   font-size: 1.2em;
   padding-left: 1.2rem;
   color:var(--v-secondarydark-base);
+}
+.is-active{
+  opacity:1;
+  background-color:var(--v-primary-base);
+
 }
 </style>

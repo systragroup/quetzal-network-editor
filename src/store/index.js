@@ -74,22 +74,13 @@ export const store = new Vuex.Store({
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
     },
+
     loadLayer (state, payload) {
       const moduleName = payload.fileName // todo: check if name exist Object.keys(this._modules.root._children)
       if (!Object.keys(this._modules.root._children).includes(moduleName)) {
         this.registerModule(moduleName, layerModule)
       }
-      switch (payload.type) {
-        case 'zones':
-          this.commit(`${moduleName}/loadZones`, payload)
-          break
-        case 'links':
-          this.commit(`${moduleName}/loadLinks`, payload)
-          break
-        case 'nodes':
-          this.commit(`${moduleName}/loadNodes`, payload)
-          break
-      }
+      this.commit(`${moduleName}/createLayer`, payload)
       if (!state.availableLayers.includes(moduleName)) {
         state.availableLayers.push(moduleName)
       }
@@ -109,7 +100,8 @@ export const store = new Vuex.Store({
 
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
-      // const folder = zip.folder('output') // create a folder for the files.
+      const inputs = zip.folder('inputs') // create a folder for the files.
+      const outputs = zip.folder('outputs') // create a folder for the files.
       let links = ''
       let nodes = ''
       let rlinks = ''
@@ -143,22 +135,42 @@ export const store = new Vuex.Store({
         // eslint-disable-next-line no-var
         var blob = new Blob([links], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('links.geojson', blob)
+        inputs.file('links.geojson', blob)
         // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([nodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('nodes.geojson', blob)
+        inputs.file('nodes.geojson', blob)
       }
       if (JSON.parse(rlinks).features.length > 0) {
       // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([rlinks], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('road_links.geojson', blob)
+        inputs.file('road_links.geojson', blob)
         // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([rnodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        zip.file('road_nodes.geojson', blob)
+        inputs.file('road_nodes.geojson', blob)
       }
+      if (payload === 'all') {
+        if (this.getters['run/parameters'].length > 0) {
+          const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
+          inputs.file('params.json', blob)
+        }
+        const staticLayers = Object.keys(this._modules.root._children).filter(
+          x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
+        staticLayers.forEach(layer => {
+          const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
+          const name = layer.split('/').slice(-1)[0] + '.geojson'
+          // const name = layer.replace('/', '_') + '.geojson'
+          outputs.file(name, blob)
+          if (this.getters[`${layer}/mat`]) {
+            const blob = new Blob([JSON.stringify(this.getters[`${layer}/mat`])], { type: 'application/json' })
+            const name = layer.split('/').slice(-1)[0] + '.json'
+            outputs.file(name, blob)
+          }
+        })
+      }
+
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
@@ -167,9 +179,12 @@ export const store = new Vuex.Store({
     },
   },
   actions: {
-    async exportToS3 ({ state, commit }) {
+    async exportToS3 ({ state, commit }, payload) {
       // const res = await s3.getScenario(state.model)
-      commit('run/changeRunning', true)
+      if (payload !== 'saveOnly') {
+        commit('run/changeRunning', true)
+      }
+
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
       const networkPaths = state.user.config.network_paths

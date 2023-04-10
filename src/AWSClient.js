@@ -26,22 +26,21 @@ async function listFiles (bucket, prefix) {
 
 async function copyFolder (bucket, prefix, newName) {
   const params = { Bucket: bucket, Prefix: prefix }
-  try {
-    const response = await s3Client.listObjectsV2(params).promise()
-    for (const file of response.Contents) {
-      let newFile = file.Key.split('/')
-      newFile[0] = newName
-      newFile = newFile.join('/')
-      const copyParams = {
-        Bucket: bucket,
-        CopySource: bucket + '/' + file.Key,
-        Key: newFile,
-      }
-      s3Client.copyObject(copyParams, function (err, data) {
-        if (err) console.error(err, err.stack) // an error occurred
-      })
+  const response = await s3Client.listObjectsV2(params).promise()
+  if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
+  for (const file of response.Contents) {
+    let newFile = file.Key.split('/')
+    newFile[0] = newName
+    newFile = newFile.join('/')
+    const copyParams = {
+      Bucket: bucket,
+      CopySource: bucket + '/' + file.Key,
+      Key: newFile,
     }
-  } catch (err) { console.error(err) }
+    s3Client.copyObject(copyParams, function (err, data) {
+      if (err) return err // an error occurred
+    })
+  }
 }
 async function deleteFolder (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }

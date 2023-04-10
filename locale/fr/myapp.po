@@ -704,7 +704,7 @@ msgstr "Scénario supprimé"
 
 #: src/pages/Run.vue:24
 msgid "Scenario saved"
-msgstr "Scénario créé"
+msgstr "Scénario sauvegardé"
 
 #: src/components/ParamForm.vue:24
 msgid "Scenario Settings"

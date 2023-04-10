@@ -20,7 +20,7 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     loggedIn () { return this.$store.getters.loggedIn },
     cognitoInfo () { return this.$store.getters.cognitoInfo },
-    cognitoGroups () { return this.$store.getters.cognitoGroups },
+    bucketList () { return this.$store.getters.bucketList },
 
     initial () { return (this.cognitoInfo?.given_name[0] + this.cognitoInfo?.family_name[0]).toUpperCase() },
   },
@@ -32,7 +32,6 @@ export default {
 
     login () {
       if (this.projectIsEmpty) {
-        console.log('profile')
         auth.login()
       } else {
         this.action = 'login'
@@ -90,7 +89,7 @@ export default {
 
         <v-divider />
         <v-list-item
-          v-for="group in cognitoGroups"
+          v-for="group in bucketList"
           :key="group"
         >
           {{ group }}

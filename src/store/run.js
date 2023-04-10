@@ -16,6 +16,15 @@ export default {
     parameters: [],
   },
   mutations: {
+    cleanRun (state) {
+      state.steps = [{ name: 'Loading Steps...' }]
+      state.running = false
+      state.executionArn = ''
+      state.currentStep = 0
+      state.error = false
+      state.synchronized = true
+      state.parameters = []
+    },
     setSteps (state, payload) {
       state.steps = payload
     },
@@ -44,14 +53,19 @@ export default {
       const stepNames = state.steps.map(a => a.name)
       state.currentStep = stepNames.indexOf(payload.name) + 1
     },
-    updateParameters (state, payload) {
+    getLocalParameters (state, payload) {
       state.parameters = payload
     },
   },
   actions: {
     async getParameters ({ state }, payload) {
-      const params = await s3.readJson(payload.model, payload.path)
-      state.parameters = params
+      try {
+        const params = await s3.readJson(payload.model, payload.path)
+        state.parameters = params
+      } catch (err) {
+        console.error(err)
+        state.parameters = []
+      }
     },
     async getOutputs (context) {
       const model = context.rootState.user.model
@@ -69,18 +83,38 @@ export default {
         context.commit('unloadLayers', null, { root: true })
         files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
           file => {
+            const data = file.data
+            const fileName = file.fileName.slice(0, -8)
+            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
+            matData = matData || {}
+            const matDataExist = Object.keys(matData).length > 0
+            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+              this.error($gettext(fileName + ' there is no index. Import aborted'))
+              return
+            }
             context.commit('loadLayer', {
-              fileName: file.fileName.slice(0, -8),
+              fileName: fileName,
               type: 'links',
-              links: file.data,
+              zones: data,
+              data: matData,
             }, { root: true })
           })
         files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
           file => {
+            const data = file.data
+            const fileName = file.fileName.slice(0, -8)
+            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
+            matData = matData || {}
+            const matDataExist = Object.keys(matData).length > 0
+            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+              this.error($gettext(fileName + ' there is no index. Import aborted'))
+              return
+            }
             context.commit('loadLayer', {
-              fileName: file.fileName.slice(0, -8),
+              fileName: fileName,
               type: 'nodes',
-              nodes: file.data,
+              zones: data,
+              data: matData,
             }, { root: true })
           })
         // for zones. find the corresponding json file (mat) or nothing.
@@ -90,11 +124,16 @@ export default {
             const fileName = file.fileName.slice(0, -8)
             let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
             matData = matData || {}
+            const matDataExist = Object.keys(matData).length > 0
+            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
+              this.error($gettext(fileName + ' there is no index. Import aborted'))
+              return
+            }
             context.commit('loadLayer', {
               fileName: fileName,
               type: 'zones',
               zones: zoneData,
-              mat: matData,
+              data: matData,
             }, { root: true })
           })
       }
