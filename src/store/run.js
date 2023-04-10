@@ -6,7 +6,7 @@ const $gettext = s => s
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-paris',
+    stateMachineArnBase: 'arn:aws:states:ca-central-1:142023388927:stateMachine:',
     steps: [{ name: 'Loading Steps...' }],
     running: false,
     executionArn: '',
@@ -138,19 +138,21 @@ export default {
           })
       }
     },
-    getSteps ({ state, commit }) {
-      let data = { stateMachineArn: state.stateMachineArn }
+    getSteps ({ state, commit, rootState }) {
+      let data = { stateMachineArn: state.stateMachineArnBase + rootState.user.model }
       quetzalClient.client.post('/describe/model',
         data = JSON.stringify(data),
       ).then(
         response => {
           const def = JSON.parse(response.data.definition)
           const steps = [{ name: def.StartAt }]
-          let next = def.States[def.StartAt].Next
-          while (true) {
-            steps.push({ name: next })
-            if (def.States[next].Next === undefined) break
-            next = def.States[next].Next
+          if (def.States[def.StartAt].Next !== undefined) {
+            let next = def.States[def.StartAt].Next
+            while (true) {
+              steps.push({ name: next })
+              if (def.States[next].Next === undefined) break
+              next = def.States[next].Next
+            }
           }
           commit('setSteps', steps)
         }).catch(
@@ -158,7 +160,7 @@ export default {
           alert(err)
         })
     },
-    startExecution ({ state, commit, dispatch }, payload) {
+    startExecution ({ state, commit, dispatch, rootState }, payload) {
       let data = {
         // eslint-disable-next-line no-useless-escape
         input: JSON.stringify({
@@ -168,7 +170,7 @@ export default {
             training_folder: '/tmp',
           },
         }),
-        stateMachineArn: state.stateMachineArn,
+        stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
       quetzalClient.client.post('',
         data = JSON.stringify(data),
