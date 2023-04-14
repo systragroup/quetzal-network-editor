@@ -9,7 +9,7 @@ export default {
       drawer: true,
       mini: true,
       menuItems: [],
-      version: 'V4.1.1',
+      version: 'V4.1.2',
       saving: false,
     }
   },

@@ -5,6 +5,7 @@ const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
 const REGION = process.env.VUE_APP_COGNITO_REGION
 const s3Client = new AWS.S3({
   apiVersion: '2006-03-01',
+  signatureVersion: 'v4',
   params: { region: REGION },
 })
 
@@ -22,6 +23,14 @@ async function listFiles (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
   const Content = await s3Client.listObjectsV2(params).promise()
   return Content.Contents.map(item => item.Key)
+}
+async function getImagesURL (bucket, key) {
+  const presignedGETURL = s3Client.getSignedUrl('getObject', {
+    Bucket: bucket,
+    Key: key, // filename
+    Expires: 100, // time to expire in seconds
+  })
+  return presignedGETURL
 }
 
 async function copyFolder (bucket, prefix, newName) {
@@ -122,5 +131,6 @@ export default {
   deleteFolder,
   createFolder,
   putObject,
+  getImagesURL,
 
 }

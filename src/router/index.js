@@ -40,12 +40,16 @@ const router = new Router({
       title: $gettext('Parameters and Run'),
       beforeEnter: (to, from, next) => {
         if (store.getters.scenario === null) {
-          store.commit('changeNotification', { text: $gettext('A scenario must be loaded to \
-          enter this page'), autoClose: true, color: 'error'})
+          store.commit('changeNotification',
+            {
+              text: $gettext('A scenario must be loaded to enter this page'),
+              autoClose: true,
+              color: 'error',
+            })
         } else {
           next()
         }
-      }
+      },
     },
     {
       path: '/ResultMap',
@@ -60,6 +64,18 @@ const router = new Router({
       component: ResultPicture,
       icon: 'fas fa-images',
       title: $gettext('Results Pictures'),
+      beforeEnter: (to, from, next) => {
+        if (store.getters.scenario === null) {
+          store.commit('changeNotification',
+            {
+              text: $gettext('A scenario must be loaded to enter this page'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else {
+          next()
+        }
+      },
     },
     {
       path: '/callback',

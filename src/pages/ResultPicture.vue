@@ -1,4 +1,6 @@
 <script>
+import s3 from '../AWSClient'
+const $gettext = s => s
 
 export default {
   name: 'ResultPicture',
@@ -6,16 +8,28 @@ export default {
   },
   data () {
     return {
-      imgs: ['https://raw.githubusercontent.com/systragroup/quetzal-interface/master/example/boardings_ligne_Orange.png',
-        'https://raw.githubusercontent.com/systragroup/quetzal-interface/master/example/boardings_bus.png',
-        'https://raw.githubusercontent.com/systragroup/quetzal-interface/master/example/load_ba_stm_2.png',
-        'https://raw.githubusercontent.com/systragroup/quetzal-interface/master/example/load_ba_stm_5.png',
-        'https://raw.githubusercontent.com/systragroup/quetzal-interface/master/example/boardings_ppam_exo1_sens0.png',
-      ],
+      imgs: [],
+      message: '',
     }
   },
   watch: {
 
+  },
+  async created () {
+    this.$store.commit('changeLoading', true)
+    const config = this.$store.getters.config
+    const model = this.$store.getters.model
+    const scenario = this.$store.getters.scenario
+    const outputsFiles = await s3.listFiles(model, scenario + '/' + config.output_paths[0])
+    const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
+    for (const file of filesNames) {
+      const url = await s3.getImagesURL(this.$store.getters.model, file)
+      this.imgs.push(url)
+    }
+    this.$store.commit('changeLoading', false)
+    if (this.imgs.length === 0) {
+      this.message = $gettext('Nothing to display')
+    }
   },
 
   methods: {
@@ -25,6 +39,9 @@ export default {
 </script>
 <template>
   <section class="layout">
+    <p v-if="imgs.length===0">
+      {{ $gettext(message) }}
+    </p>
     <div
       v-for="(img,key) in imgs"
       :key="key"
