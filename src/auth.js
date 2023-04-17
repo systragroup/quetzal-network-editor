@@ -25,7 +25,7 @@ auth.userhandler = {
     const idToken = result.getIdToken().jwtToken
     const sessionIdInfo = jwtDecode(idToken)
     // TODO : trouver comment avoir une liste des bucket!!
-    const bucketList = (sessionIdInfo['cognito:groups'][0] === 'admin') ? ['quetzal-paris', 'quetzal-toronto'] : ['quetzal-paris']
+    const bucketList = (sessionIdInfo['cognito:groups'][0] === 'admin') ? ['quetzal-paris', 'quetzal-toronto', 'quetzal-auckland'] : sessionIdInfo['cognito:groups']
     store.commit('setIdToken', idToken)
     store.commit('setAccessToken', result.accessToken.jwtToken)
     store.commit('setBucketList', bucketList)

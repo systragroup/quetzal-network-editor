@@ -151,7 +151,7 @@ export default {
       v-model="menu"
       :close-on-click="!showDialog && !deleteDialog && !copyDialog"
       :close-on-content-click="false"
-
+      max-width="460px"
       offset-y
     >
       <template v-slot:activator="{ on, attrs }">
@@ -166,6 +166,8 @@ export default {
       <v-card>
         <v-tabs
           v-model="localModel"
+          show-arrows
+          fixed-tabs
         >
           <v-tab
             v-for="tab in modelsList"
