@@ -3,6 +3,8 @@ import AWS from 'aws-sdk'
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
 const REGION = process.env.VUE_APP_COGNITO_REGION
+
+AWS.config.region = REGION
 const s3Client = new AWS.S3({
   apiVersion: '2006-03-01',
   signatureVersion: 'v4',
