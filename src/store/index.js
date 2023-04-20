@@ -184,7 +184,7 @@ export const store = new Vuex.Store({
       if (payload !== 'saveOnly') {
         commit('run/changeRunning', true)
       }
-
+      this.commit('applyPropertiesTypes')
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
       const networkPaths = state.user.config.network_paths
