@@ -74,10 +74,30 @@ export default {
         value: this.displaySettings.reverseColor,
         hint: $gettext('reverse color scale'),
       },
+      {
+        name: $gettext('scale min'),
+        type: 'Number',
+        value: this.displaySettings.minVal,
+        units: 'a.u.',
+        hint: $gettext('mininum value on the color Map'),
+      },
+      {
+        name: $gettext('scale max'),
+        type: 'Number',
+        value: this.displaySettings.maxVal,
+        units: 'a.u.',
+        hint: $gettext('maximum value on the color Map'),
+      },
+      {
+        name: $gettext('custom scale'),
+        value: this.displaySettings.fixScale,
+        hint: $gettext('customize to inputs values'),
+      },
 
       ],
       errorMessage: null,
       showHint: false,
+      showFixScale: false,
       shake: false,
 
       rules: {
@@ -88,19 +108,29 @@ export default {
       showDialog: false,
     }
   },
+
   watch: {
     showDialog (val) {
-      this.reset()
+      this.refresh()
+      this.showFixScale = this.parameters[11].value
       this.$emit('update-show', val)
     },
     // when we change layer
-    featureChoices () { this.reset() },
+    featureChoices () { this.refresh() },
   },
   created () {
     this.showDialog = this.show
   },
 
   methods: {
+    toggleFixScale () {
+      if (this.parameters[11].value) {
+        this.showFixScale = true
+        // refresh min max value when displayed
+        this.parameters[9].value = this.displaySettings.minVal
+        this.parameters[10].value = this.displaySettings.maxVal
+      } else { this.showFixScale = false }
+    },
     getColor (scale) {
       const arr = []
       const colorScale = chroma.scale(scale).padding([0.2, 0])
@@ -110,7 +140,7 @@ export default {
       }
       return arr
     },
-    reset () {
+    refresh () {
       this.parameters[0].value = this.displaySettings.selectedFeature
       this.parameters[1].value = this.displaySettings.maxWidth
       this.parameters[2].value = this.displaySettings.minWidth
@@ -120,6 +150,9 @@ export default {
       this.parameters[6].value = this.displaySettings.cmap
       this.parameters[7].value = this.displaySettings.showNaN
       this.parameters[8].value = this.displaySettings.reverseColor
+      this.parameters[9].value = this.displaySettings.minVal
+      this.parameters[10].value = this.displaySettings.maxVal
+      this.parameters[11].value = this.displaySettings.fixScale
     },
     submit () {
       if (this.$refs.form.validate()) {
@@ -133,6 +166,9 @@ export default {
           cmap: this.parameters[6].value,
           showNaN: this.parameters[7].value,
           reverseColor: this.parameters[8].value,
+          minVal: Number(this.parameters[9].value),
+          maxVal: Number(this.parameters[10].value),
+          fixScale: this.parameters[11].value,
         })
         // this.showDialog = false
       } else {
@@ -213,8 +249,8 @@ export default {
                 required
               />
               <v-text-field
-                v-for="(item,key) in parameters.slice(1,4)"
-                :key="key"
+                v-for="item in parameters.slice(1,4)"
+                :key="item.name"
                 v-model="item.value"
                 :type="item.type"
 
@@ -270,12 +306,34 @@ export default {
                 </template>
               </v-slider>
               <v-switch
+                :key="parameters[7].name"
                 v-model="parameters[7].value"
                 :label="$gettext(parameters[7].name)"
               />
               <v-switch
+                :key="parameters[8].name"
                 v-model="parameters[8].value"
                 :label="$gettext(parameters[8].name)"
+              />
+              <v-switch
+                :key="parameters[11].name"
+                v-model="parameters[11].value"
+                :label="$gettext(parameters[11].name)"
+                @click="toggleFixScale(parameters[11].name)"
+              />
+              <v-text-field
+                v-for="item in parameters.slice(9,11)"
+                v-show="showFixScale"
+                :key="item.name"
+                v-model="item.value"
+                :type="item.type"
+
+                :label="$gettext(item.name)"
+                :suffix="item.units"
+                :hint="showHint? $gettext(item.hint): ''"
+                :persistent-hint="showHint"
+                required
+                @wheel="()=>{}"
               />
             </v-col>
           </v-container>

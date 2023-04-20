@@ -32,7 +32,8 @@ export default {
       maxWidth: 10,
       minWidth: 1,
       numStep: 100,
-      scale: 'linear', // 'log'
+      scale: 'linear', // 'log', 'sqrt'
+      fixScale: false,
       minVal: 0, // option to blocked them. so its an input and its not recompute
       maxVal: 1,
       cmap: 'OrRd',
@@ -96,6 +97,9 @@ export default {
       state.displaySettings.opacity = payload.opacity
       state.displaySettings.showNaN = payload.showNaN
       state.displaySettings.reverseColor = payload.reverseColor
+      state.displaySettings.minVal = payload.minVal
+      state.displaySettings.maxVal = payload.maxVal
+      state.displaySettings.fixScale = payload.fixScale
       this.commit('results/refreshVisibleLinks')
 
       this.commit('results/updateSelectedFeature')
@@ -111,22 +115,35 @@ export default {
       const featureArr = state.visibleLinks.features.filter(
         link => link.properties[key]).map(
         link => link.properties[key])
+      if (!state.displaySettings.fixScale) {
+        const arrayMinMax = (arr) =>
+          arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
+            Number.POSITIVE_INFINITY,
+            Number.NEGATIVE_INFINITY,
+          ])
 
-      const arrayMinMax = (arr) =>
-        arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
-          Number.POSITIVE_INFINITY,
-          Number.NEGATIVE_INFINITY,
-        ])
-
-      const [minVal, maxVal] = arrayMinMax(featureArr)
-      state.displaySettings.minVal = minVal
-      state.displaySettings.maxVal = maxVal
+        const [minV, maxV] = arrayMinMax(featureArr)
+        state.displaySettings.minVal = Math.round(minV * 100) / 100
+        state.displaySettings.maxVal = Math.round(maxV * 100) / 100
+      }
+      const minVal = state.displaySettings.minVal
+      const maxVal = state.displaySettings.maxVal
 
       state.visibleLinks.features.forEach(
-        link => link.properties.display_width =
-        ((maxWidth - minWidth) * ((link.properties[key] - minVal) /
-         (maxVal - minVal))) + minWidth,
+        link => {
+          const val = link.properties[key]
+          if (val < minVal) {
+            link.properties.display_width = minWidth
+          } else if (val > maxVal) {
+            link.properties.display_width = maxWidth
+          } else {
+            link.properties.display_width =
+        ((maxWidth - minWidth) * ((val - minVal) /
+         (maxVal - minVal))) + minWidth
+          }
+        },
       )
+
       const colorScale = chroma.scale(cmap).padding([0.1, 0])
         .domain([0, 1], scale).classes(numStep)
       const reverse = state.displaySettings.reverseColor
