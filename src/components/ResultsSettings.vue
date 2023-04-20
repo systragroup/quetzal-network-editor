@@ -89,9 +89,9 @@ export default {
         hint: $gettext('maximum value on the color Map'),
       },
       {
-        name: $gettext('fix scale'),
+        name: $gettext('custom scale'),
         value: this.displaySettings.fixScale,
-        hint: $gettext('fixScale to inputs values'),
+        hint: $gettext('customize to inputs values'),
       },
 
       ],
