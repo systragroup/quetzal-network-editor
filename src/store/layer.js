@@ -20,13 +20,12 @@ export default {
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
         // if init with nothing, do nothing.
         if (state.layer.features.length > 0) {
-        // init the property with the first zone index
-          const initIndex = state.layer.features[0].properties.index
-          // for each properties in matrix, init the zones to the fist value.
+          // for each properties in matrix, init the zones to null.
           state.properties.forEach(
             prop =>
               state.layer.features.forEach(
-                zone => zone.properties[prop] = state.mat[prop][initIndex][zone.properties.index]),
+                zone => zone.properties[prop] = null,
+              ),
           )
         }
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }

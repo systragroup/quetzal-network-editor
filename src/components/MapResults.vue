@@ -72,17 +72,17 @@ export default {
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if (this.layerType === 'zones') {
-        if (this.links.features[0].geometry.type === 'Polygon') {
-          this.links.features.forEach(link => {
-            bounds.extend([link.geometry.coordinates[0][0],
-              link.geometry.coordinates[0][link.geometry.coordinates.length - 1]])
-          })
-        } else { // mutipolygon
-          this.links.features.forEach(link => {
-            bounds.extend([link.geometry.coordinates[0][0][0],
-              link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
-          })
-        }
+        this.links.features.forEach(link => {
+          try { // try, so NaN will not crash
+            if (link.geometry.type === 'Polygon') {
+              bounds.extend([link.geometry.coordinates[0][0],
+                link.geometry.coordinates[0][link.geometry.coordinates.length - 1]])
+            } else {
+              bounds.extend([link.geometry.coordinates[0][0][0],
+                link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
+            }
+          } catch (err) { console.log(err) }
+        })
       } else {
         this.links.features.forEach(link => {
           bounds.extend([link.geometry.coordinates[0],
