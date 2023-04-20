@@ -61,12 +61,14 @@ function classFile2 (name, content, inputFolder = 'inputs/', outputFolder = 'out
           return { data: content, type: 'zones', fileName: name }
       }
     }
-  } else {
+  } else if (name.slice(-7) === 'json') {
     if (name.slice(-11) === 'params.json') {
       return { data: content, type: 'params.json', fileName: name }
     } else {
       return { data: content, type: 'json', fileName: name }
     }
+  } else {
+    return { data: content, type: 'png', fileName: name }
   }
 }
 
@@ -80,7 +82,8 @@ async function extractZip (file) {
   const result = { zipName: file.name, files: [] }
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
-    const content = JSON.parse(str)
+    let content = {}
+    try { content = JSON.parse(str) } catch (err) {} // for PNG, no content
     if (filesNames[0].includes('inputs/') || filesNames[0].includes('outputs/')) {
       // import with new fileStructure (inputs, outputs folder in zip)
       result.files.push(classFile2(filesNames[i], content))

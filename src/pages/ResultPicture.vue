@@ -50,7 +50,7 @@ export default {
       <v-img
 
         :src="img"
-        :lazy-src="img"
+        :alt="'image'"
         contain
       />
     </div>
