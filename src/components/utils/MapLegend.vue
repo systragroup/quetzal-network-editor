@@ -38,7 +38,7 @@ export default {
     />
     <span class="domain-title">{{ displaySettings.selectedFeature }}</span>
     <span class="domain-min">{{ Math.round(displaySettings.minVal) }}</span>
-    <span class="domain-med">{{ Math.round(displaySettings.maxVal/2) }}</span>
+    <span class="domain-med">{{ Math.round((displaySettings.maxVal+displaySettings.minVal)/2) }}</span>
     <span class="domain-max">{{ Math.round(displaySettings.maxVal) }}</span>
   </div>
 </template>
