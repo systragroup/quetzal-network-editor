@@ -20,19 +20,20 @@ msgstr ""
 #: src/components/ResultsSettings.vue:137
 #: src/components/ResultsSettings.vue:138
 #: src/components/ResultsSettings.vue:161
-#: src/components/ResultsSettings.vue:175
-#: src/components/ResultsSettings.vue:180 src/components/Settings.vue:49
+#: src/components/ResultsSettings.vue:176
+#: src/components/ResultsSettings.vue:182
+#: src/components/ResultsSettings.vue:188 src/components/Settings.vue:49
 #: src/components/Settings.vue:51 src/components/Settings.vue:61
 #: src/components/Settings.vue:63 src/components/Settings.vue:73
 #: src/components/Settings.vue:74 src/components/Settings.vue:84
 #: src/components/Settings.vue:85 src/components/Settings.vue:95
 #: src/components/Settings.vue:97 src/components/Settings.vue:106
 #: src/components/Settings.vue:108 src/pages/Home.vue:80
-#: src/pages/Import.vue:242
+#: src/pages/Import.vue:242 src/pages/ResultPicture.vue:11
 msgid "_ctx"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:31
+#: src/components/layout/NavigationDrawer.vue:37
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr "%{s}"
@@ -64,8 +65,8 @@ msgstr ""
 "bord.\n"
 "        3 - doit se coordonner avec le conducteur pour monter à bord."
 
-#: src/router/index.js:43
-msgid "A scenario must be loaded to           enter this page"
+#: src/router/index.js:45 src/router/index.js:71
+msgid "A scenario must be loaded to enter this page"
 msgstr ""
 
 #: src/components/LinksSidePanel.vue:531
@@ -84,14 +85,14 @@ msgstr ""
 msgid "add field"
 msgstr "ajouter un champ"
 
-#: src/pages/Import.vue:226 src/pages/Import.vue:229 src/pages/Import.vue:235
-#: src/pages/Import.vue:238 src/pages/Import.vue:244 src/pages/Import.vue:249
-#: src/pages/Import.vue:256 src/pages/Import.vue:259
+#: src/pages/Import.vue:255 src/pages/Import.vue:258 src/pages/Import.vue:264
+#: src/pages/Import.vue:267 src/pages/Import.vue:273 src/pages/Import.vue:278
+#: src/pages/Import.vue:285 src/pages/Import.vue:288
 msgid "An error occur fetching example on github"
 msgstr ""
 "Une erreur s'est produite lors de la récupération de l'exemple sur github"
 
-#: src/components/ScenariosExplorer.vue:84
+#: src/components/ScenariosExplorer.vue:100
 msgid "An error occured"
 msgstr "Une erreur s'est produite"
 
@@ -99,7 +100,7 @@ msgstr "Une erreur s'est produite"
 msgid "apply"
 msgstr "appliquer"
 
-#: src/components/ParamForm.vue:91
+#: src/components/ParamForm.vue:109
 msgid "back to default"
 msgstr "Valeurs par défaut"
 
@@ -107,10 +108,10 @@ msgstr "Valeurs par défaut"
 msgid "cancel"
 msgstr "Annuler"
 
-#: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:202
+#: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:227
 #: src/components/RoadSidePanel.vue:347
-#: src/components/ScenariosExplorer.vue:252
-#: src/components/ScenariosExplorer.vue:329 src/components/Settings.vue:133
+#: src/components/ScenariosExplorer.vue:251
+#: src/components/ScenariosExplorer.vue:328 src/components/Settings.vue:133
 #: src/components/utils/OSMImporter.vue:186 src/pages/Home.vue:180
 #: src/pages/Home.vue:247
 msgid "Cancel"
@@ -140,7 +141,7 @@ msgstr "Fermer"
 msgid "cmap to use"
 msgstr "palette de couleur à utiliser"
 
-#: src/components/ParamForm.vue:101
+#: src/components/ParamForm.vue:119
 msgid "Collapse all"
 msgstr "Réduire tout"
 
@@ -156,7 +157,7 @@ msgstr "couleur à afficher sur la carte (ex: FFFFFF)"
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/components/ScenariosExplorer.vue:289
+#: src/components/ScenariosExplorer.vue:288
 msgid "copy"
 msgstr "copier"
 
@@ -168,6 +169,14 @@ msgstr "Les modifications n'ont pas pu être appliquées. Le trip_id existe déj
 msgid "Create new Line"
 msgstr "Créer une nouvelle ligne"
 
+#: src/components/ResultsSettings.vue:91
+msgid "custom scale"
+msgstr ""
+
+#: src/components/ResultsSettings.vue:93
+msgid "customize to inputs values"
+msgstr ""
+
 #: src/components/EditorLinks.vue:141
 msgid "Cut After Node"
 msgstr "Couper après l'arrêt"
@@ -176,11 +185,11 @@ msgstr "Couper après l'arrêt"
 msgid "Cut Before Node"
 msgstr "Couper avant l'arrêt"
 
-#: src/components/ScenariosExplorer.vue:261 src/pages/Home.vue:64
+#: src/components/ScenariosExplorer.vue:260 src/pages/Home.vue:64
 msgid "Delete"
 msgstr "Supprimer "
 
-#: src/components/ScenariosExplorer.vue:234
+#: src/components/ScenariosExplorer.vue:233
 msgid "Delete "
 msgstr "Supprimer "
 
@@ -273,11 +282,11 @@ msgstr "Modifier les propriétés des visibles"
 msgid "example"
 msgstr "Exemple"
 
-#: src/components/ParamForm.vue:101
+#: src/components/ParamForm.vue:119
 msgid "Expand all"
 msgstr "Étendre tout"
 
-#: src/components/layout/NavigationDrawer.vue:23
+#: src/components/layout/NavigationDrawer.vue:29
 msgid "Export"
 msgstr "Exporter"
 
@@ -301,13 +310,20 @@ msgstr "Champ ajouté"
 msgid "field already exist"
 msgstr "Le champ existe déjà"
 
-#: src/pages/Import.vue:291
+#: src/pages/Import.vue:322
 msgid "file is not a geojson"
 msgstr "le fichier n'est pas un geojson"
 
-#: src/pages/Import.vue:346
+#: src/pages/Import.vue:377
 msgid "file is not a zip"
 msgstr "le fichier n'est pas un zip"
+
+#: src/pages/Import.vue:153 src/pages/Import.vue:169 src/pages/Import.vue:185
+#: src/store/run.js:92 src/store/run.js:111 src/store/run.js:130
+#, fuzzy
+msgid "fileName there is no index. Import aborted"
+msgstr ""
+"il y a des index de liens ou de noeds en double. Importation interrompue"
 
 #: src/components/LinksSidePanel.vue:182
 #: src/components/ResultsSidePanel.vue:151 src/components/RoadSidePanel.vue:172
@@ -359,12 +375,16 @@ msgstr ""
 "Indique le type de transport utilisé sur un itinéraire.\n"
 "         subway, metro, rail, bus, ferry, tram, etc"
 
-#: src/components/ParamForm.vue:58 src/components/ParamForm.vue:60
+#: src/components/ParamForm.vue:61 src/components/ParamForm.vue:63
+#: src/components/ParamForm.vue:75 src/components/ParamForm.vue:77
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
-#: src/components/layout/NavigationDrawer.vue:78
-#: src/components/layout/NavigationDrawer.vue:91
-#: src/components/layout/NavigationDrawer.vue:105
+#: src/components/ResultsSettings.vue:197
+#: src/components/ResultsSettings.vue:199
+#: src/components/layout/NavigationDrawer.vue:79
+#: src/components/layout/NavigationDrawer.vue:107
+#: src/components/layout/NavigationDrawer.vue:120
+#: src/components/layout/NavigationDrawer.vue:134
 msgid "item"
 msgstr ""
 
@@ -423,7 +443,7 @@ msgstr ""
 "Chargez plusieurs réseaux de transport en commun ou routiers. Chaque réseau "
 "sera ajouté au projet en cours"
 
-#: src/components/ScenariosExplorer.vue:182
+#: src/components/ScenariosExplorer.vue:181
 msgid "Load Scenario?"
 msgstr "Changer le scénario?"
 
@@ -431,8 +451,8 @@ msgstr "Changer le scénario?"
 msgid "Load zip files containing"
 msgstr "Charger des zips"
 
-#: src/pages/Import.vue:148 src/pages/Import.vue:153 src/pages/Import.vue:163
-#: src/pages/Import.vue:164
+#: src/pages/Import.vue:158 src/pages/Import.vue:159 src/pages/Import.vue:173
+#: src/pages/Import.vue:174 src/pages/Import.vue:189 src/pages/Import.vue:190
 msgid "Loaded from"
 msgstr "chargé depuis"
 
@@ -456,6 +476,10 @@ msgstr ""
 msgid "Map"
 msgstr "Carte"
 
+#: src/components/ResultsSettings.vue:88
+msgid "maximum value on the color Map"
+msgstr ""
+
 #: src/components/ResultsSettings.vue:23 src/components/ResultsSettings.vue:27
 msgid "maxWidth"
 msgstr "Largeur max"
@@ -463,6 +487,10 @@ msgstr "Largeur max"
 #: src/pages/Import.vue:235
 msgid "mess"
 msgstr "mess"
+
+#: src/components/ResultsSettings.vue:81
+msgid "mininum value on the color Map"
+msgstr ""
 
 #: src/components/ResultsSettings.vue:30 src/components/ResultsSettings.vue:34
 msgid "minWidth"
@@ -484,7 +512,7 @@ msgstr "plus"
 msgid "multiple Values"
 msgstr "Valeurs multiples"
 
-#: src/components/ScenariosExplorer.vue:303
+#: src/components/ScenariosExplorer.vue:302
 msgid "name"
 msgstr "nom"
 
@@ -504,16 +532,16 @@ msgstr "Nouveau Projet"
 msgid "New road links Highway property name"
 msgstr "Type de route (Highway) des nouveux liens routiers"
 
-#: src/components/ScenariosExplorer.vue:154
+#: src/components/ScenariosExplorer.vue:153
 msgid "new scenario"
 msgstr "Nouveau scénario"
 
-#: src/components/ScenariosExplorer.vue:289
+#: src/components/ScenariosExplorer.vue:288
 msgid "New Scenario"
 msgstr "Nouveau Scénario"
 
 #: src/components/LinksSidePanel.vue:632 src/components/RoadSidePanel.vue:357
-#: src/components/ScenariosExplorer.vue:200
+#: src/components/ScenariosExplorer.vue:199
 #: src/components/utils/OSMImporter.vue:237
 #: src/components/utils/Profile.vue:164 src/pages/Import.vue:277
 msgid "No"
@@ -527,11 +555,15 @@ msgstr "Noeuds"
 msgid "nodes.geojson and links.geojson or"
 msgstr "nodes.geojson et links.geojson"
 
+#: src/pages/ResultPicture.vue:30
+msgid "Nothing to display"
+msgstr ""
+
 #: src/components/ResultsSettings.vue:37 src/components/ResultsSettings.vue:41
 msgid "numStep"
 msgstr "nombre de pas "
 
-#: src/components/ScenariosExplorer.vue:339 src/pages/ResultMap.vue:109
+#: src/components/ScenariosExplorer.vue:338 src/pages/ResultMap.vue:109
 msgid "ok"
 msgstr "ok"
 
@@ -560,7 +592,7 @@ msgstr "Parametres et execution"
 msgid "project Name"
 msgstr "Projet écrasée"
 
-#: src/pages/Import.vue:276
+#: src/pages/Import.vue:307
 msgid "project overwrited"
 msgstr "Projet écrasée"
 
@@ -576,15 +608,15 @@ msgstr "TC et Routes"
 msgid "PT Links"
 msgstr "Liens TC"
 
-#: src/pages/Import.vue:126
+#: src/pages/Import.vue:127
 msgid "PT Links and nodes Loaded from"
 msgstr "Liens et noeuds TC chargés de"
 
-#: src/pages/Import.vue:306
+#: src/pages/Import.vue:337
 msgid "PT links loaded with road nodes"
 msgstr "Liens TC chargées avec des noeuds routiers"
 
-#: src/pages/Import.vue:324
+#: src/pages/Import.vue:355
 msgid "PT nodes loaded for road links"
 msgstr "noeds routiers chargés avec des liens TC"
 
@@ -604,7 +636,7 @@ msgstr "TC, Routes, Zones, OD et Résultats"
 msgid "Redirect"
 msgstr "Redirigé"
 
-#: src/components/ParamForm.vue:17 src/components/ResultsSettings.vue:83
+#: src/components/ParamForm.vue:17 src/components/ResultsSettings.vue:103
 #: src/components/Settings.vue:56
 msgid "Required"
 msgstr "Requis"
@@ -617,11 +649,11 @@ msgstr ""
 "Les résultats ne sont pas syncronisés avec les dernières modification.SVP, "
 "executer la simulation pour mettre à jour les résultats."
 
-#: src/router/index.js:55
+#: src/router/index.js:59
 msgid "Results Map"
 msgstr "Carte des Résultats"
 
-#: src/router/index.js:62
+#: src/router/index.js:66
 msgid "Results Pictures"
 msgstr "images des Résultats"
 
@@ -649,15 +681,15 @@ msgstr "Category Highway des nouvelles routes"
 msgid "Road Links"
 msgstr "Liens routiers"
 
-#: src/pages/Import.vue:135
+#: src/pages/Import.vue:136
 msgid "ROAD links and nodes Loaded from"
 msgstr "Liens et noeuds routier chargés de"
 
-#: src/pages/Import.vue:302
+#: src/pages/Import.vue:333
 msgid "road links loaded with PT nodes"
 msgstr "liens routiers chargés avec des noeds TC"
 
-#: src/pages/Import.vue:320
+#: src/pages/Import.vue:351
 msgid "road nodes loaded for PT links"
 msgstr "noeds routier changés pour des liens TC"
 
@@ -681,8 +713,9 @@ msgstr "Routes"
 msgid "Run Simulation"
 msgstr "Executer la simulation"
 
-#: src/components/ResultsSettings.vue:212 src/components/Settings.vue:143
-#: src/pages/Home.vue:190 src/pages/Home.vue:257
+#: src/components/ResultsSettings.vue:237 src/components/Settings.vue:143
+#: src/components/layout/NavigationDrawer.vue:24 src/pages/Home.vue:190
+#: src/pages/Home.vue:257
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -694,19 +727,29 @@ msgstr "Sauvegarder ?"
 msgid "scale"
 msgstr "Échelle"
 
-#: src/components/ScenariosExplorer.vue:107
+#: src/components/ResultsSettings.vue:84
+#, fuzzy
+msgid "scale max"
+msgstr "Échelle"
+
+#: src/components/ResultsSettings.vue:77
+#, fuzzy
+msgid "scale min"
+msgstr "Échelle"
+
+#: src/components/ScenariosExplorer.vue:123
 msgid "Scenario created"
 msgstr "Scénario créé"
 
-#: src/components/ScenariosExplorer.vue:79
+#: src/components/ScenariosExplorer.vue:95
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
-#: src/pages/Run.vue:24
+#: src/components/layout/NavigationDrawer.vue:51 src/pages/Run.vue:24
 msgid "Scenario saved"
 msgstr "Scénario sauvegardé"
 
-#: src/components/ParamForm.vue:24
+#: src/components/ParamForm.vue:25
 msgid "Scenario Settings"
 msgstr "Paramètres de simulation"
 
@@ -714,7 +757,7 @@ msgstr "Paramètres de simulation"
 msgid "Scenario Simulation"
 msgstr "Simulation du scénario"
 
-#: src/components/ScenariosExplorer.vue:100
+#: src/components/ScenariosExplorer.vue:116
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
@@ -734,11 +777,11 @@ msgstr ""
 "nom court d'une route. Souvent un identifiant abstrait\n"
 "          et court comme \"32\", \"100X\", or \"verte\""
 
-#: src/components/ParamForm.vue:19 src/components/ResultsSettings.vue:85
+#: src/components/ParamForm.vue:19 src/components/ResultsSettings.vue:105
 msgid "should be larger or equal to 0"
 msgstr "devrait être plus grand que 0"
 
-#: src/components/ParamForm.vue:18 src/components/ResultsSettings.vue:84
+#: src/components/ParamForm.vue:18 src/components/ResultsSettings.vue:104
 #: src/components/Settings.vue:57
 msgid "should be larger than 0"
 msgstr "devrait être plus grand que 0"
@@ -761,7 +804,7 @@ msgstr ""
 "SVP, executer la simulation de nouveau. Si le problème persiste, veuillez "
 "nous contacter."
 
-#: src/store/run.js:41
+#: src/store/run.js:50
 msgid "simulation executed successfully!"
 msgstr "simulation exécutée avec succès!"
 
@@ -787,7 +830,7 @@ msgstr ""
 msgid "the name of the exported zip file"
 msgstr "Le nom du fichier .zip à l'export."
 
-#: src/components/ScenariosExplorer.vue:240
+#: src/components/ScenariosExplorer.vue:239
 msgid "The scenario will be permanently deleted"
 msgstr "Le scénario sera supprimé définitivement"
 
@@ -800,22 +843,22 @@ msgstr ""
 "SVP, executer la simulation de nouveau. Si le problème persiste, veuillez "
 "nous contacter."
 
-#: src/pages/Import.vue:128 src/pages/Import.vue:137
+#: src/pages/Import.vue:129 src/pages/Import.vue:138
 msgid "there is duplicated links or nodes index. Import aborted"
 msgstr ""
 "il y a des index de liens ou de noeds en double. Importation interrompue"
 
-#: src/pages/Import.vue:110
+#: src/pages/Import.vue:111
 msgid "there is no index in links. Import aborted"
 msgstr ""
 "il y a des index de liens ou de noeds en double. Importation interrompue"
 
-#: src/pages/Import.vue:116
+#: src/pages/Import.vue:117
 msgid "there is no index in nodes. Import aborted"
 msgstr ""
 "il y a des index de liens ou de noeds en double. Importation interrompue"
 
-#: src/components/ScenariosExplorer.vue:188
+#: src/components/ScenariosExplorer.vue:187
 #: src/components/utils/Profile.vue:152
 msgid "This will ERASE the current project"
 msgstr "Le projet en cours sera ÉCRASÉ"
@@ -849,7 +892,7 @@ msgid "width to display on the map"
 msgstr "Largeur à afficher sur la carte"
 
 #: src/components/LinksSidePanel.vue:641 src/components/RoadSidePanel.vue:366
-#: src/components/ScenariosExplorer.vue:209
+#: src/components/ScenariosExplorer.vue:208
 #: src/components/utils/OSMImporter.vue:246
 #: src/components/utils/Profile.vue:173 src/pages/Import.vue:286
 msgid "Yes"

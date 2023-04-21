@@ -33,7 +33,7 @@ function classFile (name, content) {
 function classFile2 (name, content, inputFolder = 'inputs/', outputFolder = 'outputs/') {
   // class Files with inputs outputs quenedi fileStructure.
   // everything in inputs is name sensitive. everythin in output is read as a static layer.
-  if (name.slice(-7) === 'geojson') {
+  if (name.endsWith('geojson')) {
     if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs?.properties.name)) {
       alert('invalid CRS or undefined. use CRS84 / EPSG:4326')
     }
@@ -61,14 +61,14 @@ function classFile2 (name, content, inputFolder = 'inputs/', outputFolder = 'out
           return { data: content, type: 'zones', fileName: name }
       }
     }
-  } else if (name.slice(-7) === 'json') {
+  } else if (name.endsWith('json')) {
     if (name.slice(-11) === 'params.json') {
       return { data: content, type: 'params.json', fileName: name }
     } else {
       return { data: content, type: 'json', fileName: name }
     }
   } else {
-    return { data: content, type: 'png', fileName: name }
+    return { data: content, type: 'others', fileName: name }
   }
 }
 
@@ -153,4 +153,4 @@ async function unzip (file) {
   return content
 }
 
-export { extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile }
+export { extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile, classFile2 }

@@ -1,6 +1,6 @@
 import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '../AWSClient'
-import { classFile } from '../components/utils/utils.js'
+import { classFile2 } from '../components/utils/utils.js'
 const $gettext = s => s
 
 export default {
@@ -77,7 +77,7 @@ export default {
       for (const file of filesNames) {
         const content = await s3.readJson(model, file)
         const name = file.split('/').slice(1).join('/')
-        files.push(classFile(name, content))
+        files.push(classFile2(name, content))
       }
       if (files.length > 0) {
         context.commit('unloadLayers', null, { root: true })
@@ -92,11 +92,12 @@ export default {
               this.error($gettext(fileName + ' there is no index. Import aborted'))
               return
             }
+
             context.commit('loadLayer', {
               fileName: fileName,
               type: 'links',
-              zones: data,
-              data: matData,
+              data: data,
+              mat: matData,
             }, { root: true })
           })
         files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
@@ -113,8 +114,8 @@ export default {
             context.commit('loadLayer', {
               fileName: fileName,
               type: 'nodes',
-              zones: data,
-              data: matData,
+              data: data,
+              mat: matData,
             }, { root: true })
           })
         // for zones. find the corresponding json file (mat) or nothing.
@@ -132,8 +133,8 @@ export default {
             context.commit('loadLayer', {
               fileName: fileName,
               type: 'zones',
-              zones: zoneData,
-              data: matData,
+              data: zoneData,
+              mat: matData,
             }, { root: true })
           })
       }
