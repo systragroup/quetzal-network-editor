@@ -181,6 +181,7 @@ export default {
         }),
         stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
+      console.log(data)
       quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
