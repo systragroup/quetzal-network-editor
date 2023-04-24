@@ -76,7 +76,10 @@ export default {
               {{ group.category }}
             </v-expansion-panel-header>
             <v-expansion-panel-content style="background-color:var(--v-background-lighten4) !important;">
-              <li v-for="(item, key2) in group.params" :key="key2">
+              <li
+                v-for="(item, key2) in group.params"
+                :key="key2"
+              >
                 <v-text-field
                   v-if="typeof item.items === 'undefined' && typeof item.value != 'boolean'"
                   v-model="item.value"
