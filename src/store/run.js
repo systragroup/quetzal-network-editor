@@ -162,6 +162,13 @@ export default {
         })
     },
     startExecution ({ state, commit, dispatch, rootState }, payload) {
+      const paramsDict = state.parameters.reduce((acc, { category, params }) => {
+        acc[category] = params.reduce((paramAcc, { text, value }) => {
+          paramAcc[text] = value
+          return paramAcc
+        }, {})
+        return acc
+      }, {})
       let data = {
         // eslint-disable-next-line no-useless-escape
         input: JSON.stringify({
@@ -169,10 +176,12 @@ export default {
           launcher_arg: {
             scenario: 'base',
             training_folder: '/tmp',
+            params: paramsDict,
           },
         }),
         stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
+      console.log(data)
       quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
