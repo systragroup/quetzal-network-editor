@@ -14,6 +14,9 @@ export default {
     currentStep () { return this.$store.getters['run/currentStep'] },
     error () { return this.$store.getters['run/error'] },
     synchronized () { return this.$store.getters['run/synchronized'] },
+    isProtected () {
+      return this.$store.getters.protected.includes(this.$store.getters.scenario)
+    },
   },
   created () {
     this.$store.dispatch('run/getSteps')
@@ -76,7 +79,7 @@ export default {
           </v-alert>
           <v-btn
             :loading="running"
-            :disabled="running"
+            :disabled="running || isProtected"
             color="success"
             @click="run()"
           >
