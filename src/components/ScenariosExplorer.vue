@@ -25,7 +25,7 @@ export default {
       input: '',
       deleteDialog: false,
       loading: false,
-      localConfig: {},
+      localConfig: { protected: ['base'] },
 
     }
   },
@@ -38,11 +38,20 @@ export default {
     scenario () { return this.$store.getters.scenario },
   },
   watch: {
-    menu (val) { if (val) this.$store.dispatch('getScenario', { model: this.localModel }) },
+    menu (val) {
+      if (val) {
+        this.$store.dispatch('getScenario', { model: this.localModel })
+      }
+    },
     async localModel (val) {
       this.$store.commit('setScenariosList', [])
       this.loading = true
-      this.localConfig = await s3.readJson(val, 'quenedi.config.json')
+      try {
+        this.localConfig = await s3.readJson(val, 'quenedi.config.json')
+      } catch (err) {
+        // console.log(err)
+      }
+
       await this.$store.dispatch('getScenario', { model: val })
       this.loading = false
     },

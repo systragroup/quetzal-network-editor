@@ -14,11 +14,10 @@ const s3Client = new AWS.S3({
 async function readJson (bucket, key) {
   const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
   // const params = { Bucket: bucket, Key: key }
-  try {
-    const response = await s3Client.getObject(params).promise() // await the promise
-    const fileContent = JSON.parse(response.Body.toString('utf-8').trim()) // can also do 'base64' here if desired
-    return fileContent
-  } catch (err) { return err }
+
+  const response = await s3Client.getObject(params).promise() // await the promise
+  const fileContent = JSON.parse(response.Body.toString('utf-8').trim()) // can also do 'base64' here if desired
+  return fileContent
 }
 
 async function listFiles (bucket, prefix) {

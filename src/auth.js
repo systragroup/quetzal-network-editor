@@ -7,6 +7,7 @@ const CLIENT_ID = process.env.VUE_APP_COGNITO_CLIENT_ID
 const APP_DOMAIN = process.env.VUE_APP_COGNITO_APP_DOMAIN
 const REDIRECT_URI = process.env.VUE_APP_COGNITO_REDIRECT_URI
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
+const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
 const REDIRECT_URI_SIGNOUT = process.env.VUE_APP_COGNITO_REDIRECT_URI_SIGNOUT
 
 const authData = {
@@ -39,11 +40,15 @@ auth.userhandler = {
   },
 }
 
-function getUserInfoStorageKey () {
+function getCognitoStorageKey () {
   const keyPrefix = 'CognitoIdentityServiceProvider.' + auth.getClientId()
   const tokenUserName = auth.signInUserSession.getAccessToken().getUsername()
-  const userInfoKey = keyPrefix + '.' + tokenUserName + '.userInfo'
-  return userInfoKey
+  const suffix = ['.userInfo', '.tokenScopesString', '.accessToken', '.idToken', '.refreshToken']
+  const keys = suffix.map(s => keyPrefix + '.' + tokenUserName + s)
+  keys.push(keyPrefix + '.LastAuthUser')
+  keys.push(`aws.cognito.identity-id.${IDENTITY_POOL_ID}`)
+  keys.push(`aws.cognito.identity-providers.${IDENTITY_POOL_ID}`)
+  return keys
 }
 
 const storageHelper = new StorageHelper()
@@ -55,12 +60,11 @@ export default {
   },
   logout () {
     if (auth.isUserSignedIn()) {
-      const userInfoKey = this.getUserInfoStorageKey()
+      const cognitoKeys = this.getCognitoStorageKey()
+      cognitoKeys.forEach(key => storage.removeItem(key))
       auth.signOut()
-
-      storage.removeItem(userInfoKey)
     }
   },
-  getUserInfoStorageKey,
+  getCognitoStorageKey,
 
 }
