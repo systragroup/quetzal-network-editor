@@ -73,6 +73,7 @@ export default {
       const path = scenario + '/' + context.rootState.user.config.output_paths[0]
       let filesNames = await s3.listFiles(model, path)
       filesNames = filesNames.filter(name => name !== path)
+      filesNames = filesNames.filter(name => !name.endsWith('.png'))
       const files = []
       for (const file of filesNames) {
         const content = await s3.readJson(model, file)

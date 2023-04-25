@@ -90,6 +90,7 @@ export default {
         // then load results layers.
         filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths[0])
         filesNames = filesNames.filter(name => name !== scen + path.output_paths[0])
+        filesNames = filesNames.filter(name => !name.endsWith('.png'))
         const files = []
         for (const file of filesNames) {
           const content = await s3.readJson(this.$store.getters.model, file)
