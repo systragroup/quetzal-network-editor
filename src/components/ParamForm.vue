@@ -90,7 +90,7 @@ export default {
                   @wheel="()=>{}"
                 />
                 <v-switch
-                  v-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
+                  v-else-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
                   v-model="item.value"
                   :label="$gettext(item.text)"
                   :hint="showHint? $gettext(item.hint): ''"
