@@ -77,8 +77,8 @@ export default {
             </v-expansion-panel-header>
             <v-expansion-panel-content style="background-color:var(--v-background-lighten4) !important;">
               <li v-for="(item, key2) in group.params" :key="key2">
-                <v-text-field   
-                  v-if="typeof item.items === 'undefined'"
+                <v-text-field
+                  v-if="typeof item.items === 'undefined' && typeof item.value != 'boolean'"
                   v-model="item.value"
                   :type="item.type"
                   :label="$gettext(item.text)"
@@ -89,7 +89,15 @@ export default {
                   required
                   @wheel="()=>{}"
                 />
-                <v-select 
+                <v-switch
+                  v-else-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
+                  v-model="item.value"
+                  :label="$gettext(item.text)"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                  @wheel="()=>{}"
+                />
+                <v-select
                   v-else
                   v-model="item.value"
                   :type="item.type"
@@ -101,7 +109,7 @@ export default {
                   :rules="item.rules.map((rule) => rules[rule])"
                   required
                   @wheel="()=>{}"
-                />                
+                />
               </li>
             </v-expansion-panel-content>
           </v-expansion-panel>

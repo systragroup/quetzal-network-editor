@@ -17,6 +17,9 @@ export default {
     running () { return this.$store.getters['run/running'] },
     runError () { return this.$store.getters['run/error'] },
     runSychronized () { return this.$store.getters['run/synchronized'] },
+    isProtected () {
+      return this.$store.getters.protected.includes(this.$store.getters.scenario)
+    },
   },
   created () {
     this.menuItems = Router.options.routes.concat({
@@ -95,13 +98,16 @@ export default {
           v-for="( item,key ) in getDisplayedRoutes()"
           :key="key"
           class="drawer-list-item"
-          :disabled="['Save'].includes(item.name) && !$store.getters.scenario"
-          :class="[ $route.name !== item.name ? 'drawer-list-item-selected' : '']"
+          :disabled="(item.name === 'Save') && ((!$store.getters.scenario) || (isProtected))"
+          :class="[ $route.name === item.name ? 'drawer-list-item-selected' : '']"
           :style="{marginTop: item.name === 'Save' ? 'auto' : item.name ==='ResultMap'? '5rem' : '0' }"
           @click.native.stop
           @click="handleClickMenuItem(item)"
         >
-          <v-list-item-action class="drawer-list-item-icon">
+          <v-list-item-action
+            :class="(item.name === 'Save') && ((!$store.getters.scenario) || (isProtected))?
+              'drawer-list-item-icon-disabled':'drawer-list-item-icon'"
+          >
             <v-badge
               v-if="item.name==='Run' && (running || runError || !runSychronized)"
               :offset-x="running ? '12px' : '6px'"
@@ -195,7 +201,7 @@ export default {
 .drawer-list-item {
   padding: 0 13px !important;
   justify-content: flex-start !important;
-  color:white !important;
+  color:white ;
   flex: 0;
   transition: 0.3s;
 }
@@ -212,8 +218,15 @@ export default {
   margin: 0 !important;
   color: white;
 }
+.drawer-list-item-icon-disabled {
+  display: flex !important;
+  flex-flow: row !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  opacity: 0.4;
+}
 .drawer-list-item-selected {
-  background-color: var(--v-secondary-base);
+  background-color: var(--v-secondarydarkfix-base);
 }
 .drawer-list-item:hover {
   background-color: var(--v-secondary-base);

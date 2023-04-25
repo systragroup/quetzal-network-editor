@@ -62,7 +62,7 @@ msgstr ""
 msgid "Abort"
 msgstr "Anular"
 
-#: src/pages/Run.vue:101
+#: src/pages/Run.vue:115
 msgid "Abort Simulation"
 msgstr ""
 
@@ -88,7 +88,7 @@ msgstr ""
 msgid "apply"
 msgstr ""
 
-#: src/components/ParamForm.vue:109
+#: src/components/ParamForm.vue:120
 msgid "back to default"
 msgstr ""
 
@@ -130,7 +130,7 @@ msgstr "Cerrar"
 msgid "cmap to use"
 msgstr ""
 
-#: src/components/ParamForm.vue:119
+#: src/components/ParamForm.vue:130
 msgid "Collapse all"
 msgstr ""
 
@@ -276,7 +276,7 @@ msgstr "Editar propiedades de la línea"
 msgid "example"
 msgstr "Ejemplo"
 
-#: src/components/ParamForm.vue:119
+#: src/components/ParamForm.vue:130
 msgid "Expand all"
 msgstr ""
 
@@ -366,8 +366,9 @@ msgid ""
 "         subway, metro, rail, bus, ferry, tram, etc"
 msgstr ""
 
-#: src/components/ParamForm.vue:61 src/components/ParamForm.vue:63
-#: src/components/ParamForm.vue:75 src/components/ParamForm.vue:77
+#: src/components/ParamForm.vue:62 src/components/ParamForm.vue:64
+#: src/components/ParamForm.vue:75 src/components/ParamForm.vue:76
+#: src/components/ParamForm.vue:86 src/components/ParamForm.vue:88
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
 #: src/components/ResultsSettings.vue:197
@@ -705,7 +706,7 @@ msgstr "nodes.geojson y links.geojson"
 msgid "Roads"
 msgstr ""
 
-#: src/pages/Run.vue:90
+#: src/pages/Run.vue:104
 msgid "Run Simulation"
 msgstr ""
 
@@ -739,11 +740,11 @@ msgstr ""
 msgid "Scenario deleted"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:51 src/pages/Run.vue:24
+#: src/components/layout/NavigationDrawer.vue:51 src/pages/Run.vue:27
 msgid "Scenario saved"
 msgstr ""
 
-#: src/components/ParamForm.vue:25
+#: src/components/ParamForm.vue:26
 msgid "Scenario Settings"
 msgstr ""
 
@@ -839,6 +840,10 @@ msgstr "hay índices de nodos duplicados. Importación anulada"
 #, fuzzy
 msgid "there is no index in nodes. Import aborted"
 msgstr "hay índices de nodos duplicados. Importación anulada"
+
+#: src/pages/Run.vue:83
+msgid "This scenario is protected. You can not run simulation."
+msgstr ""
 
 #: src/components/ScenariosExplorer.vue:187
 #: src/components/utils/Profile.vue:152

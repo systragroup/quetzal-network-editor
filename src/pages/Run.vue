@@ -14,6 +14,9 @@ export default {
     currentStep () { return this.$store.getters['run/currentStep'] },
     error () { return this.$store.getters['run/error'] },
     synchronized () { return this.$store.getters['run/synchronized'] },
+    isProtected () {
+      return this.$store.getters.protected.includes(this.$store.getters.scenario)
+    },
   },
   created () {
     this.$store.dispatch('run/getSteps')
@@ -74,9 +77,18 @@ export default {
             {{ $gettext("Simulation ended with an execution error or have been aborted. \
             Please relauch simulation. If the problem persist, contact us.") }}
           </v-alert>
+          <v-alert
+            v-if="isProtected"
+            dense
+            outlined
+            text
+            type="error"
+          >
+            {{ $gettext("This scenario is protected. You can not run simulation.") }}
+          </v-alert>
           <v-btn
             :loading="running"
-            :disabled="running"
+            :disabled="running || isProtected"
             color="success"
             @click="run()"
           >

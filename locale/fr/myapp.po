@@ -73,7 +73,7 @@ msgstr ""
 msgid "Abort"
 msgstr "Annuler"
 
-#: src/pages/Run.vue:101
+#: src/pages/Run.vue:115
 msgid "Abort Simulation"
 msgstr "Abandonner la simulation"
 
@@ -100,7 +100,7 @@ msgstr "Une erreur s'est produite"
 msgid "apply"
 msgstr "appliquer"
 
-#: src/components/ParamForm.vue:109
+#: src/components/ParamForm.vue:120
 msgid "back to default"
 msgstr "Valeurs par défaut"
 
@@ -141,7 +141,7 @@ msgstr "Fermer"
 msgid "cmap to use"
 msgstr "palette de couleur à utiliser"
 
-#: src/components/ParamForm.vue:119
+#: src/components/ParamForm.vue:130
 msgid "Collapse all"
 msgstr "Réduire tout"
 
@@ -282,7 +282,7 @@ msgstr "Modifier les propriétés des visibles"
 msgid "example"
 msgstr "Exemple"
 
-#: src/components/ParamForm.vue:119
+#: src/components/ParamForm.vue:130
 msgid "Expand all"
 msgstr "Étendre tout"
 
@@ -375,8 +375,9 @@ msgstr ""
 "Indique le type de transport utilisé sur un itinéraire.\n"
 "         subway, metro, rail, bus, ferry, tram, etc"
 
-#: src/components/ParamForm.vue:61 src/components/ParamForm.vue:63
-#: src/components/ParamForm.vue:75 src/components/ParamForm.vue:77
+#: src/components/ParamForm.vue:62 src/components/ParamForm.vue:64
+#: src/components/ParamForm.vue:75 src/components/ParamForm.vue:76
+#: src/components/ParamForm.vue:86 src/components/ParamForm.vue:88
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
 #: src/components/ResultsSettings.vue:197
@@ -709,7 +710,7 @@ msgstr "road_nodes.geojson et road_links.geojson"
 msgid "Roads"
 msgstr "Routes"
 
-#: src/pages/Run.vue:90
+#: src/pages/Run.vue:104
 msgid "Run Simulation"
 msgstr "Executer la simulation"
 
@@ -745,11 +746,11 @@ msgstr "Scénario créé"
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
-#: src/components/layout/NavigationDrawer.vue:51 src/pages/Run.vue:24
+#: src/components/layout/NavigationDrawer.vue:51 src/pages/Run.vue:27
 msgid "Scenario saved"
 msgstr "Scénario sauvegardé"
 
-#: src/components/ParamForm.vue:25
+#: src/components/ParamForm.vue:26
 msgid "Scenario Settings"
 msgstr "Paramètres de simulation"
 
@@ -857,6 +858,10 @@ msgstr ""
 msgid "there is no index in nodes. Import aborted"
 msgstr ""
 "il y a des index de liens ou de noeds en double. Importation interrompue"
+
+#: src/pages/Run.vue:83
+msgid "This scenario is protected. You can not run simulation."
+msgstr "Ce scénario est protégé. L'execution de la simulation est bloquée."
 
 #: src/components/ScenariosExplorer.vue:187
 #: src/components/utils/Profile.vue:152
