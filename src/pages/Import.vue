@@ -64,7 +64,6 @@ export default {
       if (!this.projectIsEmpty) {
         this.$store.commit('initNetworks')
         this.$store.commit('unloadLayers')
-        this.$store.commit('run/cleanRun')
         this.message = []
       }
       this.$store.commit('changeLoading', true)
@@ -234,8 +233,9 @@ export default {
     applyDialog () {
       // this only happen when both files are loaded.
       // remove links and nodes from store. (and filesAreLoaded)
-      this.$store.commit('unloadFiles')
-      this.$store.commit('unloadrFiles')
+      this.$store.commit('initNetworks')
+      this.$store.commit('unloadLayers')
+      this.$store.commit('run/cleanRun')
 
       if (this.choice === 'example1') {
         this.loadExample(['PT', 'road'])
