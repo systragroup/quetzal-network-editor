@@ -171,11 +171,11 @@ msgstr "Créer une nouvelle ligne"
 
 #: src/components/ResultsSettings.vue:91
 msgid "custom scale"
-msgstr ""
+msgstr "échelle personnalisée"
 
 #: src/components/ResultsSettings.vue:93
 msgid "customize to inputs values"
-msgstr ""
+msgstr "personnaliser l'échelle"
 
 #: src/components/EditorLinks.vue:141
 msgid "Cut After Node"
@@ -320,10 +320,9 @@ msgstr "le fichier n'est pas un zip"
 
 #: src/pages/Import.vue:153 src/pages/Import.vue:169 src/pages/Import.vue:185
 #: src/store/run.js:92 src/store/run.js:111 src/store/run.js:130
-#, fuzzy
 msgid "fileName there is no index. Import aborted"
 msgstr ""
-"il y a des index de liens ou de noeds en double. Importation interrompue"
+"il n'y a pas d'index. Importation interrompue"
 
 #: src/components/LinksSidePanel.vue:182
 #: src/components/ResultsSidePanel.vue:151 src/components/RoadSidePanel.vue:172
@@ -479,7 +478,7 @@ msgstr "Carte"
 
 #: src/components/ResultsSettings.vue:88
 msgid "maximum value on the color Map"
-msgstr ""
+msgstr "valeur maximal sur la palette de couleur"
 
 #: src/components/ResultsSettings.vue:23 src/components/ResultsSettings.vue:27
 msgid "maxWidth"
@@ -491,7 +490,7 @@ msgstr "mess"
 
 #: src/components/ResultsSettings.vue:81
 msgid "mininum value on the color Map"
-msgstr ""
+msgstr "Valeur minimal sur la palette de couleur"
 
 #: src/components/ResultsSettings.vue:30 src/components/ResultsSettings.vue:34
 msgid "minWidth"
@@ -558,7 +557,7 @@ msgstr "nodes.geojson et links.geojson"
 
 #: src/pages/ResultPicture.vue:30
 msgid "Nothing to display"
-msgstr ""
+msgstr "Rien à afficher"
 
 #: src/components/ResultsSettings.vue:37 src/components/ResultsSettings.vue:41
 msgid "numStep"
@@ -589,7 +588,6 @@ msgid "Parameters and Run"
 msgstr "Parametres et execution"
 
 #: src/components/ParamForm.vue:10
-#, fuzzy
 msgid "project Name"
 msgstr "Projet écrasée"
 
@@ -729,12 +727,10 @@ msgid "scale"
 msgstr "Échelle"
 
 #: src/components/ResultsSettings.vue:84
-#, fuzzy
 msgid "scale max"
 msgstr "Échelle"
 
 #: src/components/ResultsSettings.vue:77
-#, fuzzy
 msgid "scale min"
 msgstr "Échelle"
 
