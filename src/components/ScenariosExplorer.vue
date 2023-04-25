@@ -64,6 +64,7 @@ export default {
       }
     },
     async loadProject () {
+      this.$store.commit('run/cleanRun')
       this.$store.commit('setModel', this.localModel)
       this.$store.commit('setScenario', this.localScen)
       await this.$store.dispatch('getConfig')
