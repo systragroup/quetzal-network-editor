@@ -64,7 +64,7 @@ msgstr ""
 msgid "Abort"
 msgstr ""
 
-#: src/pages/Run.vue:101
+#: src/pages/Run.vue:115
 msgid "Abort Simulation"
 msgstr ""
 
@@ -96,7 +96,7 @@ msgstr ""
 msgid "apply"
 msgstr ""
 
-#: src/components/ParamForm.vue:109
+#: src/components/ParamForm.vue:120
 msgid "back to default"
 msgstr ""
 
@@ -140,7 +140,7 @@ msgstr ""
 msgid "cmap to use"
 msgstr ""
 
-#: src/components/ParamForm.vue:119
+#: src/components/ParamForm.vue:130
 msgid "Collapse all"
 msgstr ""
 
@@ -283,7 +283,7 @@ msgstr ""
 msgid "example"
 msgstr ""
 
-#: src/components/ParamForm.vue:119
+#: src/components/ParamForm.vue:130
 msgid "Expand all"
 msgstr ""
 
@@ -377,10 +377,12 @@ msgid ""
 "         subway, metro, rail, bus, ferry, tram, etc"
 msgstr ""
 
-#: src/components/ParamForm.vue:61
-#: src/components/ParamForm.vue:63
+#: src/components/ParamForm.vue:62
+#: src/components/ParamForm.vue:64
 #: src/components/ParamForm.vue:75
-#: src/components/ParamForm.vue:77
+#: src/components/ParamForm.vue:76
+#: src/components/ParamForm.vue:86
+#: src/components/ParamForm.vue:88
 #: src/components/ResultsSettings.vue:116
 #: src/components/ResultsSettings.vue:118
 #: src/components/ResultsSettings.vue:197
@@ -713,7 +715,7 @@ msgstr ""
 msgid "Roads"
 msgstr ""
 
-#: src/pages/Run.vue:90
+#: src/pages/Run.vue:104
 msgid "Run Simulation"
 msgstr ""
 
@@ -752,11 +754,11 @@ msgid "Scenario deleted"
 msgstr ""
 
 #: src/components/layout/NavigationDrawer.vue:51
-#: src/pages/Run.vue:24
+#: src/pages/Run.vue:27
 msgid "Scenario saved"
 msgstr ""
 
-#: src/components/ParamForm.vue:25
+#: src/components/ParamForm.vue:26
 msgid "Scenario Settings"
 msgstr ""
 
@@ -849,6 +851,10 @@ msgstr ""
 
 #: src/pages/Import.vue:117
 msgid "there is no index in nodes. Import aborted"
+msgstr ""
+
+#: src/pages/Run.vue:83
+msgid "This scenario is protected. You can not run simulation."
 msgstr ""
 
 #: src/components/ScenariosExplorer.vue:187

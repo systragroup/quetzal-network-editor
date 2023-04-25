@@ -77,6 +77,15 @@ export default {
             {{ $gettext("Simulation ended with an execution error or have been aborted. \
             Please relauch simulation. If the problem persist, contact us.") }}
           </v-alert>
+          <v-alert
+            v-if="isProtected"
+            dense
+            outlined
+            text
+            type="error"
+          >
+            {{ $gettext("This scenario is protected. You can not run simulation.") }}
+          </v-alert>
           <v-btn
             :loading="running"
             :disabled="running || isProtected"
