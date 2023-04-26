@@ -24,30 +24,49 @@ export default {
       bbox: null,
       poly: null,
       selectedHighway: null,
-      highwayList: ['motorway',
+      highwayList: [
+        'motorway',
         'motorway_link',
-        'secondary',
         'trunk',
-        'residential',
-        'tertiary',
-        'primary',
-        'unclassified',
         'trunk_link',
-        'secondary_link',
+        'primary',
         'primary_link',
+        'secondary',
+        'secondary_link',
+        'tertiary',
         'tertiary_link',
-        'service'],
-      defaultHighway: ['motorway',
+        'residential',
+        'service',
+        'unclassified',
+      ],
+      defaultHighway: [
+        'motorway',
         'motorway_link',
         'trunk',
-        'primary',
         'trunk_link',
+        'primary',
         'primary_link'],
       tags: ['highway', 'maxspeed', 'lanes', 'name', 'oneway', 'surface'],
       callID: uuid(),
       importStatus: null,
       bucketOSM: 'quenedi-osm',
       isUserSignedIn: auth.auth.isUserSignedIn(),
+      colorDict: {
+        motorway: 'E892A2',
+        motorway_link: 'E892A2',
+        trunk: 'E892A2',
+        trunk_link: 'E892A2',
+        primary: 'FCD6A4',
+        primary_link: 'FCD6A4',
+        secondary: 'F7F9BE',
+        secondary_link: 'F7F9BE',
+        tertiary: '808080',
+        tertiary_link: '808080',
+        residential: '808080',
+        service: '808080',
+        unclassified: '808080',
+
+      },
     }
   },
   computed: {
@@ -129,8 +148,18 @@ export default {
           }).catch(e => { console.log(e) })
       }, 1000)
     },
+    applyDict (rlinks) {
+      // 00BCD4
+      Object.keys(this.colorDict).forEach(highway => {
+        rlinks.features.filter(link => link.properties.highway === highway).forEach(
+          link => { link.properties.route_color = this.colorDict[highway] })
+      })
+
+      return rlinks
+    },
     async downloadOSMFromS3 () {
-      const rlinks = await s3.readJson(this.bucketOSM, this.callID.concat('/links.geojson'))
+      let rlinks = await s3.readJson(this.bucketOSM, this.callID.concat('/links.geojson'))
+      rlinks = this.applyDict(rlinks)
       this.$store.commit('loadrLinks', rlinks)
       const rnodes = await s3.readJson(this.bucketOSM, this.callID.concat('/nodes.geojson'))
       this.$store.commit('loadrNodes', rnodes)
