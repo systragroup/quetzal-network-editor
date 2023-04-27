@@ -4,6 +4,7 @@
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
 import booleanContains from '@turf/boolean-contains'
+import booleanCrosses from '@turf/boolean-crosses'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
 const $gettext = s => s
@@ -91,12 +92,16 @@ export default {
       // if not, getting all anchorpoint would be very intensive!!
       // this way, only a small number of anchor points are computed
       if (this.map.getZoom() > this.minZoom.rendered) {
-        // this.renderedrLinks.features = this.rlinks.features.filter(link => booleanContains(this.bbox, link))
-        this.renderedrNodes.features = this.rnodes.features.filter(node => booleanContains(this.bbox, node))
+        // get links in or intersecting with bbox
+        this.renderedrLinks.features = this.rlinks.features.filter(
+          link => (booleanContains(this.bbox, link) || booleanCrosses(this.bbox, link)))
+        // get rendered nodes
+        const a = this.renderedrLinks.features.map(item => item.properties.a)
+        const b = this.renderedrLinks.features.map(item => item.properties.b)
+        const rNodesList = new Set([...a, ...b])
+        // filter with rnodesList
+        this.renderedrNodes.features = this.rnodes.features.filter(node => rNodesList.has(node.properties.index))
         this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
-
-        const nodeSet = new Set(this.renderedrNodes.features.map(node => node.properties.index))
-        this.renderedrLinks.features = this.rlinks.features.filter(link => nodeSet.has(link.properties.a) | nodeSet.has(link.properties.b))
       } else if (this.map.getZoom() > this.minZoom.links) {
         // ion this case. nodes are unloaded. we display links.
         this.renderedrLinks.features = this.rlinks.features
