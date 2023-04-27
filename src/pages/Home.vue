@@ -121,7 +121,7 @@ export default {
   created () {
     this.editorTrip = this.$store.getters.editorTrip
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Control') {
+      if ((e.key === 'Control') && (!this.showDialog) && (!this.cloneDialog)) {
         this.$store.commit('changeAnchorMode')
       }
     })
