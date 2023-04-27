@@ -65,7 +65,21 @@ export default {
         residential: '808080',
         service: '808080',
         unclassified: '808080',
-
+      },
+      widthDict: {
+        motorway: 4,
+        motorway_link: 4,
+        trunk: 4,
+        trunk_link: 4,
+        primary: 4,
+        primary_link: 4,
+        secondary: 3,
+        secondary_link: 3,
+        tertiary: 2,
+        tertiary_link: 2,
+        residential: 2,
+        service: 2,
+        unclassified: 2,
       },
     }
   },
@@ -152,7 +166,10 @@ export default {
       // 00BCD4
       Object.keys(this.colorDict).forEach(highway => {
         rlinks.features.filter(link => link.properties.highway === highway).forEach(
-          link => { link.properties.route_color = this.colorDict[highway] })
+          link => {
+            link.properties.route_width = this.widthDict[highway]
+            link.properties.route_color = this.colorDict[highway]
+          })
       })
 
       return rlinks
