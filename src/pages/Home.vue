@@ -37,6 +37,7 @@ export default {
       isRoadMode: false,
       showHint: false,
       newFieldName: null,
+      linkDir: [],
       rules: {
         newField: [
           val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
@@ -167,8 +168,8 @@ export default {
         this.showDialog = true
       } else if (this.action === 'Edit rLink Info') {
         this.selectedLink = event.selectedIndex
-
         this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
+        this.linkDir = this.$store.getters.rlinkDirection(this.selectedLink)
         this.showDialog = true
       } else if (this.action === 'Edit Road Group Info') {
         const features = this.$store.getters.grouprLinks(event.category, event.group)
@@ -474,6 +475,15 @@ export default {
               :key="idx"
             >
               <v-list>
+                <v-list-item v-if="numLinks > 1">
+                  <v-icon
+                    :style="{'align-items':'center',
+                             'justify-content': 'center',
+                             transform: 'rotate('+linkDir[idx]+'deg)'}"
+                  >
+                    fas fa-long-arrow-alt-up
+                  </v-icon>
+                </v-list-item>
                 <v-text-field
                   v-for="(value, key) in orderedForm(idx)"
                   :key="key"

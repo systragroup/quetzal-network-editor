@@ -5,6 +5,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
+import bearing from '@turf/bearing'
 
 const short = require('short-uuid')
 
@@ -543,6 +544,15 @@ export default {
       )
 
       return nodes
+    },
+    rlinkDirection: (state) => (indexList) => {
+      const links = state.rlinks.features.filter(link => indexList.includes(link.properties.index))
+      const res = []
+      links.forEach(link => {
+        const geom = link.geometry.coordinates
+        res.push(bearing(geom[0], geom[geom.length - 1]))
+      })
+      return res
     },
     grouprLinks: (state) => (category, group) => {
       return state.rlinks.features.filter(link => group === link.properties[category])
