@@ -38,6 +38,7 @@ export default {
       maxVal: 1,
       cmap: 'OrRd',
       opacity: 100,
+      offset: false,
       showNaN: true,
       reverseColor: false,
     },
@@ -100,6 +101,7 @@ export default {
       state.displaySettings.minVal = payload.minVal
       state.displaySettings.maxVal = payload.maxVal
       state.displaySettings.fixScale = payload.fixScale
+      state.displaySettings.offset = payload.offset
       this.commit('results/refreshVisibleLinks')
 
       this.commit('results/updateSelectedFeature')
