@@ -3,6 +3,7 @@
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
+import centroid from '@turf/centroid'
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 
 export default {
@@ -16,7 +17,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['links', 'selectedFeature', 'opacity'],
+  props: ['links', 'selectedFeature', 'opacity', 'offset'],
   events: ['selectClick'],
 
   data () {
@@ -34,6 +35,7 @@ export default {
   computed: {
     mapStyle () { return this.$store.getters.mapStyle },
     layerType () { return this.$store.getters['results/type'] },
+    offsetValue () { return this.offset ? -1 : 1 },
 
   },
   watch: {
@@ -137,6 +139,20 @@ export default {
         this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'zoneClick' })
       }
     },
+    zoneHover (event) {
+      if (this.selectedLinks[0]?.id !== event.mapboxEvent.features[0].id) {
+        // event.map.getCanvas().style.cursor = 'pointer'
+        this.selectedLinks = event.mapboxEvent.features
+        if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
+        if (this.selectedFeature.length > 0) { // do not show popup if nothing is selected
+          const val = this.selectedLinks[0].properties[this.selectedFeature]
+          this.popup = new mapboxgl.Popup({ closeButton: false })
+            .setLngLat(centroid(this.selectedLinks[0].geometry).geometry.coordinates)
+            .setHTML(`${this.selectedFeature}: <br> ${val}`)
+            .addTo(event.map)
+        }
+      }
+    },
 
   },
 }
@@ -170,7 +186,7 @@ export default {
         minzoom: minZoom.links,
         paint: {
           'line-color': ['case', ['has', 'display_color'],['get', 'display_color'], '#B5E0D6'],
-          'line-offset': ['*',0.5,['to-number', ['get', 'display_width']]],
+          'line-offset': ['*',offsetValue*0.5,['to-number', ['get', 'display_width']]],
           'line-opacity':opacity/100,
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0],
           'line-width':['case', ['has', 'display_width'], ['get', 'display_width'], 4],
@@ -233,7 +249,7 @@ export default {
           'icon-image':'arrow',
           'icon-size': ['*',0.1,['to-number', ['get', 'display_width']]],
           'icon-rotate': 90,
-          'icon-offset': [5,5],
+          'icon-offset': [offsetValue*5,5],
 
         },
         paint: {
@@ -262,8 +278,9 @@ export default {
 
         }
       }"
-      @mouseenter="enterLink"
-      @mouseleave="leaveLink"
+      @mouseenter="(event)=> event.map.getCanvas().style.cursor = 'pointer'"
+      @mouseleave="(event)=> event.map.getCanvas().style.cursor = ''"
+      @mousemove="zoneHover"
       @click="zoneClick"
       @contextmenu="selectClick"
     />

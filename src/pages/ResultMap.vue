@@ -158,6 +158,7 @@ export default {
       :links="visibleLinks"
       :selected-feature="displaySettings.selectedFeature"
       :opacity="displaySettings.opacity"
+      :offset="displaySettings.offset"
       @selectClick="featureClicked"
     />
 

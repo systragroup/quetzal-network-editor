@@ -34,10 +34,10 @@ export default {
       errorMessage: null,
       lingering: true,
       groupTripIds: [],
-      selectedTab: 0,
       isRoadMode: false,
       showHint: false,
       newFieldName: null,
+      linkDir: [],
       rules: {
         newField: [
           val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
@@ -81,25 +81,8 @@ export default {
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
     selectedrGroup () { return this.$store.getters.selectedrGroup },
-    orderedForm () {
-      // order editor Form in alphatical order
-      let form = this.editorForm
-      // if we have tab. there is a list of form
-      if (form.length >= 1) {
-        form = form[this.selectedTab]
-      }
-      // order keys in alphabetical order, and with disabled last
-      const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
-      keys.push(...Object.keys(form).filter(key => form[key].disabled).sort())
-      const ordered = keys.reduce(
-        (obj, key) => {
-          obj[key] = form[key]
-          return obj
-        },
-        {},
-      )
-      return ordered
-    },
+    numLinks () { return Array.isArray(this.editorForm) ? this.editorForm.length : 1 },
+
     editForm () {
       return ['Edit Line Info',
         'Edit Link Info',
@@ -128,6 +111,25 @@ export default {
   },
 
   methods: {
+    orderedForm (index) {
+      // order editor Form in alphatical order
+      let form = this.editorForm
+      // if we have tab. there is a list of form
+      if (form.length >= 1) {
+        form = form[index]
+      }
+      // order keys in alphabetical order, and with disabled last
+      const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
+      keys.push(...Object.keys(form).filter(key => form[key].disabled).sort())
+      const ordered = keys.reduce(
+        (obj, key) => {
+          obj[key] = form[key]
+          return obj
+        },
+        {},
+      )
+      return ordered
+    },
 
     updateSelectedTrips (event) {
       if (event.type === 'links') {
@@ -166,9 +168,8 @@ export default {
         this.showDialog = true
       } else if (this.action === 'Edit rLink Info') {
         this.selectedLink = event.selectedIndex
-        this.selectedTab = 0
-
         this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
+        this.linkDir = this.$store.getters.rlinkDirection(this.selectedLink)
         this.showDialog = true
       } else if (this.action === 'Edit Road Group Info') {
         const features = this.$store.getters.grouprLinks(event.category, event.group)
@@ -408,7 +409,7 @@ export default {
     addField () {
       let form = {}
       if (Array.isArray(this.editorForm)) {
-        form = structuredClone(this.editorForm[this.selectedTab])
+        form = structuredClone(this.editorForm[0])
       } else {
         form = structuredClone(this.editorForm)
       }
@@ -456,78 +457,80 @@ export default {
       v-model="showDialog"
       scrollable
       persistent
-      max-width="300"
+      :max-width="numLinks>1? '40rem':'20rem'"
       @keydown.enter="applyAction"
       @keydown.esc="cancelAction"
     >
       <v-card
         max-height="60rem"
       >
-        <v-tabs
-          v-if=" (editorForm.length > 1) "
-          v-model="selectedTab"
-          grow
-        >
-          <v-tab
-            v-for="link in selectedLink"
-            :key="link"
-          >
-            {{ link }}
-          </v-tab>
-        </v-tabs>
         <v-card-title class="text-h5">
           {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ message + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
-        <v-card-text
-          v-if="editForm"
-        >
-          <v-list>
-            <v-text-field
-              v-for="(value, key) in orderedForm"
-              :key="key"
-              v-model="value['value']"
-              :label="key"
-              :hint="showHint? $gettext(hints[key]): ''"
-              :persistent-hint="showHint"
-              :filled="!value['disabled']"
-              :type="$store.getters.attributeType(key)"
-              :placeholder="value['placeholder']? $gettext('multiple Values'):''"
-              :persistent-placeholder=" value['placeholder']? true:false "
-              :disabled="value['disabled']"
-              @wheel="$event.target.blur()"
+        <v-card-text v-if="editForm">
+          <v-row>
+            <v-col
+              v-for="(n,idx) in numLinks"
+              :key="idx"
             >
-              <template
-                v-if="key==='route_color'"
-                v-slot:append
-              >
-                <color-picker
+              <v-list>
+                <v-list-item v-if="numLinks > 1">
+                  <v-icon
+                    :style="{'align-items':'center',
+                             'justify-content': 'center',
+                             transform: 'rotate('+linkDir[idx]+'deg)'}"
+                  >
+                    fas fa-long-arrow-alt-up
+                  </v-icon>
+                </v-list-item>
+                <v-text-field
+                  v-for="(value, key) in orderedForm(idx)"
+                  :key="key"
                   v-model="value['value']"
-                />
-              </template>
-            </v-text-field>
-            <v-text-field
-              v-model="newFieldName"
-              :label=" $gettext('add field')"
-              :placeholder="$gettext('new field name')"
-              filled
-              :rules="rules.newField"
-              @keydown.enter.stop="addField"
-              @wheel="$event.target.blur()"
-            >
-              <template v-slot:append-outer>
-                <v-btn
-                  color="primary"
-                  class="text--primary"
-                  fab
-                  x-small
-                  @click="addField"
+                  :label="key"
+                  :hint="showHint? $gettext(hints[key]): ''"
+                  :persistent-hint="showHint"
+                  :filled="!value['disabled']"
+                  :type="$store.getters.attributeType(key)"
+                  :placeholder="value['placeholder']? $gettext('multiple Values'):''"
+                  :persistent-placeholder=" value['placeholder']? true:false "
+                  :disabled="value['disabled']"
+                  @wheel="$event.target.blur()"
                 >
-                  <v-icon>fas fa-plus</v-icon>
-                </v-btn>
-              </template>
-            </v-text-field>
-          </v-list>
+                  <template
+                    v-if="key==='route_color'"
+                    v-slot:append
+                  >
+                    <color-picker
+                      v-model="value['value']"
+                    />
+                  </template>
+                </v-text-field>
+                <v-text-field
+                  v-model="newFieldName"
+                  :label=" $gettext('add field')"
+                  :placeholder="$gettext('new field name')"
+                  filled
+                  :rules="rules.newField"
+                  @keydown.enter.stop="addField"
+                  @wheel="$event.target.blur()"
+                >
+                  <template v-slot:append-outer>
+                    <v-btn
+                      color="primary"
+                      class="text--primary"
+                      fab
+                      x-small
+                      @click="addField"
+                    >
+                      <v-icon>fas fa-plus</v-icon>
+                    </v-btn>
+                  </template>
+                </v-text-field>
+              </v-list>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-text v-if="['cloneTrip'].includes(action)">
           <v-text-field

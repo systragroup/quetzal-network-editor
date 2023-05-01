@@ -38,6 +38,7 @@ export default {
         'residential',
         'service',
         'unclassified',
+        'cycleway',
       ],
       defaultHighway: [
         'motorway',
@@ -65,6 +66,7 @@ export default {
         residential: '808080',
         service: '808080',
         unclassified: '808080',
+        cycleway: '1D8621',
       },
       widthDict: {
         motorway: 4,
@@ -80,6 +82,7 @@ export default {
         residential: 2,
         service: 2,
         unclassified: 2,
+        cycleway: 2,
       },
     }
   },

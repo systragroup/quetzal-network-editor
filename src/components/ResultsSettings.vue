@@ -93,6 +93,11 @@ export default {
         value: this.displaySettings.fixScale,
         hint: $gettext('customize to inputs values'),
       },
+      {
+        name: $gettext('Left side driving'),
+        value: this.displaySettings.offset,
+        hint: $gettext('Select which side of the road the links are display'),
+      },
 
       ],
       errorMessage: null,
@@ -153,6 +158,7 @@ export default {
       this.parameters[9].value = this.displaySettings.minVal
       this.parameters[10].value = this.displaySettings.maxVal
       this.parameters[11].value = this.displaySettings.fixScale
+      this.parameters[12].value = this.displaySettings.offset
     },
     submit () {
       if (this.$refs.form.validate()) {
@@ -169,6 +175,7 @@ export default {
           minVal: Number(this.parameters[9].value),
           maxVal: Number(this.parameters[10].value),
           fixScale: this.parameters[11].value,
+          offset: this.parameters[12].value,
         })
         // this.showDialog = false
       } else {
@@ -214,6 +221,7 @@ export default {
     </template>
     <v-card
       :class="{'shake':shake}"
+      :max-width="'20rem'"
       @keydown.enter="submit"
       @keydown.esc="cancel"
     >
@@ -248,15 +256,29 @@ export default {
                 :persistent-hint="showHint"
                 required
               />
+              <v-row>
+                <v-col
+                  v-for="item in parameters.slice(1,3)"
+                  :key="item.name"
+                >
+                  <v-text-field
+                    v-model="item.value"
+                    :type="item.type"
+                    :label="$gettext(item.name)"
+                    :suffix="item.units"
+                    :hint="showHint? $gettext(item.hint): ''"
+                    :persistent-hint="showHint"
+                    required
+                    @wheel="()=>{}"
+                  />
+                </v-col>
+              </v-row>
               <v-text-field
-                v-for="item in parameters.slice(1,4)"
-                :key="item.name"
-                v-model="item.value"
-                :type="item.type"
-
-                :label="$gettext(item.name)"
-                :suffix="item.units"
-                :hint="showHint? $gettext(item.hint): ''"
+                v-model="parameters[3].value"
+                :type="parameters[3].type"
+                :label="$gettext(parameters[3].name)"
+                :suffix="parameters[3].units"
+                :hint="showHint? $gettext(parameters[3].hint): ''"
                 :persistent-hint="showHint"
                 required
                 @wheel="()=>{}"
@@ -296,6 +318,7 @@ export default {
                 class="align-center"
                 inverse-label
                 :label="$gettext(parameters[4].name)"
+                track-color="secondary"
                 :max="100"
                 thumb-label
                 :min="0"
@@ -306,19 +329,32 @@ export default {
                 </template>
               </v-slider>
               <v-switch
+                :key="parameters[12].name"
+                v-model="parameters[12].value"
+                :label="$gettext(parameters[12].name)"
+                :hint="showHint? $gettext(parameters[12].hint): ''"
+                :persistent-hint="showHint"
+              />
+              <v-switch
                 :key="parameters[7].name"
                 v-model="parameters[7].value"
                 :label="$gettext(parameters[7].name)"
+                :hint="showHint? $gettext(parameters[7].hint): ''"
+                :persistent-hint="showHint"
               />
               <v-switch
                 :key="parameters[8].name"
                 v-model="parameters[8].value"
                 :label="$gettext(parameters[8].name)"
+                :hint="showHint? $gettext(parameters[7].hint): ''"
+                :persistent-hint="showHint"
               />
               <v-switch
                 :key="parameters[11].name"
                 v-model="parameters[11].value"
                 :label="$gettext(parameters[11].name)"
+                :hint="showHint? $gettext(parameters[11].hint): ''"
+                :persistent-hint="showHint"
                 @click="toggleFixScale(parameters[11].name)"
               />
               <v-text-field

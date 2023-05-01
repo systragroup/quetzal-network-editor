@@ -68,6 +68,7 @@ export default {
   getters: {
     layer: (state) => state.layer,
     type: (state) => state.type,
+    properties: (state) => state.properties,
     hasOD: (state) => state.properties.length > 0,
     mat: (state) => {
       // remove OD in matrix names.

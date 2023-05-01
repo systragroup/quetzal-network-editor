@@ -13,16 +13,23 @@ msgstr ""
 "Generated-By: easygettext\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/App.vue:64 src/components/ResultsSettings.vue:105
-#: src/components/ResultsSettings.vue:106
-#: src/components/ResultsSettings.vue:128
-#: src/components/ResultsSettings.vue:129
-#: src/components/ResultsSettings.vue:137
-#: src/components/ResultsSettings.vue:138
+#: src/App.vue:64 src/components/ResultsSettings.vue:107
+#: src/components/ResultsSettings.vue:108
+#: src/components/ResultsSettings.vue:141
+#: src/components/ResultsSettings.vue:143
+#: src/components/ResultsSettings.vue:152
+#: src/components/ResultsSettings.vue:153
 #: src/components/ResultsSettings.vue:161
-#: src/components/ResultsSettings.vue:176
-#: src/components/ResultsSettings.vue:182
-#: src/components/ResultsSettings.vue:188 src/components/Settings.vue:49
+#: src/components/ResultsSettings.vue:162
+#: src/components/ResultsSettings.vue:185
+#: src/components/ResultsSettings.vue:201
+#: src/components/ResultsSettings.vue:202
+#: src/components/ResultsSettings.vue:209
+#: src/components/ResultsSettings.vue:210
+#: src/components/ResultsSettings.vue:217
+#: src/components/ResultsSettings.vue:218
+#: src/components/ResultsSettings.vue:225
+#: src/components/ResultsSettings.vue:226 src/components/Settings.vue:49
 #: src/components/Settings.vue:51 src/components/Settings.vue:61
 #: src/components/Settings.vue:63 src/components/Settings.vue:73
 #: src/components/Settings.vue:74 src/components/Settings.vue:84
@@ -33,7 +40,7 @@ msgstr ""
 msgid "_ctx"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:37
+#: src/components/layout/NavigationDrawer.vue:40
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr "%{s}"
@@ -85,14 +92,14 @@ msgstr ""
 msgid "add field"
 msgstr "ajouter un champ"
 
-#: src/pages/Import.vue:255 src/pages/Import.vue:258 src/pages/Import.vue:264
-#: src/pages/Import.vue:267 src/pages/Import.vue:273 src/pages/Import.vue:278
-#: src/pages/Import.vue:285 src/pages/Import.vue:288
+#: src/pages/Import.vue:256 src/pages/Import.vue:259 src/pages/Import.vue:265
+#: src/pages/Import.vue:268 src/pages/Import.vue:274 src/pages/Import.vue:279
+#: src/pages/Import.vue:286 src/pages/Import.vue:289
 msgid "An error occur fetching example on github"
 msgstr ""
 "Une erreur s'est produite lors de la récupération de l'exemple sur github"
 
-#: src/components/ScenariosExplorer.vue:100
+#: src/components/ScenariosExplorer.vue:110
 msgid "An error occured"
 msgstr "Une erreur s'est produite"
 
@@ -108,7 +115,7 @@ msgstr "Valeurs par défaut"
 msgid "cancel"
 msgstr "Annuler"
 
-#: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:227
+#: src/components/LinksSidePanel.vue:622 src/components/ResultsSettings.vue:266
 #: src/components/RoadSidePanel.vue:347
 #: src/components/ScenariosExplorer.vue:251
 #: src/components/ScenariosExplorer.vue:328 src/components/Settings.vue:133
@@ -205,7 +212,7 @@ msgstr "Supprimer le groupe"
 msgid "Delete Line"
 msgstr "Supprimer"
 
-#: src/components/RoadLinks.vue:202
+#: src/components/RoadLinks.vue:207
 msgid "Delete rLink"
 msgstr "Supprimer"
 
@@ -270,7 +277,7 @@ msgstr "Modifier les infos"
 msgid "Edit Properties"
 msgstr "Modifier"
 
-#: src/components/RoadLinks.vue:201
+#: src/components/RoadLinks.vue:206
 msgid "Edit rLink Info"
 msgstr "Modifier les infos"
 
@@ -286,7 +293,7 @@ msgstr "Exemple"
 msgid "Expand all"
 msgstr "Étendre tout"
 
-#: src/components/layout/NavigationDrawer.vue:29
+#: src/components/layout/NavigationDrawer.vue:32
 msgid "Export"
 msgstr "Exporter"
 
@@ -310,19 +317,18 @@ msgstr "Champ ajouté"
 msgid "field already exist"
 msgstr "Le champ existe déjà"
 
-#: src/pages/Import.vue:322
+#: src/pages/Import.vue:323
 msgid "file is not a geojson"
 msgstr "le fichier n'est pas un geojson"
 
-#: src/pages/Import.vue:377
+#: src/pages/Import.vue:378
 msgid "file is not a zip"
 msgstr "le fichier n'est pas un zip"
 
 #: src/pages/Import.vue:153 src/pages/Import.vue:169 src/pages/Import.vue:185
-#: src/store/run.js:92 src/store/run.js:111 src/store/run.js:130
+#: src/store/run.js:93 src/store/run.js:112 src/store/run.js:131
 msgid "fileName there is no index. Import aborted"
-msgstr ""
-"il n'y a pas d'index. Importation interrompue"
+msgstr "il n'y a pas d'index. Importation interrompue"
 
 #: src/components/LinksSidePanel.vue:182
 #: src/components/ResultsSidePanel.vue:151 src/components/RoadSidePanel.vue:172
@@ -377,14 +383,14 @@ msgstr ""
 #: src/components/ParamForm.vue:62 src/components/ParamForm.vue:64
 #: src/components/ParamForm.vue:75 src/components/ParamForm.vue:76
 #: src/components/ParamForm.vue:86 src/components/ParamForm.vue:88
-#: src/components/ResultsSettings.vue:116
-#: src/components/ResultsSettings.vue:118
-#: src/components/ResultsSettings.vue:197
-#: src/components/ResultsSettings.vue:199
-#: src/components/layout/NavigationDrawer.vue:79
-#: src/components/layout/NavigationDrawer.vue:107
-#: src/components/layout/NavigationDrawer.vue:120
-#: src/components/layout/NavigationDrawer.vue:134
+#: src/components/ResultsSettings.vue:123
+#: src/components/ResultsSettings.vue:125
+#: src/components/ResultsSettings.vue:236
+#: src/components/ResultsSettings.vue:238
+#: src/components/layout/NavigationDrawer.vue:82
+#: src/components/layout/NavigationDrawer.vue:110
+#: src/components/layout/NavigationDrawer.vue:123
+#: src/components/layout/NavigationDrawer.vue:137
 msgid "item"
 msgstr ""
 
@@ -395,6 +401,10 @@ msgstr "Clique gauche ajouter un arrêt"
 #: src/components/Map.vue:83
 msgid "Left click to add an anchor point, right click to delete"
 msgstr "Clique gauche pour ajouter une ancre, clique droit pour supprimer"
+
+#: src/components/ResultsSettings.vue:96
+msgid "Left side driving"
+msgstr "Conduite à gauche"
 
 #: src/pages/Home.vue:68
 msgid ""
@@ -414,7 +424,7 @@ msgstr "Propriété des liens TC à afficher lorsqu'on survole sur la carte"
 msgid "Link field to display when hovering road link on the map"
 msgstr "Propriété des routes à afficher lorsqu'on survole sur la carte"
 
-#: src/pages/ResultMap.vue:75
+#: src/pages/ResultMap.vue:76
 msgid "link Properties"
 msgstr "Modifier"
 
@@ -563,7 +573,7 @@ msgstr "Rien à afficher"
 msgid "numStep"
 msgstr "nombre de pas "
 
-#: src/components/ScenariosExplorer.vue:338 src/pages/ResultMap.vue:109
+#: src/components/ScenariosExplorer.vue:338 src/pages/ResultMap.vue:110
 msgid "ok"
 msgstr "ok"
 
@@ -591,7 +601,7 @@ msgstr "Parametres et execution"
 msgid "project Name"
 msgstr "Projet écrasée"
 
-#: src/pages/Import.vue:307
+#: src/pages/Import.vue:308
 msgid "project overwrited"
 msgstr "Projet écrasée"
 
@@ -611,11 +621,11 @@ msgstr "Liens TC"
 msgid "PT Links and nodes Loaded from"
 msgstr "Liens et noeuds TC chargés de"
 
-#: src/pages/Import.vue:337
+#: src/pages/Import.vue:338
 msgid "PT links loaded with road nodes"
 msgstr "Liens TC chargées avec des noeuds routiers"
 
-#: src/pages/Import.vue:355
+#: src/pages/Import.vue:356
 msgid "PT nodes loaded for road links"
 msgstr "noeds routiers chargés avec des liens TC"
 
@@ -635,7 +645,7 @@ msgstr "TC, Routes, Zones, OD et Résultats"
 msgid "Redirect"
 msgstr "Redirigé"
 
-#: src/components/ParamForm.vue:17 src/components/ResultsSettings.vue:103
+#: src/components/ParamForm.vue:17 src/components/ResultsSettings.vue:108
 #: src/components/Settings.vue:56
 msgid "Required"
 msgstr "Requis"
@@ -684,11 +694,11 @@ msgstr "Liens routiers"
 msgid "ROAD links and nodes Loaded from"
 msgstr "Liens et noeuds routier chargés de"
 
-#: src/pages/Import.vue:333
+#: src/pages/Import.vue:334
 msgid "road links loaded with PT nodes"
 msgstr "liens routiers chargés avec des noeds TC"
 
-#: src/pages/Import.vue:351
+#: src/pages/Import.vue:352
 msgid "road nodes loaded for PT links"
 msgstr "noeds routier changés pour des liens TC"
 
@@ -712,8 +722,8 @@ msgstr "Routes"
 msgid "Run Simulation"
 msgstr "Executer la simulation"
 
-#: src/components/ResultsSettings.vue:237 src/components/Settings.vue:143
-#: src/components/layout/NavigationDrawer.vue:24 src/pages/Home.vue:190
+#: src/components/ResultsSettings.vue:276 src/components/Settings.vue:143
+#: src/components/layout/NavigationDrawer.vue:27 src/pages/Home.vue:190
 #: src/pages/Home.vue:257
 msgid "Save"
 msgstr "Sauvegarder"
@@ -734,15 +744,15 @@ msgstr "Échelle"
 msgid "scale min"
 msgstr "Échelle"
 
-#: src/components/ScenariosExplorer.vue:123
+#: src/components/ScenariosExplorer.vue:133
 msgid "Scenario created"
 msgstr "Scénario créé"
 
-#: src/components/ScenariosExplorer.vue:95
+#: src/components/ScenariosExplorer.vue:105
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
-#: src/components/layout/NavigationDrawer.vue:51 src/pages/Run.vue:27
+#: src/components/layout/NavigationDrawer.vue:54 src/pages/Run.vue:27
 msgid "Scenario saved"
 msgstr "Scénario sauvegardé"
 
@@ -754,15 +764,19 @@ msgstr "Paramètres de simulation"
 msgid "Scenario Simulation"
 msgstr "Simulation du scénario"
 
-#: src/components/ScenariosExplorer.vue:116
+#: src/components/ScenariosExplorer.vue:126
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
+
+#: src/components/ResultsSettings.vue:98
+msgid "Select which side of the road the links are display"
+msgstr "Sélectionner de quel coté les liens sont affichés"
 
 #: src/components/ResultsSettings.vue:16 src/components/ResultsSettings.vue:20
 msgid "selectedFeature"
 msgstr "champ sélectionné"
 
-#: src/components/ResultsSettings.vue:70 src/components/Settings.vue:30
+#: src/components/ResultsSettings.vue:72 src/components/Settings.vue:30
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -774,11 +788,11 @@ msgstr ""
 "nom court d'une route. Souvent un identifiant abstrait\n"
 "          et court comme \"32\", \"100X\", or \"verte\""
 
-#: src/components/ParamForm.vue:19 src/components/ResultsSettings.vue:105
+#: src/components/ParamForm.vue:19 src/components/ResultsSettings.vue:110
 msgid "should be larger or equal to 0"
 msgstr "devrait être plus grand que 0"
 
-#: src/components/ParamForm.vue:18 src/components/ResultsSettings.vue:104
+#: src/components/ParamForm.vue:18 src/components/ResultsSettings.vue:109
 #: src/components/Settings.vue:57
 msgid "should be larger than 0"
 msgstr "devrait être plus grand que 0"
