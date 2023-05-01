@@ -3,6 +3,7 @@
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
+import centroid from '@turf/centroid'
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 
 export default {
@@ -138,6 +139,20 @@ export default {
         this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'zoneClick' })
       }
     },
+    zoneHover (event) {
+      if (this.selectedLinks[0]?.id !== event.mapboxEvent.features[0].id) {
+        // event.map.getCanvas().style.cursor = 'pointer'
+        this.selectedLinks = event.mapboxEvent.features
+        if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
+        if (this.selectedFeature.length > 0) { // do not show popup if nothing is selected
+          const val = this.selectedLinks[0].properties[this.selectedFeature]
+          this.popup = new mapboxgl.Popup({ closeButton: false })
+            .setLngLat(centroid(this.selectedLinks[0].geometry).geometry.coordinates)
+            .setHTML(`${this.selectedFeature}: <br> ${val}`)
+            .addTo(event.map)
+        }
+      }
+    },
 
   },
 }
@@ -263,8 +278,9 @@ export default {
 
         }
       }"
-      @mouseenter="enterLink"
-      @mouseleave="leaveLink"
+      @mouseenter="(event)=> event.map.getCanvas().style.cursor = 'pointer'"
+      @mouseleave="(event)=> event.map.getCanvas().style.cursor = ''"
+      @mousemove="zoneHover"
       @click="zoneClick"
       @contextmenu="selectClick"
     />
