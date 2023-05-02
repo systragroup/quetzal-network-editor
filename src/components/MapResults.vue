@@ -278,9 +278,6 @@ export default {
 
         }
       }"
-      @mouseenter="(event)=> event.map.getCanvas().style.cursor = 'pointer'"
-      @mouseleave="(event)=> event.map.getCanvas().style.cursor = ''"
-      @mousemove="zoneHover"
       @click="zoneClick"
       @contextmenu="selectClick"
     />
