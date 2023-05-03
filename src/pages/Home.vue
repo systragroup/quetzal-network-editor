@@ -170,6 +170,13 @@ export default {
         this.selectedLink = event.selectedIndex
         this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
         this.linkDir = this.$store.getters.rlinkDirection(this.selectedLink)
+        event.selectedIndex.forEach(linkId => {
+          if (this.$store.getters.onewayIndex.has(linkId)) {
+            this.selectedLink.push(linkId)
+            this.editorForm.push(this.$store.getters.reversedrLinksForm(linkId))
+            this.linkDir.push(this.$store.getters.rlinkDirection(this.selectedLink, true))
+          }
+        })
         this.showDialog = true
       } else if (this.action === 'Edit Road Group Info') {
         const features = this.$store.getters.grouprLinks(event.category, event.group)
@@ -302,7 +309,10 @@ export default {
           this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit Visible Road Info':
-          this.$store.commit('editrVisiblesInfo', { info: this.editorForm })
+          this.$store.commit('editrGroupInfo', {
+            selectedLinks: this.$store.getters.visiblerLinks.features,
+            info: this.editorForm,
+          })
           this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit rNode Info':
@@ -413,18 +423,27 @@ export default {
       } else {
         form = structuredClone(this.editorForm)
       }
-
       // do not append if its null, empty or already exist.
 
-      if ((Object.keys(form).includes(this.newFieldName)) |
-      (this.newFieldName === '') | (!this.newFieldName)) {
+      if ((Object.keys(form).includes(this.newFieldName)) | (this.newFieldName === '') |
+       (!this.newFieldName) | (this.newFieldName?.endsWith('_r'))) {
         // put ' ' so the rule error is diplayed.
-        if (!this.newFieldName) this.newFieldName = ''
+        this.newFieldName = ''
       } else {
         // need to rewrite editorForm object to be updated in DOM
         if (Array.isArray(this.editorForm)) {
           const tempArr = structuredClone(this.editorForm)
-          tempArr.forEach(el => el[this.newFieldName] = { disabled: false, placeholder: false, value: undefined })
+          tempArr.forEach(el => {
+            // if its a reverse link. only add it to the for, if its not an exluded one
+            // (ex: route_width, no route_width_r)
+            if (Object.keys(el)[0].endsWith('_r')) {
+              if (!this.$store.getters.rcstAttributes.includes(this.newFieldName)) {
+                el[this.newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined }
+              }
+            } else { // normal link. add the new field to the list.
+              el[this.newFieldName] = { disabled: false, placeholder: false, value: undefined }
+            }
+          })
           this.editorForm = null
           this.editorForm = tempArr
         } else {
@@ -507,29 +526,31 @@ export default {
                     />
                   </template>
                 </v-text-field>
-                <v-text-field
-                  v-model="newFieldName"
-                  :label=" $gettext('add field')"
-                  :placeholder="$gettext('new field name')"
-                  filled
-                  :rules="rules.newField"
-                  @keydown.enter.stop="addField"
-                  @wheel="$event.target.blur()"
-                >
-                  <template v-slot:append-outer>
-                    <v-btn
-                      color="primary"
-                      class="text--primary"
-                      fab
-                      x-small
-                      @click="addField"
-                    >
-                      <v-icon>fas fa-plus</v-icon>
-                    </v-btn>
-                  </template>
-                </v-text-field>
               </v-list>
             </v-col>
+          </v-row>
+          <v-row>
+            <v-text-field
+              v-model="newFieldName"
+              :label=" $gettext('add field')"
+              :placeholder="$gettext('new field name')"
+              filled
+              :rules="rules.newField"
+              @keydown.enter.stop="addField"
+              @wheel="$event.target.blur()"
+            >
+              <template v-slot:append-outer>
+                <v-btn
+                  color="primary"
+                  class="text--primary"
+                  fab
+                  x-small
+                  @click="addField"
+                >
+                  <v-icon>fas fa-plus</v-icon>
+                </v-btn>
+              </template>
+            </v-text-field>
           </v-row>
         </v-card-text>
         <v-card-text v-if="['cloneTrip'].includes(action)">

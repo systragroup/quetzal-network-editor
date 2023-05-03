@@ -27,6 +27,8 @@ export default {
     defaultHighway: 'quenedi',
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
+    cstAttributes: ['a', 'b', 'index', 'route_color', 'route_width', 'highway', 'oneway'],
+    reversedAttributes: [],
   },
 
   mutations: {
@@ -41,6 +43,7 @@ export default {
         state.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
         this.commit('getrLinksProperties')
+        this.commit('splitOneway')
         // set all trips visible
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
@@ -66,10 +69,12 @@ export default {
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
       payload.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
         coord => Math.round(Number(coord) * 1000000) / 1000000))
+
       // state.rlinks.features.push(...payload.rlinks.features) will crash with large array (stack size limit)
       payload.rlinks.features.forEach(link => state.rlinks.features.push(link))
       payload.rnodes.features.forEach(node => state.rnodes.features.push(node))
       this.commit('getrLinksProperties')
+      this.commit('splitOneway')
       this.commit('getrNodesProperties')
       this.commit('getFilteredrCat')
       // state.selectedrGroup = Array.from(new Set(state.rlinks.features.map(
@@ -81,14 +86,14 @@ export default {
       // when we reload files (some were already loaded.)
       state.rlinks.features = []
       state.rnodes.features = []
-      state.visiblerLinks.feaures = []
-      state.visiblerNodes.feaures = []
+      state.visiblerLinks.features = []
+      state.visiblerNodes.features = []
       state.selectedrGroup = []
     },
     getrLinksProperties (state) {
       let header = new Set([])
       state.rlinks.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
+        Object.keys(element.properties).forEach(key => { if (!key.endsWith('_r')) header.add(key) })
       })
       // header.delete('index')
       // add all default attributes
@@ -97,7 +102,6 @@ export default {
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.rlineAttributes = header
-
       if (header.includes('highway')) {
         state.selectedrFilter = 'highway'
       } else {
@@ -122,6 +126,10 @@ export default {
         state.rlinks.features.map(link => link.properties[payload.name] = null)
         state.visiblerLinks.features.map(link => link.properties[payload.name] = null)
         state.rlineAttributes.push(payload.name) // could put that at applied. so we can cancel
+        // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
+        if (!state.cstAttributes.includes(payload.name)) {
+          state.reversedAttributes.push(payload.name + '_r')
+        }
       } else {
         state.rnodes.features.map(node => node.properties[payload.name] = null)
         state.visiblerNodes.features.map(node => node.properties[payload.name] = null)
@@ -138,6 +146,29 @@ export default {
       const val = Array.from(new Set(state.rlinks.features.map(
         item => item.properties[state.selectedrFilter])))
       state.filteredrCategory = val
+    },
+    splitOneway (state) {
+      if (state.rlineAttributes.includes('oneway')) {
+        state.rlinks.features.forEach(link => {
+          if ([true, 'true', '1', 1].includes(link.properties.oneway)) {
+            link.properties.oneway = '1'
+          } else {
+            link.properties.oneway = '0'
+          }
+        })
+        // const oneways = state.rlinks.features.filter(link => !link.properties.oneway)
+        state.reversedAttributes = state.rlineAttributes.filter(
+          attr => !state.cstAttributes.includes(attr)).map(
+          attr => attr + '_r')
+        state.rlinks.features.forEach(link => {
+          if (link.properties.oneway === '0') {
+            state.reversedAttributes.forEach(attr => {
+              if (!link.properties[attr]) link.properties[attr] = link.properties[attr.slice(0, -2)]
+            })
+          }
+        },
+        )
+      }
     },
 
     changeVisibleRoads (state, payload) {
@@ -226,13 +257,17 @@ export default {
       const { selectedLinkId, info } = payload
       for (let i = 0; i < selectedLinkId.length; i++) {
         const props = Object.keys(info[i])
-        state.rlinks.features.filter(
-          function (link) {
-            if (link.properties.index === selectedLinkId[i]) {
-              props.forEach((key) => link.properties[key] = info[i][key].value)
-            }
-          },
-        )
+        const link = state.visiblerLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
+        // if we change a one way to a 2 way, copy one way properties to the reverse one.
+        if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '0')) {
+          state.reversedAttributes.forEach(
+            (rkey) => link.properties[rkey] = info[i][rkey.slice(0, -2)].value)
+        } else if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '1')) {
+          state.reversedAttributes.forEach(
+            (rkey) => delete link.properties[rkey])
+        }
+        // applied all properties.
+        props.forEach((key) => link.properties[key] = info[i][key].value)
       }
 
       this.commit('getEditorLineInfo')
@@ -284,6 +319,8 @@ export default {
       link1.properties.index = 'link_' + short.generate() // link1.properties.index+ '-1'
       link1.properties.length = link1.properties.length * ratio
       link1.properties.time = link1.properties.time * ratio
+      if (link1.properties.length_r) link1.properties.length_r = link1.properties.length
+      if (link1.properties.time_r) link1.properties.time_r = link1.properties.time
 
       link2.properties.a = state.newrNode.features[0].properties.index
       link2.geometry.coordinates = [
@@ -293,6 +330,8 @@ export default {
       link2.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
       link2.properties.time = link2.properties.time * (1 - ratio)
+      if (link2.properties.length_r) link2.properties.length_r = link2.properties.length
+      if (link2.properties.time_r) link2.properties.time_r = link2.properties.time
 
       state.visiblerLinks.features.push(link2)
       // update actual rlinks and rnodes
@@ -373,7 +412,6 @@ export default {
       linkProperties.a = payload.nodeIdA
       linkProperties.b = payload.nodeIdB
       linkProperties.highway = state.defaultHighway // quenedi
-      if (state.rlineAttributes.includes('oneway')) { linkProperties.oneway = 1 }
       linkProperties.route_color = state.rlinksDefaultColor
       // add length, speed, time now that we have a geometry.
       const distance = length(linkGeometry)
@@ -381,6 +419,11 @@ export default {
       linkProperties.length = Number((distance * 1000).toFixed(0)) // metres
       linkProperties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       linkProperties.speed = Number(state.roadSpeed) // rounded to 0 decimals
+      if (state.rlineAttributes.includes('oneway')) {
+        linkProperties.oneway = '0'
+        state.reversedAttributes.forEach(
+          (rkey) => linkProperties[rkey] = linkProperties[rkey.slice(0, -2)])
+      }
 
       const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       state.rlinks.features.push(linkFeature)
@@ -425,6 +468,12 @@ export default {
         // const time = distance / state.roadSpeed * 3600 // 20kmh hard code speed. time in secs
         const time = distance / link.properties.speed * 3600
         link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        // add reverse direction time and length if it exist on the link
+        if (link.properties.time_r) {
+          const rtime = distance / link.properties.speed_r * 3600
+          link.properties.time_r = Number(rtime.toFixed(0)) // rounded to 0 decimals
+        }
+        if (link.properties.length_r) link.properties.length_r = link.properties.length
       })
       state.connectedLinks.a.forEach(link => {
         link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
@@ -434,6 +483,12 @@ export default {
         // const time = distance / state.roadSpeed * 3600 // 20kmh hard code speed. time in secs
         const time = distance / link.properties.speed * 3600
         link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        // add reverse direction time and length if it exist on the link
+        if (link.properties.time_r) {
+          const rtime = distance / link.properties.speed_r * 3600
+          link.properties.time_r = Number(rtime.toFixed(0)) // rounded to 0 decimals
+        }
+        if (link.properties.length_r) link.properties.length_r = link.properties.length
       })
     },
     moverAnchor (state, payload) {
@@ -488,23 +543,33 @@ export default {
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(groupInfo).filter(key =>
         ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
+
+      // if we change everything to 2 way. init links thats were one way with thoses values (ex:speed_r = speed)
+      if (groupInfo.oneway?.value === '0') {
+        const linksToSplit = selectedLinks.filter(link => link.properties.oneway === '1')
+        linksToSplit.forEach(link => {
+          state.reversedAttributes.forEach(
+            (rkey) => link.properties[rkey] = link.properties[rkey.slice(0, -2)])
+        })
+        // delete reverse attribute for links going from 2 ways to one way
+      } else if (groupInfo.oneway?.value === '1') {
+        const linksToSplit = selectedLinks.filter(link => link.properties.oneway === '0')
+        linksToSplit.forEach(link => {
+          state.reversedAttributes.forEach(
+            (rkey) => delete link.properties[rkey])
+        })
+      }
+
       // this is an oberver. modification will be applied to state.links.
       selectedLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
-
-      this.commit('refreshVisibleRoads')
-      this.commit('getFilteredrCat')
-    },
-    editrVisiblesInfo (state, payload) {
-      // edit line info on multiple trips at once.
-      const groupInfo = payload.info
-      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
-      const props = Object.keys(groupInfo).filter(key =>
-        ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
-      // this is an oberver. modification will be applied to state.links.
-      state.visiblerLinks.features.forEach(
-        (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
-
+      //  apply the group modification to the reverse links too (ex: speed = 10 and speed_r = 10)
+      if (state.rlineAttributes.includes('oneway')) {
+        const reversedProps = state.reversedAttributes.filter(rkey => props.includes(rkey.slice(0, -2)))
+        selectedLinks.filter(link => link.properties.oneway === '0').forEach(
+          (features) => reversedProps.forEach((rkey) => features.properties[rkey] = groupInfo[rkey.slice(0, -2)].value),
+        )
+      }
       this.commit('refreshVisibleRoads')
       this.commit('getFilteredrCat')
     },
@@ -525,8 +590,9 @@ export default {
     visiblerNodes: (state) => state.visiblerNodes,
     defaultHighway: (state) => state.defaultHighway,
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
-
+    rcstAttributes: (state) => state.cstAttributes,
     newrNode: (state) => state.newrNode,
+
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)
       renderedLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
@@ -545,17 +611,26 @@ export default {
 
       return nodes
     },
-    rlinkDirection: (state) => (indexList) => {
+    rlinkDirection: (state) => (indexList, reversed = false) => {
       const links = state.rlinks.features.filter(link => indexList.includes(link.properties.index))
       const res = []
       links.forEach(link => {
         const geom = link.geometry.coordinates
-        res.push(bearing(geom[0], geom[geom.length - 1]))
+        if (reversed) {
+          res.push(bearing(geom[geom.length - 1], geom[0]))
+        } else {
+          res.push(bearing(geom[0], geom[geom.length - 1]))
+        }
       })
       return res
     },
     grouprLinks: (state) => (category, group) => {
       return state.rlinks.features.filter(link => group === link.properties[category])
+    },
+    onewayIndex: (state) => {
+      return new Set(state.rlinks.features.filter(
+        link => link.properties.oneway === '0').map(
+        link => link.properties.index))
     },
     rlinksForm: (state) => (linkIndex) => {
       const uneditable = ['a', 'b', 'index']
@@ -565,6 +640,22 @@ export default {
       // filter properties to only the one that are editable.
       const form = {}
       state.rlineAttributes.forEach(key => {
+        form[key] = {
+          value: editorForm[key],
+          disabled: uneditable.includes(key),
+          placeholder: false,
+        }
+      })
+      return form
+    },
+    reversedrLinksForm: (state) => (linkIndex) => {
+      const uneditable = ['a', 'b', 'index']
+      const editorForm = state.visiblerLinks.features.filter(
+        (link) => link.properties.index === linkIndex)[0].properties
+
+      // filter properties to only the one that are editable.
+      const form = {}
+      state.reversedAttributes.forEach(key => {
         form[key] = {
           value: editorForm[key],
           disabled: uneditable.includes(key),
