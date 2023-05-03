@@ -93,7 +93,7 @@ export default {
     getrLinksProperties (state) {
       let header = new Set([])
       state.rlinks.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
+        Object.keys(element.properties).forEach(key => { if (!key.endsWith('_r')) header.add(key) })
       })
       // header.delete('index')
       // add all default attributes
@@ -163,7 +163,7 @@ export default {
         state.rlinks.features.forEach(link => {
           if (link.properties.oneway === '0') {
             state.reversedAttributes.forEach(attr => {
-              link.properties[attr] = link.properties[attr.slice(0, -2)]
+              if (!link.properties[attr]) link.properties[attr] = link.properties[attr.slice(0, -2)]
             })
           }
         },
