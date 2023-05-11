@@ -27,12 +27,13 @@ export default {
     },
     setSteps (state, payload) {
       state.steps = payload
+      state.steps.splice(0, 0, { name: 'Saving Networks' })
+      state.steps.push({ name: 'Loading Results' })
     },
-    startExecution (state, payload) {
+    startExecution (state) {
       state.error = false
       state.running = true
       state.currentStep = 1
-      state.executionArn = payload.executionArn
     },
     terminateExecution (state) {
       state.running = false
@@ -186,7 +187,7 @@ export default {
         data = JSON.stringify(data),
       ).then(
         response => {
-          commit('startExecution', response.data)
+          state.executionArn = response.data.executionArn
           dispatch('pollExecution')
         }).catch(
         err => {

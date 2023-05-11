@@ -1,7 +1,6 @@
 <script>
 
 import ParamForm from '../components/ParamForm.vue'
-const $gettext = s => s
 
 export default {
   name: 'Run',
@@ -23,16 +22,15 @@ export default {
   },
   methods: {
     async run () {
+      this.$store.commit('run/startExecution') // start the stepper at first step
       this.$store.dispatch('exportToS3').then(
         () => {
-          this.$store.commit('changeNotification',
-            { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
           this.$store.dispatch('run/startExecution', { scenario: this.$store.getters.scenario })
         }).catch(
         err => {
-          this.$store.commit('run/changeRunning', false)
+          this.$store.commit('run/terminateExecution')
           console.error(err)
-          alert('error saving scenario')
+          // alert('error saving scenario')
         })
     },
     stopRun () {
@@ -101,7 +99,7 @@ export default {
             {{ $gettext("Run Simulation") }}
           </v-btn>
           <v-btn
-            :disabled="!running"
+            v-show="running && currentStep!==1"
             color="grey"
             text
             @click="stopRun()"
