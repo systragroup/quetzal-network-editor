@@ -198,6 +198,7 @@ export default {
           <v-list-item-content>
             <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
             <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
           </v-list-item-content>
           <v-btn
             icon
