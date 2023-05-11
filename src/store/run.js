@@ -180,6 +180,9 @@ export default {
             training_folder: '/tmp',
             params: paramsDict,
           },
+          metadata: {
+            user_email: rootState.user.cognitoInfo.email,
+          },
         }),
         stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
