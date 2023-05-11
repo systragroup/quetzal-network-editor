@@ -109,8 +109,13 @@ async function getScenario (bucket) {
     // let maxDate = new Date(Math.max.apply(null, dates))
     const maxDateObj = dates.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
-    const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
-    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: resp.Metadata.user_email })
+    // get user email metadata on newest object. undefined if empty or error.
+    let userEmail // this = undefined
+    try {
+      const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
+      userEmail = resp.Metadata.user_email
+    } catch (err) { console.error(err) }
+    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail })
   }
   return scenList
 }
