@@ -1,5 +1,6 @@
 <script>
 import Router from '@src/router/index'
+const version = require('../../../package.json').version
 
 export default {
   name: 'NavigationDrawer',
@@ -9,7 +10,7 @@ export default {
       drawer: true,
       mini: true,
       menuItems: [],
-      version: 'V4.4.0',
+      version: version,
       saving: false,
     }
   },
