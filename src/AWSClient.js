@@ -79,6 +79,7 @@ async function putObject (bucket, key, body = '') {
     Bucket: bucket,
     Key: key,
     Body: body,
+    Metadata: { user_email: store.getters.cognitoInfo.email },
     ContentType: ' application/json',
   }
   const resp = await s3Client.putObject(params).promise()
@@ -104,10 +105,17 @@ async function getScenario (bucket) {
   scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
   const scenList = []
   for (const scen of scenarios) {
-    const dates = list.filter(item => item.Key.startsWith(scen)).map(item => item.LastModified)
-    let maxDate = new Date(Math.max.apply(null, dates))
-    maxDate = maxDate.toLocaleDateString() + ' ' + maxDate.toLocaleTimeString()
-    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate })
+    const dates = list.filter(item => item.Key.startsWith(scen))
+    // let maxDate = new Date(Math.max.apply(null, dates))
+    const maxDateObj = dates.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
+    const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
+    // get user email metadata on newest object. undefined if empty or error.
+    let userEmail // this = undefined
+    try {
+      const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
+      userEmail = resp.Metadata.user_email
+    } catch (err) { console.error(err) }
+    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail })
   }
   return scenList
 }

@@ -180,7 +180,6 @@ export const store = new Vuex.Store({
   },
   actions: {
     async exportToS3 ({ state, commit }, payload) {
-      // const res = await s3.getScenario(state.model)
       if (payload !== 'saveOnly') {
         commit('run/changeRunning', true)
       }
