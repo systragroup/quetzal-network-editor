@@ -7,9 +7,6 @@ echo -n "Use the config-secret file if you have the the secret Keys. \n"
 echo -n "(MAPBOX_TOKEN) Mapbox public access token: "
 read -r MAPBOX_TOKEN
 
-echo -n "(GOOGLE_ANALYTICS_ID) Google analytics ID: "
-read -r GOOGLE_ANALYTICS_ID
-
 
 DEFAULT_REDIRECT_URL='http://localhost:8081/callback'
 echo -n "(REDIRECT_URL) Cognito redirect URL: [$DEFAULT_REDIRECT_URL] "
@@ -59,7 +56,6 @@ fi
 
 sed -r \
   -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
-  -e "s|###GOOGLE_ANALYTICS_ID###|$GOOGLE_ANALYTICS_ID|;" \
   -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
   -e "s|###APP_URL###|$APP_URL|;" \
@@ -71,7 +67,6 @@ sed -r \
   config.env.dist > .env.development
 sed -r \
   -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
-  -e "s|###GOOGLE_ANALYTICS_ID###|$GOOGLE_ANALYTICS_ID|;" \
   -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
   -e "s|###APP_URL###|$APP_URL|;" \

@@ -9,7 +9,6 @@ import { store } from './store'
 import router from './router'
 import Vuetify from 'vuetify'
 import VueApexCharts from 'vue-apexcharts'
-import VueGtag from 'vue-gtag'
 
 import 'promise-polyfill/src/polyfill'
 
@@ -23,7 +22,6 @@ import translations from './translations.json'
 
 import App from './App.vue'
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
-const gtagId = process.env.VUE_APP_GOOGLE_ANALYTICS_ID
 console.assert(mapboxPublicKey)
 
 const languageMixin = {
@@ -53,8 +51,8 @@ Vue.component('Apexchart', VueApexCharts)
 
 const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr', 'es', 'de', 'pt'])
 const darkMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
 Vue.use(Vuetify)
-Vue.use(VueGtag, { config: { id: gtagId } })
 Vue.use(GetTextPlugin, {
   autoAddKeyAttributes: true,
   availableLanguages: {
@@ -72,6 +70,7 @@ Vue.use(GetTextPlugin, {
 Vue.config.productionTip = false
 Vue.config.devtools = true
 Vue.config.performance = false
+
 const vuetify = new Vuetify({
   theme: {
     dark: !!darkMode,
