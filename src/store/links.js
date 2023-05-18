@@ -33,7 +33,6 @@ export default {
       { name: 'trip_id', type: 'String' },
       { name: 'route_id', type: 'String' },
       { name: 'agency_id', type: 'String' },
-      { name: 'route_long_name', type: 'String' },
       { name: 'route_short_name', type: 'String' },
       { name: 'route_type', type: 'String' },
       { name: 'route_color', type: 'String' },
@@ -198,7 +197,6 @@ export default {
         const defaultValue = {
           route_id: 'Q1',
           agency_id: 'QUENEDI',
-          route_long_name: 'QUENEDI 1',
           route_short_name: 'Q1',
           route_type: 'quenedi',
           route_color: state.linksDefaultColor,
