@@ -3,7 +3,7 @@
   "description": "Network Editor",
   "author": "Simon Fortin <sfortin@systra.com>; Simon Boivin <sboivin@systra.com>",
   "license": "MIT",
-  "version": "4.5.0",
+  "version": "4.5.1",
   "private": true,
   "scripts": {
     "clean": "rm -rf dist && rm -f src/config.js",
@@ -48,6 +48,7 @@
     "vue": "^2.7.14",
     "vue-apexcharts": "^1.6.2",
     "vue-gettext": "^2.1.12",
+    "vue-gtag": "^1.16.1",
     "vue-mapbox": "https://github.com/soal/vue-mapbox.git",
     "vue-router": "^3.5.2",
     "vuex": "^3.6.2"
