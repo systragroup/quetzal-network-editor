@@ -32,7 +32,20 @@ export default {
   computed: {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     loggedIn () { return this.$store.getters.loggedIn },
-    scenariosList () { return this.$store.getters.scenariosList },
+    scenariosList () {
+      // sort by alphabetical order, with protected one one top
+      const arr = this.$store.getters.scenariosList
+      return arr.sort((a, b) => {
+        if (this.localConfig.protected.includes(a.scenario)) {
+          return -1 // `a` comes before `b`
+        } else if (this.localConfig.protected.includes(b.scenario)) {
+          return 1 // `b` comes before `a`
+        } else {
+          // default sorting, not case sensitive!
+          return a.scenario.localeCompare(b.scenario, undefined, { sensitivity: 'base' })
+        }
+      })
+    },
     modelsList () { return this.$store.getters.bucketList },
     model () { return this.$store.getters.model },
     scenario () { return this.$store.getters.scenario },
@@ -41,6 +54,8 @@ export default {
     menu (val) {
       if (val) {
         this.$store.dispatch('getScenario', { model: this.localModel })
+        console.log(this.localConfig.protected)
+        console.log(this.scenariosList)
       }
     },
     async localModel (val) {
