@@ -7,6 +7,9 @@ import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
+import StaticLayer from './utils/StaticLayer.vue'
+import LayerSelector from './utils/LayerSelector.vue'
+
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 const $gettext = s => s
@@ -18,6 +21,8 @@ export default {
     MglNavigationControl,
     MglScaleControl,
     MglGeojsonLayer,
+    LayerSelector,
+    StaticLayer,
     StaticLinks,
     EditorLinks,
     RoadLinks,
@@ -383,58 +388,62 @@ export default {
         @submit="() => showSettings=false"
       />
     </v-menu>
+    <LayerSelector>
+      <MglScaleControl position="bottom-right" />
+      <MglNavigationControl position="bottom-right" />
+      <template v-if="mapIsLoaded">
+        <RoadLinks
+          ref="roadref"
+          :map="map"
+          :is-editor-mode="isEditorMode"
+          :is-road-mode="isRoadMode"
+          :anchor-mode="anchorMode"
+          v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+        />
+      </template>
+      <template v-if="mapIsLoaded">
+        <StaticLinks
+          :map="map"
+          :showed-trips="selectedTrips"
+          :is-editor-mode="isEditorMode"
+          @rightClick="(e) => $emit('clickFeature',e)"
+        />
+      </template>
+      <template v-if="mapIsLoaded">
+        <EditorLinks
+          :map="map"
+          :anchor-mode="anchorMode"
+          v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
+        />
+      </template>
+      <template v-if="mapIsLoaded">
+        <MglGeojsonLayer
+          v-if="drawMode"
+          source-id="drawLink"
+          :source="{
+            type: 'geojson',
+            data:drawLink,
+            buffer: 0,
+            generateId: true,
+          }"
+          layer-id="drawLink"
+          :layer="{
+            type: 'line',
+            minzoom: 2,
+            paint: {
+              'line-opacity': 1,
+              'line-color': $vuetify.theme.currentTheme.linksprimary,
+              'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
+              'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 
-    <MglScaleControl position="bottom-right" />
-    <MglNavigationControl position="bottom-right" />
-    <template v-if="mapIsLoaded">
-      <RoadLinks
-        ref="roadref"
-        :map="map"
-        :is-editor-mode="isEditorMode"
-        :is-road-mode="isRoadMode"
-        :anchor-mode="anchorMode"
-        v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
-      />
-    </template>
-    <template v-if="mapIsLoaded">
-      <StaticLinks
-        :map="map"
-        :showed-trips="selectedTrips"
-        :is-editor-mode="isEditorMode"
-        @rightClick="(e) => $emit('clickFeature',e)"
-      />
-    </template>
-    <template v-if="mapIsLoaded">
-      <EditorLinks
-        :map="map"
-        :anchor-mode="anchorMode"
-        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
-      />
-    </template>
-    <template v-if="mapIsLoaded">
-      <MglGeojsonLayer
-        v-if="drawMode"
-        source-id="drawLink"
-        :source="{
-          type: 'geojson',
-          data:drawLink,
-          buffer: 0,
-          generateId: true,
-        }"
-        layer-id="drawLink"
-        :layer="{
-          type: 'line',
-          minzoom: 2,
-          paint: {
-            'line-opacity': 1,
-            'line-color': $vuetify.theme.currentTheme.linksprimary,
-            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
-            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
-
-          }
-        }"
-      />
-    </template>
+            }
+          }"
+        />
+      </template>
+      <template v-if="mapIsLoaded">
+        <StaticLayer />
+      </template>
+    </layerselector>
   </MglMap>
 </template>
 <style lang="scss" scoped>
@@ -446,6 +455,16 @@ export default {
   position: absolute;
   top: 10px;
   right: 20px;
+}
+.layer-open {
+  position: absolute;
+  bottom: 10px;
+  left: 425px;
+}
+.layer-close {
+  position: absolute;
+  bottom: 10px;
+  left: 50px;
 }
 .my-custom-dialog {
   position: absolute !important;
