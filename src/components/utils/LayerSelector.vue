@@ -10,6 +10,8 @@ export default {
   data () {
     return {
       show: false,
+      selectedLayers: [],
+      layers: ['layer1', 'layer2', 'layer3'],
 
     }
   },
@@ -27,7 +29,7 @@ export default {
     <v-menu
       v-model="show"
       :close-on-content-click="false"
-      :close-on-click="false"
+      :close-on-click="true"
       :origin="'top right'"
       transition="scale-transition"
       :position-y="30"
@@ -37,7 +39,7 @@ export default {
     >
       <template v-slot:activator="{ on, attrs }">
         <v-btn
-          :class="$store.getters.showLeftPanel ? 'layer-open elevation-4' : 'layer-close elevation-4'"
+          class="layer-button"
           fab
           small
           v-bind="attrs"
@@ -50,18 +52,51 @@ export default {
           </v-icon>
         </v-btn>
       </template>
+      <v-card
+        :max-width="300"
+      >
+        <v-card-title class="subtitle">
+          {{ $gettext('Layers') }}
+        </v-card-title>
+        <v-list-item
+          v-for="(item,key) in layers"
+          :key="key"
+        >
+          <v-checkbox
+            v-model="selectedLayers"
+            :value="item"
+            :label="item"
+          />
+        </v-list-item>
+      </v-card>
     </v-menu>
   </section>
 </template>
 <style lang="scss" scoped>
-.layer-open {
+.layer-button {
   position: absolute;
-  bottom: 20px;
-  left: 425px;
+  top: 60px;
+  right: 20px;
 }
-.layer-close {
-  position: absolute;
-  bottom: 20px;
-  left: 50px;
+.card {
+  width: 500px;
+  overflow-y: auto;
+  padding: 40px;
+}
+.subtitle {
+  font-size: 1.5em;
+  color:  var(--v-secondarydark-base) !important;
+  font-weight: bold;
+  padding:1rem
+
+}
+.title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5em;
+  color: $primary !important;
+  font-weight: bold;
 }
 </style>
