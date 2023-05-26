@@ -54,7 +54,6 @@ export default {
       mouseout: false,
       selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
-      showSettings: false,
 
     }
   },
@@ -357,114 +356,72 @@ export default {
     @click="addPoint"
     @mouseup="rightClickMap"
   >
-    <v-menu
-      v-model="showSettings"
-      :close-on-content-click="false"
-      :close-on-click="false"
-      :origin="'top right'"
-      transition="scale-transition"
-      :position-y="30"
-      :nudge-width="200"
-      offset-x
-      offset-y
-    >
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          class="setting"
-          fab
-          small
-          v-bind="attrs"
-          v-on="on"
-        >
-          <v-icon
-            color="regular"
-          >
-            fa-solid fa-cog
-          </v-icon>
-        </v-btn>
-      </template>
-      <Settings
-        v-if="showSettings"
-        @submit="() => showSettings=false"
+    <template v-if="mapIsLoaded">
+      <Settings />
+    </template>
+    <template v-if="mapIsLoaded">
+      <LayerSelector />
+    </template>
+    <MglScaleControl position="bottom-right" />
+    <MglNavigationControl position="bottom-right" />
+    <template v-if="mapIsLoaded">
+      <RoadLinks
+        ref="roadref"
+        :map="map"
+        :is-editor-mode="isEditorMode"
+        :is-road-mode="isRoadMode"
+        :anchor-mode="anchorMode"
+        v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
-    </v-menu>
-    <LayerSelector>
-      <MglScaleControl position="bottom-right" />
-      <MglNavigationControl position="bottom-right" />
-      <template v-if="mapIsLoaded">
-        <RoadLinks
-          ref="roadref"
-          :map="map"
-          :is-editor-mode="isEditorMode"
-          :is-road-mode="isRoadMode"
-          :anchor-mode="anchorMode"
-          v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
-        />
-      </template>
-      <template v-if="mapIsLoaded">
-        <StaticLinks
-          :map="map"
-          :showed-trips="selectedTrips"
-          :is-editor-mode="isEditorMode"
-          @rightClick="(e) => $emit('clickFeature',e)"
-        />
-      </template>
-      <template v-if="mapIsLoaded">
-        <EditorLinks
-          :map="map"
-          :anchor-mode="anchorMode"
-          v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
-        />
-      </template>
-      <template v-if="mapIsLoaded">
-        <MglGeojsonLayer
-          v-if="drawMode"
-          source-id="drawLink"
-          :source="{
-            type: 'geojson',
-            data:drawLink,
-            buffer: 0,
-            generateId: true,
-          }"
-          layer-id="drawLink"
-          :layer="{
-            type: 'line',
-            minzoom: 2,
-            paint: {
-              'line-opacity': 1,
-              'line-color': $vuetify.theme.currentTheme.linksprimary,
-              'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
-              'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
+    </template>
+    <template v-if="mapIsLoaded">
+      <StaticLinks
+        :map="map"
+        :showed-trips="selectedTrips"
+        :is-editor-mode="isEditorMode"
+        @rightClick="(e) => $emit('clickFeature',e)"
+      />
+    </template>
+    <template v-if="mapIsLoaded">
+      <EditorLinks
+        :map="map"
+        :anchor-mode="anchorMode"
+        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
+      />
+    </template>
+    <template v-if="mapIsLoaded">
+      <MglGeojsonLayer
+        v-if="drawMode"
+        source-id="drawLink"
+        :source="{
+          type: 'geojson',
+          data:drawLink,
+          buffer: 0,
+          generateId: true,
+        }"
+        layer-id="drawLink"
+        :layer="{
+          type: 'line',
+          minzoom: 2,
+          paint: {
+            'line-opacity': 1,
+            'line-color': $vuetify.theme.currentTheme.linksprimary,
+            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
+            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 
-            }
-          }"
-        />
-      </template>
-      <template v-if="mapIsLoaded">
-        <StaticLayer />
-      </template>
-    </layerselector>
+          }
+        }"
+      />
+    </template>
+    <template v-if="mapIsLoaded">
+      <StaticLayer />
+    </template>
   </MglMap>
 </template>
 <style lang="scss" scoped>
 .map-view {
   width: 100%;
 
-}
-.setting {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-}
-.layer-open {
-  position: absolute;
-  bottom: 10px;
-  left: 425px;
-}
-.layer-close {
-  position: absolute;
-  bottom: 10px;
-  left: 50px;
 }
 .my-custom-dialog {
   position: absolute !important;
