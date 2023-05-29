@@ -13,6 +13,8 @@ export default {
     model: null,
     scenario: null,
     config: {},
+    rasterLayers: [],
+    rasterFiles: ['population', 'emplois', 'air'],
   },
   mutations: {
     setLoggedIn (state) {
@@ -46,6 +48,12 @@ export default {
     setConfig (state, payload) {
       state.config = payload
     },
+    setRasterLayers (state, payload) {
+      state.rasterLayers = payload
+    },
+    setRasterFiles (state, payload) {
+      state.rasterFiles = payload
+    },
   },
 
   actions: {
@@ -71,5 +79,7 @@ export default {
     scenario: (state) => state.scenario,
     config: (state) => state.config,
     protected: (state) => state.config.protected ? state.config.protected : [],
+    rasterLayers: (state) => state.rasterLayers,
+    rasterFiles: (state) => state.rasterFiles,
   },
 }

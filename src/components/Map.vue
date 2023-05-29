@@ -75,6 +75,8 @@ export default {
       return this.$store.getters.lastNode
     },
     anchorMode () { return this.$store.getters.anchorMode },
+    rasterLayers () { return this.$store.getters.rasterLayers },
+    rasterFiles () { return this.$store.getters.rasterFiles },
   },
   watch: {
 
@@ -364,6 +366,19 @@ export default {
     </template>
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
+    <div
+      v-for="file in rasterFiles"
+      :key="file.name"
+    >
+      <template v-if="mapIsLoaded">
+        <StaticLayer
+          :file-name="file"
+          :visible="rasterLayers.includes(file)"
+          :opacity="0.5"
+        />
+      </template>
+    </div>
+
     <template v-if="mapIsLoaded">
       <RoadLinks
         ref="roadref"
@@ -412,9 +427,6 @@ export default {
           }
         }"
       />
-    </template>
-    <template v-if="mapIsLoaded">
-      <StaticLayer />
     </template>
   </MglMap>
 </template>
