@@ -361,8 +361,8 @@ export default {
     <template v-if="mapIsLoaded">
       <Settings />
     </template>
-    <template v-if="mapIsLoaded">
-      <LayerSelector />
+    <template v-if="mapIsLoaded & rasterFiles.length>0">
+      <LayerSelector :choices="rasterFiles" />
     </template>
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />

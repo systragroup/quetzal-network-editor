@@ -5,15 +5,20 @@ export default {
   components: {
   },
   props: {
+    choices: {
+      type: Array,
+      default: () => [],
+    },
   },
   data () {
     return {
       show: false,
       selectedLayers: [],
-      layers: ['population', 'emplois', 'air'],
       selectedOpacity: 0,
 
     }
+  },
+  computed: {
   },
   watch: {
     selectedLayers (val) {
@@ -24,6 +29,7 @@ export default {
   },
 
   methods: {
+    parsePath (path) { return path.split('/').splice(-1)[0].slice(0, -8) },
 
   },
 }
@@ -63,13 +69,13 @@ export default {
           {{ $gettext('Static Layers') }}
         </v-card-title>
         <v-list-item
-          v-for="(item,key) in layers"
+          v-for="(item,key) in choices"
           :key="key"
         >
           <v-checkbox
             v-model="selectedLayers"
             :value="item"
-            :label="item"
+            :label="parsePath(item)"
           />
         </v-list-item>
       </v-card>

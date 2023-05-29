@@ -19,8 +19,7 @@ export default {
   watch: {
     async visible (val) {
       if (val) {
-        const fileName = this.$store.getters.scenario + '/inputs/layers/' + this.fileName + '.geojson'
-        const url = await s3.getImagesURL(this.$store.getters.model, fileName)
+        const url = await s3.getImagesURL(this.$store.getters.model, this.fileName)
         this.url = url
       } else {
         this.url = structuredClone(this.$store.getters.linksHeader)

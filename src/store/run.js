@@ -71,7 +71,7 @@ export default {
     async getOutputs (context) {
       const model = context.rootState.user.model
       const scenario = context.rootState.user.scenario
-      const path = scenario + '/' + context.rootState.user.config.output_paths[0]
+      const path = scenario + '/' + context.rootState.user.config.output_paths
       let filesNames = await s3.listFiles(model, path)
       filesNames = filesNames.filter(name => name !== path)
       filesNames = filesNames.filter(name => !name.endsWith('.png'))

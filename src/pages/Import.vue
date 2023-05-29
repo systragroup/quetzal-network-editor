@@ -88,8 +88,8 @@ export default {
           this.loadNetwork(links, nodes, 'road', 'DataBase')
         }
         // then load results layers.
-        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths[0])
-        filesNames = filesNames.filter(name => name !== scen + path.output_paths[0])
+        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths)
+        filesNames = filesNames.filter(name => !name.endsWith('/'))
         filesNames = filesNames.filter(name => !name.endsWith('.png'))
         const files = []
         for (const file of filesNames) {
@@ -98,6 +98,12 @@ export default {
           files.push(classFile(name, content))
         }
         if (filesNames.length > 0) this.loadStaticLayer(files, 'Database output')
+        // load rasters (static geojson layers.)
+        //
+        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.raster_path)
+        filesNames = filesNames.filter(name => name.endsWith('.geojson'))
+        this.$store.commit('setRasterFiles', filesNames)
+
         this.loggedIn = true
         this.login()
         this.$store.commit('changeLoading', false)
