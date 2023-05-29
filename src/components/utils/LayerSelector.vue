@@ -5,18 +5,22 @@ export default {
   components: {
   },
   props: {
-
   },
   data () {
     return {
       show: false,
       selectedLayers: [],
-      layers: ['layer1', 'layer2', 'layer3'],
+      layers: ['population', 'emplois', 'air'],
+      selectedOpacity: 0,
 
     }
   },
   watch: {
-
+    selectedLayers (val) {
+      const resp = []
+      val.forEach(item => resp.push({ name: item, opacity: 0.5 }))
+      this.$store.commit('setRasterLayers', val)
+    },
   },
 
   methods: {
@@ -56,7 +60,7 @@ export default {
         :max-width="300"
       >
         <v-card-title class="subtitle">
-          {{ $gettext('Layers') }}
+          {{ $gettext('Static Layers') }}
         </v-card-title>
         <v-list-item
           v-for="(item,key) in layers"
