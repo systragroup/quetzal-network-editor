@@ -102,7 +102,13 @@ export default {
         //
         filesNames = await s3.listFiles(this.$store.getters.model, scen + path.raster_path)
         filesNames = filesNames.filter(name => name.endsWith('.geojson'))
-        this.$store.commit('setRasterFiles', filesNames)
+        const rasterFiles = []
+        for (const file of filesNames) {
+          let type = await s3.readJson(this.$store.getters.model, file)
+          type = type.features[0].geometry.type
+          rasterFiles.push({ name: file, type: type })
+        }
+        this.$store.commit('setRasterFiles', rasterFiles)
 
         this.loggedIn = true
         this.login()
