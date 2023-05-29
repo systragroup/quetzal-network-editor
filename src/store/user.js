@@ -14,9 +14,16 @@ export default {
     scenario: null,
     config: {},
     rasterLayers: [],
-    rasterFiles: ['population', 'emplois', 'air'],
+    rasterFiles: [],
   },
   mutations: {
+    unloadProject (state) {
+      state.model = null
+      state.scenario = null
+      state.config = {}
+      state.rasterLayers = []
+      state.rasterFiles = []
+    },
     setLoggedIn (state) {
       state.loggedIn = true
     },
