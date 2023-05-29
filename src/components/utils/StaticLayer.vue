@@ -9,7 +9,7 @@ export default {
   components: {
     MglGeojsonLayer,
   },
-  props: ['fileName', 'opacity', 'visible'],
+  props: ['fileName', 'type', 'visible'],
   data () {
     return {
       url: '',
@@ -27,6 +27,7 @@ export default {
     },
   },
   created () {
+    console.log(this.fileName, this.type)
     this.url = structuredClone(this.$store.getters.linksHeader)
   },
 
@@ -38,6 +39,7 @@ export default {
 <template>
   <section>
     <MglGeojsonLayer
+      v-if="type=='Polygon'"
       :source-id="fileName"
       :source="{
         type: 'geojson',
@@ -48,9 +50,27 @@ export default {
         interactive: false,
         type: 'fill',
         'paint': {
-          'fill-color':['case', ['has', 'display_color'],['get', 'display_color'],
-                        $vuetify.theme.currentTheme.linksprimary],
-          'fill-opacity': opacity,
+          'fill-color':['get', 'display_color'],
+          'fill-opacity': 0.5,
+
+        }
+      }"
+    />
+    <MglGeojsonLayer
+      v-if="type=='LineString'"
+      :source-id="fileName"
+      :source="{
+        type: 'geojson',
+        data: url,
+      }"
+      :layer-id="fileName"
+      :layer="{
+        interactive: false,
+        type: 'line',
+        'paint': {
+          'line-color':['get', 'display_color'],
+          'line-opacity': 1,
+          'line-width':3,
 
         }
       }"

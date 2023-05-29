@@ -362,7 +362,7 @@ export default {
       <Settings />
     </template>
     <template v-if="mapIsLoaded & rasterFiles.length>0">
-      <LayerSelector :choices="rasterFiles" />
+      <LayerSelector :choices="rasterFiles.map(item=>item.name)" />
     </template>
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
@@ -372,9 +372,9 @@ export default {
     >
       <template v-if="mapIsLoaded">
         <StaticLayer
-          :file-name="file"
-          :visible="rasterLayers.includes(file)"
-          :opacity="0.5"
+          :file-name="file.name"
+          :type="file.type"
+          :visible="rasterLayers.includes(file.name)"
         />
       </template>
     </div>
