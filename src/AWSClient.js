@@ -21,9 +21,19 @@ async function readJson (bucket, key) {
 }
 
 async function listFiles (bucket, prefix) {
-  const params = { Bucket: bucket, Prefix: prefix }
-  const Content = await s3Client.listObjectsV2(params).promise()
-  return Content.Contents.map(item => item.Key)
+  if (Array.isArray(prefix)) {
+    const paths = []
+    prefix.forEach(async pref => {
+      const params = { Bucket: bucket, Prefix: prefix }
+      const Content = await s3Client.listObjectsV2(params).promise()
+      paths.push(...Content.Contents.map(item => item.Key))
+    })
+    return paths
+  } else {
+    const params = { Bucket: bucket, Prefix: prefix }
+    const Content = await s3Client.listObjectsV2(params).promise()
+    return Content.Contents.map(item => item.Key)
+  }
 }
 async function getImagesURL (bucket, key) {
   const presignedGETURL = s3Client.getSignedUrl('getObject', {
