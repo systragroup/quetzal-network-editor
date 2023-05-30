@@ -18,14 +18,15 @@ export default {
 
     }
   },
-  computed: {
-  },
   watch: {
     selectedLayers (val) {
       const resp = []
       val.forEach(item => resp.push({ name: item, opacity: 0.5 }))
       this.$store.commit('setRasterLayers', val)
     },
+  },
+  mounted () {
+    this.selectedLayers = this.$store.getters.rasterLayers
   },
 
   methods: {
