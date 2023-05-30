@@ -91,14 +91,13 @@ export default {
         type: 'geojson',
         data: url,
       }"
-      :layer-id="filename"
+      :layer-id="fileName"
       :layer="{
         interactive: false,
         type: 'circle',
         minzoom: 5,
         paint: {
           'circle-color': ['get', 'display_color'],
-
           'circle-radius': ['get', 'display_width'],
           'circle-opacity': 0.8,
         },
