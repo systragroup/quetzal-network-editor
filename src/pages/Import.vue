@@ -248,6 +248,7 @@ export default {
       // remove links and nodes from store. (and filesAreLoaded)
       this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
+      this.$store.commit('unloadProject')
       this.$store.commit('run/cleanRun')
 
       if (this.choice === 'example1') {
