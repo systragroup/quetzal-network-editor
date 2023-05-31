@@ -3,6 +3,7 @@ export default {
   namespaced: false,
   state: {
     cognitoInfo: {},
+    cognitoGroup: '',
     bucketList: [],
     accesToken: '',
     idToken: '',
@@ -33,6 +34,9 @@ export default {
     },
     setCognitoInfo (state, payload) {
       state.cognitoInfo = payload
+    },
+    setCognitoGroup (state, payload) {
+      state.cognitoGroup = payload
     },
     setBucketList (state, payload) {
       state.bucketList = payload
@@ -78,6 +82,7 @@ export default {
   getters: {
     loggedIn: (state) => state.loggedIn,
     cognitoInfo: (state) => state.cognitoInfo,
+    cognitoGroup: (state) => state.cognitoGroup,
     bucketList: (state) => state.bucketList ? state.bucketList : [],
     accesToken: (state) => state.accesToken,
     idToken: (state) => state.idToken,
