@@ -36,6 +36,7 @@ export default {
       groupTripIds: [],
       isRoadMode: false,
       showHint: false,
+      showDeleteOption: false,
       newFieldName: null,
       linkDir: [],
       rules: {
@@ -61,7 +62,7 @@ export default {
         route_color: $gettext('color to display on the map (i.e. FFFFFF)'),
         route_id: $gettext('Identifies a route. Often a string'),
         route_long_name: $gettext("Full name of a route.This name is generally more descriptive\
-         than the route_short_name and often includes the route's destination or stop"),
+         than the route_short_name and often includes the roudefaultAttributeste's destination or stop"),
         route_short_name: $gettext(`Short name of a route. This will often be a short,
          abstract identifier like "32", "100X", or "Green"`),
         route_type: $gettext(`Indicates the type of transportation used on a route.
@@ -98,6 +99,8 @@ export default {
     showDialog (val) {
       // do not show a notification when dialog is on. sometim its over the confirm button
       if (val) { this.$store.commit('changeNotification', { text: '', autoClose: true }) }
+      this.showHint = false
+      this.showDeleteOption = false
     },
 
   },
@@ -434,7 +437,7 @@ export default {
         if (Array.isArray(this.editorForm)) {
           const tempArr = structuredClone(this.editorForm)
           tempArr.forEach(el => {
-            // if its a reverse link. only add it to the for, if its not an exluded one
+            // if its a reverse link. only add it to the form if its not an excluded one
             // (ex: route_width, no route_width_r)
             if (Object.keys(el)[0].endsWith('_r')) {
               if (!this.$store.getters.rcstAttributes.includes(this.newFieldName)) {
@@ -464,6 +467,55 @@ export default {
         this.newFieldName = null // null so there is no rules error.
         this.$store.commit('changeNotification',
           { text: $gettext('Field added'), autoClose: true, color: 'success' })
+      }
+    },
+    deleteField (field) {
+      let form = structuredClone(this.editorForm)
+      // if roadLinks.
+      if (Array.isArray(this.editorForm)) {
+        // if we delete a reverse attribute, change it to normal as _r are deleted with normal one
+        if (field.endsWith('_r')) {
+          field = field.substr(0, field.length - 2)
+        }
+        form = form.filter(el => delete el[field])
+        form = form.filter(el => delete el[field + '_r'])
+      // TC links
+      } else {
+        delete form[field]
+      }
+      this.editorForm = {}
+      this.editorForm = form
+
+      if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(this.action)) {
+        this.$store.commit('deletePropertie', { name: field, table: 'links' })
+      } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(this.action)) {
+        this.$store.commit('deleteRoadPropertie', { name: field, table: 'rlinks' })
+      } else if (this.action === 'Edit Node Info') {
+        this.$store.commit('deletePropertie', { name: field, table: 'nodes' })
+      } else if (this.action === 'Edit rNode Info') {
+        this.$store.commit('deleteRoadPropertie', { name: field, table: 'rnodes' })
+      }
+      this.$store.commit('changeNotification',
+        { text: $gettext('Field deleted'), autoClose: true, color: 'success' })
+    },
+    attributeNonDeletable (field) {
+      if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info', 'Edit Node Info'].includes(this.action)) {
+        return this.$store.getters.defaultAttributesNames.includes(field)
+      } else {
+        return this.$store.getters.rundeletable.includes(field)
+      }
+    },
+    ToggleDeleteOption () {
+      this.showDeleteOption = !this.showDeleteOption
+
+      if (this.showDeleteOption) {
+        this.$store.commit('changeNotification', {
+          text: $gettext('This action delete properties on every links (and reversed one for roads)'),
+          autoClose: false,
+          color: 'warning',
+        })
+      } else {
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
       }
     },
 
@@ -525,6 +577,20 @@ export default {
                       v-model="value['value']"
                     />
                   </template>
+                  <template
+                    v-if="showDeleteOption"
+                    v-slot:prepend
+                  >
+                    <v-btn
+                      icon
+                      x-small
+                      :disabled="attributeNonDeletable(key)"
+                      color="error"
+                      @click="()=>deleteField(key)"
+                    >
+                      <v-icon>fas fa-trash small</v-icon>
+                    </v-btn>
+                  </template>
                 </v-text-field>
               </v-list>
             </v-col>
@@ -569,6 +635,19 @@ export default {
             @click="()=>showHint = !showHint"
           >
             <v-icon>far fa-question-circle small</v-icon>
+          </v-btn>
+          <v-btn
+            v-if="editForm"
+            icon
+            x-small
+            @click="ToggleDeleteOption"
+          >
+            <v-icon v-if="showDeleteOption">
+              fas fa-minus-circle fa-rotate-90
+            </v-icon>
+            <v-icon v-else>
+              fas fa-minus-circle
+            </v-icon>
           </v-btn>
           <v-spacer />
 

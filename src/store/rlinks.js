@@ -27,7 +27,8 @@ export default {
     defaultHighway: 'quenedi',
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
-    cstAttributes: ['a', 'b', 'index', 'route_color', 'route_width', 'highway', 'oneway'],
+    cstAttributes: ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway'],
+    rundeletable: ['index', 'a', 'b', 'length', 'route_color', 'oneway', 'time', 'speed', 'time_r', 'speed_r'],
     reversedAttributes: [],
   },
 
@@ -114,8 +115,7 @@ export default {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       // add all default attributes
-      const defaultAttributes = [
-        'index']
+      const defaultAttributes = ['index']
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.rnodeAttributes = header
@@ -133,6 +133,20 @@ export default {
       } else {
         state.rnodes.features.map(node => node.properties[payload.name] = null)
         state.visiblerNodes.features.map(node => node.properties[payload.name] = null)
+      }
+    },
+    deleteRoadPropertie (state, payload) {
+      if (payload.table === 'rlinks') {
+        state.rlinks.features.filter(link => delete link.properties[payload.name])
+        state.rlinks.features.filter(link => delete link.properties[payload.name + '_r'])
+        state.visiblerLinks.features.filter(link => delete link.properties[payload.name])
+        state.visiblerLinks.features.filter(link => delete link.properties[payload.name + '_r'])
+
+        state.rlineAttributes = state.rlineAttributes.filter(item => item !== payload.name)
+        state.reversedAttributes = state.reversedAttributes.filter(item => item !== payload.name + '_r')
+      } else {
+        state.rnodes.features.filter(node => delete node.properties[payload.name])
+        state.visiblerNodes.features.filter(node => delete node.properties[payload.name])
       }
     },
 
@@ -592,6 +606,7 @@ export default {
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     rcstAttributes: (state) => state.cstAttributes,
     newrNode: (state) => state.newrNode,
+    rundeletable: (state) => state.rundeletable,
 
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)
