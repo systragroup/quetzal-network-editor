@@ -510,7 +510,7 @@ export default {
 
       if (this.showDeleteOption) {
         this.$store.commit('changeNotification', {
-          text: $gettext('This action delete properties on every links (and reversed one for roads)'),
+          text: $gettext('This action will delete properties on every links (and reversed one for two-way roads)'),
           autoClose: false,
           color: 'warning',
         })
@@ -533,7 +533,7 @@ export default {
       @keydown.esc="cancelAction"
     >
       <v-card
-        max-height="60rem"
+        max-height="55rem"
       >
         <v-card-title class="text-h5">
           {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ message + '?': $gettext("Edit Properties") }}
