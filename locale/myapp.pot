@@ -35,7 +35,7 @@ msgstr ""
 #: src/components/Settings.vue:129
 #: src/components/Settings.vue:138
 #: src/components/Settings.vue:140
-#: src/pages/Home.vue:84
+#: src/pages/Home.vue:87
 #: src/pages/Import.vue:242
 #: src/pages/ResultPicture.vue:11
 msgid "_ctx"
@@ -46,7 +46,7 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/pages/Home.vue:49
+#: src/pages/Home.vue:50
 msgid ""
 "0 - Regularly scheduled drop off.\n"
 "        1 - No drop off available.\n"
@@ -54,7 +54,7 @@ msgid ""
 "        3 - Must coordinate with driver to arrange drop off."
 msgstr ""
 
-#: src/pages/Home.vue:54
+#: src/pages/Home.vue:55
 msgid ""
 "0 - Regularly scheduled pickup.\n"
 "        1 - No pickup available.\n"
@@ -80,18 +80,18 @@ msgstr ""
 msgid "action"
 msgstr ""
 
-#: src/pages/Home.vue:121
+#: src/pages/Home.vue:148
 msgid "add field"
 msgstr ""
 
-#: src/pages/Import.vue:268
-#: src/pages/Import.vue:271
-#: src/pages/Import.vue:277
-#: src/pages/Import.vue:280
-#: src/pages/Import.vue:286
-#: src/pages/Import.vue:291
-#: src/pages/Import.vue:298
-#: src/pages/Import.vue:301
+#: src/pages/Import.vue:269
+#: src/pages/Import.vue:272
+#: src/pages/Import.vue:278
+#: src/pages/Import.vue:281
+#: src/pages/Import.vue:287
+#: src/pages/Import.vue:292
+#: src/pages/Import.vue:299
+#: src/pages/Import.vue:302
 msgid "An error occur fetching example on github"
 msgstr ""
 
@@ -118,12 +118,12 @@ msgstr ""
 #: src/components/ScenariosExplorer.vue:334
 #: src/components/Settings.vue:165
 #: src/components/utils/OSMImporter.vue:186
-#: src/pages/Home.vue:196
-#: src/pages/Home.vue:263
+#: src/pages/Home.vue:248
+#: src/pages/Home.vue:315
 msgid "Cancel"
 msgstr ""
 
-#: src/pages/Home.vue:41
+#: src/pages/Home.vue:42
 msgid "cannot add empty field"
 msgstr ""
 
@@ -135,7 +135,7 @@ msgstr ""
 msgid "Change project Name"
 msgstr ""
 
-#: src/pages/Home.vue:275
+#: src/pages/Home.vue:278
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -155,7 +155,7 @@ msgstr ""
 msgid "color map"
 msgstr ""
 
-#: src/pages/Home.vue:58
+#: src/pages/Home.vue:59
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr ""
 
@@ -167,7 +167,7 @@ msgstr ""
 msgid "copy"
 msgstr ""
 
-#: src/pages/Home.vue:267
+#: src/pages/Home.vue:270
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
@@ -192,7 +192,7 @@ msgid "Cut Before Node"
 msgstr ""
 
 #: src/components/ScenariosExplorer.vue:266
-#: src/pages/Home.vue:46
+#: src/pages/Home.vue:49
 msgid "Delete"
 msgstr ""
 
@@ -223,7 +223,7 @@ msgstr ""
 msgid "Delete Stop"
 msgstr ""
 
-#: src/pages/Home.vue:47
+#: src/pages/Home.vue:48
 msgid ""
 "direction of travel for a trip. used to separate trips by directions.\n"
 "         ex: 0 - Travel in one direction. 1 - Travel in the opposite direction."
@@ -245,7 +245,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: src/pages/Home.vue:233
+#: src/pages/Home.vue:285
 msgid "Duplicate and reverse"
 msgstr ""
 
@@ -273,7 +273,7 @@ msgstr ""
 msgid "Edit Node Info"
 msgstr ""
 
-#: src/pages/Home.vue:46
+#: src/pages/Home.vue:49
 msgid "Edit Properties"
 msgstr ""
 
@@ -312,19 +312,23 @@ msgstr ""
 msgid "Export Only Visible"
 msgstr ""
 
-#: src/pages/Home.vue:463
+#: src/pages/Home.vue:466
 msgid "Field added"
 msgstr ""
 
-#: src/pages/Home.vue:40
+#: src/pages/Home.vue:41
 msgid "field already exist"
 msgstr ""
 
-#: src/pages/Import.vue:333
+#: src/pages/Home.vue:496
+msgid "Field deleted"
+msgstr ""
+
+#: src/pages/Import.vue:334
 msgid "file is not a geojson"
 msgstr ""
 
-#: src/pages/Import.vue:388
+#: src/pages/Import.vue:389
 msgid "file is not a zip"
 msgstr ""
 
@@ -343,8 +347,8 @@ msgstr ""
 msgid "filter"
 msgstr ""
 
-#: src/pages/Home.vue:60
-msgid "Full name of a route.This name is generally more descriptive         than the route_short_name and often includes the route's destination or stop"
+#: src/pages/Home.vue:61
+msgid "Full name of a route.This name is generally more descriptive         than the route_short_name and often includes the roudefaultAttributeste's destination or stop"
 msgstr ""
 
 #: src/pages/Import.vue:224
@@ -366,7 +370,7 @@ msgstr ""
 msgid "Hold left click to drag"
 msgstr ""
 
-#: src/pages/Home.vue:59
+#: src/pages/Home.vue:60
 msgid "Identifies a route. Often a string"
 msgstr ""
 
@@ -378,7 +382,7 @@ msgstr ""
 msgid "Import OSM network in bounding box"
 msgstr ""
 
-#: src/pages/Home.vue:64
+#: src/pages/Home.vue:65
 msgid ""
 "Indicates the type of transportation used on a route.\n"
 "         subway, metro, rail, bus, ferry, tram, etc"
@@ -413,7 +417,7 @@ msgstr ""
 msgid "Left side driving"
 msgstr ""
 
-#: src/pages/Home.vue:68
+#: src/pages/Home.vue:69
 msgid ""
 "Line (or trip) identifier (i.e. 100 Est).\n"
 "         Links are group by trip_id in Quetzal-network-editor."
@@ -443,7 +447,7 @@ msgstr ""
 msgid "Links and Nodes files must be geojson in EPSG:4326."
 msgstr ""
 
-#: src/pages/Home.vue:70
+#: src/pages/Home.vue:71
 msgid "links geometry linestring length (meters)"
 msgstr ""
 
@@ -480,7 +484,7 @@ msgstr ""
 msgid "logout"
 msgstr ""
 
-#: src/pages/Home.vue:71
+#: src/pages/Home.vue:72
 msgid "Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)"
 msgstr ""
 
@@ -510,12 +514,12 @@ msgstr ""
 msgid "minWidth"
 msgstr ""
 
-#: src/pages/Home.vue:384
+#: src/pages/Home.vue:387
 msgid "modification aborted"
 msgstr ""
 
 #: src/components/Settings.vue:99
-#: src/pages/Home.vue:375
+#: src/pages/Home.vue:378
 msgid "modification applied"
 msgstr ""
 
@@ -523,7 +527,7 @@ msgstr ""
 msgid "more"
 msgstr ""
 
-#: src/pages/Home.vue:88
+#: src/pages/Home.vue:91
 msgid "multiple Values"
 msgstr ""
 
@@ -531,12 +535,12 @@ msgstr ""
 msgid "name"
 msgstr ""
 
-#: src/pages/Home.vue:122
+#: src/pages/Home.vue:149
 msgid "new field name"
 msgstr ""
 
-#: src/pages/Home.vue:162
-#: src/pages/Home.vue:243
+#: src/pages/Home.vue:189
+#: src/pages/Home.vue:295
 msgid "New name"
 msgstr ""
 
@@ -612,7 +616,7 @@ msgstr ""
 msgid "project Name"
 msgstr ""
 
-#: src/pages/Import.vue:318
+#: src/pages/Import.vue:319
 msgid "project overwrited"
 msgstr ""
 
@@ -632,11 +636,11 @@ msgstr ""
 msgid "PT Links and nodes Loaded from"
 msgstr ""
 
-#: src/pages/Import.vue:348
+#: src/pages/Import.vue:349
 msgid "PT links loaded with road nodes"
 msgstr ""
 
-#: src/pages/Import.vue:366
+#: src/pages/Import.vue:367
 msgid "PT nodes loaded for road links"
 msgstr ""
 
@@ -702,11 +706,11 @@ msgstr ""
 msgid "ROAD links and nodes Loaded from"
 msgstr ""
 
-#: src/pages/Import.vue:344
+#: src/pages/Import.vue:345
 msgid "road links loaded with PT nodes"
 msgstr ""
 
-#: src/pages/Import.vue:362
+#: src/pages/Import.vue:363
 msgid "road nodes loaded for PT links"
 msgstr ""
 
@@ -733,8 +737,8 @@ msgstr ""
 #: src/components/ResultsSettings.vue:276
 #: src/components/Settings.vue:175
 #: src/components/layout/NavigationDrawer.vue:28
-#: src/pages/Home.vue:206
-#: src/pages/Home.vue:273
+#: src/pages/Home.vue:258
+#: src/pages/Home.vue:325
 msgid "Save"
 msgstr ""
 
@@ -794,7 +798,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/pages/Home.vue:62
+#: src/pages/Home.vue:63
 msgid ""
 "Short name of a route. This will often be a short,\n"
 "         abstract identifier like \"32\", \"100X\", or \"Green\""
@@ -830,7 +834,7 @@ msgstr ""
 msgid "simulation executed successfully!"
 msgstr ""
 
-#: src/pages/Home.vue:72
+#: src/pages/Home.vue:73
 msgid "speed on the link (Km/h)"
 msgstr ""
 
@@ -871,6 +875,10 @@ msgstr ""
 msgid "there is no index in nodes. Import aborted"
 msgstr ""
 
+#: src/pages/Home.vue:510
+msgid "This action will delete properties on every links (and reversed one for two-way roads)"
+msgstr ""
+
 #: src/pages/Run.vue:83
 msgid "This scenario is protected. You can not run simulation."
 msgstr ""
@@ -880,15 +888,15 @@ msgstr ""
 msgid "This will ERASE the current project"
 msgstr ""
 
-#: src/pages/Home.vue:53
+#: src/pages/Home.vue:54
 msgid "Time between departures in seconds"
 msgstr ""
 
-#: src/pages/Home.vue:46
+#: src/pages/Home.vue:47
 msgid "transit brand or transit agency"
 msgstr ""
 
-#: src/pages/Home.vue:67
+#: src/pages/Home.vue:68
 msgid "Travel time on the link. set as length / speed when a link is created or edited (seconds)"
 msgstr ""
 
@@ -900,7 +908,7 @@ msgstr ""
 msgid "value"
 msgstr ""
 
-#: src/pages/Home.vue:66
+#: src/pages/Home.vue:67
 msgid "width to display on the map"
 msgstr ""
 
