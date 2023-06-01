@@ -23,6 +23,7 @@ export default {
     newNode: {},
     changeBounds: true,
     linkSpeed: 20, // 20KmH for time (speed/distance)
+    linksDefaultColor: '2196F3',
     lineAttributes: [],
     nodeAttributes: [],
     defaultAttributes: [
@@ -32,7 +33,6 @@ export default {
       { name: 'trip_id', type: 'String' },
       { name: 'route_id', type: 'String' },
       { name: 'agency_id', type: 'String' },
-      { name: 'route_long_name', type: 'String' },
       { name: 'route_short_name', type: 'String' },
       { name: 'route_type', type: 'String' },
       { name: 'route_color', type: 'String' },
@@ -122,9 +122,11 @@ export default {
       // when a new line properties is added (in dataframe page)
       if (payload.table === 'links') {
         state.links.features.map(link => link.properties[payload.name] = null)
-        state.lineAttributes.push(payload.name)
+        state.editorLinks.features.map(link => link.properties[payload.name] = null)
+        state.lineAttributes.push(payload.name) // could put that at applied. so we can cancel
       } else {
         state.nodes.features.map(node => node.properties[payload.name] = null)
+        state.editorNodes.features.map(node => node.properties[payload.name] = null)
       }
     },
     changeSelectedTrips (state, payload) {
@@ -192,14 +194,22 @@ export default {
       const uneditable = ['index', 'length', 'a', 'b', 'link_sequence']
       // empty trip, when its a newLine
       if (state.editorLinks.features.length === 0) {
-        function getDefaultValue (key) {
-          const defaultValue = { route_width: 3, route_color: '00BCD4' }
-          return defaultValue[key] || null
+        const defaultValue = {
+          route_id: 'Q1',
+          agency_id: 'QUENEDI',
+          route_short_name: 'Q1',
+          route_type: 'quenedi',
+          route_color: state.linksDefaultColor,
+          route_width: 3,
+          headway: 600,
+          pickup_type: 0,
+          drop_off_type: 0,
+          direction_id: 0,
         }
 
         state.lineAttributes.forEach(key => {
           form[key] = {
-            value: getDefaultValue[key],
+            value: defaultValue[key],
             disabled: uneditable.includes(key),
             placeholder: false,
           }
@@ -743,7 +753,6 @@ export default {
     tripId: (state) => state.tripId,
     selectedTrips: (state) => state.selectedTrips,
     editorLineInfo: (state) => state.editorLineInfo,
-    linksPopupChoices: (state) => { const ls = structuredClone(state.lineAttributes); ls.unshift([]); return ls },
     newLink: (state) => state.newLink,
     newNode: (state) => state.newNode,
     firstNodeId: (state) => state.editorNodes.features.length > 1
@@ -760,7 +769,7 @@ export default {
       ? state.editorNodes.features.filter(
         (node) => node.properties.index === getters.lastNodeId)[0]
       : null,
-    lineAttributes: (state) => state.lineAttributes,
+    lineAttributes: (state) => state.lineAttributes.sort(),
     nodeAttributes: (state) => state.nodeAttributes,
     changeBounds: (state) => state.changeBounds,
     nodesHeader: (state) => state.nodesHeader,

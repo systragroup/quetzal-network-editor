@@ -1,9 +1,21 @@
 <script>
+import Profile from '../utils/Profile.vue'
+import ScenariosExplorer from '../ScenariosExplorer.vue'
 export default {
   name: 'Toolbar',
-  computed: {
-
+  components: { Profile, ScenariosExplorer },
+  data () {
+    return {
+      dialog: true,
+    }
   },
+
+  watch: {
+    '$vuetify.theme.dark' (val) {
+      this.$store.commit('changeDarkMode', val)
+    },
+  },
+
   methods: {
     handleChangeLanguage (lang) {
       this.$vuetify.lang.current = lang
@@ -16,10 +28,21 @@ export default {
   <v-toolbar
     :class="'app-toolbar elevation-4'"
     dense
-    color="white"
   >
-    <div>Quetzal Network Editor</div>
+    <v-img
+      :src="require('@static/systra_logo.png')"
+      contain
+      max-width="6rem"
+    />
+    <span class="copyright">©</span>
+    <div class="app-name">
+      Quetzal Network Editor
+    </div>
 
+    <v-spacer />
+    <div>
+      <ScenariosExplorer />
+    </div>
     <v-spacer />
     <div>
       <v-tooltip bottom>
@@ -39,7 +62,12 @@ export default {
         <span>GitHub</span>
       </v-tooltip>
     </div>
-
+    <div class="switch">
+      <v-switch
+        v-model="$vuetify.theme.dark"
+        append-icon="fas fa-moon"
+      />
+    </div>
     <div>
       <v-menu
         offset-y
@@ -62,15 +90,19 @@ export default {
             :key="lang"
             :class="language"
 
-            @click="handleChangeLanguage(lang)"
+            @click="()=>handleChangeLanguage(lang)"
           >
             {{ language.toUpperCase() }}
           </v-list-item>
         </v-list>
       </v-menu>
     </div>
+    <div>
+      <Profile />
+    </div>
   </v-toolbar>
 </template>
+
 <style lang="scss" scoped>
 .app-toolbar {
   z-index: 100;
@@ -85,8 +117,28 @@ export default {
 .project-name {
   font-size: 1.3em;
 }
+.app-name {
+  font-size: 1.2em;
+  padding-left: 1.2rem;
+  color:var(--v-secondarydark-base);
+}
+.copyright {
+  font-size: 0.9rem;
+  padding-left: 5px;
+  padding-top: 1rem;
+  color:var(--v-secondarydark-base);
+}
 .languages-container {
   display: flex;
+}
+.switch {
+  display: flex;
+  padding-top: 1rem;
+  padding-left:1rem;
+  align-items: center;
+  justify-content: center;
+  color: $grey-light;
+  cursor: pointer;
 }
 .language {
   width: 50px;
@@ -98,7 +150,7 @@ export default {
   transition: 0.3s;
 }
 .language.active, .language:hover {
-  color: $secondary;
+  color:var(--v-secondarydark-base);
 }
 .language:last-child {
   border-right: 0;

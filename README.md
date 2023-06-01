@@ -63,9 +63,22 @@ Any other properties in the table will be editable
 
 ## Developement Setup 
 
+Get the SALT and PASSWORD from your team members
 ```sh
-# define BACK_URL and MAPBOX_TOKEN variable or let you guide by the setup
+#Run
+./config-secret
+```
+- provide the shared salt
+- provide the shared password
+- answer y to the unlock question
+
+or provide everything manually:
+```sh
+# define MAPBOX_TOKEN and everything for the Cognito identity pool and identity provider
 yarn run setup
+```
+then
+```sh
 
 # install dependencies
 yarn install

@@ -1,15 +1,13 @@
 <script>
 import Mapbox from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
-
-import { mapboxPublicKey } from '@src/config.js'
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
 import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
-
+const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 const $gettext = s => s
 
@@ -52,10 +50,11 @@ export default {
       selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
       showSettings: false,
+
     }
   },
   computed: {
-
+    mapStyle () { return this.$store.getters.mapStyle },
     showLeftPanel () {
       return this.$store.getters.showLeftPanel
     },
@@ -74,6 +73,7 @@ export default {
     anchorMode () { return this.$store.getters.anchorMode },
   },
   watch: {
+
     showLeftPanel () {
       setTimeout(() => this.map.resize(), 250)
     },
@@ -90,6 +90,9 @@ export default {
       if (!val) {
         this.drawMode = false
       }
+    },
+    mapStyle (val) {
+      this.saveMapPosition()
     },
 
     editorNodes (newVal, oldVal) {
@@ -158,9 +161,20 @@ export default {
     this.mapboxPublicKey = mapboxPublicKey
     this.drawLink = structuredClone(this.$store.getters.linksHeader)
   },
+  beforeDestroy () {
+    this.saveMapPosition()
+  },
 
   methods: {
+    saveMapPosition () {
+      const center = this.map.getCenter()
+      this.$store.commit('saveMapPosition', {
+        mapCenter: [center.lng, center.lat],
+        mapZoom: this.map.getZoom(),
+      })
+    },
     onMapLoaded (event) {
+      if (this.map) this.map.remove(); this.mapIsLoaded = false
       const bounds = new Mapbox.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if (this.$store.getters.links.features.length > 0) {
@@ -326,9 +340,12 @@ export default {
 </script>
 <template>
   <MglMap
+    :key="mapStyle"
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
-    map-style="mapbox://styles/mapbox/light-v9?optimize=true"
+    :map-style="mapStyle"
+    :center="$store.getters.mapCenter"
+    :zoom="$store.getters.mapZoom"
     @load="onMapLoaded"
     @mousemove="draw"
     @mouseout="resetDraw()"
@@ -363,7 +380,7 @@ export default {
       </template>
       <Settings
         v-if="showSettings"
-        @submit="showSettings=false"
+        @submit="() => showSettings=false"
       />
     </v-menu>
 
@@ -410,7 +427,7 @@ export default {
           minzoom: 2,
           paint: {
             'line-opacity': 1,
-            'line-color': '#7EBAAC',
+            'line-color': $vuetify.theme.currentTheme.linksprimary,
             'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
             'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 

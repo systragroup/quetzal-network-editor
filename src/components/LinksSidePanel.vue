@@ -182,7 +182,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             v-bind="attrs"
             v-on="on"
             @click="showAll()"
@@ -202,8 +202,9 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             v-bind="attrs"
+            :disabled="tripList.length===0? true: false"
             v-on="on"
             @click="propertiesButton(tripList)"
           >
@@ -216,7 +217,10 @@ export default {
       </v-tooltip>
 
       <v-spacer />
-      {{ $gettext("Lines") }}
+      <span :style="{color: 'white'}">
+        {{ $gettext("Lines") }}
+      </span>
+
       <v-spacer />
 
       <v-spacer />
@@ -230,7 +234,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             dark
             v-bind="attrs"
             v-on="on"
@@ -269,15 +273,15 @@ export default {
           v-model="vmodelSelectedFilter"
           :items="filterChoices"
           prepend-icon="fas fa-filter"
-          label="filter"
-          item-color="secondary"
-          color="secondary"
+          :label="$gettext('filter')"
+          item-color="secondarydark"
+          color="secondarydark"
         />
       </v-list-item>
       <v-list-group
         v-for="(value, key) in classifiedTripId"
         :key="String(value.name) + String(key)"
-        color="secondary"
+        color="secondarydark"
         :value="false"
         no-action
       >
@@ -496,11 +500,11 @@ export default {
               @click="$store.commit('changeAnchorMode')"
             >
               <v-icon small>
-                fas fa-bezier-curve
+                fas fa-anchor
               </v-icon>
             </v-btn>
           </template>
-          <span>{{ $gettext("Edit Line geometry") }}</span>
+          <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
         </v-tooltip>
 
         <v-btn

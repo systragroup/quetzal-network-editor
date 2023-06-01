@@ -1,7 +1,7 @@
 <script>
 
 export default {
-  name: 'EmptyComponent',
+  name: 'ColorPicker',
   components: {
 
   },

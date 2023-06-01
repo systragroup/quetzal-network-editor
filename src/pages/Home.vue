@@ -1,3 +1,4 @@
+<!-- eslint-disable no-multi-str -->
 <!-- eslint-disable no-return-assign -->
 <script>
 import SidePanel from '../components/SidePanel.vue'
@@ -33,19 +34,89 @@ export default {
       errorMessage: null,
       lingering: true,
       groupTripIds: [],
-      selectedTab: 0,
       isRoadMode: false,
+      showHint: false,
+      newFieldName: null,
+      linkDir: [],
+      rules: {
+        newField: [
+          val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
+          val => val !== '' || $gettext('cannot add empty field'),
+        ],
+      },
+
+      hints: {
+        agency_id: $gettext('transit brand or transit agency'),
+        direction_id: $gettext(`direction of travel for a trip. used to separate trips by directions.
+         ex: 0 - Travel in one direction. 1 - Travel in the opposite direction.`),
+        drop_off_type: $gettext(`0 - Regularly scheduled drop off.
+        1 - No drop off available.
+        2 - Must phone agency to arrange drop off.
+        3 - Must coordinate with driver to arrange drop off.`),
+        headway: $gettext('Time between departures in seconds'),
+        pickup_type: $gettext(`0 - Regularly scheduled pickup.
+        1 - No pickup available.
+        2 - Must phone agency to arrange pickup.
+        3 - Must coordinate with driver to arrange pickup`),
+        route_color: $gettext('color to display on the map (i.e. FFFFFF)'),
+        route_id: $gettext('Identifies a route. Often a string'),
+        route_long_name: $gettext("Full name of a route.This name is generally more descriptive\
+         than the route_short_name and often includes the route's destination or stop"),
+        route_short_name: $gettext(`Short name of a route. This will often be a short,
+         abstract identifier like "32", "100X", or "Green"`),
+        route_type: $gettext(`Indicates the type of transportation used on a route.
+         subway, metro, rail, bus, ferry, tram, etc`),
+        route_width: $gettext('width to display on the map'),
+        time: $gettext('Travel time on the link. set as length / speed when a link is created or edited (seconds)'),
+        trip_id: $gettext(`Line (or trip) identifier (i.e. 100 Est).
+         Links are group by trip_id in Quetzal-network-editor.`),
+        length: $gettext('links geometry linestring length (meters)'),
+        highway: $gettext('Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)'),
+        speed: $gettext('speed on the link (Km/h)'),
+
+      },
+
     }
   },
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
     selectedrGroup () { return this.$store.getters.selectedrGroup },
-    orderedForm () {
+    numLinks () { return Array.isArray(this.editorForm) ? this.editorForm.length : 1 },
+
+    editForm () {
+      return ['Edit Line Info',
+        'Edit Link Info',
+        'Edit Node Info',
+        'Edit Group Info',
+        'Edit rLink Info',
+        'Edit Road Group Info',
+        'Edit Visible Road Info',
+        'Edit rNode Info'].includes(this.action)
+    },
+  },
+  watch: {
+    showDialog (val) {
+      // do not show a notification when dialog is on. sometim its over the confirm button
+      if (val) { this.$store.commit('changeNotification', { text: '', autoClose: true }) }
+    },
+
+  },
+  created () {
+    this.editorTrip = this.$store.getters.editorTrip
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === 'Control') && (!this.showDialog) && (!this.cloneDialog)) {
+        this.$store.commit('changeAnchorMode')
+      }
+    })
+  },
+
+  methods: {
+    orderedForm (index) {
       // order editor Form in alphatical order
       let form = this.editorForm
       // if we have tab. there is a list of form
       if (form.length >= 1) {
-        form = form[this.selectedTab]
+        form = form[index]
       }
       // order keys in alphabetical order, and with disabled last
       const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
@@ -59,24 +130,6 @@ export default {
       )
       return ordered
     },
-  },
-  watch: {
-    showDialog (val) {
-      // do not show a notification when dialog is on. sometim its over the confirm button
-      if (val) { this.$store.commit('changeNotification', { text: '', autoClose: true }) }
-    },
-
-  },
-  created () {
-    this.editorTrip = this.$store.getters.editorTrip
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Control') {
-        this.$store.commit('changeAnchorMode')
-      }
-    })
-  },
-
-  methods: {
 
     updateSelectedTrips (event) {
       if (event.type === 'links') {
@@ -115,9 +168,15 @@ export default {
         this.showDialog = true
       } else if (this.action === 'Edit rLink Info') {
         this.selectedLink = event.selectedIndex
-        this.selectedTab = 0
-
         this.editorForm = this.selectedLink.map(linkId => this.$store.getters.rlinksForm(linkId))
+        this.linkDir = this.$store.getters.rlinkDirection(this.selectedLink)
+        event.selectedIndex.forEach(linkId => {
+          if (this.$store.getters.onewayIndex.has(linkId)) {
+            this.selectedLink.push(linkId)
+            this.editorForm.push(this.$store.getters.reversedrLinksForm(linkId))
+            this.linkDir.push(this.$store.getters.rlinkDirection(this.selectedLink, true))
+          }
+        })
         this.showDialog = true
       } else if (this.action === 'Edit Road Group Info') {
         const features = this.$store.getters.grouprLinks(event.category, event.group)
@@ -250,7 +309,10 @@ export default {
           this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit Visible Road Info':
-          this.$store.commit('editrVisiblesInfo', { info: this.editorForm })
+          this.$store.commit('editrGroupInfo', {
+            selectedLinks: this.$store.getters.visiblerLinks.features,
+            info: this.editorForm,
+          })
           this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit rNode Info':
@@ -354,6 +416,56 @@ export default {
       this.errorMessage = ''
       this.cloneDialog = false
     },
+    addField () {
+      let form = {}
+      if (Array.isArray(this.editorForm)) {
+        form = structuredClone(this.editorForm[0])
+      } else {
+        form = structuredClone(this.editorForm)
+      }
+      // do not append if its null, empty or already exist.
+
+      if ((Object.keys(form).includes(this.newFieldName)) | (this.newFieldName === '') |
+       (!this.newFieldName) | (this.newFieldName?.endsWith('_r'))) {
+        // put ' ' so the rule error is diplayed.
+        this.newFieldName = ''
+      } else {
+        // need to rewrite editorForm object to be updated in DOM
+        if (Array.isArray(this.editorForm)) {
+          const tempArr = structuredClone(this.editorForm)
+          tempArr.forEach(el => {
+            // if its a reverse link. only add it to the for, if its not an exluded one
+            // (ex: route_width, no route_width_r)
+            if (Object.keys(el)[0].endsWith('_r')) {
+              if (!this.$store.getters.rcstAttributes.includes(this.newFieldName)) {
+                el[this.newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined }
+              }
+            } else { // normal link. add the new field to the list.
+              el[this.newFieldName] = { disabled: false, placeholder: false, value: undefined }
+            }
+          })
+          this.editorForm = null
+          this.editorForm = tempArr
+        } else {
+          form[this.newFieldName] = { disabled: false, placeholder: false, value: undefined }
+          this.editorForm = {}
+          this.editorForm = form
+        }
+
+        if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(this.action)) {
+          this.$store.commit('addPropertie', { name: this.newFieldName, table: 'links' })
+        } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(this.action)) {
+          this.$store.commit('addRoadPropertie', { name: this.newFieldName, table: 'rlinks' })
+        } else if (this.action === 'Edit Node Info') {
+          this.$store.commit('addPropertie', { name: this.newFieldName, table: 'nodes' })
+        } else if (this.action === 'Edit rNode Info') {
+          this.$store.commit('addRoadPropertie', { name: this.newFieldName, table: 'rnodes' })
+        }
+        this.newFieldName = null // null so there is no rules error.
+        this.$store.commit('changeNotification',
+          { text: $gettext('Field added'), autoClose: true, color: 'success' })
+      }
+    },
 
   },
 }
@@ -364,62 +476,82 @@ export default {
       v-model="showDialog"
       scrollable
       persistent
-      max-width="300"
+      :max-width="numLinks>1? '40rem':'20rem'"
       @keydown.enter="applyAction"
       @keydown.esc="cancelAction"
     >
       <v-card
         max-height="60rem"
       >
-        <v-tabs
-          v-if=" (editorForm.length > 1) "
-          v-model="selectedTab"
-          grow
-        >
-          <v-tab
-            v-for="link in selectedLink"
-            :key="link"
-          >
-            {{ link }}
-          </v-tab>
-        </v-tabs>
         <v-card-title class="text-h5">
           {{ ['deleteTrip','deleterGroup'].includes(action)? $gettext("Delete") + ' '+ message + '?': $gettext("Edit Properties") }}
         </v-card-title>
         <v-divider />
-        <v-card-text
-          v-if="['Edit Line Info',
-                 'Edit Link Info',
-                 'Edit Node Info',
-                 'Edit Group Info',
-                 'Edit rLink Info',
-                 'Edit Road Group Info',
-                 'Edit Visible Road Info',
-                 'Edit rNode Info'].includes(action)"
-        >
-          <v-list>
+        <v-card-text v-if="editForm">
+          <v-row>
+            <v-col
+              v-for="(n,idx) in numLinks"
+              :key="idx"
+            >
+              <v-list>
+                <v-list-item v-if="numLinks > 1">
+                  <v-icon
+                    :style="{'align-items':'center',
+                             'justify-content': 'center',
+                             transform: 'rotate('+linkDir[idx]+'deg)'}"
+                  >
+                    fas fa-long-arrow-alt-up
+                  </v-icon>
+                </v-list-item>
+                <v-text-field
+                  v-for="(value, key) in orderedForm(idx)"
+                  :key="key"
+                  v-model="value['value']"
+                  :label="key"
+                  :hint="showHint? $gettext(hints[key]): ''"
+                  :persistent-hint="showHint"
+                  :filled="!value['disabled']"
+                  :type="$store.getters.attributeType(key)"
+                  :placeholder="value['placeholder']? $gettext('multiple Values'):''"
+                  :persistent-placeholder=" value['placeholder']? true:false "
+                  :disabled="value['disabled']"
+                  @wheel="$event.target.blur()"
+                >
+                  <template
+                    v-if="key==='route_color'"
+                    v-slot:append
+                  >
+                    <color-picker
+                      v-model="value['value']"
+                    />
+                  </template>
+                </v-text-field>
+              </v-list>
+            </v-col>
+          </v-row>
+          <v-row>
             <v-text-field
-              v-for="(value, key) in orderedForm"
-              :key="key"
-              v-model="value['value']"
-              :label="key"
-              :filled="!value['disabled']"
-              :type="$store.getters.attributeType(key)"
-              :placeholder="value['placeholder']? $gettext('multiple Values'):''"
-              :persistent-placeholder=" value['placeholder']? true:false "
-              :disabled="value['disabled']"
+              v-model="newFieldName"
+              :label=" $gettext('add field')"
+              :placeholder="$gettext('new field name')"
+              filled
+              :rules="rules.newField"
+              @keydown.enter.stop="addField"
               @wheel="$event.target.blur()"
             >
-              <template
-                v-if="key==='route_color'"
-                v-slot:append
-              >
-                <color-picker
-                  v-model="value['value']"
-                />
+              <template v-slot:append-outer>
+                <v-btn
+                  color="primary"
+                  class="text--primary"
+                  fab
+                  x-small
+                  @click="addField"
+                >
+                  <v-icon>fas fa-plus</v-icon>
+                </v-btn>
               </template>
             </v-text-field>
-          </v-list>
+          </v-row>
         </v-card-text>
         <v-card-text v-if="['cloneTrip'].includes(action)">
           <v-text-field
@@ -430,6 +562,14 @@ export default {
         <v-divider />
 
         <v-card-actions>
+          <v-btn
+            v-if="editForm"
+            icon
+            x-small
+            @click="()=>showHint = !showHint"
+          >
+            <v-icon>far fa-question-circle small</v-icon>
+          </v-btn>
           <v-spacer />
 
           <v-btn
@@ -441,7 +581,7 @@ export default {
           </v-btn>
 
           <v-btn
-            color="green darken-1"
+            color="success"
             text
             @click="applyAction"
           >

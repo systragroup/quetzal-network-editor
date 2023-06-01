@@ -25,14 +25,14 @@ export default {
       linksPopupContent: {
         name: $gettext('PT Popup Content'),
         type: 'String',
-        choices: this.$store.getters.linksPopupChoices,
+        choices: this.$store.getters.lineAttributes,
         value: this.$store.getters.linksPopupContent,
         hint: $gettext('Link field to display when hovering a trip on the map'),
       },
       roadsPopupContent: {
         name: $gettext('Road Popup Content'),
         type: 'String',
-        choices: this.$store.getters.roadPopupChoices,
+        choices: this.$store.getters.rlineAttributes,
         value: this.$store.getters.roadsPopupContent,
         hint: $gettext('Link field to display when hovering road link on the map'),
       },
@@ -134,7 +134,9 @@ export default {
               :label="$gettext(linksPopupContent.name)"
               :hint="showHint? $gettext(linksPopupContent.hint): ''"
               :persistent-hint="showHint"
-              required
+              :menu-props="{ top: true, offsetY: true }"
+              chips
+              multiple
             />
             <v-select
               v-model="roadsPopupContent.value"
@@ -142,7 +144,9 @@ export default {
               :label="$gettext(roadsPopupContent.name)"
               :hint="showHint? $gettext(roadsPopupContent.hint): ''"
               :persistent-hint="showHint"
-              required
+              :menu-props="{ top: true, offsetY: true }"
+              chips
+              multiple
             />
             <v-text-field
               v-model="defaultHighway.value"
@@ -229,7 +233,7 @@ export default {
 }
 .subtitle {
   font-size: 2em;
-  color: $secondary !important;
+  color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding:1rem
 

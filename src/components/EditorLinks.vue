@@ -252,7 +252,7 @@ export default {
         type: 'line',
         minzoom: 2,
         paint: {
-          'line-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
+          'line-color': ['case', ['boolean', anchorMode, false],$vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
         }
@@ -280,7 +280,7 @@ export default {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': ['case', ['boolean', anchorMode, false], '#B5E0D6', '#7EBAAC'],
+          'icon-color': ['case', ['boolean', anchorMode, false], $vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
         }
       }"
     />
@@ -299,7 +299,7 @@ export default {
         type: 'circle',
         minzoom: 2,
         paint: {
-          'circle-color': '#2C3E4E',
+          'circle-color': $vuetify.theme.currentTheme.accent,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         }

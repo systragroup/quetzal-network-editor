@@ -4,6 +4,7 @@
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
 import booleanContains from '@turf/boolean-contains'
+import booleanCrosses from '@turf/boolean-crosses'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
 const $gettext = s => s
@@ -29,7 +30,7 @@ export default {
       renderedAnchorrNodes: {},
       bbox: null,
       minZoom: {
-        links: 9,
+        links: 2,
         rendered: 14,
       },
       contextMenu: {
@@ -91,12 +92,16 @@ export default {
       // if not, getting all anchorpoint would be very intensive!!
       // this way, only a small number of anchor points are computed
       if (this.map.getZoom() > this.minZoom.rendered) {
-        // this.renderedrLinks.features = this.rlinks.features.filter(link => booleanContains(this.bbox, link))
-        this.renderedrNodes.features = this.rnodes.features.filter(node => booleanContains(this.bbox, node))
+        // get links in or intersecting with bbox
+        this.renderedrLinks.features = this.rlinks.features.filter(
+          link => (booleanContains(this.bbox, link) || booleanCrosses(this.bbox, link)))
+        // get rendered nodes
+        const a = this.renderedrLinks.features.map(item => item.properties.a)
+        const b = this.renderedrLinks.features.map(item => item.properties.b)
+        const rNodesList = new Set([...a, ...b])
+        // filter with rnodesList
+        this.renderedrNodes.features = this.rnodes.features.filter(node => rNodesList.has(node.properties.index))
         this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
-
-        const nodeSet = new Set(this.renderedrNodes.features.map(node => node.properties.index))
-        this.renderedrLinks.features = this.rlinks.features.filter(link => nodeSet.has(link.properties.a) | nodeSet.has(link.properties.b))
       } else if (this.map.getZoom() > this.minZoom.links) {
         // ion this case. nodes are unloaded. we display links.
         this.renderedrLinks.features = this.rlinks.features
@@ -115,9 +120,11 @@ export default {
           if (!this.disablePopup && this.selectedPopupContent.length > 0) {
             const selectedFeature = event.mapboxEvent.features[0]
             if (selectedFeature.layer.id !== 'rnodes') {
+              let htmlContent = this.selectedPopupContent.map(prop => `${prop}: <b>${selectedFeature.properties[prop]}</b>`)
+              htmlContent = htmlContent.join('<br> ')
               this.popup = new mapboxgl.Popup({ closeButton: false })
                 .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-                .setHTML(selectedFeature.properties[this.selectedPopupContent])
+                .setHTML(htmlContent)
                 .addTo(event.map)
             }
           }
@@ -268,7 +275,7 @@ export default {
     onMove (event) {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.map.loaded() && this.dragNode && this.selectedFeature) {
+      if (this.dragNode && this.selectedFeature) {
         const click = {
           selectedFeature: this.selectedFeature,
           action: null,
@@ -328,12 +335,22 @@ export default {
         type: 'line',
         minzoom: minZoom.links,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
-          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.5, 1],
-          'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 2],
-          'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
-
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 3, 1],
+                         ['case', ['has', 'route_width'],
+                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                           ['to-number', ['get', 'route_width']],
+                           2], 2]],
+          'line-blur': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 1, 0],
+                        ['case', ['has', 'route_width'],
+                         ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                          ['to-number', ['get', 'route_width']],
+                          2], 2]],
         },
+        layout: {
+          'line-sort-key': ['to-number',['get', 'route_width']],
+        }
 
       }"
       v-on="isEditorMode ? { } : { mouseenter: onCursor,
@@ -354,13 +371,16 @@ export default {
           'symbol-spacing': 200,
           'icon-ignore-placement': true,
           'icon-image':'arrow',
-          'icon-size': ['case', ['has', 'oneway'],
-                        ['case',['to-boolean',['to-number',['get','oneway']]],0.3, 0],
-                        0.3],
-          'icon-rotate': 90
+          'icon-size': ['*',['case', ['has', 'oneway'],
+                             ['case',['to-boolean',['to-number',['get','oneway']]],0.15, 0],
+                             0.15], ['case', ['has', 'route_width'],
+                                     ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                                      ['to-number', ['get', 'route_width']],
+                                      2], 2]],
+          'icon-rotate': 90,
         },
         paint: {
-          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#B5E0D6'],
+          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
         }
       }"
     />
@@ -379,8 +399,8 @@ export default {
         type: 'circle',
         minzoom: minZoom.rendered,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false],'#9E9E9E', '#2C3E4E'],
-          'circle-stroke-color': '#ffffff',
+          'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.accent],
+          'circle-stroke-color': $vuetify.theme.currentTheme.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 3],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
@@ -410,7 +430,7 @@ export default {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': '#2C3E4E',
+          'circle-stroke-color': $vuetify.theme.currentTheme.darkgrey,
           'circle-stroke-width': 2,
         },
       }"

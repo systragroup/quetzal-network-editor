@@ -70,6 +70,13 @@ export default {
     this.tripList = this.selectedrGoup
     this.selectedFilter = this.$store.getters.selectedrFilter
     this.vmodelSelectedFilter = this.selectedFilter
+    this.$store.commit('changeSelectedrFilter', this.selectedFilter)
+
+    if (this.$store.getters.links.features.length === 0 &&
+    !this.$store.getters.projectIsEmpty &&
+    this.selectedrGoup.length === 0) {
+      this.showAll()
+    }
   },
 
   methods: {
@@ -95,7 +102,7 @@ export default {
       this.$emit('deleteButton', obj)
     },
     showAll () {
-      if (this.tripList === this.filteredCat) {
+      if (this.tripList.length === this.filteredCat.length) {
         this.tripList = []
       } else {
         this.tripList = this.filteredCat
@@ -120,7 +127,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             v-bind="attrs"
             v-on="on"
             @click="showAll()"
@@ -140,7 +147,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             :disabled="tripList.length===0? true: false"
             v-bind="attrs"
             v-on="on"
@@ -155,7 +162,10 @@ export default {
       </v-tooltip>
 
       <v-spacer />
-      {{ $gettext("Roads") }}
+      <span :style="{color: 'white'}">
+        {{ $gettext("Roads") }}
+      </span>
+
       <v-spacer />
 
       <v-spacer />
@@ -169,7 +179,7 @@ export default {
           <v-btn
             icon
             class="ma-2"
-            color="white"
+            :style="{color: 'white'}"
             dark
             v-bind="attrs"
             v-on="on"
@@ -208,9 +218,9 @@ export default {
           v-model="vmodelSelectedFilter"
           :items="filterChoices"
           prepend-icon="fas fa-filter"
-          label="filter"
-          item-color="secondary"
-          color="secondary"
+          :label="$gettext('filter')"
+          item-color="secondarydark"
+          color="secondarydark"
         />
       </v-list-item>
 
@@ -306,11 +316,11 @@ export default {
               @click="$store.commit('changeAnchorMode')"
             >
               <v-icon small>
-                fas fa-bezier-curve
+                fas fa-anchor
               </v-icon>
             </v-btn>
           </template>
-          <span>{{ $gettext("Edit Line geometry") }}</span>
+          <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
         </v-tooltip>
         <v-spacer />
       </v-list-item>

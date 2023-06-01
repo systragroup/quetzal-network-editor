@@ -2,8 +2,10 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
+import auth from './auth'
+import s3 from './AWSClient'
+import { axiosClient } from './axiosClient'
+
 export default {
   name: 'App',
   components: {
@@ -30,10 +32,14 @@ export default {
   },
   created () {
     // init links and node to empty one (new project)
-    this.$store.commit('loadLinks', linksBase)
-    this.$store.commit('loadrLinks', linksBase)
-    this.$store.commit('loadNodes', nodesBase)
-    this.$store.commit('loadrNodes', nodesBase)
+    this.$store.commit('initNetworks')
+    this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
+
+    if (auth.auth.isUserSignedIn()) {
+      auth.login()
+      s3.login()
+      axiosClient.loginAll(this.$store.getters.idToken)
+    }
   },
   methods: {
     closeSnackbar () {
@@ -71,14 +77,15 @@ export default {
       :timeout="notification.autoClose ? 3000 : -1"
       transition="slide-y-reverse-transition"
       :color="notification.color? notification.color : 'white'"
-      class="snackbar"
       :class="`snackbar-${notification.type}`"
     >
-      {{ $gettext(notification.text) }}
+      <span class="snackbar-text">
+        {{ $gettext(notification.text) }}
+      </span>
       <template v-slot:action="{ attrs }">
         <v-btn
           small
-          color="secondary"
+          color="secondarydark"
           text
           v-bind="attrs"
           @click="closeSnackbar"
@@ -95,6 +102,9 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+.snackbar-text{
+  color:var(--v-secondarydark-base);
 }
 .container {
   height: 100%;
