@@ -33,6 +33,7 @@
     "chroma-js": "^2.4.2",
     "dotenv": "^16.0.3",
     "dotenv-webpack": "^8.0.1",
+    "engine.io": "^6.4.2",
     "file-saver": "^2.0.5",
     "graphql": "^16.0.0",
     "graphql-tag": "^2.12.6",
