@@ -61,8 +61,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
  */
 
 /*!
- * ApexCharts v3.35.4
- * (c) 2018-2022 ApexCharts
+ * ApexCharts v3.40.0
+ * (c) 2018-2023 ApexCharts
  * Released under the MIT License.
  */
 
