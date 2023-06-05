@@ -59,7 +59,7 @@ export default {
         minzoom: 5,
         'paint': {
           'fill-color': ['get', 'display_color'],
-          'fill-opacity': 0.5,
+          'fill-opacity':['case', ['has', 'display_opacity'], ['get', 'display_opacity'], 0.5],
 
         }
       }"
@@ -78,7 +78,7 @@ export default {
         minzoom: 5,
         'paint': {
           'line-color': ['get', 'display_color'],
-          'line-opacity': 0.8,
+          'line-opacity':['case', ['has', 'display_opacity'], ['get', 'display_opacity'], 0.8],
           'line-width': ['get', 'display_width'],
 
         }
@@ -99,7 +99,7 @@ export default {
         paint: {
           'circle-color': ['get', 'display_color'],
           'circle-radius': ['get', 'display_width'],
-          'circle-opacity': 0.8,
+          'circle-opacity':['case', ['has', 'display_opacity'], ['get', 'display_opacity'], 0.5],
         },
       }"
     />
