@@ -39,6 +39,25 @@ const router = new Router({
       component: Microservices,
       icon: 'fas fa-tachometer-alt',
       title: $gettext('Microservices'),
+      beforeEnter: (to, from, next) => {
+        if (!store.getters.loggedIn) {
+          store.commit('changeNotification',
+            {
+              text: $gettext('Must be logged in'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else if (store.getters.rlinks.features.length === 0) {
+          store.commit('changeNotification',
+            {
+              text: $gettext('Must load a road network first'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else {
+          next()
+        }
+      },
     },
     {
       path: '/Run',

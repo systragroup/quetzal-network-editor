@@ -13,6 +13,7 @@ export default {
       imgs: [],
       exporting: false,
       applying: false,
+      validForm: true,
 
       parameters: [{
         name: 'num_zones',
@@ -51,7 +52,7 @@ export default {
         name: 'ff_time_col',
         text: 'freeflow time on roads',
         value: null,
-        choices: [],
+        items: this.$store.getters.rlineAttributes,
         type: 'String',
         units: '',
         hint: 'road links time (link length / speed) to use as a first approximation. this is the freeflow speed, or speed limit',
@@ -130,6 +131,7 @@ export default {
   },
   methods: {
     run () {
+      if (!this.$refs.form.validate()) { return }
       this.$store.commit('runMRC/setCallID')
       const inputs = { callID: this.callID }
       this.parameters.forEach(item => {
@@ -182,27 +184,47 @@ export default {
         <p> {{ $gettext('3) Interpolate every other OD time with an hybrid Machine learning model') }}</p>
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
 
-        <form
-          v-for="(item, key) in parameters"
-          :key="key"
+        <v-form
+          ref="form"
+          v-model="validForm"
+          lazy-validation
         >
-          <v-text-field
-            v-model="item.value"
-            :type="item.type"
-            :label="$gettext(item.text)"
-            :suffix="item.units"
-            :hint="showHint? $gettext(item.hint): ''"
-            :persistent-hint="showHint"
-            :rules="item.rules.map((rule) => rules[rule])"
-            required
-            @wheel="()=>{}"
-          />
-        </form>
+          <div
+            v-for="(item, key) in parameters"
+            :key="key"
+          >
+            <v-text-field
+              v-if="typeof item.items === 'undefined'"
+              v-model="item.value"
+              :type="item.type"
+              :label="$gettext(item.text)"
+              :suffix="item.units"
+              :hint="showHint? $gettext(item.hint): ''"
+              :persistent-hint="showHint"
+              :rules="item.rules.map((rule) => rules[rule])"
+              required
+              @wheel="()=>{}"
+            />
+            <v-select
+              v-else
+              v-model="item.value"
+              :type="item.type"
+              :items="item.items"
+              :label="$gettext(item.text)"
+              :suffix="item.units"
+              :hint="showHint? $gettext(item.hint): ''"
+              :persistent-hint="showHint"
+              :rules="item.rules.map((rule) => rules[rule])"
+              required
+              @wheel="()=>{}"
+            />
+          </div>
+        </v-form>
         <v-card-actions>
           <v-btn
             color="success"
             :loading="running || importStatus === 'RUNNING'"
-            :disabled="running || importStatus === 'RUNNING'"
+            :disabled="running || importStatus === 'RUNNING' || !validForm"
             @click="run()"
           >
             <v-icon
