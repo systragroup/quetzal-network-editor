@@ -129,6 +129,18 @@ export default {
         state.editorNodes.features.map(node => node.properties[payload.name] = null)
       }
     },
+    deletePropertie (state, payload) {
+      // when a link property is deleted
+      console.log(payload)
+      if (payload.table === 'links') {
+        state.links.features.filter(link => delete link.properties[payload.name])
+        state.editorLinks.features.filter(link => delete link.properties[payload.name])
+        state.lineAttributes = state.lineAttributes.filter(item => item !== payload.name)
+      } else {
+        state.nodes.features.filter(node => delete node.properties[payload.name])
+        state.editorNodes.features.filter(node => delete node.properties[payload.name])
+      }
+    },
     changeSelectedTrips (state, payload) {
       // trips list of visible trip_id.
       state.selectedTrips = payload
@@ -792,5 +804,6 @@ export default {
     },
     // this return the attribute type, of undefined.
     attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
+    defaultAttributesNames: (state) => state.defaultAttributes.map(attr => attr.name),
   },
 }

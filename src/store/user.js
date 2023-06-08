@@ -3,6 +3,7 @@ export default {
   namespaced: false,
   state: {
     cognitoInfo: {},
+    cognitoGroup: '',
     bucketList: [],
     accesToken: '',
     idToken: '',
@@ -13,8 +14,17 @@ export default {
     model: null,
     scenario: null,
     config: {},
+    rasterLayers: [],
+    rasterFiles: [],
   },
   mutations: {
+    unloadProject (state) {
+      state.model = null
+      state.scenario = null
+      state.config = {}
+      state.rasterLayers = []
+      state.rasterFiles = []
+    },
     setLoggedIn (state) {
       state.loggedIn = true
     },
@@ -24,6 +34,9 @@ export default {
     },
     setCognitoInfo (state, payload) {
       state.cognitoInfo = payload
+    },
+    setCognitoGroup (state, payload) {
+      state.cognitoGroup = payload
     },
     setBucketList (state, payload) {
       state.bucketList = payload
@@ -46,6 +59,12 @@ export default {
     setConfig (state, payload) {
       state.config = payload
     },
+    setRasterLayers (state, payload) {
+      state.rasterLayers = payload
+    },
+    setRasterFiles (state, payload) {
+      state.rasterFiles = payload
+    },
   },
 
   actions: {
@@ -63,6 +82,7 @@ export default {
   getters: {
     loggedIn: (state) => state.loggedIn,
     cognitoInfo: (state) => state.cognitoInfo,
+    cognitoGroup: (state) => state.cognitoGroup,
     bucketList: (state) => state.bucketList ? state.bucketList : [],
     accesToken: (state) => state.accesToken,
     idToken: (state) => state.idToken,
@@ -71,5 +91,7 @@ export default {
     scenario: (state) => state.scenario,
     config: (state) => state.config,
     protected: (state) => state.config.protected ? state.config.protected : [],
+    rasterLayers: (state) => state.rasterLayers,
+    rasterFiles: (state) => state.rasterFiles,
   },
 }

@@ -7,6 +7,9 @@ import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
+import StaticLayer from './utils/StaticLayer.vue'
+import LayerSelector from './utils/LayerSelector.vue'
+
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 const $gettext = s => s
@@ -18,6 +21,8 @@ export default {
     MglNavigationControl,
     MglScaleControl,
     MglGeojsonLayer,
+    LayerSelector,
+    StaticLayer,
     StaticLinks,
     EditorLinks,
     RoadLinks,
@@ -49,7 +54,6 @@ export default {
       mouseout: false,
       selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
-      showSettings: false,
 
     }
   },
@@ -71,6 +75,8 @@ export default {
       return this.$store.getters.lastNode
     },
     anchorMode () { return this.$store.getters.anchorMode },
+    rasterLayers () { return this.$store.getters.rasterLayers },
+    rasterFiles () { return this.$store.getters.rasterFiles },
   },
   watch: {
 
@@ -352,40 +358,27 @@ export default {
     @click="addPoint"
     @mouseup="rightClickMap"
   >
-    <v-menu
-      v-model="showSettings"
-      :close-on-content-click="false"
-      :close-on-click="false"
-      :origin="'top right'"
-      transition="scale-transition"
-      :position-y="30"
-      :nudge-width="200"
-      offset-x
-      offset-y
-    >
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          class="setting"
-          fab
-          small
-          v-bind="attrs"
-          v-on="on"
-        >
-          <v-icon
-            color="regular"
-          >
-            fa-solid fa-cog
-          </v-icon>
-        </v-btn>
-      </template>
-      <Settings
-        v-if="showSettings"
-        @submit="() => showSettings=false"
-      />
-    </v-menu>
-
+    <template v-if="mapIsLoaded">
+      <Settings />
+    </template>
+    <template v-if="mapIsLoaded & rasterFiles.length>0">
+      <LayerSelector :choices="rasterFiles.map(item=>item.name)" />
+    </template>
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
+    <div
+      v-for="file in rasterFiles"
+      :key="file.name"
+    >
+      <template v-if="mapIsLoaded">
+        <StaticLayer
+          :file-name="file.name"
+          :type="file.type"
+          :visible="rasterLayers.includes(file.name)"
+        />
+      </template>
+    </div>
+
     <template v-if="mapIsLoaded">
       <RoadLinks
         ref="roadref"
@@ -441,11 +434,6 @@ export default {
 .map-view {
   width: 100%;
 
-}
-.setting {
-  position: absolute;
-  top: 10px;
-  right: 20px;
 }
 .my-custom-dialog {
   position: absolute !important;

@@ -54,8 +54,6 @@ export default {
     menu (val) {
       if (val) {
         this.$store.dispatch('getScenario', { model: this.localModel })
-        console.log(this.localConfig.protected)
-        console.log(this.scenariosList)
       }
     },
     async localModel (val) {
