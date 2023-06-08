@@ -78,6 +78,17 @@ export default {
         ],
       },
       {
+        name: 'num_random_od',
+        text: 'number of OD to plot',
+        value: 1,
+        type: 'Number',
+        units: '',
+        hint: 'number of OD calibration plot to produce. those are random OD.',
+        rules: [
+          'required', 'largerThanZero',
+        ],
+      },
+      {
         name: 'hereApiKey',
         text: 'HERE api key',
         value: '',
@@ -105,7 +116,8 @@ export default {
   },
   created () {
     this.callID = this.$store.getters.matrixRoadCasterCallID
-    this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
+    // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
+    // this.callID = 'test'
     // if null, we create a uuid. else we fetch the data on S3
     if (this.callID) {
       console.log(this.callID)
@@ -116,8 +128,15 @@ export default {
     getApproxTimer () {
       const numZones = this.parameters.filter(item => item.name === 'num_zones')[0].value
       const trainSize = this.parameters.filter(item => item.name === 'train_size')[0].value
-      // API call time (1.8sec per call), 15 iteration X number of links, loadning saving, plotting 30sec.
-      this.timer = Math.min(numZones, trainSize) * 1.8 + this.$store.getters.rlinks.features.length * 0.002 + 30
+      const numPlotOD = this.parameters.filter(item => item.name === 'num_random_od')[0].value
+      // API call time (1.8sec per call), 15 iteration X number of links, loadning saving, plotting 15sec.
+      this.timer = Math.min(numZones, trainSize) * 1.8 + this.$store.getters.rlinks.features.length * 0.002 + 15
+      this.timer += 10 * numPlotOD // 10 sec per plots
+    },
+    test () {
+      console.log('arn', this.executionArn)
+      console.log('status', this.importStatus)
+      console.log('running', this.running)
     },
 
     async run () {
@@ -159,7 +178,7 @@ export default {
     pollImport (executionArn) {
       const intervalId = setInterval(() => {
         let data = { executionArn: executionArn }
-        this.timer = this.timer - 4
+        this.timer = this.timer - 2
         quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
         ).then(
@@ -187,10 +206,12 @@ export default {
         { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
     },
     async getImagesURL () {
-      let url = await s3.getImagesURL(this.bucket, this.callID.concat('/HERE_iteration_error.png'))
-      this.imgs.push(url)
-      url = await s3.getImagesURL(this.bucket, this.callID.concat('/HERE_road_calibration.png'))
-      this.imgs.push(url)
+      const outputsFiles = await s3.listFiles(this.bucket, this.callID + '/')
+      const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
+      for (const file of filesNames) {
+        const url = await s3.getImagesURL(this.bucket, file)
+        this.imgs.push(url)
+      }
     },
     stopRun () {
       let data = { executionArn: this.executionArn }
@@ -205,19 +226,7 @@ export default {
         })
     },
     async download () {
-      console.log(this.imgs[0])
-      const imageBlob = await fetch(this.imgs[0], { mode: 'no-cors' }).then(response => response.blob())
-
-      // create a new file from the blob object
-      const imgData = new Blob([imageBlob])
-
-      // Copy-pasted from JSZip documentation
-      const zip = new JSZip()
-      const img = zip.folder('images')
-      img.file('smile.png', imgData, { base64: true })
-      zip.generateAsync({ type: 'blob' }).then(function (content) {
-        saveAs(content, 'example.zip')
-      })
+      s3.downloadFolder(this.bucket, this.callID.concat('/'))
     },
 
   },
@@ -252,10 +261,13 @@ export default {
           />
         </form>
         <v-card-actions>
+          <v-btn @click="test">
+            test
+          </v-btn>
           <v-btn
             color="success"
-            :loading="running"
-            :disabled="running"
+            :loading="running || importStatus === 'RUNNING'"
+            :disabled="running || importStatus === 'RUNNING'"
             @click="run"
           >
             <v-icon
@@ -275,7 +287,7 @@ export default {
             {{ $gettext("Abort") }}
           </v-btn>
           <v-card-text v-show="importStatus == 'RUNNING'">
-            ~ {{ timer>0? Math.ceil(timer/60): 'less than 1' }}{{ $gettext(' minutes remaining') }}
+            ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
           </v-card-text>
           <v-spacer />
           <v-btn
@@ -293,11 +305,17 @@ export default {
         <v-card-title class="subtitle">
           {{ $gettext('Calibration Results') }}
         </v-card-title>
-        <v-btn @click="ApplyResults">
+        <v-btn
+          v-show="imgs.length>0"
+          @click="ApplyResults"
+        >
           {{ $gettext('Apply Road links to project') }}
         </v-btn>
-        <v-btn @click="download">
-          {{ $gettext('Download pngs') }}
+        <v-btn
+          v-show="imgs.length>0"
+          @click="download"
+        >
+          {{ $gettext('Download') }}
         </v-btn>
         <div
           v-for="(img,key) in imgs"
