@@ -27,9 +27,11 @@ export const store = new Vuex.Store({
     notification: {},
     darkMode: false,
     loading: false,
-    anchorMode: false,
     showLeftPanel: true,
     windowHeight: 0,
+    matrixRoadCasterCallID: null,
+
+    anchorMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
     outputName: 'output',
@@ -55,6 +57,9 @@ export const store = new Vuex.Store({
     },
     changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
+    },
+    setMatrixRoadCasterCallID (state, payload) {
+      state.matrixRoadCasterCallID = payload
     },
     saveMapPosition (state, payload) {
       state.mapCenter = payload.mapCenter
@@ -209,6 +214,7 @@ export const store = new Vuex.Store({
     mapCenter: (state) => state.mapCenter,
     mapZoom: (state) => state.mapZoom,
     windowHeight: (state) => state.windowHeight,
+    matrixRoadCasterCallID: (state) => state.matrixRoadCasterCallID,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
     linksPopupContent: (state) => state.linksPopupContent,

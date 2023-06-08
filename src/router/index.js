@@ -6,6 +6,7 @@ import auth from '../auth'
 import Home from '@page/Home.vue'
 import Run from '@page/Run.vue'
 import ResultMap from '@page/ResultMap.vue'
+import Microservices from '@page/Microservices.vue'
 import { store } from '../store/index.js'
 
 Vue.use(Router)
@@ -31,6 +32,13 @@ const router = new Router({
       component: Home,
       icon: 'fa-solid fa-map',
       title: $gettext('Map'),
+    },
+    {
+      path: '/Microservices',
+      name: Microservices.name,
+      component: Microservices,
+      icon: 'fas fa-tachometer-alt',
+      title: $gettext('Microservices'),
     },
     {
       path: '/Run',
