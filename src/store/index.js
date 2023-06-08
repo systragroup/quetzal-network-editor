@@ -5,6 +5,7 @@ import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
 import runModule from './run.js'
+import MatrixRoadCasterModule from './MatrixRoadCaster.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -21,15 +22,16 @@ export const store = new Vuex.Store({
     rlinks: rlinksModule,
     results: resultsModule,
     run: runModule,
+    runMRC: MatrixRoadCasterModule,
   },
 
   state: {
     notification: {},
     darkMode: false,
     loading: false,
-    anchorMode: false,
     showLeftPanel: true,
     windowHeight: 0,
+    anchorMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
     outputName: 'output',

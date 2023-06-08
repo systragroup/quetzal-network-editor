@@ -6,6 +6,7 @@ import auth from '../auth'
 import Home from '@page/Home.vue'
 import Run from '@page/Run.vue'
 import ResultMap from '@page/ResultMap.vue'
+import Microservices from '@page/Microservices.vue'
 import { store } from '../store/index.js'
 
 Vue.use(Router)
@@ -31,6 +32,32 @@ const router = new Router({
       component: Home,
       icon: 'fa-solid fa-map',
       title: $gettext('Map'),
+    },
+    {
+      path: '/Microservices',
+      name: Microservices.name,
+      component: Microservices,
+      icon: 'fas fa-tachometer-alt',
+      title: $gettext('Microservices'),
+      beforeEnter: (to, from, next) => {
+        if (!store.getters.loggedIn) {
+          store.commit('changeNotification',
+            {
+              text: $gettext('Must be logged in'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else if (store.getters.rlinks.features.length === 0) {
+          store.commit('changeNotification',
+            {
+              text: $gettext('Must load a road network first'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else {
+          next()
+        }
+      },
     },
     {
       path: '/Run',
