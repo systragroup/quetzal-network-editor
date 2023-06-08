@@ -5,6 +5,7 @@ import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
 import runModule from './run.js'
+import MatrixRoadCasterModule from './MatrixRoadCaster.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -21,6 +22,7 @@ export const store = new Vuex.Store({
     rlinks: rlinksModule,
     results: resultsModule,
     run: runModule,
+    runMRC: MatrixRoadCasterModule,
   },
 
   state: {
@@ -29,8 +31,6 @@ export const store = new Vuex.Store({
     loading: false,
     showLeftPanel: true,
     windowHeight: 0,
-    matrixRoadCasterCallID: null,
-
     anchorMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
@@ -57,9 +57,6 @@ export const store = new Vuex.Store({
     },
     changeLeftPanel (state) {
       state.showLeftPanel = !state.showLeftPanel
-    },
-    setMatrixRoadCasterCallID (state, payload) {
-      state.matrixRoadCasterCallID = payload
     },
     saveMapPosition (state, payload) {
       state.mapCenter = payload.mapCenter
@@ -214,7 +211,6 @@ export const store = new Vuex.Store({
     mapCenter: (state) => state.mapCenter,
     mapZoom: (state) => state.mapZoom,
     windowHeight: (state) => state.windowHeight,
-    matrixRoadCasterCallID: (state) => state.matrixRoadCasterCallID,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
     linksPopupContent: (state) => state.linksPopupContent,

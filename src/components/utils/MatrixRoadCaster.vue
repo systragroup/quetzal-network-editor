@@ -1,9 +1,5 @@
 <script>
 import s3 from '@src/AWSClient'
-import { quetzalClient } from '@src/axiosClient.js'
-import { v4 as uuid } from 'uuid'
-import JSZip from 'jszip'
-import saveAs from 'file-saver'
 
 const $gettext = s => s
 
@@ -15,17 +11,13 @@ export default {
   data () {
     return {
       imgs: [],
-      bucket: 'matrixroadcaster',
-      callID: '',
-      importStatus: null,
-      running: false,
-      executionArn: '',
-      timer: 0,
+      exporting: false,
+      applying: false,
 
       parameters: [{
         name: 'num_zones',
         text: 'number of zones',
-        value: 100,
+        value: null,
         type: 'Number',
         units: '',
         hint: 'number of zones. road nodes will be aggregate to form centroids',
@@ -36,7 +28,7 @@ export default {
       {
         name: 'train_size',
         text: 'number of OD (api call)',
-        value: 100,
+        value: null,
         type: 'Number',
         units: '',
         hint: 'number of OD to get from the API, the rest will be interpolated with ML',
@@ -47,7 +39,7 @@ export default {
       {
         name: 'date_time',
         text: 'date Time',
-        value: '2023-03-04T08:00:21+02:00',
+        value: null,
         type: 'String',
         units: '',
         hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
@@ -58,7 +50,8 @@ export default {
       {
         name: 'ff_time_col',
         text: 'freeflow time on roads',
-        value: 'time',
+        value: null,
+        choices: [],
         type: 'String',
         units: '',
         hint: 'road links time (link length / speed) to use as a first approximation. this is the freeflow speed, or speed limit',
@@ -69,7 +62,7 @@ export default {
       {
         name: 'max_speed',
         text: 'max speed on road',
-        value: 100,
+        value: null,
         type: 'Number',
         units: '',
         hint: 'Maximum allowed speed on a road. applying an OD matrix on the road network could result il unrealistic speed if not used.',
@@ -80,7 +73,7 @@ export default {
       {
         name: 'num_random_od',
         text: 'number of OD to plot',
-        value: 1,
+        value: null,
         type: 'Number',
         units: '',
         hint: 'number of OD calibration plot to produce. those are random OD.',
@@ -91,7 +84,7 @@ export default {
       {
         name: 'hereApiKey',
         text: 'HERE api key',
-        value: '',
+        value: null,
         type: 'String',
         units: '',
         hint: 'HERE api key to download a set of OD',
@@ -111,97 +104,52 @@ export default {
     }
   },
   computed: {
+    bucket () { return this.$store.getters['runMRC/bucket'] },
+    callID () { return this.$store.getters['runMRC/callID'] },
+    timer () { return this.$store.getters['runMRC/timer'] },
+    importStatus () { return this.$store.getters['runMRC/status'] },
+    running () { return this.$store.getters['runMRC/running'] },
   },
   watch: {
+    importStatus (val) {
+      if (val === 'SUCCEEDED') {
+        this.getImagesURL()
+      }
+    },
   },
   created () {
-    this.callID = this.$store.getters.matrixRoadCasterCallID
+    // init params to the store ones.
+    const storeParams = this.$store.getters['runMRC/parameters']
+    // eslint-disable-next-line no-return-assign
+    this.parameters.forEach(param => param.value = storeParams[param.name])
     // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
-    // this.callID = 'test'
     // if null, we create a uuid. else we fetch the data on S3
     if (this.callID) {
-      console.log(this.callID)
       this.getImagesURL()
     }
   },
   methods: {
-    getApproxTimer () {
-      const numZones = this.parameters.filter(item => item.name === 'num_zones')[0].value
-      const trainSize = this.parameters.filter(item => item.name === 'train_size')[0].value
-      const numPlotOD = this.parameters.filter(item => item.name === 'num_random_od')[0].value
-      // API call time (1.8sec per call), 15 iteration X number of links, loadning saving, plotting 15sec.
-      this.timer = Math.min(numZones, trainSize) * 1.8 + this.$store.getters.rlinks.features.length * 0.002 + 15
-      this.timer += 10 * numPlotOD // 10 sec per plots
-    },
-    test () {
-      console.log('arn', this.executionArn)
-      console.log('status', this.importStatus)
-      console.log('running', this.running)
-    },
-
-    async run () {
-      this.getApproxTimer()
-      this.callID = uuid()
-      this.$store.commit('setMatrixRoadCasterCallID', this.callID)
-      console.log('exporting roads to s3')
-      this.running = true
-      await s3.putObject(
-        this.bucket,
-        this.callID.concat('/road_links.geojson'),
-        JSON.stringify(this.$store.getters.rlinks))
-      await s3.putObject(
-        this.bucket,
-        this.callID.concat('/road_nodes.geojson'),
-        JSON.stringify(this.$store.getters.rnodes))
-      console.log('start')
+    run () {
+      this.$store.commit('runMRC/setCallID')
       const inputs = { callID: this.callID }
       this.parameters.forEach(item => {
         inputs[item.name] = item.value
       })
-      let data = {
-        input: JSON.stringify(inputs),
-        name: this.callID,
-        stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:ML_MatrixRoadCaster',
-      }
-      quetzalClient.client.post('',
-        data = JSON.stringify(data),
-      ).then(
-        response => {
-          this.executionArn = response.data.executionArn
-          this.pollImport(response.data.executionArn)
-        }).catch(err => {
-        console.log(err)
-        this.importStatus = 'ERROR'
-        this.running = false
+      this.$store.dispatch('runMRC/startExecution', {
+        rlinks: this.$store.getters.rlinks,
+        rnodes: this.$store.getters.rnodes,
+        parameters: inputs,
       })
     },
-    pollImport (executionArn) {
-      const intervalId = setInterval(() => {
-        let data = { executionArn: executionArn }
-        this.timer = this.timer - 2
-        quetzalClient.client.post('/describe',
-          data = JSON.stringify(data),
-        ).then(
-          response => {
-            this.importStatus = response.data.status
-            console.log(this.importStatus)
-            if (this.importStatus === 'SUCCEEDED') {
-              clearInterval(intervalId)
-              this.running = false
-              this.getImagesURL()
-              console.log('ok')
-            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.importStatus)) {
-              clearInterval(intervalId)
-              this.running = false
-            }
-          }).catch(e => { console.log(e) })
-      }, 2000)
-    },
+    stopRun () { this.$store.dispatch('runMRC/stopExecution') },
+
     async ApplyResults () {
+      this.applying = true
       const rlinks = await s3.readJson(this.bucket, this.callID.concat('/road_links.geojson'))
       this.$store.commit('loadrLinks', rlinks)
       const rnodes = await s3.readJson(this.bucket, this.callID.concat('/road_nodes.geojson'))
       this.$store.commit('loadrNodes', rnodes)
+      this.applying = false
       this.$store.commit('changeNotification',
         { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
     },
@@ -213,20 +161,10 @@ export default {
         this.imgs.push(url)
       }
     },
-    stopRun () {
-      let data = { executionArn: this.executionArn }
-      quetzalClient.client.post('/abort',
-        data = JSON.stringify(data),
-      ).then(
-        response => {
-          console.log('stop')
-        }).catch(
-        err => {
-          console.log(err)
-        })
-    },
     async download () {
-      s3.downloadFolder(this.bucket, this.callID.concat('/'))
+      this.exporting = true
+      await s3.downloadFolder(this.bucket, this.callID.concat('/'))
+      this.exporting = false
     },
 
   },
@@ -261,14 +199,11 @@ export default {
           />
         </form>
         <v-card-actions>
-          <v-btn @click="test">
-            test
-          </v-btn>
           <v-btn
             color="success"
             :loading="running || importStatus === 'RUNNING'"
             :disabled="running || importStatus === 'RUNNING'"
-            @click="run"
+            @click="run()"
           >
             <v-icon
               small
@@ -307,12 +242,16 @@ export default {
         </v-card-title>
         <v-btn
           v-show="imgs.length>0"
+          :loading="applying"
+          :disabled="applying"
           @click="ApplyResults"
         >
           {{ $gettext('Apply Road links to project') }}
         </v-btn>
         <v-btn
           v-show="imgs.length>0"
+          :loading="exporting"
+          :disabled="exporting"
           @click="download"
         >
           {{ $gettext('Download') }}
