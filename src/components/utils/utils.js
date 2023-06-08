@@ -92,7 +92,6 @@ async function extractZip (file) {
       result.files.push(classFile(filesNames[i], content))
     }
   }
-  console.log(result)
   return result
 }
 

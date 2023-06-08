@@ -19,11 +19,25 @@ async function readJson (bucket, key) {
   const fileContent = JSON.parse(response.Body.toString('utf-8').trim()) // can also do 'base64' here if desired
   return fileContent
 }
-
+async function getBucketList () {
+  // from the cognito group name. get the list of available buckets on quetzal-config.
+  const bucketList = await this.readJson('quetzal-config', 'cognito_group_access.json')
+  store.commit('setBucketList', bucketList[store.getters.cognitoGroup])
+}
 async function listFiles (bucket, prefix) {
-  const params = { Bucket: bucket, Prefix: prefix }
-  const Content = await s3Client.listObjectsV2(params).promise()
-  return Content.Contents.map(item => item.Key)
+  if (Array.isArray(prefix)) {
+    const paths = []
+    prefix.forEach(async pref => {
+      const params = { Bucket: bucket, Prefix: prefix }
+      const Content = await s3Client.listObjectsV2(params).promise()
+      paths.push(...Content.Contents.map(item => item.Key))
+    })
+    return paths
+  } else {
+    const params = { Bucket: bucket, Prefix: prefix }
+    const Content = await s3Client.listObjectsV2(params).promise()
+    return Content.Contents.map(item => item.Key)
+  }
 }
 async function getImagesURL (bucket, key) {
   const presignedGETURL = s3Client.getSignedUrl('getObject', {
@@ -122,7 +136,7 @@ async function getScenario (bucket) {
 
 export default {
   s3: s3Client,
-  login () {
+  async login () {
     AWS.config.region = REGION
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
       IdentityPoolId: IDENTITY_POOL_ID,
@@ -131,10 +145,12 @@ export default {
       },
     })
     s3Client.config.credentials = AWS.config.credentials
+    await this.getBucketList()
   },
 
   getScenario,
   readJson,
+  getBucketList,
   listFiles,
   copyFolder,
   deleteFolder,

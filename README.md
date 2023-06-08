@@ -1,6 +1,10 @@
 # Quenedi
+***to see the latest development:***
+https://systragroup.github.io/quetzal-network-editor-dev/
 
-[Quenedi](https://systragroup.github.io/quetzal-network-editor/) (quetzal-network-editor) is a graphical user interface to edit public transport network. It is designed to work with the [Quetzal](https://github.com/systragroup/quetzal) transport planning and forcasting library.  
+[Quenedi](https://systragroup.github.io/quetzal-network-editor/) (quetzal-network-editor) is a graphical user interface to edit public transport and road network. It is designed to work with the [Quetzal](https://github.com/systragroup/quetzal) transport planning and forcasting library.  
+
+It is a ***free open-source web application*** hosted on github-page (https://systragroup.github.io/quetzal-network-editor/)
 
 ![Screenshot 2022-11-08 at 3 54 42 PM](https://user-images.githubusercontent.com/79281989/200673287-fc06af70-03e1-4854-8099-7dcaf35d5c83.png)
 

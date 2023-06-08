@@ -1,37 +1,33 @@
 <script>
-import { MglPopup} from 'vue-mapbox'
-	
+import { MglPopup } from 'vue-mapbox'
+
 export default {
-	name: 'EmptyComponent',
-	components: {
-	MglPopup
-},
-props:{
-	value: {
+  name: 'EmptyComponent',
+  components: {
+    MglPopup,
+  },
+  props: {
+    value: {
       type: Array,
-      default: []	
-		},
-},
-	data () {
-	return {
-		
-	}
-},
-	watch: {
+      default: () => [],
+    },
+  },
+  data () {
+    return {
 
+    }
+  },
+  watch: {
 
-	},
+  },
 
-	methods: {
+  methods: {
 
-	},
+  },
 }
 </script>
 <template>
-	<section>
-
-
-	</section>
+  <section />
 </template>
 <style lang="scss" scoped>
 

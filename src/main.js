@@ -8,8 +8,6 @@ import GetTextPlugin from 'vue-gettext'
 import { store } from './store'
 import router from './router'
 import Vuetify from 'vuetify'
-import VueApexCharts from 'vue-apexcharts'
-
 import 'promise-polyfill/src/polyfill'
 
 import fr from 'vuetify/es5/locale/fr'
@@ -47,7 +45,6 @@ const languageMixin = {
     },
   },
 }
-Vue.component('Apexchart', VueApexCharts)
 
 const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr', 'es', 'de', 'pt'])
 const darkMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)

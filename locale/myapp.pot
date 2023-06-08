@@ -23,30 +23,30 @@ msgstr ""
 #: src/components/ResultsSettings.vue:218
 #: src/components/ResultsSettings.vue:225
 #: src/components/ResultsSettings.vue:226
-#: src/components/Settings.vue:49
-#: src/components/Settings.vue:51
-#: src/components/Settings.vue:61
-#: src/components/Settings.vue:63
-#: src/components/Settings.vue:73
-#: src/components/Settings.vue:74
-#: src/components/Settings.vue:84
-#: src/components/Settings.vue:85
+#: src/components/Settings.vue:81
+#: src/components/Settings.vue:83
+#: src/components/Settings.vue:93
 #: src/components/Settings.vue:95
-#: src/components/Settings.vue:97
+#: src/components/Settings.vue:105
 #: src/components/Settings.vue:106
-#: src/components/Settings.vue:108
-#: src/pages/Home.vue:80
+#: src/components/Settings.vue:116
+#: src/components/Settings.vue:117
+#: src/components/Settings.vue:127
+#: src/components/Settings.vue:129
+#: src/components/Settings.vue:138
+#: src/components/Settings.vue:140
+#: src/pages/Home.vue:87
 #: src/pages/Import.vue:242
 #: src/pages/ResultPicture.vue:11
 msgid "_ctx"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:40
+#: src/components/layout/NavigationDrawer.vue:41
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr ""
 
-#: src/pages/Home.vue:49
+#: src/pages/Home.vue:50
 msgid ""
 "0 - Regularly scheduled drop off.\n"
 "        1 - No drop off available.\n"
@@ -54,7 +54,7 @@ msgid ""
 "        3 - Must coordinate with driver to arrange drop off."
 msgstr ""
 
-#: src/pages/Home.vue:54
+#: src/pages/Home.vue:55
 msgid ""
 "0 - Regularly scheduled pickup.\n"
 "        1 - No pickup available.\n"
@@ -71,7 +71,7 @@ msgstr ""
 msgid "Abort"
 msgstr ""
 
-#: src/pages/Run.vue:115
+#: src/pages/Run.vue:114
 msgid "Abort Simulation"
 msgstr ""
 
@@ -80,22 +80,22 @@ msgstr ""
 msgid "action"
 msgstr ""
 
-#: src/pages/Home.vue:105
+#: src/pages/Home.vue:148
 msgid "add field"
 msgstr ""
 
-#: src/pages/Import.vue:256
-#: src/pages/Import.vue:259
-#: src/pages/Import.vue:265
-#: src/pages/Import.vue:268
-#: src/pages/Import.vue:274
-#: src/pages/Import.vue:279
-#: src/pages/Import.vue:286
-#: src/pages/Import.vue:289
+#: src/pages/Import.vue:269
+#: src/pages/Import.vue:272
+#: src/pages/Import.vue:278
+#: src/pages/Import.vue:281
+#: src/pages/Import.vue:287
+#: src/pages/Import.vue:292
+#: src/pages/Import.vue:299
+#: src/pages/Import.vue:302
 msgid "An error occur fetching example on github"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:110
+#: src/components/ScenariosExplorer.vue:123
 msgid "An error occured"
 msgstr ""
 
@@ -114,16 +114,16 @@ msgstr ""
 #: src/components/LinksSidePanel.vue:622
 #: src/components/ResultsSettings.vue:266
 #: src/components/RoadSidePanel.vue:347
-#: src/components/ScenariosExplorer.vue:251
-#: src/components/ScenariosExplorer.vue:328
-#: src/components/Settings.vue:133
+#: src/components/ScenariosExplorer.vue:257
+#: src/components/ScenariosExplorer.vue:334
+#: src/components/Settings.vue:165
 #: src/components/utils/OSMImporter.vue:186
-#: src/pages/Home.vue:180
-#: src/pages/Home.vue:247
+#: src/pages/Home.vue:248
+#: src/pages/Home.vue:315
 msgid "Cancel"
 msgstr ""
 
-#: src/pages/Home.vue:41
+#: src/pages/Home.vue:42
 msgid "cannot add empty field"
 msgstr ""
 
@@ -135,7 +135,7 @@ msgstr ""
 msgid "Change project Name"
 msgstr ""
 
-#: src/pages/Home.vue:267
+#: src/pages/Home.vue:278
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -155,7 +155,7 @@ msgstr ""
 msgid "color map"
 msgstr ""
 
-#: src/pages/Home.vue:58
+#: src/pages/Home.vue:59
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr ""
 
@@ -163,11 +163,11 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:288
+#: src/components/ScenariosExplorer.vue:294
 msgid "copy"
 msgstr ""
 
-#: src/pages/Home.vue:259
+#: src/pages/Home.vue:270
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
@@ -191,12 +191,12 @@ msgstr ""
 msgid "Cut Before Node"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:260
-#: src/pages/Home.vue:64
+#: src/components/ScenariosExplorer.vue:266
+#: src/pages/Home.vue:49
 msgid "Delete"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:233
+#: src/components/ScenariosExplorer.vue:239
 msgid "Delete "
 msgstr ""
 
@@ -223,7 +223,7 @@ msgstr ""
 msgid "Delete Stop"
 msgstr ""
 
-#: src/pages/Home.vue:47
+#: src/pages/Home.vue:48
 msgid ""
 "direction of travel for a trip. used to separate trips by directions.\n"
 "         ex: 0 - Travel in one direction. 1 - Travel in the opposite direction."
@@ -245,7 +245,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: src/pages/Home.vue:217
+#: src/pages/Home.vue:285
 msgid "Duplicate and reverse"
 msgstr ""
 
@@ -273,7 +273,7 @@ msgstr ""
 msgid "Edit Node Info"
 msgstr ""
 
-#: src/pages/Home.vue:64
+#: src/pages/Home.vue:49
 msgid "Edit Properties"
 msgstr ""
 
@@ -294,7 +294,7 @@ msgstr ""
 msgid "Expand all"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:32
+#: src/components/layout/NavigationDrawer.vue:33
 msgid "Export"
 msgstr ""
 
@@ -312,28 +312,32 @@ msgstr ""
 msgid "Export Only Visible"
 msgstr ""
 
-#: src/pages/Home.vue:443
+#: src/pages/Home.vue:466
 msgid "Field added"
 msgstr ""
 
-#: src/pages/Home.vue:40
+#: src/pages/Home.vue:41
 msgid "field already exist"
 msgstr ""
 
-#: src/pages/Import.vue:323
+#: src/pages/Home.vue:496
+msgid "Field deleted"
+msgstr ""
+
+#: src/pages/Import.vue:334
 msgid "file is not a geojson"
 msgstr ""
 
-#: src/pages/Import.vue:378
+#: src/pages/Import.vue:389
 msgid "file is not a zip"
 msgstr ""
 
-#: src/pages/Import.vue:153
-#: src/pages/Import.vue:169
-#: src/pages/Import.vue:185
-#: src/store/run.js:93
-#: src/store/run.js:112
-#: src/store/run.js:131
+#: src/pages/Import.vue:165
+#: src/pages/Import.vue:181
+#: src/pages/Import.vue:197
+#: src/store/run.js:94
+#: src/store/run.js:113
+#: src/store/run.js:132
 msgid "fileName there is no index. Import aborted"
 msgstr ""
 
@@ -343,8 +347,8 @@ msgstr ""
 msgid "filter"
 msgstr ""
 
-#: src/pages/Home.vue:60
-msgid "Full name of a route.This name is generally more descriptive         than the route_short_name and often includes the route's destination or stop"
+#: src/pages/Home.vue:61
+msgid "Full name of a route.This name is generally more descriptive         than the route_short_name and often includes the roudefaultAttributeste's destination or stop"
 msgstr ""
 
 #: src/pages/Import.vue:224
@@ -366,7 +370,7 @@ msgstr ""
 msgid "Hold left click to drag"
 msgstr ""
 
-#: src/pages/Home.vue:59
+#: src/pages/Home.vue:60
 msgid "Identifies a route. Often a string"
 msgstr ""
 
@@ -378,7 +382,7 @@ msgstr ""
 msgid "Import OSM network in bounding box"
 msgstr ""
 
-#: src/pages/Home.vue:64
+#: src/pages/Home.vue:65
 msgid ""
 "Indicates the type of transportation used on a route.\n"
 "         subway, metro, rail, bus, ferry, tram, etc"
@@ -405,7 +409,7 @@ msgstr ""
 msgid "Left click to add a stop"
 msgstr ""
 
-#: src/components/Map.vue:83
+#: src/components/Map.vue:89
 msgid "Left click to add an anchor point, right click to delete"
 msgstr ""
 
@@ -413,7 +417,7 @@ msgstr ""
 msgid "Left side driving"
 msgstr ""
 
-#: src/pages/Home.vue:68
+#: src/pages/Home.vue:69
 msgid ""
 "Line (or trip) identifier (i.e. 100 Est).\n"
 "         Links are group by trip_id in Quetzal-network-editor."
@@ -443,7 +447,7 @@ msgstr ""
 msgid "Links and Nodes files must be geojson in EPSG:4326."
 msgstr ""
 
-#: src/pages/Home.vue:70
+#: src/pages/Home.vue:71
 msgid "links geometry linestring length (meters)"
 msgstr ""
 
@@ -455,7 +459,7 @@ msgstr ""
 msgid "Load multiple Transit or road network. Each network will be added to the current project"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:181
+#: src/components/ScenariosExplorer.vue:187
 msgid "Load Scenario?"
 msgstr ""
 
@@ -463,12 +467,12 @@ msgstr ""
 msgid "Load zip files containing"
 msgstr ""
 
-#: src/pages/Import.vue:158
-#: src/pages/Import.vue:159
-#: src/pages/Import.vue:173
-#: src/pages/Import.vue:174
-#: src/pages/Import.vue:189
-#: src/pages/Import.vue:190
+#: src/pages/Import.vue:170
+#: src/pages/Import.vue:171
+#: src/pages/Import.vue:185
+#: src/pages/Import.vue:186
+#: src/pages/Import.vue:201
+#: src/pages/Import.vue:202
 msgid "Loaded from"
 msgstr ""
 
@@ -480,7 +484,7 @@ msgstr ""
 msgid "logout"
 msgstr ""
 
-#: src/pages/Home.vue:71
+#: src/pages/Home.vue:72
 msgid "Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)"
 msgstr ""
 
@@ -510,12 +514,12 @@ msgstr ""
 msgid "minWidth"
 msgstr ""
 
-#: src/pages/Home.vue:373
+#: src/pages/Home.vue:387
 msgid "modification aborted"
 msgstr ""
 
-#: src/components/Settings.vue:78
-#: src/pages/Home.vue:364
+#: src/components/Settings.vue:99
+#: src/pages/Home.vue:378
 msgid "modification applied"
 msgstr ""
 
@@ -523,20 +527,20 @@ msgstr ""
 msgid "more"
 msgstr ""
 
-#: src/pages/Home.vue:84
+#: src/pages/Home.vue:91
 msgid "multiple Values"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:302
+#: src/components/ScenariosExplorer.vue:308
 msgid "name"
 msgstr ""
 
-#: src/pages/Home.vue:106
+#: src/pages/Home.vue:149
 msgid "new field name"
 msgstr ""
 
-#: src/pages/Home.vue:146
-#: src/pages/Home.vue:227
+#: src/pages/Home.vue:189
+#: src/pages/Home.vue:295
 msgid "New name"
 msgstr ""
 
@@ -548,17 +552,17 @@ msgstr ""
 msgid "New road links Highway property name"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:153
+#: src/components/ScenariosExplorer.vue:159
 msgid "new scenario"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:288
+#: src/components/ScenariosExplorer.vue:294
 msgid "New Scenario"
 msgstr ""
 
 #: src/components/LinksSidePanel.vue:632
 #: src/components/RoadSidePanel.vue:357
-#: src/components/ScenariosExplorer.vue:199
+#: src/components/ScenariosExplorer.vue:205
 #: src/components/utils/OSMImporter.vue:237
 #: src/components/utils/Profile.vue:164
 #: src/pages/Import.vue:277
@@ -582,7 +586,7 @@ msgstr ""
 msgid "numStep"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:338
+#: src/components/ScenariosExplorer.vue:344
 #: src/pages/ResultMap.vue:110
 msgid "ok"
 msgstr ""
@@ -612,7 +616,7 @@ msgstr ""
 msgid "project Name"
 msgstr ""
 
-#: src/pages/Import.vue:308
+#: src/pages/Import.vue:319
 msgid "project overwrited"
 msgstr ""
 
@@ -628,15 +632,15 @@ msgstr ""
 msgid "PT Links"
 msgstr ""
 
-#: src/pages/Import.vue:127
+#: src/pages/Import.vue:139
 msgid "PT Links and nodes Loaded from"
 msgstr ""
 
-#: src/pages/Import.vue:338
+#: src/pages/Import.vue:349
 msgid "PT links loaded with road nodes"
 msgstr ""
 
-#: src/pages/Import.vue:356
+#: src/pages/Import.vue:367
 msgid "PT nodes loaded for road links"
 msgstr ""
 
@@ -698,15 +702,15 @@ msgstr ""
 msgid "Road Links"
 msgstr ""
 
-#: src/pages/Import.vue:136
+#: src/pages/Import.vue:148
 msgid "ROAD links and nodes Loaded from"
 msgstr ""
 
-#: src/pages/Import.vue:334
+#: src/pages/Import.vue:345
 msgid "road links loaded with PT nodes"
 msgstr ""
 
-#: src/pages/Import.vue:352
+#: src/pages/Import.vue:363
 msgid "road nodes loaded for PT links"
 msgstr ""
 
@@ -731,10 +735,10 @@ msgid "Run Simulation"
 msgstr ""
 
 #: src/components/ResultsSettings.vue:276
-#: src/components/Settings.vue:143
-#: src/components/layout/NavigationDrawer.vue:27
-#: src/pages/Home.vue:190
-#: src/pages/Home.vue:257
+#: src/components/Settings.vue:175
+#: src/components/layout/NavigationDrawer.vue:28
+#: src/pages/Home.vue:258
+#: src/pages/Home.vue:325
 msgid "Save"
 msgstr ""
 
@@ -756,16 +760,15 @@ msgstr ""
 msgid "scale min"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:133
+#: src/components/ScenariosExplorer.vue:146
 msgid "Scenario created"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:105
+#: src/components/ScenariosExplorer.vue:118
 msgid "Scenario deleted"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:54
-#: src/pages/Run.vue:27
+#: src/components/layout/NavigationDrawer.vue:55
 msgid "Scenario saved"
 msgstr ""
 
@@ -777,7 +780,7 @@ msgstr ""
 msgid "Scenario Simulation"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:126
+#: src/components/ScenariosExplorer.vue:139
 msgid "Scenario successfully copied"
 msgstr ""
 
@@ -791,11 +794,11 @@ msgid "selectedFeature"
 msgstr ""
 
 #: src/components/ResultsSettings.vue:72
-#: src/components/Settings.vue:30
+#: src/components/Settings.vue:62
 msgid "Settings"
 msgstr ""
 
-#: src/pages/Home.vue:62
+#: src/pages/Home.vue:63
 msgid ""
 "Short name of a route. This will often be a short,\n"
 "         abstract identifier like \"32\", \"100X\", or \"Green\""
@@ -827,11 +830,11 @@ msgstr ""
 msgid "Simulation ended with an execution error or have been aborted.             Please relauch simulation. If the problem persist, contact us."
 msgstr ""
 
-#: src/store/run.js:50
+#: src/store/run.js:51
 msgid "simulation executed successfully!"
 msgstr ""
 
-#: src/pages/Home.vue:72
+#: src/pages/Home.vue:73
 msgid "speed on the link (Km/h)"
 msgstr ""
 
@@ -843,11 +846,15 @@ msgstr ""
 msgid "Speed used to calculate travel time when a link is drawn, extend or a node is moved"
 msgstr ""
 
+#: src/components/utils/LayerSelector.vue:49
+msgid "Static Layers"
+msgstr ""
+
 #: src/components/Settings.vue:49
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:239
+#: src/components/ScenariosExplorer.vue:245
 msgid "The scenario will be permanently deleted"
 msgstr ""
 
@@ -855,37 +862,41 @@ msgstr ""
 msgid "There as been an error while importing OSM network.             Please try again. If the problem persist, contact us."
 msgstr ""
 
-#: src/pages/Import.vue:129
-#: src/pages/Import.vue:138
+#: src/pages/Import.vue:141
+#: src/pages/Import.vue:150
 msgid "there is duplicated links or nodes index. Import aborted"
 msgstr ""
 
-#: src/pages/Import.vue:111
+#: src/pages/Import.vue:123
 msgid "there is no index in links. Import aborted"
 msgstr ""
 
-#: src/pages/Import.vue:117
+#: src/pages/Import.vue:129
 msgid "there is no index in nodes. Import aborted"
+msgstr ""
+
+#: src/pages/Home.vue:510
+msgid "This action will delete properties on every links (and reversed one for two-way roads)"
 msgstr ""
 
 #: src/pages/Run.vue:83
 msgid "This scenario is protected. You can not run simulation."
 msgstr ""
 
-#: src/components/ScenariosExplorer.vue:187
+#: src/components/ScenariosExplorer.vue:193
 #: src/components/utils/Profile.vue:152
 msgid "This will ERASE the current project"
 msgstr ""
 
-#: src/pages/Home.vue:53
+#: src/pages/Home.vue:54
 msgid "Time between departures in seconds"
 msgstr ""
 
-#: src/pages/Home.vue:46
+#: src/pages/Home.vue:47
 msgid "transit brand or transit agency"
 msgstr ""
 
-#: src/pages/Home.vue:67
+#: src/pages/Home.vue:68
 msgid "Travel time on the link. set as length / speed when a link is created or edited (seconds)"
 msgstr ""
 
@@ -897,13 +908,13 @@ msgstr ""
 msgid "value"
 msgstr ""
 
-#: src/pages/Home.vue:66
+#: src/pages/Home.vue:67
 msgid "width to display on the map"
 msgstr ""
 
 #: src/components/LinksSidePanel.vue:641
 #: src/components/RoadSidePanel.vue:366
-#: src/components/ScenariosExplorer.vue:208
+#: src/components/ScenariosExplorer.vue:214
 #: src/components/utils/OSMImporter.vue:246
 #: src/components/utils/Profile.vue:173
 #: src/pages/Import.vue:286

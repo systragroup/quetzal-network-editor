@@ -88,8 +88,8 @@ export default {
           this.loadNetwork(links, nodes, 'road', 'DataBase')
         }
         // then load results layers.
-        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths[0])
-        filesNames = filesNames.filter(name => name !== scen + path.output_paths[0])
+        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths)
+        filesNames = filesNames.filter(name => !name.endsWith('/'))
         filesNames = filesNames.filter(name => !name.endsWith('.png'))
         const files = []
         for (const file of filesNames) {
@@ -98,6 +98,18 @@ export default {
           files.push(classFile(name, content))
         }
         if (filesNames.length > 0) this.loadStaticLayer(files, 'Database output')
+        // load rasters (static geojson layers.)
+        //
+        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.raster_path)
+        filesNames = filesNames.filter(name => name.endsWith('.geojson'))
+        const rasterFiles = []
+        for (const file of filesNames) {
+          let type = await s3.readJson(this.$store.getters.model, file)
+          type = type.features[0].geometry.type
+          rasterFiles.push({ name: file, type: type })
+        }
+        this.$store.commit('setRasterFiles', rasterFiles)
+
         this.loggedIn = true
         this.login()
         this.$store.commit('changeLoading', false)
@@ -236,6 +248,7 @@ export default {
       // remove links and nodes from store. (and filesAreLoaded)
       this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
+      this.$store.commit('unloadProject')
       this.$store.commit('run/cleanRun')
 
       if (this.choice === 'example1') {
@@ -302,10 +315,8 @@ export default {
     newProject () {
       this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
-      this.$store.commit('setModel', '')
-      this.$store.commit('setScenario', '')
+      this.$store.commit('unloadProject')
       this.$store.commit('run/cleanRun')
-
       this.$store.commit('changeNotification',
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
       this.message = []
