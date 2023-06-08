@@ -61,12 +61,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
  */
 
 /*!
- * ApexCharts v3.40.0
- * (c) 2018-2023 ApexCharts
- * Released under the MIT License.
- */
-
-/*!
  * JavaScript Cookie v2.2.1
  * https://github.com/js-cookie/js-cookie
  *
@@ -1364,14 +1358,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /*! no static exports found */
-
-/*! svg.draggable.js - v2.2.2 - 2019-01-08
-  * https://github.com/svgdotjs/svg.draggable.js
-  * Copyright (c) 2019 Wout Fierens; Licensed MIT */
-
-/*! svg.filter.js - v2.0.2 - 2016-02-24
-  * https://github.com/wout/svg.filter.js
-  * Copyright (c) 2016 Wout Fierens; Licensed MIT */
 
 /*! vue */
 
