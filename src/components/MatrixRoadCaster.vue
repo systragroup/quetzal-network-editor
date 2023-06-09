@@ -113,6 +113,8 @@ export default {
     timer () { return this.$store.getters['runMRC/timer'] },
     importStatus () { return this.$store.getters['runMRC/status'] },
     running () { return this.$store.getters['runMRC/running'] },
+    error () { return this.$store.getters['runMRC/error'] },
+
   },
   watch: {
     importStatus (val) {
@@ -293,6 +295,16 @@ export default {
           </v-icon>
           {{ $gettext('Download') }}
         </v-btn>
+        <v-alert
+          v-if="error"
+          dense
+          outlined
+          text
+          type="error"
+        >
+          {{ $gettext("Service ended with an execution error or have been aborted. \
+            Please retry. If the problem persist, contact us.") }}
+        </v-alert>
         <div
           v-for="(img,key) in imgs"
           :key="key"

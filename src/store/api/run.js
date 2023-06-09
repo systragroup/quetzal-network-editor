@@ -1,6 +1,6 @@
 import { quetzalClient } from '@src/axiosClient.js'
-import s3 from '../AWSClient'
-import { classFile2 } from '../components/utils/utils.js'
+import s3 from '@src/AWSClient'
+import { classFile2 } from '@src/components/utils/utils.js'
 const $gettext = s => s
 
 export default {
