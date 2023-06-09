@@ -45,7 +45,7 @@ export default {
         units: '',
         hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
         rules: [
-          'required',
+          'required', 'dateTimeRule',
         ],
       },
       {
@@ -96,10 +96,13 @@ export default {
       ],
 
       showHint: false,
+      // eslint-disable-next-line max-len, no-useless-escape
+      re: /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/,
       rules: {
         required: v => !!v || $gettext('Required'),
         largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
         nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
+        dateTimeRule: v => this.re.test(v) || $gettext('invalid date time'),
       },
 
     }
