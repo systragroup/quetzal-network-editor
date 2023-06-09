@@ -1,10 +1,12 @@
 <script>
-import MatrixRoadCaster from '../components/utils/MatrixRoadCaster.vue'
+import MatrixRoadCaster from '../components/MatrixRoadCaster.vue'
+import OSMImporter from '../components/OSMImporter.vue'
 
 export default {
   name: 'Microservices',
   components: {
     MatrixRoadCaster,
+    OSMImporter,
   },
   props: {
     value: {
@@ -14,13 +16,15 @@ export default {
   },
   data () {
     return {
-
+      tab: 0,
     }
   },
-  watch: {
-
+  computed: {
+    rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
   },
-
+  watch: {
+    tab (val) { },
+  },
   methods: {
 
   },
@@ -28,11 +32,18 @@ export default {
 </script>
 <template>
   <section>
+    <v-tabs
+      v-model="tab"
+      centered
+    >
+      <v-tab>OSM importer</v-tab>
+      <v-tab>Matrix Road Caster</v-tab>
+    </v-tabs>
     <div class="layout">
-      <div
-        class="layout-overlay"
-      />
-      <MatrixRoadCaster />
+      <div class="layout-overlay" />
+      <OSMImporter v-if="tab===0 " />
+
+      <MatrixRoadCaster v-else-if="tab===1" />
     </div>
   </section>
 </template>

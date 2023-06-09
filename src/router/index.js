@@ -27,13 +27,6 @@ const router = new Router({
       title: $gettext('Import'),
     },
     {
-      path: '/Home',
-      name: Home.name,
-      component: Home,
-      icon: 'fa-solid fa-map',
-      title: $gettext('Map'),
-    },
-    {
       path: '/Microservices',
       name: Microservices.name,
       component: Microservices,
@@ -47,17 +40,17 @@ const router = new Router({
               autoClose: true,
               color: 'error',
             })
-        } else if (store.getters.rlinks.features.length === 0) {
-          store.commit('changeNotification',
-            {
-              text: $gettext('Must load a road network first'),
-              autoClose: true,
-              color: 'error',
-            })
         } else {
           next()
         }
       },
+    },
+    {
+      path: '/Home',
+      name: Home.name,
+      component: Home,
+      icon: 'fa-solid fa-map',
+      title: $gettext('Map'),
     },
     {
       path: '/Run',

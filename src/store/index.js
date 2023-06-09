@@ -4,8 +4,9 @@ import linksModule from './links.js'
 import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
-import runModule from './run.js'
-import MatrixRoadCasterModule from './MatrixRoadCaster.js'
+import runModule from './api/run.js'
+import MatrixRoadCasterModule from './api/MatrixRoadCaster.js'
+import OSMImporterModule from './api/OSMImporter.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -23,6 +24,7 @@ export const store = new Vuex.Store({
     results: resultsModule,
     run: runModule,
     runMRC: MatrixRoadCasterModule,
+    runOSM: OSMImporterModule,
   },
 
   state: {

@@ -1,5 +1,5 @@
 import { quetzalClient } from '@src/axiosClient.js'
-import s3 from '../AWSClient'
+import s3 from '@src/AWSClient'
 import { v4 as uuid } from 'uuid'
 
 const $gettext = s => s
