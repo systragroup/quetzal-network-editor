@@ -62,7 +62,7 @@ export default {
       try {
         this.localConfig = await s3.readJson(val, 'quenedi.config.json')
       } catch (err) {
-        // console.log(err)
+        // not an error.
       }
 
       await this.$store.dispatch('getScenario', { model: val })
@@ -147,13 +147,13 @@ export default {
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
           }
-        } catch (err) { alert(err); this.selectedScenario = null }
+        } catch (err) { this.$store.commit('changeAlert', err); this.selectedScenario = null }
         this.closeCopy()
         this.loading = true
         // wait 500ms to fetch the scenarios to make sure its available on the DB
         setTimeout(() => {
           this.$store.dispatch('getScenario', { model: this.localModel }).then(() => { this.loading = false })
-            .catch((err) => { console.error(err); this.loading = false })
+            .catch((err) => { this.$store.commit('changeAlert', err); this.loading = false })
         }, 500)
       }
     },

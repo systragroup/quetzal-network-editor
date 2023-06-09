@@ -142,7 +142,7 @@ export default {
           response => {
             this.importStatus = 'RUNNING'
             this.pollImport(response.data.executionArn)
-          }).catch(err => { console.log(err) })
+          }).catch(err => { this.$store.commit('changeAlert', err) })
       } else {
         this.showOverwriteDialog = true
       }
@@ -162,7 +162,7 @@ export default {
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.importStatus)) {
               clearInterval(intervalId)
             }
-          }).catch(e => { console.log(e) })
+          }).catch(e => { this.$store.commit('changeAlert', e) })
       }, 1000)
     },
     applyDict (rlinks) {

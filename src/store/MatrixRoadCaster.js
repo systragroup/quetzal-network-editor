@@ -71,14 +71,16 @@ export default {
       commit('setParameters', payload.parameters)
       console.log('exporting roads to s3')
       state.running = true
-      await s3.putObject(
-        state.bucket,
-        state.callID.concat('/road_links.geojson'),
-        JSON.stringify(payload.rlinks))
-      await s3.putObject(
-        state.bucket,
-        state.callID.concat('/road_nodes.geojson'),
-        JSON.stringify(payload.rnodes))
+      try {
+        await s3.putObject(
+          state.bucket,
+          state.callID.concat('/road_links.geojson'),
+          JSON.stringify(payload.rlinks))
+        await s3.putObject(
+          state.bucket,
+          state.callID.concat('/road_nodes.geojson'),
+          JSON.stringify(payload.rnodes))
+      } catch (err) { commit('changeAlert', err, { root: true }) }
       let data = {
         input: JSON.stringify(state.parameters),
         name: state.callID,
@@ -91,7 +93,7 @@ export default {
           state.executionArn = response.data.executionArn
           dispatch('pollExecution')
         }).catch(err => {
-        console.log(err)
+        commit('changeAlert', err, { root: true })
         state.running = false
         state.status = 'FAILED'
       })
@@ -113,7 +115,7 @@ export default {
               commit('terminateExecution')
               clearInterval(intervalId)
             }
-          }).catch(err => { console.log(err) })
+          }).catch(err => { commit('changeAlert', err, { root: true }) })
       }, 2000)
     },
     stopExecution ({ state, commit }) {
@@ -126,7 +128,7 @@ export default {
           // Maybe we sould wait for back to say that execution is terminated (but the wait is awkward)
         }).catch(
         err => {
-          console.log(err)
+          commit('changeAlert', err, { root: true })
         })
     },
   },

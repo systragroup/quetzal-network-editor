@@ -149,7 +149,7 @@ async function getScenario (bucket) {
     try {
       const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
       userEmail = resp.Metadata.user_email
-    } catch (err) { console.error(err) }
+    } catch (err) { store.commit('changeAlert', err) }
     scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail })
   }
   return scenList

@@ -27,6 +27,7 @@ export const store = new Vuex.Store({
 
   state: {
     notification: {},
+    alert: {},
     darkMode: false,
     loading: false,
     showLeftPanel: true,
@@ -43,6 +44,9 @@ export const store = new Vuex.Store({
   mutations: {
     changeNotification (state, payload) {
       state.notification = payload
+    },
+    changeAlert (state, payload) {
+      state.alert = payload
     },
     changeDarkMode (state, payload) {
       state.darkMode = payload
@@ -207,6 +211,7 @@ export const store = new Vuex.Store({
   },
   getters: {
     notification: (state) => state.notification,
+    alert: (state) => state.alert,
     loading: (state) => state.loading,
     mapCenter: (state) => state.mapCenter,
     mapZoom: (state) => state.mapZoom,
