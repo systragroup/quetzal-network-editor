@@ -258,7 +258,7 @@ export default {
       </v-card>
     </v-col>
     <v-col>
-      <v-card class="card">
+      <v-card class="card2">
         <v-card-title class="subtitle">
           {{ $gettext('Calibration Results') }}
         </v-card-title>
@@ -268,6 +268,12 @@ export default {
           :disabled="applying"
           @click="ApplyResults"
         >
+          <v-icon
+            small
+            style="margin-right: 10px;"
+          >
+            fa-solid fa-upload
+          </v-icon>
           {{ $gettext('Apply Road links to project') }}
         </v-btn>
         <v-btn
@@ -276,6 +282,12 @@ export default {
           :disabled="exporting"
           @click="download"
         >
+          <v-icon
+            small
+            style="margin-right: 10px;"
+          >
+            fa-solid fa-download
+          </v-icon>
           {{ $gettext('Download') }}
         </v-btn>
         <div
@@ -319,7 +331,13 @@ export default {
 .card {
   height: 100%;
   overflow-y: auto;
-  padding: 40px;
+  padding: 2.5rem;
+}
+.card2 {
+  height: 100%;
+  overflow-y: auto;
+  padding: 2.5rem;
+  margin-right: 3rem;
 }
 
 .v-card__text {
@@ -372,9 +390,4 @@ div.gallery img {
   height: auto;
 }
 
-.image-fit{
-  height: 100%;
-  width: 100%;
-  object-fit: cover;
-}
 </style>
