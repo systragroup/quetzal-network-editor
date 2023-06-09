@@ -1,7 +1,7 @@
 <script>
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
-
+import Alert from '@comp/utils/Alert.vue'
 import auth from './auth'
 import s3 from './AWSClient'
 import { axiosClient } from './axiosClient'
@@ -11,6 +11,7 @@ export default {
   components: {
     Toolbar,
     NavigationDrawer,
+    Alert,
   },
   data () {
     return {
@@ -94,6 +95,7 @@ export default {
         </v-btn>
       </template>
     </v-snackbar>
+    <Alert />
   </v-app>
 </template>
 <style lang="scss" scoped>

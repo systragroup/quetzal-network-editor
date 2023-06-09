@@ -83,7 +83,7 @@ export default {
               bounds.extend([link.geometry.coordinates[0][0][0],
                 link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
             }
-          } catch (err) { console.log(err) }
+          } catch (err) { this.$store.commit('changeAlert', err) }
         })
       } else {
         this.links.features.forEach(link => {

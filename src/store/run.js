@@ -59,12 +59,12 @@ export default {
     },
   },
   actions: {
-    async getParameters ({ state }, payload) {
+    async getParameters ({ state, commit }, payload) {
       try {
         const params = await s3.readJson(payload.model, payload.path)
         state.parameters = params
       } catch (err) {
-        console.error(err)
+        commit('changeAlert', err, { root: true })
         state.parameters = []
       }
     },
@@ -160,7 +160,7 @@ export default {
           commit('setSteps', steps)
         }).catch(
         err => {
-          alert(err)
+          commit('changeAlert', err, { root: true })
         })
     },
     startExecution ({ state, commit, dispatch, rootState }, payload) {
@@ -194,7 +194,7 @@ export default {
           dispatch('pollExecution')
         }).catch(
         err => {
-          console.log(err)
+          commit('changeAlert', err, { root: true })
         })
     },
     pollExecution ({ commit, state, dispatch }) {
@@ -218,7 +218,7 @@ export default {
             }
           }).catch(
           err => {
-            console.log(err)
+            commit('changeAlert', err, { root: true })
           })
         data = { executionArn: state.executionArn, includeExecutionData: false, reverseOrder: true }
         quetzalClient.client.post('/history',

@@ -57,7 +57,7 @@ export default {
             }).catch(
             err => {
               this.saving = false
-              alert('error saving scenario', err)
+              this.$store.commit('changeAlert', err)
             })
           break
         default :

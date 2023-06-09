@@ -114,7 +114,7 @@ export default {
         this.login()
         this.$store.commit('changeLoading', false)
       } catch (err) {
-        console.error(err)
+        this.$store.commit('changeAlert', err)
         this.$store.commit('changeLoading', false)
       }
     },
@@ -428,7 +428,7 @@ export default {
         this.$store.commit('changeLoading', false)
       }).catch(err => {
         this.$store.commit('changeLoading', false)
-        alert(err)
+        this.$store.commit('changeAlert', err)
       })
     },
 
