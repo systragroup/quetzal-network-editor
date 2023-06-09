@@ -45,7 +45,7 @@ export default {
         units: '',
         hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
         rules: [
-          'required',
+          'required', 'dateTimeRule',
         ],
       },
       {
@@ -96,10 +96,13 @@ export default {
       ],
 
       showHint: false,
+      // eslint-disable-next-line max-len, no-useless-escape
+      re: /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/,
       rules: {
         required: v => !!v || $gettext('Required'),
         largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
         nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
+        dateTimeRule: v => this.re.test(v) || $gettext('invalid date time'),
       },
 
     }
@@ -258,7 +261,7 @@ export default {
       </v-card>
     </v-col>
     <v-col>
-      <v-card class="card">
+      <v-card class="card2">
         <v-card-title class="subtitle">
           {{ $gettext('Calibration Results') }}
         </v-card-title>
@@ -268,6 +271,12 @@ export default {
           :disabled="applying"
           @click="ApplyResults"
         >
+          <v-icon
+            small
+            style="margin-right: 10px;"
+          >
+            fa-solid fa-upload
+          </v-icon>
           {{ $gettext('Apply Road links to project') }}
         </v-btn>
         <v-btn
@@ -276,6 +285,12 @@ export default {
           :disabled="exporting"
           @click="download"
         >
+          <v-icon
+            small
+            style="margin-right: 10px;"
+          >
+            fa-solid fa-download
+          </v-icon>
           {{ $gettext('Download') }}
         </v-btn>
         <div
@@ -319,7 +334,13 @@ export default {
 .card {
   height: 100%;
   overflow-y: auto;
-  padding: 40px;
+  padding: 2.5rem;
+}
+.card2 {
+  height: 100%;
+  overflow-y: auto;
+  padding: 2.5rem;
+  margin-right: 3rem;
 }
 
 .v-card__text {
@@ -372,9 +393,4 @@ div.gallery img {
   height: auto;
 }
 
-.image-fit{
-  height: 100%;
-  width: 100%;
-  object-fit: cover;
-}
 </style>
