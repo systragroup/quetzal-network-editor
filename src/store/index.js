@@ -101,7 +101,7 @@ export const store = new Vuex.Store({
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
+        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
     },
@@ -165,7 +165,7 @@ export const store = new Vuex.Store({
           inputs.file('params.json', blob)
         }
         const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
+          x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         staticLayers.forEach(layer => {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer.split('/').slice(-1)[0] + '.geojson'
