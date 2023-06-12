@@ -413,8 +413,8 @@ export default {
           ...link1.geometry.coordinates.slice(0, -1),
           ...link2.geometry.coordinates.slice(1)]
         link1.properties.b = link2.properties.b
-        link1.properties.length += link2.properties.length
-        link1.properties.time += link2.properties.time
+        link1.properties.length = Number(link1.properties.length) + Number(link2.properties.length)
+        link1.properties.time = Number(link1.properties.time) + Number(link2.properties.time)
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = state.editorLinks.features.findIndex(
           link => link.properties.index === link2.properties.index)
