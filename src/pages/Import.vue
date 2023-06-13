@@ -2,6 +2,7 @@
 <script>
 import s3 from '../AWSClient'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
+import { serializer } from '../components/utils/serializer.js'
 
 const $gettext = s => s
 
@@ -18,18 +19,29 @@ export default {
       loadedType: '',
       zipName: '',
       message: [],
-      errorMessage: '',
       filesAdded: false,
+      geojsonChoices: ['PT links', 'PT nodes', 'road links', 'road nodes', 'other'],
     }
   },
 
   computed: {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
-    localLinksLoaded () { return Object.keys(this.loadedLinks).length === 0 },
-    localNodesLoaded () { return Object.keys(this.loadedNodes).length === 0 },
+    localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
+    localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
     s3Path () { return this.$route.query.s3Path },
     localFilesAreLoaded () {
-      return !(this.localLinksLoaded || this.localNodesLoaded)
+      return (this.localLinksLoaded && this.localNodesLoaded)
+    },
+    filteredChoices () {
+      if (this.loadedType === 'PT' && this.localLinksLoaded) {
+        return ['PT nodes']
+      } else if (this.loadedType === 'PT' && this.localNodesLoaded) {
+        return ['PT links']
+      } else if (this.loadedType === 'road' && this.localLinksLoaded) {
+        return ['road nodes']
+      } else if (this.loadedType === 'road' && this.localNodesLoaded) {
+        return ['road links']
+      } else return this.geojsonChoices
     },
 
   },
@@ -69,40 +81,43 @@ export default {
       let links = {}
       let nodes = {}
       const scen = this.$store.getters.scenario + '/'
+      const model = this.$store.getters.model
 
       try {
-        let filesNames = await s3.listFiles(this.$store.getters.model, scen + path.network_paths.links)
+        let filesNames = await s3.listFiles(model, scen + path.network_paths.links)
         if (filesNames.length > 0) {
-          links = await s3.readJson(this.$store.getters.model, scen + path.network_paths.links)
-          nodes = await s3.readJson(this.$store.getters.model, scen + path.network_paths.nodes)
+          links = await s3.readJson(model, scen + path.network_paths.links)
+          nodes = await s3.readJson(model, scen + path.network_paths.nodes)
+          links = serializer(links, 'LineString')
+          nodes = serializer(nodes, 'Point')
           this.loadNetwork(links, nodes, 'PT', 'DataBase')
         }
-        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.network_paths.rlinks)
+        filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
         if (filesNames.length > 0) {
-          links = await s3.readJson(this.$store.getters.model,
-            this.$store.getters.scenario + '/' + path.network_paths.rlinks)
-          nodes = await s3.readJson(this.$store.getters.model,
-            this.$store.getters.scenario + '/' + path.network_paths.rnodes)
+          links = await s3.readJson(model, this.$store.getters.scenario + '/' + path.network_paths.rlinks)
+          nodes = await s3.readJson(model, this.$store.getters.scenario + '/' + path.network_paths.rnodes)
+          links = serializer(links, 'LineString')
+          nodes = serializer(nodes, 'Point')
           this.loadNetwork(links, nodes, 'road', 'DataBase')
         }
         // then load results layers.
-        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.output_paths)
+        filesNames = await s3.listFiles(model, scen + path.output_paths)
         filesNames = filesNames.filter(name => !name.endsWith('/'))
         filesNames = filesNames.filter(name => !name.endsWith('.png'))
         const files = []
         for (const file of filesNames) {
-          const content = await s3.readJson(this.$store.getters.model, file)
+          const content = await s3.readJson(model, file)
           const name = file.split('/').slice(1).join('/')
           files.push(classFile(name, content))
         }
         if (filesNames.length > 0) this.loadStaticLayer(files, 'Database output')
+
         // load rasters (static geojson layers.)
-        //
-        filesNames = await s3.listFiles(this.$store.getters.model, scen + path.raster_path)
+        filesNames = await s3.listFiles(model, scen + path.raster_path)
         filesNames = filesNames.filter(name => name.endsWith('.geojson'))
         const rasterFiles = []
         for (const file of filesNames) {
-          let type = await s3.readJson(this.$store.getters.model, file)
+          let type = await s3.readJson(model, file)
           type = type.features[0].geometry.type
           rasterFiles.push({ name: file, type: type })
         }
@@ -118,19 +133,6 @@ export default {
     },
 
     loadNetwork (links, nodes, type, zipName) {
-      if (links.features.length > 0) {
-        if (!Object.keys(links.features[0].properties).includes('index')) {
-          this.error($gettext('there is no index in links. Import aborted'))
-          return
-        }
-      }
-      if (nodes.features.length > 0) {
-        if (!Object.keys(nodes.features[0].properties).includes('index')) {
-          this.error($gettext('there is no index in nodes. Import aborted'))
-          return
-        }
-      }
-
       if (type === 'PT') {
         if (IndexAreDifferent(links, this.$store.getters.links) &&
             IndexAreDifferent(nodes, this.$store.getters.nodes)) {
@@ -138,7 +140,10 @@ export default {
           this.filesAdded = true
           if (zipName) this.message.push($gettext('PT Links and nodes Loaded from') + ' ' + zipName)
         } else {
-          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
+          this.$store.commit('changeAlert', {
+            name: 'ImportError',
+            message: $gettext('there is duplicated links or nodes index. Import aborted'),
+          })
         }
       } else if (type === 'road') {
         if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
@@ -147,7 +152,10 @@ export default {
           this.filesAdded = true
           if (zipName) this.message.push($gettext('ROAD links and nodes Loaded from') + ' ' + zipName)
         } else {
-          this.error($gettext('there is duplicated links or nodes index. Import aborted'))
+          this.$store.commit('changeAlert', {
+            name: 'ImportError',
+            message: $gettext('there is duplicated links or nodes index. Import aborted'),
+          })
         }
       }
     },
@@ -211,25 +219,15 @@ export default {
       this.loadedLinks = {}
       this.loadedType = ''
       this.message = []
-      this.errorMessage = message
       this.$store.commit('changeLoading', false)
     },
 
     buttonHandle (choice) {
       this.choice = choice
-      this.errorMessage = ''
       switch (this.choice) {
         case 'zip':
           this.$refs.zipInput.click()
           document.getElementById('zip-input').value = '' // clean it for next file
-          break
-        case 'links':
-          this.$refs.fileInput.click()
-          document.getElementById('file-input').value = '' // clean it for next file
-          break
-        case 'nodes':
-          this.$refs.fileInput.click()
-          document.getElementById('file-input').value = '' // clean it for next file
           break
         case 'example1':
           this.projectIsEmpty ? this.loadExample(['PT', 'road']) : this.showDialog = true
@@ -239,6 +237,10 @@ export default {
           break
         case 'newProject':
           this.projectIsEmpty ? this.newProject() : this.showDialog = true
+          break
+        default:
+          this.$refs.fileInput.click()
+          document.getElementById('file-input').value = '' // clean it for next file
       }
     },
     applyDialog () {
@@ -310,6 +312,7 @@ export default {
       this.loggedIn = true
       this.login()
     },
+
     newProject () {
       this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
@@ -320,58 +323,46 @@ export default {
       this.message = []
     },
 
-    onFilePicked (event) {
+    readFile (event) {
       this.$store.commit('changeLoading', true)
       const files = event.target.files
-      // there is a file
-      if (!files.length) {
-        this.$store.commit('changeLoading', false)
-        return
-      }
       // it is a geojson
       if (files[0].name.slice(-7) !== 'geojson') {
         this.$store.commit('changeLoading', false)
-        this.error($gettext('file is not a geojson'))
+        this.$store.commit('changeAlert', { name: 'ImportError', message: 'File must be a geojson' })
         return
       }
 
       const fileReader = new FileReader()
       fileReader.readAsText(files[0])
-      if (this.choice === 'links') {
-        fileReader.onload = evt => {
-          try {
-            if (files[0].name.includes('road')) {
-              this.loadedLinks = JSON.parse(evt.target.result)
-              if (this.loadedType === 'PT') { this.error($gettext('road links loaded with PT nodes')); return }
-              this.loadedType = 'road'
-            } else {
-              this.loadedLinks = JSON.parse(evt.target.result)
-              if (this.loadedType === 'road') { this.error($gettext('PT links loaded with road nodes')); return }
+      console.log(this.choice)
+      fileReader.onload = evt => {
+        try {
+          const data = JSON.parse(evt.target.result)
+          switch (this.choice) {
+            case 'PT links':
+              this.loadedLinks = serializer(data, 'LineString')
               this.loadedType = 'PT'
-            }
-            this.$store.commit('changeLoading', false)
-          } catch (e) {
-            this.error(e.message)
-            this.$store.commit('changeLoading', false)
-          }
-        }
-      } else if (this.choice === 'nodes') {
-        fileReader.onload = evt => {
-          try {
-            if (files[0].name.includes('road')) {
-              this.loadedNodes = JSON.parse(evt.target.result)
-              if (this.loadedType === 'PT') { this.error($gettext('road nodes loaded for PT links')); return }
-              this.loadedType = 'road'
-            } else {
-              this.loadedNodes = JSON.parse(evt.target.result)
-              if (this.loadedType === 'road') { this.error($gettext('PT nodes loaded for road links')); return }
+              break
+            case 'PT nodes':
+              this.loadedNodes = serializer(data, 'Point')
               this.loadedType = 'PT'
-            }
-            this.$store.commit('changeLoading', false)
-          } catch (e) {
-            this.error(e.message)
-            this.$store.commit('changeLoading', false)
+              break
+            case 'road links':
+              this.loadedLinks = serializer(data, 'LineString')
+              this.loadedType = 'road'
+              break
+            case 'road nodes':
+              this.loadedNodes = serializer(data, 'Point')
+              this.loadedType = 'road'
+              break
+            default:
+              console.log('autre')
           }
+          this.$store.commit('changeLoading', false)
+        } catch (err) {
+          this.$store.commit('changeLoading', false)
+          this.$store.commit('changeAlert', err)
         }
       }
     },
@@ -386,7 +377,7 @@ export default {
       // it is a zip
       if (files[0].name.slice(-3) !== 'zip') {
         this.$store.commit('changeLoading', false)
-        this.errorMessage = $gettext('file is not a zip')
+        this.$store.commit('changeAlert', { name: 'ImportError', message: $gettext('file is not a zip') })
       }
       // read every selected zip and create a list of promises.
       // each promises contain {links, nodes}
@@ -458,30 +449,40 @@ export default {
             {{ $gettext("Links and Nodes files must be geojson in EPSG:4326.") }}
           </div>
           <div class=" text-xs-center">
-            <v-btn
-              :color=" !localLinksLoaded? 'primary': 'normal'"
-              @click="buttonHandle('links')"
+            <v-menu
+              offset-y
+              close-delay="100"
+              transition="slide-y-transition"
             >
-              <v-icon
-                small
-                left
-              >
-                fa-solid fa-upload
-              </v-icon>
-              {{ $gettext('Links') }}
-            </v-btn>
-            <v-btn
-              :color=" !localNodesLoaded? 'primary': 'normal'"
-              @click="buttonHandle('nodes')"
-            >
-              <v-icon
-                small
-                left
-              >
-                fa-solid fa-upload
-              </v-icon>
-              {{ $gettext('Nodes') }}
-            </v-btn>
+              <template v-slot:activator="{ on: on,attrs:attrs }">
+                <v-btn
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-icon
+                    small
+                    left
+                  >
+                    fa-solid fa-upload
+                  </v-icon>
+                  Geojson
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item
+                  v-for="(el,key) in geojsonChoices"
+                  :key="key"
+                  link
+                  :disabled="!filteredChoices.includes(el)"
+                  @click="()=>buttonHandle(el)"
+                >
+                  <v-list-item-title>
+                    {{ $gettext(el) }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+
             <v-tooltip
               bottom
               open-delay="500"
@@ -517,7 +518,7 @@ export default {
             type="file"
             style="display: none"
             accept=".geojson"
-            @change="onFilePicked"
+            @change="readFile"
           >
           <input
             id="zip-input"
@@ -602,9 +603,6 @@ export default {
           >
             {{ $gettext(mess) }}
           </p>
-        </v-card-text>
-        <v-card-text :style="{textAlign: 'center',color:'red'}">
-          {{ $gettext(errorMessage) }}
         </v-card-text>
       </v-card>
     </div>

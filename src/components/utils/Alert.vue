@@ -22,7 +22,8 @@ export default {
     err (val) {
       if (Object.keys(val).length > 0) {
         this.sheet = true
-      } else { this.sheet = false }
+        console.error(val)
+      }
     },
   },
 }
@@ -47,7 +48,7 @@ export default {
                   ERROR: {{ err.name }}
                 </h2>
                 <p>
-                  {{ err }}
+                  {{ err.message }}
                 </p>
               </v-col>
               <v-col class="shrink">
