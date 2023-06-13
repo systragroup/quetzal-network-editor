@@ -88,17 +88,13 @@ export default {
         if (filesNames.length > 0) {
           links = await s3.readJson(model, scen + path.network_paths.links)
           nodes = await s3.readJson(model, scen + path.network_paths.nodes)
-          links = serializer(links, 'LineString')
-          nodes = serializer(nodes, 'Point')
-          this.loadNetwork(links, nodes, 'PT', 'DataBase')
+          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'PT', 'DataBase')
         }
         filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
         if (filesNames.length > 0) {
           links = await s3.readJson(model, this.$store.getters.scenario + '/' + path.network_paths.rlinks)
           nodes = await s3.readJson(model, this.$store.getters.scenario + '/' + path.network_paths.rnodes)
-          links = serializer(links, 'LineString')
-          nodes = serializer(nodes, 'Point')
-          this.loadNetwork(links, nodes, 'road', 'DataBase')
+          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'road', 'DataBase')
         }
         // then load results layers.
         filesNames = await s3.listFiles(model, scen + path.output_paths)
@@ -335,7 +331,6 @@ export default {
 
       const fileReader = new FileReader()
       fileReader.readAsText(files[0])
-      console.log(this.choice)
       fileReader.onload = evt => {
         try {
           const data = JSON.parse(evt.target.result)
@@ -393,19 +388,20 @@ export default {
         // for each other files concat, concat to links and nodes
         for (let i = 0; i < zipFiles.length; i++) {
           const files = zipFiles[i].files
+          console.log(files)
           const zipName = zipFiles[i].zipName
           const importPT = files.filter(file => ['links', 'nodes'].includes(file.type)).length === 2
           const importRoad = files.filter(file => ['road_links', 'road_nodes'].includes(file.type)).length === 2
           if (importPT) {
             this.loadNetwork(
-              files.filter(file => file.type === 'links')[0].data,
-              files.filter(file => file.type === 'nodes')[0].data,
+              serializer(files.filter(file => file.type === 'links')[0].data, 'LineString'),
+              serializer(files.filter(file => file.type === 'nodes')[0].data, 'Point'),
               'PT',
               zipName)
           } if (importRoad) {
             this.loadNetwork(
-              files.filter(file => file.type === 'road_links')[0].data,
-              files.filter(file => file.type === 'road_nodes')[0].data,
+              serializer(files.filter(file => file.type === 'road_links')[0].data, 'LineString'),
+              serializer(files.filter(file => file.type === 'road_nodes')[0].data, 'Point'),
               'road',
               zipName)
           }

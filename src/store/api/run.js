@@ -1,6 +1,6 @@
 import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '@src/AWSClient'
-import { classFile2 } from '@src/components/utils/utils.js'
+import { classFile } from '@src/components/utils/utils.js'
 const $gettext = s => s
 
 export default {
@@ -79,7 +79,7 @@ export default {
       for (const file of filesNames) {
         const content = await s3.readJson(model, file)
         const name = file.split('/').slice(1).join('/')
-        files.push(classFile2(name, content))
+        files.push(classFile(name, content))
       }
       if (files.length > 0) {
         context.commit('unloadLayers', null, { root: true })
