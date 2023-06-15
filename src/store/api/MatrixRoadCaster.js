@@ -36,10 +36,6 @@ export default {
     },
     setCallID (state) { state.callID = uuid() },
     setParameters (state, payload) { state.parameters = payload },
-    startExecution (state) {
-      state.error = false
-      state.running = true
-    },
     terminateExecution (state) {
       state.running = false
       state.error = true
@@ -70,6 +66,7 @@ export default {
       commit('getApproxTimer', payload.rlinks.features.length)
       commit('setParameters', payload.parameters)
       console.log('exporting roads to s3')
+      state.error = false
       state.running = true
       try {
         await s3.putObject(
