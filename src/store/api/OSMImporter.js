@@ -65,10 +65,7 @@ export default {
       state.error = false
     },
     setCallID (state) { state.callID = uuid() },
-    startExecution (state) {
-      state.error = false
-      state.running = true
-    },
+
     terminateExecution (state) {
       state.running = false
       state.error = true
@@ -92,6 +89,7 @@ export default {
     startExecution ({ state, commit, dispatch }, payload) {
       // commit('setParameters', payload.parameters)
       state.running = true
+      state.error = false
       let overpassQuery = `[out:json][timeout:180];
       (
       `

@@ -140,7 +140,7 @@ export default {
       <v-spacer />
       <v-card-subtitle>
         <v-alert
-          v-if="importStatus == 'FAILED' || importStatus == 'TIMED_OUT' || importStatus == 'ABORTED'"
+          v-if="error"
           dense
           width="50rem"
           outlined
