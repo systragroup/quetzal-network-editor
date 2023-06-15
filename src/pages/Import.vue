@@ -92,8 +92,8 @@ export default {
         }
         filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
         if (filesNames.length > 0) {
-          links = await s3.readJson(model, this.$store.getters.scenario + '/' + path.network_paths.rlinks)
-          nodes = await s3.readJson(model, this.$store.getters.scenario + '/' + path.network_paths.rnodes)
+          links = await s3.readJson(model, scen + path.network_paths.rlinks)
+          nodes = await s3.readJson(model, scen + path.network_paths.rnodes)
           this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'road', 'DataBase')
         }
         // then load results layers.
@@ -106,7 +106,7 @@ export default {
           const name = file.split('/').slice(1).join('/')
           files.push(classFile(name, content))
         }
-        if (filesNames.length > 0) this.loadStaticLayer(files, 'Database output')
+        if (filesNames.length > 0) this.$store.commit('loadLayers', { files: files, name: 'Database' })
 
         // load rasters (static geojson layers.)
         filesNames = await s3.listFiles(model, scen + path.raster_path)
@@ -154,60 +154,6 @@ export default {
           })
         }
       }
-    },
-    loadStaticLayer (files, zipName) {
-      // filter links, road links and nodes if we dont want them before. in some case we want
-      // to load them as static links (if the loaded links are called links.geojson for example)
-      // load links and nodes geojson as static layers.
-      files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
-        file => {
-          const fileName = file.fileName.slice(0, -8)
-          let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-          matData = matData || {}
-          const matDataExist = Object.keys(matData).length > 0
-          if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-            this.error($gettext(fileName + ' there is no index. Import aborted'))
-            return
-          }
-
-          this.$store.commit('loadLayer', { fileName: fileName, type: 'links', data: file.data, mat: matData })
-          this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matDataExist) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
-        })
-
-      files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
-        file => {
-          const fileName = file.fileName.slice(0, -8)
-          let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-          matData = matData || {}
-          const matDataExist = Object.keys(matData).length > 0
-          if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-            this.error($gettext(fileName + ' there is no index. Import aborted'))
-            return
-          }
-          this.$store.commit('loadLayer', { fileName: fileName, type: 'nodes', data: file.data, mat: matData })
-          this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matDataExist) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
-        })
-
-      // for zones. find the corresponding json file (mat) or nothing.
-      files.filter(file => (file.type === 'zones')).forEach(
-        file => {
-          const fileName = file.fileName.slice(0, -8)
-          let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-          matData = matData || {}
-          const matDataExist = Object.keys(matData).length > 0
-          if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-            this.error($gettext(fileName + ' there is no index. Import aborted'))
-            return
-          }
-          this.$store.commit('loadLayer', { fileName: fileName, type: 'zones', data: file.data, mat: matData })
-          this.message.push(file.fileName + ' ' + $gettext('Loaded from') + ' ' + zipName)
-          if (matDataExist) this.message.push(fileName + '.json' + ' ' + $gettext('Loaded from') + ' ' + zipName)
-        })
-      // load parameters if provided in inputs.
-      const params = files.filter(file => file.type === 'params.json')
-      if (params.length > 0) this.$store.commit('run/getLocalParameters', params[0].data)
     },
 
     error (message) {
@@ -284,13 +230,13 @@ export default {
         links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
           .catch(() => { this.error($gettext('An error occur fetching example on github')) })
         if (!links) return
-        this.$store.commit('loadLayer', { fileName: 'loaded_links', type: 'links', data: links, mat: {} })
+        this.$store.commit('createLayer', { fileName: 'loaded_links', data: links, mat: {} })
 
         nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
           .catch(() => { this.error($gettext('An error occur fetching example on github')) })
         if (!nodes) return
 
-        this.$store.commit('loadLayer', { fileName: 'loaded_nodes', type: 'nodes', data: nodes, mat: {} })
+        this.$store.commit('createLayer', { fileName: 'loaded_nodes', data: nodes, mat: {} })
       }
       if (filesToLoads.includes('zones')) {
         links = await fetch(url + 'zones.geojson').then(res => res.json())
@@ -300,7 +246,7 @@ export default {
           .catch(() => { this.error($gettext('An error occur fetching example on github')) })
         if (!nodes) return
 
-        this.$store.commit('loadLayer', { fileName: 'zones', type: 'zones', data: links, mat: nodes })
+        this.$store.commit('createLayer', { fileName: 'zones', data: links, mat: nodes })
       }
       // this is zones and mat. reuse var to save memory
 
@@ -373,6 +319,7 @@ export default {
       if (files[0].name.slice(-3) !== 'zip') {
         this.$store.commit('changeLoading', false)
         this.$store.commit('changeAlert', { name: 'ImportError', message: $gettext('file is not a zip') })
+        return
       }
       // read every selected zip and create a list of promises.
       // each promises contain {links, nodes}
@@ -390,8 +337,8 @@ export default {
           const files = zipFiles[i].files
           console.log(files)
           const zipName = zipFiles[i].zipName
-          const importPT = files.filter(file => ['links', 'nodes'].includes(file.type)).length === 2
-          const importRoad = files.filter(file => ['road_links', 'road_nodes'].includes(file.type)).length === 2
+          const importPT = files.filter(file => ['links', 'nodes'].includes(file?.type)).length === 2
+          const importRoad = files.filter(file => ['road_links', 'road_nodes'].includes(file?.type)).length === 2
           if (importPT) {
             this.loadNetwork(
               serializer(files.filter(file => file.type === 'links')[0].data, 'LineString'),
@@ -405,9 +352,11 @@ export default {
               'road',
               zipName)
           }
-          this.loadStaticLayer(
-            files.filter(file => !['links', 'nodes', 'road_links', 'road_nodes'].includes(file.type)),
-            zipName)
+          this.$store.commit('loadLayers', {
+            files: files.filter(file => !['links', 'nodes', 'road_links', 'road_nodes'].includes(file?.type)),
+            name: zipName,
+          },
+          )
         }
 
         this.$store.commit('changeLoading', false)

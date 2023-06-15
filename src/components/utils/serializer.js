@@ -1,7 +1,7 @@
 // import JSZip from 'jszip'
 const $gettext = s => s
 
-function serializer (geojson, type) {
+function serializer (geojson, type = null, ignoreIndex = false) {
   // check that file is not empty
   if (geojson.features.length === 0) {
     const err = new Error($gettext('file is empty'))
@@ -16,13 +16,13 @@ function serializer (geojson, type) {
   }
   // check Type (is links a linestring)
   const currentType = geojson.features[0].geometry.type
-  if (currentType !== type) {
+  if (currentType !== type && type !== null) {
     const err = new Error(currentType + $gettext(' imported, Expected ') + type + $gettext('. Import aborted'))
     err.name = 'ImportError'
     throw err
   }
   // check if there is indexes in the properties
-  if (!Object.keys(geojson.features[0].properties).includes('index')) {
+  if (!Object.keys(geojson.features[0].properties).includes('index') && !ignoreIndex) {
     const err = new Error($gettext('there is no index in the File. you need unique index. Import aborted'))
     err.name = 'ImportError'
     throw err

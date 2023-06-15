@@ -4,6 +4,9 @@ import { store } from '../../store/index.js'
 function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs/road/', outputFolder = 'outputs/') {
   // class Files with inputs outputs quenedi fileStructure.
   // inputs are split as pt and road folder. everythin in output is read as a static layer.
+  // return {data, type, fileName}.
+  // type can be links, nodes, road_links, road_nodes,
+  // layer,  params.json, json or others.
 
   // inputs/
   //    pt/
@@ -38,13 +41,13 @@ function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs
     } else if (name.toLowerCase().includes(outputFolder.toLowerCase())) {
       switch (currentType) {
         case 'LineString':
-          return { data: content, type: 'layerLinks', fileName: name }
+          return { data: content, type: 'layer', fileName: name }
         case 'Point':
-          return { data: content, type: 'layerNodes', fileName: name }
+          return { data: content, type: 'layer', fileName: name }
         case 'MultiPolygon':
-          return { data: content, type: 'zones', fileName: name }
+          return { data: content, type: 'layer', fileName: name }
         case 'Polygon':
-          return { data: content, type: 'zones', fileName: name }
+          return { data: content, type: 'layer', fileName: name }
       }
     }
   } else if (name.endsWith('.json')) {

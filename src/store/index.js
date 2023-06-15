@@ -11,6 +11,7 @@ import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
+import { serializer } from '../components/utils/serializer.js'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
@@ -41,6 +42,7 @@ export const store = new Vuex.Store({
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     availableLayers: ['links', 'rlinks', 'nodes', 'rnodes'],
+    loadedFiles: [],
 
   },
   mutations: {
@@ -82,9 +84,30 @@ export const store = new Vuex.Store({
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
     },
+    loadLayers (state, payload) {
+      payload.files.filter(file => (file?.type === 'layer')).forEach(
+        file => {
+          const fileName = file.fileName.slice(0, -8) // remove .geojson
+          let matData = payload.files.filter(json => json?.fileName.slice(0, -5) === fileName)[0]?.data
+          matData = matData || {}
+          const matDataExist = Object.keys(matData).length > 0
 
-    loadLayer (state, payload) {
-      const moduleName = payload.fileName // todo: check if name exist Object.keys(this._modules.root._children)
+          // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
+          file.data = serializer(file.data, null, !matDataExist)
+
+          state.loadedFiles.push({ file: file.fileName, source: payload.name })
+          if (matDataExist) state.loadedFiles.push({ file: file.fileName + '.json', source: payload.name })
+
+          this.commit('createLayer', {
+            fileName: fileName,
+            data: file.data,
+            mat: matData,
+          })
+        })
+    },
+
+    createLayer (state, payload) {
+      const moduleName = payload.fileName
       if (!Object.keys(this._modules.root._children).includes(moduleName)) {
         this.registerModule(moduleName, layerModule)
       }
