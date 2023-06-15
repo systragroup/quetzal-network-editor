@@ -20,7 +20,7 @@ export default {
   },
   watch: {
     err (val) {
-      if (Object.keys(val).length > 0) {
+      if (val.name) {
         this.sheet = true
         console.error(val)
       }

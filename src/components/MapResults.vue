@@ -73,7 +73,7 @@ export default {
       if (this.map) this.mapIsLoaded = false
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-      if (this.layerType === 'zones') {
+      if (this.layerType === 'Polygon') {
         this.links.features.forEach(link => {
           try { // try, so NaN will not crash
             if (link.geometry.type === 'Polygon') {
@@ -114,7 +114,7 @@ export default {
       event.map.getCanvas().style.cursor = 'pointer'
       this.selectedLinks = event.mapboxEvent.features
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-      if (this.selectedFeature.length > 0 && this.layerType !== 'zones') { // do not show popup if nothing is selected
+      if (this.selectedFeature.length > 0 && this.layerType !== 'Polygon') { // do not show popup if nothing is selected
         const val = this.selectedLinks[0].properties[this.selectedFeature]
         this.popup = new mapboxgl.Popup({ closeButton: false })
           .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
@@ -171,7 +171,7 @@ export default {
     <MglNavigationControl position="bottom-right" />
 
     <MglGeojsonLayer
-      v-if="layerType == 'links'"
+      v-if="layerType == 'LineString'"
       source-id="links"
       :source="{
         type: 'geojson',
@@ -204,7 +204,7 @@ export default {
       @contextmenu="selectClick"
     />
     <MglGeojsonLayer
-      v-if="layerType == 'nodes'"
+      v-if="layerType == 'Point'"
       source-id="nodes"
       :source="{
         type: 'geojson',
@@ -234,7 +234,7 @@ export default {
     />
 
     <MglImageLayer
-      v-if="layerType == 'links'"
+      v-if="layerType == 'LineString'"
       source-id="links"
       type="symbol"
       source="links"
@@ -260,7 +260,7 @@ export default {
       }"
     />
     <MglGeojsonLayer
-      v-if="layerType == 'zones'"
+      v-if="layerType === 'Polygon'"
       source-id="polygon"
       :source="{
         type: 'geojson',
