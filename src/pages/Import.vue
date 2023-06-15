@@ -349,7 +349,7 @@ export default {
           nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
           if (!nodes) return
           this.$store.commit('createLayer', { fileName: 'loaded_nodes', data: nodes, mat: {} })
-
+          // add files to list of loaded files
           this.$store.commit('addFile', { name: 'loaded_links', source: 'example', type: 'result' })
           this.$store.commit('addFile', { name: 'loaded_nodes', source: 'example', type: 'result' })
         }
@@ -360,7 +360,7 @@ export default {
           nodes = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
           if (!nodes) return
           this.$store.commit('createLayer', { fileName: 'zones', data: links, mat: nodes })
-
+          // add files to list of loaded files
           this.$store.commit('addFile', { name: 'zones', source: 'example', type: 'result' })
           this.$store.commit('addFile', { name: 'zones', source: 'matrix', type: 'result matrix' })
         }
