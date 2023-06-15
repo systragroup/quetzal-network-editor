@@ -76,6 +76,7 @@ export const store = new Vuex.Store({
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
     },
+    addFile (state, payload) { state.loadedFiles.push(payload) },
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
       state.rlinks.roadSpeed = Number(payload.roadSpeed)
@@ -85,7 +86,7 @@ export const store = new Vuex.Store({
       state.outputName = payload.outputName
     },
     loadLayers (state, payload) {
-      payload.files.filter(file => (file?.type === 'layer')).forEach(
+      payload.files.filter(file => (file?.type === 'result')).forEach(
         file => {
           const fileName = file.fileName.slice(0, -8) // remove .geojson
           let matData = payload.files.filter(json => json?.fileName.slice(0, -5) === fileName)[0]?.data
@@ -95,8 +96,10 @@ export const store = new Vuex.Store({
           // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
           file.data = serializer(file.data, null, !matDataExist)
 
-          state.loadedFiles.push({ file: file.fileName, source: payload.name })
-          if (matDataExist) state.loadedFiles.push({ file: file.fileName + '.json', source: payload.name })
+          this.commit('addFile', { name: file.fileName, source: payload.name, type: 'result' })
+          if (matDataExist) {
+            this.commit('addFile', { name: fileName + '.json', source: payload.name, type: 'result matrix' })
+          }
 
           this.commit('createLayer', {
             fileName: fileName,
@@ -121,6 +124,7 @@ export const store = new Vuex.Store({
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
+      state.loadedFiles = []
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
@@ -246,6 +250,7 @@ export const store = new Vuex.Store({
     linksPopupContent: (state) => state.linksPopupContent,
     roadsPopupContent: (state) => state.roadsPopupContent,
     outputName: (state) => state.outputName,
+    loadedFiles: (state) => state.loadedFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {
       return (state.links.links.features.length === 0 &&

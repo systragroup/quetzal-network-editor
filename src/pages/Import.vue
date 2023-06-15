@@ -17,8 +17,6 @@ export default {
       loadedLinks: {},
       loadedNodes: {},
       loadedType: '',
-      zipName: '',
-      message: [],
       filesAdded: false,
       geojsonChoices: ['PT links', 'PT nodes', 'road links', 'road nodes', 'other'],
     }
@@ -28,6 +26,7 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
     localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
+    loadedFiles () { return this.$store.getters.loadedFiles },
     s3Path () { return this.$route.query.s3Path },
     localFilesAreLoaded () {
       return (this.localLinksLoaded && this.localNodesLoaded)
@@ -51,7 +50,7 @@ export default {
     },
     localFilesAreLoaded (val) {
       if (val) {
-        this.loadNetwork(this.loadedLinks, this.loadedNodes, this.loadedType, 'individual files')
+        this.loadNetwork(this.loadedLinks, this.loadedNodes, this.loadedType, 'local')
         this.loadedLinks = {}
         this.loadedNodes = {}
         this.loadedType = ''
@@ -69,99 +68,6 @@ export default {
       setTimeout(() => {
         this.$router.push('/Home').catch(() => {})
       }, 300)
-    },
-    async loadFilesFromS3 (path) {
-      if (!this.projectIsEmpty) {
-        this.$store.commit('initNetworks')
-        this.$store.commit('unloadLayers')
-        this.message = []
-      }
-      this.$store.commit('changeLoading', true)
-      this.$router.replace({ query: null }) // remove query in url when page is load.
-      let links = {}
-      let nodes = {}
-      const scen = this.$store.getters.scenario + '/'
-      const model = this.$store.getters.model
-
-      try {
-        let filesNames = await s3.listFiles(model, scen + path.network_paths.links)
-        if (filesNames.length > 0) {
-          links = await s3.readJson(model, scen + path.network_paths.links)
-          nodes = await s3.readJson(model, scen + path.network_paths.nodes)
-          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'PT', 'DataBase')
-        }
-        filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
-        if (filesNames.length > 0) {
-          links = await s3.readJson(model, scen + path.network_paths.rlinks)
-          nodes = await s3.readJson(model, scen + path.network_paths.rnodes)
-          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'road', 'DataBase')
-        }
-        // then load results layers.
-        filesNames = await s3.listFiles(model, scen + path.output_paths)
-        filesNames = filesNames.filter(name => !name.endsWith('/'))
-        filesNames = filesNames.filter(name => !name.endsWith('.png'))
-        const files = []
-        for (const file of filesNames) {
-          const content = await s3.readJson(model, file)
-          const name = file.split('/').slice(1).join('/')
-          files.push(classFile(name, content))
-        }
-        if (filesNames.length > 0) this.$store.commit('loadLayers', { files: files, name: 'Database' })
-
-        // load rasters (static geojson layers.)
-        filesNames = await s3.listFiles(model, scen + path.raster_path)
-        filesNames = filesNames.filter(name => name.endsWith('.geojson'))
-        const rasterFiles = []
-        for (const file of filesNames) {
-          let type = await s3.readJson(model, file)
-          type = type.features[0].geometry.type
-          rasterFiles.push({ name: file, type: type })
-        }
-        this.$store.commit('setRasterFiles', rasterFiles)
-
-        this.loggedIn = true
-        this.login()
-        this.$store.commit('changeLoading', false)
-      } catch (err) {
-        this.$store.commit('changeAlert', err)
-        this.$store.commit('changeLoading', false)
-      }
-    },
-
-    loadNetwork (links, nodes, type, zipName) {
-      if (type === 'PT') {
-        if (IndexAreDifferent(links, this.$store.getters.links) &&
-            IndexAreDifferent(nodes, this.$store.getters.nodes)) {
-          this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
-          this.filesAdded = true
-          if (zipName) this.message.push($gettext('PT Links and nodes Loaded from') + ' ' + zipName)
-        } else {
-          this.$store.commit('changeAlert', {
-            name: 'ImportError',
-            message: $gettext('there is duplicated links or nodes index. Import aborted'),
-          })
-        }
-      } else if (type === 'road') {
-        if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
-            IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
-          this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
-          this.filesAdded = true
-          if (zipName) this.message.push($gettext('ROAD links and nodes Loaded from') + ' ' + zipName)
-        } else {
-          this.$store.commit('changeAlert', {
-            name: 'ImportError',
-            message: $gettext('there is duplicated links or nodes index. Import aborted'),
-          })
-        }
-      }
-    },
-
-    error (message) {
-      this.loadedNodes = {}
-      this.loadedLinks = {}
-      this.loadedType = ''
-      this.message = []
-      this.$store.commit('changeLoading', false)
     },
 
     buttonHandle (choice) {
@@ -185,6 +91,7 @@ export default {
           document.getElementById('file-input').value = '' // clean it for next file
       }
     },
+
     applyDialog () {
       // this only happen when both files are loaded.
       // remove links and nodes from store. (and filesAreLoaded)
@@ -203,58 +110,6 @@ export default {
       this.showDialog = !this.showDialog
     },
 
-    async loadExample (filesToLoads) {
-      this.$store.commit('changeLoading', true)
-      const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
-      let links = {}
-      let nodes = {}
-      if (filesToLoads.includes('PT')) {
-        links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!links) return
-        nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!nodes) return
-        this.loadNetwork(links, nodes, 'PT')
-      }
-      if (filesToLoads.includes('road')) {
-        links = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!links) return
-        nodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!nodes) return
-        this.loadNetwork(links, nodes, 'road')
-      }
-      if (filesToLoads.includes('loaded')) {
-        links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!links) return
-        this.$store.commit('createLayer', { fileName: 'loaded_links', data: links, mat: {} })
-
-        nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!nodes) return
-
-        this.$store.commit('createLayer', { fileName: 'loaded_nodes', data: nodes, mat: {} })
-      }
-      if (filesToLoads.includes('zones')) {
-        links = await fetch(url + 'zones.geojson').then(res => res.json())
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!links) return
-        nodes = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
-          .catch(() => { this.error($gettext('An error occur fetching example on github')) })
-        if (!nodes) return
-
-        this.$store.commit('createLayer', { fileName: 'zones', data: links, mat: nodes })
-      }
-      // this is zones and mat. reuse var to save memory
-
-      this.$store.commit('changeLoading', false)
-      this.loggedIn = true
-      this.login()
-    },
-
     newProject () {
       this.$store.commit('initNetworks')
       this.$store.commit('unloadLayers')
@@ -262,7 +117,36 @@ export default {
       this.$store.commit('run/cleanRun')
       this.$store.commit('changeNotification',
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
-      this.message = []
+    },
+
+    loadNetwork (links, nodes, type, source = 'db', linksName = 'links', nodesName = 'nodes') {
+      if (type === 'PT') {
+        if (IndexAreDifferent(links, this.$store.getters.links) &&
+            IndexAreDifferent(nodes, this.$store.getters.nodes)) {
+          this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
+          this.$store.commit('addFile', { name: linksName, source: source, type: 'links' })
+          this.$store.commit('addFile', { name: nodesName, source: source, type: 'nodes' })
+          this.filesAdded = true
+        } else {
+          this.$store.commit('changeAlert', {
+            name: 'ImportError',
+            message: $gettext('there are duplicated links or nodes index. Import aborted'),
+          })
+        }
+      } else if (type === 'road') {
+        if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
+            IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
+          this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
+          this.$store.commit('addFile', { name: linksName, source: source, type: 'road_links' })
+          this.$store.commit('addFile', { name: nodesName, source: source, type: 'road_nodes' })
+          this.filesAdded = true
+        } else {
+          this.$store.commit('changeAlert', {
+            name: 'ImportError',
+            message: $gettext('there are duplicated links or nodes index. Import aborted'),
+          })
+        }
+      }
     },
 
     readFile (event) {
@@ -307,63 +191,191 @@ export default {
         }
       }
     },
-    async readZip (event) {
-      this.$store.commit('changeLoading', true)
-      const files = event.target.files
-      // there is a file
-      if (!files.length) {
-        this.$store.commit('changeLoading', false)
-        return
-      }
-      // it is a zip
-      if (files[0].name.slice(-3) !== 'zip') {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', { name: 'ImportError', message: $gettext('file is not a zip') })
-        return
-      }
-      // read every selected zip and create a list of promises.
-      // each promises contain {links, nodes}
 
-      const PromisesList = []
-      for (let i = 0; i < files.length; i++) {
-        const res = extractZip(files[i])
-        PromisesList.push(res)
-      }
-      // when all files are read
-      Promise.all(PromisesList).then(zipFiles => {
+    async readZip (event) {
+      try {
+        this.$store.commit('changeLoading', true)
+        const zfiles = event.target.files
+        // there is a file
+        if (!zfiles.length) {
+          this.$store.commit('changeLoading', false)
+          return
+        }
+        // it is a zip
+        if (zfiles[0].name.slice(-3) !== 'zip') {
+          this.$store.commit('changeLoading', false)
+          this.$store.commit('changeAlert', { name: 'ImportError', message: $gettext('file is not a zip') })
+          return
+        }
+        // read every selected zip and create a list of promises.
+        // each promises contain {links, nodes}
+
+        // when all files are read
+        const zipFiles = await extractZip(zfiles[0])
         // asign first file to links and node var
         // for each other files concat, concat to links and nodes
-        for (let i = 0; i < zipFiles.length; i++) {
-          const files = zipFiles[i].files
-          console.log(files)
-          const zipName = zipFiles[i].zipName
-          const importPT = files.filter(file => ['links', 'nodes'].includes(file?.type)).length === 2
-          const importRoad = files.filter(file => ['road_links', 'road_nodes'].includes(file?.type)).length === 2
-          if (importPT) {
-            this.loadNetwork(
-              serializer(files.filter(file => file.type === 'links')[0].data, 'LineString'),
-              serializer(files.filter(file => file.type === 'nodes')[0].data, 'Point'),
-              'PT',
-              zipName)
-          } if (importRoad) {
-            this.loadNetwork(
-              serializer(files.filter(file => file.type === 'road_links')[0].data, 'LineString'),
-              serializer(files.filter(file => file.type === 'road_nodes')[0].data, 'Point'),
-              'road',
-              zipName)
-          }
-          this.$store.commit('loadLayers', {
-            files: files.filter(file => !['links', 'nodes', 'road_links', 'road_nodes'].includes(file?.type)),
-            name: zipName,
-          },
+        const files = zipFiles.files
+
+        const zipName = zipFiles.zipName
+        const ptFiles = files.filter(file => ['links', 'nodes'].includes(file?.type))
+        const roadFiles = files.filter(file => ['road_links', 'road_nodes'].includes(file?.type))
+        console.log(ptFiles)
+        if (ptFiles.length % 2 !== 0) {
+          console.log(ptFiles.length)
+          const err = new Error($gettext('Need the same number of links and nodes files.'))
+          err.name = 'ImportError'
+          throw err
+        }
+        if (roadFiles.length % 2 !== 0) {
+          const err = new Error($gettext('Need the same number of road_links and road_nodes files.'))
+          err.name = 'ImportError'
+          throw err
+        }
+        for (let i = 0; i < ptFiles.length / 2; i++) {
+          this.loadNetwork(
+            serializer(files.filter(file => file.type === 'links')[i].data, 'LineString'),
+            serializer(files.filter(file => file.type === 'nodes')[i].data, 'Point'),
+            'PT',
+            zipName,
+            files.filter(file => file.type === 'links')[i].fileName,
+            files.filter(file => file.type === 'nodes')[i].fileName,
+          )
+        } for (let i = 0; i < roadFiles.length / 2; i++) {
+          this.loadNetwork(
+            serializer(files.filter(file => file.type === 'road_links')[0].data, 'LineString'),
+            serializer(files.filter(file => file.type === 'road_nodes')[0].data, 'Point'),
+            'road',
+            zipName,
+            files.filter(file => file.type === 'road_links')[0].fileName,
+            files.filter(file => file.type === 'road_nodes')[0].fileName,
           )
         }
-
+        this.$store.commit('loadLayers', {
+          files: files.filter(file => !['links', 'nodes', 'road_links', 'road_nodes'].includes(file?.type)),
+          name: zipName,
+        },
+        )
         this.$store.commit('changeLoading', false)
-      }).catch(err => {
+        this.$store.commit('changeLoading', false)
+      } catch (err) {
         this.$store.commit('changeLoading', false)
         this.$store.commit('changeAlert', err)
-      })
+      }
+    },
+
+    async loadFilesFromS3 (path) {
+      if (!this.projectIsEmpty) {
+        this.$store.commit('initNetworks')
+        this.$store.commit('unloadLayers')
+      }
+      this.$store.commit('changeLoading', true)
+      this.$router.replace({ query: null }) // remove query in url when page is load.
+      let links = {}
+      let nodes = {}
+      const scen = this.$store.getters.scenario + '/'
+      const model = this.$store.getters.model
+
+      try {
+        let filesNames = await s3.listFiles(model, scen + path.network_paths.links)
+        if (filesNames.length > 0) {
+          links = await s3.readJson(model, scen + path.network_paths.links)
+          nodes = await s3.readJson(model, scen + path.network_paths.nodes)
+          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'PT', 'DB')
+        }
+        filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
+        if (filesNames.length > 0) {
+          links = await s3.readJson(model, scen + path.network_paths.rlinks)
+          nodes = await s3.readJson(model, scen + path.network_paths.rnodes)
+          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'road', 'DB')
+        }
+        // then load results layers.
+        filesNames = await s3.listFiles(model, scen + path.output_paths)
+        filesNames = filesNames.filter(name => !name.endsWith('/'))
+        filesNames = filesNames.filter(name => !name.endsWith('.png'))
+        const files = []
+        for (const file of filesNames) {
+          const content = await s3.readJson(model, file)
+          const name = file.split('/').slice(1).join('/')
+          files.push(classFile(name, content))
+        }
+        if (filesNames.length > 0) this.$store.commit('loadLayers', { files: files, name: 'DB' })
+
+        // load rasters (static geojson layers.)
+        filesNames = await s3.listFiles(model, scen + path.raster_path)
+        filesNames = filesNames.filter(name => name.endsWith('.geojson'))
+        const rasterFiles = []
+        for (const file of filesNames) {
+          let type = await s3.readJson(model, file)
+          type = type.features[0].geometry.type
+          rasterFiles.push({ name: file, type: type })
+        }
+        this.$store.commit('setRasterFiles', rasterFiles)
+
+        this.loggedIn = true
+        this.login()
+        this.$store.commit('changeLoading', false)
+      } catch (err) {
+        this.$store.commit('changeAlert', err)
+        this.$store.commit('changeLoading', false)
+      }
+    },
+
+    async loadExample (filesToLoads) {
+      this.$store.commit('changeLoading', true)
+      const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
+      let links = {}
+      let nodes = {}
+      try {
+        if (filesToLoads.includes('PT')) {
+          links = await fetch(url + 'links_exemple.geojson').then(res => res.json())
+          if (!links) return
+          nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
+          if (!nodes) return
+          this.loadNetwork(links, nodes, 'PT', 'example')
+        }
+
+        if (filesToLoads.includes('road')) {
+          links = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
+          if (!links) return
+          nodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
+          if (!nodes) return
+          this.loadNetwork(links, nodes, 'road', 'example')
+        }
+
+        if (filesToLoads.includes('loaded')) {
+          links = await fetch(url + 'loaded_links.geojson').then(res => res.json())
+          if (!links) return
+          this.$store.commit('createLayer', { fileName: 'loaded_links', data: links, mat: {} })
+          nodes = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
+          if (!nodes) return
+          this.$store.commit('createLayer', { fileName: 'loaded_nodes', data: nodes, mat: {} })
+
+          this.$store.commit('addFile', { name: 'loaded_links', source: 'example', type: 'result' })
+          this.$store.commit('addFile', { name: 'loaded_nodes', source: 'example', type: 'result' })
+        }
+
+        if (filesToLoads.includes('zones')) {
+          links = await fetch(url + 'zones.geojson').then(res => res.json())
+          if (!links) return
+          nodes = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
+          if (!nodes) return
+          this.$store.commit('createLayer', { fileName: 'zones', data: links, mat: nodes })
+
+          this.$store.commit('addFile', { name: 'zones', source: 'example', type: 'result' })
+          this.$store.commit('addFile', { name: 'zones', source: 'matrix', type: 'result matrix' })
+        }
+        // this is zones and mat. reuse var to save memory
+
+        this.$store.commit('changeLoading', false)
+        this.loggedIn = true
+        this.login()
+      } catch {
+        this.$store.commit('changeLoading', false)
+        this.$store.commit('changeAlert', {
+          name: 'ImportError',
+          message: $gettext($gettext('An error occur fetching example on github')),
+        })
+      }
     },
 
   },
@@ -471,7 +483,6 @@ export default {
             type="file"
             style="display: none"
             accept=".zip"
-            multiple="multiple"
             @change="readZip"
           >
 
@@ -530,7 +541,6 @@ export default {
               </v-list>
             </v-menu>
           </div>
-          <div />
           <div>
             <v-btn
               :disabled="!filesAdded"
@@ -541,14 +551,62 @@ export default {
             </v-btn>
           </div>
         </v-card-text>
-        <v-card-text :style="{textAlign: 'center',color:'green'}">
-          <p
-            v-for="mess in message"
-            :key="mess"
-          >
-            {{ $gettext(mess) }}
-          </p>
-        </v-card-text>
+        <div v-if="loadedFiles.length>0">
+          <v-row>
+            <v-list-item>
+              <v-col>
+                <v-list-item-content>
+                  <v-list-item-title>{{ 'Name' }}</v-list-item-title>
+                </v-list-item-content>
+              </v-col>
+              <v-spacer />
+              <v-col>
+                <v-list-item-content>
+                  <v-list-item-title>{{ 'Type' }}</v-list-item-title>
+                </v-list-item-content>
+              </v-col>
+              <v-spacer />
+              <v-col>
+                <v-list-item-content>
+                  <v-list-item-title>{{ 'Source' }}</v-list-item-title>
+                </v-list-item-content>
+              </v-col>
+            </v-list-item>
+          </v-row>
+          <v-divider />
+          <div class="files-container">
+            <v-container
+              v-for="(file,key) in loadedFiles"
+              :key="key"
+              fluid
+              ma-0
+              pa-0
+            >
+              <v-row>
+                <v-list-item>
+                  <v-col>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ file.name }}</v-list-item-title>
+                    </v-list-item-content>
+                  </v-col>
+                  <v-spacer />
+                  <v-col>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ file.type }}</v-list-item-title>
+                    </v-list-item-content>
+                  </v-col>
+                  <v-spacer />
+                  <v-col>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ file.source }}</v-list-item-title>
+                    </v-list-item-content>
+                  </v-col>
+                </v-list-item>
+              </v-row>
+              <v-divider />
+            </v-container>
+          </div>
+        </div>
       </v-card>
     </div>
     <v-dialog
@@ -592,6 +650,13 @@ export default {
   justify-content: center;
   align-items: center;
 }
+.files-container{
+  max-height: 20rem;
+  min-height:10rem;
+  overflow-y: auto;
+  overflow-x: auto;
+
+}
 .layout-overlay {
   height: 100%;
   width: 100%;
@@ -600,10 +665,10 @@ export default {
   position: absolute;
 }
 .card {
-  width: 500px;
+  width: 30rem;
   max-height: calc(100% - 2em);
   overflow-y: auto;
-  padding: 40px;
+  padding: 20px;
 }
 .title {
   display: flex;

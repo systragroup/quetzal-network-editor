@@ -26,6 +26,12 @@ export default {
       }
     },
   },
+  methods: {
+    close () {
+      this.$store.commit('changeAlert', {})
+      this.sheet = !this.sheet
+    },
+  },
 }
 </script>
 <template>
@@ -54,7 +60,7 @@ export default {
               <v-col class="shrink">
                 <v-btn
                   icon
-                  @click="sheet = !sheet"
+                  @click="close"
                 >
                   <v-icon>
                     fas fa-times
