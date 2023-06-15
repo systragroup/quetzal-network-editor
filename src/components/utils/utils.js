@@ -6,7 +6,7 @@ function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs
   // inputs are split as pt and road folder. everythin in output is read as a static layer.
   // return {data, type, fileName}.
   // type can be links, nodes, road_links, road_nodes,
-  // layer,  params.json, json or others.
+  // result,  params, matrix or others.
 
   // inputs/
   //    pt/
@@ -41,23 +41,23 @@ function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs
     } else if (name.toLowerCase().includes(outputFolder.toLowerCase())) {
       switch (currentType) {
         case 'LineString':
-          return { data: content, type: 'layer', fileName: name }
+          return { data: content, type: 'result', fileName: name }
         case 'Point':
-          return { data: content, type: 'layer', fileName: name }
+          return { data: content, type: 'result', fileName: name }
         case 'MultiPolygon':
-          return { data: content, type: 'layer', fileName: name }
+          return { data: content, type: 'result', fileName: name }
         case 'Polygon':
-          return { data: content, type: 'layer', fileName: name }
+          return { data: content, type: 'result', fileName: name }
       }
     }
   } else if (name.endsWith('.json')) {
     if (name.slice(-11).toLowerCase() === 'params.json') {
-      return { data: content, type: 'params.json', fileName: name }
+      return { data: content, type: 'params', fileName: name } // params.json
     } else {
-      return { data: content, type: 'json', fileName: name }
+      return { data: content, type: 'matrix', fileName: name } // json mat
     }
   } else {
-    return { data: content, type: 'others', fileName: name }
+    return { data: content, type: 'other', fileName: name }
   }
 }
 
@@ -67,7 +67,6 @@ async function extractZip (file) {
   let filesNames = Object.keys(zip.files)
   filesNames = filesNames.filter(name => !name.match(/^__MACOSX\//))
   filesNames = filesNames.filter(name => !name.endsWith('/'))
-  console.log(filesNames)
   // process ZIP file content here
   const result = { zipName: file.name, files: [] }
   for (let i = 0; i < filesNames.length; i++) {
