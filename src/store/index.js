@@ -136,6 +136,8 @@ export const store = new Vuex.Store({
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
       const inputs = zip.folder('inputs') // create a folder for the files.
+      const inputsPT = zip.folder('inputs/pt') // create a folder for the files.
+      const inputsRoad = zip.folder('inputs/road') // create a folder for the files.
       const outputs = zip.folder('outputs') // create a folder for the files.
       let links = ''
       let nodes = ''
@@ -170,21 +172,21 @@ export const store = new Vuex.Store({
         // eslint-disable-next-line no-var
         var blob = new Blob([links], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('links.geojson', blob)
+        inputsPT.file('links.geojson', blob)
         // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([nodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('nodes.geojson', blob)
+        inputsPT.file('nodes.geojson', blob)
       }
       if (JSON.parse(rlinks).features.length > 0) {
       // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([rlinks], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('road_links.geojson', blob)
+        inputsRoad.file('road_links.geojson', blob)
         // eslint-disable-next-line no-var, no-redeclare
         var blob = new Blob([rnodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('road_nodes.geojson', blob)
+        inputsRoad.file('road_nodes.geojson', blob)
       }
       if (payload === 'all') {
         if (this.getters['run/parameters'].length > 0) {
