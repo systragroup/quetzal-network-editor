@@ -462,11 +462,11 @@ export default {
               </template>
               <span>{{ $gettext("Load zip files containing") }}</span>
               <br>
-              <span>{{ $gettext("nodes.geojson and links.geojson or") }}</span>
+              <span>{{ $gettext("inputs/pt/ nodes.geojson and links.geojson") }}</span>
               <br>
-              <span>{{ $gettext("road_nodes.geojson and road_links.geojson") }}</span>
+              <span>{{ $gettext("inputs/road/ road_nodes.geojson and road_links.geojson") }}</span>
               <br>
-              <span>{{ $gettext("or both the PT and road geojsons") }}</span>
+              <span>{{ $gettext("outputs/ anything") }}</span>
             </v-tooltip>
           </div>
           <input

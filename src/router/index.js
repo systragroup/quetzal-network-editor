@@ -1,13 +1,14 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Import from '@page/Import.vue'
-import ResultPicture from '@page/ResultPicture.vue'
+
 import auth from '../auth'
 import Home from '@page/Home.vue'
-import Run from '@page/Run.vue'
-import ResultMap from '@page/ResultMap.vue'
-import Microservices from '@page/Microservices.vue'
 import { store } from '../store/index.js'
+const Microservices = () => import('@page/Microservices.vue')
+const ResultMap = () => import('@page/ResultMap.vue')
+const Run = () => import('@page/Run.vue')
+const ResultPicture = () => import('@page/ResultPicture.vue')
 
 Vue.use(Router)
 
