@@ -275,7 +275,7 @@ export default {
 .map {
   max-width: 100rem;
   width:50rem;
-  height: 40rem;
+  height: 35rem;
 }
 .v-card__text {
     padding: 0px 24px 0px;

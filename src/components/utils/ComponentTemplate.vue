@@ -1,10 +1,10 @@
 <script>
-import { MglPopup } from 'vue-mapbox'
+// import { MglPopup } from 'vue-mapbox'
 
 export default {
   name: 'EmptyComponent',
   components: {
-    MglPopup,
+
   },
   props: {
     value: {

@@ -1,6 +1,6 @@
 <script>
 
-import s3 from '../AWSClient'
+import s3 from '@src/AWSClient'
 const $gettext = s => s
 
 export default {
