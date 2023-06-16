@@ -80,6 +80,7 @@ export default {
     importStatus () { return this.$store.getters['runOSM/status'] },
     running () { return this.$store.getters['runOSM/running'] },
     error () { return this.$store.getters['runOSM/error'] },
+    errorMessage () { return this.$store.getters['runOSM/errorMessage'] },
   },
   watch: {
     selectedHighway (val) { this.$store.commit('runOSM/changeHighway', val) },
@@ -149,6 +150,12 @@ export default {
         >
           {{ $gettext("There as been an error while importing OSM network. \
             Please try again. If the problem persist, contact us.") }}
+          <p
+            v-for="key in Object.keys(errorMessage)"
+            :key="key"
+          >
+            <b>{{ key }}: </b>{{ errorMessage[key] }}
+          </p>
         </v-alert>
       </v-card-subtitle>
       <v-card-actions>
