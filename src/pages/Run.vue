@@ -1,6 +1,6 @@
 <script>
 
-import ParamForm from '../components/ParamForm.vue'
+import ParamForm from '@comp/run/ParamForm.vue'
 
 export default {
   name: 'Run',

@@ -7,8 +7,8 @@ import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
-import StaticLayer from './utils/StaticLayer.vue'
-import LayerSelector from './utils/LayerSelector.vue'
+import StaticLayer from '../utils/StaticLayer.vue'
+import LayerSelector from '../utils/LayerSelector.vue'
 
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
