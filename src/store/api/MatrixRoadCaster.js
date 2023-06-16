@@ -15,6 +15,7 @@ export default {
     running: false,
     executionArn: '',
     error: false,
+    errorMessage: '',
     parameters: {
       callID: 'test',
       num_zones: 100,
@@ -36,9 +37,10 @@ export default {
     },
     setCallID (state) { state.callID = uuid() },
     setParameters (state, payload) { state.parameters = payload },
-    terminateExecution (state) {
+    terminateExecution (state, payload) {
       state.running = false
       state.error = true
+      state.errorMessage = payload
       state.executionArn = ''
     },
     changeRunning (state, payload) {
@@ -109,7 +111,7 @@ export default {
               commit('succeedExecution')
               clearInterval(intervalId)
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
-              commit('terminateExecution')
+              commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
             }
           }).catch(err => { commit('changeAlert', err, { root: true }) })
@@ -134,6 +136,7 @@ export default {
     status: (state) => state.status,
     executionArn: (state) => state.executionArn,
     error: (state) => state.error,
+    errorMessage: (state) => state.errorMessage,
     callID: (state) => state.callID,
     bucket: (state) => state.bucket,
     timer: (state) => state.timer,

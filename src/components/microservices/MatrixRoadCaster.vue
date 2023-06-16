@@ -114,6 +114,7 @@ export default {
     importStatus () { return this.$store.getters['runMRC/status'] },
     running () { return this.$store.getters['runMRC/running'] },
     error () { return this.$store.getters['runMRC/error'] },
+    errorMessage () { return this.$store.getters['runMRC/errorMessage'] },
 
   },
   watch: {
@@ -304,6 +305,12 @@ export default {
         >
           {{ $gettext("Service ended with an execution error or have been aborted. \
             Please retry. If the problem persist, contact us.") }}
+          <p
+            v-for="key in Object.keys(errorMessage)"
+            :key="key"
+          >
+            <b>{{ key }}: </b>{{ errorMessage[key] }}
+          </p>
         </v-alert>
         <div
           v-for="(img,key) in imgs"
