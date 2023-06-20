@@ -43,6 +43,7 @@ export const store = new Vuex.Store({
     mapZoom: 11,
     availableLayers: ['links', 'rlinks', 'nodes', 'rnodes'],
     loadedFiles: [],
+    otherFiles: [],
 
   },
   mutations: {
@@ -79,6 +80,12 @@ export const store = new Vuex.Store({
     addFile (state, payload) { state.loadedFiles.push(payload) },
     removeResultsFiles (state) {
       state.loadedFiles = state.loadedFiles.filter(file => !['result', 'result matrix'].includes(file.type))
+    },
+    loadOtherFiles (state, payload) {
+      payload.files.forEach(file => {
+        state.otherFiles.push(file)
+        this.commit('addFile', { name: file.fileName, source: payload.source, type: 'other' })
+      })
     },
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
@@ -256,6 +263,7 @@ export const store = new Vuex.Store({
     roadsPopupContent: (state) => state.roadsPopupContent,
     outputName: (state) => state.outputName,
     loadedFiles: (state) => state.loadedFiles,
+    otherFiles: (state) => state.otherFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {
       return (state.links.links.features.length === 0 &&

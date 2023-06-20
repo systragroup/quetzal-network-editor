@@ -74,7 +74,7 @@ async function extractZip (file) {
     let content = {}
     try {
       content = JSON.parse(str)
-    } catch (err) { store.commit('changeAlert', { name: 'ImportError', message: 'png not imported' }) } // for PNG, no content
+    } catch (err) { content = str } // for PNG, no content
     // import with new fileStructure (inputs, outputs folder in zip)
     result.files.push(classFile(filesNames[i], content))
   }
