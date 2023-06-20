@@ -82,6 +82,11 @@ export default {
         files.push(classFile(name, content))
       }
       if (files.length > 0) {
+        // remove all results from the loadedFiles List
+        context.commit('removeResultsFiles', {}, { root: true })
+        // unload all results Layers
+        context.commit('unloadLayers', {}, { root: true })
+        // load new Results
         context.commit('loadLayers', { files: files, name: 'db' }, { root: true })
       }
     },

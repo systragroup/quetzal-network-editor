@@ -77,6 +77,9 @@ export const store = new Vuex.Store({
       state.anchorMode = !state.anchorMode
     },
     addFile (state, payload) { state.loadedFiles.push(payload) },
+    removeResultsFiles (state) {
+      state.loadedFiles = state.loadedFiles.filter(file => !['result', 'result matrix'].includes(file.type))
+    },
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
       state.rlinks.roadSpeed = Number(payload.roadSpeed)
@@ -94,7 +97,7 @@ export const store = new Vuex.Store({
           const matDataExist = Object.keys(matData).length > 0
 
           // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
-          file.data = serializer(file.data, null, !matDataExist)
+          file.data = serializer(file.data, file.fileName, null, !matDataExist)
 
           this.commit('addFile', { name: file.fileName, source: payload.name, type: 'result' })
           if (matDataExist) {
