@@ -219,8 +219,6 @@ export default {
         const zipName = zipFiles.zipName
         const ptFiles = files.filter(file => ['links', 'nodes'].includes(file?.type))
         const roadFiles = files.filter(file => ['road_links', 'road_nodes'].includes(file?.type))
-        console.log(files)
-        console.log(ptFiles)
         if (ptFiles.length % 2 !== 0) {
           console.log(ptFiles.length)
           const err = new Error($gettext('Need the same number of links and nodes files.'))
@@ -260,6 +258,9 @@ export default {
           name: zipName,
         },
         )
+
+        this.$store.commit('loadOtherFiles', { files: files.filter(file => file?.type === 'other'), source: zipName })
+
         this.$store.commit('changeLoading', false)
         this.$store.commit('changeLoading', false)
       } catch (err) {
@@ -287,7 +288,7 @@ export default {
           this.loadNetwork(
             serializer(links, path.network_paths.links, 'LineString'),
             serializer(nodes, path.network_paths.nodes, 'Point'),
-            'PT', 'DB')
+            'PT', 'db')
         }
         filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
         console.log(filesNames)
@@ -297,7 +298,7 @@ export default {
           this.loadNetwork(
             serializer(links, path.network_paths.rlinks, 'LineString'),
             serializer(nodes, path.network_paths.rnodes, 'Point'),
-            'road', 'DB')
+            'road', 'db')
         }
         // then load results layers.
         filesNames = await s3.listFiles(model, scen + path.output_paths)
@@ -309,7 +310,7 @@ export default {
           const name = file.split('/').slice(1).join('/')
           files.push(classFile(name, content))
         }
-        if (filesNames.length > 0) this.$store.commit('loadLayers', { files: files, name: 'DB' })
+        if (filesNames.length > 0) this.$store.commit('loadLayers', { files: files, name: 'db' })
 
         // load rasters (static geojson layers.)
         filesNames = await s3.listFiles(model, scen + path.raster_path)
