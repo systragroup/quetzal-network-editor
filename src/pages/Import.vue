@@ -158,7 +158,7 @@ export default {
         this.$store.commit('changeAlert', { name: 'ImportError', message: 'File must be a geojson' })
         return
       }
-
+      const name = files[0].name
       const fileReader = new FileReader()
       fileReader.readAsText(files[0])
       fileReader.onload = evt => {
@@ -166,19 +166,19 @@ export default {
           const data = JSON.parse(evt.target.result)
           switch (this.choice) {
             case 'PT links':
-              this.loadedLinks = serializer(data, 'LineString')
+              this.loadedLinks = serializer(data, name, 'LineString')
               this.loadedType = 'PT'
               break
             case 'PT nodes':
-              this.loadedNodes = serializer(data, 'Point')
+              this.loadedNodes = serializer(data, name, 'Point')
               this.loadedType = 'PT'
               break
             case 'road links':
-              this.loadedLinks = serializer(data, 'LineString')
+              this.loadedLinks = serializer(data, name, 'LineString')
               this.loadedType = 'road'
               break
             case 'road nodes':
-              this.loadedNodes = serializer(data, 'Point')
+              this.loadedNodes = serializer(data, name, 'Point')
               this.loadedType = 'road'
               break
             default:
@@ -219,6 +219,7 @@ export default {
         const zipName = zipFiles.zipName
         const ptFiles = files.filter(file => ['links', 'nodes'].includes(file?.type))
         const roadFiles = files.filter(file => ['road_links', 'road_nodes'].includes(file?.type))
+        console.log(files)
         console.log(ptFiles)
         if (ptFiles.length % 2 !== 0) {
           console.log(ptFiles.length)
@@ -232,22 +233,26 @@ export default {
           throw err
         }
         for (let i = 0; i < ptFiles.length / 2; i++) {
+          const links = files.filter(file => file.type === 'links')[i]
+          const nodes = files.filter(file => file.type === 'nodes')[i]
           this.loadNetwork(
-            serializer(files.filter(file => file.type === 'links')[i].data, 'LineString'),
-            serializer(files.filter(file => file.type === 'nodes')[i].data, 'Point'),
+            serializer(links.data, links.fileName, 'LineString'),
+            serializer(nodes.data, nodes.filesNames, 'Point'),
             'PT',
             zipName,
-            files.filter(file => file.type === 'links')[i].fileName,
-            files.filter(file => file.type === 'nodes')[i].fileName,
+            links.fileName,
+            nodes.fileName,
           )
         } for (let i = 0; i < roadFiles.length / 2; i++) {
+          const links = files.filter(file => file.type === 'road_links')[0]
+          const nodes = files.filter(file => file.type === 'road_nodes')[0]
           this.loadNetwork(
-            serializer(files.filter(file => file.type === 'road_links')[0].data, 'LineString'),
-            serializer(files.filter(file => file.type === 'road_nodes')[0].data, 'Point'),
+            serializer(links.data, links.fileName, 'LineString'),
+            serializer(nodes.data, nodes.fileName, 'Point'),
             'road',
             zipName,
-            files.filter(file => file.type === 'road_links')[0].fileName,
-            files.filter(file => file.type === 'road_nodes')[0].fileName,
+            links.fileName,
+            nodes.fileName,
           )
         }
         this.$store.commit('loadLayers', {
@@ -274,19 +279,25 @@ export default {
       let nodes = {}
       const scen = this.$store.getters.scenario + '/'
       const model = this.$store.getters.model
-
       try {
         let filesNames = await s3.listFiles(model, scen + path.network_paths.links)
         if (filesNames.length > 0) {
           links = await s3.readJson(model, scen + path.network_paths.links)
           nodes = await s3.readJson(model, scen + path.network_paths.nodes)
-          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'PT', 'DB')
+          this.loadNetwork(
+            serializer(links, path.network_paths.links, 'LineString'),
+            serializer(nodes, path.network_paths.nodes, 'Point'),
+            'PT', 'DB')
         }
         filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
+        console.log(filesNames)
         if (filesNames.length > 0) {
           links = await s3.readJson(model, scen + path.network_paths.rlinks)
           nodes = await s3.readJson(model, scen + path.network_paths.rnodes)
-          this.loadNetwork(serializer(links, 'LineString'), serializer(nodes, 'Point'), 'road', 'DB')
+          this.loadNetwork(
+            serializer(links, path.network_paths.rlinks, 'LineString'),
+            serializer(nodes, path.network_paths.rnodes, 'Point'),
+            'road', 'DB')
         }
         // then load results layers.
         filesNames = await s3.listFiles(model, scen + path.output_paths)
