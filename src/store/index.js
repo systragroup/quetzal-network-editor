@@ -134,6 +134,7 @@ export const store = new Vuex.Store({
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
+      state.otherFiles = []
       state.loadedFiles = []
     },
     unloadLayers (state) {
@@ -145,10 +146,6 @@ export const store = new Vuex.Store({
 
     exportFiles (state, payload = 'all') {
       const zip = new JSZip()
-      const inputs = zip.folder('inputs') // create a folder for the files.
-      const inputsPT = zip.folder('inputs/pt') // create a folder for the files.
-      const inputsRoad = zip.folder('inputs/road') // create a folder for the files.
-      const outputs = zip.folder('outputs') // create a folder for the files.
       let links = ''
       let nodes = ''
       let rlinks = ''
@@ -179,42 +176,45 @@ export const store = new Vuex.Store({
       }
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
-        // eslint-disable-next-line no-var
-        var blob = new Blob([links], { type: 'application/json' })
+        let blob = new Blob([links], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputsPT.file('links.geojson', blob)
-        // eslint-disable-next-line no-var, no-redeclare
-        var blob = new Blob([nodes], { type: 'application/json' })
+        zip.file('inputs/pt/links.geojson', blob)
+        blob = new Blob([nodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputsPT.file('nodes.geojson', blob)
+        zip.file('inputs/pt/nodes.geojson', blob)
       }
       if (JSON.parse(rlinks).features.length > 0) {
-      // eslint-disable-next-line no-var, no-redeclare
-        var blob = new Blob([rlinks], { type: 'application/json' })
+        let blob = new Blob([rlinks], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputsRoad.file('road_links.geojson', blob)
-        // eslint-disable-next-line no-var, no-redeclare
-        var blob = new Blob([rnodes], { type: 'application/json' })
+        zip.file('inputs/road/road_links.geojson', blob)
+        blob = new Blob([rnodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputsRoad.file('road_nodes.geojson', blob)
+        zip.file('inputs/road/road_nodes.geojson', blob)
       }
       if (payload === 'all') {
         if (this.getters['run/parameters'].length > 0) {
           const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
-          inputs.file('params.json', blob)
+          zip.file('inputs/params.json', blob)
         }
         const staticLayers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         staticLayers.forEach(layer => {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
-          const name = layer.split('/').slice(-1)[0] + '.geojson'
-          // const name = layer.replace('/', '_') + '.geojson'
-          outputs.file(name, blob)
+          console.log(layer)
+          const name = layer + '.geojson'
+          // zip name = layer.replace('/', '_') + '.geojson'
+          zip.file(name, blob)
           if (this.getters[`${layer}/mat`]) {
             const blob = new Blob([JSON.stringify(this.getters[`${layer}/mat`])], { type: 'application/json' })
-            const name = layer.split('/').slice(-1)[0] + '.json'
-            outputs.file(name, blob)
+            const name = layer + '.json'
+            zip.file(name, blob)
           }
+        })
+
+        state.otherFiles.forEach(file => {
+          console.log(file)
+          const blob = new Blob([file.data]) // { type: 'text/csv' }
+          zip.file(file.fileName, blob)
         })
       }
 
