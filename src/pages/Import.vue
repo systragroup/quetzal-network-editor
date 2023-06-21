@@ -253,6 +253,15 @@ export default {
             nodes.fileName,
           )
         }
+        // load params
+        console.log(files)
+        const params = files.filter(file => file.type === 'params')
+        if (params.length > 0) {
+          console.log(params)
+          this.$store.commit('run/getLocalParameters', params[0].data)
+          this.$store.commit('addFile', { name: params[0].fileName, source: zipName, type: 'params' })
+        }
+
         this.$store.commit('loadLayers', {
           files: files.filter(file => !['links', 'nodes', 'road_links', 'road_nodes'].includes(file?.type)),
           name: zipName,
