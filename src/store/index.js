@@ -77,7 +77,10 @@ export const store = new Vuex.Store({
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
     },
-    addFile (state, payload) { state.loadedFiles.push(payload) },
+    addFile (state, payload) {
+      // payload = { name: , source: source, type: }
+      state.loadedFiles.push(payload)
+    },
     removeResultsFiles (state) {
       state.loadedFiles = state.loadedFiles.filter(file => !['result', 'result matrix'].includes(file.type))
     },
