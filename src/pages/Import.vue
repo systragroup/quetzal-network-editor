@@ -3,11 +3,16 @@
 import s3 from '../AWSClient'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import { serializer } from '../components/utils/serializer.js'
+import FilesList from '@comp/import/FilesList.vue'
 
 const $gettext = s => s
 
 export default {
   name: 'Import',
+  components: {
+    FilesList,
+
+  },
 
   data () {
     return {
@@ -26,7 +31,6 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
     localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
-    loadedFiles () { return this.$store.getters.loadedFiles },
     s3Path () { return this.$route.query.s3Path },
     localFilesAreLoaded () {
       return (this.localLinksLoaded && this.localNodesLoaded)
@@ -404,6 +408,22 @@ export default {
 </script>
 <template>
   <section>
+    <input
+      id="zip-input"
+      ref="zipInput"
+      type="file"
+      style="display: none"
+      accept=".zip"
+      @change="readZip"
+    >
+    <input
+      id="file-input"
+      ref="fileInput"
+      type="file"
+      style="display: none"
+      accept=".geojson"
+      @change="readFile"
+    >
     <div class="layout">
       <div
         class="layout-overlay"
@@ -413,221 +433,176 @@ export default {
         class="card"
         :class="{ 'animate-login': loggedIn }"
       >
-        <v-card-title class="title">
-          Quetzal Network Editor
-        </v-card-title>
-        <v-card-text :style="{textAlign: 'center'}">
-          <div class="subtitle">
-            {{ $gettext("Load Files") }}
-          </div>
-          <div>
-            {{ $gettext("Load multiple Transit or road network. Each network will be added to the current project") }}
-          </div>
-          <div>
-            {{ $gettext("Links and Nodes files must be geojson in EPSG:4326.") }}
-          </div>
-          <div class=" text-xs-center">
-            <v-menu
-              offset-y
-              close-delay="100"
-              transition="slide-y-transition"
-            >
-              <template v-slot:activator="{ on: on,attrs:attrs }">
-                <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  <v-icon
-                    small
-                    left
+        <v-row>
+          <v-col>
+            <v-card-text :style="{textAlign: 'center'}">
+              <div class="title">
+                {{ $gettext("Select a Project") }}
+              </div>
+              <div>
+                {{ $gettext("Log in and select an existing project or create a new project from project navigation menu") }}
+              </div>
+              <div class="subtitle">
+                {{ $gettext("OR") }}
+              </div>
+              <div class="title">
+                {{ $gettext("Continue Without Project") }}
+              </div>
+              <div class="subtitle">
+                {{ $gettext("OR") }}
+              </div>
+              <div class="title">
+                {{ $gettext("Load Zip file") }}
+              </div>
+              <v-tooltip
+                bottom
+                open-delay="500"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    v-bind="attrs"
+                    :color="'normal'"
+                    v-on="on"
+                    @click="buttonHandle('zip')"
                   >
-                    fa-solid fa-upload
-                  </v-icon>
-                  Geojson
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item
-                  v-for="(el,key) in geojsonChoices"
-                  :key="key"
-                  link
-                  :disabled="!filteredChoices.includes(el)"
-                  @click="()=>buttonHandle(el)"
-                >
-                  <v-list-item-title>
-                    {{ $gettext(el) }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+                    <v-icon
+                      small
+                      left
+                    >
+                      fas fa-file-archive
+                    </v-icon>
+                    {{ $gettext('Load Zip File') }}
+                  </v-btn>
+                </template>
+                <span>{{ $gettext("Load zip files containing") }}</span>
+                <br>
+                <span>{{ $gettext("inputs/pt/ nodes.geojson and links.geojson") }}</span>
+                <br>
+                <span>{{ $gettext("inputs/road/ road_nodes.geojson and road_links.geojson") }}</span>
+                <br>
+                <span>{{ $gettext("outputs/ anything") }}</span>
+              </v-tooltip>
 
-            <v-tooltip
-              bottom
-              open-delay="500"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  v-bind="attrs"
-                  :color="'normal'"
-                  v-on="on"
-                  @click="buttonHandle('zip')"
-                >
-                  <v-icon
-                    small
-                    left
+              <div class="subtitle">
+                {{ $gettext("OR") }}
+              </div>
+              <div class="title">
+                {{ $gettext("Load Example") }}
+              </div>
+
+              <v-menu
+
+                offset-y
+                nudge-left="70"
+                close-delay="100"
+                transition="slide-y-transition"
+              >
+                <template v-slot:activator="{ on: on,attrs:attrs }">
+                  <v-btn
+                    :style="{'margin-bottom':'2rem'}"
+                    v-bind="attrs"
+                    v-on="on"
                   >
-                    fas fa-file-archive
-                  </v-icon>
-                  {{ 'zip' }}
-                </v-btn>
-              </template>
-              <span>{{ $gettext("Load zip files containing") }}</span>
-              <br>
-              <span>{{ $gettext("inputs/pt/ nodes.geojson and links.geojson") }}</span>
-              <br>
-              <span>{{ $gettext("inputs/road/ road_nodes.geojson and road_links.geojson") }}</span>
-              <br>
-              <span>{{ $gettext("outputs/ anything") }}</span>
-            </v-tooltip>
-          </div>
-          <input
-            id="file-input"
-            ref="fileInput"
-            type="file"
-            style="display: none"
-            accept=".geojson"
-            @change="readFile"
-          >
-          <input
-            id="zip-input"
-            ref="zipInput"
-            type="file"
-            style="display: none"
-            accept=".zip"
-            @change="readZip"
-          >
-
-          <div>
-            <v-tooltip
-              bottom
-              open-delay="500"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  small
-                  v-bind="attrs"
-                  @click="buttonHandle('newProject')"
-                  v-on="on"
-                >
-                  {{ $gettext('New Project') }}
-                </v-btn>
-              </template>
-              <span>{{ $gettext("Delete all network and start from scratch") }}</span>
-            </v-tooltip>
-          </div>
-
-          <div>
-            <v-menu
-              offset-y
-              nudge-left="70"
-              close-delay="100"
-              transition="slide-y-transition"
-            >
-              <template v-slot:activator="{ on: on,attrs:attrs }">
-                <v-btn
-                  small
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  {{ $gettext('example') }}
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item
-                  link
-                  @click="()=>buttonHandle('example1')"
-                >
-                  <v-list-item-title>
-                    {{ $gettext("PT & Road") }}
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  link
-                  @click="()=>buttonHandle('example2')"
-                >
-                  <v-list-item-title>
-                    {{ $gettext("PT, Road, Zones, OD & Results") }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-          <div>
-            <v-btn
-              :disabled="!filesAdded"
-              color="primary"
-              @click="login()"
-            >
-              {{ $gettext('Go!') }}
-            </v-btn>
-          </div>
-        </v-card-text>
-        <div v-if="loadedFiles.length>0">
-          <v-row>
-            <v-list-item>
-              <v-col>
-                <v-list-item-content>
-                  <v-list-item-title>{{ 'Name' }}</v-list-item-title>
-                </v-list-item-content>
-              </v-col>
-              <v-spacer />
-              <v-col>
-                <v-list-item-content>
-                  <v-list-item-title>{{ 'Type' }}</v-list-item-title>
-                </v-list-item-content>
-              </v-col>
-              <v-spacer />
-              <v-col>
-                <v-list-item-content>
-                  <v-list-item-title>{{ 'Source' }}</v-list-item-title>
-                </v-list-item-content>
-              </v-col>
-            </v-list-item>
-          </v-row>
-          <v-divider />
-          <div class="files-container">
-            <v-container
-              v-for="(file,key) in loadedFiles"
-              :key="key"
-              fluid
-              ma-0
-              pa-0
-            >
-              <v-row>
-                <v-list-item>
-                  <v-col>
-                    <v-list-item-content>
-                      <v-list-item-title>{{ file.name }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-col>
-                  <v-spacer />
-                  <v-col>
-                    <v-list-item-content>
-                      <v-list-item-title>{{ file.type }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-col>
-                  <v-spacer />
-                  <v-col>
-                    <v-list-item-content>
-                      <v-list-item-title>{{ file.source }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-col>
-                </v-list-item>
-              </v-row>
+                    {{ $gettext('Load Example') }}
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item
+                    link
+                    @click="()=>buttonHandle('example1')"
+                  >
+                    <v-list-item-title>
+                      {{ $gettext("PT & Road") }}
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item
+                    link
+                    @click="()=>buttonHandle('example2')"
+                  >
+                    <v-list-item-title>
+                      {{ $gettext("PT, Road, Zones, OD & Results") }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
               <v-divider />
-            </v-container>
-          </div>
-        </div>
+
+              <div>
+                <v-tooltip
+                  bottom
+                  open-delay="500"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      v-bind="attrs"
+                      @click="buttonHandle('newProject')"
+                      v-on="on"
+                    >
+                      {{ $gettext('Delete All') }}
+                    </v-btn>
+                  </template>
+                  <span>{{ $gettext("Delete all network and start from scratch") }}</span>
+                </v-tooltip>
+                <v-btn
+                  :disabled="!filesAdded"
+                  color="primary"
+                  @click="login()"
+                >
+                  {{ $gettext('Go!') }}
+                </v-btn>
+              </div>
+            </v-card-text>
+          </v-col>
+          <v-divider vertical />
+          <v-col>
+            <div>
+              <v-row>
+                <div class="subtitle">
+                  {{ $gettext('PT Network') }}
+                </div>
+                <div class=" text-xs-center">
+                  <v-menu
+                    offset-y
+                    close-delay="100"
+                    transition="slide-y-transition"
+                  >
+                    <template v-slot:activator="{ on: on,attrs:attrs }">
+                      <v-btn
+                        :style="{'margin-bottom':'2rem'}"
+                        v-bind="attrs"
+                        v-on="on"
+                      >
+                        <v-icon
+                          small
+                          left
+                        >
+                          fa-solid fa-upload
+                        </v-icon>
+                        Geojson
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="(el,key) in geojsonChoices"
+                        :key="key"
+                        link
+                        :disabled="!filteredChoices.includes(el)"
+                        @click="()=>buttonHandle(el)"
+                      >
+                        <v-list-item-title>
+                          {{ $gettext(el) }}
+                        </v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </div>
+              </v-row>
+
+              <v-divider />
+              <FilesList />
+            </div>
+          </v-col>
+        </v-row>
       </v-card>
     </div>
     <v-dialog
@@ -671,13 +646,7 @@ export default {
   justify-content: center;
   align-items: center;
 }
-.files-container{
-  max-height: 20rem;
-  min-height:10rem;
-  overflow-y: auto;
-  overflow-x: auto;
 
-}
 .layout-overlay {
   height: 100%;
   width: 100%;
@@ -686,29 +655,31 @@ export default {
   position: absolute;
 }
 .card {
-  width: 30rem;
+
   max-height: calc(100% - 2em);
   overflow-y: auto;
   padding: 20px;
+}
+.col{
+  margin:1em;
 }
 .title {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 3.5em;
+  font-size: 2em !important;
   color: var(--v-primary-base);
-
   font-weight: bold;
+  margin-top:30px;
 }
 .subtitle {
-  font-size: 2em;
-  color: var(--v-secondarydark-base) !important;
+  font-size: 1.5em;
   font-weight: bold;
-  margin: 40px;
+  margin: 20px;
 }
 .card button {
-  margin-top: 40px;
+  margin-top: 0.5rem;
 }
 .animate-login {
   transform: translateY(-185%);
