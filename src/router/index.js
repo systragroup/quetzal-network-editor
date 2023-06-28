@@ -17,7 +17,7 @@ const $gettext = s => s
 const router = new Router({
   linkExactActiveClass: 'active',
   mode: 'history',
-  base: '/quetzal-network-editor-dev/',
+  base: '/quetzal-network-editor/',
   routes: [
     {
       path: '/',
