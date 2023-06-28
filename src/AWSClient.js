@@ -1,5 +1,8 @@
 import { store } from '@src/store/index.js'
 import AWS from 'aws-sdk'
+import JSZip from 'jszip'
+import saveAs from 'file-saver'
+
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
 const REGION = process.env.VUE_APP_COGNITO_REGION
@@ -19,6 +22,24 @@ async function readJson (bucket, key) {
   const fileContent = JSON.parse(response.Body.toString('utf-8').trim()) // can also do 'base64' here if desired
   return fileContent
 }
+async function downloadFolder (bucket, prefix) {
+  // zip everything in a folder. keep filename. Folder structure will not work.
+  const zip = new JSZip()
+  const params = { Bucket: bucket, Prefix: prefix }
+  const response = await s3Client.listObjectsV2(params).promise()
+  if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
+  for (const file of response.Contents) {
+    const fileName = file.Key.split('/').slice(-1)[0]
+    const params = { Bucket: bucket, Key: file.Key, ResponseCacheControl: 'no-cache' }
+    const response = await s3Client.getObject(params).promise()
+    zip.file(fileName, response.Body)
+  }
+
+  zip.generateAsync({ type: 'blob' }).then(function (content) {
+    saveAs(content, 'example.zip')
+  })
+}
+
 async function getBucketList () {
   // from the cognito group name. get the list of available buckets on quetzal-config.
   const bucketList = await this.readJson('quetzal-config', 'cognito_group_access.json')
@@ -128,7 +149,7 @@ async function getScenario (bucket) {
     try {
       const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
       userEmail = resp.Metadata.user_email
-    } catch (err) { console.error(err) }
+    } catch (err) { store.commit('changeAlert', err) }
     scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail })
   }
   return scenList
@@ -157,5 +178,6 @@ export default {
   createFolder,
   putObject,
   getImagesURL,
+  downloadFolder,
 
 }

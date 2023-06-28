@@ -70,7 +70,7 @@ export default {
       })
     },
     onMapLoaded (event) {
-      if (this.map) this.map.remove()
+      if (this.map) this.mapIsLoaded = false
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if (this.layerType === 'zones') {
@@ -83,7 +83,7 @@ export default {
               bounds.extend([link.geometry.coordinates[0][0][0],
                 link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
             }
-          } catch (err) { console.log(err) }
+          } catch (err) { this.$store.commit('changeAlert', err) }
         })
       } else {
         this.links.features.forEach(link => {

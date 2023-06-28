@@ -2,13 +2,11 @@
 <script>
 import s3 from '../AWSClient'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
-import OSMImporter from '../components/utils/OSMImporter.vue'
 
 const $gettext = s => s
 
 export default {
   name: 'Import',
-  components: { OSMImporter },
 
   data () {
     return {
@@ -114,7 +112,7 @@ export default {
         this.login()
         this.$store.commit('changeLoading', false)
       } catch (err) {
-        console.error(err)
+        this.$store.commit('changeAlert', err)
         this.$store.commit('changeLoading', false)
       }
     },
@@ -428,7 +426,7 @@ export default {
         this.$store.commit('changeLoading', false)
       }).catch(err => {
         this.$store.commit('changeLoading', false)
-        alert(err)
+        this.$store.commit('changeAlert', err)
       })
     },
 
@@ -586,9 +584,7 @@ export default {
               </v-list>
             </v-menu>
           </div>
-          <div>
-            <OSMImporter />
-          </div>
+          <div />
           <div>
             <v-btn
               :disabled="!filesAdded"

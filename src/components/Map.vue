@@ -180,7 +180,7 @@ export default {
       })
     },
     onMapLoaded (event) {
-      if (this.map) this.map.remove(); this.mapIsLoaded = false
+      if (this.map) this.mapIsLoaded = false
       const bounds = new Mapbox.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if (this.$store.getters.links.features.length > 0) {

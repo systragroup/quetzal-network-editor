@@ -29,7 +29,7 @@ export default {
         }).catch(
         err => {
           this.$store.commit('run/terminateExecution')
-          console.error(err)
+          this.$store.commit('changeAlert', err)
           // alert('error saving scenario')
         })
     },

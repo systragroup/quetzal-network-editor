@@ -4,7 +4,9 @@ import linksModule from './links.js'
 import rlinksModule from './rlinks.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
-import runModule from './run.js'
+import runModule from './api/run.js'
+import MatrixRoadCasterModule from './api/MatrixRoadCaster.js'
+import OSMImporterModule from './api/OSMImporter.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -21,15 +23,18 @@ export const store = new Vuex.Store({
     rlinks: rlinksModule,
     results: resultsModule,
     run: runModule,
+    runMRC: MatrixRoadCasterModule,
+    runOSM: OSMImporterModule,
   },
 
   state: {
     notification: {},
+    alert: {},
     darkMode: false,
     loading: false,
-    anchorMode: false,
     showLeftPanel: true,
     windowHeight: 0,
+    anchorMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
     outputName: 'output',
@@ -41,6 +46,9 @@ export const store = new Vuex.Store({
   mutations: {
     changeNotification (state, payload) {
       state.notification = payload
+    },
+    changeAlert (state, payload) {
+      state.alert = payload
     },
     changeDarkMode (state, payload) {
       state.darkMode = payload
@@ -93,7 +101,7 @@ export const store = new Vuex.Store({
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
+        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
     },
@@ -157,7 +165,7 @@ export const store = new Vuex.Store({
           inputs.file('params.json', blob)
         }
         const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'results', 'run', 'user'].includes(x))
+          x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         staticLayers.forEach(layer => {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer.split('/').slice(-1)[0] + '.geojson'
@@ -205,6 +213,7 @@ export const store = new Vuex.Store({
   },
   getters: {
     notification: (state) => state.notification,
+    alert: (state) => state.alert,
     loading: (state) => state.loading,
     mapCenter: (state) => state.mapCenter,
     mapZoom: (state) => state.mapZoom,
