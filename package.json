@@ -9,7 +9,7 @@
     "clean": "rm -rf dist && rm -f src/config.js",
     "setup": "sh build/setup.sh",
     "build": "webpack --config build/prod_webpack.config.js",
-    "build test": "webpack --config build/test_webpack.config.js",
+    "build-test": "webpack --config build/test_webpack.config.js",
     "start": "webpack server --config build/dev_webpack.config.js --host 0.0.0.0 --port ${PORT:-8081} --progress",
     "lint": "eslint --ext .js,.vue src test",
     "i18n-extract": "./gettext-extract",
