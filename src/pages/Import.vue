@@ -4,6 +4,7 @@ import s3 from '../AWSClient'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import { serializer } from '../components/utils/serializer.js'
 import FilesList from '@comp/import/FilesList.vue'
+import FileLoader from '@comp/import/FileLoader.vue'
 
 const $gettext = s => s
 
@@ -11,6 +12,7 @@ export default {
   name: 'Import',
   components: {
     FilesList,
+    FileLoader,
 
   },
 
@@ -19,46 +21,19 @@ export default {
       loggedIn: false,
       choice: null,
       showDialog: false,
-      loadedLinks: {},
-      loadedNodes: {},
-      loadedType: '',
+
       filesAdded: false,
-      geojsonChoices: ['PT links', 'PT nodes', 'road links', 'road nodes', 'other'],
     }
   },
 
   computed: {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
-    localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
-    localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
     s3Path () { return this.$route.query.s3Path },
-    localFilesAreLoaded () {
-      return (this.localLinksLoaded && this.localNodesLoaded)
-    },
-    filteredChoices () {
-      if (this.loadedType === 'PT' && this.localLinksLoaded) {
-        return ['PT nodes']
-      } else if (this.loadedType === 'PT' && this.localNodesLoaded) {
-        return ['PT links']
-      } else if (this.loadedType === 'road' && this.localLinksLoaded) {
-        return ['road nodes']
-      } else if (this.loadedType === 'road' && this.localNodesLoaded) {
-        return ['road links']
-      } else return this.geojsonChoices
-    },
 
   },
   watch: {
     s3Path (val) {
       if (val) this.loadFilesFromS3(val)
-    },
-    localFilesAreLoaded (val) {
-      if (val) {
-        this.loadNetwork(this.loadedLinks, this.loadedNodes, this.loadedType, 'local')
-        this.loadedLinks = {}
-        this.loadedNodes = {}
-        this.loadedType = ''
-      }
     },
 
   },
@@ -90,9 +65,6 @@ export default {
         case 'newProject':
           this.projectIsEmpty ? this.newProject() : this.showDialog = true
           break
-        default:
-          this.$refs.fileInput.click()
-          document.getElementById('file-input').value = '' // clean it for next file
       }
     },
 
@@ -123,13 +95,11 @@ export default {
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
     },
 
-    loadNetwork (links, nodes, type, source = 'db', linksName = 'links', nodesName = 'nodes') {
+    loadNetwork (links, nodes, type) {
       if (type === 'PT') {
         if (IndexAreDifferent(links, this.$store.getters.links) &&
             IndexAreDifferent(nodes, this.$store.getters.nodes)) {
           this.$store.commit('appendNewLinks', { links: links, nodes: nodes })
-          this.$store.commit('addFile', { name: linksName, source: source, type: 'links' })
-          this.$store.commit('addFile', { name: nodesName, source: source, type: 'nodes' })
           this.filesAdded = true
         } else {
           this.$store.commit('changeAlert', {
@@ -141,57 +111,12 @@ export default {
         if (IndexAreDifferent(links, this.$store.getters.rlinks) &&
             IndexAreDifferent(nodes, this.$store.getters.rnodes)) {
           this.$store.commit('appendNewrLinks', { rlinks: links, rnodes: nodes })
-          this.$store.commit('addFile', { name: linksName, source: source, type: 'road_links' })
-          this.$store.commit('addFile', { name: nodesName, source: source, type: 'road_nodes' })
           this.filesAdded = true
         } else {
           this.$store.commit('changeAlert', {
             name: 'ImportError',
             message: $gettext('there are duplicated links or nodes index. Import aborted'),
           })
-        }
-      }
-    },
-
-    readFile (event) {
-      this.$store.commit('changeLoading', true)
-      const files = event.target.files
-      // it is a geojson
-      if (files[0].name.slice(-7) !== 'geojson') {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', { name: 'ImportError', message: 'File must be a geojson' })
-        return
-      }
-      const name = files[0].name
-      const fileReader = new FileReader()
-      fileReader.readAsText(files[0])
-      fileReader.onload = evt => {
-        try {
-          const data = JSON.parse(evt.target.result)
-          switch (this.choice) {
-            case 'PT links':
-              this.loadedLinks = serializer(data, name, 'LineString')
-              this.loadedType = 'PT'
-              break
-            case 'PT nodes':
-              this.loadedNodes = serializer(data, name, 'Point')
-              this.loadedType = 'PT'
-              break
-            case 'road links':
-              this.loadedLinks = serializer(data, name, 'LineString')
-              this.loadedType = 'road'
-              break
-            case 'road nodes':
-              this.loadedNodes = serializer(data, name, 'Point')
-              this.loadedType = 'road'
-              break
-            default:
-              console.log('autre')
-          }
-          this.$store.commit('changeLoading', false)
-        } catch (err) {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', err)
         }
       }
     },
@@ -240,22 +165,14 @@ export default {
           this.loadNetwork(
             serializer(links.data, links.fileName, 'LineString'),
             serializer(nodes.data, nodes.filesNames, 'Point'),
-            'PT',
-            zipName,
-            links.fileName,
-            nodes.fileName,
-          )
+            'PT')
         } for (let i = 0; i < roadFiles.length / 2; i++) {
           const links = files.filter(file => file.type === 'road_links')[0]
           const nodes = files.filter(file => file.type === 'road_nodes')[0]
           this.loadNetwork(
             serializer(links.data, links.fileName, 'LineString'),
             serializer(nodes.data, nodes.fileName, 'Point'),
-            'road',
-            zipName,
-            links.fileName,
-            nodes.fileName,
-          )
+            'road')
         }
         // load params
         console.log(files)
@@ -301,7 +218,7 @@ export default {
           this.loadNetwork(
             serializer(links, path.network_paths.links, 'LineString'),
             serializer(nodes, path.network_paths.nodes, 'Point'),
-            'PT', 'db')
+            'PT')
         }
         filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
         console.log(filesNames)
@@ -311,7 +228,7 @@ export default {
           this.loadNetwork(
             serializer(links, path.network_paths.rlinks, 'LineString'),
             serializer(nodes, path.network_paths.rnodes, 'Point'),
-            'road', 'db')
+            'road')
         }
         // then load results layers.
         filesNames = await s3.listFiles(model, scen + path.output_paths)
@@ -356,7 +273,7 @@ export default {
           if (!links) return
           nodes = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
           if (!nodes) return
-          this.loadNetwork(links, nodes, 'PT', 'example')
+          this.loadNetwork(links, nodes, 'PT')
         }
 
         if (filesToLoads.includes('road')) {
@@ -364,7 +281,7 @@ export default {
           if (!links) return
           nodes = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
           if (!nodes) return
-          this.loadNetwork(links, nodes, 'road', 'example')
+          this.loadNetwork(links, nodes, 'road')
         }
 
         if (filesToLoads.includes('loaded')) {
@@ -416,14 +333,7 @@ export default {
       accept=".zip"
       @change="readZip"
     >
-    <input
-      id="file-input"
-      ref="fileInput"
-      type="file"
-      style="display: none"
-      accept=".geojson"
-      @change="readFile"
-    >
+
     <div class="layout">
       <div
         class="layout-overlay"
@@ -448,11 +358,14 @@ export default {
               <div class="title">
                 {{ $gettext("Continue Without Project") }}
               </div>
+              <div>
+                {{ $gettext("Start importing files individually ") }}
+              </div>
               <div class="subtitle">
                 {{ $gettext("OR") }}
               </div>
               <div class="title">
-                {{ $gettext("Load Zip file") }}
+                {{ $gettext("Load Zip") }}
               </div>
               <v-tooltip
                 bottom
@@ -555,47 +468,9 @@ export default {
           </v-col>
           <v-divider vertical />
           <v-col>
-            <div>
+            <div class="overflow-container">
               <v-row>
-                <div class="subtitle">
-                  {{ $gettext('PT Network') }}
-                </div>
-                <div class=" text-xs-center">
-                  <v-menu
-                    offset-y
-                    close-delay="100"
-                    transition="slide-y-transition"
-                  >
-                    <template v-slot:activator="{ on: on,attrs:attrs }">
-                      <v-btn
-                        :style="{'margin-bottom':'2rem'}"
-                        v-bind="attrs"
-                        v-on="on"
-                      >
-                        <v-icon
-                          small
-                          left
-                        >
-                          fa-solid fa-upload
-                        </v-icon>
-                        Geojson
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item
-                        v-for="(el,key) in geojsonChoices"
-                        :key="key"
-                        link
-                        :disabled="!filteredChoices.includes(el)"
-                        @click="()=>buttonHandle(el)"
-                      >
-                        <v-list-item-title>
-                          {{ $gettext(el) }}
-                        </v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </div>
+                <FileLoader @networkLoaded="(e)=>loadNetwork(e.links,e.nodes,e.type)" />
               </v-row>
 
               <v-divider />
@@ -655,9 +530,9 @@ export default {
   position: absolute;
 }
 .card {
-
-  max-height: calc(100% - 2em);
-  overflow-y: auto;
+  height: 42em;
+  width:calc(70%);
+  overflow-y:hidden;
   padding: 20px;
 }
 .col{

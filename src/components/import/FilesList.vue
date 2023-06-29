@@ -1,23 +1,25 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
 
-const $gettext = s => s
+// const $gettext = s => s
 
 export default {
   name: 'FilesList',
 
   data () {
     return {
-      filesPanel: 0,
+      filesPanel: [0, 1],
     }
   },
 
   computed: {
     loadedFiles () { return this.$store.getters.loadedFiles },
+    inputFiles () { return this.loadedFiles.filter(file => file.name.startsWith('input')) },
+    outputFiles () { return this.loadedFiles.filter(file => file.name.startsWith('output')) },
   },
 
   mounted () {
-
+    console.log(this.loadedFiles)
   },
 }
 </script>
@@ -25,21 +27,35 @@ export default {
   <section>
     <v-expansion-panels
       v-model="filesPanel"
-      readonly
+      multiple
     >
       <v-expansion-panel>
         <v-expansion-panel-header
-          hide-actions
           class="categorie"
         >
-          {{ $gettext('Other Files') }}
+          {{ $gettext('Other Inputs') }}
         </v-expansion-panel-header>
         <v-expansion-panel-content class="files-container">
           <li
-            v-for="(item, key) in loadedFiles"
+            v-for="(item, key) in inputFiles"
             :key="key"
           >
-            <p>{{ item }}</p>
+            <p>{{ item.name }}</p>
+          </li>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+      <v-expansion-panel>
+        <v-expansion-panel-header
+          class="categorie"
+        >
+          {{ $gettext('Outputs') }}
+        </v-expansion-panel-header>
+        <v-expansion-panel-content class="files-container">
+          <li
+            v-for="(item, key) in outputFiles"
+            :key="key"
+          >
+            <p>{{ item.name }}</p>
           </li>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -48,10 +64,9 @@ export default {
 </template>
 <style lang="scss" scoped>
 .files-container{
-  height: 20rem;
+  height: 10rem;
   background:var(--v-background-lighten4);
   overflow-y: auto;
-  overflow-x:hidden;
 }
 .categorie {
   font-size: 1.5em;
