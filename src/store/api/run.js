@@ -209,5 +209,6 @@ export default {
     error: (state) => state.error,
     synchronized: (state) => state.synchronized,
     parameters: (state) => state.parameters,
+    parametersIsEmpty: (state) => state.parameters.length === 0,
   },
 }

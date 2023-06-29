@@ -195,7 +195,7 @@ export const store = new Vuex.Store({
         zip.file('inputs/road/road_nodes.geojson', blob)
       }
       if (payload === 'all') {
-        if (this.getters['run/parameters'].length > 0) {
+        if (!this.getters['run/parametersIsEmpty']) {
           const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
           zip.file('inputs/params.json', blob)
         }
