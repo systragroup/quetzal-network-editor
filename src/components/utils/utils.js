@@ -1,6 +1,33 @@
 import JSZip from 'jszip'
 import { store } from '../../store/index.js'
 
+function readFileAsText (file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = function (event) {
+      resolve(event.target.result)
+    }
+    reader.onerror = function (event) {
+      reject(event.target.error)
+    }
+    reader.readAsText(file)
+  })
+}
+
+function readFileAsBytes (file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = function (event) {
+      const fileBytes = new Uint8Array(event.target.result)
+      resolve(fileBytes)
+    }
+    reader.onerror = function (event) {
+      reject(event.target.error)
+    }
+    reader.readAsArrayBuffer(file)
+  })
+}
+
 function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs/road/', outputFolder = 'outputs/') {
   // class Files with inputs outputs quenedi fileStructure.
   // inputs are split as pt and road folder. everythin in output is read as a static layer.
@@ -21,7 +48,6 @@ function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs
   //    zones.json
   //
   //  parameters.json anywhere
-
   if (name.endsWith('.geojson')) {
     const currentType = content.features[0].geometry.type
     if (name.toLowerCase().includes(ptFolder.toLowerCase())) {
@@ -49,6 +75,8 @@ function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs
         case 'Polygon':
           return { data: content, type: 'result', fileName: name }
       }
+    } else {
+      return { data: content, type: 'other', fileName: name }
     }
   } else if (name.endsWith('.json')) {
     if (name.toLowerCase().includes('inputs/')) {
@@ -78,7 +106,9 @@ async function extractZip (file) {
     let content = {}
     try {
       content = JSON.parse(str)
-    } catch (err) { content = str } // for PNG, no content
+    } catch (err) {
+      content = await zip.file(filesNames[i]).async('uint8array')
+    }
     // import with new fileStructure (inputs, outputs folder in zip)
     result.files.push(classFile(filesNames[i], content))
   }
@@ -142,4 +172,4 @@ async function unzip (file) {
   return content
 }
 
-export { extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile }
+export { readFileAsText, readFileAsBytes, extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile }

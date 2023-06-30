@@ -1,13 +1,14 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
 import { serializer } from '@comp/utils/serializer.js'
+import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
 import FilesList from '@comp/import/FilesList.vue'
 
 // const $gettext = s => s
 
 export default {
   name: 'FileLoader',
-  events: ['networkLoaded', 'parametersLoaded'],
+  events: ['networkLoaded', 'parametersLoaded', 'outputsLoaded', 'inputsLoaded'],
   components: {
     FilesList,
   },
@@ -48,25 +49,60 @@ export default {
   methods: {
     buttonHandle (choice) {
       this.choice = choice
-      if (['outputs', 'inputs'].includes(this.choice)) {
-        this.$refs.otherInput.click()
-        document.getElementById('other-input').value = '' // clean it for next file
+      if (this.choice === 'inputs') {
+        this.$refs.otherInputs.click()
+        document.getElementById('other-inputs').value = '' // clean it for next file
+      } else if (this.choice === 'outputs') {
+        this.$refs.otherOutputs.click()
+        document.getElementById('other-outputs').value = '' // clean it for next file
       } else {
         this.$refs.fileInput.click()
         document.getElementById('file-input').value = '' // clean it for next file
       }
     },
-    readOtherFile (event) {
+    async readOtherInputs (event) {
       // this.$store.commit('changeLoading', true)
+      this.$store.commit('changeLoading', true)
+      const fileList = []
       const files = event.target.files
-      console.log(event.target.files)
+      console.log(files)
       for (const file of files) {
-        console.log(file.name)
+        const name = 'inputs/' + file.name
+        try {
+          const content = await readFileAsBytes(file)
+          fileList.push({ data: content, type: 'other', fileName: name })
+          this.$store.commit('changeLoading', false)
+        } catch (err) {
+          this.$store.commit('changeLoading', false)
+          this.$store.commit('changeAlert', err)
+        }
       }
+      this.$store.commit('changeLoading', false)
+      this.$emit('inputsLoaded', fileList)
 
       // this.$store.commit('changeLoading', false)
     },
-    readFile (event) {
+    async readOtherOutputs (event) {
+      this.$store.commit('changeLoading', true)
+      const fileList = []
+      const files = event.target.files
+      for (const file of files) {
+        const name = 'outputs/' + file.name
+        const type = file.name.endsWith('.geojson') ? 'result' : 'matrix'
+        try {
+          let content = await readFileAsText(file)
+          content = JSON.parse(content)
+          fileList.push({ data: content, type: type, fileName: name })
+          this.$store.commit('changeLoading', false)
+        } catch (err) {
+          this.$store.commit('changeLoading', false)
+          this.$store.commit('changeAlert', err)
+        }
+      }
+      this.$store.commit('changeLoading', false)
+      this.$emit('outputsLoaded', fileList)
+    },
+    async readFile (event) {
       this.$store.commit('changeLoading', true)
       const files = event.target.files
       // it is a geojson
@@ -76,39 +112,37 @@ export default {
         return
       }
       const name = files[0].name
-      const fileReader = new FileReader()
-      fileReader.readAsText(files[0])
-      fileReader.onload = evt => {
-        try {
-          const data = JSON.parse(evt.target.result)
-          switch (this.choice) {
-            case 'PT links':
-              this.loadedLinks = serializer(data, name, 'LineString')
-              this.loadedType = 'PT'
-              break
-            case 'PT nodes':
-              this.loadedNodes = serializer(data, name, 'Point')
-              this.loadedType = 'PT'
-              break
-            case 'road links':
-              this.loadedLinks = serializer(data, name, 'LineString')
-              this.loadedType = 'road'
-              break
-            case 'road nodes':
-              this.loadedNodes = serializer(data, name, 'Point')
-              this.loadedType = 'road'
-              break
-            case 'parameters':
-              this.$emit('parametersLoaded', data)
-              break
-            default:
-              console.log('autre')
-          }
-          this.$store.commit('changeLoading', false)
-        } catch (err) {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', err)
+
+      try {
+        let data = await readFileAsText(files[0])
+        data = JSON.parse(data)
+        switch (this.choice) {
+          case 'PT links':
+            this.loadedLinks = serializer(data, name, 'LineString')
+            this.loadedType = 'PT'
+            break
+          case 'PT nodes':
+            this.loadedNodes = serializer(data, name, 'Point')
+            this.loadedType = 'PT'
+            break
+          case 'road links':
+            this.loadedLinks = serializer(data, name, 'LineString')
+            this.loadedType = 'road'
+            break
+          case 'road nodes':
+            this.loadedNodes = serializer(data, name, 'Point')
+            this.loadedType = 'road'
+            break
+          case 'parameters':
+            this.$emit('parametersLoaded', data)
+            break
+          default:
+            console.log('autre')
         }
+        this.$store.commit('changeLoading', false)
+      } catch (err) {
+        this.$store.commit('changeLoading', false)
+        this.$store.commit('changeAlert', err)
       }
     },
   },
@@ -126,12 +160,21 @@ export default {
         @change="readFile"
       >
       <input
-        id="other-input"
-        ref="otherInput"
+        id="other-inputs"
+        ref="otherInputs"
         type="file"
         style="display: none"
         multiple="multiple"
-        @change="readOtherFile"
+        @change="readOtherInputs"
+      >
+      <input
+        id="other-outputs"
+        ref="otherOutputs"
+        type="file"
+        style="display: none"
+        multiple="multiple"
+        accept=".geojson, .json"
+        @change="readOtherOutputs"
       >
       <div class="container">
         <v-icon class="type-icon">

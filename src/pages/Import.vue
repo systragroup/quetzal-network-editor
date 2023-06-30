@@ -122,6 +122,13 @@ export default {
       // TODO: verify params form!!
       this.$store.commit('run/getLocalParameters', params)
     },
+    loadOutputs (files, source) {
+      console.log(files)
+      this.$store.commit('loadLayers', { files: files, name: source })
+    },
+    loadOtherInputs (files, source) {
+      this.$store.commit('loadOtherFiles', { files: files, source: source })
+    },
 
     async readZip (event) {
       try {
@@ -177,18 +184,15 @@ export default {
             'road')
         }
         // load params
+        console.log(files)
         const params = files.filter(file => file.type === 'params')
         if (params.length > 0) {
           this.loadParams(params[0].data)
         }
 
-        this.$store.commit('loadLayers', {
-          files: files.filter(file => !['links', 'nodes', 'road_links', 'road_nodes'].includes(file?.type)),
-          name: zipName,
-        },
-        )
+        this.loadOutputs(files.filter(file => ['result', 'matrix'].includes(file?.type), zipFiles))
 
-        this.$store.commit('loadOtherFiles', { files: files.filter(file => file?.type === 'other'), source: zipName })
+        this.loadOtherInputs(files.filter(file => file?.type === 'other'), zipName)
 
         this.$store.commit('changeLoading', false)
         this.$store.commit('changeLoading', false)
@@ -239,7 +243,7 @@ export default {
           const name = file.split('/').slice(1).join('/')
           files.push(classFile(name, content))
         }
-        if (filesNames.length > 0) this.$store.commit('loadLayers', { files: files, name: 'db' })
+        if (filesNames.length > 0) this.loadOutputs(files, 'db')
 
         // load rasters (static geojson layers.)
         filesNames = await s3.listFiles(model, scen + path.raster_path)
@@ -468,8 +472,10 @@ export default {
           <v-divider vertical />
           <v-col>
             <FileLoader
-              @networkLoaded="(e)=>loadNetwork(e.links,e.nodes,e.type)"
-              @parametersLoaded="(data)=>loadParams(data)"
+              @networkLoaded="(e) => loadNetwork(e.links,e.nodes,e.type)"
+              @parametersLoaded="(data) => loadParams(data)"
+              @outputsLoaded="(data) => loadOutputs(data, 'local')"
+              @inputsLoaded="(data) => loadOtherInputs(data,'local')"
             />
           </v-col>
         </v-row>

@@ -215,9 +215,13 @@ export const store = new Vuex.Store({
         })
 
         state.otherFiles.forEach(file => {
-          console.log(file)
-          const blob = new Blob([file.data]) // { type: 'text/csv' }
-          zip.file(file.fileName, blob)
+          if (file.data instanceof Uint8Array) {
+            const blob = new Blob([file.data]) // { type: 'text/csv' }
+            zip.file(file.fileName, blob)
+          } else {
+            const blob = new Blob([JSON.stringify(file.data)], { type: 'application/json' })
+            zip.file(file.fileName, blob)
+          }
         })
       }
 
