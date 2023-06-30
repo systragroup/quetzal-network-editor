@@ -51,10 +51,14 @@ function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs
       }
     }
   } else if (name.endsWith('.json')) {
-    if (name.slice(-11).toLowerCase() === 'params.json') {
-      return { data: content, type: 'params', fileName: name } // params.json
-    } else {
+    if (name.toLowerCase().includes('inputs/')) {
+      if (name.slice(-11).toLowerCase() === 'params.json') {
+        return { data: content, type: 'params', fileName: name } // params.json
+      }
+    } else if (name.toLowerCase().includes('outputs/')) {
       return { data: content, type: 'matrix', fileName: name } // json mat
+    } else {
+      return { data: content, type: 'other', fileName: name }
     }
   } else {
     return { data: content, type: 'other', fileName: name }

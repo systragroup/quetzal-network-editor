@@ -1,6 +1,7 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
 import { serializer } from '@comp/utils/serializer.js'
+import FilesList from '@comp/import/FilesList.vue'
 
 // const $gettext = s => s
 
@@ -8,6 +9,7 @@ export default {
   name: 'FileLoader',
   events: ['networkLoaded', 'parametersLoaded'],
   components: {
+    FilesList,
   },
   data () {
     return {
@@ -46,8 +48,23 @@ export default {
   methods: {
     buttonHandle (choice) {
       this.choice = choice
-      this.$refs.fileInput.click()
-      document.getElementById('file-input').value = '' // clean it for next file
+      if (['outputs', 'inputs'].includes(this.choice)) {
+        this.$refs.otherInput.click()
+        document.getElementById('other-input').value = '' // clean it for next file
+      } else {
+        this.$refs.fileInput.click()
+        document.getElementById('file-input').value = '' // clean it for next file
+      }
+    },
+    readOtherFile (event) {
+      // this.$store.commit('changeLoading', true)
+      const files = event.target.files
+      console.log(event.target.files)
+      for (const file of files) {
+        console.log(file.name)
+      }
+
+      // this.$store.commit('changeLoading', false)
     },
     readFile (event) {
       this.$store.commit('changeLoading', true)
@@ -98,153 +115,167 @@ export default {
 }
 </script>
 <template>
-  <div class="row">
-    <input
-      id="file-input"
-      ref="fileInput"
-      type="file"
-      style="display: none"
-      accept=".geojson"
-      @change="readFile"
-    >
-    <div class="container">
-      <v-icon class="type-icon">
-        fas fa-project-diagram
-      </v-icon>
-      <div class="subtitle">
-        {{ $gettext('PT Network') }}
-        <v-icon
-          class="check-icon"
-          :color="linksIsEmpty? 'warning':'success'"
-        >
-          {{ linksIsEmpty? 'fas fa-times':'fas fa-check' }}
+  <div>
+    <div class="row">
+      <input
+        id="file-input"
+        ref="fileInput"
+        type="file"
+        style="display: none"
+        accept=".geojson"
+        @change="readFile"
+      >
+      <input
+        id="other-input"
+        ref="otherInput"
+        type="file"
+        style="display: none"
+        multiple="multiple"
+        @change="readOtherFile"
+      >
+      <div class="container">
+        <v-icon class="type-icon">
+          fas fa-project-diagram
         </v-icon>
-      </div>
-
-      <div class="element">
-        <v-menu
-          offset-y
-          close-delay="100"
-          transition="slide-y-transition"
-        >
-          <template v-slot:activator="{ on: on,attrs:attrs }">
-            <v-btn
-              icon
-              outlined
-              v-bind="attrs"
-              v-on="on"
-            >
-              <v-icon small>
-                fa-solid fa-upload
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item
-              link
-              :disabled="loadedType=='road' || localLinksLoaded"
-              @click="()=>buttonHandle('PT links')"
-            >
-              <v-list-item-title>
-                {{ $gettext('Links') }}
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item
-              link
-              :disabled="loadedType=='road' || localNodesLoaded"
-              @click="()=>buttonHandle('PT nodes')"
-            >
-              <v-list-item-title>
-                {{ $gettext('Nodes') }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
-    </div>
-    <div class="container">
-      <v-icon class="type-icon">
-        fas fa-project-diagram
-      </v-icon>
-      <div class="subtitle">
-        {{ $gettext('Road Network') }}
-        <v-icon
-          class="check-icon"
-          :color="rlinksIsEmpty? 'warning':'success'"
-        >
-          {{ rlinksIsEmpty? 'fas fa-times':'fas fa-check' }}
-        </v-icon>
-      </div>
-
-      <div class="element">
-        <v-menu
-          offset-y
-          close-delay="100"
-          transition="slide-y-transition"
-        >
-          <template v-slot:activator="{ on: on,attrs:attrs }">
-            <v-btn
-              icon
-              outlined
-              v-bind="attrs"
-              v-on="on"
-            >
-              <v-icon
-                small
-              >
-                fa-solid fa-upload
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item
-              link
-              :disabled="loadedType=='PT' || localLinksLoaded"
-              @click="()=>buttonHandle('road links')"
-            >
-              <v-list-item-title>
-                {{ $gettext('Links') }}
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item
-              link
-              :disabled="loadedType=='PT' || localNodesLoaded"
-              @click="()=>buttonHandle('road nodes')"
-            >
-              <v-list-item-title>
-                {{ $gettext('Nodes') }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
-    </div>
-    <div class="container">
-      <v-icon class="type-icon">
-        fas fa-cog
-      </v-icon>
-      <div class="subtitle">
-        {{ $gettext('Parameters') }}
-        <v-icon
-          class="check-icon"
-          :color="paramsIsEmpty? 'warning':'success'"
-        >
-          {{ paramsIsEmpty? 'fas fa-times':'fas fa-check' }}
-        </v-icon>
-      </div>
-
-      <div class="element">
-        <v-btn
-          icon
-          outlined
-          @click="()=>buttonHandle('parameters')"
-        >
-          <v-icon small>
-            fa-solid fa-upload
+        <div class="subtitle">
+          {{ $gettext('PT Network') }}
+          <v-icon
+            class="check-icon"
+            :color="linksIsEmpty? 'warning':'success'"
+          >
+            {{ linksIsEmpty? 'fas fa-times':'fas fa-check' }}
           </v-icon>
-        </v-btn>
+        </div>
+
+        <div class="element">
+          <v-menu
+            offset-y
+            close-delay="100"
+            transition="slide-y-transition"
+          >
+            <template v-slot:activator="{ on: on,attrs:attrs }">
+              <v-btn
+                icon
+                outlined
+                v-bind="attrs"
+                v-on="on"
+              >
+                <v-icon small>
+                  fa-solid fa-upload
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item
+                link
+                :disabled="loadedType=='road' || localLinksLoaded"
+                @click="()=>buttonHandle('PT links')"
+              >
+                <v-list-item-title>
+                  {{ $gettext('Links') }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                link
+                :disabled="loadedType=='road' || localNodesLoaded"
+                @click="()=>buttonHandle('PT nodes')"
+              >
+                <v-list-item-title>
+                  {{ $gettext('Nodes') }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </div>
+      </div>
+      <div class="container">
+        <v-icon class="type-icon">
+          fas fa-project-diagram
+        </v-icon>
+        <div class="subtitle">
+          {{ $gettext('Road Network') }}
+          <v-icon
+            class="check-icon"
+            :color="rlinksIsEmpty? 'warning':'success'"
+          >
+            {{ rlinksIsEmpty? 'fas fa-times':'fas fa-check' }}
+          </v-icon>
+        </div>
+
+        <div class="element">
+          <v-menu
+            offset-y
+            close-delay="100"
+            transition="slide-y-transition"
+          >
+            <template v-slot:activator="{ on: on,attrs:attrs }">
+              <v-btn
+                icon
+                outlined
+                v-bind="attrs"
+                v-on="on"
+              >
+                <v-icon
+                  small
+                >
+                  fa-solid fa-upload
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item
+                link
+                :disabled="loadedType=='PT' || localLinksLoaded"
+                @click="()=>buttonHandle('road links')"
+              >
+                <v-list-item-title>
+                  {{ $gettext('Links') }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                link
+                :disabled="loadedType=='PT' || localNodesLoaded"
+                @click="()=>buttonHandle('road nodes')"
+              >
+                <v-list-item-title>
+                  {{ $gettext('Nodes') }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </div>
+      </div>
+      <div class="container">
+        <v-icon class="type-icon">
+          fas fa-cog
+        </v-icon>
+        <div class="subtitle">
+          {{ $gettext('Parameters') }}
+          <v-icon
+            class="check-icon"
+            :color="paramsIsEmpty? 'warning':'success'"
+          >
+            {{ paramsIsEmpty? 'fas fa-times':'fas fa-check' }}
+          </v-icon>
+        </div>
+
+        <div class="element">
+          <v-btn
+            icon
+            outlined
+            @click="()=>buttonHandle('parameters')"
+          >
+            <v-icon small>
+              fa-solid fa-upload
+            </v-icon>
+          </v-btn>
+        </div>
       </div>
     </div>
+    <v-divider />
+    <FilesList
+      @importButton="(e)=>buttonHandle(e)"
+    />
   </div>
 </template>
 <style lang="scss" scoped>

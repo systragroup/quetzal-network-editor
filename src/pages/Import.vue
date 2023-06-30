@@ -3,7 +3,6 @@
 import s3 from '../AWSClient'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import { serializer } from '../components/utils/serializer.js'
-import FilesList from '@comp/import/FilesList.vue'
 import FileLoader from '@comp/import/FileLoader.vue'
 
 const $gettext = s => s
@@ -11,7 +10,6 @@ const $gettext = s => s
 export default {
   name: 'Import',
   components: {
-    FilesList,
     FileLoader,
 
   },
@@ -469,17 +467,10 @@ export default {
           </v-col>
           <v-divider vertical />
           <v-col>
-            <div class="overflow-container">
-              <v-row>
-                <FileLoader
-                  @networkLoaded="(e)=>loadNetwork(e.links,e.nodes,e.type)"
-                  @parametersLoaded="(data)=>loadParams(data)"
-                />
-              </v-row>
-
-              <v-divider />
-              <FilesList />
-            </div>
+            <FileLoader
+              @networkLoaded="(e)=>loadNetwork(e.links,e.nodes,e.type)"
+              @parametersLoaded="(data)=>loadParams(data)"
+            />
           </v-col>
         </v-row>
       </v-card>
