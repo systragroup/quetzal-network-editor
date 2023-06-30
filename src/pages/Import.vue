@@ -120,6 +120,10 @@ export default {
         }
       }
     },
+    loadParams (params) {
+      // TODO: verify params form!!
+      this.$store.commit('run/getLocalParameters', params)
+    },
 
     async readZip (event) {
       try {
@@ -175,12 +179,9 @@ export default {
             'road')
         }
         // load params
-        console.log(files)
         const params = files.filter(file => file.type === 'params')
         if (params.length > 0) {
-          console.log(params)
-          this.$store.commit('run/getLocalParameters', params[0].data)
-          this.$store.commit('addFile', { name: params[0].fileName, source: zipName, type: 'params' })
+          this.loadParams(params[0].data)
         }
 
         this.$store.commit('loadLayers', {
@@ -470,7 +471,10 @@ export default {
           <v-col>
             <div class="overflow-container">
               <v-row>
-                <FileLoader @networkLoaded="(e)=>loadNetwork(e.links,e.nodes,e.type)" />
+                <FileLoader
+                  @networkLoaded="(e)=>loadNetwork(e.links,e.nodes,e.type)"
+                  @parametersLoaded="(data)=>loadParams(data)"
+                />
               </v-row>
 
               <v-divider />
@@ -531,7 +535,7 @@ export default {
 }
 .card {
   height: 42em;
-  width:calc(70%);
+  width:60rem;
   overflow-y:hidden;
   padding: 20px;
 }

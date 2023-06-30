@@ -5,6 +5,7 @@
 
 export default {
   name: 'FilesList',
+  events: ['importButton'],
 
   data () {
     return {
@@ -24,68 +25,93 @@ export default {
 }
 </script>
 <template>
-  <section>
-    <v-expansion-panels
-      v-model="filesPanel"
-      multiple
-    >
-      <v-expansion-panel>
-        <v-expansion-panel-header
-          class="categorie"
-        >
+  <div>
+    <div class="files-container">
+      <div class="title-box">
+        <h1 class="title">
           {{ $gettext('Other Inputs') }}
-        </v-expansion-panel-header>
-        <v-expansion-panel-content class="files-container">
-          <li
-            v-for="(item, key) in inputFiles"
-            :key="key"
+        </h1>
+        <div class="upload-button">
+          <v-btn
+            icon
+            outlined
+            @click="()=>$emit('importButton','inputs')"
           >
-            <p>{{ item.name }}</p>
-          </li>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <v-expansion-panel>
-        <v-expansion-panel-header
-          class="categorie"
+            <v-icon small>
+              fa-solid fa-upload
+            </v-icon>
+          </v-btn>
+        </div>
+      </div>
+      <div class="list">
+        <li
+          v-for="(item, key) in inputFiles"
+          :key="key"
         >
+          {{ item.name }}
+        </li>
+      </div>
+    </div>
+    <div class="files-container">
+      <div class="title-box">
+        <h1 class="title">
           {{ $gettext('Outputs') }}
-        </v-expansion-panel-header>
-        <v-expansion-panel-content class="files-container">
-          <li
-            v-for="(item, key) in outputFiles"
-            :key="key"
+        </h1>
+        <div class="upload-button">
+          <v-btn
+            icon
+            outlined
+            @click="()=>$emit('importButton','outputs')"
           >
-            <p>{{ item.name }}</p>
-          </li>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </v-expansion-panels>
-  </section>
+            <v-icon small>
+              fa-solid fa-upload
+            </v-icon>
+          </v-btn>
+        </div>
+      </div>
+      <div class="list">
+        <li
+          v-for="(item, key) in outputFiles"
+          :key="key"
+        >
+          {{ item.name }}
+        </li>
+      </div>
+    </div>
+  </div>
 </template>
 <style lang="scss" scoped>
 .files-container{
-  height: 10rem;
+  height: 13rem;
+  border-radius: 5px;
   background:var(--v-background-lighten4);
-  overflow-y: auto;
-}
-.categorie {
-  font-size: 1.5em;
-  font-weight: bold;
-  background:var(--v-background-lighten3);
-}
-.title {
   display: flex;
+  margin: 10px 0px 0px 00px;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+
+}
+.title-box {
+  display: flex;
+  flex-direction: row;
+  background:var(--v-background-lighten3);
+
+  border-radius: 5px 5px 0px 0px;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+
+}
+.title{
   font-size: 2em !important;
-  color: var(--v-primary-base);
   font-weight: bold;
-  margin-top:30px;
 }
-.subtitle {
-  font-size: 1.5em;
+.upload-button {
+  margin-left: auto;
+}
+.list {
+  font-size: 1em;
   font-weight: bold;
-  margin: 20px;
+  //border: 1px solid red;
+  overflow-y: auto;
+  padding: 1rem;
 }
+
 </style>

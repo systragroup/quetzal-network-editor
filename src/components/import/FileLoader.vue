@@ -6,7 +6,7 @@ import { serializer } from '@comp/utils/serializer.js'
 
 export default {
   name: 'FileLoader',
-  events: ['networkLoaded'],
+  events: ['networkLoaded', 'parametersLoaded'],
   components: {
   },
   data () {
@@ -80,6 +80,9 @@ export default {
             case 'road nodes':
               this.loadedNodes = serializer(data, name, 'Point')
               this.loadedType = 'road'
+              break
+            case 'parameters':
+              this.$emit('parametersLoaded', data)
               break
             default:
               console.log('autre')
@@ -267,7 +270,7 @@ export default {
   padding-right: 0.2em;
 }
 .element{
-  flex:1;
+  margin-left: auto;
 }
 .check-icon{
   padding-left: 1em;
