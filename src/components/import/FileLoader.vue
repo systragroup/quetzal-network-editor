@@ -55,6 +55,9 @@ export default {
       } else if (this.choice === 'outputs') {
         this.$refs.otherOutputs.click()
         document.getElementById('other-outputs').value = '' // clean it for next file
+      } else if (this.choice === 'parameters') {
+        this.$refs.paramsInput.click()
+        document.getElementById('params-input').value = '' // clean it for next file
       } else {
         this.$refs.fileInput.click()
         document.getElementById('file-input').value = '' // clean it for next file
@@ -101,6 +104,19 @@ export default {
       this.$store.commit('changeLoading', false)
       this.$emit('outputsLoaded', fileList)
     },
+    async readParams (event) {
+      this.$store.commit('changeLoading', true)
+      const files = event.target.files
+      try {
+        let data = await readFileAsText(files[0])
+        data = JSON.parse(data)
+        this.$emit('parametersLoaded', data)
+        this.$store.commit('changeLoading', false)
+      } catch (err) {
+        this.$store.commit('changeLoading', false)
+        this.$store.commit('changeAlert', err)
+      }
+    },
     async readFile (event) {
       this.$store.commit('changeLoading', true)
       const files = event.target.files
@@ -132,9 +148,6 @@ export default {
             this.loadedNodes = serializer(data, name, 'Point')
             this.loadedType = 'road'
             break
-          case 'parameters':
-            this.$emit('parametersLoaded', data)
-            break
           default:
             console.log('autre')
         }
@@ -157,6 +170,14 @@ export default {
         style="display: none"
         accept=".geojson"
         @change="readFile"
+      >
+      <input
+        id="params-input"
+        ref="paramsInput"
+        type="file"
+        style="display: none"
+        accept=".json"
+        @change="readParams"
       >
       <input
         id="other-inputs"

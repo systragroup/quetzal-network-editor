@@ -61,10 +61,10 @@ const router = new Router({
       icon: 'fa-solid fa-play',
       title: $gettext('Parameters and Run'),
       beforeEnter: (to, from, next) => {
-        if (store.getters.scenario === null) {
+        if (store.getters['run/parametersIsEmpty']) {
           store.commit('changeNotification',
             {
-              text: $gettext('A scenario must be loaded to enter this page'),
+              text: $gettext('you need parameters to enter this page'),
               autoClose: true,
               color: 'error',
             })
