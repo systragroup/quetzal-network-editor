@@ -17,9 +17,20 @@ export default {
     loadedFiles () { return this.$store.getters.loadedFiles },
     inputFiles () { return this.loadedFiles.filter(file => file.name.startsWith('input')) },
     outputFiles () { return this.loadedFiles.filter(file => file.name.startsWith('output')) },
+    layers () {
+      // get available layers, reformat name and add .json and .geojson to have the matrix also.
+      const layers = this.$store.getters.availableLayers.filter(name => name.startsWith('outputs/'))
+      const list = []
+      for (const name of layers) {
+        list.push(name + '.geojson')
+        list.push(name + '.json')
+      }
+      return list
+    },
   },
 
   mounted () {
+    console.log(this.layers)
   },
 }
 </script>
@@ -74,6 +85,22 @@ export default {
           :key="key"
         >
           {{ item.name }}
+          <v-tooltip
+            top
+            open-delay="250"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-icon
+                v-if="layers.includes(item.name)"
+                v-bind="attrs"
+                small
+                v-on="on"
+              >
+                fa-solid fa-layer-group
+              </v-icon>
+            </template>
+            <span>{{ $gettext('Viewable in results') }}</span>
+          </v-tooltip>
         </li>
       </div>
     </div>
