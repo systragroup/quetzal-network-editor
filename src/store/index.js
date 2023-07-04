@@ -83,7 +83,7 @@ export const store = new Vuex.Store({
       state.loadedFiles.push(payload)
     },
     removeResultsFiles (state) {
-      state.loadedFiles = state.loadedFiles.filter(file => !['result', 'result matrix'].includes(file.type))
+      state.loadedFiles = state.loadedFiles.filter(file => !file.name.startsWith('output'))
     },
     loadOtherFiles (state, payload) {
       payload.files.forEach(file => {
@@ -204,7 +204,7 @@ export const store = new Vuex.Store({
         }
         const staticLayers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
-        staticLayers.forEach(layer => {
+        for (const layer of staticLayers) {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer + '.geojson'
           // zip name = layer.replace('/', '_') + '.geojson'
@@ -214,7 +214,7 @@ export const store = new Vuex.Store({
             const name = layer + '.json'
             zip.file(name, blob)
           }
-        })
+        }
 
         for (const file of state.otherFiles) {
           // if others file loaded from S3 (they are not loaded yet. need to download them.)
@@ -245,7 +245,6 @@ export const store = new Vuex.Store({
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
       const inputFolder = scen + 'inputs/'
-      const outputFolder = scen + 'outputs/'
       const ptFolder = inputFolder + 'pt/'
       const roadFolder = inputFolder + 'road/'
       const paths = {
@@ -255,17 +254,32 @@ export const store = new Vuex.Store({
         rnodes: roadFolder + 'road_nodes.geojson',
         params: scen + 'inputs/params.json',
       }
+      // save params
       if (state.run.parameters.length > 0) {
         await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
       }
+      // save PT
       if (state.links.links.features.length > 0) {
         await s3.putObject(bucket, paths.links, JSON.stringify(state.links.links))
         await s3.putObject(bucket, paths.nodes, JSON.stringify(state.links.nodes))
       }
+      // save Roads
       if (state.rlinks.rlinks.features.length > 0) {
         await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
         await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
       }
+      // save Static Layers
+      const staticLayers = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+      for (const layer of staticLayers) {
+        const name = layer + '.geojson'
+        await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
+        if (this.getters[`${layer}/mat`]) {
+          const name = layer + '.json'
+          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
+        }
+      }
+      // save others layers
       for (const file of state.otherFiles) {
         // if others file loaded from S3 (they are not loaded yet. need to download them.)
         if (file.data == null) {

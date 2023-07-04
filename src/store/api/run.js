@@ -70,24 +70,33 @@ export default {
     },
     async getOutputs (context) {
       const model = context.rootState.user.model
-      const scenario = context.rootState.user.scenario
-      const path = scenario + '/outputs/'
-      let filesNames = await s3.listFiles(model, path)
+      const scenario = context.rootState.user.scenario + '/'
+      const path = scenario + 'outputs/'
+      const filesList = await s3.listFiles(model, path)
+      let filesNames = filesList.filter(name => name.endsWith('.json') || name.endsWith('.geojson'))
       filesNames = filesNames.filter(name => name !== path)
-      filesNames = filesNames.filter(name => !name.endsWith('.png'))
+
       const files = []
+      const otherFiles = []
       for (const file of filesNames) {
         const content = await s3.readJson(model, file)
         const name = file.split('/').slice(1).join('/')
         files.push(classFile(name, content))
       }
-      if (files.length > 0) {
+      filesNames = filesList.filter(name => !(name.endsWith('.json') || name.endsWith('.geojson')))
+      for (const file of filesNames) {
+        const name = file.slice(scenario.length) // remove scen name from file
+        otherFiles.push({ data: null, fileName: name, type: 'other' })
+      }
+      if (files.length > 0 || otherFiles.length > 0) {
         // remove all results from the loadedFiles List
         context.commit('removeResultsFiles', {}, { root: true })
         // unload all results Layers
         context.commit('unloadLayers', {}, { root: true })
         // load new Results
         context.commit('loadLayers', { files: files, name: 'db' }, { root: true })
+        // load others outputs files
+        context.commit('loadOtherFiles', { files: otherFiles, source: 'db' })
       }
     },
     getSteps ({ state, commit, rootState }) {

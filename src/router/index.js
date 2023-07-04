@@ -9,6 +9,7 @@ const Microservices = () => import('@page/Microservices.vue')
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')
+const basePath = process.env.VUE_APP_BASE_PATH
 
 Vue.use(Router)
 
@@ -18,7 +19,7 @@ const $gettext = s => s
 const router = new Router({
   linkExactActiveClass: 'active',
   mode: 'history',
-  base: '/quetzal-network-editor/',
+  base: basePath,
   routes: [
     {
       path: '/',
