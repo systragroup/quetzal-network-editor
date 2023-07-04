@@ -112,7 +112,7 @@ export const store = new Vuex.Store({
 
           this.commit('addFile', { name: file.fileName, source: payload.name, type: 'result' })
           if (matDataExist) {
-            this.commit('addFile', { name: fileName + '.json', source: payload.name, type: 'result matrix' })
+            this.commit('addFile', { name: fileName + '.json', source: payload.name, type: 'matrix' })
           }
 
           this.commit('createLayer', {

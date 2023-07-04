@@ -8,7 +8,7 @@ import FilesList from '@comp/import/FilesList.vue'
 
 export default {
   name: 'FileLoader',
-  events: ['networkLoaded', 'parametersLoaded', 'outputsLoaded', 'inputsLoaded'],
+  events: ['networkLoaded', 'parametersLoaded', 'outputsLoaded', 'otherLoaded'],
   components: {
     FilesList,
   },
@@ -80,21 +80,33 @@ export default {
         }
       }
       this.$store.commit('changeLoading', false)
-      this.$emit('inputsLoaded', fileList)
+      this.$emit('otherLoaded', fileList)
 
       // this.$store.commit('changeLoading', false)
     },
     async readOtherOutputs (event) {
+      // load outputs as Layer Module and as other files (ex: png)
       this.$store.commit('changeLoading', true)
       const fileList = []
       const files = event.target.files
       for (const file of files) {
         const name = 'outputs/' + file.name
-        const type = file.name.endsWith('.geojson') ? 'result' : 'matrix'
+        // type is other if not a json or geojson
+        let type = 'other'
+        if (file.name.endsWith('.geojson')) { type = 'result' }
+        if (file.name.endsWith('.json')) { type = 'matrix' }
+
         try {
-          let content = await readFileAsText(file)
-          content = JSON.parse(content)
-          fileList.push({ data: content, type: type, fileName: name })
+          // if not a geojson or a json. save as other.
+          if (type === 'other') {
+            const content = await readFileAsBytes(file)
+            fileList.push({ data: content, type: 'other', fileName: name })
+          } else {
+            let content = await readFileAsText(file)
+            content = JSON.parse(content)
+            fileList.push({ data: content, type: type, fileName: name })
+          }
+
           this.$store.commit('changeLoading', false)
         } catch (err) {
           this.$store.commit('changeLoading', false)
@@ -193,7 +205,6 @@ export default {
         type="file"
         style="display: none"
         multiple="multiple"
-        accept=".geojson, .json"
         @change="readOtherOutputs"
       >
       <div class="container">

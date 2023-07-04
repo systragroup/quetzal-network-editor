@@ -125,7 +125,7 @@ export default {
     loadOutputs (files, source) {
       this.$store.commit('loadLayers', { files: files, name: source })
     },
-    loadOtherInputs (files, source) {
+    loadOtherFiles (files, source) {
       this.$store.commit('loadOtherFiles', { files: files, source: source })
     },
 
@@ -189,7 +189,7 @@ export default {
 
         this.loadOutputs(files.filter(file => ['result', 'matrix'].includes(file?.type), zipFiles))
 
-        this.loadOtherInputs(files.filter(file => file?.type === 'other'), zipName)
+        this.loadOtherFiles(files.filter(file => file?.type === 'other'), zipName)
 
         this.$store.commit('changeLoading', false)
         this.$store.commit('changeLoading', false)
@@ -340,7 +340,7 @@ export default {
           this.$store.commit('createLayer', { fileName: 'zones', data: links, mat: nodes })
           // add files to list of loaded files
           this.$store.commit('addFile', { name: 'zones', source: 'example', type: 'result' })
-          this.$store.commit('addFile', { name: 'zones', source: 'matrix', type: 'result matrix' })
+          this.$store.commit('addFile', { name: 'zones', source: 'matrix', type: 'matrix' })
         }
         // this is zones and mat. reuse var to save memory
 
@@ -507,8 +507,11 @@ export default {
             <FileLoader
               @networkLoaded="(e) => loadNetwork(e.links,e.nodes,e.type)"
               @parametersLoaded="(data) => loadParams(data)"
-              @outputsLoaded="(data) => loadOutputs(data, 'local')"
-              @inputsLoaded="(data) => loadOtherInputs(data,'local')"
+              @otherLoaded="(data) => loadOtherFiles(data,'local')"
+              @outputsLoaded="(data) => {
+                loadOutputs(data.filter(file => ['result', 'matrix'].includes(file?.type)), 'local')
+                loadOtherFiles(data.filter(file => file?.type === 'other'), 'local')
+              }"
             />
           </v-col>
         </v-row>
