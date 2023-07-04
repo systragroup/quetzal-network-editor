@@ -1,74 +1,95 @@
 import JSZip from 'jszip'
 import { store } from '../../store/index.js'
 
-function classFile (name, content) {
-  if (name.slice(-7) === 'geojson') {
-    if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs?.properties.name)) {
-      alert('invalid CRS or undefined. use CRS84 / EPSG:4326')
+function readFileAsText (file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = function (event) {
+      resolve(event.target.result)
     }
-
-    if (content.features[0].geometry.type === 'LineString') {
-      if (name.includes('road')) {
-        return { data: content, type: 'road_links', fileName: name }
-      } else if (name.slice(0, 5) === 'links') {
-        return { data: content, type: 'links', fileName: name }
-      } else {
-        return { data: content, type: 'layerLinks', fileName: name }
-      }
-    } else if (content.features[0].geometry.type === 'Point') {
-      if (name.includes('road')) {
-        return { data: content, type: 'road_nodes', fileName: name }
-      } else if (name.slice(0, 5) === 'nodes') {
-        return { data: content, type: 'nodes', fileName: name }
-      } else {
-        return { data: content, type: 'layerNodes', fileName: name }
-      }
-    } else if (['MultiPolygon', 'Polygon'].includes(content.features[0].geometry.type)) {
-      return { data: content, type: 'zones', fileName: name }
+    reader.onerror = function (event) {
+      reject(event.target.error)
     }
-  } else {
-    return { data: content, type: 'json', fileName: name }
-  }
+    reader.readAsText(file)
+  })
 }
-function classFile2 (name, content, inputFolder = 'inputs/', outputFolder = 'outputs/') {
-  // class Files with inputs outputs quenedi fileStructure.
-  // everything in inputs is name sensitive. everythin in output is read as a static layer.
-  if (name.endsWith('geojson')) {
-    if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(content.crs?.properties.name)) {
-      alert('invalid CRS or undefined. use CRS84 / EPSG:4326')
-    }
 
-    if (name.includes(inputFolder)) {
-      switch (name.split('/').slice(-1)[0]) {
-        case 'links.geojson':
+function readFileAsBytes (file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = function (event) {
+      const fileBytes = new Uint8Array(event.target.result)
+      resolve(fileBytes)
+    }
+    reader.onerror = function (event) {
+      reject(event.target.error)
+    }
+    reader.readAsArrayBuffer(file)
+  })
+}
+
+function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs/road/', outputFolder = 'outputs/') {
+  // class Files with inputs outputs quenedi fileStructure.
+  // inputs are split as pt and road folder. everythin in output is read as a static layer.
+  // return {data, type, fileName}.
+  // type can be links, nodes, road_links, road_nodes,
+  // result,  params, matrix or others.
+
+  // inputs/
+  //    pt/
+  //        links.geojson
+  //        nodes.geojson
+  //    road/
+  //        links.geojson
+  //        nodes.geojson
+  // outputs/
+  //    loaded_links.geojson
+  //    zones.geojson
+  //    zones.json
+  //
+  //  parameters.json anywhere
+  if (name.endsWith('.geojson')) {
+    const currentType = content.features[0].geometry.type
+    if (name.toLowerCase().includes(ptFolder.toLowerCase())) {
+      switch (currentType) {
+        case 'LineString':
           return { data: content, type: 'links', fileName: name }
-        case 'nodes.geojson':
+        case 'Point':
           return { data: content, type: 'nodes', fileName: name }
-        case 'road_links.geojson':
+      }
+    } else if (name.toLowerCase().includes(roadFolder.toLowerCase())) {
+      switch (currentType) {
+        case 'LineString':
           return { data: content, type: 'road_links', fileName: name }
-        case 'road_nodes.geojson':
+        case 'Point':
           return { data: content, type: 'road_nodes', fileName: name }
       }
-    } else if (name.includes(outputFolder)) {
-      switch (content.features[0].geometry.type) {
+    } else if (name.toLowerCase().includes(outputFolder.toLowerCase())) {
+      switch (currentType) {
         case 'LineString':
-          return { data: content, type: 'layerLinks', fileName: name }
+          return { data: content, type: 'result', fileName: name }
         case 'Point':
-          return { data: content, type: 'layerNodes', fileName: name }
+          return { data: content, type: 'result', fileName: name }
         case 'MultiPolygon':
-          return { data: content, type: 'zones', fileName: name }
+          return { data: content, type: 'result', fileName: name }
         case 'Polygon':
-          return { data: content, type: 'zones', fileName: name }
+          return { data: content, type: 'result', fileName: name }
       }
-    }
-  } else if (name.endsWith('json')) {
-    if (name.slice(-11) === 'params.json') {
-      return { data: content, type: 'params.json', fileName: name }
     } else {
-      return { data: content, type: 'json', fileName: name }
+      return { data: content, type: 'other', fileName: name }
+    }
+  } else if (name.endsWith('.json')) {
+    if (name.toLowerCase().includes('inputs/')) {
+      if (name.slice(-11).toLowerCase() === 'params.json') {
+        return { data: content, type: 'params', fileName: name } // params.json
+      }
+    } else if (name.toLowerCase().includes('outputs/')) {
+      return { data: content, type: 'matrix', fileName: name } // json mat
+    } else {
+      return { data: content, type: 'other', fileName: name }
     }
   } else {
-    return { data: content, type: 'others', fileName: name }
+    return { data: content, type: 'other', fileName: name }
   }
 }
 
@@ -83,14 +104,13 @@ async function extractZip (file) {
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
     let content = {}
-    try { content = JSON.parse(str) } catch (err) {} // for PNG, no content
-    if (filesNames[0].includes('inputs/') || filesNames[0].includes('outputs/')) {
-      // import with new fileStructure (inputs, outputs folder in zip)
-      result.files.push(classFile2(filesNames[i], content))
-    } else {
-      // legacy import, all in root.
-      result.files.push(classFile(filesNames[i], content))
+    try {
+      content = JSON.parse(str)
+    } catch (err) {
+      content = await zip.file(filesNames[i]).async('uint8array')
     }
+    // import with new fileStructure (inputs, outputs folder in zip)
+    result.files.push(classFile(filesNames[i], content))
   }
   return result
 }
@@ -152,4 +172,4 @@ async function unzip (file) {
   return content
 }
 
-export { extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile, classFile2 }
+export { readFileAsText, readFileAsBytes, extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile }

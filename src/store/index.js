@@ -11,6 +11,7 @@ import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
+import { serializer } from '../components/utils/serializer.js'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
@@ -41,6 +42,8 @@ export const store = new Vuex.Store({
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     availableLayers: ['links', 'rlinks', 'nodes', 'rnodes'],
+    loadedFiles: [],
+    otherFiles: [],
 
   },
   mutations: {
@@ -48,6 +51,7 @@ export const store = new Vuex.Store({
       state.notification = payload
     },
     changeAlert (state, payload) {
+      /// payload {name,message}, or just alert
       state.alert = payload
     },
     changeDarkMode (state, payload) {
@@ -74,6 +78,19 @@ export const store = new Vuex.Store({
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
     },
+    addFile (state, payload) {
+      // payload = { name: , source: source, type: }
+      state.loadedFiles.push(payload)
+    },
+    removeResultsFiles (state) {
+      state.loadedFiles = state.loadedFiles.filter(file => !file.name.startsWith('output'))
+    },
+    loadOtherFiles (state, payload) {
+      payload.files.forEach(file => {
+        state.otherFiles.push(file)
+        this.commit('addFile', { name: file.fileName, source: payload.source, type: 'other' })
+      })
+    },
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
       state.rlinks.roadSpeed = Number(payload.roadSpeed)
@@ -82,9 +99,32 @@ export const store = new Vuex.Store({
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
     },
+    loadLayers (state, payload) {
+      payload.files.filter(file => (file?.type === 'result')).forEach(
+        file => {
+          const fileName = file.fileName.slice(0, -8) // remove .geojson
+          let matData = payload.files.filter(json => json?.fileName.slice(0, -5) === fileName)[0]?.data
+          matData = matData || {}
+          const matDataExist = Object.keys(matData).length > 0
 
-    loadLayer (state, payload) {
-      const moduleName = payload.fileName // todo: check if name exist Object.keys(this._modules.root._children)
+          // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
+          file.data = serializer(file.data, file.fileName, null, !matDataExist)
+
+          this.commit('addFile', { name: file.fileName, source: payload.name, type: 'result' })
+          if (matDataExist) {
+            this.commit('addFile', { name: fileName + '.json', source: payload.name, type: 'matrix' })
+          }
+
+          this.commit('createLayer', {
+            fileName: fileName,
+            data: file.data,
+            mat: matData,
+          })
+        })
+    },
+
+    createLayer (state, payload) {
+      const moduleName = payload.fileName
       if (!Object.keys(this._modules.root._children).includes(moduleName)) {
         this.registerModule(moduleName, layerModule)
       }
@@ -98,6 +138,8 @@ export const store = new Vuex.Store({
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
+      state.otherFiles = []
+      state.loadedFiles = []
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
@@ -106,16 +148,16 @@ export const store = new Vuex.Store({
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
     },
 
-    exportFiles (state, payload = 'all') {
+  },
+  actions: {
+    async exportFiles ({ state, commit }, payload = 'all') {
       const zip = new JSZip()
-      const inputs = zip.folder('inputs') // create a folder for the files.
-      const outputs = zip.folder('outputs') // create a folder for the files.
       let links = ''
       let nodes = ''
       let rlinks = ''
       let rnodes = ''
       // export only visible line (line selected)
-      this.commit('applyPropertiesTypes')
+      commit('applyPropertiesTypes')
       if (payload !== 'all') {
         const tempLinks = structuredClone(state.links.links)
         tempLinks.features = tempLinks.features.filter(
@@ -140,53 +182,61 @@ export const store = new Vuex.Store({
       }
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
-        // eslint-disable-next-line no-var
-        var blob = new Blob([links], { type: 'application/json' })
+        let blob = new Blob([links], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('links.geojson', blob)
-        // eslint-disable-next-line no-var, no-redeclare
-        var blob = new Blob([nodes], { type: 'application/json' })
+        zip.file('inputs/pt/links.geojson', blob)
+        blob = new Blob([nodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('nodes.geojson', blob)
+        zip.file('inputs/pt/nodes.geojson', blob)
       }
       if (JSON.parse(rlinks).features.length > 0) {
-      // eslint-disable-next-line no-var, no-redeclare
-        var blob = new Blob([rlinks], { type: 'application/json' })
+        let blob = new Blob([rlinks], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('road_links.geojson', blob)
-        // eslint-disable-next-line no-var, no-redeclare
-        var blob = new Blob([rnodes], { type: 'application/json' })
+        zip.file('inputs/road/road_links.geojson', blob)
+        blob = new Blob([rnodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
-        inputs.file('road_nodes.geojson', blob)
+        zip.file('inputs/road/road_nodes.geojson', blob)
       }
       if (payload === 'all') {
-        if (this.getters['run/parameters'].length > 0) {
+        if (!this.getters['run/parametersIsEmpty']) {
           const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
-          inputs.file('params.json', blob)
+          zip.file('inputs/params.json', blob)
         }
         const staticLayers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
-        staticLayers.forEach(layer => {
+        for (const layer of staticLayers) {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
-          const name = layer.split('/').slice(-1)[0] + '.geojson'
-          // const name = layer.replace('/', '_') + '.geojson'
-          outputs.file(name, blob)
+          const name = layer + '.geojson'
+          // zip name = layer.replace('/', '_') + '.geojson'
+          zip.file(name, blob)
           if (this.getters[`${layer}/mat`]) {
             const blob = new Blob([JSON.stringify(this.getters[`${layer}/mat`])], { type: 'application/json' })
-            const name = layer.split('/').slice(-1)[0] + '.json'
-            outputs.file(name, blob)
+            const name = layer + '.json'
+            zip.file(name, blob)
           }
-        })
-      }
+        }
 
+        for (const file of state.otherFiles) {
+          // if others file loaded from S3 (they are not loaded yet. need to download them.)
+          if (file.data == null && state.user.model !== null) {
+            file.data = await s3.readBytes(state.user.model, state.user.scenario + '/' + file.fileName)
+          }
+          if (file.data instanceof Uint8Array) {
+            const blob = new Blob([file.data]) // { type: 'text/csv' }
+            zip.file(file.fileName, blob)
+          } else {
+            const blob = new Blob([JSON.stringify(file.data)], { type: 'application/json' })
+            zip.file(file.fileName, blob)
+          }
+        }
+      }
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
           saveAs(content, state.outputName + '.zip')
         })
     },
-  },
-  actions: {
+
     async exportToS3 ({ state, commit }, payload) {
       if (payload !== 'saveOnly') {
         commit('run/changeRunning', true)
@@ -194,18 +244,51 @@ export const store = new Vuex.Store({
       this.commit('applyPropertiesTypes')
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
-      const networkPaths = state.user.config.network_paths
-      const paramsPath = state.user.config.parameters_path
+      const inputFolder = scen + 'inputs/'
+      const ptFolder = inputFolder + 'pt/'
+      const roadFolder = inputFolder + 'road/'
+      const paths = {
+        links: ptFolder + 'links.geojson',
+        nodes: ptFolder + 'nodes.geojson',
+        rlinks: roadFolder + 'road_links.geojson',
+        rnodes: roadFolder + 'road_nodes.geojson',
+        params: scen + 'inputs/params.json',
+      }
+      // save params
       if (state.run.parameters.length > 0) {
-        await s3.putObject(bucket, scen + paramsPath, JSON.stringify(state.run.parameters))
+        await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
       }
+      // save PT
       if (state.links.links.features.length > 0) {
-        await s3.putObject(bucket, scen + networkPaths.links, JSON.stringify(state.links.links))
-        await s3.putObject(bucket, scen + networkPaths.nodes, JSON.stringify(state.links.nodes))
+        await s3.putObject(bucket, paths.links, JSON.stringify(state.links.links))
+        await s3.putObject(bucket, paths.nodes, JSON.stringify(state.links.nodes))
       }
+      // save Roads
       if (state.rlinks.rlinks.features.length > 0) {
-        await s3.putObject(bucket, scen + networkPaths.rlinks, JSON.stringify(state.rlinks.rlinks))
-        await s3.putObject(bucket, scen + networkPaths.rnodes, JSON.stringify(state.rlinks.rnodes))
+        await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
+        await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      }
+      // save Static Layers
+      const staticLayers = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+      for (const layer of staticLayers) {
+        const name = layer + '.geojson'
+        await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
+        if (this.getters[`${layer}/mat`]) {
+          const name = layer + '.json'
+          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
+        }
+      }
+      // save others layers
+      for (const file of state.otherFiles) {
+        // if others file loaded from S3 (they are not loaded yet. need to download them.)
+        if (file.data == null) {
+          // pass
+        } else if (file.data instanceof Uint8Array) {
+          await s3.putObject(bucket, scen + file.fileName, file.data)
+        } else {
+          await s3.putObject(bucket, scen + file.fileName, JSON.stringify(file.data))
+        }
       }
       // console.log(res)
       // commit('setScenariosList', res)
@@ -223,6 +306,8 @@ export const store = new Vuex.Store({
     linksPopupContent: (state) => state.linksPopupContent,
     roadsPopupContent: (state) => state.roadsPopupContent,
     outputName: (state) => state.outputName,
+    loadedFiles: (state) => state.loadedFiles,
+    otherFiles: (state) => state.otherFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {
       return (state.links.links.features.length === 0 &&

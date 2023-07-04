@@ -1,6 +1,6 @@
 import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '@src/AWSClient'
-import { classFile2 } from '@src/components/utils/utils.js'
+import { classFile } from '@src/components/utils/utils.js'
 const $gettext = s => s
 
 export default {
@@ -70,75 +70,33 @@ export default {
     },
     async getOutputs (context) {
       const model = context.rootState.user.model
-      const scenario = context.rootState.user.scenario
-      const path = scenario + '/' + context.rootState.user.config.output_paths
-      let filesNames = await s3.listFiles(model, path)
+      const scenario = context.rootState.user.scenario + '/'
+      const path = scenario + 'outputs/'
+      const filesList = await s3.listFiles(model, path)
+      let filesNames = filesList.filter(name => name.endsWith('.json') || name.endsWith('.geojson'))
       filesNames = filesNames.filter(name => name !== path)
-      filesNames = filesNames.filter(name => !name.endsWith('.png'))
+
       const files = []
+      const otherFiles = []
       for (const file of filesNames) {
         const content = await s3.readJson(model, file)
         const name = file.split('/').slice(1).join('/')
-        files.push(classFile2(name, content))
+        files.push(classFile(name, content))
       }
-      if (files.length > 0) {
-        context.commit('unloadLayers', null, { root: true })
-        files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
-          file => {
-            const data = file.data
-            const fileName = file.fileName.slice(0, -8)
-            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-            matData = matData || {}
-            const matDataExist = Object.keys(matData).length > 0
-            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-              this.error($gettext(fileName + ' there is no index. Import aborted'))
-              return
-            }
-
-            context.commit('loadLayer', {
-              fileName: fileName,
-              type: 'links',
-              data: data,
-              mat: matData,
-            }, { root: true })
-          })
-        files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
-          file => {
-            const data = file.data
-            const fileName = file.fileName.slice(0, -8)
-            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-            matData = matData || {}
-            const matDataExist = Object.keys(matData).length > 0
-            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-              this.error($gettext(fileName + ' there is no index. Import aborted'))
-              return
-            }
-            context.commit('loadLayer', {
-              fileName: fileName,
-              type: 'nodes',
-              data: data,
-              mat: matData,
-            }, { root: true })
-          })
-        // for zones. find the corresponding json file (mat) or nothing.
-        files.filter(file => (file.type === 'zones')).forEach(
-          file => {
-            const zoneData = file.data
-            const fileName = file.fileName.slice(0, -8)
-            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-            matData = matData || {}
-            const matDataExist = Object.keys(matData).length > 0
-            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-              this.error($gettext(fileName + ' there is no index. Import aborted'))
-              return
-            }
-            context.commit('loadLayer', {
-              fileName: fileName,
-              type: 'zones',
-              data: zoneData,
-              mat: matData,
-            }, { root: true })
-          })
+      filesNames = filesList.filter(name => !(name.endsWith('.json') || name.endsWith('.geojson')))
+      for (const file of filesNames) {
+        const name = file.slice(scenario.length) // remove scen name from file
+        otherFiles.push({ data: null, fileName: name, type: 'other' })
+      }
+      if (files.length > 0 || otherFiles.length > 0) {
+        // remove all results from the loadedFiles List
+        context.commit('removeResultsFiles', {}, { root: true })
+        // unload all results Layers
+        context.commit('unloadLayers', {}, { root: true })
+        // load new Results
+        context.commit('loadLayers', { files: files, name: 'db' }, { root: true })
+        // load others outputs files
+        context.commit('loadOtherFiles', { files: otherFiles, source: 'db' })
       }
     },
     getSteps ({ state, commit, rootState }) {
@@ -260,5 +218,6 @@ export default {
     error: (state) => state.error,
     synchronized: (state) => state.synchronized,
     parameters: (state) => state.parameters,
+    parametersIsEmpty: (state) => state.parameters.length === 0,
   },
 }

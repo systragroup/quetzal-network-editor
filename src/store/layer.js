@@ -12,8 +12,10 @@ export default {
 
   mutations: {
     createLayer (state, payload) {
-      state.type = payload.type
       state.layer = structuredClone(payload.data)
+      state.type = state.layer.features[0].geometry.type
+      // change Multipolygon to polygon type. just as they the same for mapbox and the app.
+      state.type = state.type === 'MultiPolygon' ? 'Polygon' : state.type
       Object.keys(payload.mat).forEach(
         key => { state.mat[key + ' (OD)'] = payload.mat[key] })
       state.properties = Object.keys(state.mat)
@@ -28,25 +30,6 @@ export default {
               ),
           )
         }
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
-    },
-
-    loadLinks (state, payload) {
-      state.type = 'links'
-      state.layer = structuredClone(payload.data)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
-        state.layer.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-          points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
-    },
-    loadNodes (state, payload) {
-      state.layer = structuredClone(payload.data)
-      state.type = 'nodes'
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
-        state.layer.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-          coord => Math.round(Number(coord) * 1000000) / 1000000))
-
-        // this.commit('getNodesProperties')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 

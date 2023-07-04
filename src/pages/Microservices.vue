@@ -1,6 +1,6 @@
 <script>
-import MatrixRoadCaster from '../components/MatrixRoadCaster.vue'
-import OSMImporter from '../components/OSMImporter.vue'
+import MatrixRoadCaster from '@comp/microservices/MatrixRoadCaster.vue'
+import OSMImporter from '@comp/microservices/OSMImporter.vue'
 
 export default {
   name: 'Microservices',

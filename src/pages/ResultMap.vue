@@ -1,9 +1,9 @@
 <script>
 
-import ResultsSidePanel from '../components/ResultsSidePanel.vue'
-import MapResults from '../components/MapResults.vue'
-import ResultsSettings from '../components/ResultsSettings.vue'
-import MapLegend from '../components/utils/MapLegend.vue'
+import ResultsSidePanel from '@comp/results/ResultsSidePanel.vue'
+import MapResults from '@comp/results/MapResults.vue'
+import ResultsSettings from '@comp/results/ResultsSettings.vue'
+import MapLegend from '@comp/utils/MapLegend.vue'
 
 export default {
   name: 'ResultMap',

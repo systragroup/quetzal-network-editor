@@ -45,7 +45,7 @@ export default {
     handleClickMenuItem (route) {
       switch (route.name) {
         case 'Export':
-          this.$store.commit('exportFiles', 'all')
+          this.$store.dispatch('exportFiles', 'all')
           break
         case 'Save':
           this.saving = true

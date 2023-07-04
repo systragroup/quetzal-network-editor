@@ -1,10 +1,10 @@
 <!-- eslint-disable no-multi-str -->
 <!-- eslint-disable no-return-assign -->
 <script>
-import SidePanel from '../components/SidePanel.vue'
-import Map from '../components/Map.vue'
-import ColorPicker from '../components/utils/ColorPicker.vue'
-import { getGroupForm } from '../components/utils/utils.js'
+import SidePanel from '@comp/map/SidePanel.vue'
+import Map from '@comp/map/Map.vue'
+import ColorPicker from '@comp/utils/ColorPicker.vue'
+import { getGroupForm } from '@comp/utils/utils.js'
 
 // only used to force to see translation to vue-gettext
 const $gettext = s => s

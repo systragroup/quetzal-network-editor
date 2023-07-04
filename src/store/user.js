@@ -13,7 +13,6 @@ export default {
     scenariosList: [],
     model: null,
     scenario: null,
-    config: {},
     rasterLayers: [],
     rasterFiles: [],
   },
@@ -21,7 +20,6 @@ export default {
     unloadProject (state) {
       state.model = null
       state.scenario = null
-      state.config = {}
       state.rasterLayers = []
       state.rasterFiles = []
     },
@@ -56,9 +54,6 @@ export default {
     setScenario (state, payload) {
       state.scenario = payload
     },
-    setConfig (state, payload) {
-      state.config = payload
-    },
     setRasterLayers (state, payload) {
       state.rasterLayers = payload
     },
@@ -71,10 +66,6 @@ export default {
     async getScenario ({ commit, state, dispatch }, payload) {
       const res = await s3.getScenario(payload.model)
       commit('setScenariosList', res)
-    },
-    async getConfig ({ commit, state }) {
-      const resp = await s3.readJson(state.model, 'quenedi.config.json')
-      commit('setConfig', resp)
     },
 
   },
@@ -89,8 +80,7 @@ export default {
     scenariosList: (state) => state.scenariosList,
     model: (state) => state.model,
     scenario: (state) => state.scenario,
-    config: (state) => state.config,
-    protected: (state) => state.config.protected ? state.config.protected : [],
+    protected: (state) => ['base'],
     rasterLayers: (state) => state.rasterLayers,
     rasterFiles: (state) => state.rasterFiles,
   },

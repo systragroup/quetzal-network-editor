@@ -20,9 +20,16 @@ export default {
   },
   watch: {
     err (val) {
-      if (Object.keys(val).length > 0) {
+      if (val.name) {
         this.sheet = true
-      } else { this.sheet = false }
+        console.error(val)
+      }
+    },
+  },
+  methods: {
+    close () {
+      this.$store.commit('changeAlert', {})
+      this.sheet = !this.sheet
     },
   },
 }
@@ -47,13 +54,13 @@ export default {
                   ERROR: {{ err.name }}
                 </h2>
                 <p>
-                  {{ err }}
+                  {{ err.message }}
                 </p>
               </v-col>
               <v-col class="shrink">
                 <v-btn
                   icon
-                  @click="sheet = !sheet"
+                  @click="close"
                 >
                   <v-icon>
                     fas fa-times

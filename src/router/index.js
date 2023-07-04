@@ -1,13 +1,15 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Import from '@page/Import.vue'
-import ResultPicture from '@page/ResultPicture.vue'
+
 import auth from '../auth'
 import Home from '@page/Home.vue'
-import Run from '@page/Run.vue'
-import ResultMap from '@page/ResultMap.vue'
-import Microservices from '@page/Microservices.vue'
 import { store } from '../store/index.js'
+const Microservices = () => import('@page/Microservices.vue')
+const ResultMap = () => import('@page/ResultMap.vue')
+const Run = () => import('@page/Run.vue')
+const ResultPicture = () => import('@page/ResultPicture.vue')
+const basePath = process.env.VUE_APP_BASE_PATH
 
 Vue.use(Router)
 
@@ -17,7 +19,7 @@ const $gettext = s => s
 const router = new Router({
   linkExactActiveClass: 'active',
   mode: 'history',
-  base: '/quetzal-network-editor/',
+  base: basePath,
   routes: [
     {
       path: '/',
@@ -59,10 +61,10 @@ const router = new Router({
       icon: 'fa-solid fa-play',
       title: $gettext('Parameters and Run'),
       beforeEnter: (to, from, next) => {
-        if (store.getters.scenario === null) {
+        if (store.getters['run/parametersIsEmpty']) {
           store.commit('changeNotification',
             {
-              text: $gettext('A scenario must be loaded to enter this page'),
+              text: $gettext('you need parameters to enter this page'),
               autoClose: true,
               color: 'error',
             })

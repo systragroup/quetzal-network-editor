@@ -90,6 +90,22 @@ export default {
       state.tripId = []
       state.selectedTrips = []
     },
+    appendNewLinks (state, payload) {
+      // append new links and node to the project (import page)
+      payload.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+        points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+      payload.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+        coord => Math.round(Number(coord) * 1000000) / 1000000))
+
+      // state.links.features.push(...payload.links.features) will crash with large array (stack size limit)
+      payload.links.features.forEach(link => state.links.features.push(link))
+      payload.nodes.features.forEach(node => state.nodes.features.push(node))
+      this.commit('applyPropertiesTypes')
+      this.commit('getLinksProperties')
+      this.commit('getNodesProperties')
+      this.commit('getTripId')
+      this.commit('changeSelectedTrips', state.tripId)
+    },
 
     getLinksProperties (state) {
       let header = new Set([])
@@ -131,7 +147,6 @@ export default {
     },
     deletePropertie (state, payload) {
       // when a link property is deleted
-      console.log(payload)
       if (payload.table === 'links') {
         state.links.features.filter(link => delete link.properties[payload.name])
         state.editorLinks.features.filter(link => delete link.properties[payload.name])
@@ -619,23 +634,6 @@ export default {
           }
         },
       )
-    },
-
-    appendNewLinks (state, payload) {
-      // append new links and node to the project (import page)
-      payload.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-        points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-      payload.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-        coord => Math.round(Number(coord) * 1000000) / 1000000))
-
-      // state.links.features.push(...payload.links.features) will crash with large array (stack size limit)
-      payload.links.features.forEach(link => state.links.features.push(link))
-      payload.nodes.features.forEach(node => state.nodes.features.push(node))
-      this.commit('applyPropertiesTypes')
-      this.commit('getLinksProperties')
-      this.commit('getNodesProperties')
-      this.commit('getTripId')
-      this.commit('changeSelectedTrips', state.tripId)
     },
 
     editGroupInfo (state, payload) {
