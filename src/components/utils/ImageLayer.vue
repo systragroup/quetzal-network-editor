@@ -22,7 +22,6 @@ export default {
   async created () {
     const url = await s3.getImagesURL(this.$store.getters.model, 'test/inputs/test.png')
     this.url = url
-    console.log(url)
   },
 
   methods: {

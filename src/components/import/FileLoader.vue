@@ -65,7 +65,6 @@ export default {
       this.$store.commit('changeLoading', true)
       const fileList = []
       const files = event.target.files
-      console.log(files)
       for (const file of files) {
         const name = 'inputs/' + file.name
         try {

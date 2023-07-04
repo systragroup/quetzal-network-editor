@@ -147,7 +147,6 @@ export default {
     },
     deletePropertie (state, payload) {
       // when a link property is deleted
-      console.log(payload)
       if (payload.table === 'links') {
         state.links.features.filter(link => delete link.properties[payload.name])
         state.editorLinks.features.filter(link => delete link.properties[payload.name])

@@ -20,7 +20,6 @@ export default {
   },
 
   mounted () {
-    console.log(this.loadedFiles)
   },
 }
 </script>

@@ -123,7 +123,6 @@ export default {
       this.$store.commit('run/getLocalParameters', params)
     },
     loadOutputs (files, source) {
-      console.log(files)
       this.$store.commit('loadLayers', { files: files, name: source })
     },
     loadOtherInputs (files, source) {
@@ -158,7 +157,6 @@ export default {
         const ptFiles = files.filter(file => ['links', 'nodes'].includes(file?.type))
         const roadFiles = files.filter(file => ['road_links', 'road_nodes'].includes(file?.type))
         if (ptFiles.length % 2 !== 0) {
-          console.log(ptFiles.length)
           const err = new Error($gettext('Need the same number of links and nodes files.'))
           err.name = 'ImportError'
           throw err
@@ -184,7 +182,6 @@ export default {
             'road')
         }
         // load params
-        console.log(files)
         const params = files.filter(file => file.type === 'params')
         if (params.length > 0) {
           this.loadParams(params[0].data)
@@ -202,41 +199,56 @@ export default {
       }
     },
 
-    async loadFilesFromS3 (path) {
+    async loadFilesFromS3 () {
       if (!this.projectIsEmpty) {
         this.$store.commit('initNetworks')
         this.$store.commit('unloadLayers')
       }
       this.$store.commit('changeLoading', true)
       this.$router.replace({ query: null }) // remove query in url when page is load.
+
+      const model = this.$store.getters.model
+      const scen = this.$store.getters.scenario + '/'
+      const inputFolder = scen + 'inputs/'
+      const outputFolder = scen + 'outputs/'
+      const ptFolder = inputFolder + 'pt/'
+      const roadFolder = inputFolder + 'road/'
+      const rasterFolder = inputFolder + 'raster/'
+
+      const paths = {
+        links: ptFolder + 'links.geojson',
+        nodes: ptFolder + 'nodes.geojson',
+        rlinks: roadFolder + 'road_links.geojson',
+        rnodes: roadFolder + 'road_nodes.geojson',
+        params: scen + '/inputs/params.json',
+      }
       let links = {}
       let nodes = {}
-      const scen = this.$store.getters.scenario + '/'
-      const model = this.$store.getters.model
       try {
-        let filesNames = await s3.listFiles(model, scen + path.network_paths.links)
+        const filesList = await s3.listFiles(model, scen)
+        // get PT Network
+        let filesNames = filesList.filter(name => name.startsWith(ptFolder))
         if (filesNames.length > 0) {
-          links = await s3.readJson(model, scen + path.network_paths.links)
-          nodes = await s3.readJson(model, scen + path.network_paths.nodes)
+          links = await s3.readJson(model, paths.links)
+          nodes = await s3.readJson(model, paths.nodes)
           this.loadNetwork(
-            serializer(links, path.network_paths.links, 'LineString'),
-            serializer(nodes, path.network_paths.nodes, 'Point'),
+            serializer(links, paths.links, 'LineString'),
+            serializer(nodes, paths.nodes, 'Point'),
             'PT')
         }
-        filesNames = await s3.listFiles(model, scen + path.network_paths.rlinks)
-        console.log(filesNames)
+        // get Road Network
+        filesNames = filesList.filter(name => name.startsWith(roadFolder))
         if (filesNames.length > 0) {
-          links = await s3.readJson(model, scen + path.network_paths.rlinks)
-          nodes = await s3.readJson(model, scen + path.network_paths.rnodes)
+          links = await s3.readJson(model, paths.rlinks)
+          nodes = await s3.readJson(model, paths.rnodes)
           this.loadNetwork(
-            serializer(links, path.network_paths.rlinks, 'LineString'),
-            serializer(nodes, path.network_paths.rnodes, 'Point'),
+            serializer(links, paths.rlinks, 'LineString'),
+            serializer(nodes, paths.rnodes, 'Point'),
             'road')
         }
         // then load results layers.
-        filesNames = await s3.listFiles(model, scen + path.output_paths)
-        filesNames = filesNames.filter(name => !name.endsWith('/'))
-        filesNames = filesNames.filter(name => !name.endsWith('.png'))
+        filesNames = filesList.filter(name => name.startsWith(outputFolder))
+        filesNames = filesNames.filter(name => name.endsWith('.json') || name.endsWith('.geojson'))
         const files = []
         for (const file of filesNames) {
           const content = await s3.readJson(model, file)
@@ -246,7 +258,7 @@ export default {
         if (filesNames.length > 0) this.loadOutputs(files, 'db')
 
         // load rasters (static geojson layers.)
-        filesNames = await s3.listFiles(model, scen + path.raster_path)
+        filesNames = filesList.filter(name => name.startsWith(rasterFolder))
         filesNames = filesNames.filter(name => name.endsWith('.geojson'))
         const rasterFiles = []
         for (const file of filesNames) {
@@ -256,8 +268,28 @@ export default {
         }
         this.$store.commit('setRasterFiles', rasterFiles)
 
-        this.loggedIn = true
-        this.login()
+        // add others inputs (and outputs pngs.) to the list of loaded Files
+        filesNames = filesList.filter(name => name.startsWith(inputFolder))
+        filesNames = filesNames.filter(name => !name.startsWith(ptFolder))
+        filesNames = filesNames.filter(name => !name.startsWith(roadFolder))
+        filesNames = filesNames.filter(name => !name.endsWith('params.json'))
+        const otherFiles = []
+        for (const file of filesNames) {
+          const name = file.slice(scen.length) // remove scen name from file
+          // provide no data. we will fetch it on S3 when we download.
+          otherFiles.push({ data: null, fileName: name, type: 'other' })
+        }
+        // add others inputs (and outputs pngs.) to the list of loaded Files
+        filesNames = filesList.filter(name => name.startsWith(outputFolder))
+        filesNames = filesNames.filter(name => !(name.endsWith('.json') || name.endsWith('.geojson')))
+        for (const file of filesNames) {
+          const name = file.slice(scen.length) // remove scen name from file
+          otherFiles.push({ data: null, fileName: name, type: 'other' })
+        }
+        this.$store.commit('loadOtherFiles', { files: otherFiles, source: 'db' })
+
+        // this.loggedIn = true
+        // this.login()
         this.$store.commit('changeLoading', false)
       } catch (err) {
         this.$store.commit('changeAlert', err)

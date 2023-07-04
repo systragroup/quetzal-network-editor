@@ -25,7 +25,7 @@ export default {
       input: '',
       deleteDialog: false,
       loading: false,
-      localConfig: { protected: ['base'] },
+      protectedScens: ['base'],
 
     }
   },
@@ -33,12 +33,12 @@ export default {
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     loggedIn () { return this.$store.getters.loggedIn },
     scenariosList () {
-      // sort by alphabetical order, with protected one one top
+      // sort by alphabetical order, with protectedScens one one top
       const arr = this.$store.getters.scenariosList
       return arr.sort((a, b) => {
-        if (this.localConfig.protected.includes(a.scenario)) {
+        if (this.protectedScens.includes(a.scenario)) {
           return -1 // `a` comes before `b`
-        } else if (this.localConfig.protected.includes(b.scenario)) {
+        } else if (this.protectedScens.includes(b.scenario)) {
           return 1 // `b` comes before `a`
         } else {
           // default sorting, not case sensitive!
@@ -59,11 +59,11 @@ export default {
     async localModel (val) {
       this.$store.commit('setScenariosList', [])
       this.loading = true
-      try {
-        this.localConfig = await s3.readJson(val, 'quenedi.config.json')
-      } catch (err) {
-        // not an error.
-      }
+      // try {
+      //  this.localConfig = await s3.readJson(val, 'quenedi.config.json')
+      // } catch (err) {
+      // not an error.
+      // }
 
       await this.$store.dispatch('getScenario', { model: val })
       this.loading = false
@@ -89,13 +89,12 @@ export default {
       this.$store.commit('run/cleanRun')
       this.$store.commit('setModel', this.localModel)
       this.$store.commit('setScenario', this.localScen)
-      await this.$store.dispatch('getConfig')
       await this.$store.dispatch('run/getParameters', {
         model: this.localModel,
-        path: this.localScen + '/' + this.$store.getters.config.parameters_path,
+        path: this.localScen + '/inputs/params.json',
       })
 
-      this.$router.push({ name: 'Import', query: { s3Path: this.$store.getters.config } })
+      this.$router.push({ name: 'Import', query: { s3Path: this.localModel } })
       this.menu = false
     },
 
@@ -142,8 +141,8 @@ export default {
           } else {
             // this is a new project
             // copy the parameters file from Base. this will create a new project .
-            const base = this.localConfig.protected[0]
-            await s3.copyFolder(this.localModel, base + '/' + this.localConfig.parameters_path, this.input)
+            const base = this.protectedScens[0]
+            await s3.copyFolder(this.localModel, base + '/inputs/params.json', this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
           }
@@ -227,7 +226,7 @@ export default {
           </v-btn>
           <v-btn
             icon
-            :disabled="(scen.model+scen.scenario===modelScen) || (localConfig.protected.includes(scen.scenario))"
+            :disabled="(scen.model+scen.scenario===modelScen) || (protectedScens.includes(scen.scenario))"
             class="ma-1"
             @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
           >
@@ -235,7 +234,7 @@ export default {
               small
               color="grey"
             >
-              {{ localConfig.protected.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
+              {{ protectedScens.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
             </v-icon>
           </v-btn>
         </v-list-item>

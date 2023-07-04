@@ -245,7 +245,7 @@ export default {
         <v-list>
           <v-list-item
             link
-            @click="$store.commit('exportFiles')"
+            @click="$store.dispatch('exportFiles')"
           >
             <v-list-item-title>
               {{ $gettext("Export All") }}
@@ -253,7 +253,7 @@ export default {
           </v-list-item>
           <v-list-item
             link
-            @click="$store.commit('exportFiles','visibles')"
+            @click="$store.dispatch('exportFiles','visibles')"
           >
             <v-list-item-title>
               {{ $gettext("Export Only Visible") }}

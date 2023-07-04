@@ -51,6 +51,7 @@ export const store = new Vuex.Store({
       state.notification = payload
     },
     changeAlert (state, payload) {
+      /// payload {name,message}, or just alert
       state.alert = payload
     },
     changeDarkMode (state, payload) {
@@ -147,14 +148,16 @@ export const store = new Vuex.Store({
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
     },
 
-    exportFiles (state, payload = 'all') {
+  },
+  actions: {
+    async exportFiles ({ state, commit }, payload = 'all') {
       const zip = new JSZip()
       let links = ''
       let nodes = ''
       let rlinks = ''
       let rnodes = ''
       // export only visible line (line selected)
-      this.commit('applyPropertiesTypes')
+      commit('applyPropertiesTypes')
       if (payload !== 'all') {
         const tempLinks = structuredClone(state.links.links)
         tempLinks.features = tempLinks.features.filter(
@@ -203,7 +206,6 @@ export const store = new Vuex.Store({
           x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         staticLayers.forEach(layer => {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
-          console.log(layer)
           const name = layer + '.geojson'
           // zip name = layer.replace('/', '_') + '.geojson'
           zip.file(name, blob)
@@ -214,7 +216,11 @@ export const store = new Vuex.Store({
           }
         })
 
-        state.otherFiles.forEach(file => {
+        for (const file of state.otherFiles) {
+          // if others file loaded from S3 (they are not loaded yet. need to download them.)
+          if (file.data == null && state.user.model !== null) {
+            file.data = await s3.readBytes(state.user.model, state.user.scenario + '/' + file.fileName)
+          }
           if (file.data instanceof Uint8Array) {
             const blob = new Blob([file.data]) // { type: 'text/csv' }
             zip.file(file.fileName, blob)
@@ -222,17 +228,15 @@ export const store = new Vuex.Store({
             const blob = new Blob([JSON.stringify(file.data)], { type: 'application/json' })
             zip.file(file.fileName, blob)
           }
-        })
+        }
       }
-
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
           saveAs(content, state.outputName + '.zip')
         })
     },
-  },
-  actions: {
+
     async exportToS3 ({ state, commit }, payload) {
       if (payload !== 'saveOnly') {
         commit('run/changeRunning', true)
@@ -240,18 +244,37 @@ export const store = new Vuex.Store({
       this.commit('applyPropertiesTypes')
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
-      const networkPaths = state.user.config.network_paths
-      const paramsPath = state.user.config.parameters_path
+      const inputFolder = scen + 'inputs/'
+      const outputFolder = scen + 'outputs/'
+      const ptFolder = inputFolder + 'pt/'
+      const roadFolder = inputFolder + 'road/'
+      const paths = {
+        links: ptFolder + 'links.geojson',
+        nodes: ptFolder + 'nodes.geojson',
+        rlinks: roadFolder + 'road_links.geojson',
+        rnodes: roadFolder + 'road_nodes.geojson',
+        params: scen + 'inputs/params.json',
+      }
       if (state.run.parameters.length > 0) {
-        await s3.putObject(bucket, scen + paramsPath, JSON.stringify(state.run.parameters))
+        await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
       }
       if (state.links.links.features.length > 0) {
-        await s3.putObject(bucket, scen + networkPaths.links, JSON.stringify(state.links.links))
-        await s3.putObject(bucket, scen + networkPaths.nodes, JSON.stringify(state.links.nodes))
+        await s3.putObject(bucket, paths.links, JSON.stringify(state.links.links))
+        await s3.putObject(bucket, paths.nodes, JSON.stringify(state.links.nodes))
       }
       if (state.rlinks.rlinks.features.length > 0) {
-        await s3.putObject(bucket, scen + networkPaths.rlinks, JSON.stringify(state.rlinks.rlinks))
-        await s3.putObject(bucket, scen + networkPaths.rnodes, JSON.stringify(state.rlinks.rnodes))
+        await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
+        await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      }
+      for (const file of state.otherFiles) {
+        // if others file loaded from S3 (they are not loaded yet. need to download them.)
+        if (file.data == null) {
+          // pass
+        } else if (file.data instanceof Uint8Array) {
+          await s3.putObject(bucket, scen + file.fileName, file.data)
+        } else {
+          await s3.putObject(bucket, scen + file.fileName, JSON.stringify(file.data))
+        }
       }
       // console.log(res)
       // commit('setScenariosList', res)
