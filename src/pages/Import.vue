@@ -225,7 +225,8 @@ export default {
       let links = {}
       let nodes = {}
       try {
-        const filesList = await s3.listFiles(model, scen)
+        let filesList = await s3.listFiles(model, scen)
+        filesList = filesList.filter(name => !name.endsWith('/'))
         // get PT Network
         let filesNames = filesList.filter(name => name.startsWith(ptFolder))
         if (filesNames.length > 0) {
