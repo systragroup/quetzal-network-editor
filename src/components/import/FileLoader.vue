@@ -336,13 +336,13 @@ export default {
       <div class="container">
         <v-icon
           class="type-icon"
-          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+          :style="{'opacity': paramsIsEmpty? '0.50':'1'}"
         >
           fas fa-cog
         </v-icon>
         <div
           class="subtitle"
-          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+          :style="{'opacity': paramsIsEmpty? '0.50':'1'}"
         >
           {{ $gettext('Parameters') }}
           <v-icon
