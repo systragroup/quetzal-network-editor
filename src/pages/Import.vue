@@ -4,14 +4,14 @@ import s3 from '../AWSClient'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import { serializer } from '../components/utils/serializer.js'
 import FileLoader from '@comp/import/FileLoader.vue'
-
+import InfoZip from '@comp/import/InfoZip.vue'
 const $gettext = s => s
 
 export default {
   name: 'Import',
   components: {
     FileLoader,
-
+    InfoZip,
   },
 
   data () {
@@ -19,7 +19,6 @@ export default {
       loggedIn: false,
       choice: null,
       showDialog: false,
-
       filesAdded: false,
     }
   },
@@ -395,43 +394,30 @@ export default {
                 {{ $gettext("Continue Without Project") }}
               </div>
               <div>
-                {{ $gettext("Start importing files individually ") }}
+                {{ $gettext("Start importing files individually or start with an empty project") }}
               </div>
               <div class="subtitle">
                 {{ $gettext("OR") }}
               </div>
               <div class="title">
                 {{ $gettext("Load Zip") }}
+                <InfoZip />
               </div>
-              <v-tooltip
-                bottom
-                open-delay="500"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    v-bind="attrs"
-                    :color="'normal'"
-                    v-on="on"
-                    @click="buttonHandle('zip')"
+              <div>
+                <v-btn
+                  :style="{'margin-right':'auto'}"
+                  :color="'normal'"
+                  @click="buttonHandle('zip')"
+                >
+                  <v-icon
+                    small
+                    left
                   >
-                    <v-icon
-                      small
-                      left
-                    >
-                      fas fa-file-archive
-                    </v-icon>
-                    {{ $gettext('Load Zip File') }}
-                  </v-btn>
-                </template>
-                <span>{{ $gettext("Load zip files containing") }}</span>
-                <br>
-                <span>{{ $gettext("inputs/pt/ nodes.geojson and links.geojson") }}</span>
-                <br>
-                <span>{{ $gettext("inputs/road/ road_nodes.geojson and road_links.geojson") }}</span>
-                <br>
-                <span>{{ $gettext("outputs/ anything") }}</span>
-              </v-tooltip>
-
+                    fas fa-file-archive
+                  </v-icon>
+                  {{ $gettext('Load Zip File') }}
+                </v-btn>
+              </div>
               <div class="subtitle">
                 {{ $gettext("OR") }}
               </div>
@@ -572,12 +558,13 @@ export default {
   overflow-y:hidden;
   padding: 20px;
 }
-.col{
-  margin:1em;
+.button-question{
+  display: flex;
+  align-items: center ;
+
 }
 .title {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: 2em !important;
@@ -601,4 +588,5 @@ export default {
   opacity: 0;
   transition: 1s;
 }
+
 </style>

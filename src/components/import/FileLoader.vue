@@ -208,16 +208,23 @@ export default {
         @change="readOtherOutputs"
       >
       <div class="container">
-        <v-icon class="type-icon">
+        <v-icon
+          class="type-icon"
+          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+        >
           fas fa-project-diagram
         </v-icon>
-        <div class="subtitle">
+        <div
+          class="subtitle"
+          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+        >
           {{ $gettext('PT Network') }}
           <v-icon
+            v-if="!linksIsEmpty"
             class="check-icon"
-            :color="linksIsEmpty? 'warning':'success'"
+            color="success"
           >
-            {{ linksIsEmpty? 'fas fa-times':'fas fa-check' }}
+            fas fa-check
           </v-icon>
         </div>
 
@@ -263,16 +270,23 @@ export default {
         </div>
       </div>
       <div class="container">
-        <v-icon class="type-icon">
+        <v-icon
+          class="type-icon"
+          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+        >
           fas fa-project-diagram
         </v-icon>
-        <div class="subtitle">
+        <div
+          class="subtitle"
+          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+        >
           {{ $gettext('Road Network') }}
           <v-icon
+            v-if="!rlinksIsEmpty"
             class="check-icon"
-            :color="rlinksIsEmpty? 'warning':'success'"
+            color="success"
           >
-            {{ rlinksIsEmpty? 'fas fa-times':'fas fa-check' }}
+            fas fa-check
           </v-icon>
         </div>
 
@@ -320,16 +334,23 @@ export default {
         </div>
       </div>
       <div class="container">
-        <v-icon class="type-icon">
+        <v-icon
+          class="type-icon"
+          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+        >
           fas fa-cog
         </v-icon>
-        <div class="subtitle">
+        <div
+          class="subtitle"
+          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+        >
           {{ $gettext('Parameters') }}
           <v-icon
+            v-if="!paramsIsEmpty"
             class="check-icon"
-            :color="paramsIsEmpty? 'warning':'success'"
+            color="success"
           >
-            {{ paramsIsEmpty? 'fas fa-times':'fas fa-check' }}
+            fas fa-check
           </v-icon>
         </div>
 
@@ -384,6 +405,5 @@ export default {
   flex:2;
   font-size: 1.5em;
   font-weight: bold;
-
 }
 </style>
