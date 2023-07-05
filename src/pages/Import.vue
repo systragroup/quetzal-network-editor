@@ -4,6 +4,7 @@ import s3 from '../AWSClient'
 import { extractZip, IndexAreDifferent, unzip, classFile } from '../components/utils/utils.js'
 import { serializer } from '../components/utils/serializer.js'
 import FileLoader from '@comp/import/FileLoader.vue'
+import ZipModal from '@comp/import/ZipModal.vue'
 
 const $gettext = s => s
 
@@ -11,7 +12,7 @@ export default {
   name: 'Import',
   components: {
     FileLoader,
-
+    ZipModal,
   },
 
   data () {
@@ -19,7 +20,6 @@ export default {
       loggedIn: false,
       choice: null,
       showDialog: false,
-
       filesAdded: false,
     }
   },
@@ -395,7 +395,7 @@ export default {
                 {{ $gettext("Continue Without Project") }}
               </div>
               <div>
-                {{ $gettext("Start importing files individually ") }}
+                {{ $gettext("Start importing files individually or start with an empty project") }}
               </div>
               <div class="subtitle">
                 {{ $gettext("OR") }}
@@ -423,13 +423,7 @@ export default {
                     {{ $gettext('Load Zip File') }}
                   </v-btn>
                 </template>
-                <span>{{ $gettext("Load zip files containing") }}</span>
-                <br>
-                <span>{{ $gettext("inputs/pt/ nodes.geojson and links.geojson") }}</span>
-                <br>
-                <span>{{ $gettext("inputs/road/ road_nodes.geojson and road_links.geojson") }}</span>
-                <br>
-                <span>{{ $gettext("outputs/ anything") }}</span>
+                <ZipModal />
               </v-tooltip>
 
               <div class="subtitle">
