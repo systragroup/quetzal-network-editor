@@ -61,6 +61,11 @@ nodes properties (except index) are not typed.
 
 Any other properties in the table will be editable
 
+## Cloud Infrastructure
+![quenedi](https://github.com/systragroup/quetzal-network-editor/assets/79281989/933ccd46-9d69-4c95-bdb7-e1fc5c58a73d)
+
+
+
 ## Developement Setup 
 
 Get the SALT and PASSWORD from your team members
@@ -88,6 +93,9 @@ yarn run i18n-compile
 
 # serve with hot reload at localhost:8080
 yarn run start
+
+# build for for dev deployment (https://github.com/systragroup/quetzal-network-editor-dev)
+yarn run build-test
 
 # build for production with minification
 yarn run build
