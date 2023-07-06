@@ -78,6 +78,31 @@ export const store = new Vuex.Store({
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
     },
+
+    loadFiles (state, payload) {
+      // payload: res.push({ path: /inputs/pt/links.geojson, content: Array() | null })
+
+      for (const files of payload) {
+        console.log(files)
+
+        // inputs/pt/
+
+        // inputs/road/
+
+        // inputs/params.json
+
+        // inputs/raster/
+
+        // inputs OTHERS
+
+        // outputs/ .GEOJSON
+
+        // outputs/ .json
+
+      // outputs/ OTHERS
+      }
+    },
+
     addFile (state, payload) {
       // payload = { name: , source: source, type: }
       state.loadedFiles.push(payload)

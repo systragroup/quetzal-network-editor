@@ -221,11 +221,60 @@ export default {
         rnodes: roadFolder + 'road_nodes.geojson',
         params: scen + '/inputs/params.json',
       }
+      const res = []
+      try {
+        let filesList = await s3.listFiles(model, scen)
+        filesList = filesList.filter(name => !name.endsWith('/'))
+        console.log(filesList)
+        for (const file of filesList) {
+          const name = file.slice(scen.length) // remove scen name from file
+          if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
+            // pass
+          } else if (file.endsWith('.json') || file.endsWith('.geojson')) {
+            const content = await s3.readJson(model, file)
+            res.push({ path: name, content: content })
+          } else {
+            res.push({ path: name, content: null })
+          }
+        }
+        console.log(res)
+        this.$store.commit('loadFiles', res)
+        this.$store.commit('changeLoading', false)
+      } catch (err) {
+        this.$store.commit('changeAlert', err)
+        this.$store.commit('changeLoading', false)
+      }
+    },
+
+    async OLDloadFilesFromS3 () {
+      if (!this.projectIsEmpty) {
+        this.$store.commit('initNetworks')
+        this.$store.commit('unloadLayers')
+      }
+      this.$store.commit('changeLoading', true)
+      this.$router.replace({ query: null }) // remove query in url when page is load.
+
+      const model = this.$store.getters.model
+      const scen = this.$store.getters.scenario + '/'
+      const inputFolder = scen + 'inputs/'
+      const outputFolder = scen + 'outputs/'
+      const ptFolder = inputFolder + 'pt/'
+      const roadFolder = inputFolder + 'road/'
+      const rasterFolder = inputFolder + 'raster/'
+
+      const paths = {
+        links: ptFolder + 'links.geojson',
+        nodes: ptFolder + 'nodes.geojson',
+        rlinks: roadFolder + 'road_links.geojson',
+        rnodes: roadFolder + 'road_nodes.geojson',
+        params: scen + '/inputs/params.json',
+      }
       let links = {}
       let nodes = {}
       try {
         let filesList = await s3.listFiles(model, scen)
         filesList = filesList.filter(name => !name.endsWith('/'))
+        console.log(filesList)
         // get PT Network
         let filesNames = filesList.filter(name => name.startsWith(ptFolder))
         if (filesNames.length > 0) {
