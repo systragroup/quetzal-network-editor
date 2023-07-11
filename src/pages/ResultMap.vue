@@ -72,28 +72,28 @@ export default {
         case 'links':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.links,
-            type: 'links',
+            type: 'LineString',
             selectedFeature: 'headway',
           })
           break
         case 'rlinks':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.rlinks,
-            type: 'links',
+            type: 'LineString',
             selectedFeature: 'speed',
           })
           break
         case 'nodes':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.nodes,
-            type: 'nodes',
+            type: 'Point',
             selectedFeature: 'boardings',
           })
           break
         case 'rnodes':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.rnodes,
-            type: 'nodes',
+            type: 'Point',
             selectedFeature: 'boardings',
           })
           break

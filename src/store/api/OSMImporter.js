@@ -106,6 +106,7 @@ export default {
           overpassQuery: overpassQuery,
           tags: state.tags,
           callID: state.callID,
+          elevation: true,
         }),
         name: state.callID,
         stateMachineArn: state.stateMachineArn,
