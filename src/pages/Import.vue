@@ -225,7 +225,7 @@ export default {
       try {
         let filesList = await s3.listFiles(model, scen)
         filesList = filesList.filter(name => !name.endsWith('/'))
-        console.log(filesList)
+        // console.log(filesList)
         for (const file of filesList) {
           const name = file.slice(scen.length) // remove scen name from file
           if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {

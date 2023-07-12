@@ -80,18 +80,38 @@ export const store = new Vuex.Store({
     },
 
     loadFiles (state, payload) {
-      // payload: res.push({ path: /inputs/pt/links.geojson, content: Array() | null })
+      // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
+      let otherFiles = []
 
-      for (const files of payload) {
-        console.log(files)
+      const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/'))
+      otherFiles = payload.filter(el => !el.path.startsWith('inputs/pt/'))
+
+      const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/'))
+      otherFiles = otherFiles.filter(el => !el.path.startsWith('inputs/road/'))
+
+      const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/'))
+      otherFiles = otherFiles.filter(el => !el.path.startsWith('inputs/raster/'))
+      const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
+      const outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
+
+      for (const file of inputFiles) {
+        console.log(file)
 
         // inputs/pt/
+        // this.commit('appendNewLinks', { links: links, nodes: nodes })
 
         // inputs/road/
 
         // inputs/params.json
-
+        if (file.path === 'inputs/params.json') {
+          this.commit('run/getLocalParameters', file.content)
+        }
         // inputs/raster/
+
+        // inputs OTHERS
+      }
+      for (const file of outputFiles) {
+        console.log(file)
 
         // inputs OTHERS
 
@@ -99,7 +119,9 @@ export const store = new Vuex.Store({
 
         // outputs/ .json
 
-      // outputs/ OTHERS
+        // outputs/ OTHERS
+
+      // Finaly check if file exist. overwrite it
       }
     },
 
