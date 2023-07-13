@@ -8,7 +8,7 @@ import FilesList from '@comp/import/FilesList.vue'
 
 export default {
   name: 'FileLoader',
-  events: ['networkLoaded', 'parametersLoaded', 'outputsLoaded', 'otherLoaded'],
+  events: ['FilesLoaded'],
   components: {
     FilesList,
   },
@@ -37,7 +37,19 @@ export default {
 
     localFilesAreLoaded (val) {
       if (val) {
-        this.$emit('networkLoaded', { links: this.loadedLinks, nodes: this.loadedNodes, type: this.loadedType })
+        let files = []
+        if (this.loadedType === 'PT') {
+          files = [
+            { path: 'inputs/pt/links.geojson', content: this.loadedLinks },
+            { path: 'inputs/pt/nodes.geojson', content: this.loadedNodes },
+          ]
+        } else {
+          files = [
+            { path: 'inputs/road/links.geojson', content: this.loadedLinks },
+            { path: 'inputs/road/nodes.geojson', content: this.loadedNodes },
+          ]
+        }
+        this.$emit('networkLoaded', files)
         this.loadedLinks = {}
         this.loadedNodes = {}
         this.loadedType = ''
@@ -72,7 +84,7 @@ export default {
         const name = 'inputs/' + file.name
         try {
           const content = await readFileAsBytes(file)
-          fileList.push({ data: content, type: 'other', fileName: name })
+          fileList.push({ content: content, path: name })
           this.$store.commit('changeLoading', false)
         } catch (err) {
           this.$store.commit('changeLoading', false)
@@ -80,7 +92,7 @@ export default {
         }
       }
       this.$store.commit('changeLoading', false)
-      this.$emit('otherLoaded', fileList)
+      this.$emit('networkLoaded', fileList)
 
       // this.$store.commit('changeLoading', false)
     },
@@ -91,20 +103,14 @@ export default {
       const files = event.target.files
       for (const file of files) {
         const name = 'outputs/' + file.name
-        // type is other if not a json or geojson
-        let type = 'other'
-        if (file.name.endsWith('.geojson')) { type = 'result' }
-        if (file.name.endsWith('.json')) { type = 'matrix' }
-
         try {
-          // if not a geojson or a json. save as other.
-          if (type === 'other') {
-            const content = await readFileAsBytes(file)
-            fileList.push({ data: content, type: 'other', fileName: name })
-          } else {
+          if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
             let content = await readFileAsText(file)
             content = JSON.parse(content)
-            fileList.push({ data: content, type: type, fileName: name })
+            fileList.push({ content: content, path: name })
+          } else { // if not a geojson or a json. save as other.
+            const content = await readFileAsBytes(file)
+            fileList.push({ content: content, path: name })
           }
 
           this.$store.commit('changeLoading', false)
@@ -114,15 +120,16 @@ export default {
         }
       }
       this.$store.commit('changeLoading', false)
-      this.$emit('outputsLoaded', fileList)
+      this.$emit('networkLoaded', fileList)
     },
+
     async readParams (event) {
       this.$store.commit('changeLoading', true)
       const files = event.target.files
       try {
         let data = await readFileAsText(files[0])
         data = JSON.parse(data)
-        this.$emit('parametersLoaded', data)
+        this.$emit('networkLoaded', [{ path: 'inputs/params.json', content: data }])
         this.$store.commit('changeLoading', false)
       } catch (err) {
         this.$store.commit('changeLoading', false)
@@ -210,13 +217,13 @@ export default {
       <div class="container">
         <v-icon
           class="type-icon"
-          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+          :style="{'opacity': linksIsEmpty? '0.50':'1'}"
         >
           fas fa-project-diagram
         </v-icon>
         <div
           class="subtitle"
-          :style="{'opacity': rlinksIsEmpty? '0.50':'1'}"
+          :style="{'opacity': linksIsEmpty? '0.50':'1'}"
         >
           {{ $gettext('PT Network') }}
           <v-icon

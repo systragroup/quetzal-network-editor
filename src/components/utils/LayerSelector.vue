@@ -22,11 +22,11 @@ export default {
     selectedLayers (val) {
       const resp = []
       val.forEach(item => resp.push({ name: item, opacity: 0.5 }))
-      this.$store.commit('setRasterLayers', val)
+      this.$store.commit('setVisibleRasters', val)
     },
   },
   mounted () {
-    this.selectedLayers = this.$store.getters.rasterLayers
+    this.selectedLayers = this.$store.getters.visibleRasters
   },
 
   methods: {

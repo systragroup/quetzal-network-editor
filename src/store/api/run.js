@@ -1,6 +1,5 @@
 import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '@src/AWSClient'
-import { classFile } from '@src/components/utils/utils.js'
 const $gettext = s => s
 
 export default {
@@ -70,33 +69,26 @@ export default {
     },
     async getOutputs (context) {
       const model = context.rootState.user.model
-      const scenario = context.rootState.user.scenario + '/'
-      const path = scenario + 'outputs/'
-      const filesList = await s3.listFiles(model, path)
-      let filesNames = filesList.filter(name => name.endsWith('.json') || name.endsWith('.geojson'))
-      filesNames = filesNames.filter(name => name !== path)
+      const scen = context.rootState.user.scenario + '/'
+      const path = scen + 'outputs/'
+      let filesList = await s3.listFiles(model, path)
+      filesList = filesList.filter(name => !name.endsWith('/'))
+      const res = []
+      for (const file of filesList) {
+        const name = file.slice(scen.length) // remove scen name from file
+        if (file.endsWith('.json') || file.endsWith('.geojson')) {
+          const content = await s3.readJson(model, file)
+          res.push({ path: name, content: content })
+        } else {
+          res.push({ path: name, content: null })
+        }
+      }
 
-      const files = []
-      const otherFiles = []
-      for (const file of filesNames) {
-        const content = await s3.readJson(model, file)
-        const name = file.split('/').slice(1).join('/')
-        files.push(classFile(name, content))
-      }
-      filesNames = filesList.filter(name => !(name.endsWith('.json') || name.endsWith('.geojson')))
-      for (const file of filesNames) {
-        const name = file.slice(scenario.length) // remove scen name from file
-        otherFiles.push({ data: null, fileName: name, type: 'other' })
-      }
-      if (files.length > 0 || otherFiles.length > 0) {
-        // remove all results from the loadedFiles List
-        context.commit('removeResultsFiles', {}, { root: true })
+      if (res.length > 0) {
         // unload all results Layers
         context.commit('unloadLayers', {}, { root: true })
+        context.commit('loadFiles', res, { root: true })
         // load new Results
-        context.commit('loadLayers', { files: files, name: 'db' }, { root: true })
-        // load others outputs files
-        context.commit('loadOtherFiles', { files: otherFiles, source: 'db' })
       }
     },
     getSteps ({ state, commit, rootState }) {

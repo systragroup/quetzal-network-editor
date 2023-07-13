@@ -16,21 +16,21 @@ export default {
       state.type = state.layer.features[0].geometry.type
       // change Multipolygon to polygon type. just as they the same for mapbox and the app.
       state.type = state.type === 'MultiPolygon' ? 'Polygon' : state.type
-      Object.keys(payload.mat).forEach(
-        key => { state.mat[key + ' (OD)'] = payload.mat[key] })
+    },
+    addMatrix (state, payload) {
+      // payload is a matrix
+      Object.keys(payload).forEach(key => { state.mat[key + ' (OD)'] = payload[key] })
       state.properties = Object.keys(state.mat)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
-        // if init with nothing, do nothing.
-        if (state.layer.features.length > 0) {
-          // for each properties in matrix, init the zones to null.
-          state.properties.forEach(
-            prop =>
-              state.layer.features.forEach(
-                zone => zone.properties[prop] = null,
-              ),
-          )
-        }
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
+      // if init with nothing, do nothing.
+      if (state.layer.features.length > 0) {
+        // for each properties in matrix, init the zones to null.
+        state.properties.forEach(
+          prop =>
+            state.layer.features.forEach(
+              zone => zone.properties[prop] = null,
+            ),
+        )
+      }
     },
 
     changeZone (state, payload) {
