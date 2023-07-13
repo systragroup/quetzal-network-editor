@@ -4,7 +4,9 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
-
+import { serializer } from '@comp/utils/serializer.js'
+import { IndexAreDifferent } from '@comp/utils/utils.js'
+const $gettext = s => s
 const short = require('short-uuid')
 
 export default {
@@ -90,21 +92,53 @@ export default {
       state.tripId = []
       state.selectedTrips = []
     },
+    loadPTFiles (state, payload) {
+      // payload = [{path,content}, ...]
+      // get links. check that index are not duplicated, serialize them and then append to project
+      // get nodes. check that index are not duplicated, serialize them and then append to project
+
+      for (const file of payload) {
+        const currentType = file.content.features[0].geometry.type
+        if (currentType === 'LineString') {
+          if (IndexAreDifferent(file.content, state.links)) {
+            this.commit('appendNewLinks', serializer(file.content, file.path, currentType))
+          } else {
+            const err = new Error($gettext(' there is duplicated index, ') + file.path)
+            err.name = 'ImportError'
+            throw err
+          }
+        } else if (currentType === 'Point') {
+          if (IndexAreDifferent(file.content, state.nodes)) {
+            this.commit('appendNewNodes', serializer(file.content, file.path, currentType))
+          } else {
+            const err = new Error($gettext(' there is duplicated index, ') + file.path)
+            err.name = 'ImportError'
+            throw err
+          }
+        }
+      }
+    },
+
     appendNewLinks (state, payload) {
-      // append new links and node to the project (import page)
-      payload.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+      // append new links to the project. payload = links geojson file
+      payload.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-      payload.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-        coord => Math.round(Number(coord) * 1000000) / 1000000))
 
       // state.links.features.push(...payload.links.features) will crash with large array (stack size limit)
-      payload.links.features.forEach(link => state.links.features.push(link))
-      payload.nodes.features.forEach(node => state.nodes.features.push(node))
+      payload.features.forEach(link => state.links.features.push(link))
       this.commit('applyPropertiesTypes')
       this.commit('getLinksProperties')
-      this.commit('getNodesProperties')
       this.commit('getTripId')
       this.commit('changeSelectedTrips', state.tripId)
+    },
+    appendNewNodes (state, payload) {
+      // append new nodes to the project. payload = nodes geojson file
+      payload.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+        coord => Math.round(Number(coord) * 1000000) / 1000000))
+
+      payload.features.forEach(node => state.nodes.features.push(node))
+      this.commit('applyPropertiesTypes')
+      this.commit('getNodesProperties')
     },
 
     getLinksProperties (state) {

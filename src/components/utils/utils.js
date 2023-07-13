@@ -100,7 +100,7 @@ async function extractZip (file) {
   filesNames = filesNames.filter(name => !name.match(/^__MACOSX\//))
   filesNames = filesNames.filter(name => !name.endsWith('/'))
   // process ZIP file content here
-  const result = { zipName: file.name, files: [] }
+  const result = []
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
     let content = {}
@@ -110,7 +110,8 @@ async function extractZip (file) {
       content = await zip.file(filesNames[i]).async('uint8array')
     }
     // import with new fileStructure (inputs, outputs folder in zip)
-    result.files.push(classFile(filesNames[i], content))
+
+    result.push({ path: filesNames[i], content: content })
   }
   return result
 }
@@ -160,8 +161,6 @@ function createIndex (geojson, type, prefix) {
   }
 }
 
-function geojsonVerification (geojson, type) {}
-
 async function unzip (file) {
   // unzip a file and return a json (solo json zipped)
   const ZIP = new JSZip()
@@ -172,4 +171,4 @@ async function unzip (file) {
   return content
 }
 
-export { readFileAsText, readFileAsBytes, extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, geojsonVerification, unzip, classFile }
+export { readFileAsText, readFileAsBytes, extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, unzip, classFile }

@@ -16,6 +16,7 @@ import { serializer } from '../components/utils/serializer.js'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 Vue.use(Vuex)
+const $gettext = s => s
 
 export const store = new Vuex.Store({
   modules: {
@@ -42,8 +43,9 @@ export const store = new Vuex.Store({
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     availableLayers: ['links', 'rlinks', 'nodes', 'rnodes'],
-    loadedFiles: [],
-    otherFiles: [],
+    rasterFiles: [], // [{path, type}]
+    visibleRasters: [], // list of rasterFiles path.
+    otherFiles: [], // [{path, content}]
 
   },
   mutations: {
@@ -82,92 +84,102 @@ export const store = new Vuex.Store({
     loadFiles (state, payload) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
       let otherFiles = []
+      let outputFiles = []
 
-      const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/'))
-      otherFiles = payload.filter(el => !el.path.startsWith('inputs/pt/'))
+      const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
+      otherFiles = payload.filter(el => !ptFiles.includes(el))
 
-      const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/'))
-      otherFiles = otherFiles.filter(el => !el.path.startsWith('inputs/road/'))
+      const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
+      otherFiles = otherFiles.filter(el => !roadFiles.includes(el))
 
-      const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/'))
-      otherFiles = otherFiles.filter(el => !el.path.startsWith('inputs/raster/'))
+      const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/') && el.path.endsWith('.geojson'))
+      otherFiles = otherFiles.filter(el => !rasterFiles.includes(el))
+
+      const paramFile = otherFiles.filter(el => el.path === 'inputs/params.json')[0]
+      otherFiles = otherFiles.filter(el => el !== paramFile)
+
       const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
-      const outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
+      otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
 
-      for (const file of inputFiles) {
-        console.log(file)
+      outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
+      otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
 
-        // inputs/pt/
-        // this.commit('appendNewLinks', { links: links, nodes: nodes })
-
-        // inputs/road/
-
-        // inputs/params.json
-        if (file.path === 'inputs/params.json') {
-          this.commit('run/getLocalParameters', file.content)
-        }
-        // inputs/raster/
-
-        // inputs OTHERS
+      // PT files should be in pair of 2 (links and nodes)
+      if (ptFiles.length % 2 !== 0) {
+        const err = new Error($gettext('Need the same number of links and nodes files.'))
+        err.name = 'ImportError'
+        throw err
       }
-      for (const file of outputFiles) {
-        console.log(file)
+      // road files should be in pair of 2 (links and nodes)
+      if (roadFiles.length % 2 !== 0) {
+        const err = new Error($gettext('Need the same number of road_links and road_nodes files.'))
+        err.name = 'ImportError'
+        throw err
+      }
 
-        // inputs OTHERS
+      this.commit('loadPTFiles', ptFiles)
+      this.commit('loadRoadFiles', roadFiles)
+      this.commit('loadRasterFiles', rasterFiles)
+      if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
+      this.commit('loadOtherFiles', inputFiles)
 
-        // outputs/ .GEOJSON
+      // get outputs geojson files and create Layer with them.
+      const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
+      outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
+      this.commit('loadLayers', layerFiles)
 
-        // outputs/ .json
+      // get JSON files with the same name as Modules (they are matrix)
+      const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
+        state.availableLayers.includes(el.path.slice(0, -5)),
+      )
+      outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
 
-        // outputs/ OTHERS
+      this.commit('loadMatrix', matrixFiles)
+
+      // load the rest
+      this.commit('loadOtherFiles', outputFiles)
 
       // Finaly check if file exist. overwrite it
+    },
+
+    loadOtherFiles (state, payload) {
+      // payload = [{path, content, type}]
+      payload.forEach(file => state.otherFiles.push(file))
+    },
+
+    loadRasterFiles (state, payload) {
+      // payload = { path: , content:}
+      for (const file of payload) {
+        const type = file.content.features[0].geometry.type
+        state.rasterFiles.push({ path: file.path, type: type })
       }
     },
+    setVisibleRasters (state, payload) {
+      state.visibleRasters = payload
+    },
 
-    addFile (state, payload) {
-      // payload = { name: , source: source, type: }
-      state.loadedFiles.push(payload)
-    },
-    removeResultsFiles (state) {
-      state.loadedFiles = state.loadedFiles.filter(file => !file.name.startsWith('output'))
-    },
-    loadOtherFiles (state, payload) {
-      payload.files.forEach(file => {
-        state.otherFiles.push(file)
-        this.commit('addFile', { name: file.fileName, source: payload.source, type: 'other' })
-      })
-    },
-    applySettings (state, payload) {
-      state.links.linkSpeed = Number(payload.linkSpeed)
-      state.rlinks.roadSpeed = Number(payload.roadSpeed)
-      state.linksPopupContent = payload.linksPopupContent
-      state.roadsPopupContent = payload.roadsPopupContent
-      state.rlinks.defaultHighway = payload.defaultHighway
-      state.outputName = payload.outputName
-    },
     loadLayers (state, payload) {
-      payload.files.filter(file => (file?.type === 'result')).forEach(
+      payload.forEach(
         file => {
-          const fileName = file.fileName.slice(0, -8) // remove .geojson
-          let matData = payload.files.filter(json => json?.fileName.slice(0, -5) === fileName)[0]?.data
-          matData = matData || {}
-          const matDataExist = Object.keys(matData).length > 0
-
+          const fileName = file.path.slice(0, -8) // remove .geojson
+          // let matData = payload.files.filter(json => json?.fileName.slice(0, -5) === fileName)[0]?.data
           // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
-          file.data = serializer(file.data, file.fileName, null, !matDataExist)
-
-          this.commit('addFile', { name: file.fileName, source: payload.name, type: 'result' })
-          if (matDataExist) {
-            this.commit('addFile', { name: fileName + '.json', source: payload.name, type: 'matrix' })
-          }
+          file.content = serializer(file.content, file.path, null, false)
 
           this.commit('createLayer', {
             fileName: fileName,
-            data: file.data,
-            mat: matData,
+            data: file.content,
           })
         })
+    },
+    loadMatrix (state, payload) {
+      // payload : [{path,content}]
+      payload.forEach(
+        file => {
+          const moduleName = file.path.slice(0, -5)
+          this.commit(`${moduleName}/addMatrix`, file.content)
+        },
+      )
     },
 
     createLayer (state, payload) {
@@ -185,14 +197,23 @@ export const store = new Vuex.Store({
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
+      state.visibleRasters = []
+      state.rasterFiles = []
       state.otherFiles = []
-      state.loadedFiles = []
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
         x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
+    },
+    applySettings (state, payload) {
+      state.links.linkSpeed = Number(payload.linkSpeed)
+      state.rlinks.roadSpeed = Number(payload.roadSpeed)
+      state.linksPopupContent = payload.linksPopupContent
+      state.roadsPopupContent = payload.roadsPopupContent
+      state.rlinks.defaultHighway = payload.defaultHighway
+      state.outputName = payload.outputName
     },
 
   },
@@ -265,15 +286,15 @@ export const store = new Vuex.Store({
 
         for (const file of state.otherFiles) {
           // if others file loaded from S3 (they are not loaded yet. need to download them.)
-          if (file.data == null && state.user.model !== null) {
-            file.data = await s3.readBytes(state.user.model, state.user.scenario + '/' + file.fileName)
+          if (file.content == null && state.user.model !== null) {
+            file.content = await s3.readBytes(state.user.model, state.user.scenario + '/' + file.path)
           }
-          if (file.data instanceof Uint8Array) {
-            const blob = new Blob([file.data]) // { type: 'text/csv' }
-            zip.file(file.fileName, blob)
+          if (file.content instanceof Uint8Array) {
+            const blob = new Blob([file.content]) // { type: 'text/csv' }
+            zip.file(file.path, blob)
           } else {
-            const blob = new Blob([JSON.stringify(file.data)], { type: 'application/json' })
-            zip.file(file.fileName, blob)
+            const blob = new Blob([JSON.stringify(file.content)], { type: 'application/json' })
+            zip.file(file.path, blob)
           }
         }
       }
@@ -329,12 +350,12 @@ export const store = new Vuex.Store({
       // save others layers
       for (const file of state.otherFiles) {
         // if others file loaded from S3 (they are not loaded yet. need to download them.)
-        if (file.data == null) {
+        if (file.content == null) {
           // pass
-        } else if (file.data instanceof Uint8Array) {
-          await s3.putObject(bucket, scen + file.fileName, file.data)
+        } else if (file.content instanceof Uint8Array) {
+          await s3.putObject(bucket, scen + file.path, file.content)
         } else {
-          await s3.putObject(bucket, scen + file.fileName, JSON.stringify(file.data))
+          await s3.putObject(bucket, scen + file.path, JSON.stringify(file.content))
         }
       }
       // console.log(res)
@@ -353,7 +374,8 @@ export const store = new Vuex.Store({
     linksPopupContent: (state) => state.linksPopupContent,
     roadsPopupContent: (state) => state.roadsPopupContent,
     outputName: (state) => state.outputName,
-    loadedFiles: (state) => state.loadedFiles,
+    rasterFiles: (state) => state.rasterFiles,
+    visibleRasters: (state) => state.visibleRasters,
     otherFiles: (state) => state.otherFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {

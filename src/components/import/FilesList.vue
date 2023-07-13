@@ -14,23 +14,24 @@ export default {
   },
 
   computed: {
-    loadedFiles () { return this.$store.getters.loadedFiles },
-    inputFiles () { return this.loadedFiles.filter(file => file.name.startsWith('input')) },
-    outputFiles () { return this.loadedFiles.filter(file => file.name.startsWith('output')) },
+    loadedFiles () { return this.$store.getters.otherFiles },
+    inputFiles () { return this.loadedFiles.filter(file => file.path.startsWith('input')) },
+    outputFiles () { return this.loadedFiles.filter(file => file.path.startsWith('output')) },
     layers () {
       // get available layers, reformat name and add .json and .geojson to have the matrix also.
       const layers = this.$store.getters.availableLayers.filter(name => name.startsWith('outputs/'))
       const list = []
       for (const name of layers) {
         list.push(name + '.geojson')
-        list.push(name + '.json')
+        if (this.$store.getters[`${name}/hasOD`]) {
+          list.push(name + '.json')
+        }
       }
       return list
     },
   },
 
   mounted () {
-    console.log(this.layers)
   },
 }
 </script>
@@ -58,7 +59,7 @@ export default {
           v-for="(item, key) in inputFiles"
           :key="key"
         >
-          {{ item.name }}
+          {{ item.path }}
         </li>
       </div>
     </div>
@@ -81,17 +82,22 @@ export default {
       </div>
       <div class="list">
         <li
-          v-for="(item, key) in outputFiles"
-          :key="key"
+          v-for="item in outputFiles"
+          :key="item.path"
         >
-          {{ item.name }}
+          {{ item.path }}
+        </li>
+        <li
+          v-for="item in layers"
+          :key="item"
+        >
+          {{ item }}
           <v-tooltip
             top
             open-delay="250"
           >
             <template v-slot:activator="{ on, attrs }">
               <v-icon
-                v-if="layers.includes(item.name)"
                 v-bind="attrs"
                 small
                 v-on="on"

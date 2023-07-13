@@ -13,15 +13,11 @@ export default {
     scenariosList: [],
     model: null,
     scenario: null,
-    rasterLayers: [],
-    rasterFiles: [],
   },
   mutations: {
     unloadProject (state) {
       state.model = null
       state.scenario = null
-      state.rasterLayers = []
-      state.rasterFiles = []
     },
     setLoggedIn (state) {
       state.loggedIn = true
@@ -54,12 +50,7 @@ export default {
     setScenario (state, payload) {
       state.scenario = payload
     },
-    setRasterLayers (state, payload) {
-      state.rasterLayers = payload
-    },
-    setRasterFiles (state, payload) {
-      state.rasterFiles = payload
-    },
+
   },
 
   actions: {
@@ -81,7 +72,5 @@ export default {
     model: (state) => state.model,
     scenario: (state) => state.scenario,
     protected: (state) => ['base'],
-    rasterLayers: (state) => state.rasterLayers,
-    rasterFiles: (state) => state.rasterFiles,
   },
 }
