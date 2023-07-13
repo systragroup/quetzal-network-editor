@@ -22,6 +22,7 @@ export default {
         coordinates: [0, 0],
         showed: false,
         content: null,
+        layerId: null,
       },
       contextMenu: {
         coordinates: [0, 0],
@@ -78,10 +79,9 @@ export default {
           { hover: true },
         )
         if (!this.disablePopup & !this.anchorMode) {
-          this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
-            event.mapboxEvent.lngLat.lat,
-          ]
+          this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
           this.popupEditor.content = this.hoveredStateId.id
+          this.popupEditor.layerId = this.hoveredStateId.layerId
           this.popupEditor.showed = true
         }
       }
@@ -348,11 +348,11 @@ export default {
       <span>
         <h3>{{ popupEditor.content }}</h3>
         <hr>
-        {{ hoveredStateId?.layerId == 'editorLinks'?
+        {{ popupEditor.layerId == 'editorLinks'?
           $gettext("Left click to add a stop"):
           $gettext("Hold left click to drag") }}
         <hr>
-        {{ hoveredStateId?.layerId == 'editorLinks'?
+        {{ popupEditor.layerId == 'editorLinks'?
           $gettext("Right click to edit properties"):
           $gettext("Right click for context menu") }}
       </span>

@@ -3,7 +3,7 @@
   "description": "Network Editor",
   "author": "Simon Fortin <sfortin@systra.com>; Simon Boivin <sboivin@systra.com>",
   "license": "MIT",
-  "version": "4.8.d",
+  "version": "4.8.e",
   "private": true,
   "scripts": {
     "clean": "rm -rf dist && rm -f src/config.js",
@@ -14,6 +14,7 @@
     "lint": "eslint --ext .js,.vue src test",
     "i18n-extract": "./gettext-extract",
     "i18n-compile": "./gettext-compile",
+    "test": "bash -c 'jest \"$@\"; ret=$?; ./gen_report_html reports/report.xunit || true; exit $ret' --",
     "tag": "git tag -a -m \"version $(jq -r .version package.json)\" v$(jq -r .version package.json)"
   },
   "dependencies": {
@@ -56,7 +57,11 @@
     "@vue/test-utils": "^1.2.2",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.1.0",
+    "babel-jest": "^27.1.0",
     "babel-plugin-rewire": "^1.2.0",
+    "babel-plugin-root-import": "^6.6.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "*",
+    "babel-preset-env": "*",
     "copy-webpack-plugin": "^9.0.1",
     "css-loader": "^6.8.1",
     "easygettext": "^2.17.0",
@@ -70,12 +75,16 @@
     "eslint-plugin-vue": "^7.17.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.1",
+    "jest": "^27.1.0",
+    "jest-junit": "^12.2.0",
+    "jest-transform-stub": "^2.0.0",
     "json5-loader": "^4.0.1",
     "mini-css-extract-plugin": "^2.7.6",
     "sass": "^1.62.1",
     "sass-loader": "^12.1.0",
     "style-loader": "^3.3.3",
     "url-loader": "^4.1.1",
+    "vue-jest": "^3.0.7",
     "vue-loader": "^15.10.1",
     "vue-template-compiler": "^2.7.14",
     "vuetify": "^2.6.10",
@@ -83,9 +92,11 @@
     "webpack-bundle-analyzer": "^4.9.0",
     "webpack-cli": "^4.8.0",
     "webpack-dev-server": "^4.15.0",
-    "write-file-webpack-plugin": "^4.5.1"
+    "write-file-webpack-plugin": "^4.5.1",
+    "xunit-viewer": "^7.1.5"
   },
   "resolutions": {
+    "@babel/generator": "<7.17.9",
     "ansi-regex": "^5.0.1",
     "nth-check": "^2.0.1"
   },

@@ -7,6 +7,7 @@ module.exports = {
     'standard',
   ],
   env: {
+    jest: true,
   },
   rules: {
     'no-prototype-builtins': 'off',
