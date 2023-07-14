@@ -113,7 +113,9 @@ export default {
       showDialog: false,
     }
   },
-
+  computed: {
+    windowHeight () { return this.$store.getters.windowHeight - 100 },
+  },
   watch: {
     showDialog (val) {
       this.refresh()
@@ -220,8 +222,10 @@ export default {
       </div>
     </template>
     <v-card
-      :class="{'shake':shake}"
       :max-width="'20rem'"
+      class="setting-card"
+
+      :max-height="windowHeight"
       @keydown.enter="submit"
       @keydown.esc="cancel"
     >
@@ -449,22 +453,8 @@ export default {
   justify-content: center;
   height: 50px;
 }
-.shake {
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-  transform: translate3d(0, 0, 0);
+.setting-card {
+overflow-y:auto;
 }
-@keyframes shake {
-  10%, 90% {
-    transform: translate3d(-1px, 0, 0);
-  }
-  20%, 80% {
-    transform: translate3d(2px, 0, 0);
-  }
-  30%, 50%, 70% {
-    transform: translate3d(-4px, 0, 0);
-  }
-  40%, 60% {
-    transform: translate3d(4px, 0, 0);
-  }
-}
+
 </style>
