@@ -83,63 +83,66 @@ export const store = new Vuex.Store({
 
     loadFiles (state, payload) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
-      let otherFiles = []
-      let outputFiles = []
 
-      const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
-      otherFiles = payload.filter(el => !ptFiles.includes(el))
+      try {
+        let otherFiles = []
+        let outputFiles = []
 
-      const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
-      otherFiles = otherFiles.filter(el => !roadFiles.includes(el))
+        const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
+        otherFiles = payload.filter(el => !ptFiles.includes(el))
 
-      const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/') && el.path.endsWith('.geojson'))
-      otherFiles = otherFiles.filter(el => !rasterFiles.includes(el))
+        const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
+        otherFiles = otherFiles.filter(el => !roadFiles.includes(el))
 
-      const paramFile = otherFiles.filter(el => el.path === 'inputs/params.json')[0]
-      otherFiles = otherFiles.filter(el => el !== paramFile)
+        const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/') && el.path.endsWith('.geojson'))
+        otherFiles = otherFiles.filter(el => !rasterFiles.includes(el))
 
-      const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
-      otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
+        const paramFile = otherFiles.filter(el => el.path === 'inputs/params.json')[0]
+        otherFiles = otherFiles.filter(el => el !== paramFile)
 
-      outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
-      otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
+        const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
+        otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
 
-      // PT files should be in pair of 2 (links and nodes)
-      if (ptFiles.length % 2 !== 0) {
-        const err = new Error($gettext('Need the same number of links and nodes files.'))
-        err.name = 'ImportError'
-        throw err
-      }
-      // road files should be in pair of 2 (links and nodes)
-      if (roadFiles.length % 2 !== 0) {
-        const err = new Error($gettext('Need the same number of road_links and road_nodes files.'))
-        err.name = 'ImportError'
-        throw err
-      }
+        outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
+        otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
 
-      this.commit('loadPTFiles', ptFiles)
-      this.commit('loadRoadFiles', roadFiles)
-      this.commit('loadRasterFiles', rasterFiles)
-      if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
-      this.commit('loadOtherFiles', inputFiles)
+        // PT files should be in pair of 2 (links and nodes)
+        if (ptFiles.length % 2 !== 0) {
+          const err = new Error($gettext('Need the same number of links and nodes files.'))
+          err.name = 'ImportError'
+          throw err
+        }
+        // road files should be in pair of 2 (links and nodes)
+        if (roadFiles.length % 2 !== 0) {
+          const err = new Error($gettext('Need the same number of road_links and road_nodes files.'))
+          err.name = 'ImportError'
+          throw err
+        }
 
-      // get outputs geojson files and create Layer with them.
-      const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
-      outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
-      this.commit('loadLayers', layerFiles)
+        this.commit('loadPTFiles', ptFiles)
+        this.commit('loadRoadFiles', roadFiles)
+        this.commit('loadRasterFiles', rasterFiles)
+        if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
+        this.commit('loadOtherFiles', inputFiles)
 
-      // get JSON files with the same name as Modules (they are matrix)
-      const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
+        // get outputs geojson files and create Layer with them.
+        const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
+        outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
+        this.commit('loadLayers', layerFiles)
+
+        // get JSON files with the same name as Modules (they are matrix)
+        const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
         state.availableLayers.includes(el.path.slice(0, -5)),
-      )
-      outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
+        )
+        outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
 
-      this.commit('loadMatrix', matrixFiles)
+        this.commit('loadMatrix', matrixFiles)
 
-      // load the rest
-      this.commit('loadOtherFiles', outputFiles)
-
-      // Finaly check if file exist. overwrite it
+        // load the rest
+        this.commit('loadOtherFiles', outputFiles)
+      } catch (err) {
+        this.commit('changeAlert', err)
+      }
     },
 
     loadOtherFiles (state, payload) {

@@ -89,11 +89,6 @@ export default {
       this.$store.commit('run/cleanRun')
       this.$store.commit('setModel', this.localModel)
       this.$store.commit('setScenario', this.localScen)
-      await this.$store.dispatch('run/getParameters', {
-        model: this.localModel,
-        path: this.localScen + '/inputs/params.json',
-      })
-
       this.$router.push({ name: 'Import', query: { s3Path: this.localModel } })
       this.menu = false
     },

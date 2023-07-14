@@ -49,7 +49,7 @@ export default {
             { path: 'inputs/road/nodes.geojson', content: this.loadedNodes },
           ]
         }
-        this.$emit('networkLoaded', files)
+        this.$emit('FilesLoaded', files)
         this.loadedLinks = {}
         this.loadedNodes = {}
         this.loadedType = ''
@@ -92,7 +92,7 @@ export default {
         }
       }
       this.$store.commit('changeLoading', false)
-      this.$emit('networkLoaded', fileList)
+      this.$emit('FilesLoaded', fileList)
 
       // this.$store.commit('changeLoading', false)
     },
@@ -120,7 +120,7 @@ export default {
         }
       }
       this.$store.commit('changeLoading', false)
-      this.$emit('networkLoaded', fileList)
+      this.$emit('FilesLoaded', fileList)
     },
 
     async readParams (event) {
@@ -129,7 +129,7 @@ export default {
       try {
         let data = await readFileAsText(files[0])
         data = JSON.parse(data)
-        this.$emit('networkLoaded', [{ path: 'inputs/params.json', content: data }])
+        this.$emit('FilesLoaded', [{ path: 'inputs/params.json', content: data }])
         this.$store.commit('changeLoading', false)
       } catch (err) {
         this.$store.commit('changeLoading', false)

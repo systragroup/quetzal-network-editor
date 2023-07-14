@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import { store } from '../../store/index.js'
+const $gettext = s => s
 
 function readFileAsText (file) {
   return new Promise((resolve, reject) => {
@@ -28,68 +29,13 @@ function readFileAsBytes (file) {
   })
 }
 
-function classFile (name, content, ptFolder = 'inputs/pt/', roadFolder = 'inputs/road/', outputFolder = 'outputs/') {
-  // class Files with inputs outputs quenedi fileStructure.
-  // inputs are split as pt and road folder. everythin in output is read as a static layer.
-  // return {data, type, fileName}.
-  // type can be links, nodes, road_links, road_nodes,
-  // result,  params, matrix or others.
-
-  // inputs/
-  //    pt/
-  //        links.geojson
-  //        nodes.geojson
-  //    road/
-  //        links.geojson
-  //        nodes.geojson
-  // outputs/
-  //    loaded_links.geojson
-  //    zones.geojson
-  //    zones.json
-  //
-  //  parameters.json anywhere
-  if (name.endsWith('.geojson')) {
-    const currentType = content.features[0].geometry.type
-    if (name.toLowerCase().includes(ptFolder.toLowerCase())) {
-      switch (currentType) {
-        case 'LineString':
-          return { data: content, type: 'links', fileName: name }
-        case 'Point':
-          return { data: content, type: 'nodes', fileName: name }
-      }
-    } else if (name.toLowerCase().includes(roadFolder.toLowerCase())) {
-      switch (currentType) {
-        case 'LineString':
-          return { data: content, type: 'road_links', fileName: name }
-        case 'Point':
-          return { data: content, type: 'road_nodes', fileName: name }
-      }
-    } else if (name.toLowerCase().includes(outputFolder.toLowerCase())) {
-      switch (currentType) {
-        case 'LineString':
-          return { data: content, type: 'result', fileName: name }
-        case 'Point':
-          return { data: content, type: 'result', fileName: name }
-        case 'MultiPolygon':
-          return { data: content, type: 'result', fileName: name }
-        case 'Polygon':
-          return { data: content, type: 'result', fileName: name }
-      }
-    } else {
-      return { data: content, type: 'other', fileName: name }
-    }
-  } else if (name.endsWith('.json')) {
-    if (name.toLowerCase().includes('inputs/')) {
-      if (name.slice(-11).toLowerCase() === 'params.json') {
-        return { data: content, type: 'params', fileName: name } // params.json
-      }
-    } else if (name.toLowerCase().includes('outputs/')) {
-      return { data: content, type: 'matrix', fileName: name } // json mat
-    } else {
-      return { data: content, type: 'other', fileName: name }
-    }
-  } else {
-    return { data: content, type: 'other', fileName: name }
+function checkPaths (paths) {
+  // check that the zip files contains with inputs/ or outputs/ (as root folders.)
+  const test = paths.filter(path => path.startsWith('inputs/') || path.startsWith('outputs/'))
+  if (test.length === 0) {
+    const err = new Error($gettext(' root folders should be inputs/ and outputs/. not: ') + paths[0])
+    err.name = 'ImportError'
+    throw err
   }
 }
 
@@ -99,14 +45,20 @@ async function extractZip (file) {
   let filesNames = Object.keys(zip.files)
   filesNames = filesNames.filter(name => !name.match(/^__MACOSX\//))
   filesNames = filesNames.filter(name => !name.endsWith('/'))
+  checkPaths(filesNames)
   // process ZIP file content here
   const result = []
   for (let i = 0; i < filesNames.length; i++) {
     const str = await zip.file(filesNames[i]).async('string')
     let content = {}
-    try {
-      content = JSON.parse(str)
-    } catch (err) {
+    if (filesNames[i].endsWith('.json') || filesNames[i].endsWith('.geojson')) {
+      try {
+        content = JSON.parse(str)
+      } catch (err) {
+        err.name = 'ImportError in ' + filesNames[i]
+        throw err
+      }
+    } else {
       content = await zip.file(filesNames[i]).async('uint8array')
     }
     // import with new fileStructure (inputs, outputs folder in zip)
@@ -171,4 +123,4 @@ async function unzip (file) {
   return content
 }
 
-export { readFileAsText, readFileAsBytes, extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, unzip, classFile }
+export { readFileAsText, readFileAsBytes, extractZip, getGroupForm, indexAreUnique, createIndex, IndexAreDifferent, unzip }

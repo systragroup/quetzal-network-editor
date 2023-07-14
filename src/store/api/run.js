@@ -1,4 +1,5 @@
 import { quetzalClient } from '@src/axiosClient.js'
+import { paramsSerializer } from '@src/components/utils/serializer.js'
 import s3 from '@src/AWSClient'
 const $gettext = s => s
 
@@ -54,17 +55,18 @@ export default {
       state.currentStep = stepNames.indexOf(payload.name) + 1
     },
     getLocalParameters (state, payload) {
+      payload = paramsSerializer(payload)
       state.parameters = payload
     },
   },
   actions: {
     async getParameters ({ state, commit }, payload) {
+      // only for the reset button.
       try {
         const params = await s3.readJson(payload.model, payload.path)
         state.parameters = params
       } catch (err) {
         commit('changeAlert', err, { root: true })
-        state.parameters = []
       }
     },
     async getOutputs (context) {
