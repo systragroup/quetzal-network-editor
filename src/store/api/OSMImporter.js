@@ -1,5 +1,5 @@
-import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '@src/AWSClient'
+import { quetzalClient } from '@src/axiosClient.js'
 import { v4 as uuid } from 'uuid'
 import router from '../../router'
 
@@ -8,7 +8,7 @@ const $gettext = s => s
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api-test',
     bucket: 'quenedi-osm',
     callID: '',
     status: '',
@@ -92,19 +92,10 @@ export default {
       // commit('setParameters', payload.parameters)
       state.running = true
       state.error = false
-      let overpassQuery = `[out:json][timeout:180];
-      (
-      `
-      overpassQuery += state.highway.map(highway => `way["highway"="${highway}"](${payload.bbox});\n`).join('')
-      overpassQuery += `);
-      out body;
-      >;
-      out skel qt;
-      `
       let data = {
         input: JSON.stringify({
-          overpassQuery: overpassQuery,
-          tags: state.tags,
+          bbox: payload.bbox,
+          highway: state.highway,
           callID: state.callID,
           elevation: true,
         }),
