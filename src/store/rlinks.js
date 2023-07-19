@@ -30,7 +30,8 @@ export default {
     defaultHighway: 'quenedi',
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
-    cstAttributes: ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway'],
+    // those are the list of attributes we do not want to duplicated with _r.
+    rcstAttributes: ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway', 'cycleway', 'cycleway_reverse', 'incline'],
     rundeletable: ['index', 'a', 'b', 'length', 'route_color', 'oneway', 'time', 'speed', 'time_r', 'speed_r'],
     reversedAttributes: [],
   },
@@ -159,7 +160,7 @@ export default {
         state.visiblerLinks.features.map(link => link.properties[payload.name] = null)
         state.rlineAttributes.push(payload.name) // could put that at applied. so we can cancel
         // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
-        if (!state.cstAttributes.includes(payload.name)) {
+        if (!state.rcstAttributes.includes(payload.name)) {
           state.reversedAttributes.push(payload.name + '_r')
         }
       } else {
@@ -204,7 +205,7 @@ export default {
         })
         // const oneways = state.rlinks.features.filter(link => !link.properties.oneway)
         state.reversedAttributes = state.rlineAttributes.filter(
-          attr => !state.cstAttributes.includes(attr)).map(
+          attr => !state.rcstAttributes.includes(attr)).map(
           attr => attr + '_r')
         state.rlinks.features.forEach(link => {
           if (link.properties.oneway === '0') {
@@ -636,7 +637,7 @@ export default {
     visiblerNodes: (state) => state.visiblerNodes,
     defaultHighway: (state) => state.defaultHighway,
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
-    rcstAttributes: (state) => state.cstAttributes,
+    rcstAttributes: (state) => state.rcstAttributes,
     newrNode: (state) => state.newrNode,
     rundeletable: (state) => state.rundeletable,
 

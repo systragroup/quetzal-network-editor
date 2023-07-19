@@ -166,7 +166,6 @@ export default {
       commit('loadrLinks', rlinks, { root: true })
       const rnodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
       commit('loadrNodes', rnodes, { root: true })
-      await s3.deleteFolder(state.bucket, state.callID)
       console.log('downloaded')
       router.push('/Home').catch(() => {})
     },
