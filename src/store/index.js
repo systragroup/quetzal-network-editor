@@ -39,6 +39,7 @@ export const store = new Vuex.Store({
     anchorMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
+    cyclewayMode: false,
     outputName: 'output',
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
@@ -79,6 +80,9 @@ export const store = new Vuex.Store({
     },
     changeAnchorMode (state) {
       state.anchorMode = !state.anchorMode
+    },
+    changeCyclewayMode (state, payload) {
+      state.cyclewayMode = !state.cyclewayMode
     },
 
     loadFiles (state, payload) {
@@ -203,6 +207,7 @@ export const store = new Vuex.Store({
       state.visibleRasters = []
       state.rasterFiles = []
       state.otherFiles = []
+      state.cyclewayMode = false
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
@@ -376,6 +381,7 @@ export const store = new Vuex.Store({
     showLeftPanel: (state) => state.showLeftPanel,
     linksPopupContent: (state) => state.linksPopupContent,
     roadsPopupContent: (state) => state.roadsPopupContent,
+    cyclewayMode: (state) => state.cyclewayMode,
     outputName: (state) => state.outputName,
     rasterFiles: (state) => state.rasterFiles,
     visibleRasters: (state) => state.visibleRasters,

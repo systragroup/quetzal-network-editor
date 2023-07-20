@@ -322,8 +322,29 @@ export default {
           </template>
           <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
         </v-tooltip>
+        <v-tooltip
+          right
+          open-delay="500"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              v-bind="attrs"
+              class="mx-2"
+              :disabled="!$store.getters.hasCycleway"
+              :color="$store.getters.cyclewayMode? 'green':'regular'"
+              v-on="on"
+              @click="$store.commit('changeCyclewayMode')"
+            >
+              <v-icon small>
+                fas fa-biking
+              </v-icon>
+            </v-btn>
+          </template>
+          <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
+        </v-tooltip>
         <v-spacer />
       </v-list-item>
+      
     </v-card>
     <v-dialog
       v-model="showDialog"
@@ -365,7 +386,6 @@ export default {
   </section>
 </template>
 <style lang="scss" scoped>
-@import "src/scss/variables.scss";
 .left-panel {
   height: 100%;
   background-color: $primary-dark;

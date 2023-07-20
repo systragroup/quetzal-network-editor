@@ -640,6 +640,7 @@ export default {
     rcstAttributes: (state) => state.rcstAttributes,
     newrNode: (state) => state.newrNode,
     rundeletable: (state) => state.rundeletable,
+    hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
 
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)

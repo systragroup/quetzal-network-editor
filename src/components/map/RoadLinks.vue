@@ -1,5 +1,3 @@
-<!-- eslint-disable max-len -->
-<!-- eslint-disable no-return-assign -->
 <script>
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
@@ -39,17 +37,106 @@ export default {
         actions: [],
         feature: null,
       },
+      
 
     }
   },
   computed: {
     selectedPopupContent () { return this.$store.getters.roadsPopupContent },
     selectedrGroup () { return this.$store.getters.selectedrGroup },
+    cyclewayMode() {return this.$store.getters.cyclewayMode},
     rnodes () { return this.$store.getters.visiblerNodes },
     rlinks () { return this.$store.getters.visiblerLinks },
     anchorrNodes () {
       return this.anchorMode ? this.$store.getters.anchorrNodes(this.renderedrLinks) : this.$store.getters.rnodesHeader
     },
+    ArrowSizeCondition(){
+      // when we want to show the cycleway direction.
+      // [cycleway, cycleway_reverse]
+      // [yes yes], [yes,shared], [shared,yes], [shared,shared] -> no arrow
+      // [yes, no] [shared, no] -> arrow
+      // [no, yes] [no, shared] -> arrow inverse
+      // [no, no], no arrow ? or default (roads direction)
+
+      // in this implementation. we check the case no arrow ([yes yes], [yes,shared], [shared,yes], [shared,shared] -> no arrow)
+      // if true. no arrow. 
+      // else if [no,no], we let the default onway on road condition decide.
+      // else we put arrow on  cycleway.
+      // The direction is determined with the another function (ArrowDirCondition)
+      
+      const defaultCondition = ['case', ['has', 'oneway'],
+                             ['case',['to-boolean',['to-number',['get','oneway']]],0.15, 0],
+                             0.15]
+                             
+      const getRouteWidth = ['case', ['has', 'route_width'],
+                                     ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                                      ['to-number', ['get', 'route_width']], 2], 2]                   
+
+      if (this.cyclewayMode){
+        // if cycle in both way: 0
+        // else if not cycle. check default condition (its a normal road)
+        // else : 0.15: its cycle in one way
+        const exp = ['*',
+                      ['case',
+                        ['any',
+                            ['all',
+                              ['==', ['get', 'cycleway'], 'yes'],
+                              ['==', ['get', 'cycleway_reverse'], 'yes']
+                            ],
+                            ['all',
+                              ['==', ['get', 'cycleway'], 'shared'],
+                              ['==', ['get', 'cycleway_reverse'], 'shared']
+                            ],
+                            ['all',
+                              ['==', ['get', 'cycleway'], 'yes'],
+                              ['==', ['get', 'cycleway_reverse'], 'shared']
+                            ],
+                            ['all',
+                              ['==', ['get', 'cycleway'], 'shared'],
+                              ['==', ['get', 'cycleway_reverse'], 'yes']
+                            ],
+                            
+                            
+                        ],0, ['case',['all',
+                              ['==', ['get', 'cycleway'], 'no'],
+                              ['==', ['get', 'cycleway_reverse'], 'no']
+                            ], defaultCondition,0.15]
+                      ],
+                       getRouteWidth
+                    ]
+        return exp
+
+      }else {
+        // normal case. using oneway
+        return ['*',defaultCondition, getRouteWidth]
+      }
+    },
+    ArrowDirCondition(){
+      if (this.cyclewayMode){
+          // when we want to show the cycleway direction.
+         // [no, yes] [no, shared] -> arrow inverse
+         // if false. we either have no arrow (so it doesnt matter)
+         // or an arrow in the right direction.
+         const exp = ['case',
+                      ['any',
+                          ['all',
+                            ['==', ['get', 'cycleway'], 'no'],
+                            ['==', ['get', 'cycleway_reverse'], 'yes']
+                          ],
+                          ['all',
+                            ['==', ['get', 'cycleway'], 'no'],
+                            ['==', ['get', 'cycleway_reverse'], 'shared']
+                          ],
+                      ],-90, 90
+                    ]
+        return exp
+
+      }
+      // default case.
+        else{
+          return 90
+        }
+    }
 
   },
 
@@ -371,13 +458,8 @@ export default {
           'symbol-spacing': 200,
           'icon-ignore-placement': true,
           'icon-image':'arrow',
-          'icon-size': ['*',['case', ['has', 'oneway'],
-                             ['case',['to-boolean',['to-number',['get','oneway']]],0.15, 0],
-                             0.15], ['case', ['has', 'route_width'],
-                                     ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
-                                      ['to-number', ['get', 'route_width']],
-                                      2], 2]],
-          'icon-rotate': 90,
+          'icon-size': ArrowSizeCondition,
+          'icon-rotate': ArrowDirCondition,
         },
         paint: {
           'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
