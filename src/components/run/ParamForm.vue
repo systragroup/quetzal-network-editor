@@ -15,7 +15,7 @@ export default {
         rules: ['required'],
       },
       rules: {
-        required: v => !!v || $gettext('Required'),
+        required: v => v != null || $gettext('Required'),
         largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
         nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
       },
@@ -46,7 +46,7 @@ export default {
     reset () {
       this.$store.dispatch('run/getParameters', {
         model: this.$store.getters.model,
-        path: this.$store.getters.scenario + '/' + this.$store.getters.config.parameters_path,
+        path: this.$store.getters.scenario + '/inputs/params.json' ,
       })
     },
   },

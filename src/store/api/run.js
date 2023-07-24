@@ -117,8 +117,8 @@ export default {
     },
     startExecution ({ state, commit, dispatch, rootState }, payload) {
       const paramsDict = state.parameters.reduce((acc, { category, params }) => {
-        acc[category] = params.reduce((paramAcc, { text, value }) => {
-          paramAcc[text] = value
+        acc[category] = params.reduce((paramAcc, { name, value }) => {
+          paramAcc[name] = value
           return paramAcc
         }, {})
         return acc
@@ -138,6 +138,7 @@ export default {
         }),
         stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
+
       quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
