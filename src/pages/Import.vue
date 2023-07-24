@@ -124,6 +124,7 @@ export default {
       if (!this.projectIsEmpty) {
         this.$store.commit('initNetworks')
         this.$store.commit('unloadLayers')
+        this.$store.commit('run/cleanRun')
       }
       this.$store.commit('changeLoading', true)
       this.$router.replace({ query: null }) // remove query in url when page is load.
