@@ -38,10 +38,10 @@ function paramsSerializer (json) {
     err.name = 'ImportError'
     throw err
   }
-
+  const params = json.filter(item => !item?.info)
   const areSetsEqual = (a, b) => a.size === b.size && [...a].every(value => b.has(value))
   const expectedKeys = new Set(['category', 'params'])
-  json.forEach(el => {
+  params.forEach(el => {
     if (!areSetsEqual(new Set(Object.keys(el)), expectedKeys)) {
       const err = new Error($gettext('params.json should be an array of object [{category: , params: }, ...]'))
       err.name = 'ImportError'

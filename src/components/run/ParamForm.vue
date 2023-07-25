@@ -4,16 +4,6 @@ export default {
   name: 'Settings',
   data () {
     return {
-      // this is doing Nothing. we should rename it id DynamoDB, we do not want to copy and delete the S3 bucket.
-      // in DynamoDB, we could have the project name (changable) and the s3 bucket reference (not changeable)
-      projectName: {
-        name: 'Project Name',
-        text: $gettext('project Name'),
-        type: 'String',
-        value: this.$store.getters.projectId,
-        hint: $gettext('Change project Name'),
-        rules: ['required'],
-      },
       rules: {
         required: v => v != null || $gettext('Required'),
         largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
@@ -25,7 +15,10 @@ export default {
     }
   },
   computed: {
-    parameters () { return this.$store.getters['run/parameters'] },
+    paramsBrute () { return this.$store.getters['run/parameters'] },
+    parameters() { return this.paramsBrute.filter(param=>Object.keys(param).includes('category'))},
+    info() { return this.paramsBrute.filter(param=>param?.info)[0]?.info}
+    
   },
   mounted () {
     this.panel = [...Array(this.parameters.length).keys()].map((k, i) => i)
@@ -37,11 +30,6 @@ export default {
       } else {
         this.panel = []
       }
-    },
-    change (e) {
-      // could put in store that the value changed.
-      // activate the Back to default button.
-      // when loaded, save or back to default is used, deactivate the button
     },
     reset () {
       this.$store.dispatch('run/getParameters', {
@@ -59,6 +47,7 @@ export default {
     <v-card-title class="subtitle">
       {{ $gettext('Scenario Settings') }}
     </v-card-title>
+    <v-card-text v-if="info">{{ info }}</v-card-text>
     <v-card-text>
       <v-form
         ref="form"
@@ -89,7 +78,7 @@ export default {
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
-                  required
+                  
                   
                 />
                 <v-switch
@@ -110,7 +99,7 @@ export default {
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
-                  required
+                  
                   
                 />
               </li>
