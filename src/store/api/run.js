@@ -116,7 +116,8 @@ export default {
         })
     },
     startExecution ({ state, commit, dispatch, rootState }, payload) {
-      const paramsDict = state.parameters.reduce((acc, { category, params }) => {
+      const filteredParams = state.parameters.filter(param => Object.keys(param).includes('category'))
+      const paramsDict = filteredParams.reduce((acc, { category, params }) => {
         acc[category] = params.reduce((paramAcc, { name, value }) => {
           paramAcc[name] = value
           return paramAcc
