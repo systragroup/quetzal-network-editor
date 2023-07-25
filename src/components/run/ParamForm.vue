@@ -90,7 +90,7 @@ export default {
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
                   required
-                  @wheel="()=>{}"
+                  
                 />
                 <v-switch
                   v-else-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
@@ -98,7 +98,7 @@ export default {
                   :label="$gettext(item.text)"
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
-                  @wheel="()=>{}"
+                 
                 />
                 <v-select
                   v-else
@@ -111,7 +111,7 @@ export default {
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
                   required
-                  @wheel="()=>{}"
+                  
                 />
               </li>
             </v-expansion-panel-content>
