@@ -151,6 +151,10 @@ export const store = new Vuex.Store({
 
     loadOtherFiles (state, payload) {
       // payload = [{path, content, type}]
+      // if a file is updated with the same path (already exist). remove it
+      const newPaths = payload.map(file => file.path)
+      state.otherFiles = state.otherFiles.filter(file => !newPaths.includes(file.path))
+      // push files
       payload.forEach(file => state.otherFiles.push(file))
     },
 
