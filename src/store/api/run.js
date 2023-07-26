@@ -12,6 +12,7 @@ export default {
     executionArn: '',
     currentStep: 0,
     error: false,
+    errorMessage: '',
     synchronized: true,
     parameters: [],
   },
@@ -35,9 +36,10 @@ export default {
       state.running = true
       state.currentStep = 1
     },
-    terminateExecution (state) {
+    terminateExecution (state, payload) {
       state.running = false
       state.error = true
+      state.errorMessage = payload
       state.executionArn = ''
     },
     changeRunning (state, payload) {
@@ -158,16 +160,16 @@ export default {
           data = JSON.stringify(data),
         ).then(
           response => {
-            this.status = response.data.status
-            if (this.status === 'SUCCEEDED') {
+            state.status = response.data.status
+            if (state.status === 'SUCCEEDED') {
               dispatch('getOutputs').then(
                 () => {
                   commit('succeedExecution')
                   clearInterval(intervalId)
                 },
               ).catch(err => alert(err))
-            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.status)) {
-              commit('terminateExecution')
+            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
+              commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
             }
           }).catch(
@@ -212,6 +214,7 @@ export default {
     currentStep: (state) => state.currentStep,
     executionArn: (state) => state.executionArn,
     error: (state) => state.error,
+    errorMessage: (state) => state.errorMessage,
     synchronized: (state) => state.synchronized,
     parameters: (state) => state.parameters,
     parametersIsEmpty: (state) => state.parameters.length === 0,

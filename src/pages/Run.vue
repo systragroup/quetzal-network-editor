@@ -3,6 +3,7 @@
 import ParamForm from '@comp/run/ParamForm.vue'
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Run',
   components: {
     ParamForm,
@@ -12,6 +13,7 @@ export default {
     running () { return this.$store.getters['run/running'] },
     currentStep () { return this.$store.getters['run/currentStep'] },
     error () { return this.$store.getters['run/error'] },
+    errorMessage () { return this.$store.getters['run/errorMessage'] },
     synchronized () { return this.$store.getters['run/synchronized'] },
     isProtected () {
       return this.$store.getters.protected.includes(this.$store.getters.scenario)
@@ -77,6 +79,12 @@ export default {
           >
             {{ $gettext("Simulation ended with an execution error or have been aborted. \
             Please relauch simulation. If the problem persist, contact us.") }}
+            <p
+              v-for="key in Object.keys(errorMessage)"
+              :key="key"
+            >
+              <b>{{ key }}: </b>{{ errorMessage[key] }}
+            </p>
           </v-alert>
           <v-alert
             v-if="isProtected"
