@@ -93,6 +93,8 @@ export default {
 
     loadNetwork (files) {
       this.$store.commit('loadFiles', files)
+      this.filesAdded = true
+      this.$store.commit('changeLoading', false)
     },
 
     async readZip (event) {
@@ -111,9 +113,7 @@ export default {
           return
         }
         const files = await extractZip(zfiles[0])
-        this.$store.commit('loadFiles', files)
-
-        this.$store.commit('changeLoading', false)
+        this.loadNetwork(files)
       } catch (err) {
         this.$store.commit('changeLoading', false)
         this.$store.commit('changeAlert', err)
@@ -148,8 +148,7 @@ export default {
             res.push({ path: name, content: null })
           }
         }
-        this.$store.commit('loadFiles', res)
-        this.$store.commit('changeLoading', false)
+        this.loadNetwork(res)
       } catch (err) {
         this.$store.commit('changeAlert', err)
         this.$store.commit('changeLoading', false)
@@ -192,9 +191,7 @@ export default {
         }
         // this is zones and mat. reuse var to save memory
 
-        this.$store.commit('loadFiles', res)
-
-        this.$store.commit('changeLoading', false)
+        this.loadNetwork(res)
         // this.loggedIn = true
         // this.login()
       } catch {
