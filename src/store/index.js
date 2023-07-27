@@ -144,6 +144,8 @@ export const store = new Vuex.Store({
 
         // load the rest
         this.commit('loadOtherFiles', outputFiles)
+        this.commit('changeNotification',
+          { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
       } catch (err) {
         this.commit('changeAlert', err)
       }

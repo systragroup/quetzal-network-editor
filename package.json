@@ -3,7 +3,7 @@
   "description": "Network Editor",
   "author": "Simon Fortin <sfortin@systra.com>; Simon Boivin <sboivin@systra.com>",
   "license": "MIT",
-  "version": "4.8.k",
+  "version": "4.8.L",
   "private": true,
   "scripts": {
     "clean": "rm -rf dist && rm -f src/config.js",

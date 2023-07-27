@@ -7,6 +7,7 @@ import InfoZip from '@comp/import/InfoZip.vue'
 const $gettext = s => s
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Import',
   components: {
     FileLoader,
@@ -321,7 +322,7 @@ export default {
                       @click="buttonHandle('newProject')"
                       v-on="on"
                     >
-                      {{ $gettext('Delete All') }}
+                      {{ $gettext('New Project') }}
                     </v-btn>
                   </template>
                   <span>{{ $gettext("Delete all network and start from scratch") }}</span>

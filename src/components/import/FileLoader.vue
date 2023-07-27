@@ -18,7 +18,6 @@ export default {
       loadedNodes: {},
       loadedType: '',
       choice: '',
-
     }
   },
 
@@ -61,18 +60,19 @@ export default {
   methods: {
     buttonHandle (choice) {
       this.choice = choice
-      if (this.choice === 'inputs') {
-        this.$refs.otherInputs.click()
-        document.getElementById('other-inputs').value = '' // clean it for next file
-      } else if (this.choice === 'outputs') {
+      if (this.choice === 'outputs') {
         this.$refs.otherOutputs.click()
         document.getElementById('other-outputs').value = '' // clean it for next file
       } else if (this.choice === 'parameters') {
         this.$refs.paramsInput.click()
         document.getElementById('params-input').value = '' // clean it for next file
-      } else {
+      } else if (['PT links', 'PT nodes', 'road links', 'road nodes'].includes(this.choice)) {
         this.$refs.fileInput.click()
         document.getElementById('file-input').value = '' // clean it for next file
+      } else if (this.choice.startsWith('inputs')) {
+        // inputs or a path (if we want to change an existing input)
+        this.$refs.otherInputs.click()
+        document.getElementById('other-inputs').value = '' // clean it for next file
       }
     },
     async readOtherInputs (event) {
@@ -80,8 +80,13 @@ export default {
       this.$store.commit('changeLoading', true)
       const fileList = []
       const files = event.target.files
+
       for (const file of files) {
-        const name = 'inputs/' + file.name
+        let name = 'inputs/' + file.name
+        // if we want to replace an existing input. this.choice contains the existing path name
+        if (this.choice !== 'inputs') {
+          name = this.choice
+        }
         try {
           const content = await readFileAsBytes(file)
           fileList.push({ content: content, path: name })

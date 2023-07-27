@@ -14,9 +14,9 @@ export default {
   },
 
   computed: {
-    loadedFiles () { return this.$store.getters.otherFiles },
-    inputFiles () { return this.loadedFiles.filter(file => file.path.startsWith('input')) },
-    outputFiles () { return this.loadedFiles.filter(file => file.path.startsWith('output')) },
+    loadedFiles () { return this.$store.getters.otherFiles.map(file => file.path) },
+    inputFiles () { return this.loadedFiles.filter(file => file.startsWith('input')) },
+    outputFiles () { return this.loadedFiles.filter(file => file.startsWith('output')) },
     layers () {
       // get available layers, reformat name and add .json and .geojson to have the matrix also.
       const layers = this.$store.getters.availableLayers.filter(name => name.startsWith('outputs/'))
@@ -56,10 +56,29 @@ export default {
       </div>
       <div class="list">
         <li
-          v-for="(item, key) in inputFiles"
+          v-for="(path, key) in inputFiles"
           :key="key"
         >
-          {{ item.path }}
+          {{ path }}
+          <v-tooltip
+            top
+            open-delay="250"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                v-bind="attrs"
+                class="list-button"
+                icon
+                v-on="on"
+                @click="()=>$emit('importButton',path)"
+              >
+                <v-icon small>
+                  fa-solid fa-upload
+                </v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $gettext('Replace file inplace') }}</span>
+          </v-tooltip>
         </li>
       </div>
     </div>
@@ -82,10 +101,10 @@ export default {
       </div>
       <div class="list">
         <li
-          v-for="item in outputFiles"
-          :key="item.path"
+          v-for="path in outputFiles"
+          :key="path"
         >
-          {{ item.path }}
+          {{ path }}
         </li>
         <li
           v-for="item in layers"
@@ -100,6 +119,7 @@ export default {
               <v-icon
                 v-bind="attrs"
                 small
+                class="list-icon"
                 v-on="on"
               >
                 fa-solid fa-layer-group
@@ -137,13 +157,27 @@ export default {
 }
 .upload-button {
   margin-left: auto;
+  margin-right:0.75rem
+}
+.list-button{
+  margin-left:auto;
+  margin-right:1rem
+}
+.list-icon{
+  margin-left:0.5rem
 }
 .list {
   font-size: 1em;
   font-weight: bold;
   //border: 1px solid red;
   overflow-y: auto;
-  padding: 1rem;
+  padding-left: 1rem;
+  padding-top:0.5rem
+}
+.list li {
+  /* Add individual list item styles here */
+  display: flex; /* Use flexbox layout for each list item */
+  align-items: center; /* Align button vertically in the list item */
 }
 
 </style>
