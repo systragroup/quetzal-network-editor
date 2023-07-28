@@ -127,9 +127,8 @@ export default {
           ], -90, 90,
         ]
         return exp
-      }
-      // default case.
-      else {
+      } else {
+        // default case
         return 90
       }
     },
@@ -203,6 +202,7 @@ export default {
           if (!this.disablePopup && this.selectedPopupContent.length > 0) {
             const selectedFeature = event.mapboxEvent.features[0]
             if (selectedFeature.layer.id !== 'rnodes') {
+              // eslint-disable-next-line max-len
               let htmlContent = this.selectedPopupContent.map(prop => `${prop}: <b>${selectedFeature.properties[prop]}</b>`)
               htmlContent = htmlContent.join('<br> ')
               this.popup = new mapboxgl.Popup({ closeButton: false })

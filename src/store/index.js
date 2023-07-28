@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import linksModule from './links.js'
 import rlinksModule from './rlinks.js'
+import odModule from './od.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
 import runModule from './api/run.js'
@@ -15,6 +16,7 @@ import { serializer } from '../components/utils/serializer.js'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
+import odTest from '@static/od.geojson'
 Vue.use(Vuex)
 const $gettext = s => s
 
@@ -23,6 +25,7 @@ export const store = new Vuex.Store({
     user: userModule,
     links: linksModule,
     rlinks: rlinksModule,
+    od: odModule,
     results: resultsModule,
     run: runModule,
     runMRC: MatrixRoadCasterModule,
@@ -210,6 +213,7 @@ export const store = new Vuex.Store({
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
+      this.commit('od/loadLayer', odTest)
       state.visibleRasters = []
       state.rasterFiles = []
       state.otherFiles = []

@@ -55,7 +55,6 @@ export default {
         state.linksHeader = linksHeader
         state.visibleLinks = structuredClone(linksHeader)
         // set all trips visible
-        // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('results/getLinksProperties')
 
         if (payload.selectedFeature) {
@@ -171,7 +170,6 @@ export default {
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
     linksHeader: (state) => state.linksHeader,
-    selectedTrips: (state) => state.selectedTrips,
     lineAttributes: (state) => state.lineAttributes.sort(),
     selectedFilter: (state) => state.selectedFilter,
     selectedCategory: (state) => state.selectedCategory,

@@ -4,78 +4,45 @@ export default {
   name: 'RoadSidePanel',
   components: {
   },
-  props: ['selectedrGoup', 'height'], // height is here to resize with the windows...
-  events: ['selectEditorTrip', 'deleteButton', 'propertiesButton', 'newLine'],
+  props: ['height'], // height is here to resize with the windows...
+  events: ['deleteButton', 'propertiesButton', 'newLine'],
 
   data () {
     return {
-      tripList: this.selectedrGoup,
       // for some reason, the v-model does not update when i force it in a watcher or a method.
       // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
-      selectedFilter: '',
       vmodelSelectedFilter: '',
+      vmodelSelectedCat: [],
     }
   },
   computed: {
-    filterChoices () { return this.$store.getters.rlineAttributes },
-    filteredCat () { return this.$store.getters.filteredrCategory },
+    layer () { return this.$store.getters['od/layer'] },
+    filterChoices () { return this.$store.getters['od/layerAttributes'] },
+    selectedFilter () { return this.$store.getters['od/selectedFilter'] },
+    selectedCat () { return this.$store.getters['od/selectedCategory'] },
+    filteredCat () {
+      // for a given filter (key) get array of unique value
+      // e.g. get ['bus','subway'] for route_type
+      const val = Array.from(new Set(this.layer.features.map(
+        item => item.properties[this.selectedFilter])))
+      return val
+    },
 
   },
 
   watch: {
-    tripList (newVal, oldVal) {
-      let changes = ''
-      let method = 'add'
-      if (newVal === this.filteredCat) {
-        changes = newVal
-        method = 'showAll'
-      } else if (newVal.length === 0) {
-        changes = []
-        method = 'hideAll'
-      } else if (newVal.length < oldVal.length) {
-        // if a tripis unchecked. we remove it
-        changes = oldVal.filter(item => !newVal.includes(item))
-        method = 'remove'
-      } else if (newVal.length > oldVal.length) {
-        // if a trip is added, we add it!
-        changes = newVal.filter(item => !oldVal.includes(item))
-        method = 'add'
-      }
-      if (changes !== '') {
-        this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: changes, method: method })
-      }
+    vmodelSelectedCat (val) {
+      this.$store.commit('od/changeSelectedCategory', val)
     },
-    selectedrGoup (newVal) {
-      // check selected group in store. if it changes from another component
-      const a = new Set(newVal)
-      const b = new Set(this.tripList)
-      if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
-        this.tripList = structuredClone(newVal)
-      }
-    },
-
-    vmodelSelectedFilter (newVal, oldVal) {
-      this.selectedFilter = newVal
-      // only reset if we change the filter.
-      this.$store.commit('changeSelectedrFilter', this.selectedFilter)
-      // when the component is loaded, oldVal is null and we dont want to overwrite tripList to [].
-      if (oldVal) {
-        this.tripList = []
-      }
+    vmodelSelectedFilter (val) {
+      this.$store.commit('od/changeSelectedFilter', val)
+      this.vmodelSelectedCat = [] // reset.
     },
 
   },
   mounted () {
-    this.tripList = this.selectedrGoup
-    this.selectedFilter = this.$store.getters.selectedrFilter
+    this.vmodelSelectedCat = this.selectedCat
     this.vmodelSelectedFilter = this.selectedFilter
-    this.$store.commit('changeSelectedrFilter', this.selectedFilter)
-
-    if (this.$store.getters.links.features.length === 0 &&
-    !this.$store.getters.projectIsEmpty &&
-    this.selectedrGoup.length === 0) {
-      this.showAll()
-    }
   },
 
   methods: {
@@ -101,10 +68,10 @@ export default {
       this.$emit('deleteButton', obj)
     },
     showAll () {
-      if (this.tripList.length === this.filteredCat.length) {
-        this.tripList = []
+      if (this.vmodelSelectedCat.length === this.filteredCat.length) {
+        this.vmodelSelectedCat = []
       } else {
-        this.tripList = this.filteredCat
+        this.vmodelSelectedCat = this.filteredCat
       }
     },
     showGroup (val) {
@@ -132,11 +99,11 @@ export default {
             @click="showAll()"
           >
             <v-icon class="list-item-icon">
-              {{ tripList.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa' }}
+              {{ vmodelSelectedCat.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa' }}
             </v-icon>
           </v-btn>
         </template>
-        <span>{{ tripList.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ vmodelSelectedCat.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         bottom
@@ -147,7 +114,7 @@ export default {
             icon
             class="ma-2"
             :style="{color: 'white'}"
-            :disabled="tripList.length===0? true: false"
+            :disabled="vmodelSelectedCat.length === 0? true: false"
             v-bind="attrs"
             v-on="on"
             @click="editVisible()"
@@ -235,7 +202,7 @@ export default {
           >
             <v-list-item-action>
               <v-checkbox
-                v-model="tripList"
+                v-model="vmodelSelectedCat"
                 class="pl-2"
                 :on-icon="'fa-eye fa'"
                 :off-icon="'fa-eye-slash fa'"

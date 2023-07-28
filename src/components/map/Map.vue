@@ -9,12 +9,14 @@ import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
 import StaticLayer from '../utils/StaticLayer.vue'
 import LayerSelector from '../utils/LayerSelector.vue'
+import ODMap from './ODMap.vue'
 
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 const $gettext = s => s
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names, vue/no-reserved-component-names
   name: 'Map',
   components: {
     MglMap,
@@ -27,6 +29,7 @@ export default {
     EditorLinks,
     RoadLinks,
     Settings,
+    ODMap,
   },
   props: {
     selectedTrips: {
@@ -402,6 +405,11 @@ export default {
         :map="map"
         :anchor-mode="anchorMode"
         v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
+      />
+    </template>
+    <template v-if="mapIsLoaded">
+      <ODMap
+        :map="map"
       />
     </template>
     <template v-if="mapIsLoaded">
