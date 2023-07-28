@@ -1,7 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script>
 import { MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
-import mapboxgl from 'mapbox-gl'
 
 export default {
   name: 'ODMap',

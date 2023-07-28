@@ -43,7 +43,7 @@ export default {
         newField: [
           val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
           val => val !== '' || $gettext('cannot add empty field'),
-          val => !val?.endsWith('_r') || $gettext('field cannot end with _r')
+          val => !val?.endsWith('_r') || $gettext('field cannot end with _r'),
         ],
       },
 
@@ -79,7 +79,6 @@ export default {
         cycleway_reverse: $gettext('if the road contain a bike path in the opposite direction. either yes, no or shared.\
           a road can be a oneway and have cycleway on both side.'),
 
-
       },
 
     }
@@ -97,6 +96,8 @@ export default {
         'Edit rLink Info',
         'Edit Road Group Info',
         'Edit Visible Road Info',
+        'Edit OD Group Info',
+        'Edit Visible OD Info',
         'Edit rNode Info'].includes(this.action)
     },
   },
@@ -199,6 +200,22 @@ export default {
         this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = this.$store.getters.rlineAttributes
         const uneditable = ['index', 'length', 'a', 'b']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
+        this.showDialog = true
+      } else if (this.action === 'Edit OD Group Info') {
+        const features = this.$store.getters['od/groupLayer'](event.category, event.group)
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters['od/layerAttributes']
+        const uneditable = ['index']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
+        this.showDialog = true
+      } else if (this.action === 'Edit Visible OD Info') {
+        const features = this.$store.getters['od/visibleLayer'].features
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters['od/layerAttributes']
+        const uneditable = ['index']
         this.editorForm = getGroupForm(features, lineAttributes, uneditable)
         this.lingering = event.lingering
         this.showDialog = true
@@ -323,6 +340,17 @@ export default {
           })
           this.$refs.mapref.$refs.roadref.getBounds()
           break
+        case 'Edit OD Group Info':
+          this.$store.commit('od/editGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
+          break
+        case 'Edit Visible OD Info':
+          this.$store.commit('od/editGroupInfo', {
+            selectedLinks: this.$store.getters['od/visibleLayer'].features,
+            info: this.editorForm,
+          })
+
+          break
+
         case 'Edit rNode Info':
           this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
           break
@@ -361,6 +389,8 @@ export default {
         case 'deleterGroup':
           this.$store.commit('deleterGroup', this.tripToDelete)
           break
+        case 'deleteODGroup':
+          this.$store.commit('od/deleteGroup', this.tripToDelete)
       }
       if (!this.lingering) {
         this.confirmChanges()
@@ -468,6 +498,8 @@ export default {
           this.$store.commit('addPropertie', { name: this.newFieldName, table: 'nodes' })
         } else if (this.action === 'Edit rNode Info') {
           this.$store.commit('addRoadPropertie', { name: this.newFieldName, table: 'rnodes' })
+        } else if (['Edit OD Group Info', 'Edit Visible OD Info'].incluces(this.action)) {
+          this.$store.commit('od/addPropertie', this.newFieldName)
         }
         this.newFieldName = null // null so there is no rules error.
         this.$store.commit('changeNotification',
@@ -499,6 +531,8 @@ export default {
         this.$store.commit('deletePropertie', { name: field, table: 'nodes' })
       } else if (this.action === 'Edit rNode Info') {
         this.$store.commit('deleteRoadPropertie', { name: field, table: 'rnodes' })
+      } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(this.action)) {
+        console.log('TODO delete field')
       }
       this.$store.commit('changeNotification',
         { text: $gettext('Field deleted'), autoClose: true, color: 'success' })

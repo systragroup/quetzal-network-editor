@@ -10,6 +10,7 @@ export default {
     visibleLayer: {},
     layerHeader: {}, // empty geojson
     layerAttributes: [], // all the available attributes (columns in pandas)
+    filteredCategory: [], // all possible category (to be in selectedCat)
     selectedFilter: '', // ex: highway
     selectedCategory: [], // ex: [motorway, residential] visible one.
 
@@ -37,6 +38,7 @@ export default {
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
       this.commit('od/refreshVisibleLayer')
+      this.commit('od/getFilteredCategory')
     },
     changeSelectedCategory (state, payload) {
       state.selectedCategory = payload
@@ -59,8 +61,23 @@ export default {
       const cat = state.selectedFilter
       state.visibleLayer.features = state.layer.features.filter(link => group.has(link.properties[cat]))
     },
+    getFilteredCategory (state) {
+      // for a given filter (key) get array of unique value
+      // e.g. get ['bus','subway'] for route_type
+      const val = Array.from(new Set(state.layer.features.map(
+        item => item.properties[state.selectedFilter])))
+      state.filteredCategory = val
+    },
 
     // actions
+
+    deleteGroup (state, payload) {
+      const group = payload
+      const cat = state.selectedFilter
+      state.layer.features = state.layer.features.filter(link => link.properties[cat] !== group)
+      this.commit('od/refreshVisibleLayer')
+      this.commit('od/getFilteredCategory')
+    },
 
     moveNode (state, payload) {
       const linkIndex = payload.selectedFeature.properties.linkIndex
@@ -72,6 +89,28 @@ export default {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
 
+    editGroupInfo (state, payload) {
+      // edit line info on multiple trips at once.
+      const groupInfo = payload.info
+      const selectedLinks = payload.selectedLinks // observer of state.links
+      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
+      const props = Object.keys(groupInfo).filter(key =>
+        ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
+      // this is an oberver. modification will be applied to state.links.
+      selectedLinks.forEach(
+        (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
+
+      this.commit('od/refreshVisibleLayer')
+      this.commit('od/getFilteredCategory')
+    },
+    addPropertie (state, payload) {
+      // payload = name
+      // when a new line properties is added (in dataframe page)
+      state.layer.features.map(link => link.properties[payload] = null)
+      state.visibleLayer.features.map(link => link.properties[payload] = null)
+      state.layerAttributes.push(payload)
+    },
+
   },
 
   getters: {
@@ -81,7 +120,11 @@ export default {
     selectedTrips: (state) => state.selectedTrips,
     layerAttributes: (state) => state.layerAttributes.sort(),
     selectedFilter: (state) => state.selectedFilter,
+    filteredCategory: (state) => state.filteredCategory,
     selectedCategory: (state) => state.selectedCategory,
+    groupLayer: (state) => (category, group) => {
+      return state.layer.features.filter(link => group === link.properties[category])
+    },
     nodes: (state) => (layer) => {
       const nodes = structuredClone(state.layerHeader)
       layer.features.forEach(

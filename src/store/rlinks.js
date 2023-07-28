@@ -166,6 +166,7 @@ export default {
       } else {
         state.rnodes.features.map(node => node.properties[payload.name] = null)
         state.visiblerNodes.features.map(node => node.properties[payload.name] = null)
+        state.rnodeAttributes.push(payload.name)
       }
     },
     deleteRoadPropertie (state, payload) {

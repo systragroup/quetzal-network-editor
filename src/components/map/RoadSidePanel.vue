@@ -5,7 +5,7 @@ export default {
   components: {
   },
   props: ['selectedrGoup', 'height'], // height is here to resize with the windows...
-  events: ['selectEditorTrip', 'deleteButton', 'propertiesButton', 'newLine'],
+  events: ['deleteButton', 'propertiesButton', 'update-tripList'],
 
   data () {
     return {

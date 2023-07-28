@@ -20,14 +20,7 @@ export default {
     filterChoices () { return this.$store.getters['od/layerAttributes'] },
     selectedFilter () { return this.$store.getters['od/selectedFilter'] },
     selectedCat () { return this.$store.getters['od/selectedCategory'] },
-    filteredCat () {
-      // for a given filter (key) get array of unique value
-      // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(this.layer.features.map(
-        item => item.properties[this.selectedFilter])))
-      return val
-    },
-
+    filteredCat () { return this.$store.getters['od/filteredCategory'] },
   },
 
   watch: {
@@ -50,7 +43,7 @@ export default {
     propertiesButton (value) {
       // select the TripId and open dialog
       this.$emit('propertiesButton', {
-        action: 'Edit Road Group Info',
+        action: 'Edit OD Group Info',
         lingering: false,
         category: this.vmodelSelectedFilter,
         group: value,
@@ -58,7 +51,7 @@ export default {
     },
     editVisible () {
       this.$emit('propertiesButton', {
-        action: 'Edit Visible Road Info',
+        action: 'Edit Visible OD Info',
         lingering: false,
       })
     },
@@ -77,6 +70,8 @@ export default {
     showGroup (val) {
       this.tripList = Array.from(new Set([...this.tripList, ...val]))
     },
+
+    createNewOD () { console.log('todo') },
 
   },
 
@@ -129,7 +124,7 @@ export default {
 
       <v-spacer />
       <span :style="{color: 'white'}">
-        {{ $gettext("Roads") }}
+        {{ $gettext("OD") }}
       </span>
 
       <v-spacer />
@@ -249,7 +244,7 @@ export default {
                   v-bind="attrs"
                   :disabled="false"
                   v-on="on"
-                  @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleterGroup'})"
+                  @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleteODGroup'})"
                 >
                   <v-icon
                     small
@@ -269,46 +264,27 @@ export default {
     </v-card>
     <v-card class="mx-auto">
       <v-list-item>
-        <v-tooltip
-          right
-          open-delay="500"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              v-bind="attrs"
-              class="mx-2"
-              :color="$store.getters.anchorMode? 'grey':'regular'"
-              v-on="on"
-              @click="$store.commit('changeAnchorMode')"
-            >
-              <v-icon small>
-                fas fa-anchor
-              </v-icon>
-            </v-btn>
-          </template>
-          <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
-        </v-tooltip>
-        <v-tooltip
-          right
-          open-delay="500"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              v-bind="attrs"
-              class="mx-2"
-              :disabled="!$store.getters.hasCycleway"
-              :color="$store.getters.cyclewayMode? 'green':'regular'"
-              v-on="on"
-              @click="$store.commit('changeCyclewayMode')"
-            >
-              <v-icon small>
-                fas fa-biking
-              </v-icon>
-            </v-btn>
-          </template>
-          <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
-        </v-tooltip>
         <v-spacer />
+
+        <v-tooltip
+          bottom
+          open-delay="500"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              v-bind="attrs"
+              color="primary"
+              class="text--primary"
+              fab
+              small
+              v-on="on"
+              @click="createNewOD"
+            >
+              <v-icon>fas fa-plus</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ $gettext("Create new OD") }}</span>
+        </v-tooltip>
       </v-list-item>
     </v-card>
   </section>

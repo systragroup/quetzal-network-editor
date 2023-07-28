@@ -110,6 +110,8 @@ export default {
             <ODSidePanel
               v-show="tab===2"
               :height="windowHeight"
+              @deleteButton="(e) => $emit('deleteButton',e)"
+              @propertiesButton="(e) => $emit('propertiesButton',e)"
             />
           </div>
         </div>
