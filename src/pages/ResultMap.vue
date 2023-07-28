@@ -1,9 +1,9 @@
 <script>
 
-import ResultsSidePanel from '../components/ResultsSidePanel.vue'
-import MapResults from '../components/MapResults.vue'
-import ResultsSettings from '../components/ResultsSettings.vue'
-import MapLegend from '../components/utils/MapLegend.vue'
+import ResultsSidePanel from '@comp/results/ResultsSidePanel.vue'
+import MapResults from '@comp/results/MapResults.vue'
+import ResultsSettings from '@comp/results/ResultsSettings.vue'
+import MapLegend from '@comp/utils/MapLegend.vue'
 
 export default {
   name: 'ResultMap',
@@ -72,28 +72,28 @@ export default {
         case 'links':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.links,
-            type: 'links',
+            type: 'LineString',
             selectedFeature: 'headway',
           })
           break
         case 'rlinks':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.rlinks,
-            type: 'links',
+            type: 'LineString',
             selectedFeature: 'speed',
           })
           break
         case 'nodes':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.nodes,
-            type: 'nodes',
+            type: 'Point',
             selectedFeature: 'boardings',
           })
           break
         case 'rnodes':
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters.rnodes,
-            type: 'nodes',
+            type: 'Point',
             selectedFeature: 'boardings',
           })
           break

@@ -22,6 +22,14 @@ async function readJson (bucket, key) {
   const fileContent = JSON.parse(response.Body.toString('utf-8').trim()) // can also do 'base64' here if desired
   return fileContent
 }
+
+async function readBytes (bucket, key) {
+  const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
+  // const params = { Bucket: bucket, Key: key }
+  const response = await s3Client.getObject(params).promise() // await the promise
+  const fileContent = response.Body // can also do 'base64' here if desired
+  return fileContent
+}
 async function downloadFolder (bucket, prefix) {
   // zip everything in a folder. keep filename. Folder structure will not work.
   const zip = new JSZip()
@@ -72,6 +80,7 @@ async function getImagesURL (bucket, key) {
 async function copyFolder (bucket, prefix, newName) {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
+  response.Contents = response.Contents.filter(el => !el.Key.endsWith('.lock'))
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
   for (const file of response.Contents) {
     let newFile = file.Key.split('/')
@@ -103,7 +112,7 @@ async function createFolder (bucket, key) {
 
   s3Client.upload(params, function (err, data) {
     if (err) {
-      console.log('Error creating the folder: ', err)
+      store.commit('changeAlert', err)
     } else {
       console.log('Successfully created a folder on S3')
     }
@@ -116,6 +125,16 @@ async function putObject (bucket, key, body = '') {
     Body: body,
     Metadata: { user_email: store.getters.cognitoInfo.email },
     ContentType: ' application/json',
+  }
+  const resp = await s3Client.putObject(params).promise()
+  return resp
+}
+async function putBytes (bucket, key, body = '') {
+  const params = {
+    Bucket: bucket,
+    Key: key,
+    Body: body,
+    Metadata: { user_email: store.getters.cognitoInfo.email },
   }
   const resp = await s3Client.putObject(params).promise()
   return resp
@@ -171,12 +190,14 @@ export default {
 
   getScenario,
   readJson,
+  readBytes,
   getBucketList,
   listFiles,
   copyFolder,
   deleteFolder,
   createFolder,
   putObject,
+  putBytes,
   getImagesURL,
   downloadFolder,
 

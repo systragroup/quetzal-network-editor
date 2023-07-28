@@ -1,5 +1,5 @@
-import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '@src/AWSClient'
+import { quetzalClient } from '@src/axiosClient.js'
 import { v4 as uuid } from 'uuid'
 import router from '../../router'
 
@@ -8,7 +8,7 @@ const $gettext = s => s
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api-test',
     bucket: 'quenedi-osm',
     callID: '',
     status: '',
@@ -16,6 +16,7 @@ export default {
     running: false,
     executionArn: '',
     error: false,
+    errorMessage: '',
     tags: ['highway', 'maxspeed', 'lanes', 'name', 'oneway', 'surface'],
     highway: [
       'motorway',
@@ -65,13 +66,11 @@ export default {
       state.error = false
     },
     setCallID (state) { state.callID = uuid() },
-    startExecution (state) {
-      state.error = false
-      state.running = true
-    },
-    terminateExecution (state) {
+
+    terminateExecution (state, payload) {
       state.running = false
       state.error = true
+      state.errorMessage = payload
       state.executionArn = ''
     },
     changeRunning (state, payload) {
@@ -92,20 +91,13 @@ export default {
     startExecution ({ state, commit, dispatch }, payload) {
       // commit('setParameters', payload.parameters)
       state.running = true
-      let overpassQuery = `[out:json][timeout:180];
-      (
-      `
-      overpassQuery += state.highway.map(highway => `way["highway"="${highway}"](${payload.bbox});\n`).join('')
-      overpassQuery += `);
-      out body;
-      >;
-      out skel qt;
-      `
+      state.error = false
       let data = {
         input: JSON.stringify({
-          overpassQuery: overpassQuery,
-          tags: state.tags,
+          bbox: payload.bbox,
+          highway: state.highway,
           callID: state.callID,
+          elevation: true,
         }),
         name: state.callID,
         stateMachineArn: state.stateMachineArn,
@@ -137,7 +129,7 @@ export default {
               commit('succeedExecution')
               clearInterval(intervalId)
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
-              commit('terminateExecution')
+              commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
             }
           }).catch(err => { commit('changeAlert', err, { root: true }) })
@@ -174,7 +166,6 @@ export default {
       commit('loadrLinks', rlinks, { root: true })
       const rnodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
       commit('loadrNodes', rnodes, { root: true })
-      await s3.deleteFolder(state.bucket, state.callID)
       console.log('downloaded')
       router.push('/Home').catch(() => {})
     },
@@ -184,6 +175,7 @@ export default {
     status: (state) => state.status,
     executionArn: (state) => state.executionArn,
     error: (state) => state.error,
+    errorMessage: (state) => state.errorMessage,
     callID: (state) => state.callID,
     bucket: (state) => state.bucket,
     timer: (state) => state.timer,

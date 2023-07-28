@@ -17,10 +17,9 @@ export default {
   },
   async created () {
     this.$store.commit('changeLoading', true)
-    const config = this.$store.getters.config
     const model = this.$store.getters.model
     const scenario = this.$store.getters.scenario
-    const outputsFiles = await s3.listFiles(model, scenario + '/' + config.output_paths)
+    const outputsFiles = await s3.listFiles(model, scenario + '/outputs')
     const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
     for (const file of filesNames) {
       const url = await s3.getImagesURL(this.$store.getters.model, file)

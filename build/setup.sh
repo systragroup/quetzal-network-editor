@@ -4,6 +4,14 @@ cd "$(dirname "$0")"/..
 
 echo -n "Use the config-secret file if you have the the secret Keys. \n"
 
+
+DEFAULT_BASE_PATH='/quetzal-network-editor/'
+echo -n "(BASE_PATH) for vue router: [$BASE_PATH] "
+read BASE_PATH
+if [ -z "$BASE_PATH" ]; then
+  BASE_PATH="$BASE_PATH"
+fi
+
 echo -n "(MAPBOX_TOKEN) Mapbox public access token: "
 read -r MAPBOX_TOKEN
 
@@ -55,6 +63,7 @@ fi
 
 
 sed -r \
+  -e "s|###BASE_PATH###|$BASE_PATH|;" \
   -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
   -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
@@ -66,6 +75,7 @@ sed -r \
   -e "s|###COGNITO_REGION###|$COGNITO_REGION|;" \
   config.env.dist > .env.development
 sed -r \
+  -e "s|###BASE_PATH###|$BASE_PATH|;" \
   -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
   -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
@@ -76,3 +86,15 @@ sed -r \
   -e "s|###COGNITO_IDENTITY_POOL_ID###|$COGNITO_IDENTITY_POOL_ID|;" \
   -e "s|###COGNITO_REGION###|$COGNITO_REGION|;" \
   config.env.dist > .env.production
+  sed -r \
+  -e "s|###BASE_PATH###|$BASE_PATH|;" \
+  -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
+  -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
+  -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
+  -e "s|###APP_URL###|$APP_URL|;" \
+  -e "s|###COGNITO_USERPOOL_ID###|$COGNITO_USERPOOL_ID|;" \
+  -e "s|###COGNITO_APP_DOMAIN###|$COGNITO_APP_DOMAIN|;" \
+  -e "s|###COGNITO_CLIENT_ID###|$COGNITO_CLIENT_ID|;" \
+  -e "s|###COGNITO_IDENTITY_POOL_ID###|$COGNITO_IDENTITY_POOL_ID|;" \
+  -e "s|###COGNITO_REGION###|$COGNITO_REGION|;" \
+  config.env.dist > .env.test

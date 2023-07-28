@@ -19,7 +19,8 @@ export default {
   watch: {
     async visible (val) {
       if (val) {
-        const url = await s3.getImagesURL(this.$store.getters.model, this.fileName)
+        const path = this.$store.getters.scenario + '/' + this.fileName
+        const url = await s3.getImagesURL(this.$store.getters.model, path)
         this.url = url
       } else {
         this.url = structuredClone(this.$store.getters.linksHeader)
@@ -33,7 +34,8 @@ export default {
   async mounted () {
     // if selected when loading the map, fetch the data to display the correct geojson.
     if (this.visible) {
-      const url = await s3.getImagesURL(this.$store.getters.model, this.fileName)
+      const path = this.$store.getters.scenario + '/' + this.fileName
+      const url = await s3.getImagesURL(this.$store.getters.model, path)
       this.url = url
     }
   },

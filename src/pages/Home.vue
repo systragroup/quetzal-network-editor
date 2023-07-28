@@ -1,10 +1,10 @@
 <!-- eslint-disable no-multi-str -->
 <!-- eslint-disable no-return-assign -->
 <script>
-import SidePanel from '../components/SidePanel.vue'
-import Map from '../components/Map.vue'
-import ColorPicker from '../components/utils/ColorPicker.vue'
-import { getGroupForm } from '../components/utils/utils.js'
+import SidePanel from '@comp/map/SidePanel.vue'
+import Map from '@comp/map/Map.vue'
+import ColorPicker from '@comp/utils/ColorPicker.vue'
+import { getGroupForm } from '@comp/utils/utils.js'
 
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
@@ -43,6 +43,7 @@ export default {
         newField: [
           val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
           val => val !== '' || $gettext('cannot add empty field'),
+          val => !val?.endsWith('_r') || $gettext('field cannot end with _r')
         ],
       },
 
@@ -74,6 +75,10 @@ export default {
         length: $gettext('links geometry linestring length (meters)'),
         highway: $gettext('Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)'),
         speed: $gettext('speed on the link (Km/h)'),
+        cycleway: $gettext('if the road contain a bike path. either yes, no or shared'),
+        cycleway_reverse: $gettext('if the road contain a bike path in the opposite direction. either yes, no or shared.\
+          a road can be a oneway and have cycleway on both side.'),
+
 
       },
 

@@ -6,6 +6,9 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import bearing from '@turf/bearing'
+import { serializer } from '@comp/utils/serializer.js'
+import { IndexAreDifferent } from '@comp/utils/utils.js'
+const $gettext = s => s
 
 const short = require('short-uuid')
 
@@ -27,7 +30,8 @@ export default {
     defaultHighway: 'quenedi',
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
-    cstAttributes: ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway'],
+    // those are the list of attributes we do not want to duplicated with _r.
+    rcstAttributes: ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway', 'cycleway', 'cycleway_reverse', 'incline'],
     rundeletable: ['index', 'a', 'b', 'length', 'route_color', 'oneway', 'time', 'speed', 'time_r', 'speed_r'],
     reversedAttributes: [],
   },
@@ -64,25 +68,54 @@ export default {
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
+    loadRoadFiles (state, payload) {
+      // payload = [{path,content},...]
+      // get rlinks. check that index are not duplicated, serialize them and then append to project
+      // get rnodes. check that index are not duplicated, serialize them and then append to project
+
+      for (const file of payload) {
+        const currentType = file.content.features[0].geometry.type
+        if (currentType === 'LineString') {
+          if (IndexAreDifferent(file.content, state.rlinks)) {
+            this.commit('appendNewrLinks', serializer(file.content, file.path, currentType))
+          } else {
+            const err = new Error($gettext(' there is duplicated index, ') + file.path)
+            err.name = 'ImportError'
+            throw err
+          }
+        } else if (currentType === 'Point') {
+          if (IndexAreDifferent(file.content, state.rnodes)) {
+            this.commit('appendNewrNodes', serializer(file.content, file.path, currentType))
+          } else {
+            const err = new Error($gettext(' there is duplicated index, ') + file.path)
+            err.name = 'ImportError'
+            throw err
+          }
+        }
+      }
+    },
+
     appendNewrLinks (state, payload) {
       // append new links and node to the project (import page)
-      payload.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+      payload.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-      payload.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-        coord => Math.round(Number(coord) * 1000000) / 1000000))
 
-      // state.rlinks.features.push(...payload.rlinks.features) will crash with large array (stack size limit)
-      payload.rlinks.features.forEach(link => state.rlinks.features.push(link))
-      payload.rnodes.features.forEach(node => state.rnodes.features.push(node))
+      payload.features.forEach(link => state.rlinks.features.push(link))
       this.commit('getrLinksProperties')
       this.commit('splitOneway')
-      this.commit('getrNodesProperties')
       this.commit('getFilteredrCat')
-      // state.selectedrGroup = Array.from(new Set(state.rlinks.features.map(
-      //  item => item.properties[this.selectedrFilter])))
-      // state.visiblerLinks = state.rlinks
-      // state.visiblerNodes = state.rnodes
     },
+
+    appendNewrNodes (state, payload) {
+      // append new links and node to the project (import page)
+      payload.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+        coord => Math.round(Number(coord) * 1000000) / 1000000))
+
+      payload.features.forEach(node => state.rnodes.features.push(node))
+      this.commit('splitOneway')
+      this.commit('getrNodesProperties')
+    },
+
     unloadrFiles (state) {
       // when we reload files (some were already loaded.)
       state.rlinks.features = []
@@ -127,7 +160,7 @@ export default {
         state.visiblerLinks.features.map(link => link.properties[payload.name] = null)
         state.rlineAttributes.push(payload.name) // could put that at applied. so we can cancel
         // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
-        if (!state.cstAttributes.includes(payload.name)) {
+        if (!state.rcstAttributes.includes(payload.name)) {
           state.reversedAttributes.push(payload.name + '_r')
         }
       } else {
@@ -172,7 +205,7 @@ export default {
         })
         // const oneways = state.rlinks.features.filter(link => !link.properties.oneway)
         state.reversedAttributes = state.rlineAttributes.filter(
-          attr => !state.cstAttributes.includes(attr)).map(
+          attr => !state.rcstAttributes.includes(attr)).map(
           attr => attr + '_r')
         state.rlinks.features.forEach(link => {
           if (link.properties.oneway === '0') {
@@ -604,9 +637,10 @@ export default {
     visiblerNodes: (state) => state.visiblerNodes,
     defaultHighway: (state) => state.defaultHighway,
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
-    rcstAttributes: (state) => state.cstAttributes,
+    rcstAttributes: (state) => state.rcstAttributes,
     newrNode: (state) => state.newrNode,
     rundeletable: (state) => state.rundeletable,
+    hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
 
     anchorrNodes: (state) => (renderedLinks) => {
       const nodes = structuredClone(state.rnodesHeader)

@@ -1,6 +1,6 @@
 import { quetzalClient } from '@src/axiosClient.js'
+import { paramsSerializer } from '@src/components/utils/serializer.js'
 import s3 from '@src/AWSClient'
-import { classFile2 } from '@src/components/utils/utils.js'
 const $gettext = s => s
 
 export default {
@@ -12,6 +12,7 @@ export default {
     executionArn: '',
     currentStep: 0,
     error: false,
+    errorMessage: '',
     synchronized: true,
     parameters: [],
   },
@@ -35,9 +36,10 @@ export default {
       state.running = true
       state.currentStep = 1
     },
-    terminateExecution (state) {
+    terminateExecution (state, payload) {
       state.running = false
       state.error = true
+      state.errorMessage = payload
       state.executionArn = ''
     },
     changeRunning (state, payload) {
@@ -55,90 +57,42 @@ export default {
       state.currentStep = stepNames.indexOf(payload.name) + 1
     },
     getLocalParameters (state, payload) {
+      payload = paramsSerializer(payload)
       state.parameters = payload
     },
   },
   actions: {
     async getParameters ({ state, commit }, payload) {
+      // only for the reset button.
       try {
         const params = await s3.readJson(payload.model, payload.path)
         state.parameters = params
       } catch (err) {
         commit('changeAlert', err, { root: true })
-        state.parameters = []
       }
     },
     async getOutputs (context) {
       const model = context.rootState.user.model
-      const scenario = context.rootState.user.scenario
-      const path = scenario + '/' + context.rootState.user.config.output_paths
-      let filesNames = await s3.listFiles(model, path)
-      filesNames = filesNames.filter(name => name !== path)
-      filesNames = filesNames.filter(name => !name.endsWith('.png'))
-      const files = []
-      for (const file of filesNames) {
-        const content = await s3.readJson(model, file)
-        const name = file.split('/').slice(1).join('/')
-        files.push(classFile2(name, content))
+      const scen = context.rootState.user.scenario + '/'
+      const path = scen + 'outputs/'
+      let filesList = await s3.listFiles(model, path)
+      filesList = filesList.filter(name => !name.endsWith('/'))
+      const res = []
+      for (const file of filesList) {
+        const name = file.slice(scen.length) // remove scen name from file
+        if (file.endsWith('.json') || file.endsWith('.geojson')) {
+          const content = await s3.readJson(model, file)
+          res.push({ path: name, content: content })
+        } else {
+          res.push({ path: name, content: null })
+        }
       }
-      if (files.length > 0) {
-        context.commit('unloadLayers', null, { root: true })
-        files.filter(file => (['layerLinks', 'links', 'road_links'].includes(file.type))).forEach(
-          file => {
-            const data = file.data
-            const fileName = file.fileName.slice(0, -8)
-            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-            matData = matData || {}
-            const matDataExist = Object.keys(matData).length > 0
-            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-              this.error($gettext(fileName + ' there is no index. Import aborted'))
-              return
-            }
 
-            context.commit('loadLayer', {
-              fileName: fileName,
-              type: 'links',
-              data: data,
-              mat: matData,
-            }, { root: true })
-          })
-        files.filter(file => (['layerNodes', 'nodes', 'road_nodes'].includes(file.type))).forEach(
-          file => {
-            const data = file.data
-            const fileName = file.fileName.slice(0, -8)
-            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-            matData = matData || {}
-            const matDataExist = Object.keys(matData).length > 0
-            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-              this.error($gettext(fileName + ' there is no index. Import aborted'))
-              return
-            }
-            context.commit('loadLayer', {
-              fileName: fileName,
-              type: 'nodes',
-              data: data,
-              mat: matData,
-            }, { root: true })
-          })
-        // for zones. find the corresponding json file (mat) or nothing.
-        files.filter(file => (file.type === 'zones')).forEach(
-          file => {
-            const zoneData = file.data
-            const fileName = file.fileName.slice(0, -8)
-            let matData = files.filter(json => json.fileName.slice(0, -5) === fileName)[0]?.data
-            matData = matData || {}
-            const matDataExist = Object.keys(matData).length > 0
-            if (!Object.keys(file.data.features[0].properties).includes('index') && matDataExist) {
-              this.error($gettext(fileName + ' there is no index. Import aborted'))
-              return
-            }
-            context.commit('loadLayer', {
-              fileName: fileName,
-              type: 'zones',
-              data: zoneData,
-              mat: matData,
-            }, { root: true })
-          })
+      if (res.length > 0) {
+        // unload all results Layers
+        context.commit('unloadLayers', {}, { root: true })
+        context.commit('loadFiles', res, { root: true })
+        // load new Results
       }
     },
     getSteps ({ state, commit, rootState }) {
@@ -164,9 +118,10 @@ export default {
         })
     },
     startExecution ({ state, commit, dispatch, rootState }, payload) {
-      const paramsDict = state.parameters.reduce((acc, { category, params }) => {
-        acc[category] = params.reduce((paramAcc, { text, value }) => {
-          paramAcc[text] = value
+      const filteredParams = state.parameters.filter(param => Object.keys(param).includes('category'))
+      const paramsDict = filteredParams.reduce((acc, { category, params }) => {
+        acc[category] = params.reduce((paramAcc, { name, value }) => {
+          paramAcc[name] = value
           return paramAcc
         }, {})
         return acc
@@ -186,6 +141,7 @@ export default {
         }),
         stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
+
       quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
@@ -204,16 +160,16 @@ export default {
           data = JSON.stringify(data),
         ).then(
           response => {
-            this.status = response.data.status
-            if (this.status === 'SUCCEEDED') {
+            state.status = response.data.status
+            if (state.status === 'SUCCEEDED') {
               dispatch('getOutputs').then(
                 () => {
                   commit('succeedExecution')
                   clearInterval(intervalId)
                 },
               ).catch(err => alert(err))
-            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.status)) {
-              commit('terminateExecution')
+            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
+              commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
             }
           }).catch(
@@ -258,7 +214,9 @@ export default {
     currentStep: (state) => state.currentStep,
     executionArn: (state) => state.executionArn,
     error: (state) => state.error,
+    errorMessage: (state) => state.errorMessage,
     synchronized: (state) => state.synchronized,
     parameters: (state) => state.parameters,
+    parametersIsEmpty: (state) => state.parameters.length === 0,
   },
 }

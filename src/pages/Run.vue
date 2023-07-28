@@ -1,8 +1,9 @@
 <script>
 
-import ParamForm from '../components/ParamForm.vue'
+import ParamForm from '@comp/run/ParamForm.vue'
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Run',
   components: {
     ParamForm,
@@ -12,13 +13,17 @@ export default {
     running () { return this.$store.getters['run/running'] },
     currentStep () { return this.$store.getters['run/currentStep'] },
     error () { return this.$store.getters['run/error'] },
+    errorMessage () { return this.$store.getters['run/errorMessage'] },
     synchronized () { return this.$store.getters['run/synchronized'] },
     isProtected () {
       return this.$store.getters.protected.includes(this.$store.getters.scenario)
     },
+    modelIsLoaded () { return this.$store.getters.model !== null },
   },
   created () {
-    this.$store.dispatch('run/getSteps')
+    if (this.modelIsLoaded) {
+      this.$store.dispatch('run/getSteps')
+    }
   },
   methods: {
     async run () {
@@ -74,6 +79,12 @@ export default {
           >
             {{ $gettext("Simulation ended with an execution error or have been aborted. \
             Please relauch simulation. If the problem persist, contact us.") }}
+            <p
+              v-for="key in Object.keys(errorMessage)"
+              :key="key"
+            >
+              <b>{{ key }}: </b>{{ errorMessage[key] }}
+            </p>
           </v-alert>
           <v-alert
             v-if="isProtected"
@@ -86,7 +97,7 @@ export default {
           </v-alert>
           <v-btn
             :loading="running"
-            :disabled="running || isProtected"
+            :disabled="running || isProtected || !modelIsLoaded"
             color="success"
             @click="run()"
           >
@@ -106,21 +117,24 @@ export default {
           >
             {{ $gettext("Abort Simulation") }}
           </v-btn>
-          <v-container
-            v-for="(step, i) in steps"
-            :key="i+1"
-          >
-            <v-stepper-content
-              :step="i+1"
-            />
-            <v-stepper-step
-              :complete="currentStep > i+1"
-              :step="i+1"
-              :rules="[() => !(i+1 == currentStep) || !error]"
+          <div v-if="modelIsLoaded">
+            <v-container
+              v-for="(step, i) in steps"
+
+              :key="i+1"
             >
-              {{ step.name }}
-            </v-stepper-step>
-          </v-container>
+              <v-stepper-content
+                :step="i+1"
+              />
+              <v-stepper-step
+                :complete="currentStep > i+1"
+                :step="i+1"
+                :rules="[() => !(i+1 == currentStep) || !error]"
+              >
+                {{ step.name }}
+              </v-stepper-step>
+            </v-container>
+          </div>
         </v-stepper>
       </v-card>
     </v-col>
