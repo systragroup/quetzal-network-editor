@@ -57,6 +57,9 @@ export default {
   created () {
     this.changeLayer(this.selectedLayer)
   },
+  beforeDestroy () {
+    this.$store.commit('results/unload')
+  },
 
   methods: {
     applySettings (payload) {
@@ -95,6 +98,13 @@ export default {
             geojson: this.$store.getters.rnodes,
             type: 'Point',
             selectedFeature: 'boardings',
+          })
+          break
+        case 'od':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters['od/layer'],
+            type: 'LineString',
+            selectedFeature: 'volume',
           })
           break
         default:

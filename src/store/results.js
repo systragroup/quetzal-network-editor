@@ -46,11 +46,20 @@ export default {
   },
 
   mutations: {
+    unload (state) {
+      state.type = 'links'
+      state.links = {}
+      state.visibleLinks = {}
+      state.linksHeader = {}
+      state.lineAttributes = []
+      state.selectedFilter = ''
+      state.selectedCategory = []
+    },
     loadLinks (state, payload) {
       state.links = payload.geojson
       state.type = payload.type
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
-        const linksHeader = { ...state.links }
+        const linksHeader = structuredClone(state.links)
         linksHeader.features = []
         state.linksHeader = linksHeader
         state.visibleLinks = structuredClone(linksHeader)

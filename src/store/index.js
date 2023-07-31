@@ -46,7 +46,7 @@ export const store = new Vuex.Store({
     outputName: 'output',
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
-    availableLayers: ['links', 'rlinks', 'nodes', 'rnodes'],
+    availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
     rasterFiles: [], // [{path, type}]
     visibleRasters: [], // list of rasterFiles path.
     otherFiles: [], // [{path, content}]
@@ -221,9 +221,9 @@ export const store = new Vuex.Store({
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
-      state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
+      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
     },
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
@@ -289,7 +289,7 @@ export const store = new Vuex.Store({
           zip.file('inputs/params.json', blob)
         }
         const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         for (const layer of staticLayers) {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer + '.geojson'
@@ -356,7 +356,7 @@ export const store = new Vuex.Store({
       }
       // save Static Layers
       const staticLayers = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
       for (const layer of staticLayers) {
         const name = layer + '.geojson'
         await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
