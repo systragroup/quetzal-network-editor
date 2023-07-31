@@ -396,7 +396,7 @@ export default {
   position: absolute;
 }
 .card {
-  height: 42em;
+  height: 45em;
   width:60rem;
   overflow-y:hidden;
   padding: 20px;
