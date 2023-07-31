@@ -76,6 +76,10 @@ export default {
       state.layer.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
+      // add all default attributes
+      const defaultAttributes = [
+        'index']
+      defaultAttributes.forEach(att => header.add(att))
       state.layerAttributes = Array.from(header)
       state.selectedFilter = state.layerAttributes[0]
       state.selectedCategory = Array.from(new Set(state.layer.features.map(
