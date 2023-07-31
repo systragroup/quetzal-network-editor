@@ -1,13 +1,15 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 const short = require('short-uuid')
+const $gettext = s => s
 
 export default {
   name: 'ODMap',
   components: {
     MglGeojsonLayer,
     MglImageLayer,
+    MglPopup,
   },
   props: ['map', 'isODMode', 'isEditorMode'],
   events: [],
@@ -19,6 +21,13 @@ export default {
       dragNode: false,
       drawMode: false,
       selectedFeature: null,
+      contextMenu: {
+        coordinates: [0, 0],
+        showed: false,
+        actions: [],
+        feature: null,
+      },
+
     }
   },
   computed: {
@@ -92,7 +101,7 @@ export default {
     },
 
     moveNode (event) {
-      if (this.isODMode && !this.drawMode) {
+      if (this.isODMode && !this.drawMode && this.hoveredStateId) {
         if (event.mapboxEvent.originalEvent.button === 0) {
           event.mapboxEvent.preventDefault() // prevent map control
           this.map.getCanvas().style.cursor = 'grab'
@@ -139,13 +148,31 @@ export default {
             { hover: false },
           )
         }
-
         this.hoveredStateId = null
         this.map.off('mouseup', this.stopMovingNode)
-
-      // emit a clickNode with the selected node.
-      // this will work with lag as it is the selectedFeature and not the highlighted one.}
       }
+    },
+    linkRightClick (event) {
+      if (this.isODMode && !this.drawMode) {
+        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+        this.contextMenu.showed = true
+        this.contextMenu.feature = this.hoveredStateId.id
+        this.contextMenu.actions =
+          [
+            $gettext('Edit OD Info'),
+            $gettext('Delete OD'),
+          ]
+      }
+    },
+    actionClick (event) {
+      const click = {
+        selectedIndex: event.feature,
+        action: event.action,
+        lngLat: event.coordinates,
+      }
+      this.$emit('clickFeature', click)
+      this.contextMenu.showed = false
+      this.contextMenu.type = null
     },
 
   },
@@ -170,10 +197,16 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['case', ['has', 'route_width'],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 3, 1],
+                         ['case', ['has', 'route_width'],
+                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                           ['to-number', ['get', 'route_width']],
+                           2], 2]],
+          'line-blur': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 1, 0],
+                        ['case', ['has', 'route_width'],
                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
                           ['to-number', ['get', 'route_width']],
-                          3], 3],
+                          2], 2]],
         },
 
         layout: {
@@ -181,6 +214,9 @@ export default {
           'line-cap': 'round',
         }
       }"
+      @contextmenu="linkRightClick"
+      @mouseover="onCursor"
+      @mouseleave="offCursor"
     />
 
     <MglGeojsonLayer
@@ -230,6 +266,40 @@ export default {
         }
       }"
     />
+    <MglPopup
+      :close-button="false"
+      :showed="contextMenu.showed"
+      :coordinates="contextMenu.coordinates"
+      @close="contextMenu.showed=false"
+    >
+      <span
+        @mouseleave="contextMenu.showed=false"
+      >
+        <v-list
+          dense
+          flat
+        >
+          <v-list-item-group>
+            <v-list-item
+              v-for="action in contextMenu.actions"
+              :key="action.id"
+            >
+              <v-list-item-content>
+                <v-btn
+                  outlined
+                  small
+                  @click="actionClick({action: action,
+                                       feature: contextMenu.feature,
+                                       coordinates: contextMenu.coordinates})"
+                >
+                  {{ $gettext(action) }}
+                </v-btn>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </span>
+    </MglPopup>
   </section>
 </template>
 <style lang="scss" scoped>

@@ -413,6 +413,7 @@ export default {
         :map="map"
         :is-editor-mode="isEditorMode"
         :is-o-d-mode="mode==='od'"
+        @clickFeature="clickFeature"
       />
     </template>
     <template v-if="mapIsLoaded">

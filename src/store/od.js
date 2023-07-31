@@ -70,6 +70,12 @@ export default {
     },
 
     // actions
+    deleteOD (state, payload) {
+      const linkArr = new Set(payload.selectedIndex)
+      state.layer.features = state.layer.features.filter(link => !linkArr.has(link.properties.index))
+      this.commit('od/refreshVisibleLayer')
+      this.commit('od/getFilteredCategory')
+    },
 
     deleteGroup (state, payload) {
       const group = payload
@@ -113,6 +119,21 @@ export default {
       this.commit('od/refreshVisibleLayer')
     },
 
+    editLinkInfo (state, payload) {
+      // get selected node in editorNodes and modify the changes attributes.
+      const { selectedLinkId, info } = payload
+      const props = Object.keys(info)
+      state.visibleLayer.features.filter(
+        // eslint-disable-next-line array-callback-return
+        function (link) {
+          if (link.properties.index === selectedLinkId) {
+            props.forEach((key) => link.properties[key] = info[key].value)
+          }
+        },
+      )
+      this.commit('od/getFilteredCategory')
+    },
+
     editGroupInfo (state, payload) {
       // edit line info on multiple trips at once.
       const groupInfo = payload.info
@@ -153,6 +174,22 @@ export default {
     selectedCategory: (state) => state.selectedCategory,
     groupLayer: (state) => (category, group) => {
       return state.layer.features.filter(link => group === link.properties[category])
+    },
+    linkForm: (state) => (linkIndex) => {
+      const uneditable = ['index']
+      const editorForm = state.visibleLayer.features.filter(
+        (link) => link.properties.index === linkIndex)[0].properties
+
+      // filter properties to only the one that are editable.
+      const form = {}
+      state.layerAttributes.forEach(key => {
+        form[key] = {
+          value: editorForm[key],
+          disabled: uneditable.includes(key),
+          placeholder: false,
+        }
+      })
+      return form
     },
     nodes: (state) => (layer) => {
       const nodes = structuredClone(state.layerHeader)

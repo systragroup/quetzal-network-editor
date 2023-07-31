@@ -317,8 +317,6 @@ export default {
         // applied all properties.
         props.forEach((key) => link.properties[key] = info[i][key].value)
       }
-
-      this.commit('getEditorLineInfo')
     },
 
     editrNodeInfo (state, payload) {

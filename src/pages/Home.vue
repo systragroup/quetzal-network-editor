@@ -100,7 +100,8 @@ export default {
         'Edit Visible Road Info',
         'Edit OD Group Info',
         'Edit Visible OD Info',
-        'Edit rNode Info'].includes(this.action)
+        'Edit rNode Info',
+        'Edit OD Info'].includes(this.action)
     },
   },
   watch: {
@@ -189,6 +190,10 @@ export default {
           }
         })
         this.showDialog = true
+      } else if (this.action === 'Edit OD Info') {
+        this.selectedLink = event.selectedIndex[0]
+        this.editorForm = this.$store.getters['od/linkForm'](this.selectedLink)
+        this.showDialog = true
       } else if (this.action === 'Edit Road Group Info') {
         const features = this.$store.getters.grouprLinks(event.category, event.group)
         this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
@@ -260,6 +265,10 @@ export default {
         this.applyAction()
       } else if (['Move Node', 'Move Anchor', 'Move rNode', 'Move rAnchor'].includes(this.action)) {
         this.selectedNode = event.selectedFeature
+        this.cursorPosition = event.lngLat
+        this.applyAction()
+      } else if (this.action === 'Delete OD') {
+        this.selectedIndex = event.selectedIndex
         this.cursorPosition = event.lngLat
         this.applyAction()
       }
@@ -350,11 +359,12 @@ export default {
             selectedLinks: this.$store.getters['od/visibleLayer'].features,
             info: this.editorForm,
           })
-
           break
-
         case 'Edit rNode Info':
           this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
+          break
+        case 'Edit OD Info':
+          this.$store.commit('od/editLinkInfo', { selectedLinkId: this.selectedLink, info: this.editorForm })
           break
         case 'Add Road Node Inline':
           this.$store.commit('addRoadNodeInline', {
@@ -390,6 +400,9 @@ export default {
           break
         case 'deleterGroup':
           this.$store.commit('deleterGroup', this.tripToDelete)
+          break
+        case 'Delete OD':
+          this.$store.commit('od/deleteOD', { selectedIndex: this.selectedIndex })
           break
         case 'deleteODGroup':
           this.$store.commit('od/deleteGroup', this.tripToDelete)
