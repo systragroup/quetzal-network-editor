@@ -50,8 +50,12 @@ async function downloadFolder (bucket, prefix) {
 
 async function getBucketList () {
   // from the cognito group name. get the list of available buckets on quetzal-config.
-  const bucketList = await this.readJson('quetzal-config', 'cognito_group_access.json')
-  store.commit('setBucketList', bucketList[store.getters.cognitoGroup])
+  try {
+    const bucketList = await this.readJson('quetzal-config', 'cognito_group_access.json')
+    store.commit('setBucketList', bucketList[store.getters.cognitoGroup])
+  } catch (err) {
+    store.commit('changeAlert', err)
+  }
 }
 async function listFiles (bucket, prefix) {
   if (Array.isArray(prefix)) {

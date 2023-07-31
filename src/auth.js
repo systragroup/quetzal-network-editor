@@ -29,8 +29,10 @@ auth.userhandler = {
     store.commit('setIdToken', idToken)
     store.commit('setAccessToken', result.accessToken.jwtToken)
     store.commit('setCognitoInfo', sessionIdInfo)
-    store.commit('setCognitoGroup', sessionIdInfo['cognito:groups'][0])
     store.commit('setLoggedIn', true)
+    if (Object.keys(sessionIdInfo).includes('cognito:groups')) {
+      store.commit('setCognitoGroup', sessionIdInfo['cognito:groups'][0])
+    }
   },
   onFailure: function (err) {
     store.commit('setLoggedOut')
