@@ -110,7 +110,12 @@ export default {
       state.visibleLayer.features.map(link => link.properties[payload] = null)
       state.layerAttributes.push(payload)
     },
-
+    deletePropertie (state, payload) {
+      // when a link property is deleted
+      state.layer.features.filter(link => delete link.properties[payload.name])
+      state.visibleLayer.features.filter(link => delete link.properties[payload.name])
+      state.layerAttributes = state.layerAttributes.filter(item => item !== payload.name)
+    },
   },
 
   getters: {

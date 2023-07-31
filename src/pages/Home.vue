@@ -532,7 +532,7 @@ export default {
       } else if (this.action === 'Edit rNode Info') {
         this.$store.commit('deleteRoadPropertie', { name: field, table: 'rnodes' })
       } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(this.action)) {
-        console.log('TODO delete field')
+        this.$store.commit('od/deletePropertie', { name: field })
       }
       this.$store.commit('changeNotification',
         { text: $gettext('Field deleted'), autoClose: true, color: 'success' })
