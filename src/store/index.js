@@ -16,7 +16,6 @@ import { serializer } from '../components/utils/serializer.js'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
-import odTest from '@static/od.geojson'
 Vue.use(Vuex)
 const $gettext = s => s
 
@@ -90,7 +89,6 @@ export const store = new Vuex.Store({
 
     loadFiles (state, payload) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
-
       try {
         let otherFiles = []
         let outputFiles = []
@@ -106,6 +104,9 @@ export const store = new Vuex.Store({
 
         const paramFile = otherFiles.filter(el => el.path === 'inputs/params.json')[0]
         otherFiles = otherFiles.filter(el => el !== paramFile)
+
+        const ODFiles = otherFiles.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
+        otherFiles = otherFiles.filter(el => !ODFiles.includes(el))
 
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
@@ -129,7 +130,9 @@ export const store = new Vuex.Store({
         this.commit('loadPTFiles', ptFiles)
         this.commit('loadRoadFiles', roadFiles)
         this.commit('loadRasterFiles', rasterFiles)
+        this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
+
         this.commit('loadOtherFiles', inputFiles)
 
         // get outputs geojson files and create Layer with them.
@@ -213,7 +216,7 @@ export const store = new Vuex.Store({
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
-      this.commit('od/loadLayer', odTest)
+      this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
       state.rasterFiles = []
       state.otherFiles = []
@@ -242,6 +245,7 @@ export const store = new Vuex.Store({
       let nodes = ''
       let rlinks = ''
       let rnodes = ''
+      let od = ''
       // export only visible line (line selected)
       commit('applyPropertiesTypes')
       if (payload !== 'all') {
@@ -259,12 +263,14 @@ export const store = new Vuex.Store({
 
         rlinks = JSON.stringify(state.rlinks.visiblerLinks)
         rnodes = JSON.stringify(state.rlinks.visiblerNodes)
+        od = JSON.stringify(this.getters['od/visibleLayer'])
       // export everything
       } else {
         links = JSON.stringify(state.links.links)
         nodes = JSON.stringify(state.links.nodes)
         rlinks = JSON.stringify(state.rlinks.rlinks)
         rnodes = JSON.stringify(state.rlinks.rnodes)
+        od = JSON.stringify(this.getters['od/layer'])
       }
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
@@ -282,6 +288,11 @@ export const store = new Vuex.Store({
         blob = new Blob([rnodes], { type: 'application/json' })
         // use folder.file if you want to add it to a folder
         zip.file('inputs/road/road_nodes.geojson', blob)
+      }
+      if (JSON.parse(od).features.length > 0) {
+        const blob = new Blob([od], { type: 'application/json' })
+        // use folder.file if you want to add it to a folder
+        zip.file('inputs/od/od.geojson', blob)
       }
       if (payload === 'all') {
         if (!this.getters['run/parametersIsEmpty']) {
@@ -338,6 +349,7 @@ export const store = new Vuex.Store({
         nodes: ptFolder + 'nodes.geojson',
         rlinks: roadFolder + 'road_links.geojson',
         rnodes: roadFolder + 'road_nodes.geojson',
+        od: scen + 'inputs/od/od.geojson',
         params: scen + 'inputs/params.json',
       }
       // save params
@@ -353,6 +365,10 @@ export const store = new Vuex.Store({
       if (state.rlinks.rlinks.features.length > 0) {
         await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
         await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      }
+      // save ods
+      if (!this.getters['od/layerIsEmpty']) {
+        await s3.putObject(bucket, paths.od, JSON.stringify(this.getters['od/layer']))
       }
       // save Static Layers
       const staticLayers = Object.keys(this._modules.root._children).filter(

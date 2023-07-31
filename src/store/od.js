@@ -1,7 +1,10 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable no-return-assign */
 import Point from 'turf-point'
+import { serializer } from '@comp/utils/serializer.js'
+import { IndexAreDifferent } from '@comp/utils/utils.js'
 const short = require('short-uuid')
+const $gettext = s => s
 
 export default {
   namespaced: true,
@@ -30,11 +33,34 @@ export default {
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
-    updateLinks (state, payload) {
-      state.links = payload
-      this.commit('od/refreshVisibleLayer')
-      this.commit('od/updateSelectedFeature')
+    loadODFiles (state, payload) {
+      // payload = [{path,content},...]
+      for (const file of payload) {
+        if (IndexAreDifferent(file.content, state.layer)) {
+          this.commit('od/appendNewOD', serializer(file.content, file.path, 'LineString'))
+        } else {
+          const err = new Error($gettext(' there is duplicated index, ') + file.path)
+          err.name = 'ImportError'
+          throw err
+        }
+      }
     },
+
+    appendNewOD (state, payload) {
+      // append new links and node to the project (import page)
+      function getFirstAndLast (arr) {
+        return [arr[0], arr[arr.length - 1]]
+      }
+
+      payload.features.forEach(link => link.geometry.coordinates = getFirstAndLast(link.geometry.coordinates))
+
+      payload.features.forEach(link => state.layer.features.push(link))
+      console.log(state.layer)
+      this.commit('od/getProperties')
+      this.commit('od/getFilteredCategory')
+      this.commit('od/refreshVisibleLayer')
+    },
+
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
       this.commit('od/refreshVisibleLayer')
@@ -166,6 +192,7 @@ export default {
   getters: {
     layer: (state) => state.layer,
     visibleLayer: (state) => state.visibleLayer,
+    layerIsEmpty: (state) => state.layer.features.length === 0,
     layerHeader: (state) => state.layerHeader,
     selectedTrips: (state) => state.selectedTrips,
     layerAttributes: (state) => state.layerAttributes.sort(),

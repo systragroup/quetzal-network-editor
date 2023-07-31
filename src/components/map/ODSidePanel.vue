@@ -11,7 +11,7 @@ export default {
     return {
       // for some reason, the v-model does not update when i force it in a watcher or a method.
       // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
-      vmodelSelectedFilter: '',
+      vmodelSelectedFilter: 'cycleway',
       vmodelSelectedCat: [],
     }
   },

@@ -101,7 +101,7 @@ export default {
     },
 
     moveNode (event) {
-      if (this.isODMode && !this.drawMode && this.hoveredStateId) {
+      if (this.isODMode && !this.drawMode && this.hoveredStateId?.layerId === 'ODNodes') {
         if (event.mapboxEvent.originalEvent.button === 0) {
           event.mapboxEvent.preventDefault() // prevent map control
           this.map.getCanvas().style.cursor = 'grab'
@@ -111,8 +111,10 @@ export default {
           const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
           this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
           // get position
-          this.map.on('mousemove', this.onMove)
-          this.map.on('mouseup', this.stopMovingNode)
+          if (this.selectedFeature?.properties) {
+            this.map.on('mousemove', this.onMove)
+            this.map.on('mouseup', this.stopMovingNode)
+          }
         }
       }
     },
