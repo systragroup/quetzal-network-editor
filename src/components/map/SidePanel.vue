@@ -10,13 +10,13 @@ export default {
     ODSidePanel,
   },
   props: ['selectedTrips', 'selectedrGroup'],
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine', 'isRoadMode'],
+  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
 
   data () {
     return {
       showLeftPanelContent: true,
       tab: 0,
-      roadMode: false,
+      mode: 'pt',
     }
   },
   computed: {
@@ -37,12 +37,14 @@ export default {
     },
 
     tab (val) {
-      if (val === 1) {
-        this.roadMode = true
+      if (val === 0) {
+        this.mode = 'pt'
+      } else if (val === 1) {
+        this.mode = 'road'
       } else {
-        this.roadMode = false
+        this.mode = 'od'
       }
-      this.$emit('isRoadMode', this.roadMode)
+      this.$emit('change-mode', this.mode)
     },
   },
   created () {

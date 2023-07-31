@@ -1,6 +1,7 @@
 <!-- eslint-disable no-return-assign -->
 <script>
 import { MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
+const short = require('short-uuid')
 
 export default {
   name: 'ODMap',
@@ -8,15 +9,15 @@ export default {
     MglGeojsonLayer,
     MglImageLayer,
   },
-  props: ['map'],
+  props: ['map', 'isODMode', 'isEditorMode'],
   events: [],
 
   data () {
     return {
-      isODMode: true,
       hoveredStateId: null,
       keepHovering: false,
       dragNode: false,
+      drawMode: false,
       selectedFeature: null,
     }
   },
@@ -32,9 +33,27 @@ export default {
   },
 
   created () {
+    this.map.on('click', this.test)
   },
 
   methods: {
+    test (event) {
+      if (this.isODMode) {
+        if (!this.drawMode) {
+          const index = 'OD_' + short.generate()
+          this.$store.commit('od/createNewLink', { lngLat: Object.values(event.lngLat), index: index })
+          this.dragNode = true
+          this.selectedFeature = { properties: { linkIndex: index, coordinatedIndex: 1 } }
+          // get position
+          this.drawMode = true
+          this.map.on('mousemove', this.onMove)
+          this.map.on('mouseup', this.stopMovingNode)
+        } else {
+          // here. we dont want the second click to do anything except act like a stop moving node.
+          this.drawMode = false
+        }
+      }
+    },
     onCursor (event) {
       if (this.isODMode) {
         if (this.hoveredStateId === null) {
@@ -73,7 +92,7 @@ export default {
     },
 
     moveNode (event) {
-      if (this.isODMode) {
+      if (this.isODMode && !this.drawMode) {
         if (event.mapboxEvent.originalEvent.button === 0) {
           event.mapboxEvent.preventDefault() // prevent map control
           this.map.getCanvas().style.cursor = 'grab'
@@ -82,7 +101,6 @@ export default {
           // get selected node
           const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
           this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
-
           // get position
           this.map.on('mousemove', this.onMove)
           this.map.on('mouseup', this.stopMovingNode)
@@ -104,20 +122,24 @@ export default {
       }
     },
     stopMovingNode (event) {
-      if (this.isODMode) {
+      if (this.isODMode && event.originalEvent.button === 0) {
         // stop tracking position (moving node.)
         this.map.getCanvas().style.cursor = 'pointer'
         this.map.off('mousemove', this.onMove)
+
         // enable popup and hovering off back. disable Dragmode
         this.keepHovering = false
         this.dragNode = false
         // if we drag too quickly, offcursor it will not be call and the node will stay in hovering mode.
         // calling offscursor will break the sticky node drawlink behaviour, so we only make its state back to hover-false
         this.map.getCanvas().style.cursor = ''
-        this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-          { hover: false },
-        )
+        if (this.hoveredStateId) {
+          this.map.setFeatureState(
+            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
+            { hover: false },
+          )
+        }
+
         this.hoveredStateId = null
         this.map.off('mouseup', this.stopMovingNode)
 
@@ -147,6 +169,7 @@ export default {
         maxzoom: 18,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
           'line-width': ['case', ['has', 'route_width'],
                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
                           ['to-number', ['get', 'route_width']],
@@ -164,7 +187,7 @@ export default {
       source-id="ODNodes"
       :source="{
         type: 'geojson',
-        data: nodes,
+        data: isODMode? nodes : $store.getters['od/layerHeader'],
         buffer: 0,
         promoteId: 'index',
       }"

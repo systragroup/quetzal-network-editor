@@ -10,8 +10,10 @@ import { getGroupForm } from '@comp/utils/utils.js'
 const $gettext = s => s
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Home',
   components: {
+    // eslint-disable-next-line vue/no-reserved-component-names
     Map,
     SidePanel,
     ColorPicker,
@@ -34,7 +36,7 @@ export default {
       errorMessage: null,
       lingering: true,
       groupTripIds: [],
-      isRoadMode: false,
+      mode: 'pt',
       showHint: false,
       showDeleteOption: false,
       newFieldName: null,
@@ -498,7 +500,7 @@ export default {
           this.$store.commit('addPropertie', { name: this.newFieldName, table: 'nodes' })
         } else if (this.action === 'Edit rNode Info') {
           this.$store.commit('addRoadPropertie', { name: this.newFieldName, table: 'rnodes' })
-        } else if (['Edit OD Group Info', 'Edit Visible OD Info'].incluces(this.action)) {
+        } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(this.action)) {
           this.$store.commit('od/addPropertie', this.newFieldName)
         }
         this.newFieldName = null // null so there is no rules error.
@@ -759,12 +761,12 @@ export default {
       @deleteButton="deleteButton"
       @cloneButton="cloneButton"
       @propertiesButton="actionClick"
-      @isRoadMode="(e) => isRoadMode = e"
+      @change-mode="(e) => mode = e"
     />
     <Map
       ref="mapref"
       :selected-trips="selectedTrips"
-      :is-road-mode="isRoadMode"
+      :mode="mode"
       @clickFeature="actionClick"
     />
   </section>

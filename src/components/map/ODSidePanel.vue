@@ -5,7 +5,7 @@ export default {
   components: {
   },
   props: ['height'], // height is here to resize with the windows...
-  events: ['deleteButton', 'propertiesButton', 'newLine'],
+  events: ['deleteButton', 'propertiesButton'],
 
   data () {
     return {
@@ -70,8 +70,6 @@ export default {
     showGroup (val) {
       this.tripList = Array.from(new Set([...this.tripList, ...val]))
     },
-
-    createNewOD () { console.log('todo') },
 
   },
 
@@ -265,26 +263,6 @@ export default {
     <v-card class="mx-auto">
       <v-list-item>
         <v-spacer />
-
-        <v-tooltip
-          bottom
-          open-delay="500"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              v-bind="attrs"
-              color="primary"
-              class="text--primary"
-              fab
-              small
-              v-on="on"
-              @click="createNewOD"
-            >
-              <v-icon>fas fa-plus</v-icon>
-            </v-btn>
-          </template>
-          <span>{{ $gettext("Create new OD") }}</span>
-        </v-tooltip>
       </v-list-item>
     </v-card>
   </section>

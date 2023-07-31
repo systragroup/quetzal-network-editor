@@ -89,6 +89,30 @@ export default {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
 
+    createNewLink (state, payload) {
+      const linkGeometry = {
+        coordinates: [payload.lngLat, payload.lngLat],
+        type: 'LineString',
+      }
+
+      const linkProperties = {}
+      // set default links values
+      state.layerAttributes.forEach((key) => linkProperties[key] = null)
+      linkProperties.index = payload.index
+      // linkProperties.route_color = state.rlinksDefaultColor
+      const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
+      state.layer.features.push(linkFeature)
+
+      this.commit('od/getFilteredCategory')
+      // add newly create link to the visible
+      const newCat = linkProperties[state.selectedFilter]
+      const selectedCategorySet = new Set(state.selectedCategory)
+      if (!selectedCategorySet.has(newCat)) {
+        state.selectedCategory.push(newCat)
+      }
+      this.commit('od/refreshVisibleLayer')
+    },
+
     editGroupInfo (state, payload) {
       // edit line info on multiple trips at once.
       const groupInfo = payload.info
@@ -100,8 +124,8 @@ export default {
       selectedLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
 
-      this.commit('od/refreshVisibleLayer')
       this.commit('od/getFilteredCategory')
+      this.commit('od/refreshVisibleLayer')
     },
     addPropertie (state, payload) {
       // payload = name

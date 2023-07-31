@@ -36,9 +36,9 @@ export default {
       type: Array,
       default: () => [],
     },
-    isRoadMode: {
-      type: Boolean,
-      default: false,
+    mode: {
+      type: String,
+      default: 'pt',
     },
 
   },
@@ -95,8 +95,8 @@ export default {
         this.$store.commit('changeNotification', { text: '', autoClose: true })
       }
     },
-    isRoadMode (val) {
-      if (!val) {
+    mode (val) {
+      if (val === 'pt') {
         this.drawMode = false
       }
     },
@@ -234,6 +234,7 @@ export default {
     },
     addPoint (event) {
       if (this.drawMode) {
+        console.log(this.selectedNode)
         if (this.selectedNode.layerId === 'rnodes') {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
           const payload = {
@@ -387,7 +388,7 @@ export default {
         ref="roadref"
         :map="map"
         :is-editor-mode="isEditorMode"
-        :is-road-mode="isRoadMode"
+        :is-road-mode="mode==='road'"
         :anchor-mode="anchorMode"
         v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
@@ -410,6 +411,8 @@ export default {
     <template v-if="mapIsLoaded">
       <ODMap
         :map="map"
+        :is-editor-mode="isEditorMode"
+        :is-o-d-mode="mode==='od'"
       />
     </template>
     <template v-if="mapIsLoaded">
