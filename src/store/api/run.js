@@ -131,7 +131,6 @@ export default {
         input: JSON.stringify({
           scenario_path_S3: payload.scenario + '/',
           launcher_arg: {
-            scenario: 'base',
             training_folder: '/tmp',
             params: paramsDict,
           },
