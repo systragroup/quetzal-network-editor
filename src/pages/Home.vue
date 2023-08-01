@@ -342,14 +342,14 @@ export default {
           break
         case 'Edit Road Group Info':
           this.$store.commit('editrGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
-          this.$refs.mapref.$refs.roadref.getBounds()
+          // this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit Visible Road Info':
           this.$store.commit('editrGroupInfo', {
             selectedLinks: this.$store.getters.visiblerLinks.features,
             info: this.editorForm,
           })
-          this.$refs.mapref.$refs.roadref.getBounds()
+          // this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit OD Group Info':
           this.$store.commit('od/editGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })

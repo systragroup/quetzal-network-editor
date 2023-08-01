@@ -3,11 +3,14 @@
 /* eslint-disable no-return-assign */
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
+import booleanContains from '@turf/boolean-contains'
+import booleanCrosses from '@turf/boolean-crosses'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import bearing from '@turf/bearing'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
+
 const $gettext = s => s
 
 const short = require('short-uuid')
@@ -25,7 +28,9 @@ export default {
     rnodeAttributes: [],
     newrNode: {},
     visiblerLinks: {},
+    renderedrLinks: {},
     visiblerNodes: {},
+    renderedrNodes: {},
     connectedLinks: [],
     defaultHighway: 'quenedi',
     roadSpeed: 20,
@@ -44,6 +49,7 @@ export default {
         rlinksHeader.features = []
         state.rlinksHeader = rlinksHeader
         state.visiblerLinks = structuredClone(rlinksHeader)
+        state.renderedrLinks = structuredClone(rlinksHeader)
         // limit geometry precision to 6 digit
         state.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -60,6 +66,7 @@ export default {
         rnodesHeader.features = []
         state.rnodesHeader = rnodesHeader
         state.visiblerNodes = structuredClone(rnodesHeader)
+        state.renderedrNodes = structuredClone(rnodesHeader)
         // limit geometry precision to 6 digit
         state.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
@@ -122,6 +129,8 @@ export default {
       state.rnodes.features = []
       state.visiblerLinks.features = []
       state.visiblerNodes.features = []
+      state.renderedrLinks.features = []
+      state.renderedrNodes.features = []
       state.selectedrGroup = []
     },
     getrLinksProperties (state) {
@@ -299,13 +308,34 @@ export default {
         // case 'refresh'
       }
     },
+    getRenderedrLinks (state, payload) {
+      state.renderedrLinks.features = state.visiblerLinks.features.filter(
+        link => (booleanContains(payload.bbox, link) || booleanCrosses(payload.bbox, link)))
+      this.commit('getRenderedrNodes')
+    },
+    getRenderedrNodes (state) { // get rendered nodes
+      const a = state.renderedrLinks.features.map(item => item.properties.a)
+      const b = state.renderedrLinks.features.map(item => item.properties.b)
+      const rNodesList = new Set([...a, ...b])
+      // filter with rnodesList
+      state.renderedrNodes.features = state.visiblerNodes.features.filter(node => rNodesList.has(node.properties.index))
+    },
+    setRenderedrLinks (state, payload) {
+      if (payload.method === 'visible') {
+        state.renderedrLinks.features = state.visiblerLinks.features
+        state.renderedrNodes.features = []
+      } else {
+        state.renderedrLinks.features = []
+        state.renderedrNodes.features = []
+      }
+    },
 
     editrLinkInfo (state, payload) {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedLinkId, info } = payload
       for (let i = 0; i < selectedLinkId.length; i++) {
         const props = Object.keys(info[i])
-        const link = state.visiblerLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
+        const link = state.renderedrLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
         // if we change a one way to a 2 way, copy one way properties to the reverse one.
         if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '0')) {
           state.reversedAttributes.forEach(
@@ -380,6 +410,7 @@ export default {
       if (link2.properties.time_r) link2.properties.time_r = link2.properties.time
 
       state.visiblerLinks.features.push(link2)
+      state.renderedrLinks.features.push(link2)
       // update actual rlinks and rnodes
       state.rlinks.features.filter((link) => link.properties.index === link1.properties.index)[0] = link1
       state.rlinks.features.push(link2)
@@ -389,7 +420,7 @@ export default {
       // selectedLink : list of links index
       // lngLat : object wit click geometry
       // nodes : str. name of node to add (rnode, anchorrNodeS)
-      const selectedFeatures = state.visiblerLinks.features
+      const selectedFeatures = state.renderedrLinks.features
         .filter((link) => payload.selectedIndex.includes(link.properties.index))
       // for loop. for each selectedc links add the node and split.
       for (let i = 0; i < selectedFeatures.length; i++) {
@@ -404,8 +435,9 @@ export default {
           // only add one node, takes the first one.
           if (i === 0) {
             this.commit('createNewrNode', snapped.geometry.coordinates)
-            state.visiblerNodes.features.push(state.newrNode.features[0])
             state.rnodes.features.push(state.newrNode.features[0])
+            state.visiblerNodes.features.push(state.newrNode.features[0])
+            state.renderedrNodes.features.push(state.newrNode.features[0])
           }
           this.commit('splitrLink', { selectedFeature: selectedFeatures[i], offset: offset, sliceIndex: sliceIndex })
 
@@ -421,9 +453,9 @@ export default {
     },
     addAnchorrNode (state, payload) {
       const linkIndex = payload.selectedLink.properties.index
-      const featureIndex = state.visiblerLinks.features.findIndex(link => link.properties.index === linkIndex)
+      const featureIndex = state.renderedrLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link change visible rLinks as it is an observer.
-      const link = state.visiblerLinks.features[featureIndex]
+      const link = state.renderedrLinks.features[featureIndex]
       link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
     },
     createrLink (state, payload) {
@@ -436,6 +468,7 @@ export default {
       if (!payload.nodeIdB) {
         this.commit('createNewrNode', payload.geom)
         state.visiblerNodes.features.push(state.newrNode.features[0])
+        state.renderedrNodes.features.push(state.newrNode.features[0])
         state.rnodes.features.push(state.newrNode.features[0])
         payload.nodeIdB = state.newrNode.features[0].properties.index
       } else if (payload.layerId === 'rlinks') {
@@ -484,6 +517,7 @@ export default {
         state.selectedrGroup.push(newLinkGroup)
       } else {
         state.visiblerLinks.features.push(linkFeature)
+        state.renderedrLinks.features.push(linkFeature)
       }
     },
 
@@ -499,7 +533,7 @@ export default {
     moverNode (state, payload) {
       const nodeIndex = payload.selectedNode.properties.index
       // remove node
-      const newNode = state.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0]
+      const newNode = state.renderedrNodes.features.filter(node => node.properties.index === nodeIndex)[0]
       newNode.geometry.coordinates = payload.lngLat
 
       // changing links
@@ -540,7 +574,7 @@ export default {
     moverAnchor (state, payload) {
       const linkIndex = payload.selectedNode.properties.linkIndex
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
-      const link = state.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      const link = state.renderedrLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
@@ -554,7 +588,7 @@ export default {
     deleteAnchorrNode (state, payload) {
       const linkIndex = payload.selectedNode.linkIndex
       const coordinatedIndex = payload.selectedNode.coordinatedIndex
-      const link = state.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      const link = state.renderedrLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
@@ -562,8 +596,10 @@ export default {
       const linkArr = new Set(payload.selectedIndex)
       state.rlinks.features = state.rlinks.features.filter(link => !linkArr.has(link.properties.index))
       state.visiblerLinks.features = state.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
-      this.commit('getVisiblerNodes', { method: 'remove' })
+      state.renderedrLinks.features = state.renderedrLinks.features.filter(link => !linkArr.has(link.properties.index))
       this.commit('deleteUnusedrNodes')
+      this.commit('getVisiblerNodes', { method: 'remove' })
+      this.commit('getRenderedrNodes')
       this.commit('getFilteredrCat')
     },
     deleterGroup (state, payload) {
@@ -633,6 +669,8 @@ export default {
     selectedrFilter: (state) => state.selectedrFilter,
     filteredrCategory: (state) => state.filteredrCategory,
     visiblerLinks: (state) => state.visiblerLinks,
+    renderedrLinks: (state) => state.renderedrLinks,
+    renderedrNodes: (state) => state.renderedrNodes,
     visiblerNodes: (state) => state.visiblerNodes,
     defaultHighway: (state) => state.defaultHighway,
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
@@ -641,9 +679,9 @@ export default {
     rundeletable: (state) => state.rundeletable,
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
 
-    anchorrNodes: (state) => (renderedLinks) => {
+    anchorrNodes: (state) => {
       const nodes = structuredClone(state.rnodesHeader)
-      renderedLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
+      state.renderedrLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index
           feature.geometry.coordinates.slice(1, -1).forEach(

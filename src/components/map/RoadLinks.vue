@@ -1,8 +1,6 @@
 <script>
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
-import booleanContains from '@turf/boolean-contains'
-import booleanCrosses from '@turf/boolean-crosses'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
 const $gettext = s => s
@@ -23,9 +21,6 @@ export default {
       visibleLinks: {},
       disablePopup: false,
       editorRnodes: {},
-      renderedrLinks: {},
-      renderedrNodes: {},
-      renderedAnchorrNodes: {},
       bbox: null,
       minZoom: {
         links: 2,
@@ -46,8 +41,10 @@ export default {
     cyclewayMode () { return this.$store.getters.cyclewayMode },
     rnodes () { return this.$store.getters.visiblerNodes },
     rlinks () { return this.$store.getters.visiblerLinks },
-    anchorrNodes () {
-      return this.anchorMode ? this.$store.getters.anchorrNodes(this.renderedrLinks) : this.$store.getters.rnodesHeader
+    renderedrLinks () { return this.$store.getters.renderedrLinks },
+    renderedrNodes () { return this.$store.getters.renderedrNodes },
+    renderedAnchorrNodes () {
+      return this.anchorMode ? this.$store.getters.anchorrNodes : this.$store.getters.rnodesHeader
     },
     ArrowSizeCondition () {
       // when we want to show the cycleway direction.
@@ -136,7 +133,6 @@ export default {
   },
 
   watch: {
-    anchorMode () { this.getBounds() },
     selectedrGroup (val) { this.getBounds() },
     isRoadMode (val) {
       if (val) {
@@ -150,9 +146,6 @@ export default {
 
   },
   created () {
-    this.renderedrNodes = structuredClone(this.$store.getters.rnodesHeader)
-    this.renderedAnchorrNodes = structuredClone(this.$store.getters.rnodesHeader)
-    this.renderedrLinks = structuredClone(this.$store.getters.rlinksHeader)
     this.map.on('dragend', this.getBounds)
     this.map.on('zoomend', this.getBounds)
   },
@@ -175,24 +168,13 @@ export default {
       // this way, only a small number of anchor points are computed
       if (this.map.getZoom() > this.minZoom.rendered) {
         // get links in or intersecting with bbox
-        this.renderedrLinks.features = this.rlinks.features.filter(
-          link => (booleanContains(this.bbox, link) || booleanCrosses(this.bbox, link)))
-        // get rendered nodes
-        const a = this.renderedrLinks.features.map(item => item.properties.a)
-        const b = this.renderedrLinks.features.map(item => item.properties.b)
-        const rNodesList = new Set([...a, ...b])
-        // filter with rnodesList
-        this.renderedrNodes.features = this.rnodes.features.filter(node => rNodesList.has(node.properties.index))
-        this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node => booleanContains(this.bbox, node))
+        this.$store.commit('getRenderedrLinks', { bbox: this.bbox })
       } else if (this.map.getZoom() > this.minZoom.links) {
-        // ion this case. nodes are unloaded. we display links.
-        this.renderedrLinks.features = this.rlinks.features
-        this.renderedrNodes.features = []
-        this.renderedAnchorrNodes.features = []
+        // evrey links are rendered (not editable). no nodes
+        this.$store.commit('setRenderedrLinks', { method: 'visible' })
       } else {
-        this.renderedrLinks.features = []
-        this.renderedrNodes.features = []
-        this.renderedAnchorrNodes.features = []
+        // Nothing is is rendered.
+        this.$store.commit('setRenderedrLinks', { method: 'None' })
       }
     },
     onCursor (event) {
@@ -274,7 +256,6 @@ export default {
                 lngLat: event.mapboxEvent.lngLat,
               }
               this.$emit('clickFeature', click)
-              this.getBounds()
             }
           }
         }
@@ -304,7 +285,7 @@ export default {
       this.$emit('clickFeature', click)
       this.contextMenu.showed = false
       this.contextMenu.type = null
-      this.getBounds()
+      // this.getBounds()
     },
 
     contextMenuNode (event) {
@@ -327,7 +308,7 @@ export default {
               lngLat: null,
             }
             this.$emit('clickFeature', click)
-            this.getBounds()
+            // this.getBounds()
           }
         }
       }
@@ -368,8 +349,6 @@ export default {
           click.action = 'Move rAnchor'
           this.$emit('clickFeature', click)
           // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
-          this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
-            booleanContains(this.bbox, node))
         } else {
           click.action = 'Move rNode'
           this.$emit('clickFeature', click)

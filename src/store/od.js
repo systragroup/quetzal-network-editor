@@ -55,7 +55,6 @@ export default {
       payload.features.forEach(link => link.geometry.coordinates = getFirstAndLast(link.geometry.coordinates))
 
       payload.features.forEach(link => state.layer.features.push(link))
-      console.log(state.layer)
       this.commit('od/getProperties')
       this.commit('od/getFilteredCategory')
       this.commit('od/refreshVisibleLayer')

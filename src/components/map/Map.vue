@@ -234,7 +234,6 @@ export default {
     },
     addPoint (event) {
       if (this.drawMode) {
-        console.log(this.selectedNode)
         if (this.selectedNode.layerId === 'rnodes') {
           const pointGeom = Object.values(event.mapboxEvent.lngLat)
           const payload = {
@@ -251,7 +250,6 @@ export default {
           this.offHover()
 
           // onHoverRoad (event)
-          this.$refs.roadref.getBounds()
         } else { // PT nodes
           if (this.drawMode & !this.anchorMode & !this.hoverId) {
             const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
