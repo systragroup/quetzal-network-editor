@@ -9,7 +9,7 @@ export default {
   data () {
     return {
       showDialog: false,
-      url: 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/zip_schematic.jpg',
+      url: 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/dev/example/zip_schematic.jpg',
       width: 1300,
       height: 900,
     }
