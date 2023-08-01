@@ -140,10 +140,9 @@ export default {
                     v-for="(layer,key) in layerChoices"
                     :key="key"
                     link
+                    @click="()=>$emit('select-layer',layer)"
                   >
-                    <v-list-item-title
-                      @click="()=>$emit('select-layer',layer)"
-                    >
+                    <v-list-item-title>
                       {{ layer }}
                     </v-list-item-title>
                   </v-list-item>
