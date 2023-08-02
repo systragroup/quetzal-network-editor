@@ -23,6 +23,7 @@ export default {
     type: 'links',
     links: {},
     visibleLinks: {},
+    NaNLinks: {},
     linksHeader: {},
     lineAttributes: [],
     selectedFilter: '',
@@ -50,6 +51,7 @@ export default {
       state.type = 'links'
       state.links = {}
       state.visibleLinks = {}
+      state.NaNLinks = {}
       state.linksHeader = {}
       state.lineAttributes = []
       state.selectedFilter = ''
@@ -63,6 +65,7 @@ export default {
         linksHeader.features = []
         state.linksHeader = linksHeader
         state.visibleLinks = structuredClone(linksHeader)
+        state.NaNLinks = structuredClone(linksHeader)
         // set all trips visible
         this.commit('results/getLinksProperties')
 
@@ -166,9 +169,11 @@ export default {
     refreshVisibleLinks (state) {
       const group = new Set(state.selectedCategory)
       const cat = state.selectedFilter
+      const key = state.displaySettings.selectedFeature
       state.visibleLinks.features = state.links.features.filter(link => group.has(link.properties[cat]))
       if (!state.displaySettings.showNaN) {
-        const key = state.displaySettings.selectedFeature
+        // keep track of NaN links to display them when we have a polygon
+        state.NaNLinks.features = state.visibleLinks.features.filter(link => !link.properties[key])
         state.visibleLinks.features = state.visibleLinks.features.filter(link => link.properties[key])
       }
     },
@@ -178,6 +183,7 @@ export default {
     type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
+    NaNLinks: (state) => state.NaNLinks,
     linksHeader: (state) => state.linksHeader,
     lineAttributes: (state) => state.lineAttributes.sort(),
     selectedFilter: (state) => state.selectedFilter,
