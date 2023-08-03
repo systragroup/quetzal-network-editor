@@ -107,7 +107,7 @@ export default {
     },
     deleteScenario () {
       this.deleteDialog = false
-      s3.deleteFolder(this.localModel, this.scenarioToDelete+'/').then(resp => {
+      s3.deleteFolder(this.localModel, this.scenarioToDelete + '/').then(resp => {
         this.deleteDialog = false
         this.$store.dispatch('getScenario', { model: this.localModel })
         this.$store.commit('changeNotification',

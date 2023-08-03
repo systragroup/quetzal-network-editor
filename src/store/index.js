@@ -335,9 +335,8 @@ export const store = new Vuex.Store({
     },
 
     async exportToS3 ({ state, commit }, payload) {
-      if (payload !== 'saveOnly') {
-        commit('run/changeRunning', true)
-      }
+      // payload = 'inputs'. only export inputs
+      // else no payload to export all.
       this.commit('applyPropertiesTypes')
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
@@ -370,19 +369,26 @@ export const store = new Vuex.Store({
       if (!this.getters['od/layerIsEmpty']) {
         await s3.putObject(bucket, paths.od, JSON.stringify(this.getters['od/layer']))
       }
-      // save Static Layers
-      const staticLayers = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
-      for (const layer of staticLayers) {
-        const name = layer + '.geojson'
-        await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
-        if (this.getters[`${layer}/mat`]) {
-          const name = layer + '.json'
-          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
+      // save outputs Layers
+      if (payload !== 'inputs') {
+        const staticLayers = Object.keys(this._modules.root._children).filter(
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+        for (const layer of staticLayers) {
+          const name = layer + '.geojson'
+          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
+          if (this.getters[`${layer}/mat`]) {
+            const name = layer + '.json'
+            await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
+          }
         }
       }
       // save others layers
-      for (const file of state.otherFiles) {
+      // if payload === inputs. only export inputs/ files.
+      let otherFiles = state.otherFiles
+      if (payload === 'inputs') {
+        otherFiles = otherFiles.filter(file => !file.path.startsWith('outputs/'))
+      }
+      for (const file of otherFiles) {
         // if others file loaded from S3 (they are not loaded yet. need to download them.)
         if (file.content == null) {
           // pass
@@ -395,6 +401,10 @@ export const store = new Vuex.Store({
       // console.log(res)
       // commit('setScenariosList', res)
     },
+    async deleteOutputsOnS3 ({ state }) {
+      await s3.deleteFolder(state.user.model, state.user.scenario + '/outputs/')
+    },
+
   },
   getters: {
     notification: (state) => state.notification,
