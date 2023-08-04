@@ -21,7 +21,7 @@ export default {
 
   mutations: {
     loadLayer (state, payload) {
-      state.layer = payload
+      state.layer = structuredClone(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
         const layerHeader = { ...state.layer }
         layerHeader.features = []
