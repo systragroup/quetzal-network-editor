@@ -104,9 +104,11 @@ async function deleteFolder (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   const arr = []
-  response.Contents.forEach(file => arr.push({ Key: file.Key }))
-  const deleteParams = { Bucket: bucket, Delete: { Objects: arr } }
-  return s3Client.deleteObjects(deleteParams).promise()
+  if (response.Contents.length > 0) {
+    response.Contents.forEach(file => arr.push({ Key: file.Key }))
+    const deleteParams = { Bucket: bucket, Delete: { Objects: arr } }
+    return s3Client.deleteObjects(deleteParams).promise()
+  }
 }
 
 async function createFolder (bucket, key) {
