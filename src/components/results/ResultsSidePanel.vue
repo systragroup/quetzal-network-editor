@@ -9,16 +9,14 @@ export default {
     prop: 'selectedCategory',
     event: 'update-selectedCategory',
   },
-  props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer'],
-  events: ['update-selectedCategory', 'select-layer', 'update-selected-filter'],
+  props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer', 'presetChoices', 'selectedPreset'],
+  events: ['update-selectedCategory', 'select-layer', 'update-selected-filter', 'select-preset', 'delete-preset'],
 
   data () {
     return {
       showLeftPanelContent: true,
-      height: null,
-      editorTrip: false,
-      showDialog: false,
       openMenu: false,
+      presetsMenu: false,
       selectedCat: [],
       vmodelSelectedFilter: '',
     }
@@ -99,7 +97,72 @@ export default {
       >
         <div>
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
-            <v-card-title class="white--text secondary">
+            <div class="preset">
+              <v-tooltip
+                bottom
+                open-delay="500"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    dark
+                    v-bind="attrs"
+                    :style="{color: 'white'}"
+                    v-on="on"
+                  >
+                    fas fa-sliders-h
+                  </v-icon>
+                </template>
+                <span>{{ $gettext("Presets") }}</span>
+              </v-tooltip>
+
+              <v-menu
+                v-model="presetsMenu"
+                close-delay="100"
+                offset-y
+                transition="slide-y-transition"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <span
+                    class="title crop"
+                    v-bind="attrs"
+                    v-on="on"
+                  >{{ selectedPreset || 'Presets' }}</span>
+                </template>
+                <v-list>
+                  <v-list-item
+                    v-for="(preset,key) in presetChoices"
+                    :key="key"
+                    link
+                    @click="()=>$emit('select-preset', preset)"
+                  >
+                    <v-list-item-title>
+                      {{ preset.name }}
+                    </v-list-item-title>
+                    <v-btn
+                      icon
+                      class="ml-10"
+                      @click.stop="()=>$emit('delete-preset', preset)"
+                    >
+                      <v-icon
+                        small
+                        color="grey"
+                      >
+                        fas fa-trash
+                      </v-icon>
+                    </v-btn>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+              <v-btn
+                :style="{color: 'white'}"
+                icon
+                dark
+                @click="presetsMenu=!presetsMenu"
+              >
+                <v-icon> {{ presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}</v-icon>
+              </v-btn>
+            </div>
+            <div class="layer">
               <v-tooltip
                 bottom
                 open-delay="500"
@@ -108,7 +171,6 @@ export default {
                   <v-btn
                     :style="{color: 'white'}"
                     icon
-                    class="ma-2"
                     v-bind="attrs"
                     v-on="on"
                     @click="showAll()"
@@ -121,7 +183,6 @@ export default {
                 <span>{{ selectedCat.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
               </v-tooltip>
 
-              <v-spacer />
               <v-menu
                 v-model="openMenu"
                 close-delay="100"
@@ -130,7 +191,7 @@ export default {
               >
                 <template v-slot:activator="{ on, attrs }">
                   <span
-                    class="title"
+                    class="title crop"
                     v-bind="attrs"
                     v-on="on"
                   >{{ selectedLayer }}</span>
@@ -148,23 +209,21 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-menu>
-              <v-spacer />
 
               <v-btn
                 :style="{color: 'white'}"
                 icon
-                class="ma-2"
                 dark
                 @click="openMenu=!openMenu"
               >
                 <v-icon> {{ openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}</v-icon>
               </v-btn>
-            </v-card-title>
+            </div>
             <v-card
               max-width="100%"
               min-width="100%"
               :height="windowHeight"
-              class="mx-auto scrollable"
+              class="mx-auto "
             >
               <v-list-item>
                 <v-select
@@ -229,6 +288,25 @@ export default {
 .title  {
   color:white;
 }
+.crop {
+  white-space: nowrap;     /* Prevents text from wrapping to the next line */
+  overflow: hidden;        /* Hides any overflowed content */
+  text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
+}
+.preset {
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-bottom:dashed var(--v-primarydark-base);;
+  background-color: var(--v-secondary-base);
+  display:flex;
+  justify-content: space-between;
+}
+.layer {
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  background-color: var(--v-secondary-base);
+  display:flex;
+  justify-content: space-between;
+}
+
 .left-panel-close {
 transition:0.3s
 }
@@ -264,10 +342,6 @@ transition:0.3s
   padding-left: 20px;
   font-size: 1.1em;
   margin-bottom: 10px;
-}
-.trip-list {
-  height: height;
-  padding-left:20px
 }
 
 .scrollable {
