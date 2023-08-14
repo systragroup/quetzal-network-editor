@@ -126,7 +126,7 @@ export default {
                     class="title crop"
                     v-bind="attrs"
                     v-on="on"
-                  >{{ selectedPreset || 'Presets' }}</span>
+                  >{{ selectedPreset || $gettext("Presets") }}</span>
                 </template>
                 <v-list>
                   <v-list-item
