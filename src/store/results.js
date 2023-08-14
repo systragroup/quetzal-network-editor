@@ -100,21 +100,10 @@ export default {
         item => item.properties[state.selectedFilter])))
     },
     applySettings (state, payload) {
-      state.displaySettings.selectedFeature = payload.selectedFeature
-      state.displaySettings.maxWidth = payload.maxWidth
-      state.displaySettings.minWidth = payload.minWidth
-      state.displaySettings.numStep = payload.numStep
-      state.displaySettings.scale = payload.scale
-      state.displaySettings.cmap = payload.cmap
-      state.displaySettings.opacity = payload.opacity
-      state.displaySettings.showNaN = payload.showNaN
-      state.displaySettings.reverseColor = payload.reverseColor
-      state.displaySettings.minVal = payload.minVal
-      state.displaySettings.maxVal = payload.maxVal
-      state.displaySettings.fixScale = payload.fixScale
-      state.displaySettings.offset = payload.offset
+      const keys = Object.keys(payload)
+      // apply all payload settings to state.displaySettings
+      keys.forEach(key => state.displaySettings[key] = payload[key])
       this.commit('results/refreshVisibleLinks')
-
       this.commit('results/updateSelectedFeature')
     },
 

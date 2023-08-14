@@ -30,6 +30,7 @@ export default {
     }
   },
   computed: {
+    windowHeight () { return this.$store.getters.windowHeight },
     projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     loggedIn () { return this.$store.getters.loggedIn },
     scenariosList () {
@@ -169,6 +170,7 @@ export default {
       :close-on-click="!showDialog && !deleteDialog && !copyDialog"
       :close-on-content-click="false"
       max-width="460px"
+      :max-height="windowHeight"
       offset-y
     >
       <template v-slot:activator="{ on, attrs }">

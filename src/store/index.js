@@ -48,6 +48,7 @@ export const store = new Vuex.Store({
     availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
     rasterFiles: [], // [{path, type}]
     visibleRasters: [], // list of rasterFiles path.
+    styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
 
   },
@@ -99,14 +100,18 @@ export const store = new Vuex.Store({
         const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !roadFiles.includes(el))
 
+        // eslint-disable-next-line max-len
         const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !rasterFiles.includes(el))
+
+        const ODFiles = otherFiles.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
+        otherFiles = otherFiles.filter(el => !ODFiles.includes(el))
 
         const paramFile = otherFiles.filter(el => el.path === 'inputs/params.json')[0]
         otherFiles = otherFiles.filter(el => el !== paramFile)
 
-        const ODFiles = otherFiles.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
-        otherFiles = otherFiles.filter(el => !ODFiles.includes(el))
+        const stylesFile = otherFiles.filter(el => el.path === 'styles.json')[0]
+        otherFiles = otherFiles.filter(el => el !== stylesFile)
 
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
@@ -126,12 +131,12 @@ export const store = new Vuex.Store({
           err.name = 'ImportError'
           throw err
         }
-
         this.commit('loadPTFiles', ptFiles)
         this.commit('loadRoadFiles', roadFiles)
         this.commit('loadRasterFiles', rasterFiles)
         this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
+        if (stylesFile) { state.styles = stylesFile.content }
 
         this.commit('loadOtherFiles', inputFiles)
 
@@ -219,6 +224,7 @@ export const store = new Vuex.Store({
       this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
       state.rasterFiles = []
+      state.styles = []
       state.otherFiles = []
       state.cyclewayMode = false
     },
@@ -235,6 +241,21 @@ export const store = new Vuex.Store({
       state.roadsPopupContent = payload.roadsPopupContent
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
+    },
+    addStyle (state, payload) {
+      // payload: styling for results {name,layer, displaySettings:{...}}
+      console.log(payload)
+      const names = state.styles.map(el => el.name)
+      const idx = names.indexOf(payload.name)
+      if (idx !== -1) {
+        state.styles[idx] = payload
+      } else {
+        state.styles.push(payload)
+      }
+    },
+    deleteStyle (state, payload) {
+      // payload = name of the preset to delete
+      state.styles = state.styles.filter(el => el.name !== payload)
     },
 
   },
@@ -299,6 +320,10 @@ export const store = new Vuex.Store({
           const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
           zip.file('inputs/params.json', blob)
         }
+        if (state.styles.length > 0) {
+          const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
+          zip.file('styles.json', blob)
+        }
         const staticLayers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         for (const layer of staticLayers) {
@@ -350,10 +375,14 @@ export const store = new Vuex.Store({
         rnodes: roadFolder + 'road_nodes.geojson',
         od: scen + 'inputs/od/od.geojson',
         params: scen + 'inputs/params.json',
+        styles: scen + 'styles.json',
       }
       // save params
       if (state.run.parameters.length > 0) {
         await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
+      }
+      if (state.styles.length > 0) {
+        await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
       }
       // save PT
       if (state.links.links.features.length > 0) {
@@ -421,6 +450,7 @@ export const store = new Vuex.Store({
     outputName: (state) => state.outputName,
     rasterFiles: (state) => state.rasterFiles,
     visibleRasters: (state) => state.visibleRasters,
+    styles: (state) => state.styles,
     otherFiles: (state) => state.otherFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {
