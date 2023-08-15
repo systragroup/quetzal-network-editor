@@ -368,12 +368,13 @@ export const store = new Vuex.Store({
       const inputFolder = scen + 'inputs/'
       const ptFolder = inputFolder + 'pt/'
       const roadFolder = inputFolder + 'road/'
+      const odFolder = inputFolder + 'od/'
       const paths = {
         links: ptFolder + 'links.geojson',
         nodes: ptFolder + 'nodes.geojson',
         rlinks: roadFolder + 'road_links.geojson',
         rnodes: roadFolder + 'road_nodes.geojson',
-        od: scen + 'inputs/od/od.geojson',
+        od: odFolder + 'od.geojson',
         params: scen + 'inputs/params.json',
         styles: scen + 'styles.json',
       }
@@ -388,15 +389,24 @@ export const store = new Vuex.Store({
       if (state.links.links.features.length > 0) {
         await s3.putObject(bucket, paths.links, JSON.stringify(state.links.links))
         await s3.putObject(bucket, paths.nodes, JSON.stringify(state.links.nodes))
+      } else {
+        // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
+        s3.deleteFolder(bucket, ptFolder)
       }
       // save Roads
       if (state.rlinks.rlinks.features.length > 0) {
         await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
         await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      } else {
+        // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
+        s3.deleteFolder(bucket, roadFolder)
       }
       // save ods
       if (!this.getters['od/layerIsEmpty']) {
         await s3.putObject(bucket, paths.od, JSON.stringify(this.getters['od/layer']))
+      } else {
+        // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
+        s3.deleteFolder(bucket, odFolder)
       }
       // save outputs Layers
       if (payload !== 'inputs') {
