@@ -52,9 +52,11 @@ export default {
     scenario () { return this.$store.getters.scenario },
   },
   watch: {
-    menu (val) {
+    async  menu (val) {
       if (val) {
-        this.$store.dispatch('getScenario', { model: this.localModel })
+        this.loading = true
+        await this.$store.dispatch('getScenario', { model: this.localModel })
+        this.loading = false
       }
     },
     async localModel (val) {

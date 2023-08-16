@@ -140,7 +140,7 @@ msgstr ""
 msgid "An error occur fetching example on github"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:118
+#: src/components/layout/ScenariosExplorer.vue:120
 msgid "An error occured"
 msgstr ""
 
@@ -184,12 +184,24 @@ msgstr ""
 msgid "cannot add empty field"
 msgstr ""
 
+#: src/components/microservices/OSMImporter.vue:182
+msgid "Cannot delete anymore"
+msgstr ""
+
+#: src/components/microservices/OSMImporter.vue:185
+msgid "cannot delete first point of polygon"
+msgstr ""
+
 #: src/components/map/LinksSidePanel.vue:96
 msgid "Cannot filter by this field. There is more than 500 groups"
 msgstr ""
 
 #: src/pages/Home.vue:311
 msgid "Click on the map to start drawing"
+msgstr ""
+
+#: src/components/microservices/OSMImporter.vue:138
+msgid "Click to add points. Right click de remove"
 msgstr ""
 
 #: src/App.vue:59
@@ -305,7 +317,7 @@ msgid "do not add .zip to the end"
 msgstr ""
 
 #: src/components/microservices/MatrixRoadCaster.vue:190
-#: src/components/microservices/OSMImporter.vue:150
+#: src/components/microservices/OSMImporter.vue:183
 msgid "Download"
 msgstr ""
 
@@ -455,7 +467,7 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:30
+#: src/components/microservices/OSMImporter.vue:32
 msgid "Import OSM network in bounding box"
 msgstr ""
 
@@ -613,7 +625,7 @@ msgstr ""
 msgid "modification applied"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:135
+#: src/components/microservices/OSMImporter.vue:168
 msgid "more"
 msgstr ""
 
@@ -665,7 +677,7 @@ msgstr ""
 
 #: src/components/layout/ScenariosExplorer.vue:205
 #: src/components/map/LinksSidePanel.vue:620
-#: src/components/microservices/OSMImporter.vue:187
+#: src/components/microservices/OSMImporter.vue:220
 #: src/components/utils/Profile.vue:163
 #: src/pages/Import.vue:220
 msgid "No"
@@ -727,7 +739,7 @@ msgstr ""
 msgid "Overwrite current Project ?"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:175
+#: src/components/microservices/OSMImporter.vue:208
 msgid "Overwrite current road network ?"
 msgstr ""
 
@@ -757,6 +769,7 @@ msgid "Preset Saved"
 msgstr ""
 
 #: src/components/results/ResultsSidePanel.vue:62
+#: src/components/results/ResultsSidePanel.vue:74
 msgid "Presets"
 msgstr ""
 
@@ -899,11 +912,11 @@ msgstr ""
 msgid "scale min"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:141
+#: src/components/layout/ScenariosExplorer.vue:143
 msgid "Scenario created"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:113
+#: src/components/layout/ScenariosExplorer.vue:115
 msgid "Scenario deleted"
 msgstr ""
 
@@ -919,7 +932,7 @@ msgstr ""
 msgid "Scenario Simulation"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:134
+#: src/components/layout/ScenariosExplorer.vue:136
 msgid "Scenario successfully copied"
 msgstr ""
 
@@ -1016,7 +1029,7 @@ msgstr ""
 msgid "The scenario will be permanently deleted"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:47
+#: src/components/microservices/OSMImporter.vue:49
 msgid "There as been an error while importing OSM network.             Please try again. If the problem persist, contact us."
 msgstr ""
 
@@ -1067,7 +1080,7 @@ msgstr ""
 
 #: src/components/layout/ScenariosExplorer.vue:214
 #: src/components/map/LinksSidePanel.vue:629
-#: src/components/microservices/OSMImporter.vue:196
+#: src/components/microservices/OSMImporter.vue:229
 #: src/components/utils/Profile.vue:172
 #: src/pages/Import.vue:229
 msgid "Yes"

@@ -92,13 +92,24 @@ export default {
       // commit('setParameters', payload.parameters)
       state.running = true
       state.error = false
-      let data = {
-        input: JSON.stringify({
-          bbox: payload.bbox,
+      let input = ''
+      if (payload.method === 'bbox') {
+        input = JSON.stringify({
+          bbox: payload.coords,
           highway: state.highway,
           callID: state.callID,
           elevation: true,
-        }),
+        })
+      } else {
+        input = JSON.stringify({
+          poly: payload.coords,
+          highway: state.highway,
+          callID: state.callID,
+          elevation: true,
+        })
+      }
+      let data = {
+        input: input,
         name: state.callID,
         stateMachineArn: state.stateMachineArn,
       }
