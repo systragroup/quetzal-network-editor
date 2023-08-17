@@ -31,14 +31,14 @@ export default {
       this.snackbar = !!this.notification.text
     },
   },
-  created () {
+  async created () {
     // init links and node to empty one (new project)
     this.$store.commit('initNetworks')
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
 
     if (auth.auth.isUserSignedIn()) {
-      auth.login()
-      s3.login()
+      await auth.login()
+      await s3.login()
       axiosClient.loginAll(this.$store.getters.idToken)
     }
   },
