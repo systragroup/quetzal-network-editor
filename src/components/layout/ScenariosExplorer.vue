@@ -54,24 +54,27 @@ export default {
   watch: {
     async  menu (val) {
       if (val) {
+        // when we click on the menu. fetch the scenario list (update in place)
         this.loading = true
         await this.$store.dispatch('getScenario', { model: this.localModel })
         this.loading = false
       }
     },
     async localModel (val) {
+      // when we click on a tab (model), fetch the scenario list.
       this.$store.commit('setScenariosList', [])
       this.loading = true
-      // try {
-      //  this.localConfig = await s3.readJson(val, 'quenedi.config.json')
-      // } catch (err) {
-      // not an error.
-      // }
-
       await this.$store.dispatch('getScenario', { model: val })
       this.loading = false
     },
+    async modelsList () {
+      // This component is rendered before we fetch on S3 the bucket list.
+      // so, when its fetched, set the model to the first one and get the scenario.
+      this.localModel = this.modelsList[0]
+      await this.$store.dispatch('getScenario', { model: this.localModel })
+    },
   },
+
   mounted () {
     this.localModel = this.modelsList[0]
   },
