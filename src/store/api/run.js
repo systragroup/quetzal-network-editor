@@ -129,6 +129,7 @@ export default {
       let data = {
         // eslint-disable-next-line no-useless-escape
         input: JSON.stringify({
+          authorization: rootState.user.idToken,
           scenario_path_S3: payload.scenario + '/',
           launcher_arg: {
             training_folder: '/tmp',
@@ -140,7 +141,6 @@ export default {
         }),
         stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
-
       quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
@@ -170,10 +170,13 @@ export default {
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
               commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
+            } else if (state.status === undefined) {
+              clearInterval(intervalId)
             }
           }).catch(
           err => {
             commit('changeAlert', err, { root: true })
+            state.running = false
           })
         data = { executionArn: state.executionArn, includeExecutionData: false, reverseOrder: true }
         quetzalClient.client.post('/history',
