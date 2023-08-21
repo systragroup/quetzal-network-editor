@@ -26,7 +26,6 @@ export default {
       showSettings: false,
       selectedLayer: 'links',
       selectedPreset: null,
-      selectedCategory: [],
       form: {},
       showDialog: false,
       showPresetDialog: false,
@@ -46,6 +45,7 @@ export default {
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
     displaySettings () { return this.$store.getters['results/displaySettings'] },
     selectedFilter () { return this.$store.getters['results/selectedFilter'] },
+    selectedCategory () { return this.$store.getters['results/selectedCategory'] },
     colorScale () { return this.$store.getters['results/colorScale'] },
     filteredCategory () {
       // for a given filter (key) get array of unique value
@@ -54,13 +54,6 @@ export default {
         item => item.properties[this.selectedFilter])))
       return val
     },
-  },
-  watch: {
-    selectedCategory (val) {
-      this.$store.commit('results/changeSelectedCategory', val)
-      this.$store.commit('results/updateSelectedFeature')
-    },
-
   },
   created () {
     this.changeLayer(this.selectedLayer)
@@ -75,6 +68,10 @@ export default {
     },
     updateSelectedFilter (val) {
       this.$store.commit('results/changeSelectedFilter', val)
+      this.$store.commit('results/updateSelectedFeature')
+    },
+    updateSelectedCategory (val) {
+      this.$store.commit('results/changeSelectedCategory', val)
       this.$store.commit('results/updateSelectedFeature')
     },
     changeLayer (layer) {
@@ -122,13 +119,47 @@ export default {
           })
           break
       }
-      // this.selectedFilter = this.$store.getters['results/selectedFilter']
-      this.selectedCategory = this.$store.getters['results/selectedCategory']
+      // update sidePanel if its mounted with the selected cat (eyes)
+      if (Object.keys(this.$refs).length > 0) {
+        this.$refs.sidePanel.init({
+          selectedCategory: this.$store.getters['results/selectedCategory'],
+        })
+      }
     },
     changePreset (preset) {
       this.selectedPreset = preset.name
       if (this.availableLayers.includes(preset.layer)) {
+        // change layer if it exist
         this.changeLayer(preset.layer)
+        if (this.filterChoices.includes(preset?.selectedFilter)) {
+          // if preset contain a filter. apply it if it exist.
+          this.$store.commit('results/changeSelectedFilter', preset.selectedFilter)
+          // if there is a list of cat. apply them, else its everything
+          if (Object.keys(preset).includes('selectedCategory')) {
+            this.$refs.sidePanel.init({
+              selectedCategory: preset.selectedCategory,
+            })
+          } else {
+            // we dont save everything. so if its empty we show all.
+            this.$refs.sidePanel.init({
+              selectedCategory: this.$store.getters['results/selectedCategory'],
+            })
+          }
+        } else {
+          // just show all. (all eyes)
+          this.$refs.sidePanel.init({
+            selectedCategory: this.$store.getters['results/selectedCategory'],
+          })
+          // if the filter is in the preset but not the the layer. just put a warning.
+          if (Object.keys(preset).includes('selectedFilter')) {
+            this.$store.commit('changeNotification',
+              {
+                text: preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
+                autoClose: true,
+                color: 'error',
+              })
+          }
+        }
       } else {
         this.$store.commit('changeNotification',
           { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
@@ -160,8 +191,19 @@ export default {
     createPreset () {
       if (this.$refs.form.validate()) {
         this.showPresetDialog = false
-        this.$store.commit('addStyle',
-          { name: this.inputName, layer: this.selectedLayer, displaySettings: this.tempDisplaySettings })
+        const style = {
+          name: structuredClone(this.inputName),
+          layer: structuredClone(this.selectedLayer),
+          displaySettings: structuredClone(this.tempDisplaySettings),
+          selectedFilter: structuredClone(this.selectedFilter),
+        }
+        // only add the list of category (eyes) if its not everything.
+        // first filter to only get possible cat. we way load a style with non existing cat (ex highway=quenedi)
+        const filteredCat = this.selectedCategory.filter(val => this.filteredCategory.includes(val))
+        if (filteredCat.length < this.filteredCategory.length) {
+          style.selectedCategory = structuredClone(this.selectedCategory)
+        }
+        this.$store.commit('addStyle', style)
         this.$store.commit('changeNotification',
           { text: $gettext('Preset Saved'), autoClose: true, color: 'success' })
 
@@ -185,7 +227,8 @@ export default {
 <template>
   <section class="map-view">
     <ResultsSidePanel
-      v-model="selectedCategory"
+      ref="sidePanel"
+      :selected-category="selectedCategory"
       :selected-filter="selectedFilter"
       :layer-choices="availableLayers"
       :selected-layer="selectedLayer"
@@ -193,6 +236,7 @@ export default {
       :filtered-cat="filteredCategory"
       :preset-choices="availablePresets"
       :selected-preset="selectedPreset"
+      @update-selectedCategory="updateSelectedCategory"
       @update-selectedFilter="updateSelectedFilter"
       @select-layer="changeLayer"
       @select-preset="changePreset"

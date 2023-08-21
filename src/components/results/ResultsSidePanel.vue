@@ -5,10 +5,7 @@ export default {
   components: {
 
   },
-  model: {
-    prop: 'selectedCategory',
-    event: 'update-selectedCategory',
-  },
+
   props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer', 'presetChoices', 'selectedPreset'],
   events: ['update-selectedCategory', 'select-layer', 'update-selected-filter', 'select-preset', 'delete-preset'],
 
@@ -46,7 +43,7 @@ export default {
       // when we change seledted filter from other component (changing layer.)
       if (val !== this.vmodelSelectedFilter) {
         this.vmodelSelectedFilter = val
-        this.selectedCat = this.selectedCategory
+        // this.selectedCat = this.selectedCategory
       }
     },
 
@@ -60,10 +57,12 @@ export default {
 
   created () {
     this.selectedCat = this.selectedCategory
-    this.vmodelSelectedFilter = this.selectedFilter
   },
 
   methods: {
+    init (payload) {
+      this.selectedCat = payload.selectedCategory
+    },
     showAll () {
       if (this.selectedCat.length === this.filteredCat.length) {
         this.selectedCat = []
@@ -295,7 +294,7 @@ export default {
 }
 .preset {
   padding: 0.5rem 0.5rem 0.5rem 1rem;
-  border-bottom:dashed var(--v-primarydark-base);;
+  border-bottom: solid var(--v-primarydark-base);;
   background-color: var(--v-secondary-base);
   display:flex;
   justify-content: space-between;

@@ -244,7 +244,6 @@ export const store = new Vuex.Store({
     },
     addStyle (state, payload) {
       // payload: styling for results {name,layer, displaySettings:{...}}
-      console.log(payload)
       const names = state.styles.map(el => el.name)
       const idx = names.indexOf(payload.name)
       if (idx !== -1) {
