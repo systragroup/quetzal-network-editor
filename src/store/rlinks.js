@@ -53,6 +53,8 @@ export default {
         // limit geometry precision to 6 digit
         state.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+        state.filteredrCategory = []
+        state.selectedrGroup = []
         this.commit('getrLinksProperties')
         this.commit('splitOneway')
         // set all trips visible
@@ -123,16 +125,6 @@ export default {
       this.commit('getrNodesProperties')
     },
 
-    unloadrFiles (state) {
-      // when we reload files (some were already loaded.)
-      state.rlinks.features = []
-      state.rnodes.features = []
-      state.visiblerLinks.features = []
-      state.visiblerNodes.features = []
-      state.renderedrLinks.features = []
-      state.renderedrNodes.features = []
-      state.selectedrGroup = []
-    },
     getrLinksProperties (state) {
       let header = new Set([])
       state.rlinks.features.forEach(element => {
@@ -514,6 +506,8 @@ export default {
       }
       if (!state.selectedrGroup.includes(newLinkGroup)) {
         // if its not already selected, push it.
+        state.visiblerLinks.features.push(linkFeature)
+        state.renderedrLinks.features.push(linkFeature)
         state.selectedrGroup.push(newLinkGroup)
       } else {
         state.visiblerLinks.features.push(linkFeature)

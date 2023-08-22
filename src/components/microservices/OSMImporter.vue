@@ -3,10 +3,12 @@ import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from '
 import NodesLayer from './NodesLayer.vue'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
-import auth from '@src/auth.js'
 import Point from 'turf-point'
 import Linestring from 'turf-linestring'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
+
+import linksBase from '@static/links_base.geojson'
+import nodesBase from '@static/nodes_base.geojson'
 const short = require('short-uuid')
 const $gettext = s => s
 
@@ -48,43 +50,6 @@ export default {
         'cycleway',
         'pedestrian',
       ],
-      isUserSignedIn: auth.auth.isUserSignedIn(),
-      colorDict: {
-        motorway: 'E892A2',
-        motorway_link: 'E892A2',
-        trunk: 'E892A2',
-        trunk_link: 'E892A2',
-        primary: 'FCD6A4',
-        primary_link: 'FCD6A4',
-        secondary: 'F7F9BE',
-        secondary_link: 'F7F9BE',
-        tertiary: '808080',
-        tertiary_link: '808080',
-        residential: '808080',
-        living_street: '808080',
-        service: '808080',
-        unclassified: '808080',
-        cycleway: '1D8621',
-        pedestrian: '1D8621',
-      },
-      widthDict: {
-        motorway: 4,
-        motorway_link: 4,
-        trunk: 4,
-        trunk_link: 4,
-        primary: 4,
-        primary_link: 4,
-        secondary: 3,
-        secondary_link: 3,
-        tertiary: 2,
-        tertiary_link: 2,
-        residential: 2,
-        living_street: 2,
-        service: 2,
-        unclassified: 2,
-        cycleway: 2,
-        pedestrian: 2,
-      },
     }
   },
   computed: {
@@ -225,7 +190,8 @@ export default {
     },
 
     applyOverwriteDialog () {
-      this.$store.commit('unloadrFiles')
+      this.$store.commit('loadrLinks', linksBase)
+      this.$store.commit('loadrNodes', nodesBase)
       this.showOverwriteDialog = false
       this.importOSM()
     },
