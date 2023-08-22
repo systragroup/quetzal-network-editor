@@ -120,8 +120,8 @@ export default {
     startExecution ({ state, commit, dispatch, rootState }, payload) {
       const filteredParams = state.parameters.filter(param => Object.keys(param).includes('category'))
       const paramsDict = filteredParams.reduce((acc, { category, params }) => {
-        acc[category] = params.reduce((paramAcc, { name, value }) => {
-          paramAcc[name] = value
+        acc[category] = params.reduce((paramAcc, { name, value, type }) => {
+          paramAcc[name] = type?.toLowerCase() === 'number' ? Number(value) : value
           return paramAcc
         }, {})
         return acc
@@ -129,9 +129,9 @@ export default {
       let data = {
         // eslint-disable-next-line no-useless-escape
         input: JSON.stringify({
+          authorization: rootState.user.idToken,
           scenario_path_S3: payload.scenario + '/',
           launcher_arg: {
-            scenario: 'base',
             training_folder: '/tmp',
             params: paramsDict,
           },
@@ -141,7 +141,6 @@ export default {
         }),
         stateMachineArn: state.stateMachineArnBase + rootState.user.model,
       }
-
       quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
@@ -171,10 +170,13 @@ export default {
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
               commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
+            } else if (state.status === undefined) {
+              clearInterval(intervalId)
             }
           }).catch(
           err => {
             commit('changeAlert', err, { root: true })
+            state.running = false
           })
         data = { executionArn: state.executionArn, includeExecutionData: false, reverseOrder: true }
         quetzalClient.client.post('/history',

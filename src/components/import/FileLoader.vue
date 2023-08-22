@@ -24,6 +24,7 @@ export default {
   computed: {
     rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
     linksIsEmpty () { return this.$store.getters.linksIsEmpty },
+    ODIsEmpty () { return this.$store.getters['od/layerIsEmpty'] },
     paramsIsEmpty () { return this.$store.getters['run/parametersIsEmpty'] },
     localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
     localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
@@ -66,7 +67,7 @@ export default {
       } else if (this.choice === 'parameters') {
         this.$refs.paramsInput.click()
         document.getElementById('params-input').value = '' // clean it for next file
-      } else if (['PT links', 'PT nodes', 'road links', 'road nodes'].includes(this.choice)) {
+      } else if (['PT links', 'PT nodes', 'road links', 'road nodes', 'od'].includes(this.choice)) {
         this.$refs.fileInput.click()
         document.getElementById('file-input').value = '' // clean it for next file
       } else if (this.choice.startsWith('inputs')) {
@@ -171,6 +172,9 @@ export default {
           case 'road nodes':
             this.loadedNodes = serializer(data, name, 'Point')
             this.loadedType = 'road'
+            break
+          case 'od':
+            this.$emit('FilesLoaded', [{ path: 'inputs/od/od.geojson', content: data }])
             break
           default:
             console.log('autre')
@@ -343,6 +347,39 @@ export default {
               </v-list-item>
             </v-list>
           </v-menu>
+        </div>
+      </div>
+      <div class="container">
+        <v-icon
+          class="type-icon"
+          :style="{'opacity': ODIsEmpty? '0.50':'1'}"
+        >
+          fas fa-cog
+        </v-icon>
+        <div
+          class="subtitle"
+          :style="{'opacity': ODIsEmpty? '0.50':'1'}"
+        >
+          {{ $gettext('Origin - Destination') }}
+          <v-icon
+            v-if="!ODIsEmpty"
+            class="check-icon"
+            color="success"
+          >
+            fas fa-check
+          </v-icon>
+        </div>
+
+        <div class="element">
+          <v-btn
+            icon
+            outlined
+            @click="()=>buttonHandle('od')"
+          >
+            <v-icon small>
+              fa-solid fa-upload
+            </v-icon>
+          </v-btn>
         </div>
       </div>
       <div class="container">

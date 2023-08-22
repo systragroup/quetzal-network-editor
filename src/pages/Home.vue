@@ -10,8 +10,10 @@ import { getGroupForm } from '@comp/utils/utils.js'
 const $gettext = s => s
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Home',
   components: {
+    // eslint-disable-next-line vue/no-reserved-component-names
     Map,
     SidePanel,
     ColorPicker,
@@ -34,7 +36,7 @@ export default {
       errorMessage: null,
       lingering: true,
       groupTripIds: [],
-      isRoadMode: false,
+      mode: 'pt',
       showHint: false,
       showDeleteOption: false,
       newFieldName: null,
@@ -43,7 +45,7 @@ export default {
         newField: [
           val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
           val => val !== '' || $gettext('cannot add empty field'),
-          val => !val?.endsWith('_r') || $gettext('field cannot end with _r')
+          val => !val?.endsWith('_r') || $gettext('field cannot end with _r'),
         ],
       },
 
@@ -79,7 +81,6 @@ export default {
         cycleway_reverse: $gettext('if the road contain a bike path in the opposite direction. either yes, no or shared.\
           a road can be a oneway and have cycleway on both side.'),
 
-
       },
 
     }
@@ -97,7 +98,10 @@ export default {
         'Edit rLink Info',
         'Edit Road Group Info',
         'Edit Visible Road Info',
-        'Edit rNode Info'].includes(this.action)
+        'Edit OD Group Info',
+        'Edit Visible OD Info',
+        'Edit rNode Info',
+        'Edit OD Info'].includes(this.action)
     },
   },
   watch: {
@@ -186,6 +190,10 @@ export default {
           }
         })
         this.showDialog = true
+      } else if (this.action === 'Edit OD Info') {
+        this.selectedLink = event.selectedIndex[0]
+        this.editorForm = this.$store.getters['od/linkForm'](this.selectedLink)
+        this.showDialog = true
       } else if (this.action === 'Edit Road Group Info') {
         const features = this.$store.getters.grouprLinks(event.category, event.group)
         this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
@@ -199,6 +207,22 @@ export default {
         this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = this.$store.getters.rlineAttributes
         const uneditable = ['index', 'length', 'a', 'b']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
+        this.showDialog = true
+      } else if (this.action === 'Edit OD Group Info') {
+        const features = this.$store.getters['od/groupLayer'](event.category, event.group)
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters['od/layerAttributes']
+        const uneditable = ['index']
+        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
+        this.lingering = event.lingering
+        this.showDialog = true
+      } else if (this.action === 'Edit Visible OD Info') {
+        const features = this.$store.getters['od/visibleLayer'].features
+        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = this.$store.getters['od/layerAttributes']
+        const uneditable = ['index']
         this.editorForm = getGroupForm(features, lineAttributes, uneditable)
         this.lingering = event.lingering
         this.showDialog = true
@@ -241,6 +265,10 @@ export default {
         this.applyAction()
       } else if (['Move Node', 'Move Anchor', 'Move rNode', 'Move rAnchor'].includes(this.action)) {
         this.selectedNode = event.selectedFeature
+        this.cursorPosition = event.lngLat
+        this.applyAction()
+      } else if (this.action === 'Delete OD') {
+        this.selectedIndex = event.selectedIndex
         this.cursorPosition = event.lngLat
         this.applyAction()
       }
@@ -314,17 +342,29 @@ export default {
           break
         case 'Edit Road Group Info':
           this.$store.commit('editrGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
-          this.$refs.mapref.$refs.roadref.getBounds()
+          // this.$refs.mapref.$refs.roadref.getBounds()
           break
         case 'Edit Visible Road Info':
           this.$store.commit('editrGroupInfo', {
             selectedLinks: this.$store.getters.visiblerLinks.features,
             info: this.editorForm,
           })
-          this.$refs.mapref.$refs.roadref.getBounds()
+          // this.$refs.mapref.$refs.roadref.getBounds()
+          break
+        case 'Edit OD Group Info':
+          this.$store.commit('od/editGroupInfo', { selectedLinks: this.selectedLinks, info: this.editorForm })
+          break
+        case 'Edit Visible OD Info':
+          this.$store.commit('od/editGroupInfo', {
+            selectedLinks: this.$store.getters['od/visibleLayer'].features,
+            info: this.editorForm,
+          })
           break
         case 'Edit rNode Info':
           this.$store.commit('editrNodeInfo', { selectedNodeId: this.selectedNode.index, info: this.editorForm })
+          break
+        case 'Edit OD Info':
+          this.$store.commit('od/editLinkInfo', { selectedLinkId: this.selectedLink, info: this.editorForm })
           break
         case 'Add Road Node Inline':
           this.$store.commit('addRoadNodeInline', {
@@ -361,6 +401,11 @@ export default {
         case 'deleterGroup':
           this.$store.commit('deleterGroup', this.tripToDelete)
           break
+        case 'Delete OD':
+          this.$store.commit('od/deleteOD', { selectedIndex: this.selectedIndex })
+          break
+        case 'deleteODGroup':
+          this.$store.commit('od/deleteGroup', this.tripToDelete)
       }
       if (!this.lingering) {
         this.confirmChanges()
@@ -468,6 +513,8 @@ export default {
           this.$store.commit('addPropertie', { name: this.newFieldName, table: 'nodes' })
         } else if (this.action === 'Edit rNode Info') {
           this.$store.commit('addRoadPropertie', { name: this.newFieldName, table: 'rnodes' })
+        } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(this.action)) {
+          this.$store.commit('od/addPropertie', this.newFieldName)
         }
         this.newFieldName = null // null so there is no rules error.
         this.$store.commit('changeNotification',
@@ -499,6 +546,8 @@ export default {
         this.$store.commit('deletePropertie', { name: field, table: 'nodes' })
       } else if (this.action === 'Edit rNode Info') {
         this.$store.commit('deleteRoadPropertie', { name: field, table: 'rnodes' })
+      } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(this.action)) {
+        this.$store.commit('od/deletePropertie', { name: field })
       }
       this.$store.commit('changeNotification',
         { text: $gettext('Field deleted'), autoClose: true, color: 'success' })
@@ -725,12 +774,12 @@ export default {
       @deleteButton="deleteButton"
       @cloneButton="cloneButton"
       @propertiesButton="actionClick"
-      @isRoadMode="(e) => isRoadMode = e"
+      @change-mode="(e) => mode = e"
     />
     <Map
       ref="mapref"
       :selected-trips="selectedTrips"
-      :is-road-mode="isRoadMode"
+      :mode="mode"
       @clickFeature="actionClick"
     />
   </section>

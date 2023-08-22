@@ -1,20 +1,22 @@
 <script>
 import LinksSidePanel from './LinksSidePanel.vue'
 import RoadSidePanel from './RoadSidePanel.vue'
+import ODSidePanel from './ODSidePanel.vue'
 export default {
   name: 'SidePanel',
   components: {
     LinksSidePanel,
     RoadSidePanel,
+    ODSidePanel,
   },
   props: ['selectedTrips', 'selectedrGroup'],
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine', 'isRoadMode'],
+  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
 
   data () {
     return {
       showLeftPanelContent: true,
       tab: 0,
-      roadMode: false,
+      mode: 'pt',
     }
   },
   computed: {
@@ -35,12 +37,14 @@ export default {
     },
 
     tab (val) {
-      if (val === 1) {
-        this.roadMode = true
+      if (val === 0) {
+        this.mode = 'pt'
+      } else if (val === 1) {
+        this.mode = 'road'
       } else {
-        this.roadMode = false
+        this.mode = 'od'
       }
-      this.$emit('isRoadMode', this.roadMode)
+      this.$emit('change-mode', this.mode)
     },
   },
   created () {
@@ -82,11 +86,12 @@ export default {
               dark
               grow
             >
-              <v-tab>{{ $gettext("PT Links") }}</v-tab>
-              <v-tab>{{ $gettext("Road Links") }}</v-tab>
+              <v-tab>{{ $gettext("PT") }}</v-tab>
+              <v-tab>{{ $gettext("Road") }}</v-tab>
+              <v-tab>{{ $gettext("OD") }}</v-tab>
             </v-tabs>
             <LinksSidePanel
-              v-show="!roadMode"
+              v-show="tab===0"
               :height="windowHeight"
               :selected-trips="selectedTrips"
               @update-tripList="(e) => $emit('update-tripList', {type: 'links', data: e})"
@@ -97,12 +102,16 @@ export default {
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />
             <RoadSidePanel
-              v-show="roadMode"
+              v-show="tab===1"
               :height="windowHeight"
               :selectedr-goup="selectedrGroup"
               @update-tripList="(e) => $emit('update-tripList',{type: 'rlinks', data: e})"
-              @confirmChanges="(e) => $emit('confirmChanges',e)"
-              @abortChanges="(e) => $emit('abortChanges',e)"
+              @deleteButton="(e) => $emit('deleteButton',e)"
+              @propertiesButton="(e) => $emit('propertiesButton',e)"
+            />
+            <ODSidePanel
+              v-show="tab===2"
+              :height="windowHeight"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />

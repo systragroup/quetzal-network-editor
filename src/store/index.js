@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import linksModule from './links.js'
 import rlinksModule from './rlinks.js'
+import odModule from './od.js'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
 import runModule from './api/run.js'
@@ -23,6 +24,7 @@ export const store = new Vuex.Store({
     user: userModule,
     links: linksModule,
     rlinks: rlinksModule,
+    od: odModule,
     results: resultsModule,
     run: runModule,
     runMRC: MatrixRoadCasterModule,
@@ -43,9 +45,10 @@ export const store = new Vuex.Store({
     outputName: 'output',
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
-    availableLayers: ['links', 'rlinks', 'nodes', 'rnodes'],
+    availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
     rasterFiles: [], // [{path, type}]
     visibleRasters: [], // list of rasterFiles path.
+    styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
 
   },
@@ -87,7 +90,6 @@ export const store = new Vuex.Store({
 
     loadFiles (state, payload) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
-
       try {
         let otherFiles = []
         let outputFiles = []
@@ -98,11 +100,18 @@ export const store = new Vuex.Store({
         const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !roadFiles.includes(el))
 
+        // eslint-disable-next-line max-len
         const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !rasterFiles.includes(el))
 
+        const ODFiles = otherFiles.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
+        otherFiles = otherFiles.filter(el => !ODFiles.includes(el))
+
         const paramFile = otherFiles.filter(el => el.path === 'inputs/params.json')[0]
         otherFiles = otherFiles.filter(el => el !== paramFile)
+
+        const stylesFile = otherFiles.filter(el => el.path === 'styles.json')[0]
+        otherFiles = otherFiles.filter(el => el !== stylesFile)
 
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
@@ -122,11 +131,13 @@ export const store = new Vuex.Store({
           err.name = 'ImportError'
           throw err
         }
-
         this.commit('loadPTFiles', ptFiles)
         this.commit('loadRoadFiles', roadFiles)
         this.commit('loadRasterFiles', rasterFiles)
+        this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
+        if (stylesFile) { state.styles = stylesFile.content }
+
         this.commit('loadOtherFiles', inputFiles)
 
         // get outputs geojson files and create Layer with them.
@@ -210,16 +221,18 @@ export const store = new Vuex.Store({
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
+      this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
       state.rasterFiles = []
+      state.styles = []
       state.otherFiles = []
       state.cyclewayMode = false
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
-      state.availableLayers = ['links', 'rlinks', 'nodes', 'rnodes']
+      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
     },
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
@@ -228,6 +241,20 @@ export const store = new Vuex.Store({
       state.roadsPopupContent = payload.roadsPopupContent
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
+    },
+    addStyle (state, payload) {
+      // payload: styling for results {name,layer, displaySettings:{...}}
+      const names = state.styles.map(el => el.name)
+      const idx = names.indexOf(payload.name)
+      if (idx !== -1) {
+        state.styles[idx] = payload
+      } else {
+        state.styles.push(payload)
+      }
+    },
+    deleteStyle (state, payload) {
+      // payload = name of the preset to delete
+      state.styles = state.styles.filter(el => el.name !== payload)
     },
 
   },
@@ -238,6 +265,7 @@ export const store = new Vuex.Store({
       let nodes = ''
       let rlinks = ''
       let rnodes = ''
+      let od = ''
       // export only visible line (line selected)
       commit('applyPropertiesTypes')
       if (payload !== 'all') {
@@ -255,12 +283,14 @@ export const store = new Vuex.Store({
 
         rlinks = JSON.stringify(state.rlinks.visiblerLinks)
         rnodes = JSON.stringify(state.rlinks.visiblerNodes)
+        od = JSON.stringify(this.getters['od/visibleLayer'])
       // export everything
       } else {
         links = JSON.stringify(state.links.links)
         nodes = JSON.stringify(state.links.nodes)
         rlinks = JSON.stringify(state.rlinks.rlinks)
         rnodes = JSON.stringify(state.rlinks.rnodes)
+        od = JSON.stringify(this.getters['od/layer'])
       }
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
@@ -279,13 +309,22 @@ export const store = new Vuex.Store({
         // use folder.file if you want to add it to a folder
         zip.file('inputs/road/road_nodes.geojson', blob)
       }
+      if (JSON.parse(od).features.length > 0) {
+        const blob = new Blob([od], { type: 'application/json' })
+        // use folder.file if you want to add it to a folder
+        zip.file('inputs/od/od.geojson', blob)
+      }
       if (payload === 'all') {
         if (!this.getters['run/parametersIsEmpty']) {
           const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
           zip.file('inputs/params.json', blob)
         }
+        if (state.styles.length > 0) {
+          const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
+          zip.file('styles.json', blob)
+        }
         const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         for (const layer of staticLayers) {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer + '.geojson'
@@ -320,49 +359,74 @@ export const store = new Vuex.Store({
     },
 
     async exportToS3 ({ state, commit }, payload) {
-      if (payload !== 'saveOnly') {
-        commit('run/changeRunning', true)
-      }
+      // payload = 'inputs'. only export inputs
+      // else no payload to export all.
       this.commit('applyPropertiesTypes')
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
       const inputFolder = scen + 'inputs/'
       const ptFolder = inputFolder + 'pt/'
       const roadFolder = inputFolder + 'road/'
+      const odFolder = inputFolder + 'od/'
       const paths = {
         links: ptFolder + 'links.geojson',
         nodes: ptFolder + 'nodes.geojson',
         rlinks: roadFolder + 'road_links.geojson',
         rnodes: roadFolder + 'road_nodes.geojson',
+        od: odFolder + 'od.geojson',
         params: scen + 'inputs/params.json',
+        styles: scen + 'styles.json',
       }
       // save params
       if (state.run.parameters.length > 0) {
         await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
       }
+      if (state.styles.length > 0) {
+        await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
+      }
       // save PT
       if (state.links.links.features.length > 0) {
         await s3.putObject(bucket, paths.links, JSON.stringify(state.links.links))
         await s3.putObject(bucket, paths.nodes, JSON.stringify(state.links.nodes))
+      } else {
+        // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
+        s3.deleteFolder(bucket, ptFolder)
       }
       // save Roads
       if (state.rlinks.rlinks.features.length > 0) {
         await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
         await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      } else {
+        // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
+        s3.deleteFolder(bucket, roadFolder)
       }
-      // save Static Layers
-      const staticLayers = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
-      for (const layer of staticLayers) {
-        const name = layer + '.geojson'
-        await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
-        if (this.getters[`${layer}/mat`]) {
-          const name = layer + '.json'
-          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
+      // save ods
+      if (!this.getters['od/layerIsEmpty']) {
+        await s3.putObject(bucket, paths.od, JSON.stringify(this.getters['od/layer']))
+      } else {
+        // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
+        s3.deleteFolder(bucket, odFolder)
+      }
+      // save outputs Layers
+      if (payload !== 'inputs') {
+        const staticLayers = Object.keys(this._modules.root._children).filter(
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+        for (const layer of staticLayers) {
+          const name = layer + '.geojson'
+          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
+          if (this.getters[`${layer}/mat`]) {
+            const name = layer + '.json'
+            await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
+          }
         }
       }
       // save others layers
-      for (const file of state.otherFiles) {
+      // if payload === inputs. only export inputs/ files.
+      let otherFiles = state.otherFiles
+      if (payload === 'inputs') {
+        otherFiles = otherFiles.filter(file => !file.path.startsWith('outputs/'))
+      }
+      for (const file of otherFiles) {
         // if others file loaded from S3 (they are not loaded yet. need to download them.)
         if (file.content == null) {
           // pass
@@ -375,6 +439,10 @@ export const store = new Vuex.Store({
       // console.log(res)
       // commit('setScenariosList', res)
     },
+    async deleteOutputsOnS3 ({ state }) {
+      await s3.deleteFolder(state.user.model, state.user.scenario + '/outputs/')
+    },
+
   },
   getters: {
     notification: (state) => state.notification,
@@ -391,6 +459,7 @@ export const store = new Vuex.Store({
     outputName: (state) => state.outputName,
     rasterFiles: (state) => state.rasterFiles,
     visibleRasters: (state) => state.visibleRasters,
+    styles: (state) => state.styles,
     otherFiles: (state) => state.otherFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {

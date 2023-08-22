@@ -8,7 +8,7 @@ const $gettext = s => s
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api-test',
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
     bucket: 'quenedi-osm',
     callID: '',
     status: '',
@@ -38,9 +38,11 @@ export default {
       tertiary: '808080',
       tertiary_link: '808080',
       residential: '808080',
+      living_street: '808080',
       service: '808080',
       unclassified: '808080',
       cycleway: '1D8621',
+      pedestrian: '1D8621',
     },
     widthDict: {
       motorway: 4,
@@ -54,9 +56,11 @@ export default {
       tertiary: 2,
       tertiary_link: 2,
       residential: 2,
+      living_street: 2,
       service: 2,
       unclassified: 2,
       cycleway: 2,
+      pedestrian: 2,
     },
   },
   mutations: {
@@ -92,13 +96,24 @@ export default {
       // commit('setParameters', payload.parameters)
       state.running = true
       state.error = false
-      let data = {
-        input: JSON.stringify({
-          bbox: payload.bbox,
+      let input = ''
+      if (payload.method === 'bbox') {
+        input = JSON.stringify({
+          bbox: payload.coords,
           highway: state.highway,
           callID: state.callID,
           elevation: true,
-        }),
+        })
+      } else {
+        input = JSON.stringify({
+          poly: payload.coords,
+          highway: state.highway,
+          callID: state.callID,
+          elevation: true,
+        })
+      }
+      let data = {
+        input: input,
         name: state.callID,
         stateMachineArn: state.stateMachineArn,
       }
@@ -163,9 +178,9 @@ export default {
 
       let rlinks = await s3.readJson(state.bucket, state.callID.concat('/links.geojson'))
       rlinks = applyDict(rlinks)
-      commit('loadrLinks', rlinks, { root: true })
+      commit('appendNewrLinks', rlinks, { root: true })
       const rnodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
-      commit('loadrNodes', rnodes, { root: true })
+      commit('appendNewrNodes', rnodes, { root: true })
       console.log('downloaded')
       router.push('/Home').catch(() => {})
     },

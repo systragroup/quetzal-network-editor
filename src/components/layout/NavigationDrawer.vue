@@ -49,7 +49,7 @@ export default {
           break
         case 'Save':
           this.saving = true
-          this.$store.dispatch('exportToS3', 'saveOnly').then(
+          this.$store.dispatch('exportToS3').then(
             () => {
               this.saving = false
               this.$store.commit('changeNotification',

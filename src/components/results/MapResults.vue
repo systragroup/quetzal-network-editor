@@ -36,6 +36,7 @@ export default {
     mapStyle () { return this.$store.getters.mapStyle },
     layerType () { return this.$store.getters['results/type'] },
     offsetValue () { return this.offset ? -1 : 1 },
+    NaNLinks () { return this.$store.getters['results/NaNLinks'] },
 
   },
   watch: {
@@ -49,6 +50,7 @@ export default {
         this.saveMapPosition()
       }
     },
+
   },
   created () {
     this.mapboxPublicKey = mapboxPublicKey
@@ -83,7 +85,7 @@ export default {
               bounds.extend([link.geometry.coordinates[0][0][0],
                 link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
             }
-          } catch (err) { this.$store.commit('changeAlert', err) }
+          } catch (err) { }
         })
       } else {
         this.links.features.forEach(link => {
@@ -276,6 +278,26 @@ export default {
                         $vuetify.theme.currentTheme.linksprimary],
           'fill-opacity': opacity/100,
 
+        }
+      }"
+      @click="zoneClick"
+      @contextmenu="selectClick"
+    />
+    <MglGeojsonLayer
+      v-if="layerType === 'Polygon'"
+      source-id="NaNPolygon"
+      :source="{
+        type: 'geojson',
+        data: NaNLinks,
+        promoteId: 'index',
+      }"
+      layer-id="NaNZones"
+      :layer="{
+        interactive: true,
+        type: 'fill',
+        'paint': {
+          'fill-outline-color':'#cccccc',
+          'fill-color':'rgba(0, 0, 0, 0)',
         }
       }"
       @click="zoneClick"

@@ -141,7 +141,10 @@ export default {
         for (const file of filesList) {
           const name = file.slice(scen.length) // remove scen name from file
           if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
-            // pass
+            if (name === 'styles.json') {
+              const content = await s3.readJson(model, file)
+              res.push({ path: name, content: content })
+            }
           } else if (file.endsWith('.json') || file.endsWith('.geojson')) {
             const content = await s3.readJson(model, file)
             res.push({ path: name, content: content })
@@ -396,7 +399,7 @@ export default {
   position: absolute;
 }
 .card {
-  height: 42em;
+  height: 45em;
   width:60rem;
   overflow-y:hidden;
   padding: 20px;

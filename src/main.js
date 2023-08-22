@@ -65,7 +65,7 @@ Vue.use(GetTextPlugin, {
 })
 
 Vue.config.productionTip = false
-Vue.config.devtools = true
+Vue.config.devtools = false
 Vue.config.performance = false
 
 const vuetify = new Vuetify({

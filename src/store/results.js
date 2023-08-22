@@ -23,6 +23,7 @@ export default {
     type: 'links',
     links: {},
     visibleLinks: {},
+    NaNLinks: {},
     linksHeader: {},
     lineAttributes: [],
     selectedFilter: '',
@@ -46,16 +47,26 @@ export default {
   },
 
   mutations: {
+    unload (state) {
+      state.type = 'links'
+      state.links = {}
+      state.visibleLinks = {}
+      state.NaNLinks = {}
+      state.linksHeader = {}
+      state.lineAttributes = []
+      state.selectedFilter = ''
+      state.selectedCategory = []
+    },
     loadLinks (state, payload) {
       state.links = payload.geojson
       state.type = payload.type
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
-        const linksHeader = { ...state.links }
+        const linksHeader = structuredClone(state.links)
         linksHeader.features = []
         state.linksHeader = linksHeader
         state.visibleLinks = structuredClone(linksHeader)
+        state.NaNLinks = structuredClone(linksHeader)
         // set all trips visible
-        // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('results/getLinksProperties')
 
         if (payload.selectedFeature) {
@@ -89,21 +100,10 @@ export default {
         item => item.properties[state.selectedFilter])))
     },
     applySettings (state, payload) {
-      state.displaySettings.selectedFeature = payload.selectedFeature
-      state.displaySettings.maxWidth = payload.maxWidth
-      state.displaySettings.minWidth = payload.minWidth
-      state.displaySettings.numStep = payload.numStep
-      state.displaySettings.scale = payload.scale
-      state.displaySettings.cmap = payload.cmap
-      state.displaySettings.opacity = payload.opacity
-      state.displaySettings.showNaN = payload.showNaN
-      state.displaySettings.reverseColor = payload.reverseColor
-      state.displaySettings.minVal = payload.minVal
-      state.displaySettings.maxVal = payload.maxVal
-      state.displaySettings.fixScale = payload.fixScale
-      state.displaySettings.offset = payload.offset
+      const keys = Object.keys(payload)
+      // apply all payload settings to state.displaySettings
+      keys.forEach(key => state.displaySettings[key] = payload[key])
       this.commit('results/refreshVisibleLinks')
-
       this.commit('results/updateSelectedFeature')
     },
 
@@ -158,9 +158,11 @@ export default {
     refreshVisibleLinks (state) {
       const group = new Set(state.selectedCategory)
       const cat = state.selectedFilter
+      const key = state.displaySettings.selectedFeature
       state.visibleLinks.features = state.links.features.filter(link => group.has(link.properties[cat]))
       if (!state.displaySettings.showNaN) {
-        const key = state.displaySettings.selectedFeature
+        // keep track of NaN links to display them when we have a polygon
+        state.NaNLinks.features = state.visibleLinks.features.filter(link => !link.properties[key])
         state.visibleLinks.features = state.visibleLinks.features.filter(link => link.properties[key])
       }
     },
@@ -170,8 +172,8 @@ export default {
     type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
+    NaNLinks: (state) => state.NaNLinks,
     linksHeader: (state) => state.linksHeader,
-    selectedTrips: (state) => state.selectedTrips,
     lineAttributes: (state) => state.lineAttributes.sort(),
     selectedFilter: (state) => state.selectedFilter,
     selectedCategory: (state) => state.selectedCategory,

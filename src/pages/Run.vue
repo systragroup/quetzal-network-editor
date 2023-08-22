@@ -27,19 +27,19 @@ export default {
   },
   methods: {
     async run () {
-      this.$store.commit('run/startExecution') // start the stepper at first step
-      this.$store.dispatch('exportToS3').then(
-        () => {
-          this.$store.dispatch('run/startExecution', { scenario: this.$store.getters.scenario })
-        }).catch(
-        err => {
-          this.$store.commit('run/terminateExecution')
-          this.$store.commit('changeAlert', err)
-          // alert('error saving scenario')
-        })
+      try {
+        this.$store.commit('run/startExecution') // start the stepper at first step
+        await this.$store.dispatch('exportToS3', 'inputs')
+        await this.$store.dispatch('deleteOutputsOnS3')
+        this.$store.dispatch('run/startExecution', { scenario: this.$store.getters.scenario })
+      } catch (err) {
+        this.$store.commit('run/terminateExecution')
+        this.$store.commit('changeAlert', err)
+      }
     },
     stopRun () {
       this.$store.dispatch('run/stopExecution')
+      //
     },
   },
 }

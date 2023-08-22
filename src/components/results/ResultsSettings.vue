@@ -9,7 +9,7 @@ export default {
     event: 'update-show',
   },
   props: ['show', 'displaySettings', 'featureChoices'],
-  events: ['update-show', 'submit'],
+  events: ['update-show', 'submit', 'save-preset'],
 
   data () {
     return {
@@ -21,18 +21,18 @@ export default {
         hint: $gettext('selectedFeature'),
       },
       {
-        name: $gettext('maxWidth'),
-        type: 'Number',
-        value: this.displaySettings.maxWidth,
-        units: 'a.u.',
-        hint: $gettext('maxWidth'),
-      },
-      {
         name: $gettext('minWidth'),
         type: 'Number',
         value: this.displaySettings.minWidth,
         units: 'a.u.',
         hint: $gettext('minWidth'),
+      },
+      {
+        name: $gettext('maxWidth'),
+        type: 'Number',
+        value: this.displaySettings.maxWidth,
+        units: 'a.u.',
+        hint: $gettext('maxWidth'),
       },
       {
         name: $gettext('numStep'),
@@ -149,8 +149,8 @@ export default {
     },
     refresh () {
       this.parameters[0].value = this.displaySettings.selectedFeature
-      this.parameters[1].value = this.displaySettings.maxWidth
-      this.parameters[2].value = this.displaySettings.minWidth
+      this.parameters[1].value = this.displaySettings.minWidth
+      this.parameters[2].value = this.displaySettings.maxWidth
       this.parameters[3].value = this.displaySettings.numStep
       this.parameters[4].value = this.displaySettings.opacity
       this.parameters[5].value = this.displaySettings.scale
@@ -162,12 +162,12 @@ export default {
       this.parameters[11].value = this.displaySettings.fixScale
       this.parameters[12].value = this.displaySettings.offset
     },
-    submit () {
+    submit (method) {
       if (this.$refs.form.validate()) {
-        this.$emit('submit', {
+        const payload = {
           selectedFeature: this.parameters[0].value,
-          maxWidth: Number(this.parameters[1].value),
-          minWidth: Number(this.parameters[2].value),
+          minWidth: Number(this.parameters[1].value),
+          maxWidth: Number(this.parameters[2].value),
           numStep: Number(this.parameters[3].value),
           opacity: Number(this.parameters[4].value),
           scale: this.parameters[5].value,
@@ -178,8 +178,12 @@ export default {
           maxVal: Number(this.parameters[10].value),
           fixScale: this.parameters[11].value,
           offset: this.parameters[12].value,
-        })
-        // this.showDialog = false
+        }
+        if (method === 'apply') {
+          this.$emit('submit', payload)
+        } else if (method === 'save') {
+          this.$emit('save-preset', payload)
+        }
       } else {
         this.shake = true
         setTimeout(() => {
@@ -222,11 +226,11 @@ export default {
       </div>
     </template>
     <v-card
-      :max-width="'20rem'"
+      :width="'20rem'"
       class="setting-card"
 
       :max-height="windowHeight"
-      @keydown.enter="submit"
+      @keydown.enter="submit('apply')"
       @keydown.esc="cancel"
     >
       <v-card-title class="subtitle">
@@ -235,13 +239,9 @@ export default {
         <v-btn
           icon
           small
-          @click="cancel"
+          @click="showHint = !showHint"
         >
-          <v-icon
-            color="regular"
-          >
-            fa-solid fa-times
-          </v-icon>
+          <v-icon>far fa-question-circle small</v-icon>
         </v-btn>
       </v-card-title>
 
@@ -391,18 +391,24 @@ export default {
         <v-btn
           color="green darken-1"
           text
-          @click="submit"
+          @click="submit('apply')"
         >
-          {{ $gettext("Save") }}
+          {{ $gettext("Apply") }}
         </v-btn>
 
         <v-spacer />
         <v-btn
-          icon
-          small
-          @click="showHint = !showHint"
+          color="grey"
+          text
+          @click="submit('save')"
         >
-          <v-icon>far fa-question-circle small</v-icon>
+          <v-icon
+            small
+            left
+          >
+            fas fa-sliders-h
+          </v-icon>
+          {{ $gettext("save") }}
         </v-btn>
       </v-card-actions>
     </v-card>

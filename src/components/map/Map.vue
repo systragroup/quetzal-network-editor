@@ -9,12 +9,14 @@ import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
 import StaticLayer from '../utils/StaticLayer.vue'
 import LayerSelector from '../utils/LayerSelector.vue'
+import ODMap from './ODMap.vue'
 
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 const $gettext = s => s
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names, vue/no-reserved-component-names
   name: 'Map',
   components: {
     MglMap,
@@ -27,15 +29,16 @@ export default {
     EditorLinks,
     RoadLinks,
     Settings,
+    ODMap,
   },
   props: {
     selectedTrips: {
       type: Array,
       default: () => [],
     },
-    isRoadMode: {
-      type: Boolean,
-      default: false,
+    mode: {
+      type: String,
+      default: 'pt',
     },
 
   },
@@ -92,8 +95,8 @@ export default {
         this.$store.commit('changeNotification', { text: '', autoClose: true })
       }
     },
-    isRoadMode (val) {
-      if (!val) {
+    mode (val) {
+      if (val === 'pt') {
         this.drawMode = false
       }
     },
@@ -247,7 +250,6 @@ export default {
           this.offHover()
 
           // onHoverRoad (event)
-          this.$refs.roadref.getBounds()
         } else { // PT nodes
           if (this.drawMode & !this.anchorMode & !this.hoverId) {
             const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
@@ -384,7 +386,7 @@ export default {
         ref="roadref"
         :map="map"
         :is-editor-mode="isEditorMode"
-        :is-road-mode="isRoadMode"
+        :is-road-mode="mode==='road'"
         :anchor-mode="anchorMode"
         v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
@@ -402,6 +404,14 @@ export default {
         :map="map"
         :anchor-mode="anchorMode"
         v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
+      />
+    </template>
+    <template v-if="mapIsLoaded">
+      <ODMap
+        :map="map"
+        :is-editor-mode="isEditorMode"
+        :is-o-d-mode="mode==='od'"
+        @clickFeature="clickFeature"
       />
     </template>
     <template v-if="mapIsLoaded">
