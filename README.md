@@ -140,4 +140,6 @@ After build is done, you need to push the dist as a subtree:
 git subtree push --prefix dist origin dist
 ```
 
+NOTE: first delete all dist (except 404.html) and  push. then build, commit and push to subtree
+
 The *github-pages* should update automatically for *dist* branch.
