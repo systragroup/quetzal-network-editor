@@ -95,6 +95,7 @@ export default {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       state.lineAttributes = Array.from(header)
+      state.lineAttributes = state.lineAttributes.filter(attr => !['display_width', 'display_color'].includes(attr))
       state.selectedFilter = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : state.lineAttributes[0]
       state.selectedCategory = Array.from(new Set(state.links.features.map(
         item => item.properties[state.selectedFilter])))

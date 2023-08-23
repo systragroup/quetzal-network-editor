@@ -142,18 +142,10 @@ export default {
       }
     },
     zoneHover (event) {
-      if (this.selectedLinks[0]?.id !== event.mapboxEvent.features[0].id) {
-        // event.map.getCanvas().style.cursor = 'pointer'
-        this.selectedLinks = event.mapboxEvent.features
-        if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-        if (this.selectedFeature.length > 0) { // do not show popup if nothing is selected
-          const val = this.selectedLinks[0].properties[this.selectedFeature]
-          this.popup = new mapboxgl.Popup({ closeButton: false })
-            .setLngLat(centroid(this.selectedLinks[0].geometry).geometry.coordinates)
-            .setHTML(`${this.selectedFeature}: <br> ${val}`)
-            .addTo(event.map)
-        }
-      }
+      event.map.getCanvas().style.cursor = 'pointer'
+    },
+    zoneLeave (event) {
+      event.map.getCanvas().style.cursor = ''
     },
 
   },
@@ -280,6 +272,8 @@ export default {
 
         }
       }"
+      @mouseenter="zoneHover"
+      @mouseleave="zoneLeave"
       @click="zoneClick"
       @contextmenu="selectClick"
     />
@@ -300,6 +294,8 @@ export default {
           'fill-color':'rgba(0, 0, 0, 0)',
         }
       }"
+      @mouseenter="zoneHover"
+      @mouseleave="zoneLeave"
       @click="zoneClick"
       @contextmenu="selectClick"
     />
