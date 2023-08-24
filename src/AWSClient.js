@@ -83,6 +83,7 @@ async function getImagesURL (bucket, key) {
 
 async function copyFolder (bucket, prefix, newName) {
   const params = { Bucket: bucket, Prefix: prefix }
+  console.log(prefix)
   const response = await s3Client.listObjectsV2(params).promise()
   response.Contents = response.Contents.filter(el => !el.Key.endsWith('.lock'))
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
@@ -90,9 +91,14 @@ async function copyFolder (bucket, prefix, newName) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
     newFile = newFile.join('/')
+    // need to encore special character (é for example).
+    let oldPath = file.Key.split('/')
+    oldPath[0] = encodeURIComponent(oldPath[0])
+    oldPath = oldPath.join('/')
+
     const copyParams = {
       Bucket: bucket,
-      CopySource: bucket + '/' + file.Key,
+      CopySource: bucket + '/' + oldPath,
       Key: newFile,
     }
     s3Client.copyObject(copyParams, function (err, data) {
