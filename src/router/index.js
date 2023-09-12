@@ -9,6 +9,7 @@ const Microservices = () => import('@page/Microservices.vue')
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')
+const ResultTable = () => import('@page/ResultTable.vue')
 const basePath = process.env.VUE_APP_BASE_PATH
 
 Vue.use(Router)
@@ -86,6 +87,25 @@ const router = new Router({
       component: ResultPicture,
       icon: 'fas fa-images',
       title: $gettext('Results Pictures'),
+      beforeEnter: (to, from, next) => {
+        if (store.getters.scenario === null) {
+          store.commit('changeNotification',
+            {
+              text: $gettext('A scenario must be loaded to enter this page'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else {
+          next()
+        }
+      },
+    },
+    {
+      path: '/ResultTable',
+      name: ResultTable.name,
+      component: ResultTable,
+      icon: 'fas fa-table',
+      title: $gettext('Result Table'),
       beforeEnter: (to, from, next) => {
         if (store.getters.scenario === null) {
           store.commit('changeNotification',
