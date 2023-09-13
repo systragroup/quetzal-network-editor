@@ -17,14 +17,8 @@ export default {
   },
   async created () {
     this.$store.commit('changeLoading', true)
-    const model = this.$store.getters.model
-    const scenario = this.$store.getters.scenario
-    const outputsFiles = await s3.listFiles(model, scenario + '/outputs')
-    const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
-    for (const file of filesNames) {
-      const url = await s3.getImagesURL(this.$store.getters.model, file)
-      this.imgs.push(url)
-    }
+    await this.getImg()
+
     this.$store.commit('changeLoading', false)
     if (this.imgs.length === 0) {
       this.message = $gettext('Nothing to display')
@@ -32,6 +26,29 @@ export default {
   },
 
   methods: {
+    async getImg () {
+      // get the list of CSV from output files.
+      // if its undefined (its on s3). fetch it.
+      const scenario = this.$store.getters.scenario + '/'
+      const otherFiles = this.$store.getters.otherFiles
+      const imgFiles = otherFiles.filter(file => file.path.startsWith('outputs/') && file.path.endsWith('.png'))
+      for (const file of imgFiles) {
+        if (!(file.content instanceof Uint8Array)) {
+          const url = await s3.getImagesURL(this.$store.getters.model, scenario + file.path)
+          this.imgs.push(url)
+        } else {
+          const blob = new Blob([file.content], { type: 'image/png' })
+          // Create a data URL from the Blob
+          const reader = new FileReader()
+          reader.onload = (event) => {
+            const url = event.target.result
+            this.imgs.push(url)
+            return url
+          }
+          reader.readAsDataURL(blob)
+        }
+      }
+    },
 
   },
 }
@@ -47,10 +64,8 @@ export default {
       class="gallery"
     >
       <v-img
-
         :src="img"
         :alt="'image'"
-        contain
       />
     </div>
   </section>

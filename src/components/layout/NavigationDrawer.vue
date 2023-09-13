@@ -111,7 +111,7 @@ export default {
               'drawer-list-item-icon-disabled':'drawer-list-item-icon'"
           >
             <v-badge
-              v-if="item.name==='Run' && (running || runError || !runSychronized)"
+              v-if="(item.name==='Run') && (running || runError || !runSychronized)"
               :offset-x="running ? '12px' : '6px'"
               :offset-y="running ? '10px' : '11px'"
               :color="runError ? 'error' : !runSychronized ? 'warning' : ''"
