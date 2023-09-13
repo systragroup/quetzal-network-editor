@@ -106,18 +106,7 @@ const router = new Router({
       component: ResultTable,
       icon: 'fas fa-table',
       title: $gettext('Result Table'),
-      beforeEnter: (to, from, next) => {
-        if (store.getters.scenario === null) {
-          store.commit('changeNotification',
-            {
-              text: $gettext('A scenario must be loaded to enter this page'),
-              autoClose: true,
-              color: 'error',
-            })
-        } else {
-          next()
-        }
-      },
+
     },
     {
       path: '/callback',
