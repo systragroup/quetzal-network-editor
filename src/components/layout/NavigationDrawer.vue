@@ -26,6 +26,7 @@ export default {
     this.menuItems = Router.options.routes.concat({
       name: 'Save',
       icon: 'fa-solid fa-save',
+      margin: 'auto',
       title: this.$gettext('Save'),
     })
     this.menuItems = this.menuItems.concat({
@@ -101,7 +102,7 @@ export default {
           class="drawer-list-item"
           :disabled="(item.name === 'Save') && ((!$store.getters.scenario) || (isProtected))"
           :class="[ $route.name === item.name ? 'drawer-list-item-selected' : '']"
-          :style="{marginTop: item.name === 'Save' ? 'auto' : item.name ==='ResultMap'? '5rem' : '0' }"
+          :style="{marginTop: item.margin}"
           @click.native.stop
           @click="handleClickMenuItem(item)"
         >
