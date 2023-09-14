@@ -18,6 +18,7 @@ export default {
     running () { return this.$store.getters['run/running'] },
     runError () { return this.$store.getters['run/error'] },
     runSychronized () { return this.$store.getters['run/synchronized'] },
+    runWarning () { return (this.runError || !this.runSychronized) },
     isProtected () {
       return this.$store.getters.protected.includes(this.$store.getters.scenario)
     },
@@ -114,7 +115,7 @@ export default {
               v-if="item.name==='Run' && running "
               :offset-x="'12px'"
               :offset-y="'10px'"
-              :color=" ''"
+              :color="''"
             >
               <template v-slot:badge>
                 <v-progress-circular
@@ -132,7 +133,7 @@ export default {
               </v-icon>
             </v-badge>
             <v-badge
-              v-else-if="item.name==='Run' && (runError || !runSychronized) "
+              v-else-if="item.name==='Run' && runWarning "
               :offset-x="'6px'"
               :offset-y="'11px'"
               :color="runError ? 'error' : 'warning' "
