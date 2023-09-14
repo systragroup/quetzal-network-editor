@@ -111,21 +111,33 @@ export default {
               'drawer-list-item-icon-disabled':'drawer-list-item-icon'"
           >
             <v-badge
-              v-if="(item.name==='Run') && (running || runError || !runSychronized)"
-              :offset-x="running ? '12px' : '6px'"
-              :offset-y="running ? '10px' : '11px'"
-              :color="runError ? 'error' : !runSychronized ? 'warning' : ''"
-              :icon="(runError || !runSychronized) ? 'fa-solid fa-exclamation' : ''"
+              v-if="item.name==='Run' && running "
+              :offset-x="'12px'"
+              :offset-y="'10px'"
+              :color=" ''"
             >
               <template v-slot:badge>
                 <v-progress-circular
-                  v-if="item.name==='Run' && (running)"
                   size="18"
                   width="4"
                   color="primary"
                   indeterminate
                 />
               </template>
+              <v-icon
+                small
+                :title="$gettext(item.title)"
+              >
+                {{ item.icon }}
+              </v-icon>
+            </v-badge>
+            <v-badge
+              v-else-if="item.name==='Run' && (runError || !runSychronized) "
+              :offset-x="'6px'"
+              :offset-y="'11px'"
+              :color="runError ? 'error' : 'warning' "
+              :icon="'fa-solid fa-exclamation'"
+            >
               <v-icon
                 small
                 :title="$gettext(item.title)"
