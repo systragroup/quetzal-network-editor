@@ -358,9 +358,10 @@ export const store = new Vuex.Store({
         })
     },
 
-    async exportToS3 ({ state, commit }, payload) {
+    async exportToS3 ({ state, commit, dispatch }, payload) {
       // payload = 'inputs'. only export inputs
       // else no payload to export all.
+      dispatch('isTokenExpired')
       this.commit('applyPropertiesTypes')
       const scen = state.user.scenario + '/'
       const bucket = state.user.model

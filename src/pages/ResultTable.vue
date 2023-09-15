@@ -20,7 +20,8 @@ export default {
     this.$store.commit('changeLoading', true)
     const files = await this.getCSV()
     for (const file of files) {
-      const name = file.path.split('/').splice(-1)[0].slice(0, -4)
+      // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
+      const name = file.path.slice(0, -4)
       const data = csvJSON(file.content)
       const headers = []
       Object.keys(data[0]).forEach(val => headers.push({ text: val, value: val, width: '1%' }))
@@ -38,7 +39,7 @@ export default {
       // if its undefined (its on s3). fetch it.
       const scenario = this.$store.getters.scenario + '/'
       const otherFiles = this.$store.getters.otherFiles
-      const csvFiles = otherFiles.filter(file => file.path.startsWith('outputs/') && file.path.endsWith('.csv'))
+      const csvFiles = otherFiles.filter(file => file.path.endsWith('.csv'))
       for (const file of csvFiles) {
         if (!(file.content instanceof Uint8Array)) {
           file.content = await s3.readBytes(this.$store.getters.model, scenario + file.path)

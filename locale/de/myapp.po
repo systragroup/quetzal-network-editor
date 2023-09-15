@@ -35,7 +35,7 @@ msgid " root folders should be inputs/ and outputs/. not: "
 msgstr ""
 
 #: src/store/links.js:106 src/store/links.js:114 src/store/od.js:42
-#: src/store/rlinks.js:89 src/store/rlinks.js:97
+#: src/store/rlinks.js:91 src/store/rlinks.js:99
 #, fuzzy
 msgid " there is duplicated index, "
 msgstr "Es existieren mehrere Verbindungsindexe. Import abgebrochen"
@@ -64,7 +64,7 @@ msgstr "Es existieren mehrere Verbindungsindexe. Import abgebrochen"
 #: src/components/results/ResultsSettings.vue:216
 #: src/components/results/ResultsSettings.vue:223
 #: src/components/results/ResultsSettings.vue:224 src/pages/Home.vue:81
-#: src/pages/ResultPicture.vue:11
+#: src/pages/ResultPicture.vue:11 src/pages/ResultTable.vue:15
 msgid "_ctx"
 msgstr "_ctx"
 
@@ -72,7 +72,7 @@ msgstr "_ctx"
 msgid ". Import aborted in "
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:41
+#: src/components/layout/NavigationDrawer.vue:43
 #: src/components/utils/InformationPopup.vue:27
 msgid "%{s}"
 msgstr "%{s}"
@@ -116,11 +116,7 @@ msgid ""
 "time using an iterative algorithm"
 msgstr ""
 
-#: src/router/index.js:93
-msgid "A scenario must be loaded to enter this page"
-msgstr ""
-
-#: src/components/map/LinksSidePanel.vue:519
+#: src/components/map/LinksSidePanel.vue:531
 #: src/components/microservices/MatrixRoadCaster.vue:105
 msgid "Abort"
 msgstr "Abbrechen"
@@ -142,7 +138,7 @@ msgstr "Feld hinzufügen"
 msgid "An error occur fetching example on github"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:120
+#: src/components/layout/ScenariosExplorer.vue:124
 msgid "An error occured"
 msgstr ""
 
@@ -173,11 +169,11 @@ msgstr "Abbrechen"
 
 #: src/components/layout/ScenariosExplorer.vue:257
 #: src/components/layout/ScenariosExplorer.vue:334
-#: src/components/map/LinksSidePanel.vue:610
+#: src/components/map/LinksSidePanel.vue:622
 #: src/components/map/Settings.vue:162
 #: src/components/results/ResultsSettings.vue:264 src/pages/Home.vue:244
-#: src/pages/Home.vue:311 src/pages/ResultMap.vue:187
-#: src/pages/ResultMap.vue:238
+#: src/pages/Home.vue:311 src/pages/ResultMap.vue:188
+#: src/pages/ResultMap.vue:239
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -185,11 +181,11 @@ msgstr "Abbrechen"
 msgid "cannot add empty field"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:182
+#: src/components/microservices/OSMImporter.vue:153
 msgid "Cannot delete anymore"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:185
+#: src/components/microservices/OSMImporter.vue:156
 msgid "cannot delete first point of polygon"
 msgstr ""
 
@@ -201,7 +197,7 @@ msgstr "Filtern nicht möglich. Es existieren mehr als 500 Gruppen."
 msgid "Click on the map to start drawing"
 msgstr "Für Zeichenmodus Karte anklicken"
 
-#: src/components/microservices/OSMImporter.vue:138
+#: src/components/microservices/OSMImporter.vue:109
 #, fuzzy
 msgid "Click to add points. Right click de remove"
 msgstr ""
@@ -227,7 +223,7 @@ msgstr ""
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr ""
 
-#: src/components/map/LinksSidePanel.vue:537
+#: src/components/map/LinksSidePanel.vue:549
 msgid "Confirm"
 msgstr "Bestätigen"
 
@@ -243,11 +239,11 @@ msgstr ""
 msgid "Could not apply modification. Trip_id already exist"
 msgstr "Modifikation nicht anwendbar. Trip_id existiert bereits"
 
-#: src/components/map/LinksSidePanel.vue:571
+#: src/components/map/LinksSidePanel.vue:583
 msgid "Create new Line"
 msgstr "Neue Linie erstelen"
 
-#: src/pages/ResultMap.vue:143
+#: src/pages/ResultMap.vue:144
 msgid "Create or modify preset"
 msgstr ""
 
@@ -267,13 +263,13 @@ msgstr "Unterbrechen nach Knoten"
 msgid "Cut Before Node"
 msgstr "Unterbrechen vor Knoten"
 
-#: src/pages/ResultMap.vue:248
+#: src/pages/ResultMap.vue:249
 #, fuzzy
 msgid "delete"
 msgstr "Löschen"
 
 #: src/components/layout/ScenariosExplorer.vue:266 src/pages/Home.vue:43
-#: src/pages/ResultMap.vue:225
+#: src/pages/ResultMap.vue:226
 msgid "Delete"
 msgstr "Löschen"
 
@@ -291,7 +287,7 @@ msgstr "Neues Netzwerk erstellen"
 msgid "Delete Group"
 msgstr "Gruppe löschen"
 
-#: src/components/map/LinksSidePanel.vue:453
+#: src/components/map/LinksSidePanel.vue:465
 #: src/components/map/ODSidePanel.vue:257
 #: src/components/map/RoadSidePanel.vue:258
 msgid "Delete Line"
@@ -329,7 +325,7 @@ msgstr ".zip nicht ans Ende stellen"
 msgid "Download"
 msgstr ""
 
-#: src/components/map/LinksSidePanel.vue:421
+#: src/components/map/LinksSidePanel.vue:433
 msgid "Duplicate"
 msgstr ""
 
@@ -341,16 +337,16 @@ msgstr ""
 msgid "Edit Group Properties"
 msgstr "Gruppeneigenschaften bearbeiten"
 
-#: src/components/map/LinksSidePanel.vue:359
+#: src/components/map/LinksSidePanel.vue:371
 msgid "Edit Line"
 msgstr "Linie bearbeiten"
 
-#: src/components/map/LinksSidePanel.vue:500
+#: src/components/map/LinksSidePanel.vue:512
 #: src/components/map/RoadSidePanel.vue:300
 msgid "Edit Line geometry"
 msgstr "Liniengeometrie bearbeiten"
 
-#: src/components/map/LinksSidePanel.vue:390
+#: src/components/map/LinksSidePanel.vue:402
 #: src/components/map/ODSidePanel.vue:227
 #: src/components/map/RoadSidePanel.vue:228
 msgid "Edit Line Properties"
@@ -386,7 +382,7 @@ msgstr "Sichtbare Eigenschaften bearbeiten"
 msgid "Expand all"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:33
+#: src/components/layout/NavigationDrawer.vue:35
 msgid "Export"
 msgstr "Exportieren"
 
@@ -438,6 +434,10 @@ msgstr ""
 msgid "filter"
 msgstr ""
 
+#: src/pages/ResultMap.vue:155
+msgid "filter does not exist. use default one"
+msgstr ""
+
 #: src/pages/Home.vue:64
 msgid ""
 "Full name of a route.This name is generally more descriptive         than "
@@ -479,7 +479,7 @@ msgstr ""
 msgid "if the road contain a bike path. either yes, no or shared"
 msgstr ""
 
-#: src/router/index.js:29
+#: src/router/index.js:30
 msgid "Import"
 msgstr "Importieren"
 
@@ -497,10 +497,11 @@ msgstr ""
 msgid "invalid date time"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:82
-#: src/components/layout/NavigationDrawer.vue:110
-#: src/components/layout/NavigationDrawer.vue:123
-#: src/components/layout/NavigationDrawer.vue:137
+#: src/components/layout/NavigationDrawer.vue:78
+#: src/components/layout/NavigationDrawer.vue:99
+#: src/components/layout/NavigationDrawer.vue:127
+#: src/components/layout/NavigationDrawer.vue:140
+#: src/components/layout/NavigationDrawer.vue:154
 #: src/components/microservices/MatrixRoadCaster.vue:50
 #: src/components/microservices/MatrixRoadCaster.vue:52
 #: src/components/microservices/MatrixRoadCaster.vue:64
@@ -551,7 +552,7 @@ msgstr "Anzeigen bei Mouseover über einer Route auf der Karte."
 msgid "Link field to display when hovering road link on the map"
 msgstr "Anzeigen bei Mouseover über einer Route auf der Karte."
 
-#: src/pages/ResultMap.vue:84
+#: src/pages/ResultMap.vue:85
 #, fuzzy
 msgid "link Properties"
 msgstr "Eigenschaften bearbeiten"
@@ -604,7 +605,7 @@ msgid ""
 "residential, primary)"
 msgstr ""
 
-#: src/router/index.js:55
+#: src/router/index.js:56
 msgid "Map"
 msgstr "Karte"
 
@@ -621,7 +622,7 @@ msgstr ""
 msgid "maxWidth"
 msgstr ""
 
-#: src/router/index.js:36
+#: src/router/index.js:37
 msgid "Microservices"
 msgstr ""
 
@@ -654,11 +655,11 @@ msgstr ""
 msgid "multiple Values"
 msgstr "Mehrere Werte"
 
-#: src/router/index.js:41
+#: src/router/index.js:42
 msgid "Must be logged in"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:308 src/pages/ResultMap.vue:164
+#: src/components/layout/ScenariosExplorer.vue:308 src/pages/ResultMap.vue:165
 msgid "name"
 msgstr "Name"
 
@@ -699,7 +700,7 @@ msgid "New Scenario"
 msgstr "Name"
 
 #: src/components/layout/ScenariosExplorer.vue:205
-#: src/components/map/LinksSidePanel.vue:620
+#: src/components/map/LinksSidePanel.vue:632
 #: src/components/microservices/OSMImporter.vue:220
 #: src/components/utils/Profile.vue:163 src/pages/Import.vue:220
 msgid "No"
@@ -710,7 +711,7 @@ msgstr "Nein"
 msgid "Nodes"
 msgstr "Knoten"
 
-#: src/pages/ResultPicture.vue:29
+#: src/pages/ResultPicture.vue:23 src/pages/ResultTable.vue:31
 msgid "Nothing to display"
 msgstr ""
 
@@ -723,8 +724,8 @@ msgstr ""
 msgid "OD"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:344 src/pages/ResultMap.vue:118
-#: src/pages/ResultMap.vue:197
+#: src/components/layout/ScenariosExplorer.vue:344 src/pages/ResultMap.vue:119
+#: src/pages/ResultMap.vue:198
 msgid "ok"
 msgstr ""
 
@@ -741,7 +742,7 @@ msgstr ""
 msgid "Origin - Destination"
 msgstr ""
 
-#: src/store/api/OSMImporter.js:86
+#: src/store/api/OSMImporter.js:90
 msgid "OSM network imported successfully!"
 msgstr ""
 
@@ -766,7 +767,7 @@ msgstr "Aktuelles Projekt überschreiben?"
 msgid "Parameters"
 msgstr ""
 
-#: src/router/index.js:62
+#: src/router/index.js:63
 msgid "Parameters and Run"
 msgstr ""
 
@@ -774,15 +775,15 @@ msgstr ""
 msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 
-#: src/pages/ResultMap.vue:177
+#: src/pages/ResultMap.vue:219
 msgid "Preset deleted"
 msgstr ""
 
-#: src/pages/ResultMap.vue:132
+#: src/pages/ResultMap.vue:163
 msgid "Preset Layer does not exist"
 msgstr ""
 
-#: src/pages/ResultMap.vue:164
+#: src/pages/ResultMap.vue:206
 msgid "Preset Saved"
 msgstr ""
 
@@ -841,17 +842,22 @@ msgstr ""
 msgid "Required"
 msgstr "Erforderlich"
 
+#: src/router/index.js:97
+#, fuzzy
+msgid "Result Table"
+msgstr "Tabelle Knoten"
+
 #: src/pages/Run.vue:53
 msgid ""
 "Results are not synchronized with latest modifications.             Please "
 "relauch simulation to update results."
 msgstr ""
 
-#: src/router/index.js:81
+#: src/router/index.js:83
 msgid "Results Map"
 msgstr ""
 
-#: src/router/index.js:88
+#: src/router/index.js:90
 msgid "Results Pictures"
 msgstr ""
 
@@ -914,13 +920,13 @@ msgstr ""
 msgid "save"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:28
+#: src/components/layout/NavigationDrawer.vue:30
 #: src/components/map/Settings.vue:172 src/pages/Home.vue:254
 #: src/pages/Home.vue:321
 msgid "Save"
 msgstr "Speichern"
 
-#: src/components/map/LinksSidePanel.vue:598
+#: src/components/map/LinksSidePanel.vue:610
 msgid "Save Changes?"
 msgstr "Änderungen speichern?"
 
@@ -937,15 +943,15 @@ msgstr ""
 msgid "scale min"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:143
+#: src/components/layout/ScenariosExplorer.vue:147
 msgid "Scenario created"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:115
+#: src/components/layout/ScenariosExplorer.vue:119
 msgid "Scenario deleted"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:55
+#: src/components/layout/NavigationDrawer.vue:57
 #, fuzzy
 msgid "Scenario saved"
 msgstr "Einstellungen"
@@ -959,7 +965,7 @@ msgstr "Einstellungen"
 msgid "Scenario Simulation"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:136
+#: src/components/layout/ScenariosExplorer.vue:140
 msgid "Scenario successfully copied"
 msgstr ""
 
@@ -1022,6 +1028,10 @@ msgstr ""
 
 #: src/components/results/ResultsSettings.vue:67
 msgid "show NaN"
+msgstr ""
+
+#: src/store/user.js:69
+msgid "sign out"
 msgstr ""
 
 #: src/pages/Run.vue:68
@@ -1129,14 +1139,18 @@ msgid "width to display on the map"
 msgstr "Anzeigen bei Mouseover über einer Route auf der Karte."
 
 #: src/components/layout/ScenariosExplorer.vue:214
-#: src/components/map/LinksSidePanel.vue:629
+#: src/components/map/LinksSidePanel.vue:641
 #: src/components/microservices/OSMImporter.vue:229
 #: src/components/utils/Profile.vue:172 src/pages/Import.vue:229
 msgid "Yes"
 msgstr "Ja"
 
-#: src/router/index.js:67
+#: src/router/index.js:68
 msgid "you need parameters to enter this page"
+msgstr ""
+
+#: src/store/user.js:70
+msgid "your session has expired. please refresh the page or sign in again"
 msgstr ""
 
 #, fuzzy
@@ -1187,9 +1201,6 @@ msgstr ""
 
 #~ msgid "New Field"
 #~ msgstr "Neues Feld"
-
-#~ msgid "Nodes Table"
-#~ msgstr "Tabelle Knoten"
 
 #~ msgid "Add Files"
 #~ msgstr "Dateien hinzufügen"

@@ -54,6 +54,7 @@ export default {
   watch: {
     async  menu (val) {
       if (val) {
+        this.$store.dispatch('isTokenExpired')
         // when we click on the menu. fetch the scenario list (update in place)
         this.loading = true
         await this.$store.dispatch('getScenario', { model: this.localModel })
@@ -198,7 +199,7 @@ export default {
             :key="tab"
             :href="'#'+tab"
           >
-            {{ tab }}
+            {{ tab.slice(8) }}
           </v-tab>
         </v-tabs>
         <v-list-item

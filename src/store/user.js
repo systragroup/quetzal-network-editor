@@ -1,4 +1,6 @@
 import s3 from '../AWSClient'
+const $gettext = s => s
+
 export default {
   namespaced: false,
   state: {
@@ -7,6 +9,7 @@ export default {
     bucketList: [],
     accesToken: '',
     idToken: '',
+    expData: 0,
     loggedIn: false,
     loadingState: true,
     errorLoadingState: false,
@@ -36,7 +39,8 @@ export default {
       state.bucketList = payload
     },
     setAccessToken (state, payload) {
-      state.accesToken = payload
+      state.accesToken = payload.jwtToken
+      state.expDate = payload.payload.exp
     },
     setIdToken (state, payload) {
       state.idToken = payload
@@ -57,6 +61,15 @@ export default {
     async getScenario ({ commit, state, dispatch }, payload) {
       const res = await s3.getScenario(payload.model)
       commit('setScenariosList', res)
+    },
+    isTokenExpired ({ state, commit }) {
+      const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
+      if (currentTime > state.expDate) {
+        commit('changeAlert', {
+          name: $gettext('sign out'),
+          message: $gettext('your session has expired. please refresh the page or sign in again'),
+        }, { root: true })
+      }
     },
 
   },
