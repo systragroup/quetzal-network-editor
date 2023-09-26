@@ -59,7 +59,7 @@ export default {
     <v-card
       v-for="(table,key) in tables"
       :key="key"
-      class="card"
+      class="card elevation-3"
     >
       <v-data-table
         :headers="table.headers"
@@ -71,7 +71,6 @@ export default {
         :footer-props="{
           'items-per-page-options': table.data.length <= 500? [10, 20, 100, 200, -1] : [10, 20, 100, 200, 500]
         }"
-        class="elevation-3"
       >
         <template v-slot:top>
           <v-toolbar
