@@ -25,6 +25,7 @@ module.exports = {
       '@lang': path.resolve('src/languages'),
       '@scss': path.resolve('src/scss'),
       '@static': path.resolve('static'),
+      '@constants': path.resolve('src/constants'),
     },
     extensions: [
       '.wasm',
