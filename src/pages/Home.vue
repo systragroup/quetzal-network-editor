@@ -54,23 +54,19 @@ export default {
       hints: attributesHints,
 
       // todo: this should elsewhere. depend on type (TC or road) and be read on S3.
-      attributesChoices: {
-        oneway: ['0', '1'],
-        cycleway: ['yes', 'no', 'shared'],
-        cycleway_reverse: ['yes', 'no', 'shared'],
-        highway: [
-          'motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link',
-          'secondary', 'secondary_link', 'tertiary', 'tertiary_link', 'residential', 'living_street',
-          'service', 'unclassified', 'cycleway', 'pedestrian',
-        ],
-      },
-
     }
   },
   computed: {
     selectedTrips () { return this.$store.getters.selectedTrips },
     selectedrGroup () { return this.$store.getters.selectedrGroup },
     numLinks () { return Array.isArray(this.editorForm) ? this.editorForm.length : 1 },
+    attributesChoices () {
+      if (['pt', 'road'].includes(this.mode)) {
+        return this.$store.getters.attributesChoices[this.mode]
+      } else {
+        return {}
+      }
+    },
 
     editForm () {
       return ['Edit Line Info',

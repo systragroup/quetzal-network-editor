@@ -50,7 +50,7 @@ export const store = new Vuex.Store({
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
-
+    attributesChoices: {}, // { pt: {}, road: { oneway: ['0', '1'] } }
   },
   mutations: {
     changeNotification (state, payload) {
@@ -113,6 +113,9 @@ export const store = new Vuex.Store({
         const stylesFile = otherFiles.filter(el => el.path === 'styles.json')[0]
         otherFiles = otherFiles.filter(el => el !== stylesFile)
 
+        const attributesChoicesFile = otherFiles.filter(el => el.path === 'attributesChoices.json')[0]
+        otherFiles = otherFiles.filter(el => el !== attributesChoicesFile)
+
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
 
@@ -137,6 +140,7 @@ export const store = new Vuex.Store({
         this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
         if (stylesFile) { state.styles = stylesFile.content }
+        if (attributesChoicesFile) { this.commit('loadAttributesChoices', attributesChoicesFile.content) }
 
         this.commit('loadOtherFiles', inputFiles)
 
@@ -177,6 +181,12 @@ export const store = new Vuex.Store({
         const type = file.content.features[0].geometry.type
         state.rasterFiles.push({ path: file.path, type: type })
       }
+    },
+    loadAttributesChoices (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload.pt).forEach(key => state.attributesChoices.pt[key] = payload.pt[key])
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload.road).forEach(key => state.attributesChoices.road[key] = payload.road[key])
     },
     setVisibleRasters (state, payload) {
       state.visibleRasters = payload
@@ -225,6 +235,8 @@ export const store = new Vuex.Store({
       state.visibleRasters = []
       state.rasterFiles = []
       state.styles = []
+      // default Values. if changed, change the export condition as it check this is changed to export.
+      state.attributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
       state.otherFiles = []
       state.cyclewayMode = false
     },
@@ -323,6 +335,11 @@ export const store = new Vuex.Store({
           const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
           zip.file('styles.json', blob)
         }
+        if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+          const blob = new Blob([JSON.stringify(state.attributesChoices)], { type: 'application/json' })
+          zip.file('attributesChoices.json', blob)
+        }
+
         const staticLayers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         for (const layer of staticLayers) {
@@ -377,13 +394,19 @@ export const store = new Vuex.Store({
         od: odFolder + 'od.geojson',
         params: scen + 'inputs/params.json',
         styles: scen + 'styles.json',
+        attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
       if (state.run.parameters.length > 0) {
         await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
       }
+      // save styles if changed
       if (state.styles.length > 0) {
         await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
+      }
+      // save attributes choices if changed
+      if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(state.attributesChoices))
       }
       // save PT
       if (state.links.links.features.length > 0) {
@@ -461,6 +484,7 @@ export const store = new Vuex.Store({
     rasterFiles: (state) => state.rasterFiles,
     visibleRasters: (state) => state.visibleRasters,
     styles: (state) => state.styles,
+    attributesChoices: (state) => state.attributesChoices,
     otherFiles: (state) => state.otherFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {
