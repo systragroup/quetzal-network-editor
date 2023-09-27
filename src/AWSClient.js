@@ -2,6 +2,7 @@ import { store } from '@src/store/index.js'
 import AWS from 'aws-sdk'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
+import user from './store/user'
 
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
@@ -179,7 +180,8 @@ async function getScenario (bucket) {
     let userEmail // this = undefined
     try {
       const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
-      userEmail = resp.Metadata.user_email
+      // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
+      userEmail = resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
     } catch (err) { store.commit('changeAlert', err) }
     scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail })
   }
