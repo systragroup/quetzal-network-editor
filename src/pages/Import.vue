@@ -145,6 +145,10 @@ export default {
               const content = await s3.readJson(model, file)
               res.push({ path: name, content: content })
             }
+            if (name === 'attributesChoices.json') {
+              const content = await s3.readJson(model, file)
+              res.push({ path: name, content: content })
+            }
           } else if (file.endsWith('.json') || file.endsWith('.geojson')) {
             const content = await s3.readJson(model, file)
             res.push({ path: name, content: content })
