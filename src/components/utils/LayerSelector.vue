@@ -21,7 +21,7 @@ export default {
   watch: {
     selectedLayers (val) {
       const resp = []
-      val.forEach(item => resp.push({ name: item, opacity: 0.5 }))
+      val.forEach(item => resp.push(item))
       this.$store.commit('setVisibleRasters', val)
     },
   },
@@ -30,7 +30,6 @@ export default {
   },
 
   methods: {
-    parsePath (path) { return path.split('/').splice(-1)[0].slice(0, -8) },
 
   },
 }
@@ -76,7 +75,7 @@ export default {
           <v-checkbox
             v-model="selectedLayers"
             :value="item"
-            :label="parsePath(item)"
+            :label="item"
           />
         </v-list-item>
       </v-card>

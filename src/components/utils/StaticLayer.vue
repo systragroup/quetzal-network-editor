@@ -9,19 +9,21 @@ export default {
   components: {
     MglGeojsonLayer,
   },
-  props: ['fileName', 'type', 'visible'],
+  props: ['fileName', 'visible'],
   data () {
     return {
       url: '',
+      type: 'Polygon',
 
     }
   },
   watch: {
     async visible (val) {
       if (val) {
-        const path = this.$store.getters.scenario + '/' + this.fileName
-        const url = await s3.getImagesURL(this.$store.getters.model, path)
-        this.url = url
+        // const path = this.$store.getters.scenario + '/' + this.fileName
+        // const url = await s3.getImagesURL(this.$store.getters.model, path)
+        // this.url = url
+        console.log(this.fileName)
       } else {
         this.url = structuredClone(this.$store.getters.linksHeader)
       }

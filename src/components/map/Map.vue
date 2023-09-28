@@ -79,7 +79,7 @@ export default {
     },
     anchorMode () { return this.$store.getters.anchorMode },
     visibleRasters () { return this.$store.getters.visibleRasters },
-    rasterFiles () { return this.$store.getters.rasterFiles },
+    rasterFiles () { return this.$store.getters.styles },
   },
   watch: {
 
@@ -364,19 +364,18 @@ export default {
       <Settings />
     </template>
     <template v-if="mapIsLoaded & rasterFiles.length>0">
-      <LayerSelector :choices="rasterFiles.map(item=>item.path)" />
+      <LayerSelector :choices="rasterFiles.map(item=>item.name)" />
     </template>
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
     <div
       v-for="file in rasterFiles"
-      :key="file.path"
+      :key="file.name"
     >
       <template v-if="mapIsLoaded">
         <StaticLayer
-          :file-name="file.path"
-          :type="file.type"
-          :visible="visibleRasters.includes(file.path)"
+          :file-name="file.name"
+          :visible="visibleRasters.includes(file.name)"
         />
       </template>
     </div>
