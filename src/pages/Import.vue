@@ -319,32 +319,6 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-menu>
-              <v-divider />
-
-              <div>
-                <v-tooltip
-                  bottom
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      v-bind="attrs"
-                      @click="buttonHandle('newProject')"
-                      v-on="on"
-                    >
-                      {{ $gettext('New Project') }}
-                    </v-btn>
-                  </template>
-                  <span>{{ $gettext("Delete all network and start from scratch") }}</span>
-                </v-tooltip>
-                <v-btn
-                  :disabled="!filesAdded"
-                  color="primary"
-                  @click="login()"
-                >
-                  {{ $gettext('Go!') }}
-                </v-btn>
-              </div>
             </v-card-text>
           </v-col>
           <v-divider vertical />
@@ -361,6 +335,30 @@ export default {
             />
           </v-col>
         </v-row>
+        <div class="button-row">
+          <v-tooltip
+            bottom
+            open-delay="500"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                v-bind="attrs"
+                @click="buttonHandle('newProject')"
+                v-on="on"
+              >
+                {{ $gettext('New Project') }}
+              </v-btn>
+            </template>
+            <span>{{ $gettext("Delete all network and start from scratch") }}</span>
+          </v-tooltip>
+          <v-btn
+            :disabled="!filesAdded"
+            color="primary"
+            @click="login()"
+          >
+            {{ $gettext('Go!') }}
+          </v-btn>
+        </div>
       </v-card>
     </div>
     <v-dialog
@@ -437,7 +435,7 @@ export default {
   margin: 20px;
 }
 .card button {
-  margin-top: 0.5rem;
+  margin: 0.5rem;
 }
 .animate-login {
   transform: translateY(-185%);
@@ -446,6 +444,14 @@ export default {
 .animate-layer {
   opacity: 0;
   transition: 1s;
+}
+.button-row{
+  display: flex;
+  align-items: center;
+  justify-content:center;
+  margin-top : 1rem;
+  padding-top:0.5rem;
+  border-top: 1px solid var(--v-lightgrey-base);
 }
 
 </style>
