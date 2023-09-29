@@ -140,7 +140,6 @@ export const store = new Vuex.Store({
         this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
         if (stylesFile) {
-          console.log(stylesFile.content)
           const json = stylesSerializer(stylesFile.content)
           state.styles = json
         }
