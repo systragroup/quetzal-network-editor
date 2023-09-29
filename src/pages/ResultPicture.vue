@@ -65,7 +65,7 @@ export default {
     >
       <v-img
         :src="img"
-        :alt="'image'"
+        alt="Loading"
       />
     </div>
   </section>

@@ -12,7 +12,7 @@ import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
-import { serializer } from '../components/utils/serializer.js'
+import { serializer, stylesSerializer } from '../components/utils/serializer.js'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
@@ -139,7 +139,11 @@ export const store = new Vuex.Store({
         this.commit('loadRasterFiles', rasterFiles)
         this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
-        if (stylesFile) { state.styles = stylesFile.content }
+        if (stylesFile) {
+          console.log(stylesFile.content)
+          const json = stylesSerializer(stylesFile.content)
+          state.styles = json
+        }
         if (attributesChoicesFile) { this.commit('loadAttributesChoices', attributesChoicesFile.content) }
 
         this.commit('loadOtherFiles', inputFiles)

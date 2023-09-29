@@ -1,11 +1,11 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
-
+import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
 // const $gettext = s => s
 
 export default {
   name: 'FilesList',
-  events: ['importButton'],
+  events: ['FilesLoaded'],
 
   data () {
     return {
@@ -33,10 +33,93 @@ export default {
 
   mounted () {
   },
+  methods: {
+    buttonHandle (choice) {
+      this.choice = choice
+      console.log(choice)
+      if (this.choice === 'outputs') {
+        this.$refs.otherOutputs.click()
+        document.getElementById('other-outputs').value = '' // clean it for next file
+      } else if (this.choice.startsWith('inputs')) {
+        // inputs or a path (if we want to change an existing input)
+        this.$refs.otherInputs.click()
+        document.getElementById('other-inputs').value = '' // clean it for next file
+      }
+    },
+    async readOtherInputs (event) {
+      // this.$store.commit('changeLoading', true)
+      this.$store.commit('changeLoading', true)
+      const fileList = []
+      const files = event.target.files
+
+      for (const file of files) {
+        let name = 'inputs/' + file.name
+        // if we want to replace an existing input. this.choice contains the existing path name
+        if (this.choice !== 'inputs') {
+          name = this.choice
+        }
+        try {
+          const content = await readFileAsBytes(file)
+          fileList.push({ content: content, path: name })
+          this.$store.commit('changeLoading', false)
+        } catch (err) {
+          this.$store.commit('changeLoading', false)
+          this.$store.commit('changeAlert', err)
+        }
+      }
+      this.$store.commit('changeLoading', false)
+      this.$emit('FilesLoaded', fileList)
+
+      // this.$store.commit('changeLoading', false)
+    },
+    async readOtherOutputs (event) {
+      // load outputs as Layer Module and as other files (ex: png)
+      this.$store.commit('changeLoading', true)
+      const fileList = []
+      const files = event.target.files
+      for (const file of files) {
+        const name = 'outputs/' + file.name
+        try {
+          if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+            let content = await readFileAsText(file)
+            content = JSON.parse(content)
+            fileList.push({ content: content, path: name })
+          } else { // if not a geojson or a json. save as other.
+            const content = await readFileAsBytes(file)
+            fileList.push({ content: content, path: name })
+          }
+
+          this.$store.commit('changeLoading', false)
+        } catch (err) {
+          this.$store.commit('changeLoading', false)
+          this.$store.commit('changeAlert', err)
+        }
+      }
+      this.$store.commit('changeLoading', false)
+      this.$emit('FilesLoaded', fileList)
+    },
+
+  },
 }
 </script>
 <template>
   <div>
+    <input
+      id="other-inputs"
+      ref="otherInputs"
+      type="file"
+      style="display: none"
+      multiple="multiple"
+      @change="readOtherInputs"
+    >
+    <input
+      id="other-outputs"
+      ref="otherOutputs"
+      type="file"
+      style="display: none"
+      multiple="multiple"
+      @change="readOtherOutputs"
+    >
     <div class="files-container">
       <div class="title-box">
         <h1 class="title">
@@ -46,7 +129,7 @@ export default {
           <v-btn
             icon
             outlined
-            @click="()=>$emit('importButton','inputs')"
+            @click="()=>buttonHandle('inputs')"
           >
             <v-icon small>
               fa-solid fa-upload
@@ -70,7 +153,7 @@ export default {
                 class="list-button"
                 icon
                 v-on="on"
-                @click="()=>$emit('importButton',path)"
+                @click="()=>buttonHandle(path)"
               >
                 <v-icon small>
                   fa-solid fa-upload
@@ -91,7 +174,7 @@ export default {
           <v-btn
             icon
             outlined
-            @click="()=>$emit('importButton','outputs')"
+            @click="()=>buttonHandle('outputs')"
           >
             <v-icon small>
               fa-solid fa-upload
@@ -134,7 +217,7 @@ export default {
 </template>
 <style lang="scss" scoped>
 .files-container{
-  height: 13rem;
+  height: 17rem;
   border-radius: 5px;
   background:var(--v-background-lighten4);
   display: flex;

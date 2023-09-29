@@ -3,6 +3,8 @@
 import s3 from '../AWSClient'
 import { extractZip, unzip } from '../components/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
+import FilesList from '@comp/import/FilesList.vue'
+
 import InfoZip from '@comp/import/InfoZip.vue'
 const $gettext = s => s
 
@@ -12,6 +14,7 @@ export default {
   components: {
     FileLoader,
     InfoZip,
+    FilesList,
   },
 
   data () {
@@ -350,6 +353,13 @@ export default {
               @FilesLoaded="(files) => loadNetwork(files)"
             />
           </v-col>
+          <v-divider vertical />
+
+          <v-col>
+            <FilesList
+              @FilesLoaded="(files) => loadNetwork(files)"
+            />
+          </v-col>
         </v-row>
       </v-card>
     </div>
@@ -403,8 +413,7 @@ export default {
   position: absolute;
 }
 .card {
-  height: 45em;
-  width:60rem;
+  width:80rem;
   overflow-y:hidden;
   padding: 20px;
 }
@@ -420,7 +429,7 @@ export default {
   font-size: 2em !important;
   color: var(--v-primary-base);
   font-weight: bold;
-  margin-top:30px;
+  margin-top:18px;
 }
 .subtitle {
   font-size: 1.5em;

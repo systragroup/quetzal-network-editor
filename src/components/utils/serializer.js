@@ -51,4 +51,22 @@ function paramsSerializer (json) {
   return json
 }
 
-export { serializer, paramsSerializer }
+function stylesSerializer (json) {
+  if (!Array.isArray(json)) {
+    // eslint-disable-next-line max-len
+    const err = new Error($gettext('styles.json should be an array of object with at least [{name:,layer:}]'))
+    err.name = 'ImportError'
+    throw err
+  }
+  json.forEach(el => {
+    if (!(Object.keys(el).includes('name')) || !(Object.keys(el).includes('layer'))) {
+      // eslint-disable-next-line max-len
+      const err = new Error($gettext('styles.json should be an array of object with at least [{name:,layer:}]'))
+      err.name = 'ImportError'
+      throw err
+    }
+  })
+  return json
+}
+
+export { serializer, paramsSerializer, stylesSerializer }

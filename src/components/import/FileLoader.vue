@@ -1,17 +1,14 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
 import { serializer } from '@comp/utils/serializer.js'
-import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
-import FilesList from '@comp/import/FilesList.vue'
+import { readFileAsText } from '@comp/utils/utils.js'
 
 // const $gettext = s => s
 
 export default {
   name: 'FileLoader',
   events: ['FilesLoaded'],
-  components: {
-    FilesList,
-  },
+
   data () {
     return {
       loadedLinks: {},
@@ -26,6 +23,7 @@ export default {
     linksIsEmpty () { return this.$store.getters.linksIsEmpty },
     ODIsEmpty () { return this.$store.getters['od/layerIsEmpty'] },
     paramsIsEmpty () { return this.$store.getters['run/parametersIsEmpty'] },
+    stylesIsEmpty () { return this.$store.getters.styles.length === 0 },
     localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
     localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
     localFilesAreLoaded () {
@@ -61,72 +59,17 @@ export default {
   methods: {
     buttonHandle (choice) {
       this.choice = choice
-      if (this.choice === 'outputs') {
-        this.$refs.otherOutputs.click()
-        document.getElementById('other-outputs').value = '' // clean it for next file
-      } else if (this.choice === 'parameters') {
+      console.log(choice)
+      if (this.choice === 'parameters') {
         this.$refs.paramsInput.click()
         document.getElementById('params-input').value = '' // clean it for next file
+      } else if (this.choice === 'styles') {
+        this.$refs.stylesInput.click()
+        document.getElementById('styles-input').value = '' // clean it for next file
       } else if (['PT links', 'PT nodes', 'road links', 'road nodes', 'od'].includes(this.choice)) {
         this.$refs.fileInput.click()
         document.getElementById('file-input').value = '' // clean it for next file
-      } else if (this.choice.startsWith('inputs')) {
-        // inputs or a path (if we want to change an existing input)
-        this.$refs.otherInputs.click()
-        document.getElementById('other-inputs').value = '' // clean it for next file
       }
-    },
-    async readOtherInputs (event) {
-      // this.$store.commit('changeLoading', true)
-      this.$store.commit('changeLoading', true)
-      const fileList = []
-      const files = event.target.files
-
-      for (const file of files) {
-        let name = 'inputs/' + file.name
-        // if we want to replace an existing input. this.choice contains the existing path name
-        if (this.choice !== 'inputs') {
-          name = this.choice
-        }
-        try {
-          const content = await readFileAsBytes(file)
-          fileList.push({ content: content, path: name })
-          this.$store.commit('changeLoading', false)
-        } catch (err) {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', err)
-        }
-      }
-      this.$store.commit('changeLoading', false)
-      this.$emit('FilesLoaded', fileList)
-
-      // this.$store.commit('changeLoading', false)
-    },
-    async readOtherOutputs (event) {
-      // load outputs as Layer Module and as other files (ex: png)
-      this.$store.commit('changeLoading', true)
-      const fileList = []
-      const files = event.target.files
-      for (const file of files) {
-        const name = 'outputs/' + file.name
-        try {
-          if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
-            let content = await readFileAsText(file)
-            content = JSON.parse(content)
-            fileList.push({ content: content, path: name })
-          } else { // if not a geojson or a json. save as other.
-            const content = await readFileAsBytes(file)
-            fileList.push({ content: content, path: name })
-          }
-
-          this.$store.commit('changeLoading', false)
-        } catch (err) {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', err)
-        }
-      }
-      this.$store.commit('changeLoading', false)
-      this.$emit('FilesLoaded', fileList)
     },
 
     async readParams (event) {
@@ -136,6 +79,19 @@ export default {
         let data = await readFileAsText(files[0])
         data = JSON.parse(data)
         this.$emit('FilesLoaded', [{ path: 'inputs/params.json', content: data }])
+        this.$store.commit('changeLoading', false)
+      } catch (err) {
+        this.$store.commit('changeLoading', false)
+        this.$store.commit('changeAlert', err)
+      }
+    },
+    async readStyles (event) {
+      this.$store.commit('changeLoading', true)
+      const files = event.target.files
+      try {
+        let data = await readFileAsText(files[0])
+        data = JSON.parse(data)
+        this.$emit('FilesLoaded', [{ path: 'styles.json', content: data }])
         this.$store.commit('changeLoading', false)
       } catch (err) {
         this.$store.commit('changeLoading', false)
@@ -190,39 +146,31 @@ export default {
 </script>
 <template>
   <div>
+    <input
+      id="file-input"
+      ref="fileInput"
+      type="file"
+      style="display: none"
+      accept=".geojson"
+      @change="readFile"
+    >
+    <input
+      id="params-input"
+      ref="paramsInput"
+      type="file"
+      style="display: none"
+      accept=".json"
+      @change="readParams"
+    >
+    <input
+      id="styles-input"
+      ref="stylesInput"
+      type="file"
+      style="display: none"
+      accept=".json"
+      @change="readStyles"
+    >
     <div class="row">
-      <input
-        id="file-input"
-        ref="fileInput"
-        type="file"
-        style="display: none"
-        accept=".geojson"
-        @change="readFile"
-      >
-      <input
-        id="params-input"
-        ref="paramsInput"
-        type="file"
-        style="display: none"
-        accept=".json"
-        @change="readParams"
-      >
-      <input
-        id="other-inputs"
-        ref="otherInputs"
-        type="file"
-        style="display: none"
-        multiple="multiple"
-        @change="readOtherInputs"
-      >
-      <input
-        id="other-outputs"
-        ref="otherOutputs"
-        type="file"
-        style="display: none"
-        multiple="multiple"
-        @change="readOtherOutputs"
-      >
       <div class="container">
         <v-icon
           class="type-icon"
@@ -354,7 +302,7 @@ export default {
           class="type-icon"
           :style="{'opacity': ODIsEmpty? '0.50':'1'}"
         >
-          fas fa-cog
+          fas fa-exchange-alt
         </v-icon>
         <div
           class="subtitle"
@@ -382,6 +330,9 @@ export default {
           </v-btn>
         </div>
       </div>
+    </div>
+    <v-divider />
+    <div class="row">
       <div class="container">
         <v-icon
           class="type-icon"
@@ -415,11 +366,40 @@ export default {
           </v-btn>
         </div>
       </div>
+      <div class="container">
+        <v-icon
+          class="type-icon"
+          :style="{'opacity': stylesIsEmpty? '0.50':'1'}"
+        >
+          fas fa-palette
+        </v-icon>
+        <div
+          class="subtitle"
+          :style="{'opacity': stylesIsEmpty? '0.50':'1'}"
+        >
+          {{ $gettext('Style presets') }}
+          <v-icon
+            v-if="!stylesIsEmpty"
+            class="check-icon"
+            color="success"
+          >
+            fas fa-check
+          </v-icon>
+        </div>
+
+        <div class="element">
+          <v-btn
+            icon
+            outlined
+            @click="()=>buttonHandle('styles')"
+          >
+            <v-icon small>
+              fa-solid fa-upload
+            </v-icon>
+          </v-btn>
+        </div>
+      </div>
     </div>
-    <v-divider />
-    <FilesList
-      @importButton="(e)=>buttonHandle(e)"
-    />
   </div>
 </template>
 <style lang="scss" scoped>
@@ -430,6 +410,7 @@ export default {
   justify-content: center;
   align-items: center;
   padding-bottom: 30px;
+  padding-top:18px;
 
 }
 .container{
