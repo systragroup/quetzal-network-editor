@@ -4,16 +4,34 @@
 import chroma from 'chroma-js'
 
 function remap (val, minVal, maxVal, reverse, scale) {
-  let res = 0
-  if (reverse) {
-    res = (-val + maxVal) / (maxVal - minVal)
-  } else {
-    res = (val - minVal) / (maxVal - minVal)
+  let res = val
+  if (scale === 'log') {
+    minVal = minVal > 0 ? Math.log10(minVal) : 0
+    maxVal = maxVal > 0 ? Math.log10(maxVal) : 0
+    res = val > 0 ? Math.log10(val) : 0
+  } else if (scale === 'sqrt') {
+    minVal = Math.sqrt(minVal)
+    maxVal = Math.sqrt(maxVal)
+    res = Math.sqrt(val)
+  } else if (scale === 'exp') {
+    // need to normalize first. 10**big number is not working
+    minVal = minVal / maxVal
+    val = val / maxVal
+    maxVal = 1
+    minVal = 10 ** (minVal)
+    maxVal = 10 ** (maxVal)
+    res = 10 ** (val)
+  } else if (scale === 'quad') {
+    // need to normalize first. 10**big number is not working
+    minVal = (minVal) ** 2
+    maxVal = (maxVal) ** 2
+    res = (val) ** 2
   }
-  if (scale === 'sqrt') {
-    res = Math.sqrt(res)
-  } else if (scale === 'log') {
-    res = res >= 0 ? Math.log10(10 * res) : 0
+
+  if (reverse) {
+    res = (-res + maxVal) / (maxVal - minVal)
+  } else {
+    res = (res - minVal) / (maxVal - minVal)
   }
   return res
 }

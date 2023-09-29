@@ -52,7 +52,7 @@ export default {
         name: $gettext('scale'),
         type: 'String',
         value: this.displaySettings.scale,
-        choices: ['linear', 'sqrt', 'log'],
+        choices: ['linear', 'sqrt', 'log', 'exp', 'quad'],
         units: '',
         hint: $gettext('scale'),
       },
