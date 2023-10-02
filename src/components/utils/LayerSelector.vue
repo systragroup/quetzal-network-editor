@@ -9,6 +9,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    availableLayers: {
+      type: Array,
+      default: () => [],
+    },
   },
   data () {
     return {
@@ -18,15 +22,13 @@ export default {
 
     }
   },
-  computed: {
-    availableLayers () { return this.$store.getters.availableLayers },
-  },
   watch: {
     selectedLayers (val) {
       const resp = []
       val.forEach(item => resp.push(item))
       this.$store.commit('setVisibleRasters', val)
     },
+
   },
   mounted () {
     this.selectedLayers = this.$store.getters.visibleRasters

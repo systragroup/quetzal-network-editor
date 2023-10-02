@@ -80,6 +80,7 @@ export default {
     anchorMode () { return this.$store.getters.anchorMode },
     visibleRasters () { return this.$store.getters.visibleRasters },
     rasterFiles () { return this.$store.getters.styles },
+    availableLayers () { return this.$store.getters.availableLayers },
   },
   watch: {
 
@@ -165,6 +166,7 @@ export default {
       }
     },
   },
+
   created () {
     if (this.editorTrip) { this.isEditorMode = true }
     this.mapboxPublicKey = mapboxPublicKey
@@ -364,7 +366,10 @@ export default {
       <Settings />
     </template>
     <template v-if="mapIsLoaded & rasterFiles.length>0">
-      <LayerSelector :choices="rasterFiles" />
+      <LayerSelector
+        :choices="rasterFiles"
+        :available-layers="availableLayers"
+      />
     </template>
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
@@ -372,10 +377,11 @@ export default {
       v-for="file in rasterFiles"
       :key="file.name"
     >
-      <template v-if="mapIsLoaded && visibleRasters.includes(file.name)">
+      <template v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)">
         <StaticLayer
           :preset="file"
           :map="map"
+          :order="visibleRasters.indexOf(file.name)"
         />
       </template>
     </div>

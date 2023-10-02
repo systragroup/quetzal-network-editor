@@ -235,15 +235,10 @@ export default {
       @save-preset="clickSavePreset"
     />
     <div class="left-panel">
-      <div
-        :class="$store.getters.showLeftPanel ? 'legend-open elevation-4' : 'legend-close elevation-4'"
-        :style="{'top':`${windowHeight}px`}"
-      >
-        <MapLegend
-          :color-scale="colorScale"
-          :display-settings="displaySettings"
-        />
-      </div>
+      <MapLegend
+        :color-scale="colorScale"
+        :display-settings="displaySettings"
+      />
     </div>
 
     <MapResults
@@ -385,33 +380,6 @@ export default {
 .left-panel {
   height: 100%;
   position: absolute;
-
-}
-.legend-open {
-  left: 350px;
-  width: 160px;
-  z-index: 3;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  transition: 0.3s;
-  height: 50px;
-  background-color: var(--v-white-base);
-  border: thin solid var(--v-mediumgrey-base);
-}
-.legend-close {
-  left: 50px;
-  width: 160px;
-  z-index: 3;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  transition: 0.3s;
-  height: 50px;
-  background-color: var(--v-lightgrey);
-  border: thin solid rgb(196, 196, 196);
 }
 
 .hist {

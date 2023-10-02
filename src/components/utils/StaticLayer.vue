@@ -1,5 +1,6 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
+import MapLegend from '@comp/utils/MapLegend.vue'
 const $gettext = s => s
 
 // set visibility. to render or not by fetching the data.
@@ -9,14 +10,18 @@ export default {
   name: 'StaticLayer',
   components: {
     MglGeojsonLayer,
+    MapLegend,
+
   },
-  props: ['preset', 'map'],
+  props: ['preset', 'map', 'order'],
   data () {
     return {
       type: '',
       layer: {},
       opacity: 100,
       offsetValue: -1,
+      displaySettings: {},
+      colorScale: null,
 
     }
   },
@@ -61,7 +66,8 @@ export default {
     this.$store.commit('results/applySettings', this.preset.displaySettings)
     this.layer.features = structuredClone(this.$store.getters['results/displayLinks'])
     this.type = structuredClone(this.$store.getters['results/type'])
-
+    this.colorScale = this.$store.getters['results/colorScale']
+    this.displaySettings = this.$store.getters['results/displaySettings']
     this.$store.commit('results/unload')
     //
   },
@@ -119,6 +125,15 @@ export default {
 </script>
 <template>
   <section>
+    <div class="map-legend">
+      <MapLegend
+        :color-scale="colorScale"
+        :display-settings="displaySettings"
+        :base-offset="350"
+        :order="order"
+      />
+    </div>
+
     <MglGeojsonLayer
       v-if="['MultiPolygon', 'Polygon'].includes(type)"
       :source-id="preset.name+ '-layer'"
@@ -191,5 +206,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-
+.map-legend {
+  height: 100%;
+  position: absolute;
+}
 </style>
