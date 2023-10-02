@@ -18,6 +18,9 @@ export default {
 
     }
   },
+  computed: {
+    availableLayers () { return this.$store.getters.availableLayers },
+  },
   watch: {
     selectedLayers (val) {
       const resp = []
@@ -72,11 +75,32 @@ export default {
           v-for="(item,key) in choices"
           :key="key"
         >
-          <v-checkbox
-            v-model="selectedLayers"
-            :value="item"
-            :label="item"
-          />
+          <v-list-item-action>
+            <v-checkbox
+              v-model="selectedLayers"
+              :value="item.name"
+              :off-icon="!availableLayers.includes(item.layer)? 'fas fa-exclamation-triangle':'fa-eye-slash fa'"
+              :on-icon="'fa-eye fa'"
+              :disabled="!availableLayers.includes(item.layer)"
+            />
+          </v-list-item-action>
+
+          <v-tooltip
+            top
+            open-delay="300"
+            content-class="custom-tooltip"
+          >
+            <template v-slot:activator="{ on }">
+              <v-list-item-title
+                :style="{'cursor': 'default'}"
+                v-on="on"
+              >
+                {{ item.name }}
+              </v-list-item-title>
+            </template>
+            <span v-if="!availableLayers.includes(item.layer)">{{ $gettext('Data not found: ') + item.layer }}</span>
+            <span v-else>{{ item.displaySettings.selectedFeature + ' ' + $gettext('from') + ' ' + item.layer }}</span>
+          </v-tooltip>
         </v-list-item>
       </v-card>
     </v-menu>
@@ -108,5 +132,9 @@ export default {
   font-size: 3.5em;
   color: $primary !important;
   font-weight: bold;
+}
+.custom-tooltip {
+    opacity: 1!important;
+    background: var(--v-tooltip-bg, rgba(97, 97, 97, 1)) !important;
 }
 </style>

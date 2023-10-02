@@ -56,6 +56,8 @@ export default {
     },
   },
   created () {
+    // chose first available layer. if none. use Links as its an empty geojson (no bug with that)
+    if (this.availableLayers.lenght > 0) { this.selectedLayer = this.availableLayers[0] }
     this.changeLayer(this.selectedLayer)
   },
   beforeDestroy () {
@@ -109,7 +111,6 @@ export default {
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters['od/layer'],
             type: 'LineString',
-            selectedFeature: 'volume',
           })
           break
         default:
@@ -118,12 +119,6 @@ export default {
             type: this.$store.getters[`${layer}/type`],
           })
           break
-      }
-      // update sidePanel if its mounted with the selected cat (eyes)
-      if (Object.keys(this.$refs).length > 0) {
-        this.$refs.sidePanel.init({
-          selectedCategory: this.$store.getters['results/selectedCategory'],
-        })
       }
     },
     changePreset (preset) {
@@ -136,20 +131,9 @@ export default {
           this.$store.commit('results/changeSelectedFilter', preset.selectedFilter)
           // if there is a list of cat. apply them, else its everything
           if (Object.keys(preset).includes('selectedCategory')) {
-            this.$refs.sidePanel.init({
-              selectedCategory: preset.selectedCategory,
-            })
-          } else {
-            // we dont save everything. so if its empty we show all.
-            this.$refs.sidePanel.init({
-              selectedCategory: this.$store.getters['results/selectedCategory'],
-            })
-          }
+            this.$store.commit('results/changeSelectedCategory', preset.selectedCategory)
+          } // else it will show all
         } else {
-          // just show all. (all eyes)
-          this.$refs.sidePanel.init({
-            selectedCategory: this.$store.getters['results/selectedCategory'],
-          })
           // if the filter is in the preset but not the the layer. just put a warning.
           if (Object.keys(preset).includes('selectedFilter')) {
             this.$store.commit('changeNotification',

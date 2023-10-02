@@ -35,6 +35,23 @@ function remap (val, minVal, maxVal, reverse, scale) {
   }
   return res
 }
+
+const defaultSettings = {
+  selectedFeature: 'volume',
+  maxWidth: 10,
+  minWidth: 1,
+  numStep: 100,
+  scale: 'linear', // 'log', 'sqrt'
+  fixScale: false,
+  minVal: 0, // option to blocked them. so its an input and its not recompute
+  maxVal: 1,
+  cmap: 'OrRd',
+  opacity: 100,
+  offset: false,
+  showNaN: true,
+  reverseColor: false,
+}
+
 export default {
   namespaced: true,
   state: {
@@ -46,21 +63,7 @@ export default {
     lineAttributes: [],
     selectedFilter: '',
     selectedCategory: [],
-    displaySettings: {
-      selectedFeature: 'volume',
-      maxWidth: 10,
-      minWidth: 1,
-      numStep: 100,
-      scale: 'linear', // 'log', 'sqrt'
-      fixScale: false,
-      minVal: 0, // option to blocked them. so its an input and its not recompute
-      maxVal: 1,
-      cmap: 'OrRd',
-      opacity: 100,
-      offset: false,
-      showNaN: true,
-      reverseColor: false,
-    },
+    displaySettings: defaultSettings,
 
   },
 
@@ -74,10 +77,11 @@ export default {
       state.lineAttributes = []
       state.selectedFilter = ''
       state.selectedCategory = []
+      state.displaySettings = defaultSettings
     },
     loadLinks (state, payload) {
-      state.links = payload.geojson
-      state.type = payload.type
+      state.links = structuredClone(payload.geojson)
+      state.type = structuredClone(payload.type)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = structuredClone(state.links)
         linksHeader.features = []
@@ -100,6 +104,9 @@ export default {
     },
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
+      // set all vvisible
+      state.selectedCategory = Array.from(new Set(state.links.features.map(
+        item => item.properties[state.selectedFilter])))
       this.commit('results/refreshVisibleLinks')
     },
     changeSelectedCategory (state, payload) {
@@ -114,6 +121,7 @@ export default {
       })
       state.lineAttributes = Array.from(header)
       state.lineAttributes = state.lineAttributes.filter(attr => !['display_width', 'display_color'].includes(attr))
+      // eslint-disable-next-line max-len
       state.selectedFilter = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : state.lineAttributes[0]
       state.selectedCategory = Array.from(new Set(state.links.features.map(
         item => item.properties[state.selectedFilter])))
@@ -191,6 +199,18 @@ export default {
     type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
+    displayLinks: (state) => {
+      return state.visibleLinks.features.map(obj => {
+        return {
+          geometry: obj.geometry,
+          properties: {
+            display_color: obj.properties.display_color,
+            display_width: obj.properties.display_width,
+          },
+
+        }
+      })
+    },
     NaNLinks: (state) => state.NaNLinks,
     linksHeader: (state) => state.linksHeader,
     lineAttributes: (state) => state.lineAttributes.sort(),
