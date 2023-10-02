@@ -234,7 +234,7 @@ msgstr "couleur à afficher sur la carte (ex: FFFFFF)"
 msgid "Confirm"
 msgstr "Valider"
 
-#: src/pages/Import.vue:59
+#: src/pages/Import.vue:60
 msgid "Continue Without Project"
 msgstr "Continuer sans Projet"
 
@@ -270,6 +270,10 @@ msgstr "Couper après l'arrêt"
 msgid "Cut Before Node"
 msgstr "Couper avant l'arrêt"
 
+#: src/components/utils/LayerSelector.vue:88
+msgid "Data not found: "
+msgstr "Données introuvables: "
+
 #: src/pages/ResultMap.vue:249
 msgid "delete"
 msgstr "Supprimer "
@@ -283,7 +287,7 @@ msgstr "Supprimer "
 msgid "Delete "
 msgstr "Supprimer "
 
-#: src/pages/Import.vue:157
+#: src/pages/Import.vue:184
 msgid "Delete all network and start from scratch"
 msgstr "Créer un réseau à partir de zéro"
 
@@ -425,7 +429,7 @@ msgstr "Champ ajouté"
 msgid "file is not a zip"
 msgstr "le fichier n'est pas un zip"
 
-#: src/store/index.js:167
+#: src/store/index.js:160
 msgid "File(s) added"
 msgstr "Fichier(s) ajouté(s)"
 
@@ -436,9 +440,13 @@ msgstr "Fichier(s) ajouté(s)"
 msgid "filter"
 msgstr "filtre"
 
-#: src/pages/ResultMap.vue:155
+#: src/components/utils/StaticLayer.vue:53 src/pages/ResultMap.vue:145
 msgid "filter does not exist. use default one"
 msgstr "Le filtre n'existe pas. valeur par défaut utilisé"
+
+#: src/components/utils/LayerSelector.vue:89
+msgid "from"
+msgstr "de"
 
 #: src/constants/hints.js:20
 msgid ""
@@ -449,7 +457,7 @@ msgstr ""
 "Nom complet d'un itinéraire. Ce nom est généralement plus descriptif que "
 "route_short_name et inclut souvent la destination ou l'arrêt de l'itinéraire"
 
-#: src/pages/Import.vue:167
+#: src/pages/Import.vue:194
 msgid "Go!"
 msgstr "Aller!"
 
@@ -574,7 +582,7 @@ msgstr "Liens"
 msgid "links geometry linestring length (meters)"
 msgstr "longueur de la géometrie (lineString) du liens (mètres)"
 
-#: src/pages/Import.vue:88 src/pages/Import.vue:98
+#: src/pages/Import.vue:89 src/pages/Import.vue:99
 msgid "Load Example"
 msgstr "Charger l'exemple"
 
@@ -582,15 +590,15 @@ msgstr "Charger l'exemple"
 msgid "Load Scenario?"
 msgstr "Changer le scénario?"
 
-#: src/pages/Import.vue:63
+#: src/pages/Import.vue:64
 msgid "Load Zip"
 msgstr "Charger un Zip"
 
-#: src/pages/Import.vue:82
+#: src/pages/Import.vue:83
 msgid "Load Zip File"
 msgstr "fichier Zip"
 
-#: src/pages/Import.vue:57
+#: src/pages/Import.vue:58
 msgid ""
 "Log in and select an existing project or create a new project from project "
 "navigation menu"
@@ -672,11 +680,11 @@ msgstr ""
 msgid "name"
 msgstr "nom"
 
-#: src/store/index.js:127
+#: src/store/index.js:122
 msgid "Need the same number of links and nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds"
 
-#: src/store/index.js:133
+#: src/store/index.js:128
 msgid "Need the same number of road_links and road_nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds routiers"
 
@@ -688,7 +696,7 @@ msgstr "nouveau champ"
 msgid "New name"
 msgstr "Nouveau nom"
 
-#: src/pages/Import.vue:151
+#: src/pages/Import.vue:178
 msgid "New Project"
 msgstr "Nouveau Projet"
 
@@ -739,7 +747,7 @@ msgstr "ok"
 msgid "opacity"
 msgstr "opacité"
 
-#: src/pages/Import.vue:58 src/pages/Import.vue:61 src/pages/Import.vue:87
+#: src/pages/Import.vue:59 src/pages/Import.vue:62 src/pages/Import.vue:88
 msgid "OR"
 msgstr "OU"
 
@@ -780,15 +788,15 @@ msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 "params.json devrait être un array d'object [{category: , params: }, ...]"
 
-#: src/pages/ResultMap.vue:219
+#: src/pages/ResultMap.vue:209
 msgid "Preset deleted"
 msgstr "Préréglage supprimé"
 
-#: src/pages/ResultMap.vue:163
+#: src/pages/ResultMap.vue:153
 msgid "Preset Layer does not exist"
 msgstr "La couche du préréglage n'existe pas"
 
-#: src/pages/ResultMap.vue:206
+#: src/pages/ResultMap.vue:196
 msgid "Preset Saved"
 msgstr "Préréglage sauvegardé"
 
@@ -809,7 +817,7 @@ msgstr "Projets"
 msgid "PT"
 msgstr "TC"
 
-#: src/pages/Import.vue:113
+#: src/pages/Import.vue:114
 msgid "PT & Road"
 msgstr "TC et Routes"
 
@@ -825,7 +833,7 @@ msgstr "Contenu du Popup TC"
 msgid "PT speed"
 msgstr "Vitesse TC"
 
-#: src/pages/Import.vue:127
+#: src/pages/Import.vue:128
 msgid "PT, Road, Zones, OD & Results"
 msgstr "TC, Routes, Zones, OD et Résultats"
 
@@ -967,7 +975,7 @@ msgstr "Simulation du scénario"
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
-#: src/pages/Import.vue:56
+#: src/pages/Import.vue:57
 msgid "Select a Project"
 msgstr "Sélectionner un Projet"
 
@@ -1066,12 +1074,12 @@ msgstr ""
 "Vitesse utilisé pour calculer le temps de parcours lorsqu'un lien est "
 "ajouté, allongé ou déplacé"
 
-#: src/pages/Import.vue:60
+#: src/pages/Import.vue:61
 msgid "Start importing files individually or start with an empty project"
 msgstr ""
 "Commencez à importer des fichiers individuellement ou avec un projet vide"
 
-#: src/components/utils/LayerSelector.vue:47
+#: src/components/utils/LayerSelector.vue:53
 msgid "Static Layers"
 msgstr "Couches Statiques"
 
@@ -1172,236 +1180,3 @@ msgid "your session has expired. please refresh the page or sign in again"
 msgstr ""
 "Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
 
-#~ msgid "PT Links"
-#~ msgstr "Liens TC"
-
-#~ msgid "Road Links"
-#~ msgstr "Liens routiers"
-
-#~ msgid "Delete All"
-#~ msgstr "Supprimer tout"
-
-#~ msgid "project Name"
-#~ msgstr "Projet écrasée"
-
-#~ msgid "example"
-#~ msgstr "Exemple"
-
-#~ msgid "file is not a geojson"
-#~ msgstr "le fichier n'est pas un geojson"
-
-#~ msgid "fileName there is no index. Import aborted"
-#~ msgstr "il n'y a pas d'index. Importation interrompue"
-
-#~ msgid "Links and Nodes files must be geojson in EPSG:4326."
-#~ msgstr ""
-#~ "Les fichiers de liens et de noeuds doivent être des GeoJson en EPSG:4326"
-
-#~ msgid ""
-#~ "Load multiple Transit or road network. Each network will be added to the "
-#~ "current project"
-#~ msgstr ""
-#~ "Chargez plusieurs réseaux de transport en commun ou routiers. Chaque "
-#~ "réseau sera ajouté au projet en cours"
-
-#~ msgid "Load zip files containing"
-#~ msgstr "Charger des zips"
-
-#~ msgid "Loaded from"
-#~ msgstr "chargé depuis"
-
-#~ msgid "mess"
-#~ msgstr "mess"
-
-#~ msgid "nodes.geojson and links.geojson or"
-#~ msgstr "nodes.geojson et links.geojson"
-
-#~ msgid "or both the PT and road geojsons"
-#~ msgstr "ou les geojsons TC et routier "
-
-#~ msgid "PT Links and nodes Loaded from"
-#~ msgstr "Liens et noeuds TC chargés de"
-
-#~ msgid "PT links loaded with road nodes"
-#~ msgstr "Liens TC chargées avec des noeuds routiers"
-
-#~ msgid "PT nodes loaded for road links"
-#~ msgstr "noeds routiers chargés avec des liens TC"
-
-#~ msgid "ROAD links and nodes Loaded from"
-#~ msgstr "Liens et noeuds routier chargés de"
-
-#~ msgid "road links loaded with PT nodes"
-#~ msgstr "liens routiers chargés avec des noeds TC"
-
-#~ msgid "road nodes loaded for PT links"
-#~ msgstr "noeds routier changés pour des liens TC"
-
-#~ msgid "road_nodes.geojson and road_links.geojson"
-#~ msgstr "road_nodes.geojson et road_links.geojson"
-
-#~ msgid "there is no index in nodes. Import aborted"
-#~ msgstr ""
-#~ "il y a des index de liens ou de noeds en double. Importation interrompue"
-
-#~ msgid "Add"
-#~ msgstr "Ajouter"
-
-#~ msgid "Links Table"
-#~ msgstr "Table des Liens"
-
-#~ msgid "New Field"
-#~ msgstr "Nouveau Champ"
-
-#~ msgid "Nodes Table"
-#~ msgstr "Table des Noeuds"
-
-#~ msgid "Table"
-#~ msgstr "Table"
-
-#~ msgid "Add Stop Inline"
-#~ msgstr "Ajouter un Arrêt en ligne"
-
-#~ msgid "Edit Group Info"
-#~ msgstr "Modifier les infos du groupe"
-
-#~ msgid "Extend Line Downward"
-#~ msgstr "Prolonger la ligne en aval"
-
-#~ msgid "Extend Line Upward"
-#~ msgstr "Prolonger la Ligne en amont"
-
-#~ msgid "Move Stop"
-#~ msgstr "Déplacer l'arrêt"
-
-#~ msgid "Click on a link to add a Stop"
-#~ msgstr "Cliquer sur un lien pour ajouter un arrêt"
-
-#~ msgid "do not show again"
-#~ msgstr "Ne plus montrer"
-
-#~ msgid "Select a Link"
-#~ msgstr "Sélectionner un lien"
-
-#~ msgid "Agree"
-#~ msgstr "Confirmer"
-
-#~ msgid "Disagree"
-#~ msgstr "Annuler"
-
-#~ msgid "Disconnect"
-#~ msgstr "Se déconnecter"
-
-#~ msgid "Home"
-#~ msgstr "Accueil"
-
-#~ msgid "Login"
-#~ msgstr "Connexion"
-
-#~ msgid ""
-#~ "You must be logged in to have access to this application. Please click on "
-#~ "the button below to do so."
-#~ msgstr ""
-#~ "L'accès à cette application nécessite une authentification, cliquez sur "
-#~ "le bouton ci-dessous pour vous connecter."
-
-#~ msgid "Add a blog post"
-#~ msgstr "Ajouter un billet"
-
-#~ msgid "Add a comment"
-#~ msgstr "Ajouter un commentaire"
-
-#~ msgid "Author"
-#~ msgstr "Auteur"
-
-#~ msgid "Author is required"
-#~ msgstr "Auteur requis"
-
-#~ msgid "Blog post addition"
-#~ msgstr "Ajout d’un billet"
-
-#~ msgid "By"
-#~ msgstr "Par"
-
-#~ msgid "Categories"
-#~ msgstr "Catégories"
-
-#~ msgid "Category:"
-#~ msgstr "Catégorie :"
-
-#~ msgid "Comment"
-#~ msgstr "Commentaire"
-
-#~ msgid "Comment is required"
-#~ msgstr "Commentaire requis"
-
-#~ msgid "Comments"
-#~ msgstr "Commentaires"
-
-#~ msgid "Delete a blog post"
-#~ msgstr "Suppression d’un billet"
-
-#~ msgid "Delete a comment"
-#~ msgstr "Suppression d’un commentaire"
-
-#~ msgid "Do you really want to take that action?"
-#~ msgstr "Voulez-vous vraiment effectuer cette action ?"
-
-#~ msgid "Edit"
-#~ msgstr "Éditer"
-
-#~ msgid "Edit a comment"
-#~ msgstr "Éditer un commentaire"
-
-#~ msgid "keyword"
-#~ msgstr "mot-clé"
-
-#~ msgid "Legend"
-#~ msgstr "Légende"
-
-#~ msgid "Markers"
-#~ msgstr "Marqueurs"
-
-#~ msgid "On"
-#~ msgstr "Le"
-
-#~ msgid "Pk:"
-#~ msgstr "Pk :"
-
-#~ msgid "Publish"
-#~ msgstr "Publier"
-
-#~ msgid "Published by"
-#~ msgstr "Publié par"
-
-#~ msgid "Search"
-#~ msgstr "Rechercher"
-
-#~ msgid "Select a blog post in the list, or create a new one!"
-#~ msgstr ""
-#~ "Sélectionnez un billet dans la liste sur la droite de l’écran, ou créez-"
-#~ "en un nouveau !"
-
-#~ msgid "Text"
-#~ msgstr "Texte"
-
-#~ msgid "Text is required"
-#~ msgstr "Texte requis"
-
-#~ msgid "Title"
-#~ msgstr "Titre"
-
-#~ msgid "Title cannot excess 100 characters"
-#~ msgstr "Un titre ne peut pas faire plus de 100 caractères"
-
-#~ msgid "Title is required"
-#~ msgstr "Titre requis"
-
-#~ msgid "Welcome to"
-#~ msgstr "Bienvenue sur"
-
-#~ msgid "You are about to delete the blog post"
-#~ msgstr "Vous êtes sur le point de supprimer le billet"
-
-#~ msgid "You are about to delete the comment"
-#~ msgstr "Vous êtes sur le point de supprimer le commentaire"

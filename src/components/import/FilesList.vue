@@ -36,7 +36,6 @@ export default {
   methods: {
     buttonHandle (choice) {
       this.choice = choice
-      console.log(choice)
       if (this.choice === 'outputs') {
         this.$refs.otherOutputs.click()
         document.getElementById('other-outputs').value = '' // clean it for next file

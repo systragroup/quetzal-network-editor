@@ -83,7 +83,6 @@ async function getImagesURL (bucket, key) {
 
 async function copyFolder (bucket, prefix, newName) {
   const params = { Bucket: bucket, Prefix: prefix }
-  console.log(prefix)
   const response = await s3Client.listObjectsV2(params).promise()
   response.Contents = response.Contents.filter(el => !el.Key.endsWith('.lock'))
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')

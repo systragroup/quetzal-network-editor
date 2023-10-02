@@ -59,7 +59,6 @@ export default {
   methods: {
     buttonHandle (choice) {
       this.choice = choice
-      console.log(choice)
       if (this.choice === 'parameters') {
         this.$refs.paramsInput.click()
         document.getElementById('params-input').value = '' // clean it for next file

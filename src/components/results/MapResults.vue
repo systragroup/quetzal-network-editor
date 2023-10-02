@@ -3,7 +3,6 @@
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
-import centroid from '@turf/centroid'
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 
 export default {
