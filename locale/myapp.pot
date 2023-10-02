@@ -225,7 +225,7 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
-#: src/pages/Import.vue:59
+#: src/pages/Import.vue:60
 msgid "Continue Without Project"
 msgstr ""
 
@@ -261,6 +261,10 @@ msgstr ""
 msgid "Cut Before Node"
 msgstr ""
 
+#: src/components/utils/LayerSelector.vue:88
+msgid "Data not found: "
+msgstr ""
+
 #: src/pages/ResultMap.vue:249
 msgid "delete"
 msgstr ""
@@ -275,7 +279,7 @@ msgstr ""
 msgid "Delete "
 msgstr ""
 
-#: src/pages/Import.vue:157
+#: src/pages/Import.vue:184
 msgid "Delete all network and start from scratch"
 msgstr ""
 
@@ -413,7 +417,7 @@ msgstr ""
 msgid "file is not a zip"
 msgstr ""
 
-#: src/store/index.js:167
+#: src/store/index.js:160
 msgid "File(s) added"
 msgstr ""
 
@@ -424,15 +428,20 @@ msgstr ""
 msgid "filter"
 msgstr ""
 
-#: src/pages/ResultMap.vue:155
+#: src/components/utils/StaticLayer.vue:53
+#: src/pages/ResultMap.vue:145
 msgid "filter does not exist. use default one"
+msgstr ""
+
+#: src/components/utils/LayerSelector.vue:89
+msgid "from"
 msgstr ""
 
 #: src/constants/hints.js:20
 msgid "Full name of a route.This name is generally more descriptive     than the route_short_name and often includes the roudefaultAttributeste's destination or stop"
 msgstr ""
 
-#: src/pages/Import.vue:167
+#: src/pages/Import.vue:194
 msgid "Go!"
 msgstr ""
 
@@ -551,8 +560,8 @@ msgstr ""
 msgid "links geometry linestring length (meters)"
 msgstr ""
 
-#: src/pages/Import.vue:88
-#: src/pages/Import.vue:98
+#: src/pages/Import.vue:89
+#: src/pages/Import.vue:99
 msgid "Load Example"
 msgstr ""
 
@@ -560,15 +569,15 @@ msgstr ""
 msgid "Load Scenario?"
 msgstr ""
 
-#: src/pages/Import.vue:63
+#: src/pages/Import.vue:64
 msgid "Load Zip"
 msgstr ""
 
-#: src/pages/Import.vue:82
+#: src/pages/Import.vue:83
 msgid "Load Zip File"
 msgstr ""
 
-#: src/pages/Import.vue:57
+#: src/pages/Import.vue:58
 msgid "Log in and select an existing project or create a new project from project navigation menu"
 msgstr ""
 
@@ -644,11 +653,11 @@ msgstr ""
 msgid "name"
 msgstr ""
 
-#: src/store/index.js:127
+#: src/store/index.js:122
 msgid "Need the same number of links and nodes files."
 msgstr ""
 
-#: src/store/index.js:133
+#: src/store/index.js:128
 msgid "Need the same number of road_links and road_nodes files."
 msgstr ""
 
@@ -661,7 +670,7 @@ msgstr ""
 msgid "New name"
 msgstr ""
 
-#: src/pages/Import.vue:151
+#: src/pages/Import.vue:178
 msgid "New Project"
 msgstr ""
 
@@ -716,9 +725,9 @@ msgstr ""
 msgid "opacity"
 msgstr ""
 
-#: src/pages/Import.vue:58
-#: src/pages/Import.vue:61
-#: src/pages/Import.vue:87
+#: src/pages/Import.vue:59
+#: src/pages/Import.vue:62
+#: src/pages/Import.vue:88
 msgid "OR"
 msgstr ""
 
@@ -759,15 +768,15 @@ msgstr ""
 msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 
-#: src/pages/ResultMap.vue:219
+#: src/pages/ResultMap.vue:209
 msgid "Preset deleted"
 msgstr ""
 
-#: src/pages/ResultMap.vue:163
+#: src/pages/ResultMap.vue:153
 msgid "Preset Layer does not exist"
 msgstr ""
 
-#: src/pages/ResultMap.vue:206
+#: src/pages/ResultMap.vue:196
 msgid "Preset Saved"
 msgstr ""
 
@@ -788,7 +797,7 @@ msgstr ""
 msgid "PT"
 msgstr ""
 
-#: src/pages/Import.vue:113
+#: src/pages/Import.vue:114
 msgid "PT & Road"
 msgstr ""
 
@@ -804,7 +813,7 @@ msgstr ""
 msgid "PT speed"
 msgstr ""
 
-#: src/pages/Import.vue:127
+#: src/pages/Import.vue:128
 msgid "PT, Road, Zones, OD & Results"
 msgstr ""
 
@@ -943,7 +952,7 @@ msgstr ""
 msgid "Scenario successfully copied"
 msgstr ""
 
-#: src/pages/Import.vue:56
+#: src/pages/Import.vue:57
 msgid "Select a Project"
 msgstr ""
 
@@ -1024,11 +1033,11 @@ msgstr ""
 msgid "Speed used to calculate travel time when a link is drawn, extend or a node is moved"
 msgstr ""
 
-#: src/pages/Import.vue:60
+#: src/pages/Import.vue:61
 msgid "Start importing files individually or start with an empty project"
 msgstr ""
 
-#: src/components/utils/LayerSelector.vue:47
+#: src/components/utils/LayerSelector.vue:53
 msgid "Static Layers"
 msgstr ""
 

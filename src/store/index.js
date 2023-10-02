@@ -46,7 +46,6 @@ export const store = new Vuex.Store({
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
-    rasterFiles: [], // [{path, type}]
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
@@ -100,10 +99,6 @@ export const store = new Vuex.Store({
         const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !roadFiles.includes(el))
 
-        // eslint-disable-next-line max-len
-        const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/') && el.path.endsWith('.geojson'))
-        otherFiles = otherFiles.filter(el => !rasterFiles.includes(el))
-
         const ODFiles = otherFiles.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !ODFiles.includes(el))
 
@@ -136,7 +131,6 @@ export const store = new Vuex.Store({
         }
         this.commit('loadPTFiles', ptFiles)
         this.commit('loadRoadFiles', roadFiles)
-        this.commit('loadRasterFiles', rasterFiles)
         this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
         if (stylesFile) {
@@ -178,13 +172,6 @@ export const store = new Vuex.Store({
       payload.forEach(file => state.otherFiles.push(file))
     },
 
-    loadRasterFiles (state, payload) {
-      // payload = { path: , content:}
-      for (const file of payload) {
-        const type = file.content.features[0].geometry.type
-        state.rasterFiles.push({ path: file.path, type: type })
-      }
-    },
     loadAttributesChoices (state, payload) {
       // eslint-disable-next-line no-return-assign
       Object.keys(payload.pt).forEach(key => state.attributesChoices.pt[key] = payload.pt[key])
@@ -236,7 +223,6 @@ export const store = new Vuex.Store({
       this.commit('loadrNodes', nodesBase)
       this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
-      state.rasterFiles = []
       state.styles = []
       // default Values. if changed, change the export condition as it check this is changed to export.
       state.attributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
@@ -484,7 +470,6 @@ export const store = new Vuex.Store({
     roadsPopupContent: (state) => state.roadsPopupContent,
     cyclewayMode: (state) => state.cyclewayMode,
     outputName: (state) => state.outputName,
-    rasterFiles: (state) => state.rasterFiles,
     visibleRasters: (state) => state.visibleRasters,
     styles: (state) => state.styles,
     attributesChoices: (state) => state.attributesChoices,
@@ -492,9 +477,23 @@ export const store = new Vuex.Store({
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {
       return (state.links.links.features.length === 0 &&
-              state.rlinks.rlinks.features.length === 0)
+              state.rlinks.rlinks.features.length === 0 &&
+              state.od.layer.features.length === 0)
     },
-    availableLayers: (state) => state.availableLayers,
+    availableLayers: (state) => {
+      // do not return empty links or rlinks or OD as available.
+      let filteredLayers = structuredClone(state.availableLayers)
+      if (state.links.links.features.length === 0) {
+        filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
+      }
+      if (state.rlinks.rlinks.features.length === 0) {
+        filteredLayers = filteredLayers.filter(layer => !['rlinks', 'rnodes'].includes(layer))
+      }
+      if (state.od.layer.features.length === 0) {
+        filteredLayers = filteredLayers.filter(layer => !['od'].includes(layer))
+      }
+      return filteredLayers
+    },
     mapStyle: (state) => {
       if (state.darkMode) {
         return 'mapbox://styles/mapbox/dark-v11?optimize=true'

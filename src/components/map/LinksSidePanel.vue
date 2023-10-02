@@ -46,7 +46,7 @@ export default {
       this.filteredCat.forEach(c => {
         const arr = this.arrayUniqueTripId.filter(
           item => item[this.selectedFilter] === c,
-        ).map((item) => item.trip_id)
+        ).map((item) => item.trip_id).sort()
 
         // regroup all null values into a single list 'undefined'
         if (c === null | c === '' | c === undefined) {

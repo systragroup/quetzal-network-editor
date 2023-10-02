@@ -1,6 +1,7 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
-import s3 from '../../AWSClient'
+const $gettext = s => s
+
 // set visibility. to render or not by fetching the data.
 // we need to create all the statics link (even without the data)
 // for the correct z-order. if not, they are drawn over the links.
@@ -9,38 +10,109 @@ export default {
   components: {
     MglGeojsonLayer,
   },
-  props: ['fileName', 'type', 'visible'],
+  props: ['preset', 'map'],
   data () {
     return {
-      url: '',
+      type: '',
+      layer: {},
+      opacity: 100,
+      offsetValue: -1,
 
     }
   },
   watch: {
-    async visible (val) {
-      if (val) {
-        const path = this.$store.getters.scenario + '/' + this.fileName
-        const url = await s3.getImagesURL(this.$store.getters.model, path)
-        this.url = url
-      } else {
-        this.url = structuredClone(this.$store.getters.linksHeader)
-      }
-    },
+
+  },
+  beforeDestroy () {
+    if (this.map.getLayer(this.preset.name + '-layer')) {
+      this.map.removeLayer(this.preset.name + '-layer')
+    }
+  },
+  mounted () {
+    // move layer under rlinks (links and OD are over this one)
+    this.map.moveLayer(this.preset.name + '-layer', 'rlinks')
   },
   created () {
     // init data to empty geojson to load the mapbox layer
-    this.url = structuredClone(this.$store.getters.linksHeader)
-  },
-  async mounted () {
-    // if selected when loading the map, fetch the data to display the correct geojson.
-    if (this.visible) {
-      const path = this.$store.getters.scenario + '/' + this.fileName
-      const url = await s3.getImagesURL(this.$store.getters.model, path)
-      this.url = url
+    this.layer = structuredClone(this.$store.getters.linksHeader)
+    this.opacity = this.preset.displaySettings.opacity
+    this.offsetValue = this.preset.displaySettings.offset ? -1 : 1
+
+    this.changeLayer(this.preset.layer)
+    if (Object.keys(this.preset).includes('selectedFilter')) {
+      if (this.$store.getters['results/lineAttributes'].includes(this.preset.selectedFilter)) {
+      // if preset contain a filter. apply it if it exist.
+        this.$store.commit('results/changeSelectedFilter', this.preset.selectedFilter)
+        // if there is a list of cat. apply them, else its everything
+        if (Object.keys(this.preset).includes('selectedCategory')) {
+          this.$store.commit('results/changeSelectedCategory', this.preset.selectedCategory)
+          this.$store.commit('results/updateSelectedFeature')
+        }
+      } else {
+        this.$store.commit('changeNotification',
+          {
+            text: this.preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
+            autoClose: true,
+            color: 'error',
+          })
+      }
     }
+
+    this.$store.commit('results/applySettings', this.preset.displaySettings)
+    this.layer.features = structuredClone(this.$store.getters['results/displayLinks'])
+    this.type = structuredClone(this.$store.getters['results/type'])
+
+    this.$store.commit('results/unload')
+    //
   },
 
   methods: {
+    changeLayer (layer) {
+      this.selectedLayer = layer
+      switch (layer) {
+        case 'links':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.links,
+            type: 'LineString',
+            selectedFeature: 'headway',
+          })
+          break
+        case 'rlinks':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.rlinks,
+            type: 'LineString',
+            selectedFeature: 'speed',
+          })
+          break
+        case 'nodes':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.nodes,
+            type: 'Point',
+            selectedFeature: 'boardings',
+          })
+          break
+        case 'rnodes':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters.rnodes,
+            type: 'Point',
+            selectedFeature: 'boardings',
+          })
+          break
+        case 'od':
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters['od/layer'],
+            type: 'LineString',
+            selectedFeature: 'volume',
+          })
+          break
+        default:
+          this.$store.commit('results/loadLinks', {
+            geojson: this.$store.getters[`${layer}/layer`],
+            type: this.$store.getters[`${layer}/type`],
+          })
+          break
+      }
+    },
 
   },
 }
@@ -49,51 +121,58 @@ export default {
   <section>
     <MglGeojsonLayer
       v-if="['MultiPolygon', 'Polygon'].includes(type)"
-      :source-id="fileName"
+      :source-id="preset.name+ '-layer'"
       :source="{
         type: 'geojson',
-        data: url,
+        data: layer,
       }"
-      :layer-id="fileName"
+      :layer-id="preset.name+ '-layer'"
       :layer="{
         interactive: false,
         type: 'fill',
         minzoom: 5,
         'paint': {
           'fill-color': ['get', 'display_color'],
-          'fill-opacity':['case', ['has', 'display_opacity'], ['get', 'display_opacity'], 0.5],
+          'fill-opacity': opacity/100,
 
         }
       }"
     />
     <MglGeojsonLayer
       v-if="type=='LineString'"
-      :source-id="fileName"
+      :source-id="preset.name+ '-layer'"
       :source="{
         type: 'geojson',
-        data: url,
+        data: layer,
+        buffer: 0,
+        promoteId: 'index',
       }"
-      :layer-id="fileName"
+      :layer-id="preset.name+ '-layer'"
       :layer="{
-        interactive: false,
+        interactive: true,
         type: 'line',
         minzoom: 5,
-        'paint': {
+        paint: {
           'line-color': ['get', 'display_color'],
-          'line-opacity':['case', ['has', 'display_opacity'], ['get', 'display_opacity'], 0.8],
-          'line-width': ['get', 'display_width'],
+          'line-opacity':opacity/100,
+          'line-offset': ['*',offsetValue*0.5,['to-number', ['get', 'display_width']]],
 
+          'line-width': ['get', 'display_width'],
+        },
+        layout: {
+          'line-sort-key': ['to-number',['get', 'display_width']],
+          'line-cap': 'round',
         }
       }"
     />
     <MglGeojsonLayer
       v-if="type == 'Point'"
-      :source-id="fileName"
+      :source-id="preset.name+ '-layer'"
       :source="{
         type: 'geojson',
-        data: url,
+        data: layer,
       }"
-      :layer-id="fileName"
+      :layer-id="preset.name+ '-layer'"
       :layer="{
         interactive: false,
         type: 'circle',
@@ -101,8 +180,11 @@ export default {
         paint: {
           'circle-color': ['get', 'display_color'],
           'circle-radius': ['get', 'display_width'],
-          'circle-opacity':['case', ['has', 'display_opacity'], ['get', 'display_opacity'], 0.5],
+          'circle-opacity':opacity/100,
         },
+        layout: {
+          'circle-sort-key': ['to-number',['get', 'display_width']],
+        }
       }"
     />
   </section>

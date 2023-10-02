@@ -36,8 +36,11 @@ export default {
         this.showLeftPanelContent = false
       }
     },
-    selectedCat (val) {
-      this.$emit('update-selectedCategory', val)
+
+    selectedCategory (newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.selectedCat = newVal
+      }
     },
     selectedFilter (val) {
       // when we change seledted filter from other component (changing layer.)
@@ -47,8 +50,14 @@ export default {
       }
     },
 
+    selectedCat (val) {
+      if (val !== this.selectedCategory) {
+        this.$emit('update-selectedCategory', val)
+      }
+    },
+
     vmodelSelectedFilter (newVal, oldVal) {
-      if (oldVal) { // when created, we dont want to emit
+      if ((newVal !== this.selectedFilter)) { // when created, we dont want to emit
         this.$emit('update-selectedFilter', newVal)
         this.selectedCat = this.selectedCategory // show all. when we change layer
       }
@@ -56,6 +65,9 @@ export default {
   },
 
   created () {
+    this.vmodelSelectedFilter = this.selectedFilter
+    // this is necessary to show the initial layer on the map.
+    this.$emit('update-selectedFilter', this.selectedFilter)
     this.selectedCat = this.selectedCategory
   },
 
