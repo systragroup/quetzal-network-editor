@@ -66,9 +66,10 @@ export default {
 
   created () {
     this.vmodelSelectedFilter = this.selectedFilter
+    this.selectedCat = this.selectedCategory
     // this is necessary to show the initial layer on the map.
     this.$emit('update-selectedFilter', this.selectedFilter)
-    this.selectedCat = this.selectedCategory
+    this.$emit('update-selectedCategory', this.selectedCategory)
   },
 
   methods: {

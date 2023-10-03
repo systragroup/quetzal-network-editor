@@ -94,6 +94,8 @@ export default {
         if (payload.selectedFeature) {
           state.displaySettings.selectedFeature = payload.selectedFeature
         }
+        this.commit('results/refreshVisibleLinks')
+        this.commit('results/updateSelectedFeature')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
