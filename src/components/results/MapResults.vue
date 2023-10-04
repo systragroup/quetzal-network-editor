@@ -179,11 +179,11 @@ export default {
         type: 'line',
         minzoom: minZoom.links,
         paint: {
-          'line-color': ['case', ['has', 'display_color'],['get', 'display_color'], '#B5E0D6'],
+          'line-color': ['get', 'display_color'],
           'line-offset': ['*',offsetValue*0.5,['to-number', ['get', 'display_width']]],
           'line-opacity':opacity/100,
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0],
-          'line-width':['case', ['has', 'display_width'], ['get', 'display_width'], 4],
+          'line-width':['get', 'display_width'],
 
         },
         layout: {
@@ -212,9 +212,8 @@ export default {
         type: 'circle',
         minzoom: minZoom.links,
         paint: {
-          'circle-color': ['case', ['has', 'display_color'],['get', 'display_color'], '#B5E0D6'],
-
-          'circle-radius':['case', ['has', 'display_width'], ['get', 'display_width'], 3],
+          'circle-color': ['get', 'display_color'],
+          'circle-radius': ['get', 'display_width'],
           'circle-opacity':opacity/100,
         },
         layout: {
@@ -247,7 +246,7 @@ export default {
 
         },
         paint: {
-          'icon-color': ['case', ['has', 'display_color'], ['get', 'display_color'], '#B5E0D6'],
+          'icon-color':['get', 'display_color'],
           'icon-opacity':opacity/100,
 
         }
@@ -266,8 +265,7 @@ export default {
         interactive: true,
         type: 'fill',
         'paint': {
-          'fill-color':['case', ['has', 'display_color'],['get', 'display_color'],
-                        $vuetify.theme.currentTheme.linksprimary],
+          'fill-color':['get', 'display_color'],
           'fill-opacity': opacity/100,
 
         }

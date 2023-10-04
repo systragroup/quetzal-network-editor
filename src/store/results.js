@@ -159,25 +159,24 @@ export default {
       }
       const minVal = state.displaySettings.minVal
       const maxVal = state.displaySettings.maxVal
+      const reverse = state.displaySettings.reverseColor
 
       state.visibleLinks.features.forEach(
         link => {
-          const val = link.properties[key]
+          let val = link.properties[key]
           if (val < minVal) {
             link.properties.display_width = minWidth
           } else if (val > maxVal) {
             link.properties.display_width = maxWidth
           } else {
-            link.properties.display_width =
-        ((maxWidth - minWidth) * ((val - minVal) /
-         (maxVal - minVal))) + minWidth
+            val = remap(val, minVal, maxVal, false, scale)
+            link.properties.display_width = (maxWidth - minWidth) * val + minWidth
           }
         },
       )
 
       const colorScale = chroma.scale(cmap).padding([0.1, 0])
         .domain([0, 1], scale).classes(numStep)
-      const reverse = state.displaySettings.reverseColor
 
       state.visibleLinks.features.forEach(
         link => link.properties.display_color = colorScale(
