@@ -19,7 +19,7 @@ async function readJson (bucket, key) {
   // const params = { Bucket: bucket, Key: key }
 
   const response = await s3Client.getObject(params).promise() // await the promise
-  const fileContent = JSON.parse(response.Body.toString('utf-8').trim()) // can also do 'base64' here if desired
+  const fileContent = JSON.parse(new TextDecoder('utf-8').decode(response.Body).trim())
   return fileContent
 }
 
