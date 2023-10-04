@@ -16,7 +16,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['links', 'selectedFeature', 'opacity', 'offset'],
+  props: ['selectedFeature', 'opacity', 'offset'],
   events: ['selectClick'],
 
   data () {
@@ -36,6 +36,7 @@ export default {
     layerType () { return this.$store.getters['results/type'] },
     offsetValue () { return this.offset ? -1 : 1 },
     NaNLinks () { return this.$store.getters['results/NaNLinks'] },
+    links () { return this.$store.getters['results/visibleLinks'] },
 
   },
   watch: {

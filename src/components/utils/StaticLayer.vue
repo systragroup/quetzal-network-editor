@@ -39,7 +39,6 @@ export default {
   },
   created () {
     // init data to empty geojson to load the mapbox layer
-    this.layer = structuredClone(this.$store.getters.linksHeader)
     this.opacity = this.preset.displaySettings.opacity
     this.offsetValue = this.preset.displaySettings.offset ? -1 : 1
 
@@ -64,7 +63,7 @@ export default {
     }
 
     this.$store.commit('results/applySettings', this.preset.displaySettings)
-    this.layer.features = structuredClone(this.$store.getters['results/displayLinks'])
+    this.layer = structuredClone(this.$store.getters['results/displayLinks'])
     this.type = structuredClone(this.$store.getters['results/type'])
     this.colorScale = this.$store.getters['results/colorScale']
     this.displaySettings = this.$store.getters['results/displaySettings']

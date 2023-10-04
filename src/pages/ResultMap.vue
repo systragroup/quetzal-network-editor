@@ -41,7 +41,6 @@ export default {
     availableLayers () { return this.$store.getters.availableLayers },
     availablePresets () { return this.$store.getters.styles },
     links () { return this.$store.getters['results/links'] },
-    visibleLinks () { return this.$store.getters['results/visibleLinks'] },
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
     displaySettings () { return this.$store.getters['results/displaySettings'] },
     selectedFilter () { return this.$store.getters['results/selectedFilter'] },
@@ -243,7 +242,6 @@ export default {
 
     <MapResults
       :key="$store.getters['results/type']"
-      :links="visibleLinks"
       :selected-feature="displaySettings.selectedFeature"
       :opacity="displaySettings.opacity"
       :offset="displaySettings.offset"

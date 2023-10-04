@@ -80,8 +80,8 @@ export default {
       state.displaySettings = defaultSettings
     },
     loadLinks (state, payload) {
-      state.links = structuredClone(payload.geojson)
-      state.type = structuredClone(payload.type)
+      state.links = payload.geojson
+      state.type = payload.type
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = structuredClone(state.links)
         linksHeader.features = []
@@ -202,7 +202,8 @@ export default {
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
     displayLinks: (state) => {
-      return state.visibleLinks.features.map(obj => {
+      const layer = structuredClone(state.linksHeader)
+      layer.features = state.visibleLinks.features.map(obj => {
         return {
           geometry: obj.geometry,
           properties: {
@@ -212,6 +213,7 @@ export default {
 
         }
       })
+      return layer
     },
     NaNLinks: (state) => state.NaNLinks,
     linksHeader: (state) => state.linksHeader,
