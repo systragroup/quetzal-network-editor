@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script>
 const $gettext = s => s
 export default {
@@ -16,9 +17,16 @@ export default {
   },
   computed: {
     paramsBrute () { return this.$store.getters['run/parameters'] },
-    parameters() { return this.paramsBrute.filter(param=>Object.keys(param).includes('category'))},
-    info() { return this.paramsBrute.filter(param=>param?.info)[0]?.info}
-    
+    parameters () {
+      return this.paramsBrute.filter(
+        param => (Object.keys(param).includes('category') && param.model === this.selectedStepFunction))
+    },
+    info () {
+      return this.paramsBrute.filter(
+        param => (param?.info && param?.model) === this.selectedStepFunction)[0]?.info
+    },
+    selectedStepFunction () { return this.$store.getters['run/selectedStepFunction'] },
+
   },
   mounted () {
     this.panel = [...Array(this.parameters.length).keys()].map((k, i) => i)
@@ -34,7 +42,7 @@ export default {
     reset () {
       this.$store.dispatch('run/getParameters', {
         model: this.$store.getters.model,
-        path: this.$store.getters.scenario + '/inputs/params.json' ,
+        path: this.$store.getters.scenario + '/inputs/params.json',
       })
     },
   },
@@ -47,7 +55,9 @@ export default {
     <v-card-title class="subtitle">
       {{ $gettext('Scenario Settings') }}
     </v-card-title>
-    <v-card-text v-if="info">{{ info }}</v-card-text>
+    <v-card-text v-if="info">
+      {{ info }}
+    </v-card-text>
     <v-card-text>
       <v-form
         ref="form"
@@ -78,8 +88,6 @@ export default {
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
-                  
-                  
                 />
                 <v-switch
                   v-else-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
@@ -87,7 +95,20 @@ export default {
                   :label="$gettext(item.text)"
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
-                 
+                />
+                <v-select
+                  v-else-if="item.items === '$scenarios'"
+                  v-model="item.value"
+                  :type="item.type"
+                  :items="$store.getters.scenariosList.map(
+                    el=>el.scenario).filter(
+                    scen=>scen!==$store.getters.scenario)"
+                  multiple
+                  :label="$gettext(item.text)"
+                  :suffix="item.units"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                  :rules="item.rules.map((rule) => rules[rule])"
                 />
                 <v-select
                   v-else
@@ -99,8 +120,6 @@ export default {
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
-                  
-                  
                 />
               </li>
             </v-expansion-panel-content>

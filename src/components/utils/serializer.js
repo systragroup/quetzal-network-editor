@@ -39,15 +39,17 @@ function paramsSerializer (json) {
     throw err
   }
   const params = json.filter(item => !item?.info)
-  const areSetsEqual = (a, b) => a.size === b.size && [...a].every(value => b.has(value))
+  const contains = (a, b) => [...b].every(value => a.has(value))
   const expectedKeys = new Set(['category', 'params'])
   params.forEach(el => {
-    if (!areSetsEqual(new Set(Object.keys(el)), expectedKeys)) {
+    if (!contains(new Set(Object.keys(el)), expectedKeys)) {
       const err = new Error($gettext('params.json should be an array of object [{category: , params: }, ...]'))
       err.name = 'ImportError'
       throw err
     }
   })
+  // if model key is not present. put default everywhere.
+  json.forEach(item => { if (!Object.keys(item).includes('model')) { item.model = 'default' } })
   return json
 }
 
