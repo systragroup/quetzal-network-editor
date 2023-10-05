@@ -214,6 +214,7 @@ export default {
         <MglMap
           :key="mapStyle"
           class="map"
+          :min-zoom="3"
           :access-token="mapboxPublicKey"
           :map-style="mapStyle"
           @load="onMapLoaded"

@@ -107,9 +107,9 @@ export default {
             state.status = response.data.status
             console.log(state.status)
             if (state.status === 'SUCCEEDED') {
+              clearInterval(intervalId)
               await dispatch('downloadOSMFromS3')
               commit('succeedExecution')
-              clearInterval(intervalId)
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
               commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
