@@ -66,7 +66,7 @@ export default {
     this.layer = structuredClone(this.$store.getters['results/displayLinks'])
     this.type = structuredClone(this.$store.getters['results/type'])
     this.colorScale = this.$store.getters['results/colorScale']
-    this.displaySettings = this.$store.getters['results/displaySettings']
+    this.displaySettings = structuredClone(this.$store.getters['results/displaySettings'])
     this.$store.commit('results/unload')
     //
   },

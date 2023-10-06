@@ -39,6 +39,7 @@ export default {
 </script>
 <template>
   <div
+    v-show="!isNaN(displaySettings.minVal) && !isNaN(displaySettings.minVal)"
     class="legend elevation-4"
     :style="{'top':`${windowHeight}px`,'left':`${leftOffset}px !important`}"
   >

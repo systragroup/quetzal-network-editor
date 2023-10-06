@@ -2,8 +2,17 @@
 /* eslint-disable no-return-assign */
 
 import chroma from 'chroma-js'
+const seedrandom = require('seedrandom')
 
-function remap (val, minVal, maxVal, reverse, scale) {
+function remap (val, minVal, maxVal, reverse, scale, isWidth) {
+  if (typeof (val) === 'string') {
+    if (isWidth) {
+      return 0
+    } else {
+      const rng = seedrandom(val)
+      return rng()
+    }
+  }
   let res = val
   if (scale === 'log') {
     minVal = minVal > 0 ? Math.log10(minVal) : 0
@@ -169,7 +178,7 @@ export default {
           } else if (val > maxVal) {
             link.properties.display_width = maxWidth
           } else {
-            val = remap(val, minVal, maxVal, false, scale)
+            val = remap(val, minVal, maxVal, false, scale, true)
             link.properties.display_width = (maxWidth - minWidth) * val + minWidth
           }
         },
@@ -180,7 +189,7 @@ export default {
 
       state.visibleLinks.features.forEach(
         link => link.properties.display_color = colorScale(
-          remap(link.properties[key], minVal, maxVal, reverse, scale)).hex(),
+          remap(link.properties[key], minVal, maxVal, reverse, scale, false)).hex(),
       )
     },
     refreshVisibleLinks (state) {
@@ -231,7 +240,7 @@ export default {
       const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.1, 0])
         .domain([0, 1]).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
-        arr.push(colorScale(remap(i, 0, 100, state.displaySettings.reverseColor, state.displaySettings.scale)))
+        arr.push(colorScale(remap(i, 0, 100, state.displaySettings.reverseColor, state.displaySettings.scale, false)))
       }
       return arr
     },
