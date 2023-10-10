@@ -756,6 +756,8 @@ export default {
       state.newLink = {}
       state.newNode = {}
 
+      this.commit('applyPropertiesTypes')
+
       // get tripId list
       this.commit('getTripId')
       this.commit('getLinksProperties')

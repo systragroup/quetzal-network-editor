@@ -3,6 +3,7 @@
 
 import chroma from 'chroma-js'
 const seedrandom = require('seedrandom')
+
 function isHexColor (variable) {
   const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/i
   return hexRegex.test(variable)
@@ -136,6 +137,7 @@ export default {
       })
       state.lineAttributes = Array.from(header)
       state.lineAttributes = state.lineAttributes.filter(attr => !['display_width', 'display_color'].includes(attr))
+
       // eslint-disable-next-line max-len
       state.selectedFilter = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : state.lineAttributes[0]
       state.selectedCategory = Array.from(new Set(state.links.features.map(
