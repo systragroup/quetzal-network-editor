@@ -3,7 +3,10 @@
 
 import chroma from 'chroma-js'
 const seedrandom = require('seedrandom')
-
+function isHexColor (variable) {
+  const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/i
+  return hexRegex.test(variable)
+}
 function remap (val, minVal, maxVal, reverse, scale, isWidth) {
   if (typeof (val) === 'string') {
     if (isWidth) {
@@ -46,7 +49,7 @@ function remap (val, minVal, maxVal, reverse, scale, isWidth) {
 }
 
 const defaultSettings = {
-  selectedFeature: 'volume',
+  selectedFeature: null,
   maxWidth: 10,
   minWidth: 1,
   numStep: 100,
@@ -99,9 +102,10 @@ export default {
         state.NaNLinks = structuredClone(linksHeader)
         // set all trips visible
         this.commit('results/getLinksProperties')
-
-        if (payload.selectedFeature) {
+        if (state.lineAttributes.includes(payload.selectedFeature)) {
           state.displaySettings.selectedFeature = payload.selectedFeature
+        } else {
+          state.displaySettings.selectedFeature = null
         }
         this.commit('results/refreshVisibleLinks')
         this.commit('results/updateSelectedFeature')
@@ -188,8 +192,16 @@ export default {
         .domain([0, 1], scale).classes(numStep)
 
       state.visibleLinks.features.forEach(
-        link => link.properties.display_color = colorScale(
-          remap(link.properties[key], minVal, maxVal, reverse, scale, false)).hex(),
+        link => {
+          const val = link.properties[key]
+          if (isHexColor(val)) {
+            console.log(val)
+            link.properties.display_color = val
+          } else {
+            link.properties.display_color = colorScale(
+              remap(val, minVal, maxVal, reverse, scale, false)).hex()
+          }
+        },
       )
     },
     refreshVisibleLinks (state) {
