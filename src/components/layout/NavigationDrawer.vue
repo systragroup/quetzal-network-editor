@@ -20,7 +20,7 @@ export default {
     runSychronized () { return this.$store.getters['run/synchronized'] },
     runWarning () { return (this.runError || !this.runSychronized) },
     isProtected () {
-      return this.$store.getters.protected.includes(this.$store.getters.scenario)
+      return this.$store.getters.protected
     },
   },
   created () {

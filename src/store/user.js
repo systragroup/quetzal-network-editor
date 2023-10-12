@@ -16,6 +16,7 @@ export default {
     scenariosList: [],
     model: null,
     scenario: null,
+    protected: false,
   },
   mutations: {
     unloadProject (state) {
@@ -52,7 +53,8 @@ export default {
       state.model = payload
     },
     setScenario (state, payload) {
-      state.scenario = payload
+      state.scenario = payload.scenario
+      state.protected = payload.protected
     },
 
   },
@@ -84,6 +86,6 @@ export default {
     scenariosList: (state) => state.scenariosList,
     model: (state) => state.model,
     scenario: (state) => state.scenario,
-    protected: (state) => ['base'],
+    protected: (state) => state.protected,
   },
 }

@@ -84,7 +84,7 @@ async function getImagesURL (bucket, key) {
 async function copyFolder (bucket, prefix, newName) {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
-  response.Contents = response.Contents.filter(el => !el.Key.endsWith('.lock'))
+  response.Contents = response.Contents.filter(el => el.Key !== (prefix + '/.lock'))
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
   for (const file of response.Contents) {
     let newFile = file.Key.split('/')
@@ -166,13 +166,18 @@ async function getScenario (bucket) {
   } catch (err) { return [] }
 
   // get list of scenarios (unique prefix)
-  let scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))
-  scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
+  const scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))
+  // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
   const scenList = []
   for (const scen of scenarios) {
-    const dates = list.filter(item => item.Key.startsWith(scen))
+    const files = list.filter(item => item.Key.startsWith(scen))
+
+    // if there is .lock file in the root dir of the scen. it is protected.
+    const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
+    const isLocked = lockedList.length > 0 || scen === 'base'
+
     // let maxDate = new Date(Math.max.apply(null, dates))
-    const maxDateObj = dates.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
+    const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
     // get user email metadata on newest object. undefined if empty or error.
     let userEmail // this = undefined
@@ -181,7 +186,7 @@ async function getScenario (bucket) {
       // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
       userEmail = resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
     } catch (err) { store.commit('changeAlert', err) }
-    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail })
+    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail, protected: isLocked })
   }
   return scenList
 }

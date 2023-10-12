@@ -23,7 +23,7 @@ export default {
     errorMessage () { return this.$store.getters['run/errorMessage'] },
     synchronized () { return this.$store.getters['run/synchronized'] },
     isProtected () {
-      return this.$store.getters.protected.includes(this.$store.getters.scenario)
+      return this.$store.getters.protected
     },
     modelIsLoaded () { return this.$store.getters.model !== null },
   },
