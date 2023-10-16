@@ -21,6 +21,7 @@ export default {
       groups: [],
       users: [],
       selectedGroup: null,
+      selectedUsername: null,
       userForm: { username: '', given_name: '', family_name: '', email: '', password: '' },
       re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
       rules: {
@@ -42,6 +43,7 @@ export default {
   watch: {
     async menu (val) {
       if (val) {
+        this.showMore = false
         await this.listGroup()
         if (!this.selectedGroup) this.selectedGroup = this.groups[0]
         await this.listUser(this.selectedGroup)
@@ -77,15 +79,32 @@ export default {
     async createUser () {
       try {
         await cognitoClient.client.post(`createUser/${this.selectedGroup}/`, this.userForm)
+        this.$store.commit('changeNotification',
+          { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
       } catch (err) {
         this.$store.commit('changeAlert',
           { name: 'Cognito Client error', message: err.response.data.detail })
       }
     },
-    resetPassword (user) { console.log(user) },
+
+    async deleteUser (username) {
+      try {
+        await cognitoClient.client.post('deleteUser/', { username: username })
+        this.$store.commit('changeNotification',
+          { text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
 
     createUserButton () {
       this.action = 'createUser'
+      this.showDialog = true
+    },
+    deleteUserButton (user) {
+      this.action = 'deleteUser'
+      this.selectedUsername = user.Username
       this.showDialog = true
     },
 
@@ -115,6 +134,11 @@ export default {
         if (!this.$refs.form.validate()) { return }
         await this.createUser()
       }
+      if (this.action === 'deleteUser') {
+        this.deleteUser(this.selectedUsername)
+        this.selectedUsername = null
+      }
+      this.action = 'login'
       this.menu = false
       this.showDialog = false
     },
@@ -129,7 +153,7 @@ export default {
       v-model="menu"
       :close-on-content-click="false"
       :close-on-click="false"
-      :nudge-width="200"
+      :nudge-width="250"
       offset-x
       offset-y
     >
@@ -143,7 +167,9 @@ export default {
           <span class="white--text text-h6">{{ initial }}</span>
         </v-avatar>
       </template>
-      <v-card>
+      <v-card
+        width="20rem"
+      >
         <v-list>
           <v-list-item>
             <v-list-item-content>
@@ -170,17 +196,23 @@ export default {
           v-for="user in users"
           :key="user.Username"
         >
+          <v-btn
+            v-if="showMore"
+            icon
+          >
+            <v-icon
+              small
+              color="error"
+              :disabled="user.Username === cognitoInfo['cognito:username']"
+              @click="deleteUserButton(user)"
+            >
+              fas fa-trash
+            </v-icon>
+          </v-btn>
           <v-list-item-content>
             <v-list-item-title>{{ user.Username }}</v-list-item-title>
             <v-list-item-subtitle>
               {{ user.email }}
-            </v-list-item-subtitle>
-            <v-list-item-subtitle
-              v-if="false"
-              :style="{'cursor': 'pointer'}"
-              @click="resetPassword(user)"
-            >
-              {{ $gettext('reset password') }}
             </v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
@@ -188,7 +220,7 @@ export default {
           <v-btn
             color="success"
             outlined
-            @click="createUserButton"
+            @click="createUserButton()"
           >
             {{ $gettext('create user') }}
           </v-btn>
@@ -247,12 +279,41 @@ export default {
       @keydown.esc="()=>showDialog=false"
     >
       <v-card>
-        <v-card-title class="text-h4">
-          {{ action==='login'? $gettext("Redirect"):$gettext('Create User') }}
+        <v-card-title
+          v-if="action === 'login'"
+          class="text-h4"
+        >
+          {{ $gettext("Redirect") }}
         </v-card-title>
-        <v-card-text class="text-h8">
-          {{ action==='login'? $gettext("This will ERASE the current project"):
-            'create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization' }}
+        <v-card-title
+          v-else-if="action === 'createUser'"
+          class="text-h4"
+        >
+          {{ $gettext('Create User') }}
+        </v-card-title>
+        <v-card-title
+          v-else-if="action === 'deleteUser'"
+          class="text-h4"
+        >
+          {{ $gettext('delete User') + ' ' + selectedUsername + ' ?' }}
+        </v-card-title>
+        <v-card-text
+          v-if="action === 'login'"
+          class="text-h8"
+        >
+          {{ $gettext("This will ERASE the current project") }}
+        </v-card-text>
+        <v-card-text
+          v-else-if="action === 'createUser'"
+          class="text-h8"
+        >
+          {{ $gettext('create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization') }}
+        </v-card-text>
+        <v-card-text
+          v-else-if="action === 'deleteUser'"
+          class="text-h8"
+        >
+          {{ $gettext('This will permanently delete the user account.') }}
         </v-card-text>
         <v-form
           v-if="action=='createUser'"
