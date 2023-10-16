@@ -6,7 +6,7 @@ import bboxPolygon from '@turf/bbox-polygon'
 import Point from 'turf-point'
 import Linestring from 'turf-linestring'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-
+import { highwayList } from '@constants/highway.js'
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
 const short = require('short-uuid')
@@ -32,24 +32,7 @@ export default {
       nodes: {},
       freeForm: false,
       selectedHighway: null,
-      highwayList: [
-        'motorway',
-        'motorway_link',
-        'trunk',
-        'trunk_link',
-        'primary',
-        'primary_link',
-        'secondary',
-        'secondary_link',
-        'tertiary',
-        'tertiary_link',
-        'residential',
-        'living_street',
-        'service',
-        'unclassified',
-        'cycleway',
-        'pedestrian',
-      ],
+      highwayList: highwayList,
     }
   },
   computed: {
@@ -231,6 +214,7 @@ export default {
         <MglMap
           :key="mapStyle"
           class="map"
+          :min-zoom="3"
           :access-token="mapboxPublicKey"
           :map-style="mapStyle"
           @load="onMapLoaded"

@@ -27,7 +27,7 @@ auth.userhandler = {
     const sessionIdInfo = jwtDecode(idToken)
     // TODO : trouver comment avoir une liste des bucket!!
     store.commit('setIdToken', idToken)
-    store.commit('setAccessToken', result.accessToken.jwtToken)
+    store.commit('setAccessToken', result.accessToken)
     store.commit('setCognitoInfo', sessionIdInfo)
     store.commit('setLoggedIn', true)
     if (Object.keys(sessionIdInfo).includes('cognito:groups')) {
@@ -60,9 +60,12 @@ export default {
     auth.getSession()
   },
   logout () {
+    console.log(auth.isUserSignedIn())
     if (auth.isUserSignedIn()) {
       const cognitoKeys = this.getCognitoStorageKey()
       cognitoKeys.forEach(key => storage.removeItem(key))
+      auth.signOut()
+    } else {
       auth.signOut()
     }
   },

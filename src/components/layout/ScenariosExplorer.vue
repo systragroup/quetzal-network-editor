@@ -25,7 +25,7 @@ export default {
       input: '',
       deleteDialog: false,
       loading: false,
-      protectedScens: ['base'],
+      protected: false,
 
     }
   },
@@ -37,13 +37,12 @@ export default {
       // sort by alphabetical order, with protectedScens one one top
       const arr = this.$store.getters.scenariosList
       return arr.sort((a, b) => {
-        if (this.protectedScens.includes(a.scenario)) {
-          return -1 // `a` comes before `b`
-        } else if (this.protectedScens.includes(b.scenario)) {
-          return 1 // `b` comes before `a`
-        } else {
-          // default sorting, not case sensitive!
+        if (a.protected === b.protected) { // both true or both false. we go alphabetically
           return a.scenario.localeCompare(b.scenario, undefined, { sensitivity: 'base' })
+        } else if (a.protected) {
+          return -1 // `a` comes before `b`
+        } else {
+          return 1 // `b` comes before `a`
         }
       })
     },
@@ -54,6 +53,7 @@ export default {
   watch: {
     async  menu (val) {
       if (val) {
+        this.$store.dispatch('isTokenExpired')
         // when we click on the menu. fetch the scenario list (update in place)
         this.loading = true
         await this.$store.dispatch('getScenario', { model: this.localModel })
@@ -73,6 +73,12 @@ export default {
       this.localModel = this.modelsList[0]
       await this.$store.dispatch('getScenario', { model: this.localModel })
     },
+    scenario (val) {
+      if (val !== this.localScen) {
+        this.localScen = ''
+        this.modelScen = ''
+      }
+    },
   },
 
   mounted () {
@@ -83,6 +89,7 @@ export default {
     selectScenario (val) {
       this.modelScen = val.model + val.scenario
       this.localScen = val.scenario
+      this.protected = val.protected
       if (val.scenario) {
         if (this.projectIsEmpty) {
           this.loadProject()
@@ -94,7 +101,7 @@ export default {
     async loadProject () {
       this.$store.commit('run/cleanRun')
       this.$store.commit('setModel', this.localModel)
-      this.$store.commit('setScenario', this.localScen)
+      this.$store.commit('setScenario', { scenario: this.localScen, protected: this.protected })
       this.$router.push({ name: 'Import', query: { s3Path: this.localModel } })
       this.menu = false
     },
@@ -142,7 +149,8 @@ export default {
           } else {
             // this is a new project
             // copy the parameters file from Base. this will create a new project .
-            const base = this.protectedScens[0]
+            // take first Scen. should be base or any locked scen
+            const base = this.scenariosList[0].scenario
             await s3.copyFolder(this.localModel, base + '/inputs/params.json', this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
@@ -198,7 +206,7 @@ export default {
             :key="tab"
             :href="'#'+tab"
           >
-            {{ tab }}
+            {{ tab.slice(8) }}
           </v-tab>
         </v-tabs>
         <v-list-item
@@ -228,7 +236,7 @@ export default {
           </v-btn>
           <v-btn
             icon
-            :disabled="(scen.model+scen.scenario===modelScen) || (protectedScens.includes(scen.scenario))"
+            :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
             class="ma-1"
             @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
           >
@@ -236,7 +244,7 @@ export default {
               small
               color="grey"
             >
-              {{ protectedScens.includes(scen.scenario)? 'fas fa-lock':'fas fa-trash' }}
+              {{ scen.protected? 'fas fa-lock':'fas fa-trash' }}
             </v-icon>
           </v-btn>
         </v-list-item>

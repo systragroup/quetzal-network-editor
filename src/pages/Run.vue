@@ -8,21 +8,39 @@ export default {
   components: {
     ParamForm,
   },
+  data () {
+    return {
+      stepFunction: null,
+    }
+  },
   computed: {
     steps () { return this.$store.getters['run/steps'] },
+    avalaibleStepFunctions () { return this.$store.getters['run/avalaibleStepFunctions'] },
+    selectedStepFunction () { return this.$store.getters['run/selectedStepFunction'] },
     running () { return this.$store.getters['run/running'] },
     currentStep () { return this.$store.getters['run/currentStep'] },
     error () { return this.$store.getters['run/error'] },
     errorMessage () { return this.$store.getters['run/errorMessage'] },
     synchronized () { return this.$store.getters['run/synchronized'] },
     isProtected () {
-      return this.$store.getters.protected.includes(this.$store.getters.scenario)
+      return this.$store.getters.protected
     },
     modelIsLoaded () { return this.$store.getters.model !== null },
+  },
+  watch: {
+    async stepFunction (newVal, oldVal) {
+      if (oldVal !== null) {
+        // val is an index here
+        this.$store.commit('run/setSelectedStepFunction', this.avalaibleStepFunctions[newVal])
+        this.$store.dispatch('run/getSteps')
+      }
+    },
   },
   created () {
     if (this.modelIsLoaded) {
       this.$store.dispatch('run/getSteps')
+      // here stepfuntion is an index v-model. 0,1.
+      this.stepFunction = this.avalaibleStepFunctions.indexOf(this.selectedStepFunction)
     }
   },
   methods: {
@@ -60,6 +78,20 @@ export default {
           vertical
           style="background-color:var(--v-background-lighten4);"
         >
+          <v-tabs
+            v-if="avalaibleStepFunctions.length>1"
+            v-model="stepFunction"
+            show-arrows
+            fixed-tabs
+          >
+            <v-tab
+              v-for="tab in avalaibleStepFunctions"
+              :key="tab"
+              :disabled="running || !modelIsLoaded"
+            >
+              {{ tab }}
+            </v-tab>
+          </v-tabs>
           <v-alert
             v-if="!synchronized"
             dense
@@ -95,6 +127,7 @@ export default {
           >
             {{ $gettext("This scenario is protected. You can not run simulation.") }}
           </v-alert>
+
           <v-btn
             :loading="running"
             :disabled="running || isProtected || !modelIsLoaded"

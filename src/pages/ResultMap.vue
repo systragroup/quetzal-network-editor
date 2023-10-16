@@ -41,7 +41,6 @@ export default {
     availableLayers () { return this.$store.getters.availableLayers },
     availablePresets () { return this.$store.getters.styles },
     links () { return this.$store.getters['results/links'] },
-    visibleLinks () { return this.$store.getters['results/visibleLinks'] },
     filterChoices () { return this.$store.getters['results/lineAttributes'] },
     displaySettings () { return this.$store.getters['results/displaySettings'] },
     selectedFilter () { return this.$store.getters['results/selectedFilter'] },
@@ -56,6 +55,8 @@ export default {
     },
   },
   created () {
+    // chose first available layer. if none. use Links as its an empty geojson (no bug with that)
+    if (this.availableLayers.lenght > 0) { this.selectedLayer = this.availableLayers[0] }
     this.changeLayer(this.selectedLayer)
   },
   beforeDestroy () {
@@ -109,7 +110,6 @@ export default {
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters['od/layer'],
             type: 'LineString',
-            selectedFeature: 'volume',
           })
           break
         default:
@@ -118,12 +118,6 @@ export default {
             type: this.$store.getters[`${layer}/type`],
           })
           break
-      }
-      // update sidePanel if its mounted with the selected cat (eyes)
-      if (Object.keys(this.$refs).length > 0) {
-        this.$refs.sidePanel.init({
-          selectedCategory: this.$store.getters['results/selectedCategory'],
-        })
       }
     },
     changePreset (preset) {
@@ -136,20 +130,9 @@ export default {
           this.$store.commit('results/changeSelectedFilter', preset.selectedFilter)
           // if there is a list of cat. apply them, else its everything
           if (Object.keys(preset).includes('selectedCategory')) {
-            this.$refs.sidePanel.init({
-              selectedCategory: preset.selectedCategory,
-            })
-          } else {
-            // we dont save everything. so if its empty we show all.
-            this.$refs.sidePanel.init({
-              selectedCategory: this.$store.getters['results/selectedCategory'],
-            })
-          }
+            this.$store.commit('results/changeSelectedCategory', preset.selectedCategory)
+          } // else it will show all
         } else {
-          // just show all. (all eyes)
-          this.$refs.sidePanel.init({
-            selectedCategory: this.$store.getters['results/selectedCategory'],
-          })
           // if the filter is in the preset but not the the layer. just put a warning.
           if (Object.keys(preset).includes('selectedFilter')) {
             this.$store.commit('changeNotification',
@@ -251,20 +234,14 @@ export default {
       @save-preset="clickSavePreset"
     />
     <div class="left-panel">
-      <div
-        :class="$store.getters.showLeftPanel ? 'legend-open elevation-4' : 'legend-close elevation-4'"
-        :style="{'top':`${windowHeight}px`}"
-      >
-        <MapLegend
-          :color-scale="colorScale"
-          :display-settings="displaySettings"
-        />
-      </div>
+      <MapLegend
+        :color-scale="colorScale"
+        :display-settings="displaySettings"
+      />
     </div>
 
     <MapResults
       :key="$store.getters['results/type']"
-      :links="visibleLinks"
       :selected-feature="displaySettings.selectedFeature"
       :opacity="displaySettings.opacity"
       :offset="displaySettings.offset"
@@ -401,33 +378,6 @@ export default {
 .left-panel {
   height: 100%;
   position: absolute;
-
-}
-.legend-open {
-  left: 350px;
-  width: 160px;
-  z-index: 3;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  transition: 0.3s;
-  height: 50px;
-  background-color: var(--v-white-base);
-  border: thin solid var(--v-mediumgrey-base);
-}
-.legend-close {
-  left: 50px;
-  width: 160px;
-  z-index: 3;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  transition: 0.3s;
-  height: 50px;
-  background-color: var(--v-lightgrey);
-  border: thin solid rgb(196, 196, 196);
 }
 
 .hist {

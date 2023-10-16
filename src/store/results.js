@@ -2,21 +2,69 @@
 /* eslint-disable no-return-assign */
 
 import chroma from 'chroma-js'
+const seedrandom = require('seedrandom')
 
-function remap (val, minVal, maxVal, reverse, scale) {
-  let res = 0
-  if (reverse) {
-    res = (-val + maxVal) / (maxVal - minVal)
-  } else {
-    res = (val - minVal) / (maxVal - minVal)
+function isHexColor (variable) {
+  const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/i
+  return hexRegex.test(variable)
+}
+function remap (val, minVal, maxVal, reverse, scale, isWidth) {
+  if (typeof (val) === 'string') {
+    if (isWidth) {
+      return 0
+    } else {
+      const rng = seedrandom(val)
+      return rng()
+    }
   }
-  if (scale === 'sqrt') {
-    res = Math.sqrt(res)
-  } else if (scale === 'log') {
-    res = res >= 0 ? Math.log10(10 * res) : 0
+  let res = val
+  if (scale === 'log') {
+    minVal = minVal > 0 ? Math.log10(minVal) : 0
+    maxVal = maxVal > 0 ? Math.log10(maxVal) : 0
+    res = val > 0 ? Math.log10(val) : 0
+  } else if (scale === 'sqrt') {
+    minVal = Math.sqrt(minVal)
+    maxVal = Math.sqrt(maxVal)
+    res = Math.sqrt(val)
+  } else if (scale === 'exp') {
+    // need to normalize first. 10**big number is not working
+    minVal = minVal / maxVal
+    val = val / maxVal
+    maxVal = 1
+    minVal = 10 ** (minVal)
+    maxVal = 10 ** (maxVal)
+    res = 10 ** (val)
+  } else if (scale === 'quad') {
+    // need to normalize first. 10**big number is not working
+    minVal = (minVal) ** 2
+    maxVal = (maxVal) ** 2
+    res = (val) ** 2
+  }
+
+  if (reverse) {
+    res = (-res + maxVal) / (maxVal - minVal)
+  } else {
+    res = (res - minVal) / (maxVal - minVal)
   }
   return res
 }
+
+const defaultSettings = {
+  selectedFeature: null,
+  maxWidth: 10,
+  minWidth: 1,
+  numStep: 100,
+  scale: 'linear', // 'log', 'sqrt'
+  fixScale: false,
+  minVal: 0, // option to blocked them. so its an input and its not recompute
+  maxVal: 1,
+  cmap: 'OrRd',
+  opacity: 100,
+  offset: false,
+  showNaN: true,
+  reverseColor: false,
+}
+
 export default {
   namespaced: true,
   state: {
@@ -28,21 +76,7 @@ export default {
     lineAttributes: [],
     selectedFilter: '',
     selectedCategory: [],
-    displaySettings: {
-      selectedFeature: 'volume',
-      maxWidth: 10,
-      minWidth: 1,
-      numStep: 100,
-      scale: 'linear', // 'log', 'sqrt'
-      fixScale: false,
-      minVal: 0, // option to blocked them. so its an input and its not recompute
-      maxVal: 1,
-      cmap: 'OrRd',
-      opacity: 100,
-      offset: false,
-      showNaN: true,
-      reverseColor: false,
-    },
+    displaySettings: defaultSettings,
 
   },
 
@@ -56,6 +90,7 @@ export default {
       state.lineAttributes = []
       state.selectedFilter = ''
       state.selectedCategory = []
+      state.displaySettings = defaultSettings
     },
     loadLinks (state, payload) {
       state.links = payload.geojson
@@ -68,10 +103,13 @@ export default {
         state.NaNLinks = structuredClone(linksHeader)
         // set all trips visible
         this.commit('results/getLinksProperties')
-
-        if (payload.selectedFeature) {
+        if (state.lineAttributes.includes(payload.selectedFeature)) {
           state.displaySettings.selectedFeature = payload.selectedFeature
+        } else {
+          state.displaySettings.selectedFeature = null
         }
+        this.commit('results/refreshVisibleLinks')
+        this.commit('results/updateSelectedFeature')
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
@@ -82,6 +120,9 @@ export default {
     },
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
+      // set all vvisible
+      state.selectedCategory = Array.from(new Set(state.links.features.map(
+        item => item.properties[state.selectedFilter])))
       this.commit('results/refreshVisibleLinks')
     },
     changeSelectedCategory (state, payload) {
@@ -96,6 +137,8 @@ export default {
       })
       state.lineAttributes = Array.from(header)
       state.lineAttributes = state.lineAttributes.filter(attr => !['display_width', 'display_color'].includes(attr))
+
+      // eslint-disable-next-line max-len
       state.selectedFilter = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : state.lineAttributes[0]
       state.selectedCategory = Array.from(new Set(state.links.features.map(
         item => item.properties[state.selectedFilter])))
@@ -131,29 +174,36 @@ export default {
       }
       const minVal = state.displaySettings.minVal
       const maxVal = state.displaySettings.maxVal
+      const reverse = state.displaySettings.reverseColor
 
       state.visibleLinks.features.forEach(
         link => {
-          const val = link.properties[key]
+          let val = link.properties[key]
           if (val < minVal) {
             link.properties.display_width = minWidth
           } else if (val > maxVal) {
             link.properties.display_width = maxWidth
           } else {
-            link.properties.display_width =
-        ((maxWidth - minWidth) * ((val - minVal) /
-         (maxVal - minVal))) + minWidth
+            val = remap(val, minVal, maxVal, false, scale, true)
+            link.properties.display_width = (maxWidth - minWidth) * val + minWidth
           }
         },
       )
 
       const colorScale = chroma.scale(cmap).padding([0.1, 0])
         .domain([0, 1], scale).classes(numStep)
-      const reverse = state.displaySettings.reverseColor
 
       state.visibleLinks.features.forEach(
-        link => link.properties.display_color = colorScale(
-          remap(link.properties[key], minVal, maxVal, reverse, scale)).hex(),
+        link => {
+          const val = link.properties[key]
+          if (isHexColor(val)) {
+            console.log(val)
+            link.properties.display_color = val
+          } else {
+            link.properties.display_color = colorScale(
+              remap(val, minVal, maxVal, reverse, scale, false)).hex()
+          }
+        },
       )
     },
     refreshVisibleLinks (state) {
@@ -173,6 +223,20 @@ export default {
     type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
+    displayLinks: (state) => {
+      const layer = structuredClone(state.linksHeader)
+      layer.features = state.visibleLinks.features.map(obj => {
+        return {
+          geometry: obj.geometry,
+          properties: {
+            display_color: obj.properties.display_color,
+            display_width: obj.properties.display_width,
+          },
+
+        }
+      })
+      return layer
+    },
     NaNLinks: (state) => state.NaNLinks,
     linksHeader: (state) => state.linksHeader,
     lineAttributes: (state) => state.lineAttributes.sort(),
@@ -190,7 +254,7 @@ export default {
       const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.1, 0])
         .domain([0, 1]).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
-        arr.push(colorScale(remap(i, 0, 100, state.displaySettings.reverseColor, state.displaySettings.scale)))
+        arr.push(colorScale(remap(i, 0, 100, state.displaySettings.reverseColor, state.displaySettings.scale, false)))
       }
       return arr
     },

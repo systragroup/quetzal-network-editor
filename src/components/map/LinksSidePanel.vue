@@ -46,7 +46,7 @@ export default {
       this.filteredCat.forEach(c => {
         const arr = this.arrayUniqueTripId.filter(
           item => item[this.selectedFilter] === c,
-        ).map((item) => item.trip_id)
+        ).map((item) => item.trip_id).sort()
 
         // regroup all null values into a single list 'undefined'
         if (c === null | c === '' | c === undefined) {
@@ -386,12 +386,28 @@ export default {
                   hide-details
                 />
               </v-list-item-action>
-              <v-list-item-title v-if="item==editorTrip">
-                <strong>{{ item }}</strong>
-              </v-list-item-title>
-              <v-list-item-title v-else>
-                {{ item }}
-              </v-list-item-title>
+              <v-tooltip
+                right
+                open-delay="300"
+                content-class="custom-tooltip"
+              >
+                <template v-slot:activator="{ on }">
+                  <v-list-item-title
+                    v-if="item==editorTrip"
+                    v-on="on"
+                  >
+                    <strong>{{ item }}</strong>
+                  </v-list-item-title>
+                  <v-list-item-title
+                    v-else
+                    v-on="on"
+                  >
+                    {{ item }}
+                  </v-list-item-title>
+                </template>
+                <span>{{ item }}</span>
+              </v-tooltip>
+
               <v-tooltip
                 bottom
                 open-delay="500"
@@ -664,6 +680,10 @@ transition:0.3s
   justify-content: center !important;
   margin: 0 !important;
   color: white;
+}
+.custom-tooltip {
+    opacity: 1!important;
+    background: var(--v-tooltip-bg, rgba(97, 97, 97, 1)) !important;
 }
 
 </style>

@@ -243,7 +243,8 @@ export default {
           }
           tempLinks = state.rlinks.features.filter(
             link => link.properties[cat] === data[0])
-          state.visiblerLinks.features.push(...tempLinks)
+          // state.visiblerLinks.features.push(...tempLinks) will crash with large array (stack size limit)
+          tempLinks.forEach(link => state.visiblerLinks.features.push(link))
           break
         case 'remove':
           state.selectedrGroup = state.selectedrGroup.filter(el => el !== data[0])

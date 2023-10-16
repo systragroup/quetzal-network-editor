@@ -3,6 +3,8 @@
 import s3 from '../AWSClient'
 import { extractZip, unzip } from '../components/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
+import FilesList from '@comp/import/FilesList.vue'
+
 import InfoZip from '@comp/import/InfoZip.vue'
 const $gettext = s => s
 
@@ -12,6 +14,7 @@ export default {
   components: {
     FileLoader,
     InfoZip,
+    FilesList,
   },
 
   data () {
@@ -142,6 +145,10 @@ export default {
           const name = file.slice(scen.length) // remove scen name from file
           if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
             if (name === 'styles.json') {
+              const content = await s3.readJson(model, file)
+              res.push({ path: name, content: content })
+            }
+            if (name === 'attributesChoices.json') {
               const content = await s3.readJson(model, file)
               res.push({ path: name, content: content })
             }
@@ -312,32 +319,6 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-menu>
-              <v-divider />
-
-              <div>
-                <v-tooltip
-                  bottom
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      v-bind="attrs"
-                      @click="buttonHandle('newProject')"
-                      v-on="on"
-                    >
-                      {{ $gettext('New Project') }}
-                    </v-btn>
-                  </template>
-                  <span>{{ $gettext("Delete all network and start from scratch") }}</span>
-                </v-tooltip>
-                <v-btn
-                  :disabled="!filesAdded"
-                  color="primary"
-                  @click="login()"
-                >
-                  {{ $gettext('Go!') }}
-                </v-btn>
-              </div>
             </v-card-text>
           </v-col>
           <v-divider vertical />
@@ -346,7 +327,38 @@ export default {
               @FilesLoaded="(files) => loadNetwork(files)"
             />
           </v-col>
+          <v-divider vertical />
+
+          <v-col>
+            <FilesList
+              @FilesLoaded="(files) => loadNetwork(files)"
+            />
+          </v-col>
         </v-row>
+        <div class="button-row">
+          <v-tooltip
+            bottom
+            open-delay="500"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                v-bind="attrs"
+                @click="buttonHandle('newProject')"
+                v-on="on"
+              >
+                {{ $gettext('New Project') }}
+              </v-btn>
+            </template>
+            <span>{{ $gettext("Delete all network and start from scratch") }}</span>
+          </v-tooltip>
+          <v-btn
+            :disabled="!filesAdded"
+            color="primary"
+            @click="login()"
+          >
+            {{ $gettext('Go!') }}
+          </v-btn>
+        </div>
       </v-card>
     </div>
     <v-dialog
@@ -399,8 +411,7 @@ export default {
   position: absolute;
 }
 .card {
-  height: 45em;
-  width:60rem;
+  width:80rem;
   overflow-y:hidden;
   padding: 20px;
 }
@@ -416,7 +427,7 @@ export default {
   font-size: 2em !important;
   color: var(--v-primary-base);
   font-weight: bold;
-  margin-top:30px;
+  margin-top:18px;
 }
 .subtitle {
   font-size: 1.5em;
@@ -424,7 +435,7 @@ export default {
   margin: 20px;
 }
 .card button {
-  margin-top: 0.5rem;
+  margin: 0.5rem;
 }
 .animate-login {
   transform: translateY(-185%);
@@ -433,6 +444,14 @@ export default {
 .animate-layer {
   opacity: 0;
   transition: 1s;
+}
+.button-row{
+  display: flex;
+  align-items: center;
+  justify-content:center;
+  margin-top : 1rem;
+  padding-top:0.5rem;
+  border-top: 1px solid var(--v-lightgrey-base);
 }
 
 </style>

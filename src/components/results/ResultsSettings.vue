@@ -52,7 +52,7 @@ export default {
         name: $gettext('scale'),
         type: 'String',
         value: this.displaySettings.scale,
-        choices: ['linear', 'sqrt', 'log'],
+        choices: ['linear', 'sqrt', 'log', 'exp', 'quad'],
         units: '',
         hint: $gettext('scale'),
       },
@@ -100,7 +100,6 @@ export default {
       },
 
       ],
-      errorMessage: null,
       showHint: false,
       showFixScale: false,
       shake: false,
@@ -218,7 +217,7 @@ export default {
           v-on="on"
         >
           <v-icon
-            :color="!isFinite(displaySettings.maxVal)?'error':'regular'"
+            :color="(displaySettings.selectedFeature === null)? 'error' : 'regular'"
           >
             fa-solid fa-cog
           </v-icon>
@@ -277,24 +276,30 @@ export default {
                   />
                 </v-col>
               </v-row>
-              <v-text-field
-                v-model="parameters[3].value"
-                :type="parameters[3].type"
-                :label="$gettext(parameters[3].name)"
-                :suffix="parameters[3].units"
-                :hint="showHint? $gettext(parameters[3].hint): ''"
-                :persistent-hint="showHint"
-                required
-                @wheel="()=>{}"
-              />
-              <v-select
-                v-model="parameters[5].value"
-                :items="parameters[5].choices"
-                :label="$gettext(parameters[5].name)"
-                :hint="showHint? $gettext(parameters[5].hint): ''"
-                :persistent-hint="showHint"
-                required
-              />
+              <v-row>
+                <v-col>
+                  <v-text-field
+                    v-model="parameters[3].value"
+                    :type="parameters[3].type"
+                    :label="$gettext(parameters[3].name)"
+                    :suffix="parameters[3].units"
+                    :hint="showHint? $gettext(parameters[3].hint): ''"
+                    :persistent-hint="showHint"
+                    required
+                    @wheel="()=>{}"
+                  />
+                </v-col>
+                <v-col>
+                  <v-select
+                    v-model="parameters[5].value"
+                    :items="parameters[5].choices"
+                    :label="$gettext(parameters[5].name)"
+                    :hint="showHint? $gettext(parameters[5].hint): ''"
+                    :persistent-hint="showHint"
+                    required
+                  />
+                </v-col>
+              </v-row>
 
               <v-select
                 v-model="parameters[6].value"
@@ -445,7 +450,7 @@ export default {
   font-size: 2em;
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
-  padding:1rem
+  padding:1rem 1rem 0 1rem;
 
 }
 

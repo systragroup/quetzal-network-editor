@@ -8,6 +8,8 @@ export default {
   state: {
     stateMachineArnBase: 'arn:aws:states:ca-central-1:142023388927:stateMachine:',
     steps: [{ name: 'Loading Steps...' }],
+    selectedStepFunction: 'default', // default or comparision,
+    avalaibleStepFunctions: ['default'],
     running: false,
     executionArn: '',
     currentStep: 0,
@@ -19,6 +21,8 @@ export default {
   mutations: {
     cleanRun (state) {
       state.steps = [{ name: 'Loading Steps...' }]
+      state.selectedStepFunction = 'default'
+      state.avalaibleStepFunctions = ['default']
       state.running = false
       state.executionArn = ''
       state.currentStep = 0
@@ -59,6 +63,12 @@ export default {
     getLocalParameters (state, payload) {
       payload = paramsSerializer(payload)
       state.parameters = payload
+    },
+    setSelectedStepFunction (state, payload) {
+      state.selectedStepFunction = payload
+    },
+    setAvalaibleStepFunctions (state, payload) {
+      state.avalaibleStepFunctions = payload
     },
   },
   actions: {
@@ -102,15 +112,39 @@ export default {
       ).then(
         response => {
           const def = JSON.parse(response.data.definition)
-          const steps = [{ name: def.StartAt }]
-          if (def.States[def.StartAt].Next !== undefined) {
-            let next = def.States[def.StartAt].Next
-            while (true) {
-              steps.push({ name: next })
-              if (def.States[next].Next === undefined) break
+          const firstStep = def.StartAt
+
+          // check if there is a choice in the definition.
+          // if So. Get all choices in state.availableStepFunctions
+          // replace the Next of the choice step with the selected one.
+          Object.keys(def.States).forEach((key) => {
+            if (def.States[key].Type === 'Choice') {
+              // could be a list of choices
+              state.avalaibleStepFunctions = ['default', ...def.States[key].Choices.map(el => el.StringEquals)]
+              if (state.selectedStepFunction === 'default') {
+                def.States[key].Next = def.States[key].Default
+              } else {
+                // if not default. select the one in the list
+                const choices = def.States[key].Choices
+                def.States[key].Next = choices.filter(el => el.StringEquals === state.selectedStepFunction)[0].Next
+              }
+            }
+          })
+          // if there is a choice
+
+          // let next = def.States[firstStep].Next
+          const steps = []
+          let next = firstStep
+          while (true) {
+            // if there is a choice
+            if (def.States[next].Type === 'Choice') {
               next = def.States[next].Next
             }
+            steps.push({ name: next })
+            if (def.States[next].Next === undefined) break
+            next = def.States[next].Next
           }
+
           commit('setSteps', steps)
         }).catch(
         err => {
@@ -118,7 +152,8 @@ export default {
         })
     },
     startExecution ({ state, commit, dispatch, rootState }, payload) {
-      const filteredParams = state.parameters.filter(param => Object.keys(param).includes('category'))
+      const filteredParams = state.parameters.filter(param =>
+        (Object.keys(param).includes('category')) && param.model === state.selectedStepFunction)
       const paramsDict = filteredParams.reduce((acc, { category, params }) => {
         acc[category] = params.reduce((paramAcc, { name, value, type }) => {
           paramAcc[name] = type?.toLowerCase() === 'number' ? Number(value) : value
@@ -130,6 +165,7 @@ export default {
         // eslint-disable-next-line no-useless-escape
         input: JSON.stringify({
           authorization: rootState.user.idToken,
+          choice: state.selectedStepFunction,
           scenario_path_S3: payload.scenario + '/',
           launcher_arg: {
             training_folder: '/tmp',
@@ -212,6 +248,8 @@ export default {
   },
   getters: {
     steps: (state) => state.steps,
+    avalaibleStepFunctions: (state) => state.avalaibleStepFunctions,
+    selectedStepFunction: (state) => state.selectedStepFunction,
     running: (state) => state.running,
     currentStep: (state) => state.currentStep,
     executionArn: (state) => state.executionArn,

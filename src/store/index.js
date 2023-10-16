@@ -12,7 +12,7 @@ import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
-import { serializer } from '../components/utils/serializer.js'
+import { serializer, stylesSerializer } from '../components/utils/serializer.js'
 
 import linksBase from '@static/links_base.geojson'
 import nodesBase from '@static/nodes_base.geojson'
@@ -46,11 +46,10 @@ export const store = new Vuex.Store({
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
-    rasterFiles: [], // [{path, type}]
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
-
+    attributesChoices: {}, // { pt: {}, road: { oneway: ['0', '1'] } }
   },
   mutations: {
     changeNotification (state, payload) {
@@ -100,10 +99,6 @@ export const store = new Vuex.Store({
         const roadFiles = otherFiles.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !roadFiles.includes(el))
 
-        // eslint-disable-next-line max-len
-        const rasterFiles = otherFiles.filter(el => el.path.startsWith('inputs/raster/') && el.path.endsWith('.geojson'))
-        otherFiles = otherFiles.filter(el => !rasterFiles.includes(el))
-
         const ODFiles = otherFiles.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
         otherFiles = otherFiles.filter(el => !ODFiles.includes(el))
 
@@ -112,6 +107,9 @@ export const store = new Vuex.Store({
 
         const stylesFile = otherFiles.filter(el => el.path === 'styles.json')[0]
         otherFiles = otherFiles.filter(el => el !== stylesFile)
+
+        const attributesChoicesFile = otherFiles.filter(el => el.path === 'attributesChoices.json')[0]
+        otherFiles = otherFiles.filter(el => el !== attributesChoicesFile)
 
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
@@ -133,10 +131,13 @@ export const store = new Vuex.Store({
         }
         this.commit('loadPTFiles', ptFiles)
         this.commit('loadRoadFiles', roadFiles)
-        this.commit('loadRasterFiles', rasterFiles)
         this.commit('od/loadODFiles', ODFiles)
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
-        if (stylesFile) { state.styles = stylesFile.content }
+        if (stylesFile) {
+          const json = stylesSerializer(stylesFile.content)
+          state.styles = json
+        }
+        if (attributesChoicesFile) { this.commit('loadAttributesChoices', attributesChoicesFile.content) }
 
         this.commit('loadOtherFiles', inputFiles)
 
@@ -171,12 +172,11 @@ export const store = new Vuex.Store({
       payload.forEach(file => state.otherFiles.push(file))
     },
 
-    loadRasterFiles (state, payload) {
-      // payload = { path: , content:}
-      for (const file of payload) {
-        const type = file.content.features[0].geometry.type
-        state.rasterFiles.push({ path: file.path, type: type })
-      }
+    loadAttributesChoices (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload.pt).forEach(key => state.attributesChoices.pt[key] = payload.pt[key])
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload.road).forEach(key => state.attributesChoices.road[key] = payload.road[key])
     },
     setVisibleRasters (state, payload) {
       state.visibleRasters = payload
@@ -223,8 +223,9 @@ export const store = new Vuex.Store({
       this.commit('loadrNodes', nodesBase)
       this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
-      state.rasterFiles = []
       state.styles = []
+      // default Values. if changed, change the export condition as it check this is changed to export.
+      state.attributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
       state.otherFiles = []
       state.cyclewayMode = false
     },
@@ -323,6 +324,11 @@ export const store = new Vuex.Store({
           const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
           zip.file('styles.json', blob)
         }
+        if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+          const blob = new Blob([JSON.stringify(state.attributesChoices)], { type: 'application/json' })
+          zip.file('attributesChoices.json', blob)
+        }
+
         const staticLayers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
         for (const layer of staticLayers) {
@@ -358,9 +364,10 @@ export const store = new Vuex.Store({
         })
     },
 
-    async exportToS3 ({ state, commit }, payload) {
+    async exportToS3 ({ state, commit, dispatch }, payload) {
       // payload = 'inputs'. only export inputs
       // else no payload to export all.
+      dispatch('isTokenExpired')
       this.commit('applyPropertiesTypes')
       const scen = state.user.scenario + '/'
       const bucket = state.user.model
@@ -376,13 +383,19 @@ export const store = new Vuex.Store({
         od: odFolder + 'od.geojson',
         params: scen + 'inputs/params.json',
         styles: scen + 'styles.json',
+        attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
       if (state.run.parameters.length > 0) {
         await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
       }
+      // save styles if changed
       if (state.styles.length > 0) {
         await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
+      }
+      // save attributes choices if changed
+      if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(state.attributesChoices))
       }
       // save PT
       if (state.links.links.features.length > 0) {
@@ -457,16 +470,30 @@ export const store = new Vuex.Store({
     roadsPopupContent: (state) => state.roadsPopupContent,
     cyclewayMode: (state) => state.cyclewayMode,
     outputName: (state) => state.outputName,
-    rasterFiles: (state) => state.rasterFiles,
     visibleRasters: (state) => state.visibleRasters,
     styles: (state) => state.styles,
+    attributesChoices: (state) => state.attributesChoices,
     otherFiles: (state) => state.otherFiles,
     projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
     projectIsEmpty: (state) => {
       return (state.links.links.features.length === 0 &&
-              state.rlinks.rlinks.features.length === 0)
+              state.rlinks.rlinks.features.length === 0 &&
+              state.od.layer.features.length === 0)
     },
-    availableLayers: (state) => state.availableLayers,
+    availableLayers: (state) => {
+      // do not return empty links or rlinks or OD as available.
+      let filteredLayers = structuredClone(state.availableLayers)
+      if (state.links.links.features.length === 0) {
+        filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
+      }
+      if (state.rlinks.rlinks.features.length === 0) {
+        filteredLayers = filteredLayers.filter(layer => !['rlinks', 'rnodes'].includes(layer))
+      }
+      if (state.od.layer.features.length === 0) {
+        filteredLayers = filteredLayers.filter(layer => !['od'].includes(layer))
+      }
+      return filteredLayers
+    },
     mapStyle: (state) => {
       if (state.darkMode) {
         return 'mapbox://styles/mapbox/dark-v11?optimize=true'

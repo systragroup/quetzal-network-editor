@@ -18,14 +18,16 @@ export default {
     running () { return this.$store.getters['run/running'] },
     runError () { return this.$store.getters['run/error'] },
     runSychronized () { return this.$store.getters['run/synchronized'] },
+    runWarning () { return (this.runError || !this.runSychronized) },
     isProtected () {
-      return this.$store.getters.protected.includes(this.$store.getters.scenario)
+      return this.$store.getters.protected
     },
   },
   created () {
     this.menuItems = Router.options.routes.concat({
       name: 'Save',
       icon: 'fa-solid fa-save',
+      margin: 'auto',
       title: this.$gettext('Save'),
     })
     this.menuItems = this.menuItems.concat({
@@ -101,7 +103,7 @@ export default {
           class="drawer-list-item"
           :disabled="(item.name === 'Save') && ((!$store.getters.scenario) || (isProtected))"
           :class="[ $route.name === item.name ? 'drawer-list-item-selected' : '']"
-          :style="{marginTop: item.name === 'Save' ? 'auto' : item.name ==='ResultMap'? '5rem' : '0' }"
+          :style="{marginTop: item.margin}"
           @click.native.stop
           @click="handleClickMenuItem(item)"
         >
@@ -110,21 +112,33 @@ export default {
               'drawer-list-item-icon-disabled':'drawer-list-item-icon'"
           >
             <v-badge
-              v-if="item.name==='Run' && (running || runError || !runSychronized)"
-              :offset-x="running ? '12px' : '6px'"
-              :offset-y="running ? '10px' : '11px'"
-              :color="runError ? 'error' : !runSychronized ? 'warning' : ''"
-              :icon="(runError || !runSychronized) ? 'fa-solid fa-exclamation' : ''"
+              v-if="item.name==='Run' && running "
+              :offset-x="'12px'"
+              :offset-y="'10px'"
+              :color="''"
             >
               <template v-slot:badge>
                 <v-progress-circular
-                  v-if="item.name==='Run' && (running)"
                   size="18"
                   width="4"
                   color="primary"
                   indeterminate
                 />
               </template>
+              <v-icon
+                small
+                :title="$gettext(item.title)"
+              >
+                {{ item.icon }}
+              </v-icon>
+            </v-badge>
+            <v-badge
+              v-else-if="item.name==='Run' && runWarning "
+              :offset-x="'6px'"
+              :offset-y="'11px'"
+              :color="runError ? 'error' : 'warning' "
+              :icon="'fa-solid fa-exclamation'"
+            >
               <v-icon
                 small
                 :title="$gettext(item.title)"
