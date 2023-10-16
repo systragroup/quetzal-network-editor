@@ -1,5 +1,8 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script>
 import auth from '../../auth'
+import { cognitoClient } from '@src/axiosClient.js'
+const $gettext = s => s
 
 export default {
   name: 'Profile',
@@ -14,6 +17,18 @@ export default {
       menu: false,
       showDialog: false,
       action: 'login',
+      showMore: false,
+      groups: [],
+      users: [],
+      selectedGroup: null,
+      userForm: { username: '', given_name: '', family_name: '', email: '', password: '' },
+      re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+      rules: {
+        required: v => !!v || $gettext('Required'),
+        email: v => v.includes('@') || $gettext('invalid email address'),
+        length: v => v.length > 8 || $gettext('at least 8 character long'),
+        password: v => this.re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
+      },
     }
   },
   computed: {
@@ -25,10 +40,56 @@ export default {
     initial () { return (this.cognitoInfo?.given_name[0] + this.cognitoInfo?.family_name[0]).toUpperCase() },
   },
   watch: {
+    async menu (val) {
+      if (val) {
+        await this.listGroup()
+        if (!this.selectedGroup) this.selectedGroup = this.groups[0]
+        await this.listUser(this.selectedGroup)
+      }
+    },
+    async selectedGroup (newVal, oldVal) {
+      if (oldVal) {
+        await this.listUser(this.selectedGroup)
+      }
+    },
 
   },
 
   methods: {
+    async listGroup () {
+      try {
+        const resp = await cognitoClient.client.get('listGroups/')
+        this.groups = resp.data
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
+    async listUser (group) {
+      try {
+        const resp = await cognitoClient.client.get(`listUser/${group}/`)
+        this.users = resp.data
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
+    async createUser () {
+      try {
+        await cognitoClient.client.post(`createUser/${this.selectedGroup}/`, this.userForm)
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
+    resetPassword (user) { console.log(user) },
+
+    createUserButton () {
+      this.action = 'createUser'
+      this.showDialog = true
+    },
+
+    toggleShowMore () { this.showMore = !this.showMore },
 
     login () {
       if (this.projectIsEmpty) {
@@ -47,11 +108,15 @@ export default {
         this.showDialog = true
       }
     },
-    applyDialog () {
-      this.menu = false
-      this.showDialog = false
+    async applyDialog () {
       if (this.action === 'login') auth.login()
       if (this.action === 'logout') auth.logout()
+      if (this.action === 'createUser') {
+        if (!this.$refs.form.validate()) { return }
+        await this.createUser()
+      }
+      this.menu = false
+      this.showDialog = false
     },
 
   },
@@ -63,6 +128,7 @@ export default {
       v-if="loggedIn"
       v-model="menu"
       :close-on-content-click="false"
+      :close-on-click="false"
       :nudge-width="200"
       offset-x
       offset-y
@@ -88,13 +154,60 @@ export default {
         </v-list>
 
         <v-divider />
+        <v-list-item>
+          <v-list-item-content>
+            <v-select
+              v-model="selectedGroup"
+              :label="$gettext('Team')"
+              :disabled="groups.length <= 1"
+              :items="groups"
+            />
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider />
         <v-list-item
-          v-for="group in bucketList"
-          :key="group"
+          v-for="user in users"
+          :key="user.Username"
         >
-          {{ group }}
+          <v-list-item-content>
+            <v-list-item-title>{{ user.Username }}</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ user.email }}
+            </v-list-item-subtitle>
+            <v-list-item-subtitle
+              v-if="false"
+              :style="{'cursor': 'pointer'}"
+              @click="resetPassword(user)"
+            >
+              {{ $gettext('reset password') }}
+            </v-list-item-subtitle>
+          </v-list-item-content>
         </v-list-item>
         <v-card-actions>
+          <v-btn
+            color="success"
+            outlined
+            @click="createUserButton"
+          >
+            {{ $gettext('create user') }}
+          </v-btn>
+        </v-card-actions>
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn
+            icon
+            x-small
+            @click="toggleShowMore"
+          >
+            <v-icon v-if="showMore">
+              fas fa-minus-circle fa-rotate-90
+            </v-icon>
+            <v-icon v-else>
+              fas fa-minus-circle
+            </v-icon>
+          </v-btn>
           <v-spacer />
 
           <v-btn
@@ -135,11 +248,49 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h4">
-          {{ $gettext("Redirect") }}
+          {{ action==='login'? $gettext("Redirect"):$gettext('Create User') }}
         </v-card-title>
-        <v-card-text class="text-h6">
-          {{ $gettext("This will ERASE the current project") }}
+        <v-card-text class="text-h8">
+          {{ action==='login'? $gettext("This will ERASE the current project"):
+            'create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization' }}
         </v-card-text>
+        <v-form
+          v-if="action=='createUser'"
+          ref="form"
+          class="form"
+          lazy-validation
+        >
+          <v-text-field
+            v-model="userForm.username"
+            :label="$gettext('username')"
+            :rules="[rules['required']]"
+            required
+          />
+          <v-text-field
+            v-model="userForm.given_name"
+            :label="$gettext('first name')"
+            :rules="[rules['required']]"
+            required
+          />
+          <v-text-field
+            v-model="userForm.family_name"
+            :rules="[rules['required']]"
+            :label="$gettext('last name')"
+            required
+          />
+          <v-text-field
+            v-model="userForm.email"
+            :rules="[rules['required'], rules['email']]"
+            :label="$gettext('email address')"
+            required
+          />
+          <v-text-field
+            v-model="userForm.password"
+            :label="$gettext('temporary password')"
+            :rules="[rules['required'], rules['length'], rules['password']]"
+            required
+          />
+        </v-form>
         <v-card-actions>
           <v-spacer />
           <v-btn
@@ -161,5 +312,7 @@ export default {
   </section>
 </template>
 <style lang="scss" scoped>
-
+.form{
+  margin: 1rem;
+}
 </style>

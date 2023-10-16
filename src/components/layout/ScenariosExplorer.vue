@@ -1,6 +1,7 @@
 <script>
 
 import s3 from '@src/AWSClient'
+
 const $gettext = s => s
 
 export default {
@@ -67,7 +68,7 @@ export default {
       await this.$store.dispatch('getScenario', { model: val })
       this.loading = false
     },
-    async modelsList () {
+    async modelsList (val) {
       // This component is rendered before we fetch on S3 the bucket list.
       // so, when its fetched, set the model to the first one and get the scenario.
       this.localModel = this.modelsList[0]
@@ -82,7 +83,6 @@ export default {
   },
 
   mounted () {
-    this.localModel = this.modelsList[0]
   },
 
   methods: {
@@ -378,6 +378,16 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
+  </section>
+  <section v-else-if="loggedIn && modelsList.length==0">
+    <div>
+      <v-progress-linear
+        color="primary"
+        absolute
+        bottom
+        indeterminate
+      />
+    </div>
   </section>
 </template>
 <style lang="scss" scoped>

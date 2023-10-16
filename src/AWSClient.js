@@ -48,15 +48,6 @@ async function downloadFolder (bucket, prefix) {
   })
 }
 
-async function getBucketList () {
-  // from the cognito group name. get the list of available buckets on quetzal-config.
-  try {
-    const bucketList = await this.readJson('quetzal-config', 'cognito_group_access.json')
-    store.commit('setBucketList', bucketList[store.getters.cognitoGroup])
-  } catch (err) {
-    store.commit('changeAlert', err)
-  }
-}
 async function listFiles (bucket, prefix) {
   if (Array.isArray(prefix)) {
     const paths = []
@@ -202,13 +193,11 @@ export default {
       },
     })
     s3Client.config.credentials = AWS.config.credentials
-    await this.getBucketList()
   },
 
   getScenario,
   readJson,
   readBytes,
-  getBucketList,
   listFiles,
   copyFolder,
   deleteFolder,

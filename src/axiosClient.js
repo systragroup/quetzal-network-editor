@@ -15,10 +15,26 @@ const quetzalClient = {
   },
 }
 
-const axiosClient = {
-  loginAll (idToken) {
-    quetzalClient.login(idToken)
+const cognitoClient = {
+  client: null,
+  login (idToken) {
+    this.client = axios.create({
+      baseURL: 'https://ui2uug4ere.execute-api.ca-central-1.amazonaws.com/test',
+      withCredentials: false,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': idToken,
+      },
+    })
   },
 }
 
-export { quetzalClient, axiosClient }
+const axiosClient = {
+  async loginAll (idToken) {
+    quetzalClient.login(idToken)
+    cognitoClient.login(idToken)
+  },
+}
+
+export { quetzalClient, axiosClient, cognitoClient }

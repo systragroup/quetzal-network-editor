@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script>
 import Profile from '../utils/Profile.vue'
 import ScenariosExplorer from './ScenariosExplorer.vue'
