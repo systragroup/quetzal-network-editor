@@ -1,4 +1,6 @@
-import s3 from '../AWSClient'
+import s3 from '@src/AWSClient'
+import { cognitoClient } from '@src/axiosClient'
+
 const $gettext = s => s
 
 export default {
@@ -63,6 +65,14 @@ export default {
     async getScenario ({ commit, state, dispatch }, payload) {
       const res = await s3.getScenario(payload.model)
       commit('setScenariosList', res)
+    },
+    async getBucketList ({ commit }) {
+      try {
+        const resp = await cognitoClient.client.get('buckets/')
+        commit('setBucketList', resp.data)
+      } catch (err) {
+        commit('changeAlert', { name: 'Cognito Client error', message: err.response.data.detail }, { root: true })
+      }
     },
     isTokenExpired ({ state, commit }) {
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds

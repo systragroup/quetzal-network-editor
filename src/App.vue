@@ -39,7 +39,8 @@ export default {
     if (auth.auth.isUserSignedIn()) {
       await auth.login()
       await s3.login()
-      axiosClient.loginAll(this.$store.getters.idToken)
+      await axiosClient.loginAll(this.$store.getters.idToken)
+      this.$store.dispatch('getBucketList')
     }
   },
   methods: {
