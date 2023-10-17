@@ -105,6 +105,38 @@ async function copyFolder (bucket, prefix, newName) {
     })
   }
 }
+
+async function newScenario (bucket, prefix, newName) {
+  const filesToCopy = [
+    prefix + '/inputs/params.json',
+    prefix + '/styles.json',
+    prefix + '/attributesChoices.json',
+  ]
+  const params = { Bucket: bucket, Prefix: prefix }
+  const response = await s3Client.listObjectsV2(params).promise()
+  response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
+
+  if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
+  for (const file of response.Contents) {
+    let newFile = file.Key.split('/')
+    newFile[0] = newName
+    newFile = newFile.join('/')
+    // need to encore special character (é for example).
+    let oldPath = file.Key.split('/')
+    oldPath[0] = encodeURIComponent(oldPath[0])
+    oldPath = oldPath.join('/')
+
+    const copyParams = {
+      Bucket: bucket,
+      CopySource: bucket + '/' + oldPath,
+      Key: newFile,
+    }
+    s3Client.copyObject(copyParams, function (err, data) {
+      if (err) return err // an error occurred
+    })
+  }
+}
+
 async function deleteFolder (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
@@ -217,5 +249,6 @@ export default {
   putBytes,
   getImagesURL,
   downloadFolder,
+  newScenario,
 
 }
