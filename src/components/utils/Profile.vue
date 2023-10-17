@@ -172,6 +172,13 @@ export default {
       >
         <v-list>
           <v-list-item>
+            <v-avatar
+              size="34"
+              color="primary"
+              :style="{'margin-right':'1rem'}"
+            >
+              <span class="white--text text-h6">{{ initial }}</span>
+            </v-avatar>
             <v-list-item-content>
               <v-list-item-title>{{ cognitoInfo.given_name+' '+ cognitoInfo.family_name }}</v-list-item-title>
               <v-list-item-subtitle>{{ cognitoInfo.email }}</v-list-item-subtitle>
