@@ -151,7 +151,7 @@ export default {
             // copy the parameters file from Base. this will create a new project .
             // take first Scen. should be base or any locked scen
             const base = this.scenariosList[0].scenario
-            await s3.copyFolder(this.localModel, base + '/inputs/params.json', this.input)
+            await s3.newScenario(this.localModel, base, this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
           }
