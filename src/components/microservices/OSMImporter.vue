@@ -27,6 +27,9 @@ export default {
     error () { return this.$store.getters['runOSM/error'] },
     errorMessage () { return this.$store.getters['runOSM/errorMessage'] },
   },
+  watch: {
+    selectedHighway (val) { this.$store.commit('runOSM/changeHighway', val) },
+  },
 
   created () {
     this.selectedHighway = this.highway
