@@ -23,7 +23,7 @@ export default {
       selectedGroup: null,
       selectedUsername: null,
       userForm: { username: '', given_name: '', family_name: '', email: '', password: '' },
-      re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+      re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/,
       rules: {
         required: v => !!v || $gettext('Required'),
         email: v => v.includes('@') || $gettext('invalid email address'),
@@ -45,6 +45,7 @@ export default {
       if (val) {
         this.showMore = false
         await this.listGroup()
+        if (!this.selectedGroup && this.groups.includes('admin')) this.selectedGroup = 'admin'
         if (!this.selectedGroup) this.selectedGroup = this.groups[0]
         await this.listUser(this.selectedGroup)
       }
