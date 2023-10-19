@@ -328,46 +328,20 @@ export default {
   </v-row>
 </template>
 <style lang="scss" scoped>
-.container {
-  width: 100%;
-  overflow: hidden;
-  margin-left: 0 auto;
-  margin-right: 0 auto;
-  padding: 0 0 0 0;
-}
-.layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
-  display: flex;
-  flex-flow: row;
-  justify-content: center;
-  align-items: center;
-}
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
-}
+
 .card {
-  height: 100%;
+  height: 95%;
   overflow-y: auto;
   padding: 2.5rem;
 }
 .card2 {
-  height: 100%;
+  height: 95%;
   overflow-y: auto;
   padding: 2.5rem;
   margin-right: 3rem;
 }
-
-.v-card__text {
-  max-height: 80%;
-  overflow-y: auto;
-}
 .row {
-  height: calc(100% - 38px)
+  height: 100%
 }
 .col {
   max-height: 100%;

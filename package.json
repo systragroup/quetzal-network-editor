@@ -47,6 +47,7 @@
     "socket.io": "4.6.2",
     "turf-linestring": "^1.0.2",
     "turf-point": "^2.0.1",
+    "turf-polygon": "^1.0.3",
     "vue": "^2.7.14",
     "vue-gettext": "^2.1.12",
     "vue-mapbox": "https://github.com/soal/vue-mapbox.git",

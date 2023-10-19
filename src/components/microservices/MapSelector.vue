@@ -24,7 +24,6 @@ export default {
     return {
       mapIsLoaded: false,
       mapboxPublicKey: process.env.VUE_APP_MAPBOX_PUBLIC_KEY,
-      bbox: null,
       poly: null,
       nodes: {},
       freeForm: false,
@@ -45,6 +44,13 @@ export default {
 
   beforeDestroy () {
     // remove stroke layer as it use the polygon layer data.
+    const center = this.map.getCenter()
+    this.$store.commit('saveMapPosition', {
+      mapCenter: [center.lng, center.lat],
+      mapZoom: this.map.getZoom(),
+    })
+
+    this.$store.commit('saveImportPoly', { freeForm: this.freeForm, poly: this.poly })
     try {
       this.map.removeLayer('stroke')
     } catch (err) {}
@@ -60,16 +66,22 @@ export default {
       this.map.on('dragend', this.getBounds)
       this.map.on('zoomend', this.getBounds)
       this.freeForm = false
-      this.getBounds()
+      if (this.$store.getters.importPoly?.freeForm) {
+        this.poly = this.$store.getters.importPoly.poly
+        this.toggleFreeForm()
+        console.log(this.$store.getters.importPoly)
+      } else {
+        this.getBounds()
+      }
 
       this.mapIsLoaded = true
     },
     getBounds () {
-      this.bbox = this.map.getBounds()
-      const bbox = bboxPolygon([this.bbox._sw.lng, this.bbox._sw.lat, this.bbox._ne.lng, this.bbox._ne.lat])
-      this.poly = buffer(bbox, -0.1 * (this.bbox._ne.lat - this.bbox._sw.lat), { units: 'degrees' })
+      const mapbbox = this.map.getBounds()
+      const bbox = bboxPolygon([mapbbox._sw.lng, mapbbox._sw.lat, mapbbox._ne.lng, mapbbox._ne.lat])
+      this.poly = buffer(bbox, -0.1 * (mapbbox._ne.lat - mapbbox._sw.lat), { units: 'degrees' })
       this.poly.geometry.coordinates[0] = this.poly.geometry.coordinates[0].reverse()
-      const geom = [this.bbox._sw.lat, this.bbox._sw.lng, this.bbox._ne.lat, this.bbox._ne.lng]
+      const geom = [mapbbox._sw.lat, mapbbox._sw.lng, mapbbox._ne.lat, mapbbox._ne.lng]
       this.$emit('change', { style: 'bbox', geometry: geom })
     },
     toggleFreeForm (val) {
@@ -154,6 +166,8 @@ export default {
   <MglMap
     :key="mapStyle"
     class="map"
+    :center="$store.getters.mapCenter"
+    :zoom="$store.getters.mapZoom"
     :min-zoom="3"
     :access-token="mapboxPublicKey"
     :map-style="mapStyle"

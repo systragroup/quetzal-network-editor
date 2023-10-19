@@ -1,12 +1,14 @@
 <script>
 import MatrixRoadCaster from '@comp/microservices/MatrixRoadCaster.vue'
 import OSMImporter from '@comp/microservices/OSMImporter.vue'
+import GTFSImporter from '@comp/microservices/GTFSImporter.vue'
 
 export default {
   name: 'Microservices',
   components: {
     MatrixRoadCaster,
     OSMImporter,
+    GTFSImporter,
   },
   props: {
     value: {
@@ -37,13 +39,16 @@ export default {
       centered
     >
       <v-tab>OSM importer</v-tab>
+      <v-tab>GTFS importer</v-tab>
       <v-tab>Matrix Road Caster</v-tab>
     </v-tabs>
     <div class="layout">
       <div class="layout-overlay" />
       <OSMImporter v-if="tab===0 " />
 
-      <MatrixRoadCaster v-else-if="tab===1" />
+      <GTFSImporter v-else-if="tab===1" />
+
+      <MatrixRoadCaster v-else-if="tab===2" />
     </div>
   </section>
 </template>

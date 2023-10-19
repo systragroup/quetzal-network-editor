@@ -45,6 +45,7 @@ export const store = new Vuex.Store({
     outputName: 'output',
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
+    importPoly: null,
     availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
@@ -257,6 +258,9 @@ export const store = new Vuex.Store({
       // payload = name of the preset to delete
       state.styles = state.styles.filter(el => el.name !== payload)
     },
+    saveImportPoly (state, payload) {
+      state.importPoly = payload
+    },
 
   },
   actions: {
@@ -463,6 +467,7 @@ export const store = new Vuex.Store({
     loading: (state) => state.loading,
     mapCenter: (state) => state.mapCenter,
     mapZoom: (state) => state.mapZoom,
+    importPoly: (state) => state.importPoly,
     windowHeight: (state) => state.windowHeight,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,

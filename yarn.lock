@@ -5283,6 +5283,11 @@ turf-point@^2.0.1:
   dependencies:
     minimist "^1.1.0"
 
+turf-polygon@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/turf-polygon/-/turf-polygon-1.0.3.tgz#671dd34849864509281af18e236f67a7448c6363"
+  integrity sha512-zpyHEUcnhGI02QjL/OJapQXkZSTCCbY5aErWt5P40iF5lbVAof+fZJKL9XJVAmTbrJ4FK2yH0gsxox99VSu7cQ==
+
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/type-check/-/type-check-0.4.0.tgz#07b8203bfa7056c0657050e3ccd2c37730bab8f1"
