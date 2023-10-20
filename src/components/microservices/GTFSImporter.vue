@@ -9,6 +9,7 @@ import Polygon from 'turf-polygon'
 import { csvJSON } from '../utils/utils.js'
 
 import MapSelector from './MapSelector.vue'
+const $gettext = s => s
 
 export default {
   name: 'GTFSImporter',
@@ -25,14 +26,43 @@ export default {
       availableGTFS: [],
       selectedGTFS: [],
       checkall: false,
+      showHint: false,
+      parameters: [{
+        name: 'start_time',
+        text: 'start time',
+        value: '6:00:00',
+        type: 'String',
+        units: '',
+        hint: 'Start Time to restrict the GTFS in a period',
+        rules: [
+          'required', 'timeRule',
+        ],
+      },
+      {
+        name: 'end_time',
+        text: 'end time',
+        value: '8:59:00',
+        type: 'String',
+        units: '',
+        hint: 'End Time to restrict the GTFS in a period',
+        rules: [
+          'required', 'timeRule',
+        ],
+      }],
+      // eslint-disable-next-line max-len, no-useless-escape
+      re: /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
+      rules: {
+        required: v => !!v || $gettext('Required'),
+        timeRule: v => this.re.test(v) || $gettext('invalid date time'),
+      },
     }
   },
   computed: {
     linksIsEmpty () { return this.$store.getters.linksIsEmpty },
-    callID () { return this.$store.getters['runOSM/callID'] },
-    running () { return this.$store.getters['runOSM/running'] },
-    error () { return this.$store.getters['runOSM/error'] },
-    errorMessage () { return this.$store.getters['runOSM/errorMessage'] },
+    callID () { return this.$store.getters['runGTFS/callID'] },
+    running () { return this.$store.getters['runGTFS/running'] },
+    error () { return this.$store.getters['runGTFS/error'] },
+    errorMessage () { return this.$store.getters['runGTFS/errorMessage'] },
   },
 
   async created () {
@@ -51,6 +81,7 @@ export default {
       el.index = idx
     })
     this.gtfsList = this.gtfsList.filter(el => el.bbox)
+    this.gtfsList = this.gtfsList.filter(el => el['urls.latest'].length > 0)
     this.gtfsList.sort((a, b) => {
       if (a['location.country_code'] < b['location.country_code']) return -1
       if (a['location.country_code'] > b['location.country_code']) return 1
@@ -98,16 +129,17 @@ export default {
       this.selectedGTFS = this.selectedGTFS.filter(el => indexSet.has(el))
     },
 
-    importOSM () {
+    importGTFS () {
       if (this.linksIsEmpty) {
-        this.$store.commit('runOSM/setCallID')
-        if (this.freeForm) {
-          const poly = this.poly.geometry.coordinates[0]
-          this.$store.dispatch('runOSM/startExecution', { coords: poly, method: 'poly' })
-        } else {
-          const bbox = [this.bbox._sw.lat, this.bbox._sw.lng, this.bbox._ne.lat, this.bbox._ne.lng]
-          this.$store.dispatch('runOSM/startExecution', { coords: bbox, method: 'bbox' })
-        }
+        this.$store.commit('runGTFS/setCallID')
+
+        const selected = this.availableGTFS.filter(el => this.selectedGTFS.includes(el.index))
+        const filesPath = selected.map(el => el['urls.latest'])
+        const inputs = { files: filesPath }
+        this.parameters.forEach(item => {
+          inputs[item.name] = item.value
+        })
+        this.$store.dispatch('runGTFS/startExecution', inputs)
       } else {
         this.showOverwriteDialog = true
       }
@@ -117,7 +149,7 @@ export default {
       this.$store.commit('loadLinks', linksBase)
       this.$store.commit('loadNodes', nodesBase)
       this.showOverwriteDialog = false
-      this.importOSM()
+      this.importGTFS()
     },
   },
 
@@ -138,7 +170,12 @@ export default {
         <v-card-title class="subtitle">
           {{ $gettext('Available GTFS') }}
         </v-card-title>
+        <v-card-subtitle>
+          {{ $gettext('Data fetch from')+ ' https://database.mobilitydata.org/' }}
+        </v-card-subtitle>
+
         <v-btn
+          :disabled="running"
           @click="getAvaileGTFS"
         >
           <v-icon
@@ -150,7 +187,10 @@ export default {
           {{ $gettext('fetch available GTFS') }}
         </v-btn>
         <v-btn
+          :loading="running"
+          :disabled="running"
           color="success"
+          @click="importGTFS"
         >
           <v-icon
             small
@@ -160,7 +200,43 @@ export default {
           </v-icon>
           {{ $gettext('Download') }}
         </v-btn>
-
+        <v-card-subtitle>
+          <v-alert
+            v-if="error"
+            dense
+            outlined
+            text
+            type="error"
+          >
+            {{ $gettext("There as been an error while importing OSM network. \
+            Please try again. If the problem persist, contact us.") }}
+            <p
+              v-for="key in Object.keys(errorMessage)"
+              :key="key"
+            >
+              <b>{{ key }}: </b>{{ errorMessage[key] }}
+            </p>
+          </v-alert>
+        </v-card-subtitle>
+        <div class="params-row">
+          <div
+            v-for="(item, key) in parameters"
+            :key="key"
+          >
+            <v-text-field
+              v-if="typeof item.items === 'undefined'"
+              v-model="item.value"
+              :type="item.type"
+              :label="$gettext(item.text)"
+              :suffix="item.units"
+              :hint="showHint? $gettext(item.hint): ''"
+              :persistent-hint="showHint"
+              :rules="item.rules.map((rule) => rules[rule])"
+              required
+              @wheel="()=>{}"
+            />
+          </div>
+        </div>
         <div class="list">
           <ul class="list-row">
             <span class="list-item-small"><v-checkbox :disabled="true" /></span>
@@ -199,6 +275,7 @@ export default {
   height: 95%;
   padding: 2.5rem 0rem 2.5rem 2.0rem;
   margin-right: 3rem;
+
 }
 .row {
   height: 100%
@@ -232,12 +309,25 @@ export default {
   background-color:var(--v-background-base);
 }
 
-.list {
+.params-row {
+  /* Add individual list item styles here */
+  display: flex; /* Use flexbox layout for each list item */
+  align-items: center;
+  margin-right:1rem;
+  padding-top: 0.5rem;
+  justify-content:flex-start;
+  gap: 1rem;
 
-  height:90%;
+}
+
+.list {
+  height:80%;
   //border: 1px solid red;
+  margin-top:1rem;
   overflow-y: auto;
   overflow-x: hidden;
+  border-top: 1px solid var(--v-background-lighten3);
+
 }
 .list-row {
   /* Add individual list item styles here */
@@ -246,7 +336,6 @@ export default {
   align-items: center;
   justify-content:flex-start;
   border-bottom: 1px solid var(--v-background-lighten3);
-
 }
 
 .list-item-small {

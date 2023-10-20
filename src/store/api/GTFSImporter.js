@@ -1,13 +1,15 @@
-import { quetzalClient } from '@src/axiosClient.js'
 import s3 from '@src/AWSClient'
+import { quetzalClient } from '@src/axiosClient.js'
 import { v4 as uuid } from 'uuid'
+import router from '../../router'
+import { highwayColor, highwayWidth } from '@constants/highway.js'
 
 const $gettext = s => s
 
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-matrixroadcaster-api',
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api',
     bucket: 'quetzal-api-bucket',
     callID: '',
     status: '',
@@ -16,18 +18,8 @@ export default {
     executionArn: '',
     error: false,
     errorMessage: '',
-    parameters: {
-      callID: 'test',
-      num_zones: 100,
-      train_size: 100,
-      date_time: '2022-12-13T08:00:21-04:00',
-      ff_time_col: 'time',
-      max_speed: 100,
-      num_cores: 1,
-      num_random_od: 1,
-      create_zone: true,
-      hereApiKey: '',
-    },
+    colorDict: highwayColor,
+    widthDict: highwayWidth,
   },
   mutations: {
     cleanRun (state) {
@@ -36,7 +28,7 @@ export default {
       state.error = false
     },
     setCallID (state) { state.callID = uuid() },
-    setParameters (state, payload) { state.parameters = payload },
+
     terminateExecution (state, payload) {
       state.running = false
       state.error = true
@@ -46,42 +38,31 @@ export default {
     changeRunning (state, payload) {
       state.running = payload
     },
-    getApproxTimer (state, payload) {
-      // payload is number of road links
-      const numZones = state.parameters.num_zones
-      const trainSize = state.parameters.train_size
-      const numPlotOD = state.parameters.num_random_od
-      // API call time (1.8sec per call), 15 iteration X number of links, loadning saving, plotting 15sec.
-      state.timer = Math.min(numZones, trainSize) * 1.8 + payload * 0.002 + 15
-      state.timer += 10 * numPlotOD // 10 sec per plots
+    changeHighway (state, payload) {
+      state.highway = payload
     },
     succeedExecution (state) {
       state.running = false
       state.executionArn = ''
       this.commit('changeNotification',
-        { text: $gettext('Matrix Road Caster executed successfully!'), autoClose: false, color: 'success' })
+        { text: $gettext('gtfs imported successfully!'), autoClose: false, color: 'success' })
     },
 
   },
   actions: {
-    async startExecution ({ state, commit, dispatch }, payload) {
-      commit('getApproxTimer', payload.rlinks.features.length)
-      commit('setParameters', payload.parameters)
-      console.log('exporting roads to s3')
-      state.error = false
+    startExecution ({ state, commit, dispatch }, payload) {
+      // commit('setParameters', payload.parameters)
       state.running = true
-      try {
-        await s3.putObject(
-          state.bucket,
-          state.callID.concat('/road_links.geojson'),
-          JSON.stringify(payload.rlinks))
-        await s3.putObject(
-          state.bucket,
-          state.callID.concat('/road_nodes.geojson'),
-          JSON.stringify(payload.rnodes))
-      } catch (err) { commit('changeAlert', err, { root: true }) }
+      state.error = false
+      const input = JSON.stringify({
+        callID: state.callID,
+        files: payload.files,
+        start_time: payload.start_time,
+        end_time: payload.end_time,
+      })
+
       let data = {
-        input: JSON.stringify(state.parameters),
+        input: input,
         name: state.callID,
         stateMachineArn: state.stateMachineArn,
       }
@@ -97,19 +78,20 @@ export default {
         state.status = 'FAILED'
       })
     },
-    pollExecution ({ commit, state, dispatch }) {
+    async pollExecution ({ commit, state, dispatch }) {
       const intervalId = setInterval(() => {
         let data = { executionArn: state.executionArn }
         state.timer = state.timer - 2
         quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
         ).then(
-          response => {
+          async response => {
             state.status = response.data.status
             console.log(state.status)
             if (state.status === 'SUCCEEDED') {
-              commit('succeedExecution')
               clearInterval(intervalId)
+              await dispatch('downloadOSMFromS3')
+              commit('succeedExecution')
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
               commit('terminateExecution', JSON.parse(response.data.cause))
               clearInterval(intervalId)
@@ -130,6 +112,14 @@ export default {
           commit('changeAlert', err, { root: true })
         })
     },
+    async downloadOSMFromS3 ({ state, commit }) {
+      const links = await s3.readJson(state.bucket, state.callID.concat('/links.geojson'))
+      commit('appendNewLinks', links, { root: true })
+      const nodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
+      commit('appendNewNodes', nodes, { root: true })
+      console.log('downloaded')
+      router.push('/Home').catch(() => {})
+    },
   },
   getters: {
     running: (state) => state.running,
@@ -140,6 +130,5 @@ export default {
     callID: (state) => state.callID,
     bucket: (state) => state.bucket,
     timer: (state) => state.timer,
-    parameters: (state) => state.parameters,
   },
 }

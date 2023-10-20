@@ -8,6 +8,7 @@ import layerModule from './layer.js'
 import runModule from './api/run.js'
 import MatrixRoadCasterModule from './api/MatrixRoadCaster.js'
 import OSMImporterModule from './api/OSMImporter.js'
+import GTFSImporterModule from './api/GTFSImporter.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -29,6 +30,7 @@ export const store = new Vuex.Store({
     run: runModule,
     runMRC: MatrixRoadCasterModule,
     runOSM: OSMImporterModule,
+    runGTFS: GTFSImporterModule,
   },
 
   state: {
@@ -232,7 +234,7 @@ export const store = new Vuex.Store({
     },
     unloadLayers (state) {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
     },
@@ -334,7 +336,7 @@ export const store = new Vuex.Store({
         }
 
         const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
         for (const layer of staticLayers) {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer + '.geojson'
@@ -427,7 +429,7 @@ export const store = new Vuex.Store({
       // save outputs Layers
       if (payload !== 'inputs') {
         const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
         for (const layer of staticLayers) {
           const name = layer + '.geojson'
           await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))

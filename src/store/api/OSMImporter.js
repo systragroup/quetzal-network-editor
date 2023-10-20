@@ -9,8 +9,8 @@ const $gettext = s => s
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:osm-api',
-    bucket: 'quenedi-osm',
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-osm-api',
+    bucket: 'quetzal-api-bucket',
     callID: '',
     status: '',
     timer: 0,
