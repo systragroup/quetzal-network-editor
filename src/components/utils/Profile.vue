@@ -2,6 +2,7 @@
 <script>
 import auth from '../../auth'
 import { quetzalClient } from '@src/axiosClient.js'
+import { generatePassword } from './utils.js'
 const $gettext = s => s
 
 export default {
@@ -101,6 +102,7 @@ export default {
 
     createUserButton () {
       this.action = 'createUser'
+      this.userForm.password = generatePassword(12)
       this.showDialog = true
     },
     deleteUserButton (user) {
