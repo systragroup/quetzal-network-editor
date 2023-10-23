@@ -48,7 +48,26 @@ export default {
         rules: [
           'required', 'timeRule',
         ],
-      }],
+      },
+      {
+        name: 'day',
+        text: 'day',
+        value: 'tuesday',
+        type: 'String',
+        items: ['monday',
+          'tuesday',
+          'wednesday',
+          'thursday',
+          'friday',
+          'saturday',
+          'sunday'],
+        units: '',
+        hint: 'restrict each GTFS to this day.',
+        rules: [
+          'required',
+        ],
+      },
+      ],
       // eslint-disable-next-line max-len, no-useless-escape
       re: /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
       rules: {
@@ -123,10 +142,13 @@ export default {
       }
       this.availableGTFS = this.gtfsList.filter(
         el => (booleanContains(poly, el.bbox) || booleanIntersects(poly, el.bbox)))
-
+      // eslint-disable-next-line no-return-assign
+      this.availableGTFS.forEach(el => el.allInPolygon = booleanContains(poly, el.bbox))
       // remove checked gtfs not available anymore.
       const indexSet = new Set(this.availableGTFS.map(el => el.index))
       this.selectedGTFS = this.selectedGTFS.filter(el => indexSet.has(el))
+      // const selected = this.availableGTFS.filter(el => this.selectedGTFS.includes(el.index))
+      // console.log(selected.map(el => el['urls.latest']))
     },
 
     importGTFS () {
@@ -235,11 +257,25 @@ export default {
               required
               @wheel="()=>{}"
             />
+            <v-select
+              v-else
+              v-model="item.value"
+              :type="item.type"
+              :items="item.items"
+              :label="$gettext(item.text)"
+              :suffix="item.units"
+              :hint="showHint? $gettext(item.hint): ''"
+              :persistent-hint="showHint"
+              :rules="item.rules.map((rule) => rules[rule])"
+              required
+              @wheel="()=>{}"
+            />
           </div>
         </div>
         <div class="list">
           <ul class="list-row">
             <span class="list-item-small"><v-checkbox :disabled="true" /></span>
+            <span class="list-item-small">All in polygon</span>
             <span class="list-item-small">Code</span>
             <span class="list-item-medium">Name</span>
             <span class="list-item-large">City</span>
@@ -255,6 +291,7 @@ export default {
               :value="item.index"
               :label="String(key)"
             /></span>
+            <span class="list-item-small">{{ item['allInPolygon'] }} </span>
             <span class="list-item-small">{{ item['location.country_code'] }} </span>
             <span class="list-item-medium">{{ item['location.subdivision_name'] }}</span>
             <span class="list-item-large">{{ item['location.municipality'] }}</span>
@@ -340,19 +377,19 @@ export default {
 
 .list-item-small {
   /* Add individual list item styles here */
-  flex: 0 0 10%;
+  flex: 0 0 8%;
   margin:4px;
 }
 
 .list-item-medium {
   /* Add individual list item styles here */
-  flex: 0 0 19%;
+  flex: 0 0 18%;
   margin-right:2px;
 }
 
 .list-item-large {
   /* Add individual list item styles here */
-  flex: 0 0 28%;
+  flex: 0 0 26%;
   margin:4px;
 }
 </style>

@@ -59,6 +59,7 @@ export default {
         files: payload.files,
         start_time: payload.start_time,
         end_time: payload.end_time,
+        date: payload.date,
       })
 
       let data = {
