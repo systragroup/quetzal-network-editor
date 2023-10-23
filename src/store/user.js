@@ -1,5 +1,5 @@
 import s3 from '@src/AWSClient'
-import { cognitoClient } from '@src/axiosClient'
+import { quetzalClient } from '../axiosClient'
 
 const $gettext = s => s
 
@@ -68,7 +68,7 @@ export default {
     },
     async getBucketList ({ commit }) {
       try {
-        const resp = await cognitoClient.client.get('buckets/')
+        const resp = await quetzalClient.client.get('buckets/')
         commit('setBucketList', resp.data)
       } catch (err) {
         commit('changeAlert', { name: 'Cognito Client error', message: err.response.data.detail }, { root: true })

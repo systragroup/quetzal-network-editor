@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script>
 import auth from '../../auth'
-import { cognitoClient } from '@src/axiosClient.js'
+import { quetzalClient } from '@src/axiosClient.js'
 const $gettext = s => s
 
 export default {
@@ -61,7 +61,7 @@ export default {
   methods: {
     async listGroup () {
       try {
-        const resp = await cognitoClient.client.get('listGroups/')
+        const resp = await quetzalClient.client.get('listGroups/')
         this.groups = resp.data
       } catch (err) {
         this.$store.commit('changeAlert',
@@ -70,7 +70,7 @@ export default {
     },
     async listUser (group) {
       try {
-        const resp = await cognitoClient.client.get(`listUser/${group}/`)
+        const resp = await quetzalClient.client.get(`listUser/${group}/`)
         this.users = resp.data
       } catch (err) {
         this.$store.commit('changeAlert',
@@ -79,7 +79,7 @@ export default {
     },
     async createUser () {
       try {
-        await cognitoClient.client.post(`createUser/${this.selectedGroup}/`, this.userForm)
+        await quetzalClient.client.post(`createUser/${this.selectedGroup}/`, this.userForm)
         this.$store.commit('changeNotification',
           { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
       } catch (err) {
@@ -90,7 +90,7 @@ export default {
 
     async deleteUser (username) {
       try {
-        await cognitoClient.client.post('deleteUser/', { username: username })
+        await quetzalClient.client.post('deleteUser/', { username: username })
         this.$store.commit('changeNotification',
           { text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
       } catch (err) {
