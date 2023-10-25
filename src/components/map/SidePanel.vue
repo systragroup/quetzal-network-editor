@@ -67,14 +67,14 @@ export default {
       if (this.isResizing) {
         const width = event.clientX - this.windowOffest
         this.width = width > 400 ? width : 400
-        event.target.style.cursor = 'col-resize'
+        // event.target.style.cursor = 'col-resize'
       }
     },
     stopResize (event) {
       this.isResizing = false
       document.removeEventListener('mousemove', this.resize)
       document.removeEventListener('mouseup', this.stopResize)
-      event.target.style.cursor = 'default'
+      // event.target.style.cursor = 'default'
     },
   },
 
