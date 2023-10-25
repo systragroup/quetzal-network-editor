@@ -2,7 +2,6 @@ import s3 from '@src/AWSClient'
 import { quetzalClient } from '@src/axiosClient.js'
 import { v4 as uuid } from 'uuid'
 import router from '../../router'
-import { highwayColor, highwayWidth } from '@constants/highway.js'
 
 const $gettext = s => s
 
@@ -11,15 +10,14 @@ export default {
   state: {
     stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api',
     bucket: 'quetzal-api-bucket',
-    callID: '',
+    callID: uuid(),
     status: '',
-    timer: 0,
     running: false,
     executionArn: '',
     error: false,
     errorMessage: '',
-    colorDict: highwayColor,
-    widthDict: highwayWidth,
+    UploadedGTFS: [],
+
   },
   mutations: {
     cleanRun (state) {
@@ -27,7 +25,10 @@ export default {
       state.executionArn = ''
       state.error = false
     },
-    setCallID (state) { state.callID = uuid() },
+    setCallID (state) {
+      state.callID = uuid()
+      state.UploadedGTFS = []
+    },
 
     terminateExecution (state, payload) {
       state.running = false
@@ -38,8 +39,14 @@ export default {
     changeRunning (state, payload) {
       state.running = payload
     },
-    changeHighway (state, payload) {
-      state.highway = payload
+    addGTFS (state, payload) {
+      const nameList = state.UploadedGTFS.map(el => el?.name)
+      if (!nameList.includes(payload.name)) {
+        state.UploadedGTFS.push(payload)
+      }
+    },
+    updateProgress (state, payload) {
+      state.UploadedGTFS.filter(el => el.name === payload.name)[0].progress = payload.progress
     },
     succeedExecution (state) {
       state.running = false
@@ -50,8 +57,18 @@ export default {
 
   },
   actions: {
+
+    async addGTFS ({ state, commit }, payload) {
+      commit('addGTFS', payload.info)
+      const upload = s3.uploadObject(state.bucket, state.callID + '/' + payload.info.name, payload.content)
+      upload.on('httpUploadProgress', (progress) => {
+        const percent = Math.round(progress.loaded / progress.total * 100)
+        commit('updateProgress', { name: payload.info.name, progress: percent })
+      })
+      upload.promise()
+    },
+
     startExecution ({ state, commit, dispatch }, payload) {
-      // commit('setParameters', payload.parameters)
       state.running = true
       state.error = false
       const input = JSON.stringify({
@@ -59,7 +76,7 @@ export default {
         files: payload.files,
         start_time: payload.start_time,
         end_time: payload.end_time,
-        date: payload.date,
+        dates: payload.dates,
       })
 
       let data = {
@@ -82,7 +99,6 @@ export default {
     async pollExecution ({ commit, state, dispatch }) {
       const intervalId = setInterval(() => {
         let data = { executionArn: state.executionArn }
-        state.timer = state.timer - 2
         quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
         ).then(
@@ -123,6 +139,7 @@ export default {
     },
   },
   getters: {
+    UploadedGTFS: (state) => state.UploadedGTFS,
     running: (state) => state.running,
     status: (state) => state.status,
     executionArn: (state) => state.executionArn,
@@ -130,6 +147,5 @@ export default {
     errorMessage: (state) => state.errorMessage,
     callID: (state) => state.callID,
     bucket: (state) => state.bucket,
-    timer: (state) => state.timer,
   },
 }

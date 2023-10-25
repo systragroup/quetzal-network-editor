@@ -118,6 +118,7 @@ async function unzip (file) {
   const ZIP = new JSZip()
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
+  console.log(filesNames)
   const str = await zip.file(filesNames[0]).async('string')
   const content = JSON.parse(str)
   return content
@@ -127,6 +128,7 @@ async function unzip (file) {
 function csvJSON (bytes) {
   const csv = new TextDecoder().decode(bytes)
   let lines = csv.split('\n')
+  lines = lines.map(line => line.replace(/\r/g, ''))
   lines = lines.filter(line => line.length > 0)
   const result = []
   // NOTE: If your columns contain commas in their values, you'll need
@@ -151,6 +153,20 @@ function csvJSON (bytes) {
   }
   // return result; //JavaScript object
   return result
+}
+
+async function unzipCalendar (file) {
+  // unzip a file and return a json (solo json zipped)
+  const ZIP = new JSZip()
+  const zip = await ZIP.loadAsync(file)
+  const filesNames = Object.keys(zip.files)
+  if (filesNames.includes('calendar.txt')) {
+    const bytes = await zip.file('calendar.txt').async('uint8array')
+    const content = csvJSON(bytes)
+    return content
+  }
+
+  return {}
 }
 
 function generatePassword (length) {
@@ -204,5 +220,6 @@ export {
   IndexAreDifferent,
   unzip,
   csvJSON,
+  unzipCalendar,
   generatePassword,
 }

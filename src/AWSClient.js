@@ -67,7 +67,7 @@ async function getImagesURL (bucket, key) {
   const presignedGETURL = s3Client.getSignedUrl('getObject', {
     Bucket: bucket,
     Key: key, // filename
-    Expires: 100, // time to expire in seconds
+    Expires: 86400, // time to expire in seconds
   })
   return presignedGETURL
 }
@@ -174,6 +174,23 @@ async function putBytes (bucket, key, body = '') {
   return resp
 }
 
+function uploadObject (bucket, key, body = '') {
+  // upload.on('httpUploadProgress', (progress) => {
+  //   const percent = Math.round(progress.loaded / progress.total * 100)
+  //   console.log(percent)
+  // })
+  // const resp = await upload.promise()
+
+  const params = {
+    Bucket: bucket,
+    Key: key,
+    Body: body,
+    Metadata: { user_email: store.getters.cognitoInfo.email },
+  }
+  const upload = s3Client.upload(params)
+  return upload
+}
+
 async function getScenario (bucket) {
   // list all files in bucket
   const params = { Bucket: bucket }
@@ -239,5 +256,5 @@ export default {
   getImagesURL,
   downloadFolder,
   newScenario,
-
+  uploadObject,
 }
