@@ -17,6 +17,9 @@ export default {
       showLeftPanelContent: true,
       tab: 0,
       mode: 'pt',
+      isResizing: false,
+      windowOffest: 0,
+      width: 400, // Initial width of the resizable section
     }
   },
   computed: {
@@ -52,13 +55,36 @@ export default {
       this.tab = 1
     }
   },
+  methods: {
+    startResize (event) {
+      event.preventDefault()
+      this.isResizing = true
+      this.windowOffest = event.clientX - this.$refs.leftPanelDiv.clientWidth
+      document.addEventListener('mousemove', this.resize)
+      document.addEventListener('mouseup', this.stopResize)
+    },
+    resize (event) {
+      if (this.isResizing) {
+        const width = event.clientX - this.windowOffest
+        this.width = width > 400 ? width : 400
+        event.target.style.cursor = 'col-resize'
+      }
+    },
+    stopResize (event) {
+      this.isResizing = false
+      document.removeEventListener('mousemove', this.resize)
+      document.removeEventListener('mouseup', this.stopResize)
+      event.target.style.cursor = 'default'
+    },
+  },
 
 }
 </script>
 <template>
   <section
+    ref="leftPanelDiv"
     :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
-    :style="{'width': showLeftPanel ? '400px' : '0px'}"
+    :style="{ width:showLeftPanel? width + 'px' : '0px' }"
   >
     <div
       class="left-panel-toggle-btn elevation-4"
@@ -71,6 +97,10 @@ export default {
         {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
       </v-icon>
     </div>
+    <div
+      class="resizable-handle"
+      @mousedown="startResize"
+    />
     <transition name="fade">
       <div
         v-show="showLeftPanelContent"
@@ -129,18 +159,28 @@ export default {
   position: absolute;
   display:flex;
   z-index: 20;
-
 }
 .left-panel-close {
-transition:0.3s
+transition:0.3s;
+width:0px;
 }
+.left-panel .resizable-handle {
+  width: 5px;
+  height: 100%;
+  background-color: var(--v-background-lighten2);
+  position: absolute;
+  right: 0;
+  top: 0;
+  cursor: col-resize; /* Use the col-resize cursor for horizontal resizing */
+}
+
 .left-panel-content {
   display:inline-block;
   width : 100%;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  //resize: horizontal;
+  resize: horizontal;
   overflow: auto;
 
 }

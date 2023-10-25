@@ -24,6 +24,7 @@ export default {
       state.running = false
       state.executionArn = ''
       state.error = false
+      this.commit('setCallID')
     },
     setCallID (state) {
       state.callID = uuid()
@@ -35,6 +36,7 @@ export default {
       state.error = true
       state.errorMessage = payload
       state.executionArn = ''
+      this.commit('setCallID')
     },
     changeRunning (state, payload) {
       state.running = payload
