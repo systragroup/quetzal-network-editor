@@ -33,7 +33,6 @@ export default {
     this.isoDate = this.parseInput(String(this.date))
     this.dateMin = this.parseInput(String(this.from))
     this.dateMax = this.parseInput(String(this.to))
-    console.log(this.dateMin)
   },
 
   methods: {
@@ -52,7 +51,7 @@ export default {
 >
   <v-menu
     v-model="menu"
-    :close-on-content-click="true"
+    :close-on-content-click="false"
     transition="scale-transition"
     offset-y
     max-width="290px"
@@ -71,7 +70,6 @@ export default {
       v-model="isoDate"
       :max="dateMax"
       :min="dateMin"
-      no-title
       @input="menu = false"
     />
   </v-menu>

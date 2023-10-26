@@ -22,7 +22,7 @@ export default {
       parameters: [{
         name: 'start_time',
         text: 'start time',
-        value: '6:00:00',
+        value: this.$store.getters['runGTFS/parameters'].start_time,
         type: 'String',
         units: '',
         hint: 'Start Time to restrict the GTFS in a period',
@@ -33,7 +33,7 @@ export default {
       {
         name: 'end_time',
         text: 'end time',
-        value: '8:59:00',
+        value: this.$store.getters['runGTFS/parameters'].end_time,
         type: 'String',
         units: '',
         hint: 'End Time to restrict the GTFS in a period',
@@ -57,6 +57,9 @@ export default {
     running () { return this.$store.getters['runGTFS/running'] },
     error () { return this.$store.getters['runGTFS/error'] },
     errorMessage () { return this.$store.getters['runGTFS/errorMessage'] },
+  },
+  beforeDestroy () {
+    this.$store.commit('runGTFS/saveParams', this.parameters)
   },
 
   methods: {
@@ -291,7 +294,6 @@ export default {
   width: 80%;
   padding: 2.5rem 2rem 2.5rem 2rem;
   margin-right: 3rem;
-
 }
 .row {
   height: 100%;

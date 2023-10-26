@@ -16,7 +16,19 @@ export default {
     executionArn: '',
     error: false,
     errorMessage: '',
-    UploadedGTFS: [],
+    UploadedGTFS: [], // list of upploded gtfs (zip local)
+    selectedGTFS: [], // list of index for web Importer
+    parameters: {
+      start_time: '6:00:00',
+      end_time: '8:59:00',
+      day: 'tuesday',
+    },
+    widthDict: {
+      bus: 3,
+      subway: 8,
+      rail: 6,
+      tram: 5,
+    },
 
   },
   mutations: {
@@ -41,6 +53,16 @@ export default {
     changeRunning (state, payload) {
       state.running = payload
     },
+
+    saveParams (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      payload.forEach(param => state.parameters[param.name] = param.value)
+    },
+    saveSelectedGTFS (state, payload) {
+      // for web importer
+      state.selectedGTFS = payload
+    },
+
     addGTFS (state, payload) {
       const nameList = state.UploadedGTFS.map(el => el?.name)
       if (!nameList.includes(payload.name)) {
@@ -132,7 +154,21 @@ export default {
         })
     },
     async downloadOSMFromS3 ({ state, commit }) {
-      const links = await s3.readJson(state.bucket, state.callID.concat('/links.geojson'))
+      function applyDict (links) {
+        // 00BCD4
+        Object.keys(state.widthDict).forEach(routeType => {
+          links.features.filter(link => link.properties.route_type === routeType).forEach(
+            link => {
+              link.properties.route_width = state.widthDict[routeType]
+            })
+        })
+        return links
+      }
+
+      let links = await s3.readJson(state.bucket, state.callID.concat('/links.geojson'))
+      if (links.features.length > 0) {
+        links = applyDict(links)
+      }
       commit('appendNewLinks', links, { root: true })
       const nodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
       commit('appendNewNodes', nodes, { root: true })
@@ -142,6 +178,8 @@ export default {
   },
   getters: {
     UploadedGTFS: (state) => state.UploadedGTFS,
+    selectedGTFS: (state) => state.selectedGTFS,
+    parameters: (state) => state.parameters,
     running: (state) => state.running,
     status: (state) => state.status,
     executionArn: (state) => state.executionArn,

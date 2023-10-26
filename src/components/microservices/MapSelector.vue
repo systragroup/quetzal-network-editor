@@ -44,12 +44,13 @@ export default {
 
   beforeDestroy () {
     // remove stroke layer as it use the polygon layer data.
-    const center = this.map.getCenter()
-    this.$store.commit('saveMapPosition', {
-      mapCenter: [center.lng, center.lat],
-      mapZoom: this.map.getZoom(),
-    })
-
+    const center = this.map?.getCenter()
+    if (center) {
+      this.$store.commit('saveMapPosition', {
+        mapCenter: [center.lng, center.lat],
+        mapZoom: this.map.getZoom(),
+      })
+    }
     this.$store.commit('saveImportPoly', { freeForm: this.freeForm, poly: this.poly })
     try {
       this.map.removeLayer('stroke')
@@ -69,7 +70,6 @@ export default {
       if (this.$store.getters.importPoly?.freeForm) {
         this.poly = this.$store.getters.importPoly.poly
         this.toggleFreeForm()
-        console.log(this.$store.getters.importPoly)
       } else {
         this.getBounds()
       }
@@ -239,7 +239,7 @@ export default {
 
 .map {
   max-width: 100rem;
-  width:50rem;
+  min-width:50rem;
   height: 45rem;
 }
 .freeform-button {

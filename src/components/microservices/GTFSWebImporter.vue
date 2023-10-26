@@ -24,13 +24,13 @@ export default {
       nodes: {},
       gtfsList: [],
       availableGTFS: [],
-      selectedGTFS: [],
+      selectedGTFS: this.$store.getters['runGTFS/selectedGTFS'],
       checkall: false,
       showHint: false,
       parameters: [{
         name: 'start_time',
         text: 'start time',
-        value: '6:00:00',
+        value: this.$store.getters['runGTFS/parameters'].start_time,
         type: 'String',
         units: '',
         hint: 'Start Time to restrict the GTFS in a period',
@@ -41,7 +41,7 @@ export default {
       {
         name: 'end_time',
         text: 'end time',
-        value: '8:59:00',
+        value: this.$store.getters['runGTFS/parameters'].end_time,
         type: 'String',
         units: '',
         hint: 'End Time to restrict the GTFS in a period',
@@ -52,7 +52,7 @@ export default {
       {
         name: 'day',
         text: 'day',
-        value: 'tuesday',
+        value: this.$store.getters['runGTFS/parameters'].day,
         type: 'String',
         items: ['monday',
           'tuesday',
@@ -107,7 +107,10 @@ export default {
       return 0
     })
   },
-
+  beforeDestroy () {
+    this.$store.commit('runGTFS/saveParams', this.parameters)
+    this.$store.commit('runGTFS/saveSelectedGTFS', this.selectedGTFS)
+  },
   methods: {
 
     async fetchCSV () {
@@ -312,6 +315,7 @@ export default {
   height: 90%;
   padding: 2.5rem 0rem 2.5rem 2.0rem;
   margin-right: 3rem;
+  overflow-y: auto;
 
 }
 .row {
