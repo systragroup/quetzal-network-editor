@@ -75,6 +75,8 @@ export default {
       this.$store.commit('unloadLayers')
       this.$store.commit('unloadProject')
       this.$store.commit('run/cleanRun')
+      this.$store.commit('runOSM/cleanRun')
+      this.$store.commit('runGTFS/cleanRun')
 
       if (this.choice === 'example1') {
         this.loadExample(['PT', 'road'])
@@ -91,6 +93,8 @@ export default {
       this.$store.commit('unloadLayers')
       this.$store.commit('unloadProject')
       this.$store.commit('run/cleanRun')
+      this.$store.commit('runOSM/cleanRun')
+      this.$store.commit('runGTFS/cleanRun')
       this.$store.commit('changeNotification',
         { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
     },
@@ -129,6 +133,8 @@ export default {
         this.$store.commit('initNetworks')
         this.$store.commit('unloadLayers')
         this.$store.commit('run/cleanRun')
+        this.$store.commit('runOSM/cleanRun')
+        this.$store.commit('runGTFS/cleanRun')
       }
       this.$store.commit('changeLoading', true)
       this.$router.replace({ query: null }) // remove query in url when page is load.

@@ -36,11 +36,12 @@ export default {
       state.running = false
       state.executionArn = ''
       state.error = false
-      this.commit('setCallID')
+      state.UploadedGTFS = []
+      state.selectedGTFS = []
+      state.callID = uuid()
     },
     setCallID (state) {
       state.callID = uuid()
-      state.UploadedGTFS = []
     },
 
     terminateExecution (state, payload) {
@@ -48,7 +49,6 @@ export default {
       state.error = true
       state.errorMessage = payload
       state.executionArn = ''
-      this.commit('setCallID')
     },
     changeRunning (state, payload) {
       state.running = payload
@@ -105,7 +105,7 @@ export default {
 
       let data = {
         input: input,
-        name: state.callID,
+        name: uuid(),
         stateMachineArn: state.stateMachineArn,
       }
       quetzalClient.client.post('',
