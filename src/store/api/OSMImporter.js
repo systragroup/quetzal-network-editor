@@ -70,6 +70,7 @@ export default {
           highway: state.highway,
           callID: state.callID,
           elevation: true,
+          extended_cycleway: true,
         })
       } else {
         input = JSON.stringify({
@@ -77,6 +78,7 @@ export default {
           highway: state.highway,
           callID: state.callID,
           elevation: true,
+          extended_cycleway: true,
         })
       }
       let data = {
