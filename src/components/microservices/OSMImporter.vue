@@ -16,23 +16,27 @@ export default {
       poly: null,
       nodes: {},
       selectedHighway: null,
+      selectedExtended: false,
       highwayList: highwayList,
     }
   },
   computed: {
     rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
     highway () { return this.$store.getters['runOSM/highway'] },
+    extendedCycleway () { return this.$store.getters['runOSM/extendedCycleway'] },
     callID () { return this.$store.getters['runOSM/callID'] },
     running () { return this.$store.getters['runOSM/running'] },
     error () { return this.$store.getters['runOSM/error'] },
     errorMessage () { return this.$store.getters['runOSM/errorMessage'] },
   },
-  watch: {
-    selectedHighway (val) { this.$store.commit('runOSM/changeHighway', val) },
-  },
 
   created () {
     this.selectedHighway = this.highway
+    this.selectedExtended = this.extendedCycleway
+  },
+  beforeDestroy () {
+    this.$store.commit('runOSM/saveParams',
+      { highway: this.selectedHighway, extendedCycleway: this.selectedExtended })
   },
   methods: {
     getBBOX (val) {
@@ -40,6 +44,8 @@ export default {
     },
     importOSM () {
       if (this.rlinksIsEmpty) {
+        this.$store.commit('runOSM/saveParams',
+          { highway: this.selectedHighway, extendedCycleway: this.selectedExtended })
         this.$store.commit('runOSM/setCallID')
         this.$store.dispatch('runOSM/startExecution', { coords: this.poly.geometry, method: this.poly.style })
       } else {
@@ -97,7 +103,7 @@ export default {
           :items="highwayList"
           attach
           chips
-          :menu-props="{ top: true, offsetY: true }"
+          :menu-props="{ top: true, offsetY: true,maxHeight:'30rem'}"
           label="Highways to import"
           multiple
         >
@@ -113,6 +119,12 @@ export default {
             </span>
           </template>
         </v-select>
+        <v-spacer />
+        <v-checkbox
+          v-if="$store.getters.model === 'quetzal-cyclops-dev'"
+          v-model="selectedExtended"
+          label="Extended cycleway"
+        />
         <v-spacer />
         <v-btn
           text

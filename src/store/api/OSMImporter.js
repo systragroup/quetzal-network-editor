@@ -18,15 +18,20 @@ export default {
     executionArn: '',
     error: false,
     errorMessage: '',
+
     tags: ['highway', 'maxspeed', 'lanes', 'name', 'oneway', 'surface'],
-    highway: [
-      'motorway',
-      'motorway_link',
-      'trunk',
-      'trunk_link',
-      'primary',
-      'primary_link',
-    ],
+    parameters: {
+      extendedCycleway: false,
+      highway: [
+        'motorway',
+        'motorway_link',
+        'trunk',
+        'trunk_link',
+        'primary',
+        'primary_link',
+      ],
+    },
+
     colorDict: highwayColor,
     widthDict: highwayWidth,
   },
@@ -47,8 +52,9 @@ export default {
     changeRunning (state, payload) {
       state.running = payload
     },
-    changeHighway (state, payload) {
-      state.highway = payload
+    saveParams (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload).forEach(key => state.parameters[key] = payload[key])
     },
     succeedExecution (state) {
       state.running = false
@@ -67,18 +73,18 @@ export default {
       if (payload.method === 'bbox') {
         input = JSON.stringify({
           bbox: payload.coords,
-          highway: state.highway,
+          highway: state.parameters.highway,
           callID: state.callID,
           elevation: true,
-          extended_cycleway: true,
+          extended_cycleway: state.parameters.extendedCycleway,
         })
       } else {
         input = JSON.stringify({
           poly: payload.coords,
-          highway: state.highway,
+          highway: state.parameters.highway,
           callID: state.callID,
           elevation: true,
-          extended_cycleway: true,
+          extended_cycleway: state.parameters.extendedCycleway,
         })
       }
       let data = {
@@ -163,7 +169,8 @@ export default {
     callID: (state) => state.callID,
     bucket: (state) => state.bucket,
     timer: (state) => state.timer,
-    highway: (state) => state.highway,
+    highway: (state) => state.parameters.highway,
+    extendedCycleway: (state) => state.parameters.extendedCycleway,
     tags: (state) => state.tags,
   },
 }
