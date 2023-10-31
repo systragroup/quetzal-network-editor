@@ -2,6 +2,7 @@ import { store } from '@src/store/index.js'
 import AWS from 'aws-sdk'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
+import sha256 from 'crypto-js/md5'
 
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
@@ -153,39 +154,28 @@ async function createFolder (bucket, key) {
   })
 }
 async function putObject (bucket, key, body = '') {
-  const params = {
-    Bucket: bucket,
-    Key: key,
-    Body: body,
-    Metadata: { user_email: store.getters.cognitoInfo.email },
-    ContentType: ' application/json',
-  }
-  const resp = await s3Client.putObject(params).promise()
-  return resp
-}
-async function putBytes (bucket, key, body = '') {
-  const params = {
-    Bucket: bucket,
-    Key: key,
-    Body: body,
-    Metadata: { user_email: store.getters.cognitoInfo.email },
-  }
-  const resp = await s3Client.putObject(params).promise()
-  return resp
+  const oldChecksum = await getChecksum(bucket, key)
+  const newChecksum = sha256(JSON.stringify(body)).toString()
+  if (oldChecksum !== newChecksum) {
+    const params = {
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      Metadata: { user_email: store.getters.cognitoInfo.email, checksum: newChecksum },
+      ContentType: ' application/json',
+    }
+    const resp = await s3Client.putObject(params).promise()
+    return resp
+  } else { return 'no changes' }
 }
 
 function uploadObject (bucket, key, body = '') {
-  // upload.on('httpUploadProgress', (progress) => {
-  //   const percent = Math.round(progress.loaded / progress.total * 100)
-  //   console.log(percent)
-  // })
-  // const resp = await upload.promise()
-
+  const checksum = sha256(JSON.stringify(body)).toString()
   const params = {
     Bucket: bucket,
     Key: key,
     Body: body,
-    Metadata: { user_email: store.getters.cognitoInfo.email },
+    Metadata: { user_email: store.getters.cognitoInfo.email, checksum: checksum },
   }
   const upload = s3Client.upload(params)
   return upload
@@ -211,7 +201,6 @@ async function getScenario (bucket) {
   const scenList = []
   for (const scen of scenarios) {
     const files = list.filter(item => item.Key.startsWith(scen))
-
     // if there is .lock file in the root dir of the scen. it is protected.
     const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
     const isLocked = lockedList.length > 0 || scen === 'base'
@@ -229,6 +218,12 @@ async function getScenario (bucket) {
     scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail, protected: isLocked })
   }
   return scenList
+}
+async function getChecksum (bucket, key) {
+  try {
+    const resp = await s3Client.headObject({ Bucket: bucket, Key: key }).promise()
+    return resp.Metadata.checksum
+  } catch (err) { store.commit('changeAlert', err) }
 }
 
 export default {
@@ -252,9 +247,9 @@ export default {
   deleteFolder,
   createFolder,
   putObject,
-  putBytes,
   getImagesURL,
   downloadFolder,
   newScenario,
   uploadObject,
+  getChecksum,
 }

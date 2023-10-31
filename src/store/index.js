@@ -246,6 +246,7 @@ export const store = new Vuex.Store({
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
     },
+    changeOutputName (state, payload) { state.outputName = payload },
     addStyle (state, payload) {
       // payload: styling for results {name,layer, displaySettings:{...}}
       const names = state.styles.map(el => el.name)

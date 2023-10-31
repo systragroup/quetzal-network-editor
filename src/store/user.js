@@ -57,6 +57,7 @@ export default {
     setScenario (state, payload) {
       state.scenario = payload.scenario
       state.protected = payload.protected
+      this.commit('changeOutputName', payload.scenario, { root: true })
     },
 
   },
