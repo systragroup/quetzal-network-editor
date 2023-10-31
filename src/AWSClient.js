@@ -223,7 +223,7 @@ async function getChecksum (bucket, key) {
   try {
     const resp = await s3Client.headObject({ Bucket: bucket, Key: key }).promise()
     return resp.Metadata.checksum
-  } catch (err) { store.commit('changeAlert', err) }
+  } catch (err) { return null }
 }
 
 export default {
