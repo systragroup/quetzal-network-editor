@@ -499,7 +499,6 @@ export default {
 
       const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       state.rlinks.features.push(linkFeature)
-      console.log(linkProperties)
 
       // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
       const newLinkGroup = linkProperties[state.selectedrFilter]
