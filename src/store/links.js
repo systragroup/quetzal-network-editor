@@ -28,6 +28,7 @@ export default {
     linksDefaultColor: '2196F3',
     lineAttributes: [],
     nodeAttributes: [],
+    linksAttributesChoices: {},
     defaultAttributes: [
       { name: 'index', type: 'String' },
       { name: 'a', type: 'String' },
@@ -166,6 +167,10 @@ export default {
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.nodeAttributes = header
+    },
+    loadLinksAttributesChoices (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload).forEach(key => state.linksAttributesChoices[key] = payload[key])
     },
 
     addPropertie (state, payload) {
@@ -839,5 +844,6 @@ export default {
     // this return the attribute type, of undefined.
     attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
     defaultAttributesNames: (state) => state.defaultAttributes.map(attr => attr.name),
+    linksAttributesChoices: (state) => state.linksAttributesChoices,
   },
 }

@@ -118,10 +118,12 @@ export default {
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
       if (this.selectedFeature && this.layerType !== 'Polygon') { // do not show popup if nothing is selected
         const val = this.selectedLinks[0].properties[this.selectedFeature]
-        this.popup = new mapboxgl.Popup({ closeButton: false })
-          .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-          .setHTML(`${this.selectedFeature}: <br> ${val}`)
-          .addTo(event.map)
+        if (val) {
+          this.popup = new mapboxgl.Popup({ closeButton: false })
+            .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+            .setHTML(`${this.selectedFeature}: <br> ${val}`)
+            .addTo(event.map)
+        }
       }
     },
     leaveLink (event) {

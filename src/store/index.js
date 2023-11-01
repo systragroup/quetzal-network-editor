@@ -178,8 +178,10 @@ export const store = new Vuex.Store({
     loadAttributesChoices (state, payload) {
       // eslint-disable-next-line no-return-assign
       Object.keys(payload.pt).forEach(key => state.attributesChoices.pt[key] = payload.pt[key])
+      this.commit('loadLinksAttributesChoices', payload.pt)
       // eslint-disable-next-line no-return-assign
       Object.keys(payload.road).forEach(key => state.attributesChoices.road[key] = payload.road[key])
+      this.commit('loadrLinksAttributesChoices', payload.road)
     },
     setVisibleRasters (state, payload) {
       state.visibleRasters = payload

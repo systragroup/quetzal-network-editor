@@ -205,6 +205,7 @@ export default {
             v-for="tab in modelsList"
             :key="tab"
             :href="'#'+tab"
+            :disabled="loading"
           >
             {{ tab.slice(8) }}
           </v-tab>

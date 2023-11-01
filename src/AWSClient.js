@@ -200,12 +200,13 @@ async function getScenario (bucket) {
   // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
   const scenList = []
   for (const scen of scenarios) {
-    const files = list.filter(item => item.Key.startsWith(scen))
+    let files = list.filter(item => item.Key.startsWith(scen))
     // if there is .lock file in the root dir of the scen. it is protected.
     const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
     const isLocked = lockedList.length > 0 || scen === 'base'
 
-    // let maxDate = new Date(Math.max.apply(null, dates))
+    // remove attributesChoices as an admin could changed it on every projects.
+    files = files.filter(file => !file.Key.endsWith('/attributesChoices.json'))
     const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
     // get user email metadata on newest object. undefined if empty or error.
