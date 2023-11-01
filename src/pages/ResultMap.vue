@@ -116,6 +116,8 @@ export default {
           this.$store.commit('results/loadLinks', {
             geojson: this.$store.getters[`${layer}/layer`],
             type: this.$store.getters[`${layer}/type`],
+            hasOD: this.$store.getters[`${layer}/hasOD`],
+            ODindex: this.$store.getters[`${layer}/matAvailableIndex`],
           })
           break
       }
@@ -150,13 +152,14 @@ export default {
       this.applySettings(preset.displaySettings)
     },
     featureClicked (event) {
+      const prop = this.displaySettings.selectedFeature
       if (event.action === 'featureClick') {
         this.form = event.feature
         this.showDialog = true
         // OD click.
-      } else if (this.$store.getters[`${this.selectedLayer}/hasOD`]) {
-        const prop = this.displaySettings.selectedFeature
-        this.$store.commit(`${this.selectedLayer}/changeZone`, { index: event.feature.index, selectedProperty: prop })
+      } else if (this.$store.getters[`${this.selectedLayer}/hasOD`] &&
+       this.$store.getters[`${this.selectedLayer}/properties`].includes(prop)) {
+        this.$store.commit(`${this.selectedLayer}/changeOD`, { index: event.feature.index, selectedProperty: prop })
         this.$store.commit('results/updateLinks', this.$store.getters[`${this.selectedLayer}/layer`])
       }
     },
@@ -245,6 +248,10 @@ export default {
       :selected-feature="displaySettings.selectedFeature"
       :opacity="displaySettings.opacity"
       :offset="displaySettings.offset"
+      :has-o-d="$store.getters[`${selectedLayer}/hasOD`] "
+      :o-d-index="$store.getters[`${selectedLayer}/matAvailableIndex`] "
+      :o-d-features="$store.getters[`${selectedLayer}/properties`]"
+
       @selectClick="featureClicked"
     />
 

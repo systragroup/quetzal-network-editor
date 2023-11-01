@@ -3,6 +3,7 @@
 
 import chroma from 'chroma-js'
 const seedrandom = require('seedrandom')
+const $gettext = s => s
 
 function isHexColor (variable) {
   const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/i
@@ -76,12 +77,15 @@ export default {
     lineAttributes: [],
     selectedFilter: '',
     selectedCategory: [],
+    hasOD: false,
+    ODindex: {},
     displaySettings: defaultSettings,
 
   },
 
   mutations: {
     unload (state) {
+      this.commit('results/cleanLinks')
       state.type = 'links'
       state.links = {}
       state.visibleLinks = {}
@@ -90,11 +94,19 @@ export default {
       state.lineAttributes = []
       state.selectedFilter = ''
       state.selectedCategory = []
+      state.hasOD = false
+      state.ODindex = {}
       state.displaySettings = defaultSettings
+      // TODO: remove display_width and display_color
     },
+
     loadLinks (state, payload) {
+      // TODO: remove display_width and display_color
+      this.commit('results/cleanLinks')
       state.links = payload.geojson
       state.type = payload.type
+      state.hasOD = payload.hasOD ? payload.hasOD : false
+      state.ODindex = payload.ODindex ? payload.ODindex : {}
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = structuredClone(state.links)
         linksHeader.features = []
@@ -118,6 +130,14 @@ export default {
       this.commit('results/refreshVisibleLinks')
       this.commit('results/updateSelectedFeature')
     },
+
+    cleanLinks (state) {
+      if (Object.keys(state.links).length !== 0) {
+        state.links.features.filter(link => delete link.properties.display_width)
+        state.links.features.filter(link => delete link.properties.display_color)
+      }
+    },
+
     changeSelectedFilter (state, payload) {
       state.selectedFilter = payload
       // set all vvisible
@@ -197,7 +217,6 @@ export default {
         link => {
           const val = link.properties[key]
           if (isHexColor(val)) {
-            console.log(val)
             link.properties.display_color = val
           } else {
             link.properties.display_color = colorScale(
@@ -205,6 +224,22 @@ export default {
           }
         },
       )
+      //
+      // if OD prop ans all NaN. put green on clickable links.
+      //
+      const allNaN = state.links.features.filter(link => link.properties[key]).length === 0
+      if (allNaN && state.hasOD && Object.keys(state.ODindex).includes(key)) {
+        const indexList = new Set(state.ODindex[key])
+        state.visibleLinks.features.forEach(
+          link => {
+            if (indexList.has(link.properties.index)) {
+              link.properties.display_width = 10
+              link.properties.display_color = '#4CAF50'
+            }
+          })
+        this.commit('changeNotification',
+          { text: $gettext('Clickable element in green'), autoClose: true, color: 'success' })
+      }
     },
     refreshVisibleLinks (state) {
       const group = new Set(state.selectedCategory)
@@ -214,7 +249,13 @@ export default {
       if (!state.displaySettings.showNaN) {
         // keep track of NaN links to display them when we have a polygon
         state.NaNLinks.features = state.visibleLinks.features.filter(link => !link.properties[key])
-        state.visibleLinks.features = state.visibleLinks.features.filter(link => link.properties[key])
+        const allNaN = state.links.features.filter(link => link.properties[key]).length === 0
+        if (allNaN && state.hasOD && Object.keys(state.ODindex).includes(key)) {
+          // keep visible links as we want to show clickable links
+        } else {
+          // remove NaN from links
+          state.visibleLinks.features = state.visibleLinks.features.filter(link => link.properties[key])
+        }
       }
     },
   },

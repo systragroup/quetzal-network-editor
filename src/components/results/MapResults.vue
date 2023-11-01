@@ -116,7 +116,7 @@ export default {
       event.map.getCanvas().style.cursor = 'pointer'
       this.selectedLinks = event.mapboxEvent.features
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-      if (this.selectedFeature.length > 0 && this.layerType !== 'Polygon') { // do not show popup if nothing is selected
+      if (this.selectedFeature && this.layerType !== 'Polygon') { // do not show popup if nothing is selected
         const val = this.selectedLinks[0].properties[this.selectedFeature]
         this.popup = new mapboxgl.Popup({ closeButton: false })
           .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])

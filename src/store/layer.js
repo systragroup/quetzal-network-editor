@@ -8,6 +8,7 @@ export default {
     mat: {},
     properties: [],
     type: null,
+    matAvailableIndex: {},
   }),
 
   mutations: {
@@ -21,21 +22,26 @@ export default {
       // payload is a matrix
       Object.keys(payload).forEach(key => { state.mat[key + ' (OD)'] = payload[key] })
       state.properties = Object.keys(state.mat)
+      // force index to string
+      state.layer.features.forEach(zone => zone.properties.index = String(zone.properties.index))
       // if init with nothing, do nothing.
       if (state.layer.features.length > 0) {
-        // for each properties in matrix, init the zones to null.
         state.properties.forEach(
-          prop =>
+          prop => {
+            // get all clickable indexes
+            state.matAvailableIndex[prop] = Object.keys(state.mat[prop])
+            // for each properties in matrix, init the zones to null.
             state.layer.features.forEach(
               zone => zone.properties[prop] = null,
-            ),
+            )
+          },
+
         )
       }
     },
 
-    changeZone (state, payload) {
+    changeOD (state, payload) {
       const selectedProperty = payload.selectedProperty
-
       if (state.properties.includes(selectedProperty)) {
         const index = payload.index
         const row = state.mat[selectedProperty][index]
@@ -52,6 +58,7 @@ export default {
     layer: (state) => state.layer,
     type: (state) => state.type,
     properties: (state) => state.properties,
+    matAvailableIndex: (state) => state.matAvailableIndex,
     hasOD: (state) => state.properties.length > 0,
     mat: (state) => {
       // remove OD in matrix names.
