@@ -210,7 +210,7 @@ export default {
         },
       )
 
-      const colorScale = chroma.scale(cmap).padding([0.1, 0])
+      const colorScale = chroma.scale(cmap).padding([0, 0])
         .domain([0, 1], scale).classes(numStep)
 
       state.visibleLinks.features.forEach(
@@ -292,7 +292,7 @@ export default {
     opacity: (state) => state.displaySettings.opacity,
     colorScale: (state) => {
       const arr = []
-      const colorScale = chroma.scale(state.displaySettings.cmap).padding([0.1, 0])
+      const colorScale = chroma.scale(state.displaySettings.cmap).padding([0, 0])
         .domain([0, 1]).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
         arr.push(colorScale(remap(i, 0, 100, state.displaySettings.reverseColor, state.displaySettings.scale, false)))
