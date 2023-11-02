@@ -352,7 +352,7 @@ export default {
                 @click="buttonHandle('newProject')"
                 v-on="on"
               >
-                {{ $gettext('New Project') }}
+                {{ $gettext('delete all') }}
               </v-btn>
             </template>
             <span>{{ $gettext("Delete all network and start from scratch") }}</span>

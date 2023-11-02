@@ -25,6 +25,10 @@ export default {
       subtab: 0,
     }
   },
+  computed: {
+    GTFSrunning () { return this.$store.getters['runGTFS/running'] },
+
+  },
 }
 </script>
 <template>
@@ -43,8 +47,12 @@ export default {
       class="subtabs"
       centered
     >
-      <v-tab>Zip importer</v-tab>
-      <v-tab>Web importer</v-tab>
+      <v-tab :disabled="GTFSrunning">
+        Zip importer
+      </v-tab>
+      <v-tab :disabled="GTFSrunning">
+        Web importer
+      </v-tab>
     </v-tabs>
     <div class="layout">
       <div class="layout-overlay" />

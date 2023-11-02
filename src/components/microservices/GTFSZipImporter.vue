@@ -57,6 +57,7 @@ export default {
     running () { return this.$store.getters['runGTFS/running'] },
     error () { return this.$store.getters['runGTFS/error'] },
     errorMessage () { return this.$store.getters['runGTFS/errorMessage'] },
+    isUploading () { return this.UploadedGTFS.filter(item => item.progress < 100).length > 0 },
   },
   beforeDestroy () {
     this.$store.commit('runGTFS/saveParams', this.parameters)
@@ -138,10 +139,13 @@ export default {
     >
       <v-card class="card">
         <v-card-title class="subtitle">
-          {{ $gettext('Available GTFS') }}
+          {{ $gettext('GTFS importer') }}
         </v-card-title>
         <v-card-subtitle>
           {{ $gettext('import GTFS from local computer') }}
+        </v-card-subtitle>
+        <v-card-subtitle>
+          {{ $gettext('Add GTFS files. When its done uploading press Convert') }}
         </v-card-subtitle>
 
         <v-btn
@@ -154,22 +158,9 @@ export default {
           >
             fa-solid fa-file-archive
           </v-icon>
-          {{ $gettext('GTFS') }}
+          {{ $gettext('upload GTFS') }}
         </v-btn>
-        <v-btn
-          :loading="running"
-          :disabled="running || UploadedGTFS.length==0"
-          color="success"
-          @click="importGTFS"
-        >
-          <v-icon
-            small
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-play
-          </v-icon>
-          {{ $gettext('Download') }}
-        </v-btn>
+
         <v-card-subtitle>
           <v-alert
             v-if="error"
@@ -227,7 +218,7 @@ export default {
             <span class="list-item-medium">{{ $gettext('from') }} </span>
             <span class="list-item-medium">{{ $gettext('to') }} </span>
             <span class="list-item-medium">{{ $gettext('selected date') }}</span>
-            <span class="list-item-small"> {{ $gettext('status') }}</span>
+            <span class="list-item-small"> {{ $gettext('Uploaded') }}</span>
           </li>
           <ul
             v-for="(item,key) in UploadedGTFS"
@@ -253,6 +244,22 @@ export default {
                                            />
               <v-icon v-else>fas fa-check</v-icon></span>
           </ul>
+        </div>
+        <div class="bottom-button">
+          <v-btn
+            :loading="running"
+            :disabled="running || UploadedGTFS.length==0 || isUploading"
+            color="success"
+            @click="importGTFS"
+          >
+            <v-icon
+              small
+              style="margin-right: 10px;"
+            >
+              fa-solid fa-play
+            </v-icon>
+            {{ $gettext('convert') }}
+          </v-btn>
         </div>
       </v-card>
     </v-col>
@@ -340,12 +347,12 @@ export default {
 }
 
 .list {
-  height:80%;
-  //border: 1px solid red;
+  height:70%;
   margin-top:1rem;
   overflow-y: auto;
   overflow-x: hidden;
   border-top: 1px solid var(--v-background-lighten3);
+  border-bottom: 1px solid var(--v-background-lighten3);
 
 }
 .list-row {
@@ -383,5 +390,12 @@ export default {
   /* Add individual list item styles here */
   flex: 0 0 22%;
   margin:4px;
+}
+
+.bottom-button{
+  padding:2rem;
+  position: absolute;
+  right: 0;
+
 }
 </style>

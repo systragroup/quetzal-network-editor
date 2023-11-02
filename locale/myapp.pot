@@ -25,11 +25,11 @@ msgstr ""
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr ""
 
-#: src/store/links.js:106
-#: src/store/links.js:114
+#: src/store/links.js:107
+#: src/store/links.js:115
 #: src/store/od.js:42
-#: src/store/rlinks.js:91
-#: src/store/rlinks.js:99
+#: src/store/rlinks.js:92
+#: src/store/rlinks.js:100
 msgid " there is duplicated index, "
 msgstr ""
 
@@ -78,7 +78,7 @@ msgstr ""
 msgid "%{s}"
 msgstr ""
 
-#: src/pages/Import.vue:210
+#: src/pages/Import.vue:216
 msgid "$gettext"
 msgstr ""
 
@@ -133,7 +133,11 @@ msgstr ""
 msgid "add field"
 msgstr ""
 
-#: src/pages/Import.vue:210
+#: src/components/microservices/GTFSZipImporter.vue:66
+msgid "Add GTFS files. When its done uploading press Convert"
+msgstr ""
+
+#: src/pages/Import.vue:216
 msgid "An error occur fetching example on github"
 msgstr ""
 
@@ -157,8 +161,7 @@ msgstr ""
 msgid "at least 8 character long"
 msgstr ""
 
-#: src/components/microservices/GTFSWebImporter.vue:58
-#: src/components/microservices/GTFSZipImporter.vue:53
+#: src/components/microservices/GTFSWebImporter.vue:61
 msgid "Available GTFS"
 msgstr ""
 
@@ -174,15 +177,15 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:259
-#: src/components/layout/ScenariosExplorer.vue:336
+#: src/components/layout/ScenariosExplorer.vue:260
+#: src/components/layout/ScenariosExplorer.vue:337
 #: src/components/map/LinksSidePanel.vue:622
 #: src/components/map/Settings.vue:162
 #: src/components/results/ResultsSettings.vue:279
 #: src/pages/Home.vue:257
 #: src/pages/Home.vue:324
-#: src/pages/ResultMap.vue:182
-#: src/pages/ResultMap.vue:233
+#: src/pages/ResultMap.vue:185
+#: src/pages/ResultMap.vue:236
 msgid "Cancel"
 msgstr ""
 
@@ -208,6 +211,10 @@ msgstr ""
 
 #: src/components/microservices/MapSelector.vue:93
 msgid "Click to add points. Right click de remove"
+msgstr ""
+
+#: src/store/results.js:241
+msgid "Clickable element in green"
 msgstr ""
 
 #: src/App.vue:59
@@ -238,7 +245,11 @@ msgstr ""
 msgid "Continue Without Project"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:296
+#: src/components/microservices/GTFSZipImporter.vue:209
+msgid "convert"
+msgstr ""
+
+#: src/components/layout/ScenariosExplorer.vue:297
 msgid "copy"
 msgstr ""
 
@@ -254,7 +265,7 @@ msgstr ""
 msgid "Create new Line"
 msgstr ""
 
-#: src/pages/ResultMap.vue:138
+#: src/pages/ResultMap.vue:141
 msgid "Create or modify preset"
 msgstr ""
 
@@ -282,7 +293,7 @@ msgstr ""
 msgid "Cut Before Node"
 msgstr ""
 
-#: src/components/microservices/GTFSWebImporter.vue:64
+#: src/components/microservices/GTFSWebImporter.vue:67
 msgid "Data fetch from"
 msgstr ""
 
@@ -290,18 +301,22 @@ msgstr ""
 msgid "Data not found: "
 msgstr ""
 
-#: src/pages/ResultMap.vue:243
+#: src/pages/ResultMap.vue:246
 msgid "delete"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:268
+#: src/components/layout/ScenariosExplorer.vue:269
 #: src/pages/Home.vue:44
-#: src/pages/ResultMap.vue:220
+#: src/pages/ResultMap.vue:223
 msgid "Delete"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:241
+#: src/components/layout/ScenariosExplorer.vue:242
 msgid "Delete "
+msgstr ""
+
+#: src/pages/Import.vue:178
+msgid "delete all"
 msgstr ""
 
 #: src/pages/Import.vue:184
@@ -322,7 +337,7 @@ msgstr ""
 msgid "Delete OD"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:273
+#: src/components/map/RoadLinks.vue:264
 msgid "Delete rLink"
 msgstr ""
 
@@ -346,10 +361,9 @@ msgstr ""
 msgid "do not add .zip to the end"
 msgstr ""
 
-#: src/components/microservices/GTFSWebImporter.vue:102
-#: src/components/microservices/GTFSZipImporter.vue:97
+#: src/components/microservices/GTFSWebImporter.vue:105
 #: src/components/microservices/MatrixRoadCaster.vue:190
-#: src/components/microservices/OSMImporter.vue:104
+#: src/components/microservices/OSMImporter.vue:114
 msgid "Download"
 msgstr ""
 
@@ -394,7 +408,7 @@ msgstr ""
 msgid "Edit Properties"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:272
+#: src/components/map/RoadLinks.vue:263
 msgid "Edit rLink Info"
 msgstr ""
 
@@ -432,7 +446,7 @@ msgstr ""
 msgid "Export Only Visible"
 msgstr ""
 
-#: src/components/microservices/GTFSWebImporter.vue:82
+#: src/components/microservices/GTFSWebImporter.vue:85
 msgid "fetch available GTFS"
 msgstr ""
 
@@ -452,7 +466,7 @@ msgstr ""
 msgid "Field deleted"
 msgstr ""
 
-#: src/pages/Import.vue:114
+#: src/pages/Import.vue:118
 msgid "file is not a zip"
 msgstr ""
 
@@ -468,7 +482,7 @@ msgid "filter"
 msgstr ""
 
 #: src/components/utils/StaticLayer.vue:57
-#: src/pages/ResultMap.vue:138
+#: src/pages/ResultMap.vue:140
 msgid "filter does not exist. use default one"
 msgstr ""
 
@@ -476,7 +490,7 @@ msgstr ""
 msgid "first name"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:165
+#: src/components/microservices/GTFSZipImporter.vue:152
 #: src/components/utils/LayerSelector.vue:89
 msgid "from"
 msgstr ""
@@ -489,15 +503,12 @@ msgstr ""
 msgid "Go!"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:77
-msgid "GTFS"
-msgstr ""
-
-#: src/store/api/GTFSImporter.js:55
+#: src/store/api/GTFSImporter.js:79
 msgid "gtfs imported successfully!"
 msgstr ""
 
-#: src/components/microservices/GTFSWebImporter.vue:41
+#: src/components/microservices/GTFSWebImporter.vue:44
+#: src/components/microservices/GTFSZipImporter.vue:54
 msgid "GTFS importer"
 msgstr ""
 
@@ -533,11 +544,11 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:59
+#: src/components/microservices/GTFSZipImporter.vue:60
 msgid "import GTFS from local computer"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:27
+#: src/components/microservices/OSMImporter.vue:28
 msgid "Import OSM network in bounding box"
 msgstr ""
 
@@ -562,14 +573,14 @@ msgstr ""
 #: src/components/layout/NavigationDrawer.vue:127
 #: src/components/layout/NavigationDrawer.vue:140
 #: src/components/layout/NavigationDrawer.vue:154
-#: src/components/microservices/GTFSWebImporter.vue:141
-#: src/components/microservices/GTFSWebImporter.vue:143
-#: src/components/microservices/GTFSWebImporter.vue:155
-#: src/components/microservices/GTFSWebImporter.vue:157
-#: src/components/microservices/GTFSZipImporter.vue:136
-#: src/components/microservices/GTFSZipImporter.vue:138
-#: src/components/microservices/GTFSZipImporter.vue:150
-#: src/components/microservices/GTFSZipImporter.vue:152
+#: src/components/microservices/GTFSWebImporter.vue:144
+#: src/components/microservices/GTFSWebImporter.vue:146
+#: src/components/microservices/GTFSWebImporter.vue:158
+#: src/components/microservices/GTFSWebImporter.vue:160
+#: src/components/microservices/GTFSZipImporter.vue:123
+#: src/components/microservices/GTFSZipImporter.vue:125
+#: src/components/microservices/GTFSZipImporter.vue:137
+#: src/components/microservices/GTFSZipImporter.vue:139
 #: src/components/microservices/MatrixRoadCaster.vue:50
 #: src/components/microservices/MatrixRoadCaster.vue:52
 #: src/components/microservices/MatrixRoadCaster.vue:64
@@ -627,7 +638,7 @@ msgstr ""
 msgid "Link field to display when hovering road link on the map"
 msgstr ""
 
-#: src/pages/ResultMap.vue:79
+#: src/pages/ResultMap.vue:82
 msgid "link Properties"
 msgstr ""
 
@@ -645,7 +656,7 @@ msgstr ""
 msgid "Load Example"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:189
+#: src/components/layout/ScenariosExplorer.vue:190
 msgid "Load Scenario?"
 msgstr ""
 
@@ -716,7 +727,7 @@ msgstr ""
 msgid "modification applied"
 msgstr ""
 
-#: src/components/microservices/OSMImporter.vue:89
+#: src/components/microservices/OSMImporter.vue:90
 msgid "more"
 msgstr ""
 
@@ -728,9 +739,9 @@ msgstr ""
 msgid "Must be logged in"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:310
-#: src/components/microservices/GTFSZipImporter.vue:164
-#: src/pages/ResultMap.vue:159
+#: src/components/layout/ScenariosExplorer.vue:311
+#: src/components/microservices/GTFSZipImporter.vue:151
+#: src/pages/ResultMap.vue:162
 msgid "name"
 msgstr ""
 
@@ -755,26 +766,23 @@ msgstr ""
 msgid "New name"
 msgstr ""
 
-#: src/pages/Import.vue:178
-msgid "New Project"
-msgstr ""
-
 #: src/components/map/Settings.vue:42
 msgid "New road links Highway property name"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:161
+#: src/components/layout/ScenariosExplorer.vue:162
 msgid "new scenario"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:296
+#: src/components/layout/ScenariosExplorer.vue:297
 msgid "New Scenario"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:207
+#: src/components/layout/ScenariosExplorer.vue:208
 #: src/components/map/LinksSidePanel.vue:632
-#: src/components/microservices/GTFSZipImporter.vue:238
-#: src/components/microservices/OSMImporter.vue:141
+#: src/components/microservices/GTFSWebImporter.vue:234
+#: src/components/microservices/GTFSZipImporter.vue:247
+#: src/components/microservices/OSMImporter.vue:151
 #: src/components/utils/Profile.vue:370
 #: src/pages/Import.vue:230
 msgid "No"
@@ -796,13 +804,13 @@ msgid "numStep"
 msgstr ""
 
 #: src/components/map/ODSidePanel.vue:83
-#: src/components/map/SidePanel.vue:66
+#: src/components/map/SidePanel.vue:71
 msgid "OD"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:346
-#: src/pages/ResultMap.vue:113
-#: src/pages/ResultMap.vue:192
+#: src/components/layout/ScenariosExplorer.vue:347
+#: src/pages/ResultMap.vue:116
+#: src/pages/ResultMap.vue:195
 msgid "ok"
 msgstr ""
 
@@ -821,7 +829,7 @@ msgstr ""
 msgid "Origin - Destination"
 msgstr ""
 
-#: src/store/api/OSMImporter.js:57
+#: src/store/api/OSMImporter.js:63
 msgid "OSM network imported successfully!"
 msgstr ""
 
@@ -837,8 +845,9 @@ msgstr ""
 msgid "Overwrite current Project ?"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:226
-#: src/components/microservices/OSMImporter.vue:129
+#: src/components/microservices/GTFSWebImporter.vue:222
+#: src/components/microservices/GTFSZipImporter.vue:235
+#: src/components/microservices/OSMImporter.vue:139
 msgid "Overwrite current road network ?"
 msgstr ""
 
@@ -855,15 +864,15 @@ msgstr ""
 msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 
-#: src/pages/ResultMap.vue:202
+#: src/pages/ResultMap.vue:205
 msgid "Preset deleted"
 msgstr ""
 
-#: src/pages/ResultMap.vue:146
+#: src/pages/ResultMap.vue:148
 msgid "Preset Layer does not exist"
 msgstr ""
 
-#: src/pages/ResultMap.vue:189
+#: src/pages/ResultMap.vue:192
 msgid "Preset Saved"
 msgstr ""
 
@@ -872,7 +881,7 @@ msgstr ""
 msgid "Presets"
 msgstr ""
 
-#: src/pages/Import.vue:93
+#: src/pages/Import.vue:97
 msgid "project overwrited"
 msgstr ""
 
@@ -880,7 +889,7 @@ msgstr ""
 msgid "Projects"
 msgstr ""
 
-#: src/components/map/SidePanel.vue:54
+#: src/components/map/SidePanel.vue:59
 msgid "PT"
 msgstr ""
 
@@ -954,7 +963,7 @@ msgstr ""
 msgid "Right click to edit properties"
 msgstr ""
 
-#: src/components/map/SidePanel.vue:60
+#: src/components/map/SidePanel.vue:65
 msgid "Road"
 msgstr ""
 
@@ -1050,7 +1059,7 @@ msgstr ""
 msgid "Select which side of the road the links are display"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:167
+#: src/components/microservices/GTFSZipImporter.vue:154
 msgid "selected date"
 msgstr ""
 
@@ -1103,7 +1112,7 @@ msgstr ""
 msgid "show NaN"
 msgstr ""
 
-#: src/store/user.js:81
+#: src/store/user.js:82
 msgid "sign out"
 msgstr ""
 
@@ -1135,10 +1144,6 @@ msgstr ""
 msgid "Static Layers"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:168
-msgid "status"
-msgstr ""
-
 #: src/components/import/FileLoader.vue:342
 msgid "Style presets"
 msgstr ""
@@ -1160,13 +1165,13 @@ msgstr ""
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:247
+#: src/components/layout/ScenariosExplorer.vue:248
 msgid "The scenario will be permanently deleted"
 msgstr ""
 
-#: src/components/microservices/GTFSWebImporter.vue:117
-#: src/components/microservices/GTFSZipImporter.vue:112
-#: src/components/microservices/OSMImporter.vue:44
+#: src/components/microservices/GTFSWebImporter.vue:120
+#: src/components/microservices/GTFSZipImporter.vue:99
+#: src/components/microservices/OSMImporter.vue:45
 msgid "There as been an error while importing OSM network.             Please try again. If the problem persist, contact us."
 msgstr ""
 
@@ -1182,7 +1187,7 @@ msgstr ""
 msgid "This scenario is protected. You can not run simulation."
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:195
+#: src/components/layout/ScenariosExplorer.vue:196
 #: src/components/utils/Profile.vue:290
 msgid "This will ERASE the current project"
 msgstr ""
@@ -1195,7 +1200,7 @@ msgstr ""
 msgid "Time between departures in seconds"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:166
+#: src/components/microservices/GTFSZipImporter.vue:153
 msgid "to"
 msgstr ""
 
@@ -1209,6 +1214,14 @@ msgstr ""
 
 #: src/components/map/LinksSidePanel.vue:43
 msgid "undefined"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:84
+msgid "upload GTFS"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:155
+msgid "Uploaded"
 msgstr ""
 
 #: src/components/utils/Profile.vue:83
@@ -1235,10 +1248,11 @@ msgstr ""
 msgid "width to display on the map"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:216
+#: src/components/layout/ScenariosExplorer.vue:217
 #: src/components/map/LinksSidePanel.vue:641
-#: src/components/microservices/GTFSZipImporter.vue:247
-#: src/components/microservices/OSMImporter.vue:150
+#: src/components/microservices/GTFSWebImporter.vue:243
+#: src/components/microservices/GTFSZipImporter.vue:256
+#: src/components/microservices/OSMImporter.vue:160
 #: src/components/utils/Profile.vue:379
 #: src/pages/Import.vue:239
 msgid "Yes"
@@ -1248,6 +1262,6 @@ msgstr ""
 msgid "you need parameters to enter this page"
 msgstr ""
 
-#: src/store/user.js:82
+#: src/store/user.js:83
 msgid "your session has expired. please refresh the page or sign in again"
 msgstr ""
