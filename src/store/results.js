@@ -10,6 +10,7 @@ function isHexColor (variable) {
   return hexRegex.test(variable)
 }
 function remap (val, minVal, maxVal, reverse, scale, isWidth) {
+  // if String. classify with random number
   if (typeof (val) === 'string') {
     if (isWidth) {
       return 0
@@ -18,8 +19,53 @@ function remap (val, minVal, maxVal, reverse, scale, isWidth) {
       return rng()
     }
   }
+
+  if (isWidth) {
+    // with Width, we want an absolute value (-10 is the same with as 10)
+    // value out of range. force to min/max scale
+    if (val < minVal) {
+      val = minVal
+    } else if (val > maxVal) {
+      val = maxVal
+    }
+
+    val = Math.abs(val)
+    if (minVal < 0 && maxVal > 0) {
+      // if scale around 0 (ex: [-20,10]). min is 0 and max is now 20.
+      maxVal = Math.max(Math.abs(minVal), Math.abs(maxVal))
+      minVal = 0
+    } else if (minVal < 0 && maxVal <= 0) {
+      // if both negative. find the minimum and maximum in abs value.
+      const tmpMaxVal = Math.abs(maxVal)
+      maxVal = Math.max(Math.abs(minVal), tmpMaxVal)
+      minVal = Math.min(Math.abs(minVal), tmpMaxVal)
+    }
+  } else {
+    // if its Color. no absolute value
+    // value out of range. return 0 or 1 for colors
+    if (val < minVal) {
+      return reverse ? 1 : 0
+    } else if (val > maxVal) {
+      return reverse ? 0 : 1
+    }
+    if (minVal < 0) { // for colors when scale <0
+      // remap Value to [0, maxVal - minVal]
+      val = val - minVal
+      maxVal = maxVal - minVal
+      minVal = 0
+    }
+  }
+
   let res = val
+
   if (scale === 'log') {
+    if (minVal < 1) {
+      // no 0 for Log scale (as its inf). add +1
+      maxVal += 1
+      val += 1
+      minVal += 1
+    }
+
     minVal = minVal > 0 ? Math.log10(minVal) : 0
     maxVal = maxVal > 0 ? Math.log10(maxVal) : 0
     res = val > 0 ? Math.log10(val) : 0
@@ -199,14 +245,8 @@ export default {
       state.visibleLinks.features.forEach(
         link => {
           let val = link.properties[key]
-          if (val < minVal) {
-            link.properties.display_width = minWidth
-          } else if (val > maxVal) {
-            link.properties.display_width = maxWidth
-          } else {
-            val = remap(val, minVal, maxVal, false, scale, true)
-            link.properties.display_width = (maxWidth - minWidth) * val + minWidth
-          }
+          val = remap(val, minVal, maxVal, false, scale, true)
+          link.properties.display_width = (maxWidth - minWidth) * val + minWidth
         },
       )
 
