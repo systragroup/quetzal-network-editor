@@ -2,7 +2,7 @@ import { store } from '@src/store/index.js'
 import AWS from 'aws-sdk'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
-import sha256 from 'crypto-js/md5'
+import md5 from 'crypto-js/md5'
 
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
@@ -155,7 +155,7 @@ async function createFolder (bucket, key) {
 }
 async function putObject (bucket, key, body = '') {
   const oldChecksum = await getChecksum(bucket, key)
-  const newChecksum = sha256(JSON.stringify(body)).toString()
+  const newChecksum = md5(JSON.stringify(body)).toString()
   if (oldChecksum !== newChecksum) {
     const params = {
       Bucket: bucket,
@@ -170,7 +170,7 @@ async function putObject (bucket, key, body = '') {
 }
 
 function uploadObject (bucket, key, body = '') {
-  const checksum = sha256(JSON.stringify(body)).toString()
+  const checksum = md5(JSON.stringify(body)).toString()
   const params = {
     Bucket: bucket,
     Key: key,

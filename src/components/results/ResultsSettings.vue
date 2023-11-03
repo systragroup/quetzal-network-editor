@@ -139,7 +139,7 @@ export default {
     },
     getColor (scale) {
       const arr = []
-      const colorScale = chroma.scale(scale).padding([0.2, 0])
+      const colorScale = chroma.scale(scale).padding([0, 0])
         .domain([0, 100]).classes(25)
       for (let i = 0; i < 100; i++) {
         arr.push(colorScale(i).hex())
