@@ -1,74 +1,59 @@
-import { CognitoAuth, StorageHelper } from 'amazon-cognito-auth-js'
-import router from './router'
 import { store } from '@src/store/index.js'
 import jwtDecode from 'jwt-decode'
 
+import { Auth } from 'aws-amplify'
+
 const CLIENT_ID = process.env.VUE_APP_COGNITO_CLIENT_ID
-const APP_DOMAIN = process.env.VUE_APP_COGNITO_APP_DOMAIN
-const REDIRECT_URI = process.env.VUE_APP_COGNITO_REDIRECT_URI
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
-const REDIRECT_URI_SIGNOUT = process.env.VUE_APP_COGNITO_REDIRECT_URI_SIGNOUT
 
-const authData = {
-  ClientId: CLIENT_ID, // Your client id here
-  AppWebDomain: APP_DOMAIN,
-  TokenScopesArray: ['openid'],
-  RedirectUriSignIn: REDIRECT_URI,
-  RedirectUriSignOut: REDIRECT_URI_SIGNOUT,
-  UserPoolId: USERPOOL_ID,
+Auth.configure({
+
+  identityPoolId: IDENTITY_POOL_ID,
+  region: 'ca-central-1',
+  userPoolId: USERPOOL_ID,
+  userPoolWebClientId: CLIENT_ID,
+  mandatorySignIn: true,
+
+})
+
+// You can get the current config object
+Auth.configure()
+
+async function login () {
+  const data = await Auth.currentSession()
+  const idToken = data.getIdToken().getJwtToken()
+  const sessionIdInfo = jwtDecode(idToken)
+  store.commit('setIdToken', idToken)
+  store.commit('setAccessToken', data.getAccessToken())
+  store.commit('setCognitoInfo', sessionIdInfo)
+  store.commit('setLoggedIn', true)
+  if (Object.keys(sessionIdInfo).includes('cognito:groups')) {
+    store.commit('setCognitoGroup', sessionIdInfo['cognito:groups'][0])
+  }
 }
-const auth = new CognitoAuth(authData)
-
-auth.userhandler = {
-  onSuccess: function (result) {
-    // console.log('On Success result', result)
-    const idToken = result.getIdToken().jwtToken
-    const sessionIdInfo = jwtDecode(idToken)
-    // TODO : trouver comment avoir une liste des bucket!!
-    store.commit('setIdToken', idToken)
-    store.commit('setAccessToken', result.accessToken)
-    store.commit('setCognitoInfo', sessionIdInfo)
-    store.commit('setLoggedIn', true)
-    if (Object.keys(sessionIdInfo).includes('cognito:groups')) {
-      store.commit('setCognitoGroup', sessionIdInfo['cognito:groups'][0])
-    }
-  },
-  onFailure: function (err) {
-    store.commit('setLoggedOut')
-    alert('Login failed due to ' + err)
-    router.go({ path: '/error', query: { message: 'Login failed due to ' + err } })
-  },
+async function signin (username, password) {
+  const resp = await Auth.signIn(username, password)
+  return resp
 }
 
-function getCognitoStorageKey () {
-  const keyPrefix = 'CognitoIdentityServiceProvider.' + auth.getClientId()
-  const tokenUserName = auth.signInUserSession.getAccessToken().getUsername()
-  const suffix = ['.userInfo', '.tokenScopesString', '.accessToken', '.idToken', '.refreshToken']
-  const keys = suffix.map(s => keyPrefix + '.' + tokenUserName + s)
-  keys.push(keyPrefix + '.LastAuthUser')
-  keys.push(`aws.cognito.identity-id.${IDENTITY_POOL_ID}`)
-  keys.push(`aws.cognito.identity-providers.${IDENTITY_POOL_ID}`)
-  return keys
-}
-
-const storageHelper = new StorageHelper()
-const storage = storageHelper.getStorage()
+// Auth.signOut()
 export default {
-  auth: auth,
-  login () {
-    auth.getSession()
+  login,
+  signin,
+  async isUserSignedIn () {
+    try {
+      await Auth.currentAuthenticatedUser()
+      await login()
+      return true
+    } catch {
+      return false
+    }
   },
   logout () {
-    console.log(auth.isUserSignedIn())
-    if (auth.isUserSignedIn()) {
-      const cognitoKeys = this.getCognitoStorageKey()
-      cognitoKeys.forEach(key => storage.removeItem(key))
-      auth.signOut()
-    } else {
-      auth.signOut()
-    }
+    Auth.signOut()
+
+    store.commit('setLoggedOut')
   },
-  getCognitoStorageKey,
 
 }

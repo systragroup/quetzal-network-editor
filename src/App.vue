@@ -2,9 +2,6 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
-import auth from './auth'
-import s3 from './AWSClient'
-import { axiosClient } from './axiosClient'
 
 export default {
   name: 'App',
@@ -35,13 +32,6 @@ export default {
     // init links and node to empty one (new project)
     this.$store.commit('initNetworks')
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
-
-    if (auth.auth.isUserSignedIn()) {
-      await auth.login()
-      await s3.login()
-      await axiosClient.loginAll(this.$store.getters.idToken)
-      this.$store.dispatch('getBucketList')
-    }
   },
   methods: {
     closeSnackbar () {
