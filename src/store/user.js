@@ -1,5 +1,6 @@
 import s3 from '@src/AWSClient'
 import { quetzalClient } from '../axiosClient'
+import auth from '../auth'
 
 const $gettext = s => s
 
@@ -11,6 +12,7 @@ export default {
     bucketList: [],
     accesToken: '',
     idToken: '',
+    refreshExpTime: 30 * 24 * 60 * 60,
     expData: 0,
     loggedIn: false,
     loadingState: true,
@@ -20,6 +22,7 @@ export default {
     scenario: null,
     protected: false,
   },
+
   mutations: {
     unloadProject (state) {
       state.model = null
@@ -29,10 +32,22 @@ export default {
       state.loggedIn = true
     },
     setLoggedOut (state) {
-      state.loggedIn = false
       state.cognitoInfo = {}
+      state.cognitoGroup = ''
+      state.bucketList = []
+      state.accesToken = ''
+      state.idToken = ''
+      state.expData = 0
+      state.loggedIn = false
+      state.loadingState = true
+      state.errorLoadingState = false
+      state.scenariosList = []
+      state.model = null
+      state.scenario = null
+      state.protected = false
     },
     setCognitoInfo (state, payload) {
+      state.expDate = payload.auth_time
       state.cognitoInfo = payload
     },
     setCognitoGroup (state, payload) {
@@ -43,7 +58,6 @@ export default {
     },
     setAccessToken (state, payload) {
       state.accesToken = payload.jwtToken
-      state.expDate = payload.payload.exp
     },
     setIdToken (state, payload) {
       state.idToken = payload
@@ -77,10 +91,11 @@ export default {
     },
     isTokenExpired ({ state, commit }) {
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
-      if (currentTime > state.expDate) {
+      if (currentTime > state.expDate + state.refreshExpTime) {
+        auth.logout()
         commit('changeAlert', {
           name: $gettext('sign out'),
-          message: $gettext('your session has expired. please refresh the page or sign in again'),
+          message: $gettext('your session has expired. Please sign in again'),
         }, { root: true })
       }
     },

@@ -4,7 +4,7 @@ const quetzalClient = {
   client: null,
   login (idToken) {
     this.client = axios.create({
-      baseURL: 'https://z0i1paj50k.execute-api.ca-central-1.amazonaws.com/prod',
+      baseURL: 'http://127.0.0.1:8000',
       withCredentials: false,
       headers: {
         'Accept': '*/*',

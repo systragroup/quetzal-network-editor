@@ -1,13 +1,17 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script>
-import auth from '../../auth'
 import { quetzalClient } from '@src/axiosClient.js'
 import { generatePassword } from './utils.js'
+import auth from '@src/auth'
+import { axiosClient } from '@src/axiosClient'
+import s3 from '@src/AWSClient'
+import Signin from './Signin.vue'
 const $gettext = s => s
 
 export default {
   name: 'Profile',
   components: {
+    Signin,
 
   },
 
@@ -16,6 +20,7 @@ export default {
   data () {
     return {
       menu: false,
+      ui: false,
       showDialog: false,
       action: 'login',
       showMore: false,
@@ -57,6 +62,14 @@ export default {
       }
     },
 
+  },
+  async mounted () {
+    if (await auth.isUserSignedIn()) {
+      await auth.login()
+      await s3.login()
+      await axiosClient.loginAll(this.$store.getters.idToken)
+      this.$store.dispatch('getBucketList')
+    }
   },
 
   methods: {
@@ -113,6 +126,16 @@ export default {
 
     toggleShowMore () { this.showMore = !this.showMore },
 
+    async signin (event) {
+      if (event) {
+        this.ui = false
+        await auth.login()
+        await s3.login()
+        await axiosClient.loginAll(this.$store.getters.idToken)
+        this.$store.dispatch('getBucketList')
+      }
+    },
+
     login () {
       if (this.projectIsEmpty) {
         auth.login()
@@ -162,6 +185,7 @@ export default {
     >
       <template v-slot:activator="{ on, attrs }">
         <v-avatar
+          v-if="loggedIn"
           size="34"
           color="primary"
           v-bind="attrs"
@@ -262,25 +286,32 @@ export default {
         </v-card-actions>
       </v-card>
     </v-menu>
-    <v-tooltip
-      v-else
-      bottom
-      open-delay="250"
+    <v-menu
+      v-show="!loggedIn"
+      v-model="ui"
+      :close-on-content-click="false"
+      :close-on-click="true"
+      :nudge-width="300"
+      offset-x
+      offset-y
     >
       <template v-slot:activator="{ on, attrs }">
         <v-btn
+          v-show="!loggedIn"
           icon
           v-bind="attrs"
           v-on="on"
-          @click="login"
         >
           <v-icon>
             fas fa-sign-in-alt
           </v-icon>
         </v-btn>
       </template>
-      <span>{{ $gettext('login / signin') }}</span>
-    </v-tooltip>
+      <Signin
+        v-if="ui"
+        @signin="signin"
+      />
+    </v-menu>
     <v-dialog
       v-model="showDialog"
       persistent
@@ -290,10 +321,10 @@ export default {
     >
       <v-card>
         <v-card-title
-          v-if="action === 'login'"
+          v-if="action === 'logout'"
           class="text-h4"
         >
-          {{ $gettext("Redirect") }}
+          {{ $gettext("Sign out") }}
         </v-card-title>
         <v-card-title
           v-else-if="action === 'createUser'"
@@ -308,10 +339,10 @@ export default {
           {{ $gettext('delete User') + ' ' + selectedUsername + ' ?' }}
         </v-card-title>
         <v-card-text
-          v-if="action === 'login'"
+          v-if="action === 'logout'"
           class="text-h8"
         >
-          {{ $gettext("This will ERASE the current project") }}
+          {{ $gettext("This action will sign you out") }}
         </v-card-text>
         <v-card-text
           v-else-if="action === 'createUser'"
@@ -386,4 +417,9 @@ export default {
 .form{
   margin: 1rem;
 }
+
+.signin {
+  padding:1rem 2rem 2rem 2rem
+}
+
 </style>
