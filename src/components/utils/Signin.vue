@@ -55,6 +55,7 @@ export default {
     <v-card
       class="signin"
       :class="{'shake':shake}"
+      @keydown.enter="signin()"
     >
       <v-card-title
         class="text-h4"
