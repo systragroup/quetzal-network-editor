@@ -82,7 +82,7 @@ async function copyFolder (bucket, prefix, newName) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
     newFile = newFile.join('/')
-    // need to encore special character (é for example).
+    // need to encode special character (é for example).
     let oldPath = file.Key.split('/')
     oldPath[0] = encodeURIComponent(oldPath[0])
     oldPath = oldPath.join('/')

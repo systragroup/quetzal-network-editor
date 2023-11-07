@@ -77,7 +77,7 @@ export default {
       })
       // add all default attributes
       const defaultAttributes = [
-        'index', ' name']
+        'index', 'name']
       defaultAttributes.forEach(att => header.add(att))
       state.layerAttributes = Array.from(header)
       state.selectedFilter = state.layerAttributes[0]
