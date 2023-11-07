@@ -143,7 +143,7 @@ export default {
         try {
           if (this.selectedScenario) {
             // this is a copy
-            await s3.copyFolder(this.localModel, this.selectedScenario, this.input)
+            await s3.copyFolder(this.localModel, this.selectedScenario + '/', this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
           } else {
