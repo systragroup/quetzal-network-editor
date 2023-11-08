@@ -201,6 +201,27 @@ export default {
         }
       }"
     />
+    <MglGeojsonLayer
+      v-if="type == 'extrusion'"
+      :source-id="preset.name+ '-layer'"
+      :source="{
+        type: 'geojson',
+        data: layer,
+      }"
+      :layer-id="preset.name+ '-layer'"
+      :layer="{
+        interactive: false,
+        type: 'fill-extrusion',
+        minzoom: 5,
+        'paint': {
+          'fill-extrusion-color':['get', 'display_color'],
+          'fill-extrusion-opacity': opacity/100,
+          'fill-extrusion-height':['*',1000,['to-number', ['get', 'display_width']]],
+
+        },
+
+      }"
+    />
   </section>
 </template>
 

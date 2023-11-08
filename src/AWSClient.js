@@ -34,6 +34,7 @@ async function readBytes (bucket, key) {
 async function downloadFolder (bucket, prefix) {
   // zip everything in a folder. keep filename. Folder structure will not work.
   const zip = new JSZip()
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
@@ -53,12 +54,14 @@ async function listFiles (bucket, prefix) {
   if (Array.isArray(prefix)) {
     const paths = []
     prefix.forEach(async pref => {
-      const params = { Bucket: bucket, Prefix: prefix }
+      if (pref.slice(-1) !== '/') { pref = pref + '/' }
+      const params = { Bucket: bucket, Prefix: pref }
       const Content = await s3Client.listObjectsV2(params).promise()
       paths.push(...Content.Contents.map(item => item.Key))
     })
     return paths
   } else {
+    if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
     const params = { Bucket: bucket, Prefix: prefix }
     const Content = await s3Client.listObjectsV2(params).promise()
     return Content.Contents.map(item => item.Key)
@@ -74,9 +77,10 @@ async function getImagesURL (bucket, key) {
 }
 
 async function copyFolder (bucket, prefix, newName) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
-  response.Contents = response.Contents.filter(el => el.Key !== (prefix + '/.lock'))
+  response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
   for (const file of response.Contents) {
     let newFile = file.Key.split('/')
@@ -99,10 +103,11 @@ async function copyFolder (bucket, prefix, newName) {
 }
 
 async function newScenario (bucket, prefix, newName) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const filesToCopy = [
-    prefix + '/inputs/params.json',
-    prefix + '/styles.json',
-    prefix + '/attributesChoices.json',
+    prefix + 'inputs/params.json',
+    prefix + 'styles.json',
+    prefix + 'attributesChoices.json',
   ]
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
@@ -130,6 +135,7 @@ async function newScenario (bucket, prefix, newName) {
 }
 
 async function deleteFolder (bucket, prefix) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   const arr = []
@@ -142,7 +148,7 @@ async function deleteFolder (bucket, prefix) {
 
 async function createFolder (bucket, key) {
   // create an empty folder
-  if (key.slice(-1) !== '/') key = key + '/'
+  if (key.slice(-1) !== '/') { key = key + '/' }
   const params = { Bucket: bucket, Key: key, Body: '' }
 
   s3Client.upload(params, function (err, data) {
@@ -200,7 +206,7 @@ async function getScenario (bucket) {
   // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
   const scenList = []
   for (const scen of scenarios) {
-    let files = list.filter(item => item.Key.startsWith(scen))
+    let files = list.filter(item => item.Key.startsWith(scen + '/'))
     // if there is .lock file in the root dir of the scen. it is protected.
     const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
     const isLocked = lockedList.length > 0 || scen === 'base'
@@ -209,6 +215,7 @@ async function getScenario (bucket) {
     files = files.filter(file => !file.Key.endsWith('/attributesChoices.json'))
     const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
+    const timestamp = maxDateObj.LastModified.getTime()
     // get user email metadata on newest object. undefined if empty or error.
     let userEmail // this = undefined
     try {
@@ -216,7 +223,14 @@ async function getScenario (bucket) {
       // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
       userEmail = resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
     } catch (err) { store.commit('changeAlert', err) }
-    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail, protected: isLocked })
+    scenList.push({
+      model: bucket,
+      scenario: scen,
+      lastModified: maxDate,
+      timestamp: timestamp,
+      userEmail: userEmail,
+      protected: isLocked,
+    })
   }
   return scenList
 }

@@ -110,6 +110,7 @@ const defaultSettings = {
   offset: false,
   showNaN: true,
   reverseColor: false,
+  extrusion: false,
 }
 
 export default {
@@ -151,6 +152,8 @@ export default {
       this.commit('results/cleanLinks')
       state.links = payload.geojson
       state.type = payload.type
+      // extrusion only for polygon right now. set to false if not a polygon
+      if (state.type !== 'Polygon') { state.displaySettings.extrusion = false }
       state.hasOD = payload.hasOD ? payload.hasOD : false
       state.ODindex = payload.ODindex ? payload.ODindex : {}
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
@@ -301,7 +304,6 @@ export default {
   },
 
   getters: {
-    type: (state) => state.type,
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
     displayLinks: (state) => {
@@ -317,6 +319,12 @@ export default {
         }
       })
       return layer
+    },
+    type: (state) => {
+      // if 3D selected and a polygon. change type to extrusion.
+      if (state.displaySettings.extrusion && state.type === 'Polygon') {
+        return 'extrusion'
+      } else { return state.type }
     },
     NaNLinks: (state) => state.NaNLinks,
     linksHeader: (state) => state.linksHeader,

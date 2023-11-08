@@ -75,7 +75,7 @@ export default {
       if (this.map) this.mapIsLoaded = false
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-      if (this.layerType === 'Polygon') {
+      if ((['Polygon', 'extrusion']).includes(this.layerType)) {
         this.links.features.forEach(link => {
           try { // try, so NaN will not crash
             if (link.geometry.type === 'Polygon') {
@@ -109,7 +109,7 @@ export default {
       })
 
       this.map = event.map
-      event.map.dragRotate.disable()
+      if (this.layerType !== 'extrusion') { event.map.dragRotate.disable() }
       this.mapIsLoaded = true
     },
     enterLink (event) {
@@ -255,6 +255,31 @@ export default {
       }"
     />
     <MglGeojsonLayer
+      v-if="layerType === 'extrusion'"
+      source-id="polygon"
+      :source="{
+        type: 'geojson',
+        data: links,
+        promoteId: 'index',
+      }"
+      layer-id="zones-extrusion"
+      :layer="{
+        interactive: true,
+        type: 'fill-extrusion',
+        'paint': {
+          'fill-extrusion-color':['get', 'display_color'],
+          'fill-extrusion-opacity': opacity/100,
+          'fill-extrusion-height':['*',1000,['to-number', ['get', 'display_width']]],
+
+        }
+      }"
+      @mouseenter="zoneHover"
+      @mouseleave="zoneLeave"
+      @click="zoneClick"
+      @contextmenu="selectClick"
+    />
+
+    <MglGeojsonLayer
       v-if="layerType === 'Polygon'"
       source-id="polygon"
       :source="{
@@ -277,6 +302,7 @@ export default {
       @click="zoneClick"
       @contextmenu="selectClick"
     />
+
     <MglGeojsonLayer
       v-if="layerType === 'Polygon'"
       source-id="NaNPolygon"

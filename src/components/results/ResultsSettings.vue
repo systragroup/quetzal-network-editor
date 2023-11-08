@@ -98,6 +98,11 @@ export default {
         value: this.displaySettings.offset,
         hint: $gettext('Select which side of the road the links are display'),
       },
+      {
+        name: $gettext('3D'),
+        value: this.displaySettings.extrusion,
+        hint: $gettext('display zones as 3D extrusion'),
+      },
 
       ],
       showHint: false,
@@ -160,6 +165,7 @@ export default {
       this.parameters[10].value = this.displaySettings.maxVal
       this.parameters[11].value = this.displaySettings.fixScale
       this.parameters[12].value = this.displaySettings.offset
+      this.parameters[13].value = this.displaySettings.extrusion
     },
     submit (method) {
       if (this.$refs.form.validate()) {
@@ -177,6 +183,7 @@ export default {
           maxVal: Number(this.parameters[10].value),
           fixScale: this.parameters[11].value,
           offset: this.parameters[12].value,
+          extrusion: this.parameters[13].value,
         }
         if (method === 'apply') {
           this.$emit('submit', payload)
@@ -356,6 +363,15 @@ export default {
                 v-model="parameters[8].value"
                 :label="$gettext(parameters[8].name)"
                 :hint="showHint? $gettext(parameters[7].hint): ''"
+                :persistent-hint="showHint"
+              />
+              <v-switch
+                v-if="['Polygon','extrusion'].includes($store.getters['results/type'])"
+                :key="parameters[13].name"
+                v-model="parameters[13].value"
+                :label="$gettext(parameters[13].name)"
+                :disabled="!['Polygon','extrusion'].includes($store.getters['results/type'])"
+                :hint="showHint? $gettext(parameters[13].hint): ''"
                 :persistent-hint="showHint"
               />
               <v-switch
