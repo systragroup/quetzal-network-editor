@@ -15,6 +15,9 @@ export default {
   data () {
     return {
       menu: false,
+      sortModel: 'scenario',
+      sortDirection: true,
+      searchString: '',
       showDialog: false,
       modelScen: '',
       localModel: '',
@@ -36,10 +39,15 @@ export default {
     loggedIn () { return this.$store.getters.loggedIn },
     scenariosList () {
       // sort by alphabetical order, with protectedScens one one top
-      const arr = this.$store.getters.scenariosList
+      let arr = this.$store.getters.scenariosList
+      if (this.searchString) {
+        arr = arr.filter(el => el.scenario.toLowerCase().includes(this.searchString.toLowerCase()))
+      }
       return arr.sort((a, b) => {
         if (a.protected === b.protected) { // both true or both false. we go alphabetically
-          return a.scenario.localeCompare(b.scenario, undefined, { sensitivity: 'base' })
+          const res = String(a[this.sortModel]).localeCompare(String(b[this.sortModel]),
+            undefined, { sensitivity: 'base' })
+          return this.sortDirection ? res : -res
         } else if (a.protected) {
           return -1 // `a` comes before `b`
         } else {
@@ -71,7 +79,7 @@ export default {
     async modelsList (val) {
       // This component is rendered before we fetch on S3 the bucket list.
       // so, when its fetched, set the model to the first one and get the scenario.
-      this.localModel = this.modelsList[0]
+      if (this.localModel === '') { this.localModel = this.modelsList[0] }
       await this.$store.dispatch('getScenario', { model: this.localModel })
     },
     scenario (val) {
@@ -150,7 +158,8 @@ export default {
             // this is a new project
             // copy the parameters file from Base. this will create a new project .
             // take first Scen. should be base or any locked scen
-            const base = this.scenariosList[0].scenario
+            const protectedList = this.$store.getters.scenariosList.filter(scen => scen.protected)
+            const base = protectedList[0].scenario
             await s3.newScenario(this.localModel, base, this.input)
             this.$store.commit('changeNotification',
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
@@ -183,7 +192,6 @@ export default {
       :close-on-click="!showDialog && !deleteDialog && !copyDialog"
       :close-on-content-click="false"
       max-width="460px"
-      :max-height="windowHeight"
       offset-y
     >
       <template v-slot:activator="{ on, attrs }">
@@ -210,57 +218,119 @@ export default {
             {{ tab.slice(8) }}
           </v-tab>
         </v-tabs>
+        <v-divider />
         <v-list-item
-          v-for="scen in scenariosList"
-          :key="scen.model + scen.scenario"
-          :value="scen.model + scen.scenario"
-          :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
-          two-line
-          @click="selectScenario(scen)"
+          class="text-right"
         >
-          <v-list-item-content>
-            <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
-            <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
-            <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
-          </v-list-item-content>
-          <v-btn
-            icon
-            class="ma-1"
-            @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
-          >
-            <v-icon
-              small
-              color="regular"
-            >
-              fas fa-copy
-            </v-icon>
-          </v-btn>
-          <v-btn
-            icon
-            :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
-            class="ma-1"
-            @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
-          >
-            <v-icon
-              small
-              color="grey"
-            >
-              {{ scen.protected? 'fas fa-lock':'fas fa-trash' }}
-            </v-icon>
-          </v-btn>
-        </v-list-item>
-        <v-list-item v-show="loading">
-          <v-spacer />
-          <v-progress-circular
-            color="primary"
-            indeterminate
+          <v-text-field
+            v-model="searchString"
+            :style="{'padding-right': '0.5rem'}"
+            dense
+            outlined
+            clear-icon="fas fa-times-circle"
+            clearable
+            label="search"
+            hide-details
+            prepend-inner-icon="fas fa-search"
+            @click:clear="searchString=null"
           />
-          <v-spacer />
+          <v-btn-toggle
+            v-model="sortModel"
+            dense
+            mandatory
+          >
+            <v-btn value="scenario">
+              <span class="hidden-sm-and-down lowercase-text">{{ $gettext('name') }}</span>
+
+              <v-icon right>
+                fas fa-font
+              </v-icon>
+            </v-btn>
+            <v-btn value="timestamp">
+              <span class="hidden-sm-and-down lowercase-text">date</span>
+
+              <v-icon right>
+                fas fa-calendar-week
+              </v-icon>
+            </v-btn>
+            <v-btn value="userEmail">
+              <span class="hidden-sm-and-down lowercase-text">email</span>
+
+              <v-icon right>
+                fas fa-at
+              </v-icon>
+            </v-btn>
+          </v-btn-toggle>
+          <v-btn
+            class="v-btn-toggle v-btn-toggle--active v-btn--active v-btn--toggle"
+            icon
+            @click="sortDirection=!sortDirection"
+          >
+            <v-icon center>
+              {{ sortDirection? 'fas fa-sort-down' : 'fas fa-sort-up' }}
+            </v-icon>
+          </v-btn>
         </v-list-item>
+        <v-divider />
+        <div
+          class="v-card-content"
+          :style="{'max-height': `${windowHeight-200}px`}"
+        >
+          <v-list-item
+            v-for="scen in scenariosList"
+
+            :key="scen.model + scen.scenario"
+            max-height="200px"
+            :value="scen.model + scen.scenario"
+            :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
+            two-line
+            @click="selectScenario(scen)"
+          >
+            <v-list-item-content>
+              <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
+              <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
+            </v-list-item-content>
+            <v-btn
+              icon
+              class="ma-1"
+              @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
+            >
+              <v-icon
+                small
+                color="regular"
+              >
+                fas fa-copy
+              </v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
+              class="ma-1"
+              @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+            >
+              <v-icon
+                small
+                color="grey"
+              >
+                {{ scen.protected? 'fas fa-lock':'fas fa-trash' }}
+              </v-icon>
+            </v-btn>
+          </v-list-item>
+          <v-list-item v-show="loading">
+            <v-spacer />
+            <v-progress-circular
+              color="primary"
+              indeterminate
+            />
+            <v-spacer />
+          </v-list-item>
+        </div>
         <v-divider />
         <v-list-item>
           <v-btn
             text
+            block
             @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
           >
             {{ $gettext('new scenario') }}
@@ -401,5 +471,16 @@ export default {
   opacity:1;
   background-color:var(--v-primary-base);
 
+}
+.lowercase-text {
+  text-transform: lowercase;
+}
+.text-right {
+  justify-content: end;
+}
+
+.v-card-content {
+  //max-height:400px; /* Set a max height for the middle content */
+  overflow: auto; /* Enable scrolling if the content overflows */
 }
 </style>
