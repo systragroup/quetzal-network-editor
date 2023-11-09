@@ -103,6 +103,13 @@ export default {
         value: this.displaySettings.extrusion,
         hint: $gettext('display zones as 3D extrusion'),
       },
+      {
+        name: $gettext('padding'),
+        type: 'Number',
+        value: this.displaySettings.padding,
+        units: 'number',
+        hint: $gettext('range of colors'),
+      },
 
       ],
       showHint: false,
@@ -144,12 +151,16 @@ export default {
     },
     getColor (scale) {
       const arr = []
-      const colorScale = chroma.scale(scale).padding([0, 0])
+      const reversed = this.parameters[8].value
+      let pad = this.parameters[14].value
+      pad = [pad[0] / 100, 1 - pad[1] / 100]
+      pad = reversed ? pad.reverse() : pad
+      const colorScale = chroma.scale(scale).padding(pad)
         .domain([0, 100]).classes(25)
       for (let i = 0; i < 100; i++) {
         arr.push(colorScale(i).hex())
       }
-      return arr
+      return reversed ? arr.reverse() : arr
     },
     refresh () {
       this.parameters[0].value = this.displaySettings.selectedFeature
@@ -166,6 +177,7 @@ export default {
       this.parameters[11].value = this.displaySettings.fixScale
       this.parameters[12].value = this.displaySettings.offset
       this.parameters[13].value = this.displaySettings.extrusion
+      this.parameters[14].value = this.displaySettings.padding
     },
     submit (method) {
       if (this.$refs.form.validate()) {
@@ -184,6 +196,7 @@ export default {
           fixScale: this.parameters[11].value,
           offset: this.parameters[12].value,
           extrusion: this.parameters[13].value,
+          padding: this.parameters[14].value,
         }
         if (method === 'apply') {
           this.$emit('submit', payload)
@@ -259,6 +272,7 @@ export default {
           <v-container>
             <v-col>
               <v-select
+
                 v-model="parameters[0].value"
                 :items="featureChoices"
                 :label="$gettext(parameters[0].name)"
@@ -273,6 +287,7 @@ export default {
                 >
                   <v-text-field
                     v-model="item.value"
+                    dense
                     :type="item.type"
                     :label="$gettext(item.name)"
                     :suffix="item.units"
@@ -287,6 +302,7 @@ export default {
                 <v-col>
                   <v-text-field
                     v-model="parameters[3].value"
+                    dense
                     :type="parameters[3].type"
                     :label="$gettext(parameters[3].name)"
                     :suffix="parameters[3].units"
@@ -299,6 +315,7 @@ export default {
                 <v-col>
                   <v-select
                     v-model="parameters[5].value"
+                    dense
                     :items="parameters[5].choices"
                     :label="$gettext(parameters[5].name)"
                     :hint="showHint? $gettext(parameters[5].hint): ''"
@@ -309,6 +326,7 @@ export default {
               </v-row>
 
               <v-select
+
                 v-model="parameters[6].value"
                 :items="parameters[6].choices"
                 :label="$gettext(parameters[6].name)"
@@ -343,6 +361,17 @@ export default {
                 </template>
               </v-select>
 
+              <v-range-slider
+                v-model="parameters[14].value"
+                inverse-label
+                step="5"
+                dense
+                :label="$gettext(parameters[14].name)"
+                min="0"
+                max="100"
+                hide-details
+                class="align-center"
+              />
               <v-slider
                 v-model="parameters[4].value"
                 class="align-center"

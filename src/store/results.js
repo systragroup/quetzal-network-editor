@@ -111,6 +111,7 @@ const defaultSettings = {
   showNaN: true,
   reverseColor: false,
   extrusion: false,
+  padding: [0, 100],
 }
 
 export default {
@@ -252,8 +253,10 @@ export default {
           link.properties.display_width = (maxWidth - minWidth) * val + minWidth
         },
       )
-
-      const colorScale = chroma.scale(cmap).padding([0, 0])
+      let pad = structuredClone(state.displaySettings.padding)
+      pad = [pad[0] / 100, 1 - pad[1] / 100]
+      pad = state.displaySettings.reverseColor ? pad.reverse() : pad
+      const colorScale = chroma.scale(cmap).padding(pad)
         .domain([0, 1], scale).classes(numStep)
 
       state.visibleLinks.features.forEach(
@@ -340,7 +343,10 @@ export default {
     opacity: (state) => state.displaySettings.opacity,
     colorScale: (state) => {
       const arr = []
-      const colorScale = chroma.scale(state.displaySettings.cmap).padding([0, 0])
+      let pad = state.displaySettings.padding
+      pad = [pad[0] / 100, 1 - pad[1] / 100]
+      pad = state.displaySettings.reverseColor ? pad.reverse() : pad
+      const colorScale = chroma.scale(state.displaySettings.cmap).padding(pad)
         .domain([0, 1]).classes(state.displaySettings.numStep)
       for (let i = 0; i < 100; i++) {
         arr.push(colorScale(remap(i, 0, 100, state.displaySettings.reverseColor, state.displaySettings.scale, false)))
