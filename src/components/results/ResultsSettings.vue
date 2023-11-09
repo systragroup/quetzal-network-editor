@@ -315,7 +315,21 @@ export default {
                 :hint="showHint? $gettext(parameters[6].hint): ''"
                 :persistent-hint="showHint"
                 required
+                solo
               >
+                <template
+                  v-slot:selection="{item}"
+                >
+                  <div class="gradient">
+                    <span
+                      v-for="(color,key) in getColor(item)"
+                      :key="key"
+                      class="grad-step-small"
+                      :style="{'backgroundColor':color}"
+                    />
+                    <span class="domain-title-small">{{ item }}</span>
+                  </div>
+                </template>
                 <template v-slot:item="{item}">
                   <div class="gradient">
                     <span
@@ -347,6 +361,7 @@ export default {
               <v-switch
                 :key="parameters[12].name"
                 v-model="parameters[12].value"
+                dense
                 :label="$gettext(parameters[12].name)"
                 :hint="showHint? $gettext(parameters[12].hint): ''"
                 :persistent-hint="showHint"
@@ -354,6 +369,7 @@ export default {
               <v-switch
                 :key="parameters[7].name"
                 v-model="parameters[7].value"
+                dense
                 :label="$gettext(parameters[7].name)"
                 :hint="showHint? $gettext(parameters[7].hint): ''"
                 :persistent-hint="showHint"
@@ -361,6 +377,7 @@ export default {
               <v-switch
                 :key="parameters[8].name"
                 v-model="parameters[8].value"
+                dense
                 :label="$gettext(parameters[8].name)"
                 :hint="showHint? $gettext(parameters[7].hint): ''"
                 :persistent-hint="showHint"
@@ -369,6 +386,7 @@ export default {
                 v-if="['Polygon','extrusion'].includes($store.getters['results/type'])"
                 :key="parameters[13].name"
                 v-model="parameters[13].value"
+                dense
                 :label="$gettext(parameters[13].name)"
                 :disabled="!['Polygon','extrusion'].includes($store.getters['results/type'])"
                 :hint="showHint? $gettext(parameters[13].hint): ''"
@@ -377,6 +395,7 @@ export default {
               <v-switch
                 :key="parameters[11].name"
                 v-model="parameters[11].value"
+                dense
                 :label="$gettext(parameters[11].name)"
                 :hint="showHint? $gettext(parameters[11].hint): ''"
                 :persistent-hint="showHint"
@@ -444,7 +463,6 @@ export default {
     display: inline-block;
     padding-top: 10px;
     padding-bottom: 10px;
-
 }
 
 .gradient .domain-title {
@@ -453,12 +471,24 @@ export default {
     padding-top:0.5rem;
     text-align: center;
     font-size: 16px;
+}
 
+.gradient .domain-title-small {
+    position: absolute;
+    padding-left:0.5rem;
+    padding-top:0rem;
+    text-align: center;
+    font-size: 16px;
 }
 
 .grad-step {
     display: inline-block;
     height: 40px;
+    width: 1%;
+}
+.grad-step-small{
+    display: inline-block;
+    height: 20px;
     width: 1%;
 }
 
