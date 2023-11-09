@@ -51,6 +51,11 @@ export default {
   },
 
   mutations: {
+    initLinks (state) {
+      state.linksAttributesChoices = {}
+      state.lineAttributes = []
+      state.nodeAttributes = []
+    },
     loadLinks (state, payload) {
       state.links = structuredClone(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
@@ -171,6 +176,9 @@ export default {
     loadLinksAttributesChoices (state, payload) {
       // eslint-disable-next-line no-return-assign
       Object.keys(payload).forEach(key => state.linksAttributesChoices[key] = payload[key])
+      const attrs = Object.keys(state.linksAttributesChoices) // all attrbutes in attributesChoices
+      const newAttrs = attrs.filter(item => !state.lineAttributes.includes(item)) // ones not in rlinks
+      newAttrs.forEach(item => this.commit('addPropertie', { table: 'links', name: item }))
     },
 
     addPropertie (state, payload) {

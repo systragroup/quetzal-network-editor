@@ -15,6 +15,10 @@ const $gettext = s => s
 
 const short = require('short-uuid')
 
+// eslint-disable-next-line max-len
+const defaultrCstAttributes = ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway', 'cycleway', 'cycleway_reverse', 'incline']
+const defaultrUndeletable = ['index', 'a', 'b', 'length', 'route_color', 'oneway', 'time', 'speed', 'time_r', 'speed_r']
+
 export default {
   state: {
     rlinks: {},
@@ -37,12 +41,21 @@ export default {
     rlinksDefaultColor: '2196F3',
     rlinksAttributesChoices: {},
     // those are the list of attributes we do not want to duplicated with _r.
-    rcstAttributes: ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway', 'cycleway', 'cycleway_reverse', 'incline'],
-    rundeletable: ['index', 'a', 'b', 'length', 'route_color', 'oneway', 'time', 'speed', 'time_r', 'speed_r'],
+    rcstAttributes: defaultrCstAttributes,
+    rundeletable: defaultrUndeletable,
     reversedAttributes: [],
   },
 
   mutations: {
+    initrLinks (state) {
+      state.rlinksAttributesChoices = {}
+      state.rlineAttributes = []
+      state.rnodeAttributes = []
+      state.rcstAttributes = structuredClone(defaultrCstAttributes)
+      state.rundeletable = structuredClone(defaultrUndeletable)
+      state.rseversedAttributes = []
+    },
+
     loadrLinks (state, payload) {
       state.rlinks = structuredClone(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.rlinks.crs.properties.name)) {
@@ -133,9 +146,11 @@ export default {
       })
       // header.delete('index')
       // add all default attributes
+
       const defaultAttributes = [
         'index', 'a', 'b', 'route_color']
       defaultAttributes.forEach(att => header.add(att))
+      state.rlineAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.rlineAttributes = header
       if (header.includes('highway')) {

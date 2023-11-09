@@ -20,6 +20,8 @@ import nodesBase from '@static/nodes_base.geojson'
 Vue.use(Vuex)
 const $gettext = s => s
 
+const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
+
 export const store = new Vuex.Store({
   modules: {
     user: userModule,
@@ -52,7 +54,7 @@ export const store = new Vuex.Store({
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
-    attributesChoices: {}, // { pt: {}, road: { oneway: ['0', '1'] } }
+    attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
   },
   mutations: {
     changeNotification (state, payload) {
@@ -222,6 +224,8 @@ export const store = new Vuex.Store({
       }
     },
     initNetworks (state) {
+      this.commit('initLinks')
+      this.commit('initrLinks')
       this.commit('loadLinks', linksBase)
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
@@ -229,8 +233,8 @@ export const store = new Vuex.Store({
       this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
       state.styles = []
-      // default Values. if changed, change the export condition as it check this is changed to export.
-      state.attributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
+      state.attributesChoices = structuredClone(defaultAttributesChoices)
+      this.commit('loadAttributesChoices', defaultAttributesChoices)
       state.otherFiles = []
       state.cyclewayMode = false
     },
@@ -333,7 +337,7 @@ export const store = new Vuex.Store({
           const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
           zip.file('styles.json', blob)
         }
-        if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+        if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
           const blob = new Blob([JSON.stringify(state.attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
@@ -403,7 +407,7 @@ export const store = new Vuex.Store({
         await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
       }
       // save attributes choices if changed
-      if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+      if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
         await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(state.attributesChoices))
       }
       // save PT

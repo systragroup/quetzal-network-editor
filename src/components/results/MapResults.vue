@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
+const $gettext = s => s
 
 export default {
   name: 'ResultMap',
@@ -109,7 +110,13 @@ export default {
       })
 
       this.map = event.map
-      if (this.layerType !== 'extrusion') { event.map.dragRotate.disable() }
+      if (this.layerType !== 'extrusion') {
+        event.map.dragRotate.disable()
+      } else {
+        this.$store.commit('changeNotification',
+          { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
+      }
+
       this.mapIsLoaded = true
     },
     enterLink (event) {
