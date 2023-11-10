@@ -4,6 +4,8 @@ import ResultsSidePanel from '@comp/results/ResultsSidePanel.vue'
 import MapResults from '@comp/results/MapResults.vue'
 import ResultsSettings from '@comp/results/ResultsSettings.vue'
 import MapLegend from '@comp/utils/MapLegend.vue'
+import StaticLayer from '@comp/utils/StaticLayer.vue'
+import LayerSelector from '@comp/utils/LayerSelector.vue'
 const $gettext = s => s
 
 export default {
@@ -13,12 +15,13 @@ export default {
     MapResults,
     ResultsSettings,
     MapLegend,
+    LayerSelector,
+    StaticLayer,
 
   },
 
   data () {
     return {
-      mapIsLoaded: false,
       minZoom: {
         nodes: 14,
         links: 8,
@@ -46,6 +49,7 @@ export default {
     selectedFilter () { return this.$store.getters['results/selectedFilter'] },
     selectedCategory () { return this.$store.getters['results/selectedCategory'] },
     colorScale () { return this.$store.getters['results/colorScale'] },
+    visibleRasters () { return this.$store.getters.visibleRasters },
     filteredCategory () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
@@ -53,6 +57,9 @@ export default {
         item => item.properties[this.selectedFilter])))
       return val
     },
+  },
+  watch: {
+    selectedLayer (val) { console.log(val) },
   },
   created () {
     // chose first available layer. if none. use Links as its an empty geojson (no bug with that)
@@ -65,6 +72,7 @@ export default {
 
   methods: {
     applySettings (payload) {
+      console.log(payload)
       this.$store.commit('results/applySettings', payload)
     },
     updateSelectedFilter (val) {
@@ -236,8 +244,15 @@ export default {
       @submit="applySettings"
       @save-preset="clickSavePreset"
     />
+    <LayerSelector
+      v-if="availablePresets.length>0"
+      :choices="availablePresets"
+      :available-layers="availableLayers"
+    />
     <div class="left-panel">
       <MapLegend
+        key="result"
+        :order="0"
         :color-scale="colorScale"
         :display-settings="displaySettings"
       />
@@ -245,15 +260,28 @@ export default {
 
     <MapResults
       :key="$store.getters['results/type']"
+      v-slot="{ map }"
       :selected-feature="displaySettings.selectedFeature"
       :opacity="displaySettings.opacity"
       :offset="displaySettings.offset"
       :has-o-d="$store.getters[`${selectedLayer}/hasOD`] "
       :o-d-index="$store.getters[`${selectedLayer}/matAvailableIndex`] "
       :o-d-features="$store.getters[`${selectedLayer}/properties`]"
-
       @selectClick="featureClicked"
-    />
+    >
+      <div
+        v-for="file in availablePresets"
+        :key="file.name"
+      >
+        <template v-if=" visibleRasters.includes(file.name) && availableLayers.includes(file.layer)">
+          <StaticLayer
+            :preset="file"
+            :map="map"
+            :order="visibleRasters.indexOf(file.name)+1"
+          />
+        </template>
+      </div>
+    </MapResults>
 
     <v-dialog
       v-model="showDialog"

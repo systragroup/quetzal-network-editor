@@ -3,6 +3,7 @@
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
+
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
 const $gettext = s => s
 
@@ -172,7 +173,11 @@ export default {
   >
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
-
+    <slot
+      v-if="mapIsLoaded"
+      :map="map"
+      :map-is-loaded="mapIsLoaded"
+    />
     <MglGeojsonLayer
       v-if="layerType == 'LineString'"
       source-id="links"
