@@ -36,7 +36,7 @@ export default {
   methods: {
     closeSnackbar () {
       this.snackbar = false
-      this.$store.notification = {}
+      this.$store.commit('changeNotification', { text: '', autoClose: true })
     },
     onResize () {
       // -50 for the ToolBar

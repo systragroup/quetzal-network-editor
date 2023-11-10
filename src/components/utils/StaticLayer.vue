@@ -125,7 +125,9 @@ export default {
 </script>
 <template>
   <section>
-    <div class="map-legend">
+    <div
+      class="map-legend"
+    >
       <MapLegend
         :color-scale="colorScale"
         :display-settings="displaySettings"
@@ -229,6 +231,7 @@ export default {
 <style lang="scss" scoped>
 .map-legend {
   height: 100%;
+  bottom:0px;
   position: absolute;
 }
 </style>

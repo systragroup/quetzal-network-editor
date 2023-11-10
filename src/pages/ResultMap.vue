@@ -58,9 +58,7 @@ export default {
       return val
     },
   },
-  watch: {
-    selectedLayer (val) { console.log(val) },
-  },
+
   created () {
     // chose first available layer. if none. use Links as its an empty geojson (no bug with that)
     if (this.availableLayers.lenght > 0) { this.selectedLayer = this.availableLayers[0] }
@@ -72,7 +70,6 @@ export default {
 
   methods: {
     applySettings (payload) {
-      console.log(payload)
       this.$store.commit('results/applySettings', payload)
     },
     updateSelectedFilter (val) {
