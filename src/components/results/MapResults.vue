@@ -175,6 +175,7 @@ export default {
     <MglNavigationControl position="bottom-right" />
     <slot
       v-if="mapIsLoaded"
+
       :map="map"
       :map-is-loaded="mapIsLoaded"
     />
@@ -187,7 +188,7 @@ export default {
         buffer: 0,
         promoteId: 'index',
       }"
-      layer-id="links"
+      layer-id="results"
       :layer="{
         interactive: true,
         type: 'line',
@@ -220,7 +221,7 @@ export default {
         buffer: 0,
         promoteId: 'index',
       }"
-      layer-id="nodes"
+      layer-id="results"
       :layer="{
         interactive: true,
         type: 'circle',
@@ -274,7 +275,7 @@ export default {
         data: links,
         promoteId: 'index',
       }"
-      layer-id="zones-extrusion"
+      layer-id="results"
       :layer="{
         interactive: true,
         type: 'fill-extrusion',
@@ -299,7 +300,7 @@ export default {
         data: links,
         promoteId: 'index',
       }"
-      layer-id="zones"
+      layer-id="results"
       :layer="{
         interactive: true,
         type: 'fill',
@@ -323,7 +324,7 @@ export default {
         data: NaNLinks,
         promoteId: 'index',
       }"
-      layer-id="NaNZones"
+      layer-id="NaNresults"
       :layer="{
         interactive: true,
         type: 'fill',

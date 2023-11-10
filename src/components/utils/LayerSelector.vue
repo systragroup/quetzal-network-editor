@@ -26,7 +26,11 @@ export default {
     selectedLayers (val) {
       const resp = []
       val.forEach(item => resp.push(item))
-      this.$store.commit('setVisibleRasters', val)
+      this.$store.commit('setVisibleRasters', resp)
+    },
+    choices (vals) {
+      const choices = vals.map(el => el.name)
+      this.selectedLayers = this.selectedLayers.filter(layer => choices.includes(layer))
     },
 
   },
@@ -34,9 +38,6 @@ export default {
     this.selectedLayers = this.$store.getters.visibleRasters
   },
 
-  methods: {
-
-  },
 }
 </script>
 <template>

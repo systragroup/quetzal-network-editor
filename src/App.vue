@@ -27,6 +27,11 @@ export default {
     notification () {
       this.snackbar = !!this.notification.text
     },
+    snackbar (val) {
+      if (val === false) {
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
+    },
   },
   async created () {
     // init links and node to empty one (new project)
@@ -36,7 +41,6 @@ export default {
   methods: {
     closeSnackbar () {
       this.snackbar = false
-      this.$store.commit('changeNotification', { text: '', autoClose: true })
     },
     onResize () {
       // -50 for the ToolBar

@@ -195,8 +195,17 @@ export default {
           style.selectedCategory = structuredClone(this.selectedCategory)
         }
         this.$store.commit('addStyle', style)
-        this.$store.commit('changeNotification',
-          { text: $gettext('Preset Saved'), autoClose: true, color: 'success' })
+        if (this.visibleRasters.includes(this.inputName)) {
+          this.$store.commit('changeNotification',
+            {
+              text: $gettext('Preset changed. Please reload the active layer on the map'),
+              autoClose: true,
+              color: 'warning',
+            })
+        } else {
+          this.$store.commit('changeNotification',
+            { text: $gettext('Preset Saved'), autoClose: true, color: 'success' })
+        }
 
         this.selectedPreset = this.inputName
       }

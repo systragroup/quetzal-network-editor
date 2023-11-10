@@ -155,7 +155,7 @@ export default {
       state.displaySettings = structuredClone(defaultSettings)
       // TODO: remove display_width and display_color
       this.commit(`${state.namespace}/cleanLinks`)
-      state.links = payload.geojson
+      state.links = structuredClone(payload.geojson)
       state.type = payload.type
       // extrusion only for polygon right now. set to false if not a polygon
       if (state.type !== 'Polygon') { state.displaySettings.extrusion = false }

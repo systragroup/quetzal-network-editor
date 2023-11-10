@@ -33,6 +33,9 @@ export default {
   },
   mounted () {
     // move layer under rlinks (links and OD are over this one)
+    if (this.map.getLayer('results')) {
+      this.map.moveLayer(this.preset.name + '-layer', 'results')
+    }
     if (this.map.getLayer('rlinks')) {
       this.map.moveLayer(this.preset.name + '-layer', 'rlinks')
     }
