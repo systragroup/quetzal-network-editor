@@ -2,6 +2,7 @@
 const $gettext = s => s
 
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Settings',
   events: ['submit'],
   data () {
@@ -125,19 +126,20 @@ export default {
     offset-y
   >
     <template v-slot:activator="{ on, attrs }">
-      <v-btn
-        class="setting"
-        fab
-        small
-        v-bind="attrs"
-        v-on="on"
-      >
-        <v-icon
-          color="regular"
+      <div class="setting">
+        <v-btn
+          fab
+          small
+          v-bind="attrs"
+          v-on="on"
         >
-          fa-solid fa-cog
-        </v-icon>
-      </v-btn>
+          <v-icon
+            color="regular"
+          >
+            fa-solid fa-cog
+          </v-icon>
+        </v-btn>
+      </div>
     </template>
 
     <v-card
@@ -254,9 +256,14 @@ export default {
 </template>
 <style lang="scss" scoped>
 .setting {
-  position: absolute;
-  top: 10px;
-  right: 20px;
+  left: 98%;
+  width: 0px;
+  z-index: 2;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
 }
 
 .layout {

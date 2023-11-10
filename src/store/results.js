@@ -116,7 +116,9 @@ const defaultSettings = {
 
 export default {
   namespaced: true,
-  state: {
+  // need a function ()=>. if not. diffent instance will share the same state.
+  state: () => ({
+    namespace: 'results', // to do commit on different instance.
     type: 'links',
     links: {},
     visibleLinks: {},
@@ -127,13 +129,14 @@ export default {
     selectedCategory: [],
     hasOD: false,
     ODindex: {},
-    displaySettings: defaultSettings,
+    displaySettings: {},
 
-  },
+  }),
 
   mutations: {
+    setNamespace (state, payload) { state.namespace = payload },
     unload (state) {
-      this.commit('results/cleanLinks')
+      this.commit(`${state.namespace}/cleanLinks`)
       state.type = 'links'
       state.links = {}
       state.visibleLinks = {}
@@ -144,14 +147,15 @@ export default {
       state.selectedCategory = []
       state.hasOD = false
       state.ODindex = {}
-      state.displaySettings = defaultSettings
+      state.displaySettings = structuredClone(defaultSettings)
       // TODO: remove display_width and display_color
     },
 
     loadLinks (state, payload) {
+      state.displaySettings = structuredClone(defaultSettings)
       // TODO: remove display_width and display_color
-      this.commit('results/cleanLinks')
-      state.links = payload.geojson
+      this.commit(`${state.namespace}/cleanLinks`)
+      state.links = structuredClone(payload.geojson)
       state.type = payload.type
       // extrusion only for polygon right now. set to false if not a polygon
       if (state.type !== 'Polygon') { state.displaySettings.extrusion = false }
@@ -164,21 +168,21 @@ export default {
         state.visibleLinks = structuredClone(linksHeader)
         state.NaNLinks = structuredClone(linksHeader)
         // set all trips visible
-        this.commit('results/getLinksProperties')
+        this.commit(`${state.namespace}/getLinksProperties`)
         if (state.lineAttributes.includes(payload.selectedFeature)) {
           state.displaySettings.selectedFeature = payload.selectedFeature
         } else {
           state.displaySettings.selectedFeature = null
         }
-        this.commit('results/refreshVisibleLinks')
-        this.commit('results/updateSelectedFeature')
+        this.commit(`${state.namespace}/refreshVisibleLinks`)
+        this.commit(`${state.namespace}/updateSelectedFeature`)
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
     updateLinks (state, payload) {
       state.links = payload
-      this.commit('results/refreshVisibleLinks')
-      this.commit('results/updateSelectedFeature')
+      this.commit(`${state.namespace}/refreshVisibleLinks`)
+      this.commit(`${state.namespace}/updateSelectedFeature`)
     },
 
     cleanLinks (state) {
@@ -193,11 +197,11 @@ export default {
       // set all vvisible
       state.selectedCategory = Array.from(new Set(state.links.features.map(
         item => item.properties[state.selectedFilter])))
-      this.commit('results/refreshVisibleLinks')
+      this.commit(`${state.namespace}/refreshVisibleLinks`)
     },
     changeSelectedCategory (state, payload) {
       state.selectedCategory = payload
-      this.commit('results/refreshVisibleLinks')
+      this.commit(`${state.namespace}/refreshVisibleLinks`)
     },
 
     getLinksProperties (state) {
@@ -217,8 +221,8 @@ export default {
       const keys = Object.keys(payload)
       // apply all payload settings to state.displaySettings
       keys.forEach(key => state.displaySettings[key] = payload[key])
-      this.commit('results/refreshVisibleLinks')
-      this.commit('results/updateSelectedFeature')
+      this.commit(`${state.namespace}/refreshVisibleLinks`)
+      this.commit(`${state.namespace}/updateSelectedFeature`)
     },
 
     updateSelectedFeature (state) {

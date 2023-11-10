@@ -223,6 +223,18 @@ export const store = new Vuex.Store({
         state.availableLayers.push(moduleName)
       }
     },
+    unloadLayers (state) {
+      const moduleToDelete = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
+      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
+      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
+    },
+    registerStaticLayer () {
+      this.registerModule('staticLayer', resultsModule)
+      this.commit('staticLayer/setNamespace', 'staticLayer')
+    },
+    unregisterStaticLayer () { this.unregisterModule('staticLayer') },
+
     initNetworks (state) {
       this.commit('initLinks')
       this.commit('initrLinks')
@@ -238,12 +250,7 @@ export const store = new Vuex.Store({
       state.otherFiles = []
       state.cyclewayMode = false
     },
-    unloadLayers (state) {
-      const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
-      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
-    },
+
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
       state.rlinks.roadSpeed = Number(payload.roadSpeed)
@@ -342,9 +349,9 @@ export const store = new Vuex.Store({
           zip.file('attributesChoices.json', blob)
         }
 
-        const staticLayers = Object.keys(this._modules.root._children).filter(
+        const layers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-        for (const layer of staticLayers) {
+        for (const layer of layers) {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer + '.geojson'
           // zip name = layer.replace('/', '_') + '.geojson'
@@ -435,9 +442,9 @@ export const store = new Vuex.Store({
       }
       // save outputs Layers
       if (payload !== 'inputs') {
-        const staticLayers = Object.keys(this._modules.root._children).filter(
+        const layers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-        for (const layer of staticLayers) {
+        for (const layer of layers) {
           const name = layer + '.geojson'
           await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
           if (this.getters[`${layer}/mat`]) {

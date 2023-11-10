@@ -25,9 +25,7 @@ export default {
 
     }
   },
-  watch: {
 
-  },
   beforeDestroy () {
     if (this.map.getLayer(this.preset.name + '-layer')) {
       this.map.removeLayer(this.preset.name + '-layer')
@@ -35,22 +33,28 @@ export default {
   },
   mounted () {
     // move layer under rlinks (links and OD are over this one)
-    this.map.moveLayer(this.preset.name + '-layer', 'rlinks')
+    if (this.map.getLayer('results')) {
+      this.map.moveLayer(this.preset.name + '-layer', 'results')
+    }
+    if (this.map.getLayer('rlinks')) {
+      this.map.moveLayer(this.preset.name + '-layer', 'rlinks')
+    }
   },
   created () {
     // init data to empty geojson to load the mapbox layer
+    this.$store.commit('registerStaticLayer')
     this.opacity = this.preset.displaySettings.opacity
     this.offsetValue = this.preset.displaySettings.offset ? -1 : 1
 
     this.changeLayer(this.preset.layer)
     if (Object.keys(this.preset).includes('selectedFilter')) {
-      if (this.$store.getters['results/lineAttributes'].includes(this.preset.selectedFilter)) {
+      if (this.$store.getters['staticLayer/lineAttributes'].includes(this.preset.selectedFilter)) {
       // if preset contain a filter. apply it if it exist.
-        this.$store.commit('results/changeSelectedFilter', this.preset.selectedFilter)
+        this.$store.commit('staticLayer/changeSelectedFilter', this.preset.selectedFilter)
         // if there is a list of cat. apply them, else its everything
         if (Object.keys(this.preset).includes('selectedCategory')) {
-          this.$store.commit('results/changeSelectedCategory', this.preset.selectedCategory)
-          this.$store.commit('results/updateSelectedFeature')
+          this.$store.commit('staticLayer/changeSelectedCategory', this.preset.selectedCategory)
+          this.$store.commit('staticLayer/updateSelectedFeature')
         }
       } else {
         this.$store.commit('changeNotification',
@@ -62,12 +66,12 @@ export default {
       }
     }
 
-    this.$store.commit('results/applySettings', this.preset.displaySettings)
-    this.layer = structuredClone(this.$store.getters['results/displayLinks'])
-    this.type = structuredClone(this.$store.getters['results/type'])
-    this.colorScale = this.$store.getters['results/colorScale']
-    this.displaySettings = structuredClone(this.$store.getters['results/displaySettings'])
-    this.$store.commit('results/unload')
+    this.$store.commit('staticLayer/applySettings', this.preset.displaySettings)
+    this.layer = structuredClone(this.$store.getters['staticLayer/displayLinks'])
+    this.type = structuredClone(this.$store.getters['staticLayer/type'])
+    this.colorScale = this.$store.getters['staticLayer/colorScale']
+    this.displaySettings = structuredClone(this.$store.getters['staticLayer/displaySettings'])
+    this.$store.commit('unregisterStaticLayer')
     //
   },
 
@@ -76,42 +80,42 @@ export default {
       this.selectedLayer = layer
       switch (layer) {
         case 'links':
-          this.$store.commit('results/loadLinks', {
+          this.$store.commit('staticLayer/loadLinks', {
             geojson: this.$store.getters.links,
             type: 'LineString',
             selectedFeature: 'headway',
           })
           break
         case 'rlinks':
-          this.$store.commit('results/loadLinks', {
+          this.$store.commit('staticLayer/loadLinks', {
             geojson: this.$store.getters.rlinks,
             type: 'LineString',
             selectedFeature: 'speed',
           })
           break
         case 'nodes':
-          this.$store.commit('results/loadLinks', {
+          this.$store.commit('staticLayer/loadLinks', {
             geojson: this.$store.getters.nodes,
             type: 'Point',
             selectedFeature: 'boardings',
           })
           break
         case 'rnodes':
-          this.$store.commit('results/loadLinks', {
+          this.$store.commit('staticLayer/loadLinks', {
             geojson: this.$store.getters.rnodes,
             type: 'Point',
             selectedFeature: 'boardings',
           })
           break
         case 'od':
-          this.$store.commit('results/loadLinks', {
+          this.$store.commit('staticLayer/loadLinks', {
             geojson: this.$store.getters['od/layer'],
             type: 'LineString',
             selectedFeature: 'volume',
           })
           break
         default:
-          this.$store.commit('results/loadLinks', {
+          this.$store.commit('staticLayer/loadLinks', {
             geojson: this.$store.getters[`${layer}/layer`],
             type: this.$store.getters[`${layer}/type`],
           })
@@ -124,7 +128,9 @@ export default {
 </script>
 <template>
   <section>
-    <div class="map-legend">
+    <div
+      class="map-legend"
+    >
       <MapLegend
         :color-scale="colorScale"
         :display-settings="displaySettings"
@@ -228,6 +234,7 @@ export default {
 <style lang="scss" scoped>
 .map-legend {
   height: 100%;
+  bottom:0px;
   position: absolute;
 }
 </style>
