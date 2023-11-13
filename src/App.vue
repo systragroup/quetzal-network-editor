@@ -1,41 +1,51 @@
 <script>
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
+import Alert from '@comp/utils/Alert.vue'
 
 export default {
   name: 'App',
   components: {
     Toolbar,
+    Alert,
     NavigationDrawer,
   },
   data () {
     return {
       snackbar: false,
       overlay: false,
-      notification: {},
     }
   },
   computed: {
-
-  },
-  watch: {
-    notification: {
-      handler (newValue) {
-        if (newValue && Object.keys(newValue).length > 0) {
-          this.snackbar = true
-        }
-      },
+    notification () {
+      return this.$store.getters.notification
+    },
+    loading () {
+      return this.$store.getters.loading
     },
   },
-  mounted () {
-
+  watch: {
+    notification () {
+      this.snackbar = !!this.notification.text
+    },
+    snackbar (val) {
+      if (val === false) {
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
+    },
+  },
+  async created () {
+    // init links and node to empty one (new project)
+    this.$store.commit('initNetworks')
+    // this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
   },
   methods: {
     closeSnackbar () {
       this.snackbar = false
     },
-    showNotification () {
-      this.notification = this.$store.getters.notification
+    onResize () {
+      // -50 for the ToolBar
+      this.$store.commit('changeWindowHeight', this.$refs.container.clientHeight - 50)
     },
     showOverlay (element) {
       this.overlay = !element
@@ -51,6 +61,8 @@ export default {
       @change-overlay="showOverlay"
     />
     <v-card
+      ref="container"
+      v-resize="onResize"
       class="container rounded-0"
     >
       <v-overlay
@@ -60,29 +72,31 @@ export default {
         scroll-strategy="block"
       />
       <Toolbar />
-      <RouterView
-        @add-notification="showNotification"
-      />
+      <RouterView />
     </v-card>
     <v-snackbar
       v-model="snackbar"
       :timeout="notification.autoClose ? 3000 : -1"
       transition="slide-y-reverse-transition"
-      color="white"
+      :color="notification.color? notification.color : 'white'"
       :class="`snackbar-${notification.type}`"
     >
-      {{ $gettext(notification.text) }}
-      <template #actions>
+      <span class="snackbar-text">
+        {{ $gettext(notification.text) }}
+      </span>
+      <template v-slot:action="{ attrs }">
         <v-btn
           size="small"
-          color="secondary"
+          color="secondarydark"
           variant="text"
+          v-bind="attrs"
           @click="closeSnackbar"
         >
           {{ $gettext("Close") }}
         </v-btn>
       </template>
     </v-snackbar>
+    <Alert />
   </v-app>
 </template>
 <style lang="scss" scoped>

@@ -66,8 +66,9 @@ app.component('VueDatePicker', VueDatePicker)
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 library.add(fas)
 
-const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr'])
-
+// const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr'])
+const bestLanguage = 'en'
+// const darkMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
 const vuetify = createVuetify({
   // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
   components: {
@@ -76,24 +77,47 @@ const vuetify = createVuetify({
   },
   directives,
   theme: {
+    // defaultTheme: darkMode ? 'dark' : 'light',
     defaultTheme: 'light',
     themes: {
       light: {
         dark: false,
         colors: {
-          main: '#003C4B', // $transversal-main
-          primary: '#B5E0D6', // $primary
-          primarylight: '#B5E0D6', // $primary-light
-          primarydark: '#7EBAAC', // $primary-dark
-          secondary: '#2C3E4E', // $secondary
-          secondarylight: '#2C3E4E', // $secondary-light
-          secondarydark: '#0F1C27', // $secondary-dark
-          lightgrey: '#E3E3E3', // $grey-light
-          mediumgrey: '#9E9E9E', // $grey-medium
-          darkgrey: '#5B5B5B', // $grey-dark
-          success: '#4CAF50', // $4CAF50
-          warning: '#FF7B30', // $warning-orange
-          error: '#E42626', // $error-red
+          primary: '#B5E0D6',
+          primarydark: '#7EBAAC',
+          secondary: '#2C3E4E',
+          secondarydark: '#1A242C',
+          secondarydarkfix: '#1A242C',
+          secondarylight: '#334453',
+          background: '#808080',
+          lightgrey: '#E3E4E6',
+          white: '#FFFFFF',
+          black: '#000000',
+          mediumgrey: '#9E9E9E',
+          darkgrey: '#5B5B5C',
+          accent: '#2C3E4E',
+          linksprimary: '#7EBAAC',
+          linkssecondary: '#B5E0D6',
+        },
+      },
+      dark: {
+        dark: true,
+        colors: {
+          primary: '#2196F3',
+          primarydark: '#191919',
+          secondary: '#263238',
+          secondarydark: '#fff',
+          secondarydarkfix: '#1A242C',
+          lightgrey: '#403f3f',
+          mediumgrey: '#575757',
+          darkgrey: '#d9d9db',
+          background: '#000000',
+          white: '#000000',
+          black: '#FFFFFF',
+          success: '#2196F3',
+          accent: '#d3c1b1',
+          linksprimary: '#2196F3',
+          linkssecondary: '#90CAF9',
         },
       },
     },

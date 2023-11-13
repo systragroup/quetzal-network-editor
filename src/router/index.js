@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@page/Home.vue'
+import Import from '@page/Import.vue'
 
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
@@ -9,10 +9,10 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: Home.name,
-      component: Home,
-      icon: 'fas fa-house',
-      title: $gettext('Home'),
+      name: Import.name,
+      component: Import,
+      icon: 'fa-solid fa-upload',
+      title: $gettext('Import'),
     },
 
   ],

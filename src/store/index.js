@@ -12,6 +12,8 @@ import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
+import { toRaw } from 'vue'
+
 import { serializer, stylesSerializer } from '../components/utils/serializer.js'
 
 const linksBase = {
@@ -251,7 +253,7 @@ const store = createStore({
       this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
       state.styles = []
-      state.attributesChoices = structuredClone(defaultAttributesChoices)
+      state.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
       this.commit('loadAttributesChoices', defaultAttributesChoices)
       state.otherFiles = []
       state.cyclewayMode = false
@@ -296,7 +298,7 @@ const store = createStore({
       // export only visible line (line selected)
       commit('applyPropertiesTypes')
       if (payload !== 'all') {
-        const tempLinks = structuredClone(state.links.links)
+        const tempLinks = structuredClone(toRaw(state.links.links))
         tempLinks.features = tempLinks.features.filter(
           link => state.links.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
@@ -304,7 +306,7 @@ const store = createStore({
         const a = tempLinks.features.map(item => item.properties.a)
         const b = tempLinks.features.map(item => item.properties.b)
         const nodesInLinks = Array.from(new Set([...a, ...b]))
-        const tempNodes = structuredClone(state.links.nodes)
+        const tempNodes = structuredClone(toRaw(state.links.nodes))
         tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
         nodes = JSON.stringify(tempNodes)
 
@@ -509,7 +511,7 @@ const store = createStore({
     },
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
-      let filteredLayers = structuredClone(state.availableLayers)
+      let filteredLayers = structuredClone(toRaw(state.availableLayers))
       if (state.links.links.features.length === 0) {
         filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
       }

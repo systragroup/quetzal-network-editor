@@ -6,6 +6,7 @@ import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { toRaw } from 'vue'
 const $gettext = s => s
 const short = await fetch('short-uuid')
 
@@ -57,7 +58,7 @@ export default {
       state.nodeAttributes = []
     },
     loadLinks (state, payload) {
-      state.links = structuredClone(payload)
+      state.links = structuredClone(toRaw(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
         const linksHeader = { ...state.links }
         linksHeader.features = []

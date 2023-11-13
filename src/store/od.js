@@ -3,6 +3,7 @@
 import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { toRaw } from 'vue'
 const short = await fetch('short-uuid')
 const $gettext = s => s
 
@@ -21,9 +22,9 @@ export default {
 
   mutations: {
     loadLayer (state, payload) {
-      state.layer = structuredClone(payload)
+      state.layer = structuredClone(toRaw(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
-        const layerHeader = { ...state.layer }
+        const layerHeader = structuredClone(toRaw(state.layer))
         layerHeader.features = []
         state.layerHeader = layerHeader
         state.visibleLayer = structuredClone(layerHeader)

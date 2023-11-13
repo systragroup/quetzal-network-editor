@@ -10,6 +10,7 @@ import Point from 'turf-point'
 import bearing from '@turf/bearing'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { toRaw } from 'vue'
 
 const $gettext = s => s
 
@@ -51,19 +52,20 @@ export default {
       state.rlinksAttributesChoices = {}
       state.rlineAttributes = []
       state.rnodeAttributes = []
-      state.rcstAttributes = structuredClone(defaultrCstAttributes)
-      state.rundeletable = structuredClone(defaultrUndeletable)
+      state.rcstAttributes = structuredClone(toRaw(defaultrCstAttributes))
+      state.rundeletable = structuredClone(toRaw(defaultrUndeletable))
       state.rseversedAttributes = []
     },
 
     loadrLinks (state, payload) {
-      state.rlinks = structuredClone(payload)
+      console.log(payload)
+      state.rlinks = structuredClone(toRaw(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.rlinks.crs.properties.name)) {
-        const rlinksHeader = { ...state.rlinks }
+        const rlinksHeader = structuredClone(toRaw(state.rlinks))
         rlinksHeader.features = []
         state.rlinksHeader = rlinksHeader
-        state.visiblerLinks = structuredClone(rlinksHeader)
-        state.renderedrLinks = structuredClone(rlinksHeader)
+        state.visiblerLinks = structuredClone(toRaw(rlinksHeader))
+        state.renderedrLinks = structuredClone(toRaw(rlinksHeader))
         // limit geometry precision to 6 digit
         state.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -78,11 +80,11 @@ export default {
     loadrNodes (state, payload) {
       state.rnodes = JSON.parse(JSON.stringify(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.rnodes.crs.properties.name)) {
-        const rnodesHeader = { ...state.rnodes }
+        const rnodesHeader = structuredClone(toRaw(state.rnodes))
         rnodesHeader.features = []
         state.rnodesHeader = rnodesHeader
-        state.visiblerNodes = structuredClone(rnodesHeader)
-        state.renderedrNodes = structuredClone(rnodesHeader)
+        state.visiblerNodes = structuredClone(toRaw(rnodesHeader))
+        state.renderedrNodes = structuredClone(toRaw(rnodesHeader))
         // limit geometry precision to 6 digit
         state.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))

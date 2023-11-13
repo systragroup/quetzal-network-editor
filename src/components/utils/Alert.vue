@@ -1,0 +1,79 @@
+<script>
+export default {
+  name: 'Alert',
+  components: {
+
+  },
+
+  props: [],
+  events: [],
+  data () {
+    return {
+      sheet: false,
+
+    }
+  },
+  computed: {
+    err () {
+      return this.$store.getters.alert
+    },
+  },
+  watch: {
+    err (val) {
+      if (val.name) {
+        this.sheet = true
+        console.error(val)
+      }
+    },
+  },
+  methods: {
+    close () {
+      this.$store.commit('changeAlert', {})
+      this.sheet = !this.sheet
+    },
+  },
+}
+</script>
+<template>
+  <div class="text-center">
+    <v-bottom-sheet
+      v-model="sheet"
+      persistent
+    >
+      <v-sheet
+        class="text-center"
+      >
+        <div>
+          <v-alert
+            prominent
+            type="error"
+          >
+            <v-row>
+              <v-col class="grow">
+                <h2>
+                  ERROR: {{ err.name }}
+                </h2>
+                <p>
+                  {{ err.message }}
+                </p>
+              </v-col>
+              <v-col class="shrink">
+                <v-btn
+                  icon
+                  @click="close"
+                >
+                  <v-icon>
+                    fas fa-times
+                  </v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-alert>
+        </div>
+      </v-sheet>
+    </v-bottom-sheet>
+  </div>
+</template>
+<style lang="scss" scoped>
+
+</style>
