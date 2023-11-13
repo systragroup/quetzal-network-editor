@@ -31,7 +31,7 @@
     "amazon-cognito-identity-js": "^6.2.0",
     "aws-amplify": "^5.3.11",
     "aws-sdk": "^2.1389.0",
-    "axios": "^1.4.0",
+    "axios": "^1.6.0",
     "chroma-js": "^2.4.2",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.1.3",
