@@ -2,21 +2,32 @@
 set -e
 cd "$(dirname "$0")"
 if [ -z "$1" ]; then
-    echo "You should specify the new application name as first argument" >&2
-    exit 1
+  echo "You should specify the new application name as first argument" >&2
+  exit 1
 elif ! echo "$1" | grep -q '^[a-z_]\+$'; then
-    echo "The new application name should be lower case only + underscore" >&2
-    exit 1
+  echo "The new application name should be lower case only + underscore" >&2
+  exit 1
 fi
 name="$1"
+# shellcheck disable=SC2018,SC2019
+uname="$(echo "$name"|cut -c1|tr a-z A-Z)$(echo "$name"|cut -c2-)"
 for f in \
-    package.json \
-    index.html \
-    gettext-extract \
-; do
-    sed -ri "s/myapp/$name/g" "$f";
+  package.json \
+  index.html \
+  gettext-extract \
+  ; do
+  sed -ri "s/myapp/$name/g" "$f";
+  sed -ri "s/Myapp/$uname/g" "$f";
 done
 mv locale/myapp.pot "locale/$name.pot"
 find locale -type f -name 'myapp.po' -exec mv '{}' "$(dirname '{}')/$name.po" \;
-find . -type f -name '*.vue' -exec sed -ri "s/myapp/$name/g" '{}' \;
+find . -type f -name '*.vue' -exec sed -ri -e "s/myapp/$name/g" -e "s/Myapp/$uname/g" '{}' \;
 rm -rf .git
+cat <<EOF
+Don’t forget to:
+- edit the LICENSE file
+- edit package.json file (description, author, private, urls)
+- edit README.md file (badges, description, env variables)
+- change the static assets files
+- remove the weird commit reference (^xxx) from check_secrets and .gitlab-ci.yml files
+EOF

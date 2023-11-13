@@ -1,0 +1,35 @@
+.drawer {
+  background-color: $secondary !important;
+}
+.icon {
+  opacity: 1 !important;
+  color: white;
+}
+.drawer-header {
+  width: 100%;
+  height: 50px;
+  border-bottom: 1px solid white;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  cursor: pointer;
+}
+.app-menu {
+  height: calc(100% - 80px);
+  display: flex;
+  flex-direction: column;
+}
+.app-menu-item {
+  padding: 0 13px !important;
+  justify-content: flex-start !important;
+  flex: 0;
+}
+.app-menu-list-item:hover {
+  background-color: $secondary-dark;
+}
+.app-menu-item-title {
+  color: white;
+}
+.app-menu-item-selected {
+  background-color: $secondary-dark;
+}

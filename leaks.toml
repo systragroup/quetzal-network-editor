@@ -1,0 +1,8 @@
+# gitleaks config
+# https://github.com/zricethezav/gitleaks
+[allowlist]
+regexes = [
+    '''AUTH_REQUEST''',
+    '''AUTH_REFRESH''',
+    '''author''',
+]

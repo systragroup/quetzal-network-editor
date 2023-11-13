@@ -4,11 +4,11 @@ const quetzalClient = {
   client: null,
   login (idToken) {
     this.client = axios.create({
-      baseURL: 'https://z0i1paj50k.execute-api.ca-central-1.amazonaws.com/dev',
+      baseURL: 'https://z0i1paj50k.execute-api.ca-central-1.amazonaws.com/prod',
       withCredentials: false,
       headers: {
         'Accept': '*/*',
-        'Content-Type': 'text/plain',
+        'Content-Type': 'application/json',
         'Authorization': idToken,
       },
     })
@@ -16,7 +16,7 @@ const quetzalClient = {
 }
 
 const axiosClient = {
-  loginAll (idToken) {
+  async loginAll (idToken) {
     quetzalClient.login(idToken)
   },
 }

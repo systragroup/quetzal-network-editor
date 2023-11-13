@@ -2,46 +2,47 @@ import s3 from '@src/AWSClient'
 import { quetzalClient } from '@src/axiosClient.js'
 import { v4 as uuid } from 'uuid'
 import router from '../../router'
-import { highwayColor, highwayWidth } from '@constants/highway.js'
 
 const $gettext = s => s
 
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-osm-api',
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api',
     bucket: 'quetzal-api-bucket',
-    callID: '',
+    callID: uuid(),
     status: '',
-    timer: 0,
     running: false,
     executionArn: '',
     error: false,
     errorMessage: '',
-
-    tags: ['highway', 'maxspeed', 'lanes', 'name', 'oneway', 'surface'],
+    UploadedGTFS: [], // list of upploded gtfs (zip local)
+    selectedGTFS: [], // list of index for web Importer
     parameters: {
-      extendedCycleway: false,
-      highway: [
-        'motorway',
-        'motorway_link',
-        'trunk',
-        'trunk_link',
-        'primary',
-        'primary_link',
-      ],
+      start_time: '6:00:00',
+      end_time: '8:59:00',
+      day: 'tuesday',
+    },
+    widthDict: {
+      bus: 3,
+      subway: 8,
+      rail: 6,
+      tram: 5,
     },
 
-    colorDict: highwayColor,
-    widthDict: highwayWidth,
   },
   mutations: {
     cleanRun (state) {
       state.running = false
       state.executionArn = ''
       state.error = false
+      state.UploadedGTFS = []
+      state.selectedGTFS = []
+      state.callID = uuid()
     },
-    setCallID (state) { state.callID = uuid() },
+    setCallID (state) {
+      state.callID = uuid()
+    },
 
     terminateExecution (state, payload) {
       state.running = false
@@ -52,44 +53,59 @@ export default {
     changeRunning (state, payload) {
       state.running = payload
     },
+
     saveParams (state, payload) {
       // eslint-disable-next-line no-return-assign
-      Object.keys(payload).forEach(key => state.parameters[key] = payload[key])
+      payload.forEach(param => state.parameters[param.name] = param.value)
+    },
+    saveSelectedGTFS (state, payload) {
+      // for web importer
+      state.selectedGTFS = payload
+    },
+
+    addGTFS (state, payload) {
+      const nameList = state.UploadedGTFS.map(el => el?.name)
+      if (!nameList.includes(payload.name)) {
+        state.UploadedGTFS.push(payload)
+      }
+    },
+    updateProgress (state, payload) {
+      state.UploadedGTFS.filter(el => el.name === payload.name)[0].progress = payload.progress
     },
     succeedExecution (state) {
       state.running = false
       state.executionArn = ''
       this.commit('changeNotification',
-        { text: $gettext('OSM network imported successfully!'), autoClose: false, color: 'success' })
+        { text: $gettext('gtfs imported successfully!'), autoClose: false, color: 'success' })
     },
 
   },
   actions: {
+
+    async addGTFS ({ state, commit }, payload) {
+      commit('addGTFS', payload.info)
+      const upload = s3.uploadObject(state.bucket, state.callID + '/' + payload.info.name, payload.content)
+      upload.on('httpUploadProgress', (progress) => {
+        const percent = Math.round(progress.loaded / progress.total * 100)
+        commit('updateProgress', { name: payload.info.name, progress: percent })
+      })
+      upload.promise()
+    },
+
     startExecution ({ state, commit, dispatch }, payload) {
-      // commit('setParameters', payload.parameters)
       state.running = true
       state.error = false
-      let input = ''
-      if (payload.method === 'bbox') {
-        input = JSON.stringify({
-          bbox: payload.coords,
-          highway: state.parameters.highway,
-          callID: state.callID,
-          elevation: true,
-          extended_cycleway: state.parameters.extendedCycleway,
-        })
-      } else {
-        input = JSON.stringify({
-          poly: payload.coords,
-          highway: state.parameters.highway,
-          callID: state.callID,
-          elevation: true,
-          extended_cycleway: state.parameters.extendedCycleway,
-        })
-      }
+      const input = JSON.stringify({
+        callID: state.callID,
+        files: payload.files,
+        start_time: payload.start_time,
+        end_time: payload.end_time,
+        dates: payload.dates,
+      })
+
       let data = {
         input: input,
-        name: state.callID,
+        name: uuid(),
         stateMachineArn: state.stateMachineArn,
       }
       quetzalClient.client.post('',
@@ -107,7 +123,6 @@ export default {
     async pollExecution ({ commit, state, dispatch }) {
       const intervalId = setInterval(() => {
         let data = { executionArn: state.executionArn }
-        state.timer = state.timer - 2
         quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
         ).then(
@@ -141,26 +156,30 @@ export default {
     async downloadOSMFromS3 ({ state, commit }) {
       function applyDict (links) {
         // 00BCD4
-        Object.keys(state.colorDict).forEach(highway => {
-          links.features.filter(link => link.properties.highway === highway).forEach(
+        Object.keys(state.widthDict).forEach(routeType => {
+          links.features.filter(link => link.properties.route_type === routeType).forEach(
             link => {
-              link.properties.route_width = state.widthDict[highway]
-              link.properties.route_color = state.colorDict[highway]
+              link.properties.route_width = state.widthDict[routeType]
             })
         })
         return links
       }
 
-      let rlinks = await s3.readJson(state.bucket, state.callID.concat('/links.geojson'))
-      rlinks = applyDict(rlinks)
-      commit('appendNewrLinks', rlinks, { root: true })
-      const rnodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
-      commit('appendNewrNodes', rnodes, { root: true })
+      let links = await s3.readJson(state.bucket, state.callID.concat('/links.geojson'))
+      if (links.features.length > 0) {
+        links = applyDict(links)
+      }
+      commit('appendNewLinks', links, { root: true })
+      const nodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
+      commit('appendNewNodes', nodes, { root: true })
       console.log('downloaded')
       router.push('/Home').catch(() => {})
     },
   },
   getters: {
+    UploadedGTFS: (state) => state.UploadedGTFS,
+    selectedGTFS: (state) => state.selectedGTFS,
+    parameters: (state) => state.parameters,
     running: (state) => state.running,
     status: (state) => state.status,
     executionArn: (state) => state.executionArn,
@@ -168,9 +187,5 @@ export default {
     errorMessage: (state) => state.errorMessage,
     callID: (state) => state.callID,
     bucket: (state) => state.bucket,
-    timer: (state) => state.timer,
-    highway: (state) => state.parameters.highway,
-    extendedCycleway: (state) => state.parameters.extendedCycleway,
-    tags: (state) => state.tags,
   },
 }

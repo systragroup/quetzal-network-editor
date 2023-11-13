@@ -1,0 +1,97 @@
+/* color shades for Systra Digital Solutions */
+
+$transversal-50             : #E6ECED; // rgba(230, 236, 237, 1)
+$transversal-100            : #B3C5C9; // rgba(179, 197, 201, 1)
+$transversal-200            : #809EA5; // rgba()
+$transversal-300            : #4D7781; // rgba()
+$transversal-400            : #1A505D; // rgba()
+$transversal-500            : #003C4B; // rgba(0, 60, 75, 1)
+$transversal-600            : #00303C; // rgba()
+$transversal-700            : #00242D; // rgba()
+$transversal-800            : #001216; // rgba()
+$transversal-900            : #000C0F; // rgba()
+$transversal-950            : #000607; // rgba()
+$transversal-main           : $transversal-500;
+
+$transport-planning-50      : #F9E8F0; // rgba()
+$transport-planning-100     : #EDB9D3; // rgba()
+$transport-planning-200     : #E28AB6; // rgba()
+$transport-planning-300     : #D65B98; // rgba()
+$transport-planning-400     : #CA2C7B; // rgba()
+$transport-planning-500     : #C4146C; // rgba()
+$transport-planning-600     : #A50F61; // rgba()
+$transport-planning-700     : #840D54; // rgba()
+$transport-planning-800     : #620A36; // rgba()
+$transport-planning-900     : #3B0620; // rgba()
+$transport-planning-950     : #14020B; // rgba()
+$transport-planning-main    : $transport-planning-500;
+
+$sustainable-50             : #E8F5F8; // rgba()
+$sustainable-100            : #B9E2EA; // rgba()
+$sustainable-200            : #8BCFDD; // rgba()
+$sustainable-300            : #5CBBCF; // rgba()
+$sustainable-400            : #2DA8C1; // rgba()
+$sustainable-500            : #169EBA; // rgba()
+$sustainable-600            : #148EA7; // rgba()
+$sustainable-700            : #0F6F82; // rgba()
+$sustainable-800            : #0B4F5D; // rgba()
+$sustainable-900            : #072F38; // rgba()
+$sustainable-950            : #021013; // rgba()
+$sustainable-main           : $sustainable-500;
+
+$engineering-50             : #FEEAB3; // rgba()
+$engineering-100            : #FEEAB3; // rgba()
+$engineering-200            : #FDDD80; // rgba()
+$engineering-300            : #FCCF4D; // rgba()
+$engineering-400            : #FBC11A; // rgba()
+$engineering-500            : #FABA00; // rgba()
+$engineering-600            : #E1A700; // rgba()
+$engineering-700            : #B57E0F; // rgba()
+$engineering-800            : #7C5600; // rgba()
+$engineering-900            : #4B3800; // rgba()
+$engineering-950            : #191300; // rgba()
+$engineering-main           : $engineering-500;
+
+$operations-50              : #F1ECFB; // rgba()
+$operations-100             : #D6C7F3; // rgba()
+$operations-200             : #BAA1EB; // rgba()
+$operations-300             : #9169DE; // rgba()
+$operations-400             : #8356DA; // rgba()
+$operations-500             : #7543D6; // rgba()
+$operations-600             : #693CC1; // rgba()
+$operations-700             : #522F96; // rgba()
+$operations-800             : #3B226B; // rgba()
+$operations-900             : #231440; // rgba()
+$operations-950             : #0C0715; // rgba()
+$operations-main            : $operations-500;
+
+// neutral colors
+$white                      : #FFFFFF; // rgba(250, 250, 250, 1)
+$grey-ultralight            : #F6F6F6; // rgba(246, 246, 246, 1)
+$grey-light                 : #E3E3E3; // rgba(277, 277, 277, 1)
+$grey-medium                : #9E9E9E; // rgba(158, 158, 158, 1)
+$grey-dark                  : #5B5B5B; // rgba(91, 91, 91, 1)
+
+// alert colors
+$success-green              : #4CAF50; // rgba(76, 175, 80, 1)
+$warning-orange             : #FF7B30; // rgba(255, 123, 48, 1)
+$warning-yellow             : #FFC107; // rgba(255, 193, 7, 1)
+$error-red                  : #E42626; // rgba(228, 38, 38, 1)
+
+// data visualization
+$data-blue                  : #2196F3; // rgba(33, 150, 243, 1)
+$data-light-blue            : #00BCD4; // rgba(0, 188, 212, 1)
+$data-green                 : #4CAF50; // rgba(76, 155, 80, 1)
+$data-light-green           : #CDDC39; // rgba(205, 220, 51, 1)
+$data-yellow                : #FFC107; // rgba(255, 193, 7, 1)
+$data-orange                : #FF7B30; // rgba(255, 123, 48, 1)
+$data-pink                  : #E91E63; // rgba(233, 30, 99, 1)
+$data-purple                : #673AB7; // rgba(103, 58, 183, 1)
+
+// SDS
+$primary                    : #B5E0D6;
+$primary-light              : #B5E0D6;
+$primary-dark               : #7EBAAC;
+$secondary                  : #2C3E4E;
+$secondary-light            : #2C3E4E;
+$secondary-dark             : #0F1C27;

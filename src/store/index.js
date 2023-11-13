@@ -1,5 +1,4 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex'
 import linksModule from './links.js'
 import rlinksModule from './rlinks.js'
 import odModule from './od.js'
@@ -8,18 +7,28 @@ import layerModule from './layer.js'
 import runModule from './api/run.js'
 import MatrixRoadCasterModule from './api/MatrixRoadCaster.js'
 import OSMImporterModule from './api/OSMImporter.js'
+import GTFSImporterModule from './api/GTFSImporter.js'
 import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
 import { serializer, stylesSerializer } from '../components/utils/serializer.js'
 
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
-Vue.use(Vuex)
+const linksBase = {
+  'type': 'FeatureCollection',
+  'crs': { 'type': 'name', 'properties': { 'name': 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
+  'features': [],
+}
+const nodesBase = {
+  'type': 'FeatureCollection',
+  'crs': { 'type': 'name', 'properties': { 'name': 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
+  'features': [],
+}
 const $gettext = s => s
 
-export const store = new Vuex.Store({
+const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
+
+const store = createStore({
   modules: {
     user: userModule,
     links: linksModule,
@@ -29,6 +38,7 @@ export const store = new Vuex.Store({
     run: runModule,
     runMRC: MatrixRoadCasterModule,
     runOSM: OSMImporterModule,
+    runGTFS: GTFSImporterModule,
   },
 
   state: {
@@ -45,11 +55,12 @@ export const store = new Vuex.Store({
     outputName: 'output',
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
+    importPoly: null,
     availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
-    attributesChoices: {}, // { pt: {}, road: { oneway: ['0', '1'] } }
+    attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
   },
   mutations: {
     changeNotification (state, payload) {
@@ -175,8 +186,10 @@ export const store = new Vuex.Store({
     loadAttributesChoices (state, payload) {
       // eslint-disable-next-line no-return-assign
       Object.keys(payload.pt).forEach(key => state.attributesChoices.pt[key] = payload.pt[key])
+      this.commit('loadLinksAttributesChoices', payload.pt)
       // eslint-disable-next-line no-return-assign
       Object.keys(payload.road).forEach(key => state.attributesChoices.road[key] = payload.road[key])
+      this.commit('loadrLinksAttributesChoices', payload.road)
     },
     setVisibleRasters (state, payload) {
       state.visibleRasters = payload
@@ -191,7 +204,7 @@ export const store = new Vuex.Store({
           file.content = serializer(file.content, file.path, null, false)
 
           this.commit('createLayer', {
-            fileName: fileName,
+            fileName,
             data: file.content,
           })
         })
@@ -216,7 +229,21 @@ export const store = new Vuex.Store({
         state.availableLayers.push(moduleName)
       }
     },
+    unloadLayers (state) {
+      const moduleToDelete = Object.keys(this._modules.root._children).filter(
+        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
+      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
+      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
+    },
+    registerStaticLayer () {
+      this.registerModule('staticLayer', resultsModule)
+      this.commit('staticLayer/setNamespace', 'staticLayer')
+    },
+    unregisterStaticLayer () { this.unregisterModule('staticLayer') },
+
     initNetworks (state) {
+      this.commit('initLinks')
+      this.commit('initrLinks')
       this.commit('loadLinks', linksBase)
       this.commit('loadrLinks', linksBase)
       this.commit('loadNodes', nodesBase)
@@ -224,17 +251,12 @@ export const store = new Vuex.Store({
       this.commit('od/loadLayer', linksBase)
       state.visibleRasters = []
       state.styles = []
-      // default Values. if changed, change the export condition as it check this is changed to export.
-      state.attributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
+      state.attributesChoices = structuredClone(defaultAttributesChoices)
+      this.commit('loadAttributesChoices', defaultAttributesChoices)
       state.otherFiles = []
       state.cyclewayMode = false
     },
-    unloadLayers (state) {
-      const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
-      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
-      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
-    },
+
     applySettings (state, payload) {
       state.links.linkSpeed = Number(payload.linkSpeed)
       state.rlinks.roadSpeed = Number(payload.roadSpeed)
@@ -243,6 +265,7 @@ export const store = new Vuex.Store({
       state.rlinks.defaultHighway = payload.defaultHighway
       state.outputName = payload.outputName
     },
+    changeOutputName (state, payload) { state.outputName = payload },
     addStyle (state, payload) {
       // payload: styling for results {name,layer, displaySettings:{...}}
       const names = state.styles.map(el => el.name)
@@ -256,6 +279,9 @@ export const store = new Vuex.Store({
     deleteStyle (state, payload) {
       // payload = name of the preset to delete
       state.styles = state.styles.filter(el => el.name !== payload)
+    },
+    saveImportPoly (state, payload) {
+      state.importPoly = payload
     },
 
   },
@@ -324,14 +350,14 @@ export const store = new Vuex.Store({
           const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
           zip.file('styles.json', blob)
         }
-        if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+        if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
           const blob = new Blob([JSON.stringify(state.attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
 
-        const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
-        for (const layer of staticLayers) {
+        const layers = Object.keys(this._modules.root._children).filter(
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
+        for (const layer of layers) {
           const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
           const name = layer + '.geojson'
           // zip name = layer.replace('/', '_') + '.geojson'
@@ -394,7 +420,7 @@ export const store = new Vuex.Store({
         await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
       }
       // save attributes choices if changed
-      if (JSON.stringify(state.attributesChoices) !== '{"pt":{},"road":{"oneway":["0","1"]}}') {
+      if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
         await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(state.attributesChoices))
       }
       // save PT
@@ -422,9 +448,9 @@ export const store = new Vuex.Store({
       }
       // save outputs Layers
       if (payload !== 'inputs') {
-        const staticLayers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM'].includes(x))
-        for (const layer of staticLayers) {
+        const layers = Object.keys(this._modules.root._children).filter(
+          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
+        for (const layer of layers) {
           const name = layer + '.geojson'
           await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
           if (this.getters[`${layer}/mat`]) {
@@ -463,6 +489,7 @@ export const store = new Vuex.Store({
     loading: (state) => state.loading,
     mapCenter: (state) => state.mapCenter,
     mapZoom: (state) => state.mapZoom,
+    importPoly: (state) => state.importPoly,
     windowHeight: (state) => state.windowHeight,
     anchorMode: (state) => state.anchorMode,
     showLeftPanel: (state) => state.showLeftPanel,
@@ -504,3 +531,4 @@ export const store = new Vuex.Store({
 
   },
 })
+export default store

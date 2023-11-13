@@ -3,7 +3,7 @@
 import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
-const short = require('short-uuid')
+const short = await fetch('short-uuid')
 const $gettext = s => s
 
 export default {

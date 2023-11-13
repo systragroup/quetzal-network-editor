@@ -1,0 +1,21 @@
+.mapboxgl-ctrl-bottom-right {
+  right: 10px;
+  bottom: 10px;
+}
+.mapboxgl-popup-content {
+  padding: 20px 40px 20px 20px;
+  color: white;
+  background-color: $secondary;
+}
+.mapboxgl-popup-tip {
+  border-bottom-color: $secondary !important;
+  border-top-color: $secondary !important;
+}
+.mapboxgl-popup-close-button {
+  right: 20px;
+  top: 20px;
+  font-size: 1.5em;
+}
+.mapboxgl-ctrl-attrib-inner > a {
+  color: $secondary !important;
+}

@@ -7,7 +7,7 @@ import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 const $gettext = s => s
-const short = require('short-uuid')
+const short = await fetch('short-uuid')
 
 export default {
   state: {
@@ -28,6 +28,7 @@ export default {
     linksDefaultColor: '2196F3',
     lineAttributes: [],
     nodeAttributes: [],
+    linksAttributesChoices: {},
     defaultAttributes: [
       { name: 'index', type: 'String' },
       { name: 'a', type: 'String' },
@@ -50,6 +51,11 @@ export default {
   },
 
   mutations: {
+    initLinks (state) {
+      state.linksAttributesChoices = {}
+      state.lineAttributes = []
+      state.nodeAttributes = []
+    },
     loadLinks (state, payload) {
       state.links = structuredClone(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
@@ -166,6 +172,13 @@ export default {
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.nodeAttributes = header
+    },
+    loadLinksAttributesChoices (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload).forEach(key => state.linksAttributesChoices[key] = payload[key])
+      const attrs = Object.keys(state.linksAttributesChoices) // all attrbutes in attributesChoices
+      const newAttrs = attrs.filter(item => !state.lineAttributes.includes(item)) // ones not in rlinks
+      newAttrs.forEach(item => this.commit('addPropertie', { table: 'links', name: item }))
     },
 
     addPropertie (state, payload) {
@@ -527,14 +540,14 @@ export default {
       const sliceIndex = snapped.properties.index + 1
       const offset = snapped.properties.location / dist
       if (payload.nodes === 'editorNodes') {
-        this.commit('setNewNode', { coordinates: snapped.geometry.coordinates, nodeCopyId: nodeCopyId })
-        this.commit('splitLink', { selectedLink: payload.selectedLink, offset: offset, sliceIndex: sliceIndex })
+        this.commit('setNewNode', { coordinates: snapped.geometry.coordinates, nodeCopyId })
+        this.commit('splitLink', { selectedLink: payload.selectedLink, offset, sliceIndex })
       // Anchor Nodes
       } else {
         this.commit('addAnchorNode', {
           selectedLink: payload.selectedLink,
           coordinates: snapped.geometry.coordinates,
-          sliceIndex: sliceIndex,
+          sliceIndex,
         })
       }
 
@@ -827,7 +840,7 @@ export default {
           const linkIndex = feature.properties.index
           feature.geometry.coordinates.slice(1, -1).forEach(
             (point, idx) => nodes.features.push({
-              properties: { index: short.generate(), linkIndex: linkIndex, coordinatedIndex: idx + 1 },
+              properties: { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
               geometry: { coordinates: point, type: 'Point' },
             }),
           )
@@ -839,5 +852,6 @@ export default {
     // this return the attribute type, of undefined.
     attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
     defaultAttributesNames: (state) => state.defaultAttributes.map(attr => attr.name),
+    linksAttributesChoices: (state) => state.linksAttributesChoices,
   },
 }

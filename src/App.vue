@@ -1,122 +1,106 @@
 <script>
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
-import Alert from '@comp/utils/Alert.vue'
-import auth from './auth'
-import s3 from './AWSClient'
-import { axiosClient } from './axiosClient'
 
 export default {
   name: 'App',
   components: {
     Toolbar,
     NavigationDrawer,
-    Alert,
   },
   data () {
     return {
       snackbar: false,
+      overlay: false,
+      notification: {},
     }
   },
   computed: {
-    notification () {
-      return this.$store.getters.notification
-    },
-    loading () {
-      return this.$store.getters.loading
-    },
+
   },
   watch: {
-    notification () {
-      this.snackbar = !!this.notification.text
+    notification: {
+      handler (newValue) {
+        if (newValue && Object.keys(newValue).length > 0) {
+          this.snackbar = true
+        }
+      },
     },
   },
-  async created () {
-    // init links and node to empty one (new project)
-    this.$store.commit('initNetworks')
-    this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
+  mounted () {
 
-    if (auth.auth.isUserSignedIn()) {
-      await auth.login()
-      await s3.login()
-      axiosClient.loginAll(this.$store.getters.idToken)
-    }
   },
   methods: {
     closeSnackbar () {
       this.snackbar = false
-      this.$store.notification = {}
     },
-    onResize () {
-      // -50 for the ToolBar
-      this.$store.commit('changeWindowHeight', this.$refs.container.clientHeight - 50)
+    showNotification () {
+      this.notification = this.$store.getters.notification
+    },
+    showOverlay (element) {
+      this.overlay = !element
     },
   },
 }
 </script>
 <template>
   <v-app class="app">
-    <NavigationDrawer />
-    <div
-      ref="container"
-      v-resize="onResize"
-      class="container"
+    <NavigationDrawer
+      :key="overlay"
+      :overlay="overlay"
+      @change-overlay="showOverlay"
+    />
+    <v-card
+      class="container rounded-0"
     >
-      <Toolbar />
-      <transition name="fade">
-        <router-view />
-      </transition>
-    </div>
-    <v-overlay :value="loading">
-      <v-progress-circular
-        indeterminate
-        size="64"
+      <v-overlay
+        v-model="overlay"
+        contained
+        close-on-back
+        scroll-strategy="block"
       />
-    </v-overlay>
+      <Toolbar />
+      <RouterView
+        @add-notification="showNotification"
+      />
+    </v-card>
     <v-snackbar
       v-model="snackbar"
       :timeout="notification.autoClose ? 3000 : -1"
       transition="slide-y-reverse-transition"
-      :color="notification.color? notification.color : 'white'"
+      color="white"
       :class="`snackbar-${notification.type}`"
     >
-      <span class="snackbar-text">
-        {{ $gettext(notification.text) }}
-      </span>
-      <template v-slot:action="{ attrs }">
+      {{ $gettext(notification.text) }}
+      <template #actions>
         <v-btn
-          small
-          color="secondarydark"
-          text
-          v-bind="attrs"
+          size="small"
+          color="secondary"
+          variant="text"
           @click="closeSnackbar"
         >
           {{ $gettext("Close") }}
         </v-btn>
       </template>
     </v-snackbar>
-    <Alert />
   </v-app>
 </template>
 <style lang="scss" scoped>
 .app {
-  background-color: $grey-ultralight !important;
+  background-color: $grey-ultralight!important;
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
-.snackbar-text{
-  color:var(--v-secondarydark-base);
-}
 .container {
   height: 100%;
   margin-left: 50px;
-  width: calc(100% - 50px);
   max-width: calc(100% - 50px);
   padding: 0;
+  background-color: $grey-ultralight;
 }
 .container.login {
   margin-left: 0;
-  width: 100%;
+  max-width: 100%;
 }
 </style>

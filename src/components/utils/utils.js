@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import { store } from '../../store/index.js'
+import store from '../../store/index.js'
 const $gettext = s => s
 
 function readFileAsText (file) {
@@ -63,7 +63,7 @@ async function extractZip (file) {
     }
     // import with new fileStructure (inputs, outputs folder in zip)
 
-    result.push({ path: filesNames[i], content: content })
+    result.push({ path: filesNames[i], content })
   }
   return result
 }
@@ -118,6 +118,7 @@ async function unzip (file) {
   const ZIP = new JSZip()
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
+  console.log(filesNames)
   const str = await zip.file(filesNames[0]).async('string')
   const content = JSON.parse(str)
   return content
@@ -127,6 +128,7 @@ async function unzip (file) {
 function csvJSON (bytes) {
   const csv = new TextDecoder().decode(bytes)
   let lines = csv.split('\n')
+  lines = lines.map(line => line.replace(/\r/g, ''))
   lines = lines.filter(line => line.length > 0)
   const result = []
   // NOTE: If your columns contain commas in their values, you'll need
@@ -153,6 +155,61 @@ function csvJSON (bytes) {
   return result
 }
 
+async function unzipCalendar (file) {
+  // unzip a file and return a json (solo json zipped)
+  const ZIP = new JSZip()
+  const zip = await ZIP.loadAsync(file)
+  const filesNames = Object.keys(zip.files)
+  if (filesNames.includes('calendar.txt')) {
+    const bytes = await zip.file('calendar.txt').async('uint8array')
+    const content = csvJSON(bytes)
+    return content
+  }
+
+  return {}
+}
+
+function generatePassword (length) {
+  const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz'
+  const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const numbers = '0123456789'
+  const symbols = '@$!%*?&_'
+
+  const allChars = lowercaseChars + uppercaseChars + numbers + symbols
+
+  let password = ''
+
+  // Ensure at least one character from each character set
+  password += getRandomChar(lowercaseChars)
+  password += getRandomChar(uppercaseChars)
+  password += getRandomChar(numbers)
+  password += getRandomChar(symbols)
+
+  // Fill the rest of the password
+  for (let i = password.length; i < length; i++) {
+    password += getRandomChar(allChars)
+  }
+
+  // Shuffle the password to randomize the order
+  password = shuffleString(password)
+
+  return password
+}
+
+function getRandomChar (characterSet) {
+  const randomIndex = Math.floor(Math.random() * characterSet.length)
+  return characterSet.charAt(randomIndex)
+}
+
+function shuffleString (str) {
+  const array = str.split('')
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]]
+  }
+  return array.join('')
+}
+
 export {
   readFileAsText,
   readFileAsBytes,
@@ -163,4 +220,6 @@ export {
   IndexAreDifferent,
   unzip,
   csvJSON,
+  unzipCalendar,
+  generatePassword,
 }

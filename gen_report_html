@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+reportxunit="$1"
+[ -e "$reportxunit" ]
+reporthtml=$(echo "$reportxunit"|sed 's/xunit$/html/')
+# the following should be run as is
+# using xunit-viewer in the path or yarn run will not honour --results argument
+./node_modules/.bin/xunit-viewer --results="$reportxunit" --output="$reporthtml"

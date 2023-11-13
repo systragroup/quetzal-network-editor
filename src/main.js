@@ -1,25 +1,36 @@
-import '@fortawesome/fontawesome-free/css/all.css'
-import 'vuetify/dist/vuetify.min.css'
-import 'mapbox-gl/dist/mapbox-gl.css'
-import '@scss/app.scss'
-
-import Vue from 'vue'
-import GetTextPlugin from 'vue-gettext'
-import { store } from './store'
+import { createApp } from 'vue'
+import App from './App.vue'
 import router from './router'
-import Vuetify from 'vuetify'
+import { createGettext } from 'vue3-gettext'
+import store from './store'
+
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as labsComponents from 'vuetify/labs/components'
+import * as directives from 'vuetify/directives'
+import { aliases, fa } from 'vuetify/iconsets/fa'
+
 import 'promise-polyfill/src/polyfill'
 
-import fr from 'vuetify/es5/locale/fr'
-import en from 'vuetify/es5/locale/en'
-import de from 'vuetify/es5/locale/de'
-import es from 'vuetify/es5/locale/es'
-import pt from 'vuetify/es5/locale/pt'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import '@fortawesome/fontawesome-free/css/all.css'
+import 'mapbox-gl/dist/mapbox-gl.css'
 
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
+
+import VueApexCharts from 'vue3-apexcharts'
+
+import { fr, en } from 'vuetify/locale'
 import translations from './translations.json'
 
-import App from './App.vue'
-const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
+import '@scss/main.scss'
+
+// config
+import { mapboxPublicKey } from '@src/config.js'
 console.assert(mapboxPublicKey)
 
 const languageMixin = {
@@ -46,131 +57,68 @@ const languageMixin = {
   },
 }
 
-const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr', 'es', 'de', 'pt'])
-const darkMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+const app = createApp(App)
+app.mixin(languageMixin)
+app.use(store)
+app.use(router)
+app.component('Apexchart', VueApexCharts)
+app.component('VueDatePicker', VueDatePicker)
+app.component('FontAwesomeIcon', FontAwesomeIcon)
+library.add(fas)
 
-Vue.use(Vuetify)
-Vue.use(GetTextPlugin, {
-  autoAddKeyAttributes: true,
-  availableLanguages: {
-    en: 'English',
-    fr: 'Français',
-    es: 'Español',
-    de: 'Deutsch',
-    pt: 'Português',
+const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr'])
+
+const vuetify = createVuetify({
+  // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
+  components: {
+    ...components,
+    ...labsComponents, // we need this to use v-data-table...
   },
-  defaultLanguage: bestLanguage,
-  translations,
-  silent: true,
-})
-
-Vue.config.productionTip = false
-Vue.config.devtools = false
-Vue.config.performance = false
-
-const vuetify = new Vuetify({
+  directives,
   theme: {
-    dark: !!darkMode,
-    options: {
-      customProperties: true,
-    },
+    defaultTheme: 'light',
     themes: {
-
       light: {
-        primary: '#B5E0D6',
-        primarydark: '#7EBAAC',
-        secondary: '#2C3E4E',
-        secondarydark: '#1A242C',
-        secondarydarkfix: '#1A242C',
-        secondarylight: '#334453',
-        background: '#808080',
-        lightgrey: '#E3E4E6',
-        white: '#fff',
-        black: '#000000',
-        mediumgrey: '#9E9E9E',
-        darkgrey: '#5B5B5C',
-        accent: '#2C3E4E',
-        linksprimary: '#7EBAAC',
-        linkssecondary: '#B5E0D6',
-        chart: {
-          lightgreen: '#CDDC39',
-          darkgreen: '#4CAF50',
-          lightblue: '#00BCD4',
-          darkblue: '#2196F3',
-          purple: '#673AB7',
-          pink: '#E91E63',
-          orange: '#FF7B30',
-          yellow: '#FFC107',
+        dark: false,
+        colors: {
+          main: '#003C4B', // $transversal-main
+          primary: '#B5E0D6', // $primary
+          primarylight: '#B5E0D6', // $primary-light
+          primarydark: '#7EBAAC', // $primary-dark
+          secondary: '#2C3E4E', // $secondary
+          secondarylight: '#2C3E4E', // $secondary-light
+          secondarydark: '#0F1C27', // $secondary-dark
+          lightgrey: '#E3E3E3', // $grey-light
+          mediumgrey: '#9E9E9E', // $grey-medium
+          darkgrey: '#5B5B5B', // $grey-dark
+          success: '#4CAF50', // $4CAF50
+          warning: '#FF7B30', // $warning-orange
+          error: '#E42626', // $error-red
         },
       },
-      dark: {
-        primary: '#2196F3',
-        primarydark: '#191919',
-        secondary: '#263238',
-        secondarydark: '#fff',
-        secondarydarkfix: '#1A242C',
-        lightgrey: '#403f3f',
-        mediumgrey: '#575757',
-        darkgrey: '#d9d9db',
-        background: '#000000',
-        white: '#000000',
-        black: '#fff',
-        success: '#2196F3',
-        accent: '#d3c1b1',
-        linksprimary: '#2196F3',
-        linkssecondary: '#90CAF9',
-        chart: {
-          lightgreen: '#CDDC39',
-          darkgreen: '#4CAF50',
-          lightblue: '#00BCD4',
-          darkblue: '#2196F3',
-          purple: '#673AB7',
-          pink: '#E91E63',
-          orange: '#FF7B30',
-          yellow: '#FFC107',
-        },
-
-      },
-
     },
   },
   icons: {
-    iconfont: 'fa',
-  },
-  lang: {
-    locales: { fr, en, es, de, pt },
-    current: bestLanguage,
-  },
-})
-
-Vue.mixin(languageMixin)
-
-Vue.mixin({
-  methods: {
-    $flatEdges (obj, recurse = false) {
-      let flatObj = obj
-      if (obj.edges) {
-        flatObj = obj.edges.map(edge => edge.node)
-      }
-      if (recurse) {
-        for (const key in obj) {
-          if (obj[key] !== null && typeof obj[key] === 'object') {
-            obj[key] = this.$flatEdges(obj[key], true)
-          }
-        }
-      }
-      return flatObj
+    aliases,
+    sets: {
+      fa,
     },
   },
+  locale: {
+    locale: bestLanguage,
+    fallback: 'translations',
+    messages: { fr, en, translations },
+  },
 })
+app.use(vuetify)
 
-const app = new Vue({
+app.use(createGettext({
+  availableLanguages: {
+    en: 'English',
+    fr: 'Français',
+  },
+  defaultLanguage: bestLanguage,
+  translations,
+}))
 
-  router,
-  store,
-  vuetify,
-  render: h => h(App),
-  template: '<App/>',
-})
-
-app.$mount('#app')
+app.mount('#app')

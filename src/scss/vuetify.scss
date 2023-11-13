@@ -33,14 +33,14 @@
 .v-snack__content {
   color: $secondary !important;
 }
-.snackbar-error > .v-snack__wrapper {
-  border-bottom: 5px solid $negative !important;
+.snackbar-error > .v-snackbar__wrapper {
+  border-bottom: 5px solid $error-red !important;
 }
-.snackbar-warning > .v-snack__wrapper {
-  border-bottom: 5px solid $warning !important;
+.snackbar-warning > .v-snackbar__wrapper {
+  border-bottom: 5px solid $warning-orange !important;
 }
-.snackbar-positive > .v-snack__wrapper {
-  border-bottom: 5px solid $positive !important;
+.snackbar-positive > .v-snackbar__wrapper {
+  border-bottom: 5px solid $success-green !important;
 }
 .v-card__subtitle, .v-card__text, .v-card__title {
   padding: 0;
@@ -48,3 +48,10 @@
 .v-card__title {
   line-height: normal;
 }
+.v-card__title + .v-card__subtitle {
+  margin-top: 0px;
+}
+.v-alert {
+  padding: 24px;
+}
+
