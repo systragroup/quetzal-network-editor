@@ -15,7 +15,10 @@ export default {
   },
   computed: {
     steps () { return this.$store.getters['run/steps'] },
-    avalaibleStepFunctions () { return this.$store.getters['run/avalaibleStepFunctions'] },
+    avalaibleStepFunctions () {
+      const modelsSet = this.$store.getters['run/availableModels']
+      return this.$store.getters['run/avalaibleStepFunctions'].filter(el => modelsSet.has(el))
+    },
     selectedStepFunction () { return this.$store.getters['run/selectedStepFunction'] },
     running () { return this.$store.getters['run/running'] },
     currentStep () { return this.$store.getters['run/currentStep'] },
@@ -29,16 +32,19 @@ export default {
   },
   watch: {
     async stepFunction (newVal, oldVal) {
-      if (oldVal !== null) {
+      if (newVal < 0) {
+        this.$store.commit('run/setSelectedStepFunction', this.avalaibleStepFunctions[0])
+        this.$store.dispatch('run/getSteps')
+      } else if (oldVal !== null) {
         // val is an index here
         this.$store.commit('run/setSelectedStepFunction', this.avalaibleStepFunctions[newVal])
         this.$store.dispatch('run/getSteps')
       }
     },
   },
-  created () {
+  async created () {
     if (this.modelIsLoaded) {
-      this.$store.dispatch('run/getSteps')
+      await this.$store.dispatch('run/getSteps')
       // here stepfuntion is an index v-model. 0,1.
       this.stepFunction = this.avalaibleStepFunctions.indexOf(this.selectedStepFunction)
     }
