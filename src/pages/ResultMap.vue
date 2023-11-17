@@ -257,6 +257,7 @@ export default {
     />
     <div class="left-panel">
       <MapLegend
+        v-show="$store.getters['results/visibleLinks']?.features.length>0"
         key="result"
         :order="0"
         :color-scale="colorScale"
