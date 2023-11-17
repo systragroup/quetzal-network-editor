@@ -13,6 +13,9 @@ export default defineConfig({
   define: {
     global: {},
   },
+  optimizeDeps: {
+    include: [],
+  },
   plugins: [
     vue(),
     vuetify(),

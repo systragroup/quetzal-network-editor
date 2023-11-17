@@ -249,7 +249,23 @@ export default {
       }
       // inverser l'ordre des features
       cloned.features.reverse()
+      // duplicate nodes and rename them
+      const a = cloned.features.map(item => item.properties.a)
+      const b = cloned.features.map(item => item.properties.b)
+      const ab = new Set([...a, ...b])
+      const clonedNodes = structuredClone(state.nodes)
+      clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
+      const newName = {}
+      ab.forEach(node => newName[node] = 'node_' + short.generate())
+      clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
+
+      cloned.features.forEach(link => link.properties.a = newName[link.properties.a])
+      cloned.features.forEach(link => link.properties.b = newName[link.properties.b])
+
+      // push cloned links and nodes
       state.links.features.push(...cloned.features)
+      state.nodes.features.push(...clonedNodes.features)
+
       this.commit('getTripId')
     },
     getEditorNodes (state, payload) {

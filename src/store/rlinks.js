@@ -12,9 +12,9 @@ import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { toRaw } from 'vue'
 
-const $gettext = s => s
+import short from 'short-uuid'
 
-const short = await fetch('short-uuid')
+const $gettext = s => s
 
 // eslint-disable-next-line max-len
 const defaultrCstAttributes = ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway', 'cycleway', 'cycleway_reverse', 'incline']
@@ -392,7 +392,7 @@ export default {
     },
 
     createNewrNode (state, payload) {
-      const newNode = structuredClone(state.rnodesHeader)
+      const newNode = structuredClone(toRaw(state.rnodesHeader))
       const nodeProperties = {}
       state.rnodeAttributes.forEach(key => {
         nodeProperties[key] = null
@@ -410,7 +410,7 @@ export default {
     splitrLink (state, payload) {
       // changing link1 change editorLinks as it is an observer.
       const link1 = payload.selectedFeature
-      const link2 = structuredClone(link1)
+      const link2 = structuredClone(toRaw(link1))
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
 
@@ -711,7 +711,7 @@ export default {
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
 
     anchorrNodes: (state) => {
-      const nodes = structuredClone(state.rnodesHeader)
+      const nodes = structuredClone(toRaw(state.rnodesHeader))
       state.renderedrLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index

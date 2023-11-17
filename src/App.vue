@@ -45,7 +45,7 @@ export default {
     },
     onResize () {
       // -50 for the ToolBar
-      this.$store.commit('changeWindowHeight', this.$refs.container.clientHeight - 50)
+      this.$store.commit('changeWindowHeight', this.$refs.container.$el.clientHeight - 50)
     },
     showOverlay (element) {
       this.overlay = !element

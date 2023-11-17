@@ -2,8 +2,8 @@
 /* eslint-disable no-return-assign */
 
 import chroma from 'chroma-js'
+import { toRaw } from 'vue'
 const seedrandom = await fetch('seedrandom')
-
 const $gettext = s => s
 
 function isHexColor (variable) {
@@ -148,26 +148,26 @@ export default {
       state.selectedCategory = []
       state.hasOD = false
       state.ODindex = {}
-      state.displaySettings = structuredClone(defaultSettings)
+      state.displaySettings = structuredClone(toRaw(defaultSettings))
       // TODO: remove display_width and display_color
     },
 
     loadLinks (state, payload) {
-      state.displaySettings = structuredClone(defaultSettings)
+      state.displaySettings = structuredClone(toRaw(defaultSettings))
       // TODO: remove display_width and display_color
       this.commit(`${state.namespace}/cleanLinks`)
-      state.links = structuredClone(payload.geojson)
+      state.links = structuredClone(toRaw(payload.geojson))
       state.type = payload.type
       // extrusion only for polygon right now. set to false if not a polygon
       if (state.type !== 'Polygon') { state.displaySettings.extrusion = false }
       state.hasOD = payload.hasOD ? payload.hasOD : false
       state.ODindex = payload.ODindex ? payload.ODindex : {}
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
-        const linksHeader = structuredClone(state.links)
+        const linksHeader = structuredClone(toRaw(state.links))
         linksHeader.features = []
         state.linksHeader = linksHeader
-        state.visibleLinks = structuredClone(linksHeader)
-        state.NaNLinks = structuredClone(linksHeader)
+        state.visibleLinks = structuredClone(toRaw(linksHeader))
+        state.NaNLinks = structuredClone(toRaw(linksHeader))
         // set all trips visible
         this.commit(`${state.namespace}/getLinksProperties`)
         if (state.lineAttributes.includes(payload.selectedFeature)) {
@@ -258,7 +258,7 @@ export default {
           link.properties.display_width = (maxWidth - minWidth) * val + minWidth
         },
       )
-      let pad = structuredClone(state.displaySettings.padding)
+      let pad = structuredClone(toRaw(state.displaySettings.padding))
       pad = [pad[0] / 100, 1 - pad[1] / 100]
       pad = state.displaySettings.reverseColor ? pad.reverse() : pad
       const colorScale = chroma.scale(cmap).padding(pad)
@@ -315,7 +315,7 @@ export default {
     links: (state) => state.links,
     visibleLinks: (state) => state.visibleLinks,
     displayLinks: (state) => {
-      const layer = structuredClone(state.linksHeader)
+      const layer = structuredClone(toRaw(state.linksHeader))
       layer.features = state.visibleLinks.features.map(obj => {
         return {
           geometry: obj.geometry,

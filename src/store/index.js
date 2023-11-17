@@ -12,7 +12,7 @@ import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
-import { toRaw } from 'vue'
+import { toRaw, ref } from 'vue'
 
 import { serializer, stylesSerializer } from '../components/utils/serializer.js'
 
@@ -59,7 +59,7 @@ const store = createStore({
     mapZoom: 11,
     importPoly: null,
     availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
-    visibleRasters: [], // list of rasterFiles path.
+    visibleRasters: ref([]), // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
     attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
@@ -194,7 +194,10 @@ const store = createStore({
       this.commit('loadrLinksAttributesChoices', payload.road)
     },
     setVisibleRasters (state, payload) {
-      state.visibleRasters = payload
+      // payload.forEach(el => arr.push({ item: el }))
+      // state.visibleRasters = new Set(payload)
+      state.visibleRasters.value = payload
+      console.log(state.visibleRasters)
     },
 
     loadLayers (state, payload) {
@@ -251,7 +254,7 @@ const store = createStore({
       this.commit('loadNodes', nodesBase)
       this.commit('loadrNodes', nodesBase)
       this.commit('od/loadLayer', linksBase)
-      state.visibleRasters = []
+      state.visibleRasters.value = []
       state.styles = []
       state.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
       this.commit('loadAttributesChoices', defaultAttributesChoices)
@@ -525,9 +528,9 @@ const store = createStore({
     },
     mapStyle: (state) => {
       if (state.darkMode) {
-        return 'mapbox://styles/mapbox/dark-v11?optimize=true'
+        return 'mapbox://styles/mapbox/dark-v11'
       } else {
-        return 'mapbox://styles/mapbox/light-v11?optimize=true'
+        return 'mapbox://styles/mapbox/light-v11'
       }
     },
 

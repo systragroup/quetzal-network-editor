@@ -19,10 +19,8 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 import '@fortawesome/fontawesome-free/css/all.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import VueDatePicker from '@vuepic/vue-datepicker'
-import '@vuepic/vue-datepicker/dist/main.css'
-
-import VueApexCharts from 'vue3-apexcharts'
+// import VueDatePicker from '@vuepic/vue-datepicker'
+// import '@vuepic/vue-datepicker/dist/main.css'
 
 import { fr, en } from 'vuetify/locale'
 import translations from './translations.json'
@@ -61,8 +59,7 @@ const app = createApp(App)
 app.mixin(languageMixin)
 app.use(store)
 app.use(router)
-app.component('Apexchart', VueApexCharts)
-app.component('VueDatePicker', VueDatePicker)
+// app.component('VueDatePicker', VueDatePicker)
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 library.add(fas)
 
@@ -118,6 +115,7 @@ const vuetify = createVuetify({
           accent: '#d3c1b1',
           linksprimary: '#2196F3',
           linkssecondary: '#90CAF9',
+
         },
       },
     },
@@ -143,6 +141,7 @@ app.use(createGettext({
   },
   defaultLanguage: bestLanguage,
   translations,
+  silent: true,
 }))
 
 app.mount('#app')

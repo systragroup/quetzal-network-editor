@@ -30,11 +30,6 @@ export default {
     :class="'app-toolbar elevation-4'"
     dense
   >
-    <v-img
-      :src="'@static/systra_logo.png'"
-      cover
-      max-width="6rem"
-    />
     <span class="copyright">©</span>
     <div class="app-name">
       Quetzal Network Editor

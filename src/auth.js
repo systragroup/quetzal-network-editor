@@ -36,11 +36,15 @@ async function signin (username, password) {
   const resp = await Auth.signIn(username, password)
   return resp
 }
-
+async function completeNewPassword (user, newPassword) {
+  const resp = await Auth.completeNewPassword(user, newPassword)
+  return resp
+}
 // Auth.signOut()
 export default {
   login,
   signin,
+  completeNewPassword,
   async isUserSignedIn () {
     try {
       await Auth.currentAuthenticatedUser()

@@ -59,7 +59,7 @@ export default {
         }
         try {
           const content = await readFileAsBytes(file)
-          fileList.push({ content: content, path: name })
+          fileList.push({ content, path: name })
           this.$store.commit('changeLoading', false)
         } catch (err) {
           this.$store.commit('changeLoading', false)
@@ -82,10 +82,10 @@ export default {
           if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
             let content = await readFileAsText(file)
             content = JSON.parse(content)
-            fileList.push({ content: content, path: name })
+            fileList.push({ content, path: name })
           } else { // if not a geojson or a json. save as other.
             const content = await readFileAsBytes(file)
-            fileList.push({ content: content, path: name })
+            fileList.push({ content, path: name })
           }
 
           this.$store.commit('changeLoading', false)
@@ -121,16 +121,16 @@ export default {
     >
     <div class="files-container">
       <div class="title-box">
-        <h1 class="title">
+        <h1 class="text-h6">
           {{ $gettext('Other Inputs') }}
         </h1>
         <div class="upload-button">
           <v-btn
             icon
-            outlined
+            variant="outlined"
             @click="()=>buttonHandle('inputs')"
           >
-            <v-icon small>
+            <v-icon size="small">
               fa-solid fa-upload
             </v-icon>
           </v-btn>
@@ -143,18 +143,18 @@ export default {
         >
           {{ path }}
           <v-tooltip
-            top
+            location="top"
             open-delay="250"
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-btn
-                v-bind="attrs"
+
                 class="list-button"
                 icon
-                v-on="on"
+                v-bind="props"
                 @click="()=>buttonHandle(path)"
               >
-                <v-icon small>
+                <v-icon size="small">
                   fa-solid fa-upload
                 </v-icon>
               </v-btn>
@@ -166,16 +166,16 @@ export default {
     </div>
     <div class="files-container">
       <div class="title-box">
-        <h1 class="title">
+        <h1 class="text-h6">
           {{ $gettext('Outputs') }}
         </h1>
         <div class="upload-button">
           <v-btn
             icon
-            outlined
+            variant="outlined"
             @click="()=>buttonHandle('outputs')"
           >
-            <v-icon small>
+            <v-icon size="small">
               fa-solid fa-upload
             </v-icon>
           </v-btn>
@@ -194,15 +194,15 @@ export default {
         >
           {{ item }}
           <v-tooltip
-            top
+            location="top"
             open-delay="250"
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-icon
-                v-bind="attrs"
-                small
+
+                size="small"
                 class="list-icon"
-                v-on="on"
+                v-bind="props"
               >
                 fa-solid fa-layer-group
               </v-icon>
