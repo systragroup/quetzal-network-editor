@@ -1,11 +1,12 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { VLayerMapboxGeojson } from 'v-mapbox'
+import { MglGeojsonLayer } from '@comp/vue-mapbox/main'
 import mapboxgl from 'mapbox-gl'
+import { toRaw } from 'vue'
 export default {
   name: 'StaticLinks',
   components: {
-    VLayerMapboxGeojson,
+    MglGeojsonLayer,
   },
   props: ['map', 'showedTrips', 'isEditorMode'],
   events: ['rightClick'],
@@ -34,8 +35,8 @@ export default {
   },
 
   created () {
-    this.visibleLinks = structuredClone(this.$store.getters.linksHeader)
-    this.visibleNodes = structuredClone(this.$store.getters.nodesHeader)
+    this.visibleLinks = structuredClone(toRaw(this.$store.getters.linksHeader))
+    this.visibleNodes = structuredClone(toRaw(this.$store.getters.nodesHeader))
     this.setHiddenFeatures()
     this.map.on('dblclick', this.selectLine)
   },
@@ -128,7 +129,7 @@ export default {
 </script>
 <template>
   <section>
-    <VLayerMapboxGeojson
+    <MglGeojsonLayer
       source-id="links"
       :source="{
         type: 'geojson',
@@ -143,7 +144,7 @@ export default {
         minzoom: 1,
         maxzoom: 18,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.1, 1],
           'line-width': ['case', ['has', 'route_width'],
                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
@@ -159,7 +160,7 @@ export default {
       v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:editLineProperties }"
     />
 
-    <VLayerMapboxGeojson
+    <MglGeojsonLayer
       source-id="nodes"
       :source="{
         type: 'geojson',
@@ -174,8 +175,8 @@ export default {
         minzoom: 12,
         maxzoom: 18,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false],$vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.accent],
-          'circle-stroke-color': $vuetify.theme.currentTheme.white,
+          'circle-color': ['case', ['boolean', isEditorMode, false],$vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
+          'circle-stroke-color': $vuetify.theme.current.colors.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['has', 'route_width'],
                             ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],

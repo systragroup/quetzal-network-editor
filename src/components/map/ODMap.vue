@@ -1,15 +1,15 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { VLayerMapboxGeojson, VLayerMapboxImage, VPopup } from 'v-mapbox'
-const short = await fetch('short-uuid')
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from '@comp/vue-mapbox/main'
+import short from 'short-uuid'
 const $gettext = s => s
 
 export default {
   name: 'ODMap',
   components: {
-    VLayerMapboxGeojson,
-    VLayerMapboxImage,
-    VPopup,
+    MglGeojsonLayer,
+    MglImageLayer,
+    MglPopup,
   },
   props: ['map', 'isODMode', 'isEditorMode'],
   events: [],
@@ -182,7 +182,7 @@ export default {
 </script>
 <template>
   <section>
-    <VLayerMapboxGeojson
+    <MglGeojsonLayer
       source-id="od"
       :source="{
         type: 'geojson',
@@ -197,7 +197,7 @@ export default {
         minzoom: 1,
         maxzoom: 18,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
           'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 3, 1],
                          ['case', ['has', 'route_width'],
@@ -221,7 +221,7 @@ export default {
       @mouseleave="offCursor"
     />
 
-    <VLayerMapboxGeojson
+    <MglGeojsonLayer
       source-id="ODNodes"
       :source="{
         type: 'geojson',
@@ -238,7 +238,7 @@ export default {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': $vuetify.theme.currentTheme.darkgrey,
+          'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
           'circle-stroke-width': 2,
         },
       }"
@@ -246,7 +246,7 @@ export default {
       @mouseleave="offCursor"
       @mousedown="moveNode"
     />
-    <VLayerMapboxImage
+    <MglImageLayer
       source-id="od"
       type="symbol"
       source="od"
@@ -264,11 +264,11 @@ export default {
           'icon-rotate': 90,
         },
         paint: {
-          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
         }
       }"
     />
-    <VPopup
+    <MglPopup
       :close-button="false"
       :showed="contextMenu.showed"
       :coordinates="contextMenu.coordinates"
@@ -298,7 +298,7 @@ export default {
           </v-list-item>
         </v-list>
       </span>
-    </VPopup>
+    </MglPopup>
   </section>
 </template>
 <style lang="scss" scoped>

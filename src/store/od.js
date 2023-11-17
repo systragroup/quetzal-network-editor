@@ -4,7 +4,7 @@ import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { toRaw } from 'vue'
-const short = await fetch('short-uuid')
+import short from 'short-uuid'
 const $gettext = s => s
 
 export default {

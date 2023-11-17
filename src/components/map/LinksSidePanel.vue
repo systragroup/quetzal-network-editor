@@ -1,7 +1,7 @@
 <script>
 
+import short from 'short-uuid'
 const $gettext = s => s
-const short = await fetch('short-uuid')
 
 export default {
   name: 'LinksSidePanel',
@@ -291,8 +291,8 @@ export default {
                     <v-btn
                       variant="text"
                       :icon="value.tripId.some(val => tripList.includes(val))
-                        ? 'fa-solid fa-eye' :
-                          'fa-solid fa-slash-eye' "
+                        ? 'fa-eye fa' :
+                          'fa-eye-slash fa' "
 
                       v-bind="hover"
                       @click.stop="showGroup(value.tripId)"
@@ -362,8 +362,8 @@ export default {
                 <v-checkbox-btn
                   v-model="tripList"
                   class="pl-2"
-                  :true-icon="'fa-solid fa-eye'"
-                  :false-icon="'fa-solid fa-eye-slash'"
+                  :true-icon="'fa-eye fa'"
+                  :false-icon="'fa-eye-slash fa'"
                   :color="'primary'"
                   :value="item"
                   size="10"

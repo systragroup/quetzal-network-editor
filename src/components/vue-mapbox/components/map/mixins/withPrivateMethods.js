@@ -57,7 +57,7 @@ export default {
         return new Promise(resolve => {
           if (this.accessToken) this.mapbox.accessToken = this.accessToken
           const map = new this.mapbox.Map({
-            ...this._props,
+            ...this.$props,
             container: this.$refs.container,
             style: this.mapStyle,
           })

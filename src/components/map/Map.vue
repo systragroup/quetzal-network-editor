@@ -1,20 +1,20 @@
 <script>
 import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
-import { MglMap, MglGeojsonLayer } from '@comp/vue-mapbox/main'
+import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from '@comp/vue-mapbox/main'
 
 import { toRaw } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
 import Linestring from 'turf-linestring'
-// import Settings from './Settings.vue'
-// import StaticLinks from './StaticLinks.vue'
-// import EditorLinks from './EditorLinks.vue'
+import Settings from './Settings.vue'
+import StaticLinks from './StaticLinks.vue'
+import EditorLinks from './EditorLinks.vue'
 import RoadLinks from './RoadLinks.vue'
 import StaticLayer from '../utils/StaticLayer.vue'
 import LayerSelector from '../utils/LayerSelector.vue'
-// import ODMap from './ODMap.vue'
+import ODMap from './ODMap.vue'
 
 const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 
@@ -25,16 +25,16 @@ export default {
   name: 'MapComponent',
   components: {
     MglMap,
-    // MglNavigationControl,
-    //  MglScaleControl,
+    MglNavigationControl,
+    MglScaleControl,
     MglGeojsonLayer,
     LayerSelector,
     StaticLayer,
-    // StaticLinks,
-    // EditorLinks,
+    StaticLinks,
+    EditorLinks,
     RoadLinks,
-    // Settings,
-    // ODMap,
+    Settings,
+    ODMap,
   },
   props: {
     selectedTrips: {
@@ -62,10 +62,6 @@ export default {
       mouseout: false,
       selectedNode: { id: null, layerId: null },
       connectedDrawLink: false,
-      options: {
-        center: [15.859986, 42.314909],
-        zoom: 4.5,
-      },
 
     }
   },
@@ -177,7 +173,7 @@ export default {
     },
   },
 
-  created () {
+  mounted () {
     if (this.editorTrip) { this.isEditorMode = true }
     this.mapboxPublicKey = mapboxPublicKey
     this.drawLink = toRaw(this.$store.getters.linksHeader)
@@ -380,12 +376,16 @@ export default {
       v-if="mapIsLoaded"
       :style="{'display':'flex'}"
     >
+      <Settings />
+
       <LayerSelector
         v-if="rasterFiles.length>0"
         :choices="rasterFiles"
         :available-layers="availableLayers"
       />
     </div>
+    <MglScaleControl position="bottom-right" />
+    <MglNavigationControl position="bottom-right" />
     <div
       v-for="file in rasterFiles"
       :key="file.name"
@@ -397,6 +397,7 @@ export default {
         :order="visibleRasters.indexOf(file.name)"
       />
     </div>
+
     <template v-if="mapIsLoaded">
       <RoadLinks
         ref="roadref"
@@ -407,6 +408,31 @@ export default {
         v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
+    <template v-if="mapIsLoaded">
+      <StaticLinks
+        :map="map"
+        :showed-trips="selectedTrips"
+        :is-editor-mode="isEditorMode"
+        @rightClick="(e) => $emit('clickFeature',e)"
+      />
+    </template>
+
+    <template v-if="mapIsLoaded">
+      <EditorLinks
+        :map="map"
+        :anchor-mode="anchorMode"
+        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
+      />
+    </template>
+    <template v-if="mapIsLoaded">
+      <ODMap
+        :map="map"
+        :is-editor-mode="isEditorMode"
+        :is-o-d-mode="mode==='od'"
+        @clickFeature="clickFeature"
+      />
+    </template>
+
     <template v-if="mapIsLoaded">
       <MglGeojsonLayer
         v-if="drawMode"
@@ -423,7 +449,7 @@ export default {
           minzoom: 2,
           paint: {
             'line-opacity': 1,
-            'line-color': '#7EBAAC',
+            'line-color': $vuetify.theme.current.colors.linksprimary,
             'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
             'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 

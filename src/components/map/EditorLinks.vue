@@ -1,13 +1,13 @@
 <script>
-import { VPopup, VLayerMapboxImage, VLayerMapboxGeojson } from 'v-mapbox'
+import { MglPopup, MglImageLayer, MglGeojsonLayer } from '@comp/vue-mapbox/main'
 const $gettext = s => s
 
 export default {
   name: 'EditorLinks',
   components: {
-    VPopup,
-    VLayerMapboxImage,
-    VLayerMapboxGeojson,
+    MglPopup,
+    MglImageLayer,
+    MglGeojsonLayer,
   },
   props: ['map', 'anchorMode'],
   events: ['clickFeature', 'onHover', 'offHover'],
@@ -239,7 +239,7 @@ export default {
 </script>
 <template>
   <section>
-    <VLayerMapboxGeojson
+    <MglGeojsonLayer
       source-id="editorLinks"
       :source="{
         type: 'geojson',
@@ -252,7 +252,7 @@ export default {
         type: 'line',
         minzoom: 2,
         paint: {
-          'line-color': ['case', ['boolean', anchorMode, false],$vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
+          'line-color': ['case', ['boolean', anchorMode, false],$vuetify.theme.current.colors.linkssecondary, $vuetify.theme.current.colors.linksprimary],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
         }
@@ -263,7 +263,7 @@ export default {
       @mouseleave="offCursor"
     />
 
-    <VLayerMapboxImage
+    <MglImageLayer
       source-id="editorLinks"
       type="symbol"
       source="editorLinks"
@@ -280,12 +280,12 @@ export default {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': ['case', ['boolean', anchorMode, false], $vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
+          'icon-color': ['case', ['boolean', anchorMode, false], $vuetify.theme.current.colors.linkssecondary, $vuetify.theme.current.colors.linksprimary],
         }
       }"
     />
 
-    <VLayerMapboxGeojson
+    <MglGeojsonLayer
       source-id="editorNodes"
       :source="{
         type: 'geojson',
@@ -299,7 +299,7 @@ export default {
         type: 'circle',
         minzoom: 2,
         paint: {
-          'circle-color': $vuetify.theme.currentTheme.accent,
+          'circle-color': $vuetify.theme.current.colors.accent,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         }
@@ -310,7 +310,7 @@ export default {
       @mousedown="moveNode"
     />
 
-    <VLayerMapboxGeojson
+    <MglGeojsonLayer
       source-id="anchorNodes"
       :source="{
         type: 'geojson',
@@ -339,7 +339,7 @@ export default {
       @contextmenu="contextMenuNode"
     />
 
-    <VPopup
+    <MglPopup
       :close-button="false"
       :showed="popupEditor.showed"
       :coordinates="popupEditor.coordinates"
@@ -356,9 +356,9 @@ export default {
           $gettext("Right click to edit properties"):
           $gettext("Right click for context menu") }}
       </span>
-    </VPopup>
+    </MglPopup>
 
-    <VPopup
+    <MglPopup
       :close-button="false"
       :showed="contextMenu.showed"
       :coordinates="contextMenu.coordinates"
@@ -370,25 +370,27 @@ export default {
         <v-list
           density="compact"
         >
-          <v-list-item
-            v-for="action in contextMenu.actions"
-            :key="action.id"
-          >
-
-            <v-btn
-              variant="outlined"
-              size="small"
-              @click="actionClick({action: action,
-                                   feature: contextMenu.feature,
-                                   coordinates: contextMenu.coordinates})"
+          <v-list-item>
+            <v-list-item
+              v-for="action in contextMenu.actions"
+              :key="action.id"
             >
-              {{ $gettext(action) }}
-            </v-btn>
 
+              <v-btn
+                variant="outlined"
+                size="small"
+                @click="actionClick({action: action,
+                                     feature: contextMenu.feature,
+                                     coordinates: contextMenu.coordinates})"
+              >
+                {{ $gettext(action) }}
+              </v-btn>
+
+            </v-list-item>
           </v-list-item>
         </v-list>
       </span>
-    </VPopup>
+    </MglPopup>
   </section>
 </template>
 <style lang="scss" scoped>

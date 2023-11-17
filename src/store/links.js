@@ -7,8 +7,8 @@ import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { toRaw } from 'vue'
+import short from 'short-uuid'
 const $gettext = s => s
-const short = await fetch('short-uuid')
 
 export default {
   state: {
@@ -60,7 +60,7 @@ export default {
     loadLinks (state, payload) {
       state.links = structuredClone(toRaw(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
-        const linksHeader = { ...state.links }
+        const linksHeader = structuredClone(toRaw(state.links))
         linksHeader.features = []
         state.linksHeader = linksHeader
 
@@ -80,7 +80,7 @@ export default {
     loadNodes (state, payload) {
       state.nodes = JSON.parse(JSON.stringify(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.nodes.crs.properties.name)) {
-        const nodesHeader = { ...state.nodes }
+        const nodesHeader = structuredClone(toRaw(state.nodes))
         nodesHeader.features = []
         state.nodesHeader = nodesHeader
         state.editorNodes = nodesHeader
