@@ -14,31 +14,58 @@ export default {
   events: ['signin'],
   data () {
     return {
+      newPasswordUI: false,
+      user: null,
       username: '',
       password: '',
+      newPassword: '',
+      newPasswordConfirm: '',
       error: '',
       shake: false,
+      re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/,
+
       rules: {
         required: v => !!v || $gettext('Required'),
+        password: v => this.re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
+        match: v => v === this.newPassword || $gettext('password must match'),
+
       },
     }
   },
   beforeDestroy () {
+    this.newPasswordUI = ''
     this.username = ''
     this.password = ''
+    this.newPassword = ''
+    this.newPasswordConfirm = ''
     this.error = ''
   },
 
   methods: {
     async signin () {
       if (this.$refs.form.validate()) {
-        auth.signin({ username: this.username, password: this.password }).then(
-          resp => this.$emit('signin', resp),
-        // eslint-disable-next-line no-return-assign
-        ).catch(err => {
+        try {
+          // sign in.
+          if (!this.newPasswordUI) {
+            const resp = await auth.signin({ username: this.username, password: this.password })
+            if (resp.challengeName === 'NEW_PASSWORD_REQUIRED') {
+              // if new user. force change password.
+              this.user = resp
+              this.newPasswordUI = true
+              this.$refs.form.resetValidation()
+              // else signin (default case.)
+            } else {
+              this.$emit('signin', resp)
+            }
+            // if we are changing the password of a new user.
+          } else {
+            const resp = await auth.completeNewPassword(this.user, this.newPassword)
+            this.$emit('signin', resp)
+          }
+        } catch (err) {
           this.shake = true
           this.error = err
-        })
+        }
       } else {
         this.shake = true
         setTimeout(() => {
@@ -60,7 +87,7 @@ export default {
       <v-card-title
         class="text-h4"
       >
-        {{ $gettext("Sign In") }}
+        {{ newPasswordUI? $gettext("New password"): $gettext("Sign In") }}
       </v-card-title>
       <v-card-text
         class="text-h8"
@@ -73,16 +100,34 @@ export default {
         lazy-validation
       >
         <v-text-field
+          v-if="!newPasswordUI"
           v-model="username"
           label="username"
           required
           :rules="[rules.required]"
         />
         <v-text-field
+          v-if="!newPasswordUI"
           v-model="password"
           label="password"
           required
           :rules="[rules.required]"
+          type="password"
+        />
+        <v-text-field
+          v-if="newPasswordUI"
+          v-model="newPassword"
+          label="new password"
+          required
+          :rules="[rules.required,rules.password]"
+          type="password"
+        />
+        <v-text-field
+          v-if="newPasswordUI"
+          v-model="newPasswordConfirm"
+          label="confirm new password"
+          required
+          :rules="[rules.required,rules.match]"
           type="password"
         />
         <v-card-text :style="{color:'red'}">
