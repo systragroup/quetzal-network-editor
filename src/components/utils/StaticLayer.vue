@@ -1,5 +1,5 @@
 <script>
-import MglGeojsonLayer from '@comp/vue-mapbox/components/layer/GeojsonLayer'
+import { MglGeojsonLayer } from 'vue-mapbox'
 import MapLegend from '@comp/utils/MapLegend.vue'
 import { toRaw } from 'vue'
 const $gettext = s => s
@@ -28,7 +28,6 @@ export default {
   },
 
   beforeUnmount () {
-    console.log('static')
     if (this.map.getLayer(this.preset.name + '-layer')) {
       this.map.removeLayer(this.preset.name + '-layer')
     }

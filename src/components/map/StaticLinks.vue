@@ -1,6 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer } from '@comp/vue-mapbox/main'
+import { MglGeojsonLayer } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
 import { toRaw } from 'vue'
 export default {

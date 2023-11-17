@@ -1,5 +1,5 @@
 <script>
-import { MglPopup, MglImageLayer, MglGeojsonLayer } from '@comp/vue-mapbox/main'
+import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox'
 const $gettext = s => s
 
 export default {

@@ -1,6 +1,6 @@
 <script>
 
-import { MglGeojsonLayer, MglImageLayer, MglPopup } from '@comp/vue-mapbox/main'
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 
 import mapboxgl from 'mapbox-gl'
 import buffer from '@turf/buffer'

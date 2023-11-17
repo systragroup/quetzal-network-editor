@@ -1,6 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer, MglImageLayer, MglPopup } from '@comp/vue-mapbox/main'
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 import short from 'short-uuid'
 const $gettext = s => s
 

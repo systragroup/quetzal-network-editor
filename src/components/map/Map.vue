@@ -1,7 +1,7 @@
 <script>
 import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
-import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from '@comp/vue-mapbox/main'
+import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
 
 import { toRaw } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -393,6 +393,7 @@ export default {
       <StaticLayer
         v-if="mapIsLoaded && visibleRasters.value.includes(file.name) && availableLayers.includes(file.layer)"
         :key="file.name"
+        :map="map"
         :preset="file"
         :order="visibleRasters.indexOf(file.name)"
       />

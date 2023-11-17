@@ -55,12 +55,15 @@
     "turf-polygon": "^1.0.3",
     "vue": "^3.3.8",
     "vue-i18n": "^9.2.2",
+    "vue-mapbox": "file:../vue-mapbox",
+    "map-promisified":"latest",
     "vue-router": "^4.2.2",
     "vue3-apexcharts": "^1.4.1",
     "vue3-gettext": "^3.0.0-beta.1",
     "vue3-json-viewer": "^2.2.2",
     "vuetify": "^3.4.2",
     "vuex": "^4.1.0"
+    
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",
