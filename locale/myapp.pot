@@ -5,359 +5,361 @@ msgstr ""
 "Generated-By: easygettext\n"
 "Project-Id-Version: \n"
 
-#: src/App.vue:58
+#: src/components/utils/serializer.js:20
+msgid " imported, Expected "
+msgstr ""
+
+#: src/components/utils/serializer.js:13
+msgid " invalid CRS. Import aborted. use CRS84 / EPSG:4326 in "
+msgstr ""
+
+#: src/components/utils/serializer.js:7
+msgid " is empty"
+msgstr ""
+
+#: src/components/utils/utils.js:36
+msgid " root folders should be inputs/ and outputs/. not: "
+msgstr ""
+
+#: src/store/links.js:112
+#: src/store/links.js:120
+#: src/store/od.js:42
+#: src/store/rlinks.js:105
+#: src/store/rlinks.js:113
+msgid " there is duplicated index, "
+msgstr ""
+
+#: src/App.vue:56
 msgid "_ctx"
+msgstr ""
+
+#: src/components/utils/serializer.js:21
+msgid ". Import aborted in "
 msgstr ""
 
 #: src/components/utils/InformationPopup.vue:29
 msgid "%{s}"
 msgstr ""
 
-#: src/components/PostList.vue:71
-msgid "A post has been deleted"
+#: src/constants/hints.js:9
+msgid ""
+"0 - Regularly scheduled drop off.\n"
+"    1 - No drop off available.\n"
+"    2 - Must phone agency to arrange drop off.\n"
+"    3 - Must coordinate with driver to arrange drop off."
 msgstr ""
 
-#: src/pages/Post.vue:54
-msgid "Add"
+#: src/constants/hints.js:14
+msgid ""
+"0 - Regularly scheduled pickup.\n"
+"    1 - No pickup available.\n"
+"    2 - Must phone agency to arrange pickup.\n"
+"    3 - Must coordinate with driver to arrange pickup"
 msgstr ""
 
-#: src/router/index.js:42
-msgid "Add a blog post"
+#: src/components/layout/ScenariosExplorer.vue:139
+msgid "An error occured"
 msgstr ""
 
-#: src/pages/Post.vue:87
-#: src/pages/Post.vue:95
-msgid "Add a comment"
+#: src/components/utils/Profile.vue:34
+msgid "at least 8 character long"
 msgstr ""
 
-#: src/components/PostCard.vue:42
-msgid "at"
-msgstr ""
-
-#: src/components/newComp/Upload.vue:10
-msgid "At least one file is required"
-msgstr ""
-
-#: src/components/CommentForm.vue:24
-#: src/pages/PostAdd.vue:52
-msgid "Author"
-msgstr ""
-
-#: src/components/CommentForm.vue:22
-#: src/pages/PostAdd.vue:26
-msgid "Author is required"
-msgstr ""
-
-#: src/components/newComp/RadioAlert.vue:74
-msgid "Bad choice !"
-msgstr ""
-
-#: src/pages/PostAdd.vue:17
-msgid "Blog post addition"
-msgstr ""
-
-#: src/components/newComp/RadioAlert.vue:46
-msgid "Bus"
-msgstr ""
-
-#: src/components/Comment.vue:17
-msgid "By"
-msgstr ""
-
-#: src/components/newComp/CaloriesDataTable.vue:28
-msgid "Calories"
-msgstr ""
-
-#: src/components/PostCard.vue:35
-#: src/components/newComp/AddItemDialog.vue:84
-#: src/pages/Post.vue:48
-#: src/pages/Post.vue:64
-#: src/pages/Post.vue:80
-#: src/pages/PostAdd.vue:103
+#: src/components/layout/ScenariosExplorer.vue:344
+#: src/components/layout/ScenariosExplorer.vue:421
 msgid "Cancel"
 msgstr ""
 
-#: src/components/newComp/RadioAlert.vue:41
-msgid "Car"
+#: src/store/results.js:292
+msgid "Clickable element in green"
 msgstr ""
 
-#: src/pages/PostAdd.vue:64
-msgid "Categories"
-msgstr ""
-
-#: src/pages/Category.vue:9
-msgid "Category:"
-msgstr ""
-
-#: src/App.vue:52
+#: src/App.vue:50
 msgid "Close"
 msgstr ""
 
-#: src/components/CommentForm.vue:12
-msgid "Comment"
+#: src/constants/hints.js:18
+msgid "color to display on the map (i.e. FFFFFF)"
 msgstr ""
 
-#: src/components/CommentForm.vue:19
-msgid "Comment is required"
+#: src/components/layout/ScenariosExplorer.vue:381
+msgid "copy"
 msgstr ""
 
-#: src/pages/Post.vue:69
-msgid "Comments"
+#: src/components/utils/Profile.vue:295
+msgid "create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization"
 msgstr ""
 
-#: src/router/index.js:49
-msgid "Component testing"
+#: src/components/utils/Profile.vue:149
+msgid "create user"
 msgstr ""
 
-#: src/components/PostCard.vue:41
-msgid "Confirm"
+#: src/components/utils/Profile.vue:264
+msgid "Create User"
 msgstr ""
 
-#: src/components/home/WelcomePanel.vue:23
-msgid "Create a new blog post"
-msgstr ""
-
-#: src/pages/NewComp.vue:17
-msgid "Data tables"
-msgstr ""
-
-#: src/router/index.js:56
-msgid "Date and time"
-msgstr ""
-
-#: src/components/Date.vue:12
-msgid "Date picker"
-msgstr ""
-
-#: src/components/Comment.vue:44
-#: src/pages/Post.vue:86
+#: src/components/layout/ScenariosExplorer.vue:353
 msgid "Delete"
 msgstr ""
 
-#: src/components/PostCard.vue:63
-msgid "Delete a blog post"
+#: src/components/layout/ScenariosExplorer.vue:326
+msgid "Delete "
 msgstr ""
 
-#: src/pages/Post.vue:132
-msgid "Delete a comment"
+#: src/components/utils/Profile.vue:274
+msgid "delete User"
 msgstr ""
 
-#: src/components/newComp/CaloriesDataTable.vue:23
-msgid "Dessert (100g serving)"
+#: src/constants/hints.js:7
+msgid ""
+"direction of travel for a trip. used to separate trips by directions.\n"
+"     ex: 0 - Travel in one direction. 1 - Travel in the opposite direction."
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:39
+#: src/components/layout/NavigationDrawer.vue:32
 msgid "Disconnect"
 msgstr ""
 
-#: src/components/PostCard.vue:70
-#: src/pages/Post.vue:140
-msgid "Do you really want to take that action?"
+#: src/components/utils/Profile.vue:343
+msgid "email address"
 msgstr ""
 
-#: src/components/Comment.vue:32
-msgid "Edit"
+#: src/store/index.js:171
+msgid "File(s) added"
 msgstr ""
 
-#: src/pages/Post.vue:113
-msgid "Edit a comment"
+#: src/components/utils/Profile.vue:328
+msgid "first name"
 msgstr ""
 
-#: src/components/newComp/AddItemDialog.vue:28
-msgid "Edit Item"
+#: src/constants/hints.js:20
+msgid "Full name of a route.This name is generally more descriptive     than the route_short_name and often includes the roudefaultAttributeste's destination or stop"
 msgstr ""
 
-#: src/components/newComp/CaloriesDataTable.vue:29
-msgid "Fat (g)"
+#: src/store/api/GTFSImporter.js:79
+msgid "gtfs imported successfully!"
 msgstr ""
 
-#: src/components/newComp/Upload.vue:12
-msgid "File upload"
-msgstr ""
-
-#: src/components/newComp/Upload.vue:49
-msgid "File(s) inserted: "
-msgstr ""
-
-#: src/components/newComp/Upload.vue:12
-msgid "Files size should be less than 2 MB!"
-msgstr ""
-
-#: src/pages/Wizard.vue:18
-msgid "First Step"
-msgstr ""
-
-#: src/components/newComp/RadioAlert.vue:62
-msgid "Good choice !"
-msgstr ""
-
-#: src/router/index.js:28
+#: src/router/index.js:15
 msgid "Home"
 msgstr ""
 
-#: src/components/newComp/DataTable.vue:19
-msgid "id"
+#: src/constants/hints.js:19
+msgid "Identifies a route. Often a string"
 msgstr ""
 
-#: src/components/newComp/Upload.vue:23
-msgid "insert file(s)"
+#: src/constants/hints.js:34
+msgid "if the road contain a bike path in the opposite direction. either yes, no or shared.      a road can be a oneway and have cycleway on both side."
 msgstr ""
 
-#: src/components/PostList.vue:17
-msgid "keyword"
+#: src/constants/hints.js:33
+msgid "if the road contain a bike path. either yes, no or shared"
 msgstr ""
 
-#: src/pages/MapPage.vue:41
-msgid "Legend"
+#: src/constants/hints.js:24
+msgid ""
+"Indicates the type of transportation used on a route.\n"
+"     subway, metro, rail, bus, ferry, tram, etc"
 msgstr ""
 
-#: src/pages/MapPage.vue:54
-msgid "Line"
+#: src/components/utils/Profile.vue:33
+msgid "invalid email address"
 msgstr ""
 
-#: src/pages/Login.vue:29
-#: src/pages/Login.vue:48
-msgid "Login"
+#: src/components/utils/Profile.vue:336
+msgid "last name"
 msgstr ""
 
-#: src/router/index.js:35
-msgid "Map"
+#: src/constants/hints.js:28
+msgid ""
+"Line (or trip) identifier (i.e. 100 Est).\n"
+"     Links are group by trip_id in Quetzal-network-editor."
 msgstr ""
 
-#: src/pages/MapPage.vue:47
-msgid "Markers"
+#: src/constants/hints.js:30
+msgid "links geometry linestring length (meters)"
 msgstr ""
 
-#: src/pages/Wizard.vue:30
-msgid "Next step"
+#: src/components/layout/ScenariosExplorer.vue:274
+msgid "Load Scenario?"
 msgstr ""
 
-#: src/components/Date.vue:40
-#: src/components/TimePicker.vue:39
-msgid "Now"
+#: src/components/utils/Profile.vue:188
+msgid "logout"
 msgstr ""
 
-#: src/components/PostCard.vue:42
-msgid "on"
+#: src/constants/hints.js:31
+msgid "Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)"
 msgstr ""
 
-#: src/components/Comment.vue:19
-#: src/pages/Post.vue:45
-msgid "On"
+#: src/store/api/MatrixRoadCaster.js:62
+msgid "Matrix Road Caster executed successfully!"
 msgstr ""
 
-#: src/pages/MapPage.vue:85
-msgid "Pk:"
+#: src/components/layout/ScenariosExplorer.vue:94
+#: src/components/layout/ScenariosExplorer.vue:395
+msgid "name"
 msgstr ""
 
-#: src/pages/PostAdd.vue:91
-msgid "Publish"
+#: src/components/utils/Profile.vue:35
+msgid "need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol"
 msgstr ""
 
-#: src/components/PostCard.vue:40
-#: src/pages/Post.vue:43
-msgid "Published by"
+#: src/store/index.js:133
+msgid "Need the same number of links and nodes files."
 msgstr ""
 
-#: src/components/newComp/RadioAlert.vue:15
-msgid "Radio / Alert"
+#: src/store/index.js:139
+msgid "Need the same number of road_links and road_nodes files."
 msgstr ""
 
-#: src/pages/Post.vue:36
-msgid "Return"
+#: src/components/layout/ScenariosExplorer.vue:246
+msgid "new scenario"
 msgstr ""
 
-#: src/components/newComp/AddItemDialog.vue:94
-#: src/components/newComp/Upload.vue:42
-#: src/pages/Post.vue:70
-msgid "Save"
+#: src/components/layout/ScenariosExplorer.vue:381
+msgid "New Scenario"
 msgstr ""
 
-#: src/components/PostList.vue:16
-msgid "Search"
+#: src/components/layout/ScenariosExplorer.vue:292
+#: src/components/utils/Profile.vue:365
+msgid "No"
 msgstr ""
 
-#: src/pages/Wizard.vue:36
-msgid "Second Step"
+#: src/components/layout/ScenariosExplorer.vue:431
+msgid "ok"
 msgstr ""
 
-#: src/components/Date.vue:28
-#: src/components/TimePicker.vue:27
-msgid "Select"
+#: src/store/api/OSMImporter.js:63
+msgid "OSM network imported successfully!"
 msgstr ""
 
-#: src/components/home/WelcomePanel.vue:14
-msgid "Select a blog post in the list, or create a new one!"
+#: src/components/utils/serializer.js:37
+#: src/components/utils/serializer.js:46
+msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 
-#: src/components/Date.vue:53
-msgid "Select Date"
+#: src/components/layout/ScenariosExplorer.vue:42
+msgid "Projects"
 msgstr ""
 
-#: src/components/TimePicker.vue:53
-msgid "Select Time"
+#: src/components/utils/Profile.vue:32
+#: src/components/utils/Signin.vue:20
+msgid "Required"
 msgstr ""
 
-#: src/components/TimePicker.vue:90
-msgid "Select time range"
+#: src/components/layout/ScenariosExplorer.vue:164
+msgid "Scenario created"
 msgstr ""
 
-#: src/router/index.js:63
-msgid "Steps"
+#: src/components/layout/ScenariosExplorer.vue:134
+msgid "Scenario deleted"
 msgstr ""
 
-#: src/pages/PostAdd.vue:40
-msgid "Text"
+#: src/components/layout/ScenariosExplorer.vue:155
+msgid "Scenario successfully copied"
 msgstr ""
 
-#: src/pages/PostAdd.vue:23
-msgid "Text is required"
+#: src/constants/hints.js:22
+msgid ""
+"Short name of a route. This will often be a short,\n"
+"     abstract identifier like \"32\", \"100X\", or \"Green\""
 msgstr ""
 
-#: src/components/TimePicker.vue:13
-msgid "Time picker"
+#: src/components/utils/Signin.vue:64
+msgid "Sign in"
 msgstr ""
 
-#: src/pages/PostAdd.vue:29
-msgid "Title"
+#: src/components/utils/Signin.vue:19
+msgid "Sign In"
 msgstr ""
 
-#: src/pages/PostAdd.vue:20
-msgid "Title cannot excess 100 characters"
+#: src/components/utils/Signin.vue:28
+msgid "Sign in with username or email address."
 msgstr ""
 
-#: src/pages/PostAdd.vue:19
-msgid "Title is required"
+#: src/store/user.js:97
+msgid "sign out"
 msgstr ""
 
-#: src/components/newComp/RadioAlert.vue:51
-msgid "Train"
+#: src/components/utils/Profile.vue:254
+msgid "Sign out"
 msgstr ""
 
-#: src/components/newComp/RadioAlert.vue:63
-msgid "We are glad to hear that you prefer to travel by train or bus rather than by car."
+#: src/store/api/run.js:57
+msgid "simulation executed successfully!"
 msgstr ""
 
-#: src/components/home/WelcomePanel.vue:12
-msgid "Welcome to"
+#: src/constants/hints.js:32
+msgid "speed on the link (Km/h)"
 msgstr ""
 
-#: src/components/newComp/RadioAlert.vue:17
-msgid "What is your favorite mean of transport?"
+#: src/components/utils/serializer.js:59
+#: src/components/utils/serializer.js:66
+msgid "styles.json should be an array of object with at least [{name:,layer:}]"
 msgstr ""
 
-#: src/components/PostCard.vue:69
-msgid "You are about to delete the blog post"
+#: src/components/utils/Profile.vue:92
+msgid "Team"
 msgstr ""
 
-#: src/pages/Post.vue:139
-msgid "You are about to delete the comment"
+#: src/components/utils/Profile.vue:349
+msgid "temporary password"
 msgstr ""
 
-#: src/pages/Login.vue:32
-msgid "You must be logged in to have access to this application. Please click on the button below to do so."
+#: src/components/layout/ScenariosExplorer.vue:332
+msgid "The scenario will be permanently deleted"
 msgstr ""
 
-#: src/components/newComp/RadioAlert.vue:81
-msgid "You should think again about your answer before confirming it. We think it would be better to choose another option."
+#: src/components/utils/serializer.js:27
+msgid "there is no index in the File. you need unique index. Import aborted in "
+msgstr ""
+
+#: src/components/utils/Profile.vue:285
+msgid "This action will sign you out"
+msgstr ""
+
+#: src/components/layout/ScenariosExplorer.vue:280
+msgid "This will ERASE the current project"
+msgstr ""
+
+#: src/components/utils/Profile.vue:305
+msgid "This will permanently delete the user account."
+msgstr ""
+
+#: src/constants/hints.js:13
+msgid "Time between departures in seconds"
+msgstr ""
+
+#: src/constants/hints.js:6
+msgid "transit brand or transit agency"
+msgstr ""
+
+#: src/constants/hints.js:27
+msgid "Travel time on the link. set as length / speed when a link is created or edited (seconds)"
+msgstr ""
+
+#: src/components/utils/Profile.vue:96
+msgid "User created! please share the temporary password"
+msgstr ""
+
+#: src/components/utils/Profile.vue:107
+msgid "User permanently delete"
+msgstr ""
+
+#: src/components/utils/Profile.vue:321
+msgid "username"
+msgstr ""
+
+#: src/constants/hints.js:26
+msgid "width to display on the map"
+msgstr ""
+
+#: src/components/layout/ScenariosExplorer.vue:301
+#: src/components/utils/Profile.vue:374
+msgid "Yes"
+msgstr ""
+
+#: src/store/user.js:98
+msgid "your session has expired. Please sign in again"
 msgstr ""

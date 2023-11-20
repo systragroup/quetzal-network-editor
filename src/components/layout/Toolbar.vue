@@ -1,5 +1,5 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <script>
+
 import Profile from '../utils/Profile.vue'
 import ScenariosExplorer from './ScenariosExplorer.vue'
 export default {
@@ -8,13 +8,20 @@ export default {
   data () {
     return {
       dialog: true,
+      currentTheme: null,
     }
   },
-
   watch: {
-    '$vuetify.theme.dark' (val) {
+    '$vuetify.theme.dark'  (val) {
+      this.$vuetify.theme.global.name = this.$vuetify.theme.global.current.dark ? 'light' : 'dark'
       this.$store.commit('changeDarkMode', val)
     },
+  },
+
+  created () {
+    // const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    // this.$vuetify.theme.dark
+
   },
 
   methods: {
@@ -115,13 +122,13 @@ export default {
 .app-name {
   font-size: 1.2em;
   padding-left: 1.2rem;
-  color:var(--v-secondarydark-base);
+  color: rgb(var(--v-theme-secondarydark));
 }
 .copyright {
   font-size: 0.9rem;
   padding-left: 5px;
   padding-top: 1rem;
-  color:var(--v-secondarydark-base);
+  color: rgb(var(--v-theme-secondarydark));
 }
 .languages-container {
   display: flex;
@@ -145,7 +152,7 @@ export default {
   transition: 0.3s;
 }
 .language.active, .language:hover {
-  color:var(--v-secondarydark-base);
+  color: rgb(var(--v-theme-secondarydark));
 }
 .language:last-child {
   border-right: 0;

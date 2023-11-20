@@ -37,7 +37,7 @@ export default {
   async created () {
     // init links and node to empty one (new project)
     this.$store.commit('initNetworks')
-    // this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
+    this.$store.commit('changeDarkMode', this.$vuetify.theme.global.current.dark)
   },
   methods: {
     closeSnackbar () {

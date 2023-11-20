@@ -7,6 +7,7 @@ import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { toRaw } from 'vue'
+import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 const $gettext = s => s
 
@@ -225,7 +226,7 @@ export default {
 
     cloneTrip (state, payload) {
       // clone and reversed a trip.
-      const cloned = structuredClone(state.links)
+      const cloned = structuredClone(toRaw(state.links))
       cloned.features = cloned.features.filter(link => link.properties.trip_id === payload.tripId)
 
       let linkSequence = cloned.features.length
@@ -253,7 +254,7 @@ export default {
       const a = cloned.features.map(item => item.properties.a)
       const b = cloned.features.map(item => item.properties.b)
       const ab = new Set([...a, ...b])
-      const clonedNodes = structuredClone(state.nodes)
+      const clonedNodes = structuredClone(toRaw(state.nodes))
       clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
       const newName = {}
       ab.forEach(node => newName[node] = 'node_' + short.generate())
@@ -337,9 +338,9 @@ export default {
         drop_off_type: 0,
       }
       // create link
-      const tempLink = structuredClone(state.editorLinks)
+      let tempLink = cloneDeep(state.editorLinks.features)
       // if there is no link to copy, create one. (new Line)
-      if (tempLink.features.length === 0) {
+      if (tempLink.length === 0) {
         // copy Line properties.
         const linkProperties = {}
         Object.keys(state.editorLineInfo).forEach((key) => {
@@ -359,26 +360,25 @@ export default {
         Object.keys(defaultValue).forEach((key) => {
           linkProperties[key] = defaultValue[key]
         })
-
+        const geom = structuredClone(toRaw(state.editorNodes.features[0].geometry.coordinates))
         const linkGeometry = {
-          coordinates: [state.editorNodes.features[0].geometry.coordinates,
-            state.editorNodes.features[0].geometry.coordinates],
+          coordinates: [geom, geom],
           type: 'LineString',
         }
         const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
-        tempLink.features = [linkFeature]
+        tempLink = [linkFeature]
       }
 
       if (payload.action === 'Extend Line Upward') {
         // Take last link and copy properties
         // eslint-disable-next-line no-var
-        var features = tempLink.features[tempLink.features.length - 1]
+        var features = tempLink[tempLink.length - 1]
         Object.assign(features.properties, uncopiedPropeties)
         // sequence +1
         features.properties.link_sequence = features.properties.link_sequence + 1
         // replace node a by b and delete node a
         features.properties.a = features.properties.b
-        features.geometry.coordinates[0] = features.geometry.coordinates.slice(-1)[0]
+        features.geometry.coordinates[0] = structuredClone(toRaw(features.geometry.coordinates.slice(-1)[0]))
         // new node index (hash)
         payload.nodeCopyId = features.properties.a
         this.commit('setNewNode', payload)
@@ -388,21 +388,21 @@ export default {
       } else if (payload.action === 'Extend Line Downward') {
         // Take first link and copy properties
         // eslint-disable-next-line no-var, no-redeclare
-        var features = tempLink.features[0]
+        var features = tempLink[0]
         Object.assign(features.properties, uncopiedPropeties)
         // sequence + 1
         features.properties.link_sequence = features.properties.link_sequence - 1
         //  replace node b by a and delete node b
         features.properties.b = features.properties.a
-        features.geometry.coordinates[1] = features.geometry.coordinates[0]
+        features.geometry.coordinates[1] = structuredClone(toRaw(features.geometry.coordinates[0]))
         // new node index (hash)
         payload.nodeCopyId = features.properties.b
         this.commit('setNewNode', payload)
         features.properties.a = state.newNode.features[0].properties.index
         features.properties.index = 'link_' + short.generate()
       }
-      tempLink.features = [features]
-      state.newLink = tempLink
+      state.newLink = structuredClone(toRaw(state.linksHeader))
+      state.newLink.features = [features]
       state.newLink.action = payload.action
     },
     createNewNode (state, payload) {
@@ -438,12 +438,11 @@ export default {
 
     editNewLink (state, payload) {
       // for realtime viz. this method change the linestring to the payload (mouse position)
-      // for some reason, it doesnt work when i only apply payload to coordinates[1]
       state.newNode.features[0].geometry.coordinates = payload
       if (state.newLink.action === 'Extend Line Upward') {
-        state.newLink.features[0].geometry.coordinates = [state.newLink.features[0].geometry.coordinates[0], payload]
+        state.newLink.features[0].geometry.coordinates[1] = payload
       } else {
-        state.newLink.features[0].geometry.coordinates = [payload, state.newLink.features[0].geometry.coordinates[1]]
+        state.newLink.features[0].geometry.coordinates[0] = payload
       }
     },
 
@@ -479,13 +478,13 @@ export default {
       const link2 = state.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0] // link is deleted
       // if the last or first node is selected, there is only one link. The node and the link are deleted.
       if (!link1) {
-        state.editorLinks.features = state.editorLinks.features.filter(
-          link => link.properties.index !== link2.properties.index)
+        state.editorLinks.features = toRaw(state.editorLinks.features.filter(
+          link => link.properties.index !== link2.properties.index))
         // a link was remove, link_sequence -1
         state.editorLinks.features.forEach(link => link.properties.link_sequence -= 1)
       } else if (!link2) {
-        state.editorLinks.features = state.editorLinks.features.filter(
-          link => link.properties.index !== link1.properties.index)
+        state.editorLinks.features = toRaw(state.editorLinks.features.filter(
+          link => link.properties.index !== link1.properties.index))
         // the node is inbetween 2 links. 1 link is deleted, and the other is extented.
       } else {
         link1.geometry.coordinates = [
@@ -503,6 +502,7 @@ export default {
         state.editorLinks.features = state.editorLinks.features.filter(
           link => link.properties.index !== link2.properties.index)
       }
+      console.log(state.editorLinks)
     },
 
     splitLink (state, payload) {
@@ -510,7 +510,7 @@ export default {
       const featureIndex = state.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link1 change editorLinks as it is an observer.
       const link1 = state.editorLinks.features[featureIndex] // this link is extented
-      const link2 = structuredClone(link1)
+      const link2 = structuredClone(toRaw(link1))
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
 
@@ -611,7 +611,7 @@ export default {
       // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
       if (link1) {
         // note: props are unchanged. even tho the length change, the time and length are unchanged.
-        link1.geometry.coordinates = [...link1.geometry.coordinates.slice(0, -1), payload.lngLat]
+        link1.geometry.coordinates[link1.geometry.coordinates.length - 1] = payload.lngLat
         // update time and distance
         const distance = length(link1)
         link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
@@ -619,7 +619,7 @@ export default {
         link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
       if (link2) {
-        link2.geometry.coordinates = [payload.lngLat, ...link2.geometry.coordinates.slice(1)]
+        link2.geometry.coordinates[0] = payload.lngLat
         // update time and distance
         const distance = length(link2)
         link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
@@ -851,7 +851,7 @@ export default {
     nodesHeader: (state) => state.nodesHeader,
     linksHeader: (state) => state.linksHeader,
     anchorNodes: (state) => {
-      const nodes = structuredClone(state.nodesHeader)
+      const nodes = structuredClone(toRaw(state.nodesHeader))
       state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index

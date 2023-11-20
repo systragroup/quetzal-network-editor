@@ -58,7 +58,6 @@ export default {
     },
 
     loadrLinks (state, payload) {
-      console.log(payload)
       state.rlinks = structuredClone(toRaw(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.rlinks.crs.properties.name)) {
         const rlinksHeader = structuredClone(toRaw(state.rlinks))

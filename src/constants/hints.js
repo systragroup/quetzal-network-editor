@@ -17,8 +17,7 @@ const hints = {
     3 - Must coordinate with driver to arrange pickup`),
   route_color: $gettext('color to display on the map (i.e. FFFFFF)'),
   route_id: $gettext('Identifies a route. Often a string'),
-  route_long_name: $gettext("Full name of a route.This name is generally more descriptive\
-     than the route_short_name and often includes the roudefaultAttributeste's destination or stop"),
+  route_long_name: $gettext("Full name of a route.This name is generally more descriptive than the route_short_name and often includes the roudefaultAttributeste's destination or stop"),
   route_short_name: $gettext(`Short name of a route. This will often be a short,
      abstract identifier like "32", "100X", or "Green"`),
   route_type: $gettext(`Indicates the type of transportation used on a route.
@@ -31,8 +30,7 @@ const hints = {
   highway: $gettext('Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)'),
   speed: $gettext('speed on the link (Km/h)'),
   cycleway: $gettext('if the road contain a bike path. either yes, no or shared'),
-  cycleway_reverse: $gettext('if the road contain a bike path in the opposite direction. either yes, no or shared.\
-      a road can be a oneway and have cycleway on both side.'),
+  cycleway_reverse: $gettext('if the road contain a bike path in the opposite direction. either yes, no or shared. a road can be a oneway and have cycleway on both side.'),
 
 }
 

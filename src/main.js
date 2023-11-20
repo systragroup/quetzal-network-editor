@@ -65,7 +65,7 @@ library.add(fas)
 
 // const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr'])
 const bestLanguage = 'en'
-// const darkMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
 const vuetify = createVuetify({
   // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
   components: {
@@ -74,8 +74,7 @@ const vuetify = createVuetify({
   },
   directives,
   theme: {
-    // defaultTheme: darkMode ? 'dark' : 'light',
-    defaultTheme: 'light',
+    defaultTheme: darkMode ? 'dark' : 'light',
     themes: {
       light: {
         dark: false,

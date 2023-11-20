@@ -196,7 +196,8 @@ export default {
     >
       <template v-slot:activator="{ props }">
         <div
-          class="text-h6"
+          class="custom-title"
+
           v-bind="props"
         >
           {{ scenario? model + '/' + scenario: $gettext('Projects') }}
@@ -459,14 +460,14 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
-.title {
+.custom-title {
   font-size: 1.2em;
   padding-left: 1.2rem;
-  color:var(--v-secondarydark-base);
+  color: rgb(var(--v-theme-secondarydark));
 }
 .is-active{
   opacity:1;
-  background-color:var(--v-primary-base);
+  background-color: rgb(var(--v-theme-primary));
 
 }
 .lowercase-text {

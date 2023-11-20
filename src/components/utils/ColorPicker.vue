@@ -2,26 +2,30 @@
 
 export default {
   name: 'ColorPicker',
-  components: {
 
-  },
-  model: {
-    prop: 'pcolor',
-    event: 'update-color',
-  },
   props: ['pcolor'],
-  events: ['update-color'],
+  events: ['update:pcolor'],
   data () {
     return {
-      color: '$primary',
-      menu: false,
+      color: '#00BCD4',
+      cmenu: false,
       swatches: [],
+      chart: {
+        lightgreen: '#CDDC39',
+        darkgreen: '#4CAF50',
+        lightblue: '#00BCD4',
+        darkblue: '#2196F3',
+        purple: '#673AB7',
+        pink: '#E91E63',
+        orange: '#FF7B30',
+        yellow: '#FFC107',
+      },
 
     }
   },
   computed: {
     swatchStyle () {
-      const { color, menu } = this
+      const { color, cmenu } = this
 
       return {
         'backgroundColor': color,
@@ -31,7 +35,7 @@ export default {
         'cursor': 'pointer',
         'height': '20px',
         'width': '20px',
-        'borderRadius': menu ? '50%' : '4px',
+        'borderRadius': cmenu ? '50%' : '4px',
         'transition': 'border-radius 200ms ease-in-out',
       }
     },
@@ -41,10 +45,10 @@ export default {
     pcolor (val) {
       if (this.pcolor[0] !== '#') {
         this.color = '#'.concat(this.pcolor)
-        this.$emit('update-color', this.pcolor.slice(0, 6))
+        this.$emit('update:pcolor', this.pcolor.slice(0, 6))
       }
       if (this.pcolor[0] === '#') {
-        this.$emit('update-color', this.pcolor.slice(1, 7))
+        this.$emit('update:pcolor', this.pcolor.slice(1, 7))
       }
     },
 
@@ -52,11 +56,11 @@ export default {
 
   mounted () {
     // get chart color and create a 2x4 Swatch for quick color selection.
-    const keys = Object.keys(this.$vuetify.theme.currentTheme.chart)
+    const keys = Object.keys(this.chart)
     let tempArr = []
     // eslint-disable-next-line array-callback-return
     keys.map((key) => {
-      tempArr.push(this.$vuetify.theme.currentTheme.chart[key])
+      tempArr.push(this.chart[key])
       if (tempArr.length === 2) {
         this.swatches.push(tempArr)
         tempArr = []
@@ -65,7 +69,7 @@ export default {
 
     // if it is null, do nothing, just put the blue color on the selection square.
     if ([null, undefined, ''].includes(this.pcolor)) {
-      this.color = this.$vuetify.theme.currentTheme.chart.lightblue
+      this.color = this.chart.lightblue
       // this.$emit('update-color', this.color.slice(1))
     // the input color never start with #, must add it for this component only (on local var this.color)
     } else if (this.pcolor[0] !== '#') {
@@ -74,36 +78,34 @@ export default {
     } else {
       this.color = this.pcolor
     }
+    console.log(this.cmenu)
   },
 
   methods: {
     // this method is call when we select a color, the # is remove and pcolor is updated.
     updateColor () {
-      this.$emit('update-color', this.color)
-
-      this.menu = false
+      console.log(this.color)
+      this.$emit('update:pcolor', this.color)
+      this.cmenu = false
     },
     cancel () {
+      console.log('cancel')
       this.color = this.pcolor
-      this.menu = false
+      this.cmenu = false
     },
   },
 }
 </script>
-<template
-  v-slot:append
->
+<template>
   <v-menu
-    v-model="menu"
-    top
-    nudge-bottom="105"
-    nudge-left="16"
+    v-model="cmenu"
+    location="top"
     :close-on-content-click="false"
   >
-    <template v-slot:activator="{ on }">
+    <template v-slot:activator="{ props }">
       <div
         :style="swatchStyle"
-        v-on="on"
+        v-bind="props"
       />
     </template>
     <v-card>
@@ -115,7 +117,6 @@ export default {
           mode="hexa"
           :swatches="swatches"
           show-swatches
-          flat
         />
       </v-card-text>
       <v-card-actions>
@@ -123,14 +124,14 @@ export default {
 
         <v-btn
           color="grey"
-          outlined
+          variant="outlined"
           @click="cancel"
         >
           {{ $gettext("cancel") }}
         </v-btn>
         <v-btn
-          color="green darken-1"
-          outlined
+          color="green-darken-1"
+          variant="outlined"
           @click="updateColor"
         >
           {{ $gettext("apply") }}

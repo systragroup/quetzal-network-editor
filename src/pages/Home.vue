@@ -7,8 +7,8 @@ import ColorPicker from '@comp/utils/ColorPicker.vue'
 import MenuSelector from '@comp/utils/MenuSelector.vue'
 import { getGroupForm } from '@comp/utils/utils.js'
 import attributesHints from '@constants/hints.js'
+import { cloneDeep } from 'lodash'
 // only used to force to see translation to vue-gettext
-const $gettext = s => s
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -45,9 +45,9 @@ export default {
       linkDir: [],
       rules: {
         newField: [
-          val => !Object.keys(this.editorForm).includes(val) || $gettext('field already exist'),
-          val => val !== '' || $gettext('cannot add empty field'),
-          val => !val?.endsWith('_r') || $gettext('field cannot end with _r'),
+          val => !Object.keys(this.editorForm).includes(val) || this.$gettext('field already exist'),
+          val => val !== '' || this.$gettext('cannot add empty field'),
+          val => !val?.endsWith('_r') || this.$gettext('field cannot end with _r'),
         ],
       },
 
@@ -132,14 +132,14 @@ export default {
     actionClick (event) {
       this.action = event.action
       if (this.action === 'Edit Line Info') {
-        this.editorForm = structuredClone(this.$store.getters.editorLineInfo)
+        this.editorForm = cloneDeep(this.$store.getters.editorLineInfo)
         this.lingering = event.lingering
         this.showDialog = true
       } else if (this.action === 'Edit Group Info') {
         this.groupTripIds = event.tripIds
         const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
         const lineAttributes = this.$store.getters.lineAttributes
-        const features = structuredClone(this.$store.getters.links.features.filter(
+        const features = cloneDeep(this.$store.getters.links.features.filter(
           link => this.groupTripIds.includes(link.properties.trip_id)))
 
         this.editorForm = getGroupForm(features, lineAttributes, uneditable)
@@ -281,7 +281,7 @@ export default {
             this.$store.commit('setEditorTrip', { tripId: null, changeBounds: false })
             this.action = null
             this.$store.commit('changeNotification', {
-              text: $gettext('Could not apply modification. Trip_id already exist'),
+              text: this.$gettext('Could not apply modification. Trip_id already exist'),
               autoClose: true,
               color: 'red darken-2',
             })
@@ -289,7 +289,7 @@ export default {
           this.$store.commit('editLineInfo', this.editorForm)
           if (this.$store.getters.editorNodes.features.length === 0) {
             this.$store.commit('changeNotification',
-              { text: $gettext('Click on the map to start drawing'), autoClose: false })
+              { text: this.$gettext('Click on the map to start drawing'), autoClose: false })
           }
           break
         case 'Edit Group Info':
@@ -404,7 +404,7 @@ export default {
       this.action = null
       // notification
       this.$store.commit('changeNotification',
-        { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+        { text: this.$gettext('modification applied'), autoClose: true, color: 'success' })
     },
     abortChanges () {
       // unselect a trip for edition. nothing to commit on link here.
@@ -413,7 +413,7 @@ export default {
       this.$store.commit('setEditorTrip', { tripId: null, changeBounds: false })
       this.action = null
       // notification
-      this.$store.commit('changeNotification', { text: $gettext('modification aborted'), autoClose: true })
+      this.$store.commit('changeNotification', { text: this.$gettext('modification aborted'), autoClose: true })
     },
     deleteButton (selection) {
       // could be a trip, or a roadLinks group
@@ -448,9 +448,9 @@ export default {
     addField () {
       let form = {}
       if (Array.isArray(this.editorForm)) {
-        form = structuredClone(this.editorForm[0])
+        form = cloneDeep(this.editorForm[0])
       } else {
-        form = structuredClone(this.editorForm)
+        form = cloneDeep(this.editorForm)
       }
       // do not append if its null, empty or already exist.
 
@@ -461,7 +461,7 @@ export default {
       } else {
         // need to rewrite editorForm object to be updated in DOM
         if (Array.isArray(this.editorForm)) {
-          const tempArr = structuredClone(this.editorForm)
+          const tempArr = cloneDeep(this.editorForm)
           tempArr.forEach(el => {
             // if its a reverse link. only add it to the form if its not an excluded one
             // (ex: route_width, no route_width_r)
@@ -494,11 +494,11 @@ export default {
         }
         this.newFieldName = null // null so there is no rules error.
         this.$store.commit('changeNotification',
-          { text: $gettext('Field added'), autoClose: true, color: 'success' })
+          { text: this.$gettext('Field added'), autoClose: true, color: 'success' })
       }
     },
     deleteField (field) {
-      let form = structuredClone(this.editorForm)
+      let form = cloneDeep(this.editorForm)
       // if roadLinks.
       if (Array.isArray(this.editorForm)) {
         // if we delete a reverse attribute, change it to normal as _r are deleted with normal one
@@ -526,7 +526,7 @@ export default {
         this.$store.commit('od/deletePropertie', { name: field })
       }
       this.$store.commit('changeNotification',
-        { text: $gettext('Field deleted'), autoClose: true, color: 'success' })
+        { text: this.$gettext('Field deleted'), autoClose: true, color: 'success' })
     },
     attributeNonDeletable (field) {
       if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info', 'Edit Node Info'].includes(this.action)) {
@@ -540,7 +540,7 @@ export default {
 
       if (this.showDeleteOption) {
         this.$store.commit('changeNotification', {
-          text: $gettext('This action will delete properties on every links (and reversed one for two-way roads)'),
+          text: this.$gettext('This action will delete properties on every links (and reversed one for two-way roads)'),
           autoClose: false,
           color: 'warning',
         })
@@ -594,7 +594,7 @@ export default {
                   :label="key"
                   :hint="showHint? $gettext(hints[key]): ''"
                   :persistent-hint="showHint"
-                  :variant="!value['disabled'] && 'filled'"
+                  :variant="value['disabled']? 'underlined': 'filled'"
                   :type="$store.getters.attributeType(key)"
                   :placeholder="value['placeholder']? $gettext('multiple Values'):''"
                   :persistent-placeholder=" value['placeholder']? true:false "
@@ -606,7 +606,8 @@ export default {
                     v-slot:append
                   >
                     <color-picker
-                      v-model="value['value']"
+                      :pcolor="value['value']"
+                      @update:pcolor="val=>value['value']=val"
                     />
                   </template>
                   <template
@@ -623,14 +624,13 @@ export default {
                     v-slot:prepend
                   >
                     <v-btn
-                      icon
+                      variant="text"
+                      icon="fas fa-trash small"
                       size="x-small"
                       :disabled="attributeNonDeletable(key)"
                       color="error"
                       @click="()=>deleteField(key)"
-                    >
-                      <v-icon>fas fa-trash small</v-icon>
-                    </v-btn>
+                    />
                   </template>
                 </v-text-field>
               </v-list>
