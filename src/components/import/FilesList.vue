@@ -121,7 +121,7 @@ export default {
     >
     <div class="files-container">
       <div class="title-box">
-        <h1 class="text-h6">
+        <h1 class="custom-title">
           {{ $gettext('Other Inputs') }}
         </h1>
         <div class="upload-button">
@@ -166,7 +166,7 @@ export default {
     </div>
     <div class="files-container">
       <div class="title-box">
-        <h1 class="text-h6">
+        <h1 class="custom-title">
           {{ $gettext('Outputs') }}
         </h1>
         <div class="upload-button">
@@ -218,7 +218,8 @@ export default {
 .files-container{
   height: 17rem;
   border-radius: 5px;
-  background:var(--v-background-lighten4);
+  background:rgb(var(--v-theme-mediumgrey));
+
   display: flex;
   margin: 10px 0px 0px 00px;
   flex-direction: column;
@@ -227,13 +228,13 @@ export default {
 .title-box {
   display: flex;
   flex-direction: row;
-  background:var(--v-background-lighten3);
+  background:rgb(var(--v-theme-lightgrey));
 
   border-radius: 5px 5px 0px 0px;
   padding: 0.5rem 0.5rem 0.5rem 1rem;
 
 }
-.title{
+.custom-title{
   font-size: 2em !important;
   font-weight: bold;
 }

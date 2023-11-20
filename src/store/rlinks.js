@@ -10,6 +10,7 @@ import Point from 'turf-point'
 import bearing from '@turf/bearing'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { cloneDeep } from 'lodash'
 import { toRaw } from 'vue'
 
 import short from 'short-uuid'
@@ -52,19 +53,19 @@ export default {
       state.rlinksAttributesChoices = {}
       state.rlineAttributes = []
       state.rnodeAttributes = []
-      state.rcstAttributes = structuredClone(toRaw(defaultrCstAttributes))
-      state.rundeletable = structuredClone(toRaw(defaultrUndeletable))
+      state.rcstAttributes = cloneDeep(defaultrCstAttributes)
+      state.rundeletable = cloneDeep(defaultrUndeletable)
       state.rseversedAttributes = []
     },
 
     loadrLinks (state, payload) {
-      state.rlinks = structuredClone(toRaw(payload))
+      state.rlinks = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.rlinks.crs.properties.name)) {
-        const rlinksHeader = structuredClone(toRaw(state.rlinks))
+        const rlinksHeader = cloneDeep(state.rlinks)
         rlinksHeader.features = []
         state.rlinksHeader = rlinksHeader
-        state.visiblerLinks = structuredClone(toRaw(rlinksHeader))
-        state.renderedrLinks = structuredClone(toRaw(rlinksHeader))
+        state.visiblerLinks = cloneDeep(rlinksHeader)
+        state.renderedrLinks = cloneDeep(rlinksHeader)
         // limit geometry precision to 6 digit
         state.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -79,11 +80,11 @@ export default {
     loadrNodes (state, payload) {
       state.rnodes = JSON.parse(JSON.stringify(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.rnodes.crs.properties.name)) {
-        const rnodesHeader = structuredClone(toRaw(state.rnodes))
+        const rnodesHeader = cloneDeep(state.rnodes)
         rnodesHeader.features = []
         state.rnodesHeader = rnodesHeader
-        state.visiblerNodes = structuredClone(toRaw(rnodesHeader))
-        state.renderedrNodes = structuredClone(toRaw(rnodesHeader))
+        state.visiblerNodes = cloneDeep(rnodesHeader)
+        state.renderedrNodes = cloneDeep(rnodesHeader)
         // limit geometry precision to 6 digit
         state.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
@@ -336,8 +337,12 @@ export default {
       }
     },
     getRenderedrLinks (state, payload) {
+      console.time('time1')
+      const bbox = toRaw(payload.bbox)
       state.renderedrLinks.features = state.visiblerLinks.features.filter(
-        link => (booleanContains(payload.bbox, link) || booleanCrosses(payload.bbox, link)))
+        link => (booleanContains(bbox, link) || booleanCrosses(bbox, link)))
+      console.timeEnd('time1')
+      console.log(state.visiblerLinks)
       this.commit('getRenderedrNodes')
     },
     getRenderedrNodes (state) { // get rendered nodes
@@ -391,7 +396,7 @@ export default {
     },
 
     createNewrNode (state, payload) {
-      const newNode = structuredClone(toRaw(state.rnodesHeader))
+      const newNode = cloneDeep(state.rnodesHeader)
       const nodeProperties = {}
       state.rnodeAttributes.forEach(key => {
         nodeProperties[key] = null
@@ -409,7 +414,7 @@ export default {
     splitrLink (state, payload) {
       // changing link1 change editorLinks as it is an observer.
       const link1 = payload.selectedFeature
-      const link2 = structuredClone(toRaw(link1))
+      const link2 = cloneDeep(link1)
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
 
@@ -710,7 +715,7 @@ export default {
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
 
     anchorrNodes: (state) => {
-      const nodes = structuredClone(toRaw(state.rnodesHeader))
+      const nodes = cloneDeep(state.rnodesHeader)
       state.renderedrLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index

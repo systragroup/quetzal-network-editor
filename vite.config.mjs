@@ -11,9 +11,7 @@ export default defineConfig({
   server: {
     port: 8081,
   },
-  define: {
-    global: {},
-  },
+  define: { global: 'window' },
   optimizeDeps: {
     include: ['map-promisified'],
   },

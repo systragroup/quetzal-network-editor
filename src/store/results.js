@@ -3,7 +3,7 @@
 
 import chroma from 'chroma-js'
 import { toRaw } from 'vue'
-const seedrandom = await fetch('seedrandom')
+import { seedrandom } from 'seedrandom'
 const $gettext = s => s
 
 function isHexColor (variable) {

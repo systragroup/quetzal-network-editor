@@ -6,7 +6,6 @@ import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
-import { toRaw } from 'vue'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 const $gettext = s => s
@@ -59,9 +58,9 @@ export default {
       state.nodeAttributes = []
     },
     loadLinks (state, payload) {
-      state.links = structuredClone(toRaw(payload))
+      state.links = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
-        const linksHeader = structuredClone(toRaw(state.links))
+        const linksHeader = cloneDeep(state.links)
         linksHeader.features = []
         state.linksHeader = linksHeader
 
@@ -81,7 +80,7 @@ export default {
     loadNodes (state, payload) {
       state.nodes = JSON.parse(JSON.stringify(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.nodes.crs.properties.name)) {
-        const nodesHeader = structuredClone(toRaw(state.nodes))
+        const nodesHeader = cloneDeep(state.nodes)
         nodesHeader.features = []
         state.nodesHeader = nodesHeader
         state.editorNodes = nodesHeader
@@ -226,7 +225,7 @@ export default {
 
     cloneTrip (state, payload) {
       // clone and reversed a trip.
-      const cloned = structuredClone(toRaw(state.links))
+      const cloned = cloneDeep(state.links)
       cloned.features = cloned.features.filter(link => link.properties.trip_id === payload.tripId)
 
       let linkSequence = cloned.features.length
@@ -254,7 +253,7 @@ export default {
       const a = cloned.features.map(item => item.properties.a)
       const b = cloned.features.map(item => item.properties.b)
       const ab = new Set([...a, ...b])
-      const clonedNodes = structuredClone(toRaw(state.nodes))
+      const clonedNodes = cloneDeep(state.nodes)
       clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
       const newName = {}
       ab.forEach(node => newName[node] = 'node_' + short.generate())
@@ -360,7 +359,7 @@ export default {
         Object.keys(defaultValue).forEach((key) => {
           linkProperties[key] = defaultValue[key]
         })
-        const geom = structuredClone(toRaw(state.editorNodes.features[0].geometry.coordinates))
+        const geom = cloneDeep(state.editorNodes.features[0].geometry.coordinates)
         const linkGeometry = {
           coordinates: [geom, geom],
           type: 'LineString',
@@ -378,7 +377,7 @@ export default {
         features.properties.link_sequence = features.properties.link_sequence + 1
         // replace node a by b and delete node a
         features.properties.a = features.properties.b
-        features.geometry.coordinates[0] = structuredClone(toRaw(features.geometry.coordinates.slice(-1)[0]))
+        features.geometry.coordinates[0] = cloneDeep(features.geometry.coordinates.slice(-1)[0])
         // new node index (hash)
         payload.nodeCopyId = features.properties.a
         this.commit('setNewNode', payload)
@@ -394,14 +393,14 @@ export default {
         features.properties.link_sequence = features.properties.link_sequence - 1
         //  replace node b by a and delete node b
         features.properties.b = features.properties.a
-        features.geometry.coordinates[1] = structuredClone(toRaw(features.geometry.coordinates[0]))
+        features.geometry.coordinates[1] = cloneDeep(features.geometry.coordinates[0])
         // new node index (hash)
         payload.nodeCopyId = features.properties.b
         this.commit('setNewNode', payload)
         features.properties.a = state.newNode.features[0].properties.index
         features.properties.index = 'link_' + short.generate()
       }
-      state.newLink = structuredClone(toRaw(state.linksHeader))
+      state.newLink = cloneDeep(state.linksHeader)
       state.newLink.features = [features]
       state.newLink.action = payload.action
     },
@@ -478,13 +477,13 @@ export default {
       const link2 = state.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0] // link is deleted
       // if the last or first node is selected, there is only one link. The node and the link are deleted.
       if (!link1) {
-        state.editorLinks.features = toRaw(state.editorLinks.features.filter(
-          link => link.properties.index !== link2.properties.index))
+        state.editorLinks.features = state.editorLinks.features.filter(
+          link => link.properties.index !== link2.properties.index)
         // a link was remove, link_sequence -1
         state.editorLinks.features.forEach(link => link.properties.link_sequence -= 1)
       } else if (!link2) {
-        state.editorLinks.features = toRaw(state.editorLinks.features.filter(
-          link => link.properties.index !== link1.properties.index))
+        state.editorLinks.features = state.editorLinks.features.filter(
+          link => link.properties.index !== link1.properties.index)
         // the node is inbetween 2 links. 1 link is deleted, and the other is extented.
       } else {
         link1.geometry.coordinates = [
@@ -510,7 +509,7 @@ export default {
       const featureIndex = state.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link1 change editorLinks as it is an observer.
       const link1 = state.editorLinks.features[featureIndex] // this link is extented
-      const link2 = structuredClone(toRaw(link1))
+      const link2 = cloneDeep(link1)
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
 
@@ -851,7 +850,7 @@ export default {
     nodesHeader: (state) => state.nodesHeader,
     linksHeader: (state) => state.linksHeader,
     anchorNodes: (state) => {
-      const nodes = structuredClone(toRaw(state.nodesHeader))
+      const nodes = cloneDeep(state.nodesHeader)
       state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index

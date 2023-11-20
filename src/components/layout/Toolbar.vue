@@ -19,9 +19,9 @@ export default {
   },
 
   created () {
-    // const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    // this.$vuetify.theme.dark
-
+    const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    this.$vuetify.theme.dark = darkMode
+    this.$vuetify.theme.global.name = darkMode ? 'light' : 'dark'
   },
 
   methods: {

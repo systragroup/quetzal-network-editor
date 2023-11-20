@@ -246,7 +246,7 @@ export default {
         <v-row>
           <v-col>
             <v-card-text :style="{textAlign: 'center'}">
-              <div class="text-h6">
+              <div class="custom-title">
                 {{ $gettext("Select a Project") }}
               </div>
               <div>
@@ -255,7 +255,7 @@ export default {
               <div class="subtitle">
                 {{ $gettext("OR") }}
               </div>
-              <div class="text-h6">
+              <div class="custom-title">
                 {{ $gettext("Continue Without Project") }}
               </div>
               <div>
@@ -264,7 +264,7 @@ export default {
               <div class="subtitle">
                 {{ $gettext("OR") }}
               </div>
-              <div class="text-h6">
+              <div class="custom-title">
                 {{ $gettext("Load Zip") }}
                 <InfoZip />
               </div>
@@ -286,7 +286,7 @@ export default {
               <div class="subtitle">
                 {{ $gettext("OR") }}
               </div>
-              <div class="text-h6">
+              <div class="custom-title">
                 {{ $gettext("Load Example") }}
               </div>
 
@@ -411,7 +411,7 @@ export default {
 .layout-overlay {
   height: 100%;
   width: 100%;
-  background-color:var(--v-background-base);
+  background-color:rgb(var(--v-theme-background));
 
   position: absolute;
 }
@@ -419,18 +419,20 @@ export default {
   width:80rem;
   overflow-y:hidden;
   padding: 20px;
+  background-color: rgb(var(--v-theme-lightergrey));
+
 }
 .button-question{
   display: flex;
   align-items: center ;
 
 }
-.title {
+.custom-title {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2em !important;
-  color: var(--v-primary-base);
+  color: rgb(var(--v-theme-primary));
   font-weight: bold;
   margin-top:18px;
 }
@@ -456,7 +458,7 @@ export default {
   justify-content:center;
   margin-top : 1rem;
   padding-top:0.5rem;
-  border-top: 1px solid var(--v-lightgrey-base);
+  border-top: 1px solid rgb(var(--v-theme-lightgrey));
 }
 
 </style>

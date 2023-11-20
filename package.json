@@ -37,7 +37,7 @@
     "@vuepic/vue-datepicker": "^5.4.0",
     "apexcharts": "^3.41.0",
     "aws-amplify": "^5.3.12",
-    "aws-sdk": "^2.1494.0",
+    "aws-sdk": "^2.1500.0",
     "axios": "^1.6.1",
     "chroma-js": "^2.4.2",
     "crypto-js": "^4.2.0",
@@ -52,6 +52,7 @@
     "mapbox-gl": "^2.15.0",
     "moment": "^2.29.1",
     "promise-polyfill": "^8.2.0",
+    "seedrandom": "^3.0.5",
     "short-uuid": "^4.2.2",
     "turf-linestring": "^1.0.2",
     "turf-point": "^2.0.1",
@@ -64,7 +65,7 @@
     "vue3-apexcharts": "^1.4.1",
     "vue3-gettext": "^3.0.0-beta.1",
     "vue3-json-viewer": "^2.2.2",
-    "vuetify": "^3.4.2",
+    "vuetify": "^3.3.3",
     "vuex": "^4.1.0"
   },
   "devDependencies": {

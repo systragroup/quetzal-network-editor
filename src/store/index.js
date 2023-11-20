@@ -31,6 +31,7 @@ const $gettext = s => s
 const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
 
 const store = createStore({
+  strict: false,
   modules: {
     user: userModule,
     links: linksModule,

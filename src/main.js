@@ -74,7 +74,7 @@ const vuetify = createVuetify({
   },
   directives,
   theme: {
-    defaultTheme: darkMode ? 'dark' : 'light',
+    // defaultTheme: darkMode ? 'dark' : 'light',
     themes: {
       light: {
         dark: false,
@@ -86,6 +86,7 @@ const vuetify = createVuetify({
           secondarydarkfix: '#1A242C',
           secondarylight: '#334453',
           background: '#808080',
+          lightergrey: '#fff',
           lightgrey: '#E3E4E6',
           white: '#FFFFFF',
           black: '#000000',
@@ -104,6 +105,7 @@ const vuetify = createVuetify({
           secondary: '#263238',
           secondarydark: '#fff',
           secondarydarkfix: '#1A242C',
+          lightergrey: '#1e1e1e',
           lightgrey: '#403f3f',
           mediumgrey: '#575757',
           darkgrey: '#d9d9db',
