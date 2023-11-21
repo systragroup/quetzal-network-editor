@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Import from '@page/Import.vue'
 import Home from '@page/Home.vue'
-
+import store from '@src/store/index.js'
+const ResultMap = () => import('@page/ResultMap.vue')
+const Run = () => import('@page/Run.vue')
+// import Run from '@page/Run.vue'
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
 
@@ -21,6 +24,32 @@ const router = createRouter({
       component: Home,
       icon: 'fa-solid fa-map',
       title: $gettext('Map'),
+    },
+    {
+      path: '/Run',
+      name: Run.name,
+      component: Run,
+      icon: 'fa-solid fa-play',
+      title: $gettext('Parameters and Run'),
+      beforeEnter: (to, from, next) => {
+        if (store.getters['run/parametersIsEmpty']) {
+          store.commit('changeNotification',
+            {
+              text: $gettext('you need parameters to enter this page'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else {
+          next()
+        }
+      },
+    },
+    {
+      path: '/ResultMap',
+      name: ResultMap.name,
+      component: ResultMap,
+      icon: 'fa-solid fa-layer-group',
+      title: $gettext('Results Map'),
     },
 
   ],
