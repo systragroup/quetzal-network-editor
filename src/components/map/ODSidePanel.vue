@@ -177,29 +177,36 @@ export default {
       <v-virtual-scroll
         :items="filteredCat"
         :item-height="45"
-        :height="height-71"
+        :height="height-88"
       >
         <template v-slot="{ item }">
-          <v-list-item
+          <div
             :key="vmodelSelectedFilter.concat(item)"
-            class="pl-2"
+            class="container"
           >
-            <v-list-item-action>
-              <v-checkbox
-                v-model="vmodelSelectedCat"
-                class="pl-2"
-                :true-icon="'fa-eye fa'"
-                :false-icon="'fa-eye-slash fa'"
-                :color="'primary'"
-                :value="item"
-                size="10"
-                hide-details
-              />
-            </v-list-item-action>
+            <v-checkbox-btn
+              v-model="vmodelSelectedCat"
+              class="ma-2 pl-2"
+              :true-icon="'fa-eye fa'"
+              :false-icon="'fa-eye-slash fa'"
+              :color="'primary'"
+              :value="item"
+            />
 
-            <v-list-item-title>
-              {{ item }}
-            </v-list-item-title>
+            <v-tooltip
+              location="right"
+              open-delay="300"
+              content-class="custom-tooltip"
+            >
+              <template v-slot:activator="{ props }">
+                <v-list-item-title
+                  v-bind="props"
+                >
+                  {{ item }}
+                </v-list-item-title>
+              </template>
+              <span>{{ item }}</span>
+            </v-tooltip>
 
             <v-tooltip
               location="bottom"
@@ -207,17 +214,14 @@ export default {
             >
               <template v-slot:activator="{ props }">
                 <v-btn
-                  icon
+                  variant="text"
+                  icon=" fas fa-list"
                   class="ma-1"
-
+                  color="regular"
                   :disabled="false"
                   v-bind="props"
                   @click="propertiesButton(item)"
-                >
-                  <v-icon :color="'regular' ">
-                    fas fa-list
-                  </v-icon>
-                </v-btn>
+                />
               </template>
               <span>{{ $gettext("Edit Line Properties") }}</span>
             </v-tooltip>
@@ -228,24 +232,20 @@ export default {
             >
               <template v-slot:activator="{ props }">
                 <v-btn
-                  icon
+                  variant="text"
+                  icon=" fas fa-trash"
                   class="ma-1"
+                  size="small"
+                  color="regular"
 
                   :disabled="false"
                   v-bind="props"
                   @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleteODGroup'})"
-                >
-                  <v-icon
-                    size="small"
-                    color="regular"
-                  >
-                    fas fa-trash
-                  </v-icon>
-                </v-btn>
+                />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>
             </v-tooltip>
-          </v-list-item>
+          </div>
         </template>
       </v-virtual-scroll>
 
@@ -264,6 +264,14 @@ export default {
   display:flex;
   align-items: center;
   font-size: x-large;
+}
+.container{
+  display:flex;
+  justify-content:flex-end;
+  align-items: center;
+}
+.item{
+  flex:1;
 }
 .left-panel {
   height: 100%;

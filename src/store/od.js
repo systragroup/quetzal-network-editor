@@ -3,7 +3,7 @@
 import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
-import { toRaw } from 'vue'
+import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 const $gettext = s => s
 
@@ -22,12 +22,12 @@ export default {
 
   mutations: {
     loadLayer (state, payload) {
-      state.layer = structuredClone(toRaw(payload))
+      state.layer = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
-        const layerHeader = structuredClone(toRaw(state.layer))
+        const layerHeader = cloneDeep(state.layer)
         layerHeader.features = []
         state.layerHeader = layerHeader
-        state.visibleLayer = structuredClone(layerHeader)
+        state.visibleLayer = cloneDeep(layerHeader)
         // set all trips visible
         // this.commit('results/changeSelectedTrips', state.tripId)
         this.commit('od/getProperties')
@@ -223,7 +223,7 @@ export default {
       return form
     },
     nodes: (state) => (layer) => {
-      const nodes = structuredClone(state.layerHeader)
+      const nodes = cloneDeep(state.layerHeader)
       layer.features.forEach(
         feature => {
           const Index = feature.properties.index
