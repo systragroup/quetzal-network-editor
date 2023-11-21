@@ -116,9 +116,7 @@ export default {
               >
                 <template v-slot:activator="{ props }">
                   <v-icon
-                    dark
-
-                    :style="{color: 'white'}"
+                    :style="{color: 'white', 'padding-right':'2rem'}"
                     v-bind="props"
                   >
                     fas fa-sliders-h
@@ -135,7 +133,6 @@ export default {
                 <template v-slot:activator="{ props }">
                   <span
                     class="custom-title crop"
-
                     v-bind="props"
                   >{{ selectedPreset || $gettext("Presets") }}</span>
                 </template>
@@ -149,22 +146,21 @@ export default {
                     <v-list-item-title>
                       {{ preset.name }}
                     </v-list-item-title>
-                    <v-btn
-                      icon
-                      class="ml-10"
-                      @click.stop="()=>$emit('delete-preset', preset)"
-                    >
-                      <v-icon
+                    <template v-slot:append>
+                      <v-btn
+                        variant="text"
+                        icon="fas fa-trash"
                         size="small"
                         color="grey"
-                      >
-                        fas fa-trash
-                      </v-icon>
-                    </v-btn>
+                        class="ml-10"
+                        @click.stop="()=>$emit('delete-preset', preset)"
+                      />
+                    </template>
                   </v-list-item>
                 </v-list>
               </v-menu>
               <v-btn
+                variant="text"
                 :style="{color: 'white'}"
                 :icon="presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down'"
                 @click="presetsMenu=!presetsMenu"
@@ -177,16 +173,13 @@ export default {
               >
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    :style="{color: 'white'}"
-                    icon
-
+                    :style="{color: 'white', flex:0, 'padding-left':'1.1rem','padding-right':'1.5rem'}"
+                    class="eye-button"
+                    :icon=" selectedCat.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa'"
+                    variant="text"
                     v-bind="props"
                     @click="showAll()"
-                  >
-                    <v-icon class="list-item-icon">
-                      {{ selectedCat.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa' }}
-                    </v-icon>
-                  </v-btn>
+                  />
                 </template>
                 <span>{{ selectedCat.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
               </v-tooltip>
@@ -219,6 +212,7 @@ export default {
 
               <v-btn
                 :style="{color: 'white'}"
+                variant="text"
                 :icon="openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down'"
                 @click="openMenu=!openMenu"
               />
@@ -246,34 +240,28 @@ export default {
                 :height="windowHeight-80"
               >
                 <template v-slot="{ item }">
-                  <v-list-item
+                  <div
                     :key="vmodelSelectedFilter.concat(item)"
-                    class="pl-2"
+                    class="container"
                   >
                     <v-list-item-action>
-                      <v-checkbox
+                      <v-checkbox-btn
                         v-model="selectedCat"
-                        class="pl-2"
+                        class="ma-2 pl-2"
                         :true-icon="'fa-eye fa'"
                         :false-icon="'fa-eye-slash fa'"
                         :color="'primary'"
                         :value="item"
-                        size="10"
-                        hide-details
                       />
                     </v-list-item-action>
 
-                    <v-list-item-title>
+                    <div class="item">
                       {{ item }}
-                    </v-list-item-title>
-                  </v-list-item>
+                    </div>
+                  </div>
                 </template>
               </v-virtual-scroll>
             </v-card>
-            <!--
-          </div>
-        </div>
-        -->
           </div>
         </div>
       </div>
@@ -283,14 +271,23 @@ export default {
 <style lang="scss" scoped>
 .left-panel {
   height: 100%;
-  background-color: var(--v-primarydark-base);
+  background-color:rgb(var(--v-theme-primarydark));
   transition: 0.3s;
   position: absolute;
   display: flex;
   z-index: 20;
 }
+.container{
+  display:flex;
+  justify-content:flex-end;
+  align-items: center;
+}
+.item{
+  flex:1;
+}
 .custom-title  {
   color:white;
+  font-size: x-large;
 }
 .crop {
   white-space: nowrap;     /* Prevents text from wrapping to the next line */
@@ -299,15 +296,17 @@ export default {
 }
 .preset {
   padding: 0.5rem 0.5rem 0.5rem 1rem;
-  border-bottom: solid var(--v-primarydark-base);;
-  background-color: var(--v-secondary-base);
+  border-bottom: solid rgb(var(--v-theme-primarydark));
+  background-color: rgb(var(--v-theme-secondary));
   display:flex;
+  align-items: center;
   justify-content: space-between;
 }
 .layer {
   padding: 0.5rem 0.5rem 0.5rem 0.5rem;
-  background-color: var(--v-secondary-base);
+  background-color: rgb(var(--v-theme-secondary));
   display:flex;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -331,7 +330,7 @@ transition:0.3s
   left: 100%;
   width: 25px;
   z-index: 1;
-  background-color: var(--v-primarydark-base);
+  background-color: rgb(var(--v-theme-primarydark));
   display: flex;
   position: relative;
   align-items: center;

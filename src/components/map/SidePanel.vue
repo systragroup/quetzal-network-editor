@@ -92,7 +92,7 @@ export default {
     >
       <v-icon
         size="small"
-        color="secondary"
+        color="secondarydark"
       >
         {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
       </v-icon>

@@ -4,6 +4,8 @@ import Home from '@page/Home.vue'
 import store from '@src/store/index.js'
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
+const ResultPicture = () => import('@page/ResultPicture.vue')
+const ResultTable = () => import('@page/ResultTable.vue')
 // import Run from '@page/Run.vue'
 // only used to force to see translation to vue-gettext
 const $gettext = s => s
@@ -50,6 +52,21 @@ const router = createRouter({
       component: ResultMap,
       icon: 'fa-solid fa-layer-group',
       title: $gettext('Results Map'),
+    },
+    {
+      path: '/ResultPicture',
+      name: ResultPicture.name,
+      component: ResultPicture,
+      icon: 'fas fa-images',
+      title: $gettext('Results Pictures'),
+    },
+    {
+      path: '/ResultTable',
+      name: ResultTable.name,
+      component: ResultTable,
+      icon: 'fas fa-table',
+      title: $gettext('Result Table'),
+
     },
 
   ],
