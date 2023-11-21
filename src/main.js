@@ -90,7 +90,7 @@ const vuetify = createVuetify({
           lightgrey: '#E3E4E6',
           white: '#FFFFFF',
           black: '#000000',
-          mediumgrey: '#9E9E9E',
+          mediumgrey: '#ededed',
           darkgrey: '#5B5B5C',
           accent: '#2C3E4E',
           linksprimary: '#7EBAAC',

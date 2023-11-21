@@ -2,6 +2,7 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'App',
@@ -25,6 +26,7 @@ export default {
     },
   },
   watch: {
+    loading (val) { console.log(val) },
     notification () {
       this.snackbar = !!this.notification.text
     },
@@ -71,6 +73,16 @@ export default {
         close-on-back
         scroll-strategy="block"
       />
+      <!--
+      <v-overlay
+        :model-value="loading"
+      >
+        <v-progress-circular
+          indeterminate
+          size="64"
+        />
+      </v-overlay>
+      --->
       <Toolbar />
       <RouterView />
     </v-card>
