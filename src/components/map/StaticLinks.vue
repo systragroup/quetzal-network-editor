@@ -2,7 +2,8 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
-import { toRaw } from 'vue'
+import { cloneDeep } from 'lodash'
+
 export default {
   name: 'StaticLinks',
   components: {
@@ -35,8 +36,8 @@ export default {
   },
 
   created () {
-    this.visibleLinks = structuredClone(toRaw(this.$store.getters.linksHeader))
-    this.visibleNodes = structuredClone(toRaw(this.$store.getters.nodesHeader))
+    this.visibleLinks = cloneDeep(this.$store.getters.linksHeader)
+    this.visibleNodes = cloneDeep(this.$store.getters.nodesHeader)
     this.setHiddenFeatures()
     this.map.on('dblclick', this.selectLine)
   },

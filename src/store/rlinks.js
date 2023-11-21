@@ -337,11 +337,9 @@ export default {
       }
     },
     getRenderedrLinks (state, payload) {
-      console.time('time1')
       const bbox = toRaw(payload.bbox)
       state.renderedrLinks.features = state.visiblerLinks.features.filter(
         link => (booleanContains(bbox, link) || booleanCrosses(bbox, link)))
-      console.timeEnd('time1')
       console.log(state.visiblerLinks)
       this.commit('getRenderedrNodes')
     },

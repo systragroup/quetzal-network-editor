@@ -197,7 +197,6 @@ export default {
       <template v-slot:activator="{ props }">
         <div
           class="custom-title"
-
           v-bind="props"
         >
           {{ scenario? model + '/' + scenario: $gettext('Projects') }}
@@ -219,8 +218,8 @@ export default {
           </v-tab>
         </v-tabs>
         <v-divider />
-        <v-list-item
-          class="text-right"
+        <div
+          class="container"
         >
           <v-text-field
             v-model="searchString"
@@ -229,6 +228,7 @@ export default {
             variant="outlined"
             clear-icon="fas fa-times-circle"
             clearable
+            class="item"
             label="search"
             hide-details
             prepend-inner-icon="fas fa-search"
@@ -238,22 +238,32 @@ export default {
             v-model="sortModel"
             density="compact"
             mandatory
+            variant="outlined"
           >
-            <v-btn value="scenario">
+            <v-btn
+              value="scenario"
+              size="small"
+            >
               <span class="hidden-sm-and-down lowercase-text">{{ $gettext('name') }}</span>
 
               <v-icon end>
                 fas fa-font
               </v-icon>
             </v-btn>
-            <v-btn value="timestamp">
+            <v-btn
+              value="timestamp"
+              size="small"
+            >
               <span class="hidden-sm-and-down lowercase-text">date</span>
 
               <v-icon end>
                 fas fa-calendar-week
               </v-icon>
             </v-btn>
-            <v-btn value="userEmail">
+            <v-btn
+              value="userEmail"
+              size="small"
+            >
               <span class="hidden-sm-and-down lowercase-text">email</span>
 
               <v-icon end>
@@ -262,15 +272,12 @@ export default {
             </v-btn>
           </v-btn-toggle>
           <v-btn
-            class="v-btn-toggle v-btn-toggle--active v-btn--active v-btn--toggle"
-            icon
+            size="small"
+            variant="text"
+            :icon=" sortDirection? 'fas fa-sort-down' : 'fas fa-sort-up' "
             @click="sortDirection=!sortDirection"
-          >
-            <v-icon center>
-              {{ sortDirection? 'fas fa-sort-down' : 'fas fa-sort-up' }}
-            </v-icon>
-          </v-btn>
-        </v-list-item>
+          />
+        </div>
         <v-divider />
         <div
           class="v-card-content"
@@ -278,7 +285,6 @@ export default {
         >
           <v-list-item
             v-for="scen in scenariosList"
-
             :key="scen.model + scen.scenario"
             max-height="200px"
             :value="scen.model + scen.scenario"
@@ -289,32 +295,25 @@ export default {
             <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
             <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
             <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
-
-            <v-btn
-              icon
-              class="ma-1"
-              @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
-            >
-              <v-icon
+            <template v-slot:append>
+              <v-btn
+                variant="text"
+                icon="fas fa-copy"
+                class="ma-1"
                 size="small"
                 color="regular"
-              >
-                fas fa-copy
-              </v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
-              class="ma-1"
-              @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
-            >
-              <v-icon
-                size="small"
+                @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
+              />
+              <v-btn
+                variant="text"
+                :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
+                :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
+                class="ma-1"
                 color="grey"
-              >
-                {{ scen.protected? 'fas fa-lock':'fas fa-trash' }}
-              </v-icon>
-            </v-btn>
+                size="small"
+                @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+              />
+            </template>
           </v-list-item>
           <v-list-item v-show="loading">
             <v-spacer />
@@ -460,6 +459,16 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+.container{
+  display:flex;
+  justify-content:flex-start;
+  align-items: center;
+  margin:0.5rem;
+}
+.item{
+  flex:1;
+}
+
 .custom-title {
   font-size: 1.2em;
   padding-left: 1.2rem;
