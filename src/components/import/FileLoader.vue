@@ -198,15 +198,11 @@ export default {
           >
             <template v-slot:activator="{ props }">
               <v-btn
-                icon
+                icon="fa-solid fa-upload"
+                size="small"
                 variant="outlined"
-
                 v-bind="props"
-              >
-                <v-icon size="small">
-                  fa-solid fa-upload
-                </v-icon>
-              </v-btn>
+              />
             </template>
             <v-list>
               <v-list-item
@@ -246,6 +242,7 @@ export default {
           <v-icon
             v-if="!rlinksIsEmpty"
             class="check-icon"
+            size="small"
             color="success"
           >
             fas fa-check
@@ -259,17 +256,11 @@ export default {
           >
             <template v-slot:activator="{ props }">
               <v-btn
-                icon
+                icon="fa-solid fa-upload"
                 variant="outlined"
-
+                size="small"
                 v-bind="props"
-              >
-                <v-icon
-                  size="small"
-                >
-                  fa-solid fa-upload
-                </v-icon>
-              </v-btn>
+              />
             </template>
             <v-list>
               <v-list-item
@@ -310,6 +301,7 @@ export default {
             v-if="!ODIsEmpty"
             class="check-icon"
             color="success"
+            size="small"
           >
             fas fa-check
           </v-icon>
@@ -317,14 +309,11 @@ export default {
 
         <div class="element">
           <v-btn
-            icon
+            icon="fa-solid fa-upload"
+            size="small"
             variant="outlined"
             @click="()=>buttonHandle('od')"
-          >
-            <v-icon size="small">
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
+          />
         </div>
       </div>
     </div>
@@ -346,6 +335,7 @@ export default {
             v-if="!paramsIsEmpty"
             class="check-icon"
             color="success"
+            size="small"
           >
             fas fa-check
           </v-icon>
@@ -353,14 +343,11 @@ export default {
 
         <div class="element">
           <v-btn
-            icon
+            icon="fa-solid fa-upload"
             variant="outlined"
+            size="small"
             @click="()=>buttonHandle('parameters')"
-          >
-            <v-icon size="small">
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
+          />
         </div>
       </div>
       <div class="container">
@@ -379,6 +366,7 @@ export default {
             v-if="!stylesIsEmpty"
             class="check-icon"
             color="success"
+            size="small"
           >
             fas fa-check
           </v-icon>
@@ -386,14 +374,11 @@ export default {
 
         <div class="element">
           <v-btn
-            icon
+            icon="fa-solid fa-upload"
+            size="small"
             variant="outlined"
             @click="()=>buttonHandle('styles')"
-          >
-            <v-icon size="small">
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
+          />
         </div>
       </div>
     </div>
@@ -412,21 +397,22 @@ export default {
 }
 .container{
   display: flex;
+  width:100%;
+  padding: 0rem 1rem 0rem 1rem;
+  margin: 0.3rem 0rem 0.3rem 0rem;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: flex-start;
   align-items: center;
-  padding-left: 2em;
-  padding-right: 2em;
 
 }
 .type-icon{
-  padding-right: 0.2em;
+  padding-right: 3rem;
 }
 .element{
   margin-left: auto;
 }
 .check-icon{
-  padding-left: 1em;
+  padding-left: 1rem;
 }
 .subtitle {
   flex:2;

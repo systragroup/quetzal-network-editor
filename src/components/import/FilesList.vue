@@ -148,16 +148,12 @@ export default {
           >
             <template v-slot:activator="{ props }">
               <v-btn
-
+                variant="text"
                 class="list-button"
-                icon
+                icon=" fa-solid fa-upload"
                 v-bind="props"
                 @click="()=>buttonHandle(path)"
-              >
-                <v-icon size="small">
-                  fa-solid fa-upload
-                </v-icon>
-              </v-btn>
+              />
             </template>
             <span>{{ $gettext('Replace file inplace') }}</span>
           </v-tooltip>
