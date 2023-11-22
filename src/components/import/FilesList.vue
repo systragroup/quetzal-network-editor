@@ -1,38 +1,40 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
 import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
+import { useIndexStore } from '@src/store/index'
+import { computed } from 'vue'
 // const $gettext = s => s
 
 export default {
   name: 'FilesList',
   events: ['FilesLoaded'],
-
-  data () {
-    return {
-      filesPanel: [0, 1],
-    }
-  },
-
-  computed: {
-    loadedFiles () { return this.$store.getters.otherFiles.map(file => file.path) },
-    inputFiles () { return this.loadedFiles.filter(file => file.startsWith('input')) },
-    outputFiles () { return this.loadedFiles.filter(file => file.startsWith('output')) },
-    layers () {
+  setup () {
+    const store = useIndexStore()
+    const loadedFiles = computed(() => { return store.otherFiles.map(file => file.path) })
+    const inputFiles = computed(() => { return loadedFiles.value.filter(file => file.startsWith('input')) })
+    const outputFiles = computed(() => { return loadedFiles.value.filter(file => file.startsWith('output')) })
+    const layers = computed(() => {
       // get available layers, reformat name and add .json and .geojson to have the matrix also.
-      const layers = this.$store.getters.availableLayers.filter(name => name.startsWith('outputs/'))
+      const layers = store.availableLayers.filter(name => name.startsWith('outputs/'))
       const list = []
       for (const name of layers) {
         list.push(name + '.geojson')
+        // TODO
         if (this.$store.getters[`${name}/hasOD`]) {
           list.push(name + '.json')
         }
       }
       return list
-    },
+    })
+    return {
+      store,
+      loadedFiles,
+      inputFiles,
+      outputFiles,
+      layers,
+    }
   },
 
-  mounted () {
-  },
   methods: {
     buttonHandle (choice) {
       this.choice = choice
@@ -46,8 +48,7 @@ export default {
       }
     },
     async readOtherInputs (event) {
-      // this.$store.commit('changeLoading', true)
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const fileList = []
       const files = event.target.files
 
@@ -60,20 +61,18 @@ export default {
         try {
           const content = await readFileAsBytes(file)
           fileList.push({ content, path: name })
-          this.$store.commit('changeLoading', false)
+          this.store.changeLoading(false)
         } catch (err) {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', err)
+          this.store.changeLoading(false)
+          this.store.changeAlert(err)
         }
       }
-      this.$store.commit('changeLoading', false)
+      this.store.changeLoading(false)
       this.$emit('FilesLoaded', fileList)
-
-      // this.$store.commit('changeLoading', false)
     },
     async readOtherOutputs (event) {
       // load outputs as Layer Module and as other files (ex: png)
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const fileList = []
       const files = event.target.files
       for (const file of files) {
@@ -88,13 +87,13 @@ export default {
             fileList.push({ content, path: name })
           }
 
-          this.$store.commit('changeLoading', false)
+          this.store.changeLoading(false)
         } catch (err) {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', err)
+          this.store.changeLoading(false)
+          this.store.changeAlert(err)
         }
       }
-      this.$store.commit('changeLoading', false)
+      this.store.changeLoading(false)
       this.$emit('FilesLoaded', fileList)
     },
 

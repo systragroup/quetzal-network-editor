@@ -2,36 +2,62 @@
 <script>
 import { serializer } from '@comp/utils/serializer.js'
 import { readFileAsText } from '@comp/utils/utils.js'
-
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+import { useODStore } from '@src/store/od'
+import { useRunStore } from '@src/store/run'
+import { computed, ref } from 'vue'
 // const $gettext = s => s
 
 export default {
   name: 'FileLoader',
   events: ['FilesLoaded'],
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const linksStore = useLinksStore()
+    const rlinksStore = userLinksStore()
+    const ODStore = useODStore()
+    const runStore = useRunStore()
 
-  data () {
+    const loadedLinks = ref({})
+    const loadedNodes = ref({})
+    const loadedType = ref('')
+    const choice = ref('')
+    const projectIsEmpty = computed(() => store.projectIsEmpty)
+
+    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+    const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
+    const ODIsEmpty = computed(() => { return ODStore.layerIsEmpty })
+    const paramsIsEmpty = computed(() => { return runStore.parametersIsEmpty })
+    const stylesIsEmpty = computed(() => { return store.styles.length === 0 })
+    const localLinksLoaded = computed(() => { return Object.keys(loadedLinks.value).length !== 0 })
+    const localNodesLoaded = computed(() => { return Object.keys(loadedNodes.value).length !== 0 })
+    const localFilesAreLoaded = computed(() => { return (localLinksLoaded.value && localNodesLoaded.value) })
+
     return {
-      loadedLinks: {},
-      loadedNodes: {},
-      loadedType: '',
-      choice: '',
+      store,
+      userStore,
+      loadedLinks,
+      loadedNodes,
+      loadedType,
+      choice,
+      projectIsEmpty,
+      rlinksIsEmpty,
+      linksIsEmpty,
+      ODIsEmpty,
+      paramsIsEmpty,
+      stylesIsEmpty,
+      localLinksLoaded,
+      localNodesLoaded,
+      localFilesAreLoaded,
     }
   },
 
-  computed: {
-    rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
-    linksIsEmpty () { return this.$store.getters.linksIsEmpty },
-    ODIsEmpty () { return this.$store.getters['od/layerIsEmpty'] },
-    paramsIsEmpty () { return this.$store.getters['run/parametersIsEmpty'] },
-    stylesIsEmpty () { return this.$store.getters.styles.length === 0 },
-    localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
-    localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
-    localFilesAreLoaded () {
-      return (this.localLinksLoaded && this.localNodesLoaded)
-    },
-
-  },
   watch: {
+    rlinksIsEmpty (val) { console.log(val) },
 
     localFilesAreLoaded (val) {
       if (val) {

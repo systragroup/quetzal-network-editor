@@ -8,9 +8,11 @@ import { toRaw, ref } from 'vue'
 import { useLinksStore } from './links'
 import { userLinksStore } from './rlinks'
 import { useODStore } from './od'
+import { useRunStore } from './run'
 
 import { serializer, stylesSerializer } from '../components/utils/serializer.js'
-
+import { useUserStore } from './user.js'
+import { cloneDeep } from 'lodash'
 const linksBase = {
   'type': 'FeatureCollection',
   'crs': { 'type': 'name', 'properties': { 'name': 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
@@ -89,6 +91,10 @@ export const useIndexStore = defineStore('store', {
 
     loadFiles (payload) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      const ODStore = useODStore()
+      const runStore = useRunStore()
       try {
         let otherFiles = []
         let outputFiles = []
@@ -129,22 +135,22 @@ export const useIndexStore = defineStore('store', {
           err.name = 'ImportError'
           throw err
         }
-        this.commit('loadPTFiles', ptFiles)
-        this.commit('loadRoadFiles', roadFiles)
-        this.commit('od/loadODFiles', ODFiles)
-        if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
+        linksStore.loadPTFiles(ptFiles)
+        rlinksStore.loadRoadFiles(roadFiles)
+        ODStore.loadODFiles(ODFiles)
+        if (paramFile) runStore.getLocalParameters(paramFile.content)
         if (stylesFile) {
           const json = stylesSerializer(stylesFile.content)
           this.styles = json
         }
-        if (attributesChoicesFile) { this.commit('loadAttributesChoices', attributesChoicesFile.content) }
+        if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
 
-        this.commit('loadOtherFiles', inputFiles)
+        this.loadOtherFiles(inputFiles)
 
         // get outputs geojson files and create Layer with them.
         const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
         outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
-        this.commit('loadLayers', layerFiles)
+        this.loadLayers(layerFiles)
 
         // get JSON files with the same name as Modules (they are matrix)
         const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
@@ -152,14 +158,14 @@ export const useIndexStore = defineStore('store', {
         )
         outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
 
-        this.commit('loadMatrix', matrixFiles)
+        this.loadMatrix(matrixFiles)
 
         // load the rest
-        this.commit('loadOtherFiles', outputFiles)
-        this.commit('changeNotification',
+        this.loadOtherFiles(outputFiles)
+        this.changeNotification(
           { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
       } catch (err) {
-        this.commit('changeAlert', err)
+        this.changeAlert(err)
       }
     },
 
@@ -197,7 +203,7 @@ export const useIndexStore = defineStore('store', {
           // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
           file.content = serializer(file.content, file.path, null, false)
 
-          this.commit('createLayer', {
+          this.createLayer({
             fileName,
             data: file.content,
           })
@@ -256,11 +262,13 @@ export const useIndexStore = defineStore('store', {
     },
 
     applySettings (payload) {
-      this.links.linkSpeed = Number(payload.linkSpeed)
-      this.rlinks.roadSpeed = Number(payload.roadSpeed)
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      linksStore.linkSpeed = Number(payload.linkSpeed)
+      rlinksStore.roadSpeed = Number(payload.roadSpeed)
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent
-      this.rlinks.defaultHighway = payload.defaultHighway
+      rlinksStore.defaultHighway = payload.defaultHighway
       this.outputName = payload.outputName
     },
     changeOutputName (payload) { this.outputName = payload },
@@ -282,7 +290,12 @@ export const useIndexStore = defineStore('store', {
       this.importPoly = payload
     },
 
-    async exportFiles ({ state, commit }, payload = 'all') {
+    async exportFiles (payload = 'all') {
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      const ODStore = useODStore()
+      const runStore = useRunStore()
+      const userStore = useUserStore()
       const zip = new JSZip()
       let links = ''
       let nodes = ''
@@ -290,9 +303,9 @@ export const useIndexStore = defineStore('store', {
       let rnodes = ''
       let od = ''
       // export only visible line (line selected)
-      commit('applyPropertiesTypes')
+      this.applyPropertiesTypes()
       if (payload !== 'all') {
-        const tempLinks = structuredClone(toRaw(this.links.links))
+        const tempLinks = cloneDeep(linksStore.links)
         tempLinks.features = tempLinks.features.filter(
           link => this.links.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
@@ -300,20 +313,20 @@ export const useIndexStore = defineStore('store', {
         const a = tempLinks.features.map(item => item.properties.a)
         const b = tempLinks.features.map(item => item.properties.b)
         const nodesInLinks = Array.from(new Set([...a, ...b]))
-        const tempNodes = structuredClone(toRaw(this.links.nodes))
+        const tempNodes = cloneDeep(linksStore.nodes)
         tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
         nodes = JSON.stringify(tempNodes)
 
-        rlinks = JSON.stringify(this.rlinks.visiblerLinks)
-        rnodes = JSON.stringify(this.rlinks.visiblerNodes)
-        od = JSON.stringify(this.getters['od/visibleLayer'])
+        rlinks = JSON.stringify(rlinksStore.visiblerLinks)
+        rnodes = JSON.stringify(rlinksStore.visiblerNodes)
+        od = JSON.stringify(ODStore.visibleLayer)
       // export everything
       } else {
-        links = JSON.stringify(this.links.links)
-        nodes = JSON.stringify(this.links.nodes)
-        rlinks = JSON.stringify(this.rlinks.rlinks)
-        rnodes = JSON.stringify(this.rlinks.rnodes)
-        od = JSON.stringify(this.getters['od/layer'])
+        links = JSON.stringify(linksStore.links)
+        nodes = JSON.stringify(linksStore.nodes)
+        rlinks = JSON.stringify(rlinksStore.rlinks)
+        rnodes = JSON.stringify(rlinksStore.rnodes)
+        od = JSON.stringify(ODStore.layer)
       }
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
@@ -338,8 +351,8 @@ export const useIndexStore = defineStore('store', {
         zip.file('inputs/od/od.geojson', blob)
       }
       if (payload === 'all') {
-        if (!this.getters['run/parametersIsEmpty']) {
-          const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
+        if (!runStore.parametersIsEmpty) {
+          const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
           zip.file('inputs/params.json', blob)
         }
         if (this.styles.length > 0) {
@@ -350,7 +363,7 @@ export const useIndexStore = defineStore('store', {
           const blob = new Blob([JSON.stringify(this.attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
-
+        // TODO
         const layers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
         for (const layer of layers) {
@@ -367,8 +380,8 @@ export const useIndexStore = defineStore('store', {
 
         for (const file of this.otherFiles) {
           // if others file loaded from S3 (they are not loaded yet. need to download them.)
-          if (file.content == null && this.user.model !== null) {
-            file.content = await s3.readBytes(this.user.model, this.user.scenario + '/' + file.path)
+          if (file.content == null && userStore.model !== null) {
+            file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
           }
           if (file.content instanceof Uint8Array) {
             const blob = new Blob([file.content]) // { type: 'text/csv' }
@@ -386,13 +399,18 @@ export const useIndexStore = defineStore('store', {
         })
     },
 
-    async exportToS3 ({ state, commit, dispatch }, payload) {
+    async exportToS3 (payload) {
       // payload = 'inputs'. only export inputs
       // else no payload to export all.
-      dispatch('isTokenExpired')
-      this.commit('applyPropertiesTypes')
-      const scen = this.user.scenario + '/'
-      const bucket = this.user.model
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      const ODStore = useODStore()
+      const runStore = useRunStore()
+      const userStore = useUserStore()
+      userStore.isTokenExpired()
+      this.applyPropertiesTypes()
+      const scen = userStore.scenario + '/'
+      const bucket = userStore.model
       const inputFolder = scen + 'inputs/'
       const ptFolder = inputFolder + 'pt/'
       const roadFolder = inputFolder + 'road/'
@@ -408,8 +426,8 @@ export const useIndexStore = defineStore('store', {
         attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
-      if (this.run.parameters.length > 0) {
-        await s3.putObject(bucket, paths.params, JSON.stringify(this.run.parameters))
+      if (runStore.parameters.length > 0) {
+        await s3.putObject(bucket, paths.params, JSON.stringify(runStore.parameters))
       }
       // save styles if changed
       if (this.styles.length > 0) {
@@ -420,29 +438,30 @@ export const useIndexStore = defineStore('store', {
         await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(this.attributesChoices))
       }
       // save PT
-      if (this.links.links.features.length > 0) {
-        await s3.putObject(bucket, paths.links, JSON.stringify(this.links.links))
-        await s3.putObject(bucket, paths.nodes, JSON.stringify(this.links.nodes))
+      if (linksStore.links.features.length > 0) {
+        await s3.putObject(bucket, paths.links, JSON.stringify(linksStore.links))
+        await s3.putObject(bucket, paths.nodes, JSON.stringify(linksStore.nodes))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, ptFolder)
       }
       // save Roads
-      if (this.rlinks.rlinks.features.length > 0) {
-        await s3.putObject(bucket, paths.rlinks, JSON.stringify(this.rlinks.rlinks))
-        await s3.putObject(bucket, paths.rnodes, JSON.stringify(this.rlinks.rnodes))
+      if (rlinksStore.rlinks.features.length > 0) {
+        await s3.putObject(bucket, paths.rlinks, JSON.stringify(rlinksStore.rlinks))
+        await s3.putObject(bucket, paths.rnodes, JSON.stringify(rlinksStore.rnodes))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, roadFolder)
       }
       // save ods
-      if (!this.getters['od/layerIsEmpty']) {
-        await s3.putObject(bucket, paths.od, JSON.stringify(this.getters['od/layer']))
+      if (!ODStore.layerIsEmpty) {
+        await s3.putObject(bucket, paths.od, JSON.stringify(ODStore.layer))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, odFolder)
       }
       // save outputs Layers
+      // TODO
       if (payload !== 'inputs') {
         const layers = Object.keys(this._modules.root._children).filter(
           x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
@@ -471,11 +490,10 @@ export const useIndexStore = defineStore('store', {
           await s3.putObject(bucket, scen + file.path, JSON.stringify(file.content))
         }
       }
-      // console.log(res)
-      // commit('setScenariosList', res)
     },
     async deleteOutputsOnS3 ({ state }) {
-      await s3.deleteFolder(this.user.model, this.user.scenario + '/outputs/')
+      const userStore = useUserStore()
+      await s3.deleteFolder(userStore.model, userStore.scenario + '/outputs/')
     },
 
   },
@@ -494,14 +512,17 @@ export const useIndexStore = defineStore('store', {
     },
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      const od = useODStore()
       let filteredLayers = structuredClone(toRaw(state.availableLayersStore))
-      if (state.links.links.features.length === 0) {
+      if (links.links.features.length === 0) {
         filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
       }
-      if (state.rlinks.rlinks.features.length === 0) {
+      if (rlinks.rlinks.features.length === 0) {
         filteredLayers = filteredLayers.filter(layer => !['rlinks', 'rnodes'].includes(layer))
       }
-      if (state.od.layer.features.length === 0) {
+      if (od.layer.features.length === 0) {
         filteredLayers = filteredLayers.filter(layer => !['od'].includes(layer))
       }
       return filteredLayers

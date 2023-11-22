@@ -4,8 +4,13 @@ import s3 from '../AWSClient'
 import { extractZip, unzip } from '../components/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
+import { computed } from 'vue'
 
 import InfoZip from '@comp/import/InfoZip.vue'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { useRunStore } from '@src/store/run'
+
 const $gettext = s => s
 
 export default {
@@ -15,6 +20,13 @@ export default {
     FileLoader,
     InfoZip,
     FilesList,
+  },
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const runStore = useRunStore()
+    const projectIsEmpty = computed(() => store.projectIsEmpty)
+    return { store, userStore, runStore, projectIsEmpty }
   },
 
   data () {
@@ -27,7 +39,6 @@ export default {
   },
 
   computed: {
-    projectIsEmpty () { return this.$store.getters.projectIsEmpty },
     s3Path () { return this.$route.query.s3Path },
 
   },
@@ -38,7 +49,7 @@ export default {
 
   },
   mounted () {
-    this.$store.commit('changeNotification', '')
+    this.store.changeNotification('')
     if (this.s3Path) this.loadFilesFromS3(this.s3Path)
   },
   methods: {
@@ -71,12 +82,14 @@ export default {
     applyDialog () {
       // this only happen when both files are loaded.
       // remove links and nodes from store. (and filesAreLoaded)
-      this.$store.commit('initNetworks')
-      this.$store.commit('unloadLayers')
-      this.$store.commit('unloadProject')
-      this.$store.commit('run/cleanRun')
-      this.$store.commit('runOSM/cleanRun')
-      this.$store.commit('runGTFS/cleanRun')
+      this.store.initNetworks()
+      // TODO
+      // this.store.unloadLayers()
+      this.userStore.unloadProject()
+      this.runStore.cleanRun()
+      // TODO
+      // this.runOSMStore.cleanRun()
+      // this.runGTFSStore.cleanRun()
 
       if (this.choice === 'example1') {
         this.loadExample(['PT', 'road'])
@@ -89,58 +102,60 @@ export default {
     },
 
     newProject () {
-      this.$store.commit('initNetworks')
-      this.$store.commit('unloadLayers')
-      this.$store.commit('unloadProject')
-      this.$store.commit('run/cleanRun')
-      this.$store.commit('runOSM/cleanRun')
-      this.$store.commit('runGTFS/cleanRun')
-      this.$store.commit('changeNotification',
-        { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
+      this.store.initNetworks()
+      // TODO
+      // this.store.unloadLayers()
+      this.userStore.unloadProject()
+      this.runStore.cleanRun()
+      // TODO
+      // this.runOSMStore.cleanRun()
+      // this.runGTFSStore.cleanRun()
+      this.store.changeNotification({ text: $gettext('project overwrited'), autoClose: true, color: 'success' })
     },
 
     loadNetwork (files) {
-      this.$store.commit('loadFiles', files)
+      this.store.loadFiles(files)
       this.filesAdded = true
-      this.$store.commit('changeLoading', false)
+      this.store.changeLoading(false)
     },
 
     async readZip (event) {
       try {
-        this.$store.commit('changeLoading', true)
+        this.store.changeLoading(true)
         const zfiles = event.target.files
         // there is a file
         if (!zfiles.length) {
-          this.$store.commit('changeLoading', false)
+          this.store.changeLoading(false)
           return
         }
         // it is a zip
         if (zfiles[0].name.slice(-3) !== 'zip') {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', { name: 'ImportError', message: $gettext('file is not a zip') })
+          this.store.changeLoading(false)
+          this.store.changeAlert({ name: 'ImportError', message: $gettext('file is not a zip') })
           return
         }
         const files = await extractZip(zfiles[0])
         this.loadNetwork(files)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
 
     async loadFilesFromS3 () {
       if (!this.projectIsEmpty) {
-        this.$store.commit('initNetworks')
-        this.$store.commit('unloadLayers')
-        this.$store.commit('run/cleanRun')
-        this.$store.commit('runOSM/cleanRun')
-        this.$store.commit('runGTFS/cleanRun')
+        this.store.initNetworks()
+        this.runStore.cleanRun()
+        // this.store.unloadLayers()
+        // TODO
+        // this.runOSMStore.cleanRun()
+        // this.runGTFSStore.cleanRun()
       }
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       this.$router.replace({ query: null }) // remove query in url when page is load.
 
-      const model = this.$store.getters.model
-      const scen = this.$store.getters.scenario + '/'
+      const model = this.userStore.model
+      const scen = this.userStore.scenario + '/'
 
       const res = []
       try {
@@ -167,13 +182,13 @@ export default {
         }
         this.loadNetwork(res)
       } catch (err) {
-        this.$store.commit('changeAlert', err)
-        this.$store.commit('changeLoading', false)
+        this.store.changeAlert(err)
+        this.store.changeLoading(false)
       }
     },
 
     async loadExample (filesToLoads) {
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
       const res = []
       let content = {}
@@ -212,8 +227,8 @@ export default {
         // this.loggedIn = true
         // this.login()
       } catch {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', {
+        this.store.changeLoading(false)
+        this.store.changeAlert({
           name: 'ImportError',
           message: $gettext($gettext('An error occur fetching example on github')),
         })

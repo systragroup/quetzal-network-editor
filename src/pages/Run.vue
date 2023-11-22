@@ -52,7 +52,7 @@ export default {
   methods: {
     async run () {
       try {
-        this.$store.commit('run/startExecution') // start the stepper at first step
+        this.$store.commit('run/initExecution') // start the stepper at first step
         await this.$store.dispatch('exportToS3', 'inputs')
         await this.$store.dispatch('deleteOutputsOnS3')
         this.$store.dispatch('run/startExecution', { scenario: this.$store.getters.scenario })

@@ -77,7 +77,6 @@ export default {
         close-on-back
         scroll-strategy="block"
       />
-      <!--
       <v-overlay
         :model-value="loading"
       >
@@ -86,12 +85,8 @@ export default {
           size="64"
         />
       </v-overlay>
-      --->
       <Toolbar />
-      <!---
-              <RouterView />
-
-      -->
+      <RouterView />
     </v-card>
     <v-snackbar
       v-model="snackbar"

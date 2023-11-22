@@ -3,6 +3,8 @@
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
+import { useRunStore } from '@src/store/run'
+
 import { computed, ref } from 'vue'
 
 const $gettext = s => s
@@ -18,6 +20,7 @@ export default {
   setup () {
     const store = useIndexStore()
     const userStore = useUserStore()
+    const runStore = useRunStore()
     const windowHeight = computed(() => store.windowHeight)
     const projectIsEmpty = computed(() => store.projectIsEmpty)
 
@@ -49,7 +52,21 @@ export default {
       })
     })
 
-    return { store, userStore, searchString, sortModel, sortDirection, windowHeight, projectIsEmpty, loggedIn, modelsList, model, scenario, scenariosList }
+    return {
+      store,
+      userStore,
+      runStore,
+      searchString,
+      sortModel,
+      sortDirection,
+      windowHeight,
+      projectIsEmpty,
+      loggedIn,
+      modelsList,
+      model,
+      scenario,
+      scenariosList,
+    }
   },
   data () {
     return {
@@ -100,9 +117,6 @@ export default {
         this.modelScen = ''
       }
     },
-  },
-
-  mounted () {
   },
 
   methods: {
