@@ -1,10 +1,16 @@
 <script>
 
-import Profile from '../utils/Profile.vue'
+import Profile from './Profile.vue'
 import ScenariosExplorer from './ScenariosExplorer.vue'
+import { useIndexStore } from '@src/store/index'
+
 export default {
   name: 'Toolbar',
   components: { Profile, ScenariosExplorer },
+  setup () {
+    const store = useIndexStore()
+    return { store }
+  },
   data () {
     return {
       dialog: true,
@@ -14,7 +20,7 @@ export default {
   watch: {
     '$vuetify.theme.dark'  (val) {
       this.$vuetify.theme.global.name = this.$vuetify.theme.global.current.dark ? 'light' : 'dark'
-      this.$store.commit('changeDarkMode', val)
+      this.store.changeDarkMode(val)
     },
   },
 

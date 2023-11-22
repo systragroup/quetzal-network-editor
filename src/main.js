@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { createGettext } from 'vue3-gettext'
-import store from './store'
+import { createPinia } from 'pinia'
 
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
@@ -57,7 +57,7 @@ const languageMixin = {
 
 const app = createApp(App)
 app.mixin(languageMixin)
-app.use(store)
+app.use(createPinia())
 app.use(router)
 // app.component('VueDatePicker', VueDatePicker)
 app.component('FontAwesomeIcon', FontAwesomeIcon)

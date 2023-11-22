@@ -1,10 +1,13 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script>
 import { quetzalClient } from '@src/axiosClient.js'
-import { generatePassword } from './utils.js'
+import { generatePassword } from '@src/components/utils/utils'
 import auth from '@src/auth'
 import { axiosClient } from '@src/axiosClient'
 import s3 from '@src/AWSClient'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { computed } from 'vue'
 import Signin from './Signin.vue'
 const $gettext = s => s
 
@@ -16,6 +19,18 @@ export default {
   },
 
   props: [],
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const windowHeight = computed(() => store.windowHeight)
+    const projectIsEmpty = computed(() => store.projectIsEmpty)
+    const loggedIn = computed(() => userStore.loggedIn)
+    const cognitoInfo = computed(() => userStore.cognitoInfo)
+    const bucketList = computed(() => userStore.bucketList)
+    const initial = computed(() => (cognitoInfo.value?.given_name[0] + cognitoInfo.value?.family_name[0]).toUpperCase())
+    const idToken = computed(() => userStore.idToken)
+    return { store, userStore, windowHeight, projectIsEmpty, loggedIn, cognitoInfo, bucketList, initial, idToken }
+  },
   events: ['logout'],
   data () {
     return {
@@ -38,14 +53,6 @@ export default {
       },
     }
   },
-  computed: {
-    projectIsEmpty () { return this.$store.getters.projectIsEmpty },
-    loggedIn () { return this.$store.getters.loggedIn },
-    cognitoInfo () { return this.$store.getters.cognitoInfo },
-    bucketList () { return this.$store.getters.bucketList },
-
-    initial () { return (this.cognitoInfo?.given_name[0] + this.cognitoInfo?.family_name[0]).toUpperCase() },
-  },
   watch: {
     async menu (val) {
       if (val) {
@@ -67,8 +74,8 @@ export default {
     if (await auth.isUserSignedIn()) {
       await auth.login()
       await s3.login()
-      await axiosClient.loginAll(this.$store.getters.idToken)
-      this.$store.dispatch('getBucketList')
+      await axiosClient.loginAll(this.idToken)
+      this.userStore.getBucketList()
     }
   },
 
@@ -78,8 +85,7 @@ export default {
         const resp = await quetzalClient.client.get('listGroups/')
         this.groups = resp.data
       } catch (err) {
-        this.$store.commit('changeAlert',
-          { name: 'Cognito Client error', message: err.response.data.detail })
+        this.store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
       }
     },
     async listUser (group) {
@@ -87,29 +93,24 @@ export default {
         const resp = await quetzalClient.client.get(`listUser/${group}/`)
         this.users = resp.data
       } catch (err) {
-        this.$store.commit('changeAlert',
-          { name: 'Cognito Client error', message: err.response.data.detail })
+        this.store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
       }
     },
     async createUser () {
       try {
         await quetzalClient.client.post(`createUser/${this.selectedGroup}/`, this.userForm)
-        this.$store.commit('changeNotification',
-          { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
+        this.store.changeNotification({ text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
       } catch (err) {
-        this.$store.commit('changeAlert',
-          { name: 'Cognito Client error', message: err.response.data.detail })
+        this.store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
       }
     },
 
     async deleteUser (username) {
       try {
         await quetzalClient.client.post('deleteUser/', { username })
-        this.$store.commit('changeNotification',
-          { text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
+        this.store.changeNotification({ text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
       } catch (err) {
-        this.$store.commit('changeAlert',
-          { name: 'Cognito Client error', message: err.response.data.detail })
+        this.store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
       }
     },
 
@@ -131,8 +132,8 @@ export default {
         this.ui = false
         await auth.login()
         await s3.login()
-        await axiosClient.loginAll(this.$store.getters.idToken)
-        this.$store.dispatch('getBucketList')
+        await axiosClient.loginAll(this.idToken)
+        this.userStore.getBucketList()
       }
     },
 

@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
-import store from '../../store/index.js'
+import { useIndexStore } from '@src/store/index'
+
 const $gettext = s => s
 
 function readFileAsText (file) {

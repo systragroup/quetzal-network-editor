@@ -1,4 +1,6 @@
-import store from '@src/store/index.js'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+
 import AWS from 'aws-sdk'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -149,18 +151,20 @@ async function deleteFolder (bucket, prefix) {
 
 async function createFolder (bucket, key) {
   // create an empty folder
+  const store = useIndexStore()
   if (key.slice(-1) !== '/') { key = key + '/' }
   const params = { Bucket: bucket, Key: key, Body: '' }
 
   s3Client.upload(params, function (err, data) {
     if (err) {
-      store.commit('changeAlert', err)
+      store.changeAlert(err)
     } else {
       console.log('Successfully created a folder on S3')
     }
   })
 }
 async function putObject (bucket, key, body = '') {
+  const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
   const newChecksum = md5(JSON.stringify(body)).toString()
   if (oldChecksum !== newChecksum) {
@@ -168,7 +172,7 @@ async function putObject (bucket, key, body = '') {
       Bucket: bucket,
       Key: key,
       Body: body,
-      Metadata: { user_email: store.getters.cognitoInfo.email, checksum: newChecksum },
+      Metadata: { user_email: userStore.cognitoInfo.email, checksum: newChecksum },
       ContentType: ' application/json',
     }
     const resp = await s3Client.putObject(params).promise()
@@ -177,18 +181,21 @@ async function putObject (bucket, key, body = '') {
 }
 
 function uploadObject (bucket, key, body = '') {
+  const userStore = useUserStore()
   const checksum = md5(JSON.stringify(body)).toString()
   const params = {
     Bucket: bucket,
     Key: key,
     Body: body,
-    Metadata: { user_email: store.getters.cognitoInfo.email, checksum },
+    Metadata: { user_email: userStore.cognitoInfo.email, checksum },
   }
   const upload = s3Client.upload(params)
   return upload
 }
 
 async function getScenario (bucket) {
+  const store = useIndexStore()
+
   // list all files in bucket
   const params = { Bucket: bucket }
   let moreToLoad = true
@@ -223,7 +230,7 @@ async function getScenario (bucket) {
       const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
       // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
       userEmail = resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
-    } catch (err) { store.commit('changeAlert', err) }
+    } catch (err) { store.changeAlert(err) }
     scenList.push({
       model: bucket,
       scenario: scen,
@@ -245,11 +252,12 @@ async function getChecksum (bucket, key) {
 export default {
   s3: s3Client,
   async login () {
+    const userStore = useUserStore()
     AWS.config.region = REGION
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
       IdentityPoolId: IDENTITY_POOL_ID,
       Logins: {
-        [`cognito-idp.${REGION}.amazonaws.com/${USERPOOL_ID}`]: store.getters.idToken,
+        [`cognito-idp.${REGION}.amazonaws.com/${USERPOOL_ID}`]: userStore.idToken,
       },
     })
     s3Client.config.credentials = AWS.config.credentials

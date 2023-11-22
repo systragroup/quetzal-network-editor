@@ -72,38 +72,38 @@ export default {
     },
 
     async readParams (event) {
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const files = event.target.files
       try {
         let data = await readFileAsText(files[0])
         data = JSON.parse(data)
         this.$emit('FilesLoaded', [{ path: 'inputs/params.json', content: data }])
-        this.$store.commit('changeLoading', false)
+        this.store.changeLoading(false)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
     async readStyles (event) {
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const files = event.target.files
       try {
         let data = await readFileAsText(files[0])
         data = JSON.parse(data)
         this.$emit('FilesLoaded', [{ path: 'styles.json', content: data }])
-        this.$store.commit('changeLoading', false)
+        this.store.changeLoading(false)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
     async readFile (event) {
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const files = event.target.files
       // it is a geojson
       if (files[0].name.slice(-7) !== 'geojson') {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', { name: 'ImportError', message: 'File must be a geojson' })
+        this.store.changeLoading(false)
+        this.store.changeAlert({ name: 'ImportError', message: 'File must be a geojson' })
         return
       }
       const name = files[0].name
@@ -134,10 +134,10 @@ export default {
           default:
             console.log('autre')
         }
-        this.$store.commit('changeLoading', false)
+        this.store.changeLoading(false)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
   },

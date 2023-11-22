@@ -2,7 +2,8 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
-import { mapGetters } from 'vuex'
+import { useIndexStore } from '@src/store/index'
+import { computed, ref } from 'vue'
 
 export default {
   name: 'App',
@@ -11,19 +12,21 @@ export default {
     Alert,
     NavigationDrawer,
   },
+  setup () {
+    const store = useIndexStore()
+    const notification = computed(() => store.notification)
+    const loading = computed(() => store.loading)
+    const snackbar = ref(false)
+    const overlay = ref(false)
+
+    return { notification, loading, snackbar, overlay, store }
+  },
   data () {
     return {
-      snackbar: false,
-      overlay: false,
+
     }
   },
   computed: {
-    notification () {
-      return this.$store.getters.notification
-    },
-    loading () {
-      return this.$store.getters.loading
-    },
   },
   watch: {
     loading (val) { console.log(val) },
@@ -32,14 +35,15 @@ export default {
     },
     snackbar (val) {
       if (val === false) {
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
+        this.store.changeNotification({ text: '', autoClose: true })
+        console.log(this.notification)
       }
     },
   },
   async created () {
     // init links and node to empty one (new project)
-    this.$store.commit('initNetworks')
-    this.$store.commit('changeDarkMode', this.$vuetify.theme.global.current.dark)
+    this.store.initNetworks()
+    this.store.changeDarkMode(this.$vuetify.theme.global.current.dark)
   },
   methods: {
     closeSnackbar () {
@@ -47,7 +51,7 @@ export default {
     },
     onResize () {
       // -50 for the ToolBar
-      this.$store.commit('changeWindowHeight', this.$refs.container.$el.clientHeight - 50)
+      this.store.changeWindowHeight(this.$refs.container.$el.clientHeight - 50)
     },
     showOverlay (element) {
       this.overlay = !element
@@ -84,7 +88,10 @@ export default {
       </v-overlay>
       --->
       <Toolbar />
-      <RouterView />
+      <!---
+              <RouterView />
+
+      -->
     </v-card>
     <v-snackbar
       v-model="snackbar"
@@ -108,7 +115,9 @@ export default {
         </v-btn>
       </template>
     </v-snackbar>
-    <Alert />
+    <!--
+     <Alert />
+    -->
   </v-app>
 </template>
 <style lang="scss" scoped>

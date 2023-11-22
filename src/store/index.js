@@ -1,18 +1,13 @@
-import { createStore } from 'vuex'
-import linksModule from './links.js'
-import rlinksModule from './rlinks.js'
-import odModule from './od.js'
+import { defineStore } from 'pinia'
 import resultsModule from './results.js'
 import layerModule from './layer.js'
-import runModule from './api/run.js'
-import MatrixRoadCasterModule from './api/MatrixRoadCaster.js'
-import OSMImporterModule from './api/OSMImporter.js'
-import GTFSImporterModule from './api/GTFSImporter.js'
-import userModule from './user.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
 import { toRaw, ref } from 'vue'
+import { useLinksStore } from './links'
+import { userLinksStore } from './rlinks'
+import { useODStore } from './od'
 
 import { serializer, stylesSerializer } from '../components/utils/serializer.js'
 
@@ -30,22 +25,10 @@ const $gettext = s => s
 
 const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
 
-const store = createStore({
-  strict: false,
-  modules: {
-    user: userModule,
-    links: linksModule,
-    rlinks: rlinksModule,
-    od: odModule,
-    results: resultsModule,
-    run: runModule,
-    runMRC: MatrixRoadCasterModule,
-    runOSM: OSMImporterModule,
-    runGTFS: GTFSImporterModule,
-  },
+export const useIndexStore = defineStore('store', {
 
-  state: {
-    notification: {},
+  state: () => ({
+    notification: { autoClose: true },
     alert: {},
     darkMode: false,
     loading: false,
@@ -59,49 +42,52 @@ const store = createStore({
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     importPoly: null,
-    availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
+    availableLayersStore: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
     visibleRasters: ref([]), // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
     attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
-  },
-  mutations: {
-    changeNotification (state, payload) {
-      state.notification = payload
+  }),
+
+  actions: {
+    changeNotification (payload) {
+      this.notification = payload
     },
-    changeAlert (state, payload) {
+    changeAlert (payload) {
       /// payload {name,message}, or just alert
-      state.alert = payload
+      this.alert = payload
     },
-    changeDarkMode (state, payload) {
-      state.darkMode = payload
-      state.rlinks.rlinksDefaultColor = state.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
-      state.links.linksDefaultColor = state.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
+    changeDarkMode (payload) {
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      this.darkMode = payload
+      rlinks.rlinksDefaultColor = this.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
+      links.linksDefaultColor = this.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
     },
-    changeLoading (state, payload) {
-      state.loading = payload
+    changeLoading (payload) {
+      this.loading = payload
     },
-    changeWindowHeight (state, payload) {
-      state.windowHeight = payload
+    changeWindowHeight (payload) {
+      this.windowHeight = payload
     },
-    changeLeftPanel (state) {
-      state.showLeftPanel = !state.showLeftPanel
+    changeLeftPanel () {
+      this.showLeftPanel = !this.showLeftPanel
     },
-    saveMapPosition (state, payload) {
-      state.mapCenter = payload.mapCenter
-      state.mapZoom = payload.mapZoom
+    saveMapPosition (payload) {
+      this.mapCenter = payload.mapCenter
+      this.mapZoom = payload.mapZoom
     },
-    setAnchorMode (state, payload) {
-      state.anchorMode = payload
+    setAnchorMode (payload) {
+      this.anchorMode = payload
     },
-    changeAnchorMode (state) {
-      state.anchorMode = !state.anchorMode
+    changeAnchorMode () {
+      this.anchorMode = !this.anchorMode
     },
-    changeCyclewayMode (state, payload) {
-      state.cyclewayMode = !state.cyclewayMode
+    changeCyclewayMode (payload) {
+      this.cyclewayMode = !this.cyclewayMode
     },
 
-    loadFiles (state, payload) {
+    loadFiles (payload) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
       try {
         let otherFiles = []
@@ -149,7 +135,7 @@ const store = createStore({
         if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
         if (stylesFile) {
           const json = stylesSerializer(stylesFile.content)
-          state.styles = json
+          this.styles = json
         }
         if (attributesChoicesFile) { this.commit('loadAttributesChoices', attributesChoicesFile.content) }
 
@@ -162,7 +148,7 @@ const store = createStore({
 
         // get JSON files with the same name as Modules (they are matrix)
         const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
-        state.availableLayers.includes(el.path.slice(0, -5)),
+        this.availableLayersStore.includes(el.path.slice(0, -5)),
         )
         outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
 
@@ -177,31 +163,33 @@ const store = createStore({
       }
     },
 
-    loadOtherFiles (state, payload) {
+    loadOtherFiles (payload) {
       // payload = [{path, content, type}]
       // if a file is updated with the same path (already exist). remove it
       const newPaths = payload.map(file => file.path)
-      state.otherFiles = state.otherFiles.filter(file => !newPaths.includes(file.path))
+      this.otherFiles = this.otherFiles.filter(file => !newPaths.includes(file.path))
       // push files
-      payload.forEach(file => state.otherFiles.push(file))
+      payload.forEach(file => this.otherFiles.push(file))
     },
 
-    loadAttributesChoices (state, payload) {
+    loadAttributesChoices (payload) {
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
       // eslint-disable-next-line no-return-assign
-      Object.keys(payload.pt).forEach(key => state.attributesChoices.pt[key] = payload.pt[key])
-      this.commit('loadLinksAttributesChoices', payload.pt)
+      Object.keys(payload.pt).forEach(key => this.attributesChoices.pt[key] = payload.pt[key])
+      links.loadLinksAttributesChoices(payload.pt)
       // eslint-disable-next-line no-return-assign
-      Object.keys(payload.road).forEach(key => state.attributesChoices.road[key] = payload.road[key])
-      this.commit('loadrLinksAttributesChoices', payload.road)
+      Object.keys(payload.road).forEach(key => this.attributesChoices.road[key] = payload.road[key])
+      rlinks.loadrLinksAttributesChoices(payload.road)
     },
-    setVisibleRasters (state, payload) {
+    setVisibleRasters (payload) {
       // payload.forEach(el => arr.push({ item: el }))
-      // state.visibleRasters = new Set(payload)
-      state.visibleRasters.value = payload
-      console.log(state.visibleRasters)
+      // this.visibleRasters = new Set(payload)
+      this.visibleRasters.value = payload
+      console.log(this.visibleRasters)
     },
 
-    loadLayers (state, payload) {
+    loadLayers (payload) {
       payload.forEach(
         file => {
           const fileName = file.path.slice(0, -8) // remove .geojson
@@ -215,7 +203,7 @@ const store = createStore({
           })
         })
     },
-    loadMatrix (state, payload) {
+    loadMatrix (payload) {
       // payload : [{path,content}]
       payload.forEach(
         file => {
@@ -225,21 +213,21 @@ const store = createStore({
       )
     },
 
-    createLayer (state, payload) {
+    createLayer (payload) {
       const moduleName = payload.fileName
       if (!Object.keys(this._modules.root._children).includes(moduleName)) {
         this.registerModule(moduleName, layerModule)
       }
       this.commit(`${moduleName}/createLayer`, payload)
-      if (!state.availableLayers.includes(moduleName)) {
-        state.availableLayers.push(moduleName)
+      if (!this.availableLayersStore.includes(moduleName)) {
+        this.availableLayersStore.push(moduleName)
       }
     },
-    unloadLayers (state) {
+    unloadLayers () {
       const moduleToDelete = Object.keys(this._modules.root._children).filter(
         x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
-      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
+      this.availableLayersStore = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
     },
     registerStaticLayer () {
       this.registerModule('staticLayer', resultsModule)
@@ -247,51 +235,53 @@ const store = createStore({
     },
     unregisterStaticLayer () { this.unregisterModule('staticLayer') },
 
-    initNetworks (state) {
-      this.commit('initLinks')
-      this.commit('initrLinks')
-      this.commit('loadLinks', linksBase)
-      this.commit('loadrLinks', linksBase)
-      this.commit('loadNodes', nodesBase)
-      this.commit('loadrNodes', nodesBase)
-      this.commit('od/loadLayer', linksBase)
-      state.visibleRasters.value = []
-      state.styles = []
-      state.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
-      this.commit('loadAttributesChoices', defaultAttributesChoices)
-      state.otherFiles = []
-      state.cyclewayMode = false
+    initNetworks () {
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      const od = useODStore()
+
+      links.initLinks()
+      rlinks.initrLinks()
+      links.loadLinks(linksBase)
+      rlinks.loadrLinks(linksBase)
+      links.loadNodes(nodesBase)
+      rlinks.loadrNodes(nodesBase)
+      od.loadLayer(linksBase)
+      this.visibleRasters.value = []
+      this.styles = []
+      this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
+      this.loadAttributesChoices(defaultAttributesChoices)
+      this.otherFiles = []
+      this.cyclewayMode = false
     },
 
-    applySettings (state, payload) {
-      state.links.linkSpeed = Number(payload.linkSpeed)
-      state.rlinks.roadSpeed = Number(payload.roadSpeed)
-      state.linksPopupContent = payload.linksPopupContent
-      state.roadsPopupContent = payload.roadsPopupContent
-      state.rlinks.defaultHighway = payload.defaultHighway
-      state.outputName = payload.outputName
+    applySettings (payload) {
+      this.links.linkSpeed = Number(payload.linkSpeed)
+      this.rlinks.roadSpeed = Number(payload.roadSpeed)
+      this.linksPopupContent = payload.linksPopupContent
+      this.roadsPopupContent = payload.roadsPopupContent
+      this.rlinks.defaultHighway = payload.defaultHighway
+      this.outputName = payload.outputName
     },
-    changeOutputName (state, payload) { state.outputName = payload },
-    addStyle (state, payload) {
+    changeOutputName (payload) { this.outputName = payload },
+    addStyle (payload) {
       // payload: styling for results {name,layer, displaySettings:{...}}
-      const names = state.styles.map(el => el.name)
+      const names = this.styles.map(el => el.name)
       const idx = names.indexOf(payload.name)
       if (idx !== -1) {
-        state.styles[idx] = payload
+        this.styles[idx] = payload
       } else {
-        state.styles.push(payload)
+        this.styles.push(payload)
       }
     },
-    deleteStyle (state, payload) {
+    deleteStyle (payload) {
       // payload = name of the preset to delete
-      state.styles = state.styles.filter(el => el.name !== payload)
+      this.styles = this.styles.filter(el => el.name !== payload)
     },
-    saveImportPoly (state, payload) {
-      state.importPoly = payload
+    saveImportPoly (payload) {
+      this.importPoly = payload
     },
 
-  },
-  actions: {
     async exportFiles ({ state, commit }, payload = 'all') {
       const zip = new JSZip()
       let links = ''
@@ -302,27 +292,27 @@ const store = createStore({
       // export only visible line (line selected)
       commit('applyPropertiesTypes')
       if (payload !== 'all') {
-        const tempLinks = structuredClone(toRaw(state.links.links))
+        const tempLinks = structuredClone(toRaw(this.links.links))
         tempLinks.features = tempLinks.features.filter(
-          link => state.links.selectedTrips.includes(link.properties.trip_id))
+          link => this.links.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
         // delete every every nodes not in links
         const a = tempLinks.features.map(item => item.properties.a)
         const b = tempLinks.features.map(item => item.properties.b)
         const nodesInLinks = Array.from(new Set([...a, ...b]))
-        const tempNodes = structuredClone(toRaw(state.links.nodes))
+        const tempNodes = structuredClone(toRaw(this.links.nodes))
         tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
         nodes = JSON.stringify(tempNodes)
 
-        rlinks = JSON.stringify(state.rlinks.visiblerLinks)
-        rnodes = JSON.stringify(state.rlinks.visiblerNodes)
+        rlinks = JSON.stringify(this.rlinks.visiblerLinks)
+        rnodes = JSON.stringify(this.rlinks.visiblerNodes)
         od = JSON.stringify(this.getters['od/visibleLayer'])
       // export everything
       } else {
-        links = JSON.stringify(state.links.links)
-        nodes = JSON.stringify(state.links.nodes)
-        rlinks = JSON.stringify(state.rlinks.rlinks)
-        rnodes = JSON.stringify(state.rlinks.rnodes)
+        links = JSON.stringify(this.links.links)
+        nodes = JSON.stringify(this.links.nodes)
+        rlinks = JSON.stringify(this.rlinks.rlinks)
+        rnodes = JSON.stringify(this.rlinks.rnodes)
         od = JSON.stringify(this.getters['od/layer'])
       }
       // export only if not empty
@@ -352,12 +342,12 @@ const store = createStore({
           const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
           zip.file('inputs/params.json', blob)
         }
-        if (state.styles.length > 0) {
-          const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
+        if (this.styles.length > 0) {
+          const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           zip.file('styles.json', blob)
         }
-        if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
-          const blob = new Blob([JSON.stringify(state.attributesChoices)], { type: 'application/json' })
+        if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
+          const blob = new Blob([JSON.stringify(this.attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
 
@@ -375,10 +365,10 @@ const store = createStore({
           }
         }
 
-        for (const file of state.otherFiles) {
+        for (const file of this.otherFiles) {
           // if others file loaded from S3 (they are not loaded yet. need to download them.)
-          if (file.content == null && state.user.model !== null) {
-            file.content = await s3.readBytes(state.user.model, state.user.scenario + '/' + file.path)
+          if (file.content == null && this.user.model !== null) {
+            file.content = await s3.readBytes(this.user.model, this.user.scenario + '/' + file.path)
           }
           if (file.content instanceof Uint8Array) {
             const blob = new Blob([file.content]) // { type: 'text/csv' }
@@ -392,7 +382,7 @@ const store = createStore({
       zip.generateAsync({ type: 'blob' })
         .then(function (content) {
           // see FileSaver.js
-          saveAs(content, state.outputName + '.zip')
+          saveAs(content, this.outputName + '.zip')
         })
     },
 
@@ -401,8 +391,8 @@ const store = createStore({
       // else no payload to export all.
       dispatch('isTokenExpired')
       this.commit('applyPropertiesTypes')
-      const scen = state.user.scenario + '/'
-      const bucket = state.user.model
+      const scen = this.user.scenario + '/'
+      const bucket = this.user.model
       const inputFolder = scen + 'inputs/'
       const ptFolder = inputFolder + 'pt/'
       const roadFolder = inputFolder + 'road/'
@@ -418,29 +408,29 @@ const store = createStore({
         attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
-      if (state.run.parameters.length > 0) {
-        await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
+      if (this.run.parameters.length > 0) {
+        await s3.putObject(bucket, paths.params, JSON.stringify(this.run.parameters))
       }
       // save styles if changed
-      if (state.styles.length > 0) {
-        await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
+      if (this.styles.length > 0) {
+        await s3.putObject(bucket, paths.styles, JSON.stringify(this.styles))
       }
       // save attributes choices if changed
-      if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
-        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(state.attributesChoices))
+      if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
+        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(this.attributesChoices))
       }
       // save PT
-      if (state.links.links.features.length > 0) {
-        await s3.putObject(bucket, paths.links, JSON.stringify(state.links.links))
-        await s3.putObject(bucket, paths.nodes, JSON.stringify(state.links.nodes))
+      if (this.links.links.features.length > 0) {
+        await s3.putObject(bucket, paths.links, JSON.stringify(this.links.links))
+        await s3.putObject(bucket, paths.nodes, JSON.stringify(this.links.nodes))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, ptFolder)
       }
       // save Roads
-      if (state.rlinks.rlinks.features.length > 0) {
-        await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
-        await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      if (this.rlinks.rlinks.features.length > 0) {
+        await s3.putObject(bucket, paths.rlinks, JSON.stringify(this.rlinks.rlinks))
+        await s3.putObject(bucket, paths.rnodes, JSON.stringify(this.rlinks.rnodes))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, roadFolder)
@@ -467,7 +457,7 @@ const store = createStore({
       }
       // save others layers
       // if payload === inputs. only export inputs/ files.
-      let otherFiles = state.otherFiles
+      let otherFiles = this.otherFiles
       if (payload === 'inputs') {
         otherFiles = otherFiles.filter(file => !file.path.startsWith('outputs/'))
       }
@@ -485,37 +475,26 @@ const store = createStore({
       // commit('setScenariosList', res)
     },
     async deleteOutputsOnS3 ({ state }) {
-      await s3.deleteFolder(state.user.model, state.user.scenario + '/outputs/')
+      await s3.deleteFolder(this.user.model, this.user.scenario + '/outputs/')
     },
 
   },
   getters: {
-    notification: (state) => state.notification,
-    alert: (state) => state.alert,
-    loading: (state) => state.loading,
-    mapCenter: (state) => state.mapCenter,
-    mapZoom: (state) => state.mapZoom,
-    importPoly: (state) => state.importPoly,
-    windowHeight: (state) => state.windowHeight,
-    anchorMode: (state) => state.anchorMode,
-    showLeftPanel: (state) => state.showLeftPanel,
-    linksPopupContent: (state) => state.linksPopupContent,
-    roadsPopupContent: (state) => state.roadsPopupContent,
-    cyclewayMode: (state) => state.cyclewayMode,
-    outputName: (state) => state.outputName,
-    visibleRasters: (state) => state.visibleRasters,
-    styles: (state) => state.styles,
-    attributesChoices: (state) => state.attributesChoices,
-    otherFiles: (state) => state.otherFiles,
-    projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
-    projectIsEmpty: (state) => {
-      return (state.links.links.features.length === 0 &&
-              state.rlinks.rlinks.features.length === 0 &&
-              state.od.layer.features.length === 0)
+    projectIsUndefined: () => {
+      const links = useLinksStore()
+      return Object.keys(links.links).length === 0
+    },
+    projectIsEmpty: () => {
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      const od = useODStore()
+      return (links.links.features.length === 0 &&
+             rlinks.rlinks.features.length === 0 &&
+              od.layer.features.length === 0)
     },
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
-      let filteredLayers = structuredClone(toRaw(state.availableLayers))
+      let filteredLayers = structuredClone(toRaw(state.availableLayersStore))
       if (state.links.links.features.length === 0) {
         filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
       }
@@ -537,4 +516,3 @@ const store = createStore({
 
   },
 })
-export default store

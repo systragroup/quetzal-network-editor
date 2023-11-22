@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Import from '@page/Import.vue'
 import Home from '@page/Home.vue'
-import store from '@src/store/index.js'
+import { useIndexStore } from '@src/store/index'
+
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')

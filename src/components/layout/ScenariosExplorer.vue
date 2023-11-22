@@ -1,6 +1,9 @@
 <script>
 
 import s3 from '@src/AWSClient'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { computed, ref } from 'vue'
 
 const $gettext = s => s
 
@@ -12,12 +15,45 @@ export default {
 
   props: [],
   events: [],
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const windowHeight = computed(() => store.windowHeight)
+    const projectIsEmpty = computed(() => store.projectIsEmpty)
+
+    const loggedIn = computed(() => userStore.loggedIn)
+
+    const modelsList = computed(() => { return userStore.bucketList })
+    const model = computed(() => { return userStore.model })
+    const scenario = computed(() => { return userStore.scenario })
+
+    const searchString = ref('')
+    const sortModel = ref('scenario')
+    const sortDirection = ref(true)
+    const scenariosList = computed(() => {
+      // sort by alphabetical order, with protectedScens one one top
+      let arr = userStore.scenariosList
+      if (searchString.value) {
+        arr = arr.filter(el => el.scenario.toLowerCase().includes(searchString.value.toLowerCase()))
+      }
+      return arr.sort((a, b) => {
+        if (a.protected === b.protected) { // both true or both false. we go alphabetically
+          const res = String(a[sortModel.value]).localeCompare(String(b[sortModel.value]),
+            undefined, { sensitivity: 'base' })
+          return sortDirection.value ? res : -res
+        } else if (a.protected) {
+          return -1 // `a` comes before `b`
+        } else {
+          return 1 // `b` comes before `a`
+        }
+      })
+    })
+
+    return { store, userStore, searchString, sortModel, sortDirection, windowHeight, projectIsEmpty, loggedIn, modelsList, model, scenario, scenariosList }
+  },
   data () {
     return {
       menu: false,
-      sortModel: 'scenario',
-      sortDirection: true,
-      searchString: '',
       showDialog: false,
       modelScen: '',
       localModel: '',
@@ -33,55 +69,30 @@ export default {
 
     }
   },
-  computed: {
-    windowHeight () { return this.$store.getters.windowHeight },
-    projectIsEmpty () { return this.$store.getters.projectIsEmpty },
-    loggedIn () { return this.$store.getters.loggedIn },
-    scenariosList () {
-      // sort by alphabetical order, with protectedScens one one top
-      let arr = this.$store.getters.scenariosList
-      if (this.searchString) {
-        arr = arr.filter(el => el.scenario.toLowerCase().includes(this.searchString.toLowerCase()))
-      }
-      return arr.sort((a, b) => {
-        if (a.protected === b.protected) { // both true or both false. we go alphabetically
-          const res = String(a[this.sortModel]).localeCompare(String(b[this.sortModel]),
-            undefined, { sensitivity: 'base' })
-          return this.sortDirection ? res : -res
-        } else if (a.protected) {
-          return -1 // `a` comes before `b`
-        } else {
-          return 1 // `b` comes before `a`
-        }
-      })
-    },
-    modelsList () { return this.$store.getters.bucketList },
-    model () { return this.$store.getters.model },
-    scenario () { return this.$store.getters.scenario },
-  },
+
   watch: {
     async  menu (val) {
       if (val) {
-        this.$store.dispatch('isTokenExpired')
+        this.userStore.isTokenExpired()
         // when we click on the menu. fetch the scenario list (update in place)
         this.loading = true
-        await this.$store.dispatch('getScenario', { model: this.localModel })
+        await this.userStore.getScenario({ model: this.localModel })
         this.loading = false
       }
     },
     async localModel (val) {
       console.log(val)
       // when we click on a tab (model), fetch the scenario list.
-      this.$store.commit('setScenariosList', [])
+      this.userStore.setScenariosList([])
       this.loading = true
-      await this.$store.dispatch('getScenario', { model: val })
+      await this.userStore.getScenario({ model: val })
       this.loading = false
     },
     async modelsList (val) {
       // This component is rendered before we fetch on S3 the bucket list.
       // so, when its fetched, set the model to the first one and get the scenario.
       if (this.localModel === '') { this.localModel = this.modelsList[0] }
-      await this.$store.dispatch('getScenario', { model: this.localModel })
+      await this.userStore.getScenario({ model: this.localModel })
     },
     scenario (val) {
       if (val !== this.localScen) {
@@ -108,9 +119,9 @@ export default {
       }
     },
     async loadProject () {
-      this.$store.commit('run/cleanRun')
-      this.$store.commit('setModel', this.localModel)
-      this.$store.commit('setScenario', { scenario: this.localScen, protected: this.protected })
+      this.runStore.cleanRun()
+      this.userStore.setModel(this.localModel)
+      this.userStore.setScenario({ scenario: this.localScen, protected: this.protected })
       this.$router.push({ name: 'Import', query: { s3Path: this.localModel } })
       this.menu = false
     },
@@ -131,13 +142,13 @@ export default {
       this.deleteDialog = false
       s3.deleteFolder(this.localModel, this.scenarioToDelete + '/').then(resp => {
         this.deleteDialog = false
-        this.$store.dispatch('getScenario', { model: this.localModel })
-        this.$store.commit('changeNotification',
+        this.userStore.getScenario({ model: this.localModel })
+        this.store.changeNotification(
           { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
       }).catch((err) => {
         this.deleteDialog = false
         console.error(err)
-        this.$store.commit('changeNotification',
+        this.store.changeNotification(
           { text: $gettext('An error occured'), autoClose: true, color: 'error' })
       })
     },
@@ -153,25 +164,25 @@ export default {
           if (this.selectedScenario) {
             // this is a copy
             await s3.copyFolder(this.localModel, this.selectedScenario + '/', this.input)
-            this.$store.commit('changeNotification',
+            this.store.changeNotification(
               { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
           } else {
             // this is a new project
             // copy the parameters file from Base. this will create a new project .
             // take first Scen. should be base or any locked scen
-            const protectedList = this.$store.getters.scenariosList.filter(scen => scen.protected)
+            const protectedList = this.userStore.scenariosList.filter(scen => scen.protected)
             const base = protectedList[0].scenario
             await s3.newScenario(this.localModel, base, this.input)
-            this.$store.commit('changeNotification',
+            this.store.changeNotification(
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
           }
-        } catch (err) { this.$store.commit('changeAlert', err); this.selectedScenario = null }
+        } catch (err) { this.store.changeAlert(err); this.selectedScenario = null }
         this.closeCopy()
         this.loading = true
         // wait 500ms to fetch the scenarios to make sure its available on the DB
         setTimeout(() => {
-          this.$store.dispatch('getScenario', { model: this.localModel }).then(() => { this.loading = false })
-            .catch((err) => { this.$store.commit('changeAlert', err); this.loading = false })
+          this.userStore.getScenario({ model: this.localModel }).then(() => { this.loading = false })
+            .catch((err) => { this.store.changeAlert(err); this.loading = false })
         }, 500)
       }
     },

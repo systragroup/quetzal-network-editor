@@ -1,4 +1,4 @@
-import store from '@src/store/index.js'
+import { useUserStore } from '@src/store/user'
 import { jwtDecode } from 'jwt-decode'
 
 import { Auth } from 'aws-amplify'
@@ -21,15 +21,17 @@ Auth.configure({
 Auth.configure()
 
 async function login () {
+  const userStore = useUserStore()
+
   const data = await Auth.currentSession()
   const idToken = data.getIdToken().getJwtToken()
   const sessionIdInfo = jwtDecode(idToken)
-  store.commit('setIdToken', idToken)
-  store.commit('setAccessToken', data.getAccessToken())
-  store.commit('setCognitoInfo', sessionIdInfo)
-  store.commit('setLoggedIn', true)
+  userStore.setIdToken(idToken)
+  userStore.setAccessToken(data.getAccessToken())
+  userStore.setCognitoInfo(sessionIdInfo)
+  userStore.setLoggedIn(true)
   if (Object.keys(sessionIdInfo).includes('cognito:groups')) {
-    store.commit('setCognitoGroup', sessionIdInfo['cognito:groups'][0])
+    userStore.setCognitoGroup(sessionIdInfo['cognito:groups'][0])
   }
 }
 async function signin (username, password) {
@@ -56,8 +58,9 @@ export default {
   },
   logout () {
     Auth.signOut()
+    const userStore = useUserStore()
 
-    store.commit('setLoggedOut')
+    userStore.setLoggedOut()
   },
 
 }

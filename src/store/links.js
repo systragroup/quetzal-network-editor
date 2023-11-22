@@ -1,5 +1,7 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable no-return-assign */
+import { defineStore } from 'pinia'
+
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
@@ -10,8 +12,8 @@ import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 const $gettext = s => s
 
-export default {
-  state: {
+export const useLinksStore = defineStore('links', {
+  state: () => ({
     links: {},
     editorTrip: null,
     editorNodes: {},
@@ -49,57 +51,58 @@ export default {
       { name: 'link_sequence', type: 'Number' }, // int
       { name: 'direction_id', type: 'Number' }, // int
     ],
-  },
+  }),
 
-  mutations: {
-    initLinks (state) {
-      state.linksAttributesChoices = {}
-      state.lineAttributes = []
-      state.nodeAttributes = []
+  actions: {
+    initLinks () {
+      this.linksAttributesChoices = {}
+      this.lineAttributes = []
+      this.nodeAttributes = []
     },
-    loadLinks (state, payload) {
-      state.links = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
-        const linksHeader = cloneDeep(state.links)
+    loadLinks (payload) {
+      this.links = cloneDeep(payload)
+      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.links.crs.properties.name)) {
+        const linksHeader = cloneDeep(this.links)
         linksHeader.features = []
-        state.linksHeader = linksHeader
+        this.linksHeader = linksHeader
 
-        state.editorLinks = linksHeader
+        this.editorLinks = linksHeader
         // limit geometry precision to 6 digit
-        state.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
+        this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-        this.commit('applyPropertiesTypes')
-        this.commit('getTripId')
-        // set all trips visible
-        this.commit('changeSelectedTrips', state.tripId)
+        this.applyPropertiesTypes()
+        this.getTripId()
 
-        this.commit('getLinksProperties')
+        // set all trips visible
+        this.changeSelectedTrips(this.tripId)
+
+        this.getLinksProperties()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
-    loadNodes (state, payload) {
-      state.nodes = JSON.parse(JSON.stringify(payload))
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.nodes.crs.properties.name)) {
-        const nodesHeader = cloneDeep(state.nodes)
+    loadNodes (payload) {
+      this.nodes = JSON.parse(JSON.stringify(payload))
+      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.nodes.crs.properties.name)) {
+        const nodesHeader = cloneDeep(this.nodes)
         nodesHeader.features = []
-        state.nodesHeader = nodesHeader
-        state.editorNodes = nodesHeader
+        this.nodesHeader = nodesHeader
+        this.editorNodes = nodesHeader
         // limit geometry precision to 6 digit
-        state.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
+        this.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
 
-        this.commit('getNodesProperties')
+        this.getNodesProperties()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
-    unloadFiles (state) {
+    unloadFiles () {
       // when we reload files (some were already loaded.)
-      state.links.features = []
-      state.nodes.features = []
-      state.editorTrip = null
-      state.tripId = []
-      state.selectedTrips = []
+      this.links.features = []
+      this.nodes.features = []
+      this.editorTrip = null
+      this.tripId = []
+      this.selectedTrips = []
     },
-    loadPTFiles (state, payload) {
+    loadPTFiles (payload) {
       // payload = [{path,content}, ...]
       // get links. check that index are not duplicated, serialize them and then append to project
       // get nodes. check that index are not duplicated, serialize them and then append to project
@@ -107,16 +110,16 @@ export default {
       for (const file of payload) {
         const currentType = file.content.features[0].geometry.type
         if (currentType === 'LineString') {
-          if (IndexAreDifferent(file.content, state.links)) {
-            this.commit('appendNewLinks', serializer(file.content, file.path, currentType))
+          if (IndexAreDifferent(file.content, this.links)) {
+            this.appendNewLinks(serializer(file.content, file.path, currentType))
           } else {
             const err = new Error($gettext(' there is duplicated index, ') + file.path)
             err.name = 'ImportError'
             throw err
           }
         } else if (currentType === 'Point') {
-          if (IndexAreDifferent(file.content, state.nodes)) {
-            this.commit('appendNewNodes', serializer(file.content, file.path, currentType))
+          if (IndexAreDifferent(file.content, this.nodes)) {
+            this.appendNewNodes(serializer(file.content, file.path, currentType))
           } else {
             const err = new Error($gettext(' there is duplicated index, ') + file.path)
             err.name = 'ImportError'
@@ -126,43 +129,44 @@ export default {
       }
     },
 
-    appendNewLinks (state, payload) {
+    appendNewLinks (payload) {
       // append new links to the project. payload = links geojson file
       payload.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
 
-      // state.links.features.push(...payload.links.features) will crash with large array (stack size limit)
-      payload.features.forEach(link => state.links.features.push(link))
-      this.commit('applyPropertiesTypes')
-      this.commit('getLinksProperties')
-      this.commit('getTripId')
-      this.commit('changeSelectedTrips', state.tripId)
+      // this.links.features.push(...payload.links.features) will crash with large array (stack size limit)
+      payload.features.forEach(link => this.links.features.push(link))
+      this.applyPropertiesTypes()
+      this.getLinksProperties()
+      this.getTripId()
+
+      this.changeSelectedTrips(this.tripId)
     },
-    appendNewNodes (state, payload) {
+    appendNewNodes (payload) {
       // append new nodes to the project. payload = nodes geojson file
       payload.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
         coord => Math.round(Number(coord) * 1000000) / 1000000))
 
-      payload.features.forEach(node => state.nodes.features.push(node))
-      this.commit('applyPropertiesTypes')
-      this.commit('getNodesProperties')
+      payload.features.forEach(node => this.nodes.features.push(node))
+      this.applyPropertiesTypes()
+      this.getNodesProperties()
     },
 
-    getLinksProperties (state) {
+    getLinksProperties () {
       let header = new Set([])
-      state.links.features.forEach(element => {
+      this.links.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       // header.delete('index')
       // add all default attributes
-      const defaultAttributes = state.defaultAttributes.map(attr => attr.name)
+      const defaultAttributes = this.defaultAttributes.map(attr => attr.name)
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
-      state.lineAttributes = header
+      this.lineAttributes = header
     },
-    getNodesProperties (state) {
+    getNodesProperties () {
       let header = new Set([])
-      state.nodes.features.forEach(element => {
+      this.nodes.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       // add all default attributes
@@ -172,60 +176,60 @@ export default {
         'stop_name']
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
-      state.nodeAttributes = header
+      this.nodeAttributes = header
     },
-    loadLinksAttributesChoices (state, payload) {
+    loadLinksAttributesChoices (payload) {
       // eslint-disable-next-line no-return-assign
-      Object.keys(payload).forEach(key => state.linksAttributesChoices[key] = payload[key])
-      const attrs = Object.keys(state.linksAttributesChoices) // all attrbutes in attributesChoices
-      const newAttrs = attrs.filter(item => !state.lineAttributes.includes(item)) // ones not in rlinks
-      newAttrs.forEach(item => this.commit('addPropertie', { table: 'links', name: item }))
+      Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
+      const attrs = Object.keys(this.linksAttributesChoices) // all attrbutes in attributesChoices
+      const newAttrs = attrs.filter(item => !this.lineAttributes.includes(item)) // ones not in rlinks
+      newAttrs.forEach(item => this.addPropertie({ table: 'links', name: item }))
     },
 
-    addPropertie (state, payload) {
+    addPropertie (payload) {
       // when a new line properties is added (in dataframe page)
       if (payload.table === 'links') {
-        state.links.features.map(link => link.properties[payload.name] = null)
-        state.editorLinks.features.map(link => link.properties[payload.name] = null)
-        state.lineAttributes.push(payload.name) // could put that at applied. so we can cancel
+        this.links.features.map(link => link.properties[payload.name] = null)
+        this.editorLinks.features.map(link => link.properties[payload.name] = null)
+        this.lineAttributes.push(payload.name) // could put that at applied. so we can cancel
       } else {
-        state.nodes.features.map(node => node.properties[payload.name] = null)
-        state.editorNodes.features.map(node => node.properties[payload.name] = null)
+        this.nodes.features.map(node => node.properties[payload.name] = null)
+        this.editorNodes.features.map(node => node.properties[payload.name] = null)
       }
     },
-    deletePropertie (state, payload) {
+    deletePropertie (payload) {
       // when a link property is deleted
       if (payload.table === 'links') {
-        state.links.features.filter(link => delete link.properties[payload.name])
-        state.editorLinks.features.filter(link => delete link.properties[payload.name])
-        state.lineAttributes = state.lineAttributes.filter(item => item !== payload.name)
+        this.links.features.filter(link => delete link.properties[payload.name])
+        this.editorLinks.features.filter(link => delete link.properties[payload.name])
+        this.lineAttributes = this.lineAttributes.filter(item => item !== payload.name)
       } else {
-        state.nodes.features.filter(node => delete node.properties[payload.name])
-        state.editorNodes.features.filter(node => delete node.properties[payload.name])
+        this.nodes.features.filter(node => delete node.properties[payload.name])
+        this.editorNodes.features.filter(node => delete node.properties[payload.name])
       }
     },
-    changeSelectedTrips (state, payload) {
+    changeSelectedTrips (payload) {
       // trips list of visible trip_id.
-      state.selectedTrips = payload
+      this.selectedTrips = payload
     },
 
-    setEditorTrip (state, payload) {
+    setEditorTrip (payload) {
       // set Trip Id
-      state.editorTrip = payload.tripId
-      state.changeBounds = payload.changeBounds
+      this.editorTrip = payload.tripId
+      this.changeBounds = payload.changeBounds
       // set editor links corresponding to trip id
-      // var filtered = {...state.links}
-      const filtered = JSON.parse(JSON.stringify(state.links))
-      filtered.features = filtered.features.filter(link => link.properties.trip_id === state.editorTrip)
-      state.editorLinks = filtered
+      // var filtered = {...this.links}
+      const filtered = JSON.parse(JSON.stringify(this.links))
+      filtered.features = filtered.features.filter(link => link.properties.trip_id === this.editorTrip)
+      this.editorLinks = filtered
       // get the corresponding nodes
-      this.commit('getEditorNodes', { nodes: state.nodes })
-      this.commit('getEditorLineInfo')
+      this.getEditorNodes({ nodes: this.nodes })
+      this.getEditorLineInfo()
     },
 
-    cloneTrip (state, payload) {
+    cloneTrip (payload) {
       // clone and reversed a trip.
-      const cloned = cloneDeep(state.links)
+      const cloned = cloneDeep(this.links)
       cloned.features = cloned.features.filter(link => link.properties.trip_id === payload.tripId)
 
       let linkSequence = cloned.features.length
@@ -253,7 +257,7 @@ export default {
       const a = cloned.features.map(item => item.properties.a)
       const b = cloned.features.map(item => item.properties.b)
       const ab = new Set([...a, ...b])
-      const clonedNodes = cloneDeep(state.nodes)
+      const clonedNodes = cloneDeep(this.nodes)
       clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
       const newName = {}
       ab.forEach(node => newName[node] = 'node_' + short.generate())
@@ -263,34 +267,34 @@ export default {
       cloned.features.forEach(link => link.properties.b = newName[link.properties.b])
 
       // push cloned links and nodes
-      state.links.features.push(...cloned.features)
-      state.nodes.features.push(...clonedNodes.features)
+      this.links.features.push(...cloned.features)
+      this.nodes.features.push(...clonedNodes.features)
 
-      this.commit('getTripId')
+      this.getTripId()
     },
-    getEditorNodes (state, payload) {
-      // payload contain nodes. state.nodes or state.editorNodes
+    getEditorNodes (payload) {
+      // payload contain nodes. this.nodes or this.editorNodes
       // find the nodes in the editor links
-      const a = state.editorLinks.features.map(item => item.properties.a)
-      const b = state.editorLinks.features.map(item => item.properties.b)
+      const a = this.editorLinks.features.map(item => item.properties.a)
+      const b = this.editorLinks.features.map(item => item.properties.b)
       const editorNodesList = new Set([...a, ...b])
       // set nodes corresponding to trip id
       const filtered = JSON.parse(JSON.stringify(payload.nodes))
       filtered.features = filtered.features.filter(node => editorNodesList.has(node.properties.index))
-      state.editorNodes = filtered
+      this.editorNodes = filtered
     },
 
-    getEditorLineInfo (state) {
+    getEditorLineInfo () {
       const form = {}
       const uneditable = ['index', 'length', 'a', 'b', 'link_sequence']
       // empty trip, when its a newLine
-      if (state.editorLinks.features.length === 0) {
+      if (this.editorLinks.features.length === 0) {
         const defaultValue = {
           route_id: 'Q1',
           agency_id: 'QUENEDI',
           route_short_name: 'Q1',
           route_type: 'quenedi',
-          route_color: state.linksDefaultColor,
+          route_color: this.linksDefaultColor,
           route_width: 3,
           headway: 600,
           pickup_type: 0,
@@ -298,7 +302,7 @@ export default {
           direction_id: 0,
         }
 
-        state.lineAttributes.forEach(key => {
+        this.lineAttributes.forEach(key => {
           form[key] = {
             value: defaultValue[key],
             disabled: uneditable.includes(key),
@@ -306,11 +310,11 @@ export default {
           }
         })
 
-        form.trip_id = { value: state.editorTrip, disabled: false, placeholder: false }
+        form.trip_id = { value: this.editorTrip, disabled: false, placeholder: false }
       } else {
-        const features = state.editorLinks.features
+        const features = this.editorLinks.features
 
-        state.lineAttributes.forEach(key => {
+        this.lineAttributes.forEach(key => {
           const val = new Set(features.map(link => link.properties[key]))
           form[key] = {
             value: val.size > 1 ? '' : [...val][0],
@@ -319,14 +323,14 @@ export default {
           }
         })
       }
-      state.editorLineInfo = form
+      this.editorLineInfo = form
     },
 
-    getTripId (state) {
-      state.tripId = Array.from(new Set(state.links.features.map(item => item.properties.trip_id)))
+    getTripId () {
+      this.tripId = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
     },
 
-    setNewLink (state, payload) {
+    setNewLink (payload) {
       // copy editor links geoJSON, only take first (or last) link.
       // delete some properties like id and index.
       const uncopiedPropeties = {
@@ -337,19 +341,19 @@ export default {
         drop_off_type: 0,
       }
       // create link
-      let tempLink = cloneDeep(state.editorLinks.features)
+      let tempLink = cloneDeep(this.editorLinks.features)
       // if there is no link to copy, create one. (new Line)
       if (tempLink.length === 0) {
         // copy Line properties.
         const linkProperties = {}
-        Object.keys(state.editorLineInfo).forEach((key) => {
-          linkProperties[key] = state.editorLineInfo[key].value
+        Object.keys(this.editorLineInfo).forEach((key) => {
+          linkProperties[key] = this.editorLineInfo[key].value
         })
         // set default links values
         const defaultValue = {
           index: 'link_' + short.generate(),
-          a: state.editorNodes.features[0].properties.index,
-          b: state.editorNodes.features[0].properties.index,
+          a: this.editorNodes.features[0].properties.index,
+          b: this.editorNodes.features[0].properties.index,
           length: null,
           time: null,
           pickup_type: 0,
@@ -359,7 +363,7 @@ export default {
         Object.keys(defaultValue).forEach((key) => {
           linkProperties[key] = defaultValue[key]
         })
-        const geom = cloneDeep(state.editorNodes.features[0].geometry.coordinates)
+        const geom = cloneDeep(this.editorNodes.features[0].geometry.coordinates)
         const linkGeometry = {
           coordinates: [geom, geom],
           type: 'LineString',
@@ -380,9 +384,9 @@ export default {
         features.geometry.coordinates[0] = cloneDeep(features.geometry.coordinates.slice(-1)[0])
         // new node index (hash)
         payload.nodeCopyId = features.properties.a
-        this.commit('setNewNode', payload)
+        this.setNewNode(payload)
 
-        features.properties.b = state.newNode.features[0].properties.index
+        features.properties.b = this.newNode.features[0].properties.index
         features.properties.index = 'link_' + short.generate()
       } else if (payload.action === 'Extend Line Downward') {
         // Take first link and copy properties
@@ -396,17 +400,17 @@ export default {
         features.geometry.coordinates[1] = cloneDeep(features.geometry.coordinates[0])
         // new node index (hash)
         payload.nodeCopyId = features.properties.b
-        this.commit('setNewNode', payload)
-        features.properties.a = state.newNode.features[0].properties.index
+        this.setNewNode(payload)
+        features.properties.a = this.newNode.features[0].properties.index
         features.properties.index = 'link_' + short.generate()
       }
-      state.newLink = cloneDeep(state.linksHeader)
-      state.newLink.features = [features]
-      state.newLink.action = payload.action
+      this.newLink = cloneDeep(this.linksHeader)
+      this.newLink.features = [features]
+      this.newLink.action = payload.action
     },
-    createNewNode (state, payload) {
+    createNewNode (payload) {
       const nodeProperties = {}
-      state.nodeAttributes.forEach(key => {
+      this.nodeAttributes.forEach(key => {
         nodeProperties[key] = null
       })
       nodeProperties.index = 'node_' + short.generate()
@@ -416,73 +420,73 @@ export default {
       }
       // Copy specified nodenewNode
       const nodeFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
-      state.editorNodes.features = [nodeFeatures]
+      this.editorNodes.features = [nodeFeatures]
     },
 
-    setNewNode (state, payload) {
+    setNewNode (payload) {
       const { coordinates = [null, null] } = payload
       const uncopiedPropeties = {}
-      state.nodeAttributes.forEach(key => {
+      this.nodeAttributes.forEach(key => {
         uncopiedPropeties[key] = null
       })
       // Copy specified node
-      const tempNode = JSON.parse(JSON.stringify(state.editorNodes))
+      const tempNode = JSON.parse(JSON.stringify(this.editorNodes))
       const features = tempNode.features.filter(node => node.properties.index === payload.nodeCopyId)[0]
       Object.assign(features.properties, uncopiedPropeties)
       features.properties.index = 'node_' + short.generate()
       features.geometry.coordinates = coordinates
       tempNode.features = [features]
-      state.newNode = tempNode
+      this.newNode = tempNode
     },
 
-    editNewLink (state, payload) {
+    editNewLink (payload) {
       // for realtime viz. this method change the linestring to the payload (mouse position)
-      state.newNode.features[0].geometry.coordinates = payload
-      if (state.newLink.action === 'Extend Line Upward') {
-        state.newLink.features[0].geometry.coordinates[1] = payload
+      this.newNode.features[0].geometry.coordinates = payload
+      if (this.newLink.action === 'Extend Line Upward') {
+        this.newLink.features[0].geometry.coordinates[1] = payload
       } else {
-        state.newLink.features[0].geometry.coordinates[0] = payload
+        this.newLink.features[0].geometry.coordinates[0] = payload
       }
     },
 
-    applyNewLink (state, payload) {
+    applyNewLink (payload) {
       // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
-      this.commit('setNewLink', { action: payload.action })
-      this.commit('editNewLink', payload.geom)
+      this.setNewLink({ action: payload.action })
+      this.editNewLink(payload.geom)
 
-      const distance = length(state.newLink)
-      state.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+      const distance = length(this.newLink)
+      this.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
+      const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
 
-      state.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      this.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
 
-      const action = state.newLink.action
+      const action = this.newLink.action
       if (action === 'Extend Line Upward') {
-        state.editorLinks.features.push(state.newLink.features[0])
-        state.editorNodes.features.push(state.newNode.features[0])
+        this.editorLinks.features.push(this.newLink.features[0])
+        this.editorNodes.features.push(this.newNode.features[0])
       } else if (action === 'Extend Line Downward') {
-        state.editorLinks.features.splice(0, 0, state.newLink.features[0])
-        state.editorNodes.features.splice(0, 0, state.newNode.features[0])
-        state.editorLinks.features.forEach(link => link.properties.link_sequence += 1)
+        this.editorLinks.features.splice(0, 0, this.newLink.features[0])
+        this.editorNodes.features.splice(0, 0, this.newNode.features[0])
+        this.editorLinks.features.forEach(link => link.properties.link_sequence += 1)
       }
     },
 
-    deleteNode (state, payload) {
+    deleteNode (payload) {
       const nodeIndex = payload.selectedNode.index
       // remove node
-      state.editorNodes.features = state.editorNodes.features.filter(node => node.properties.index !== nodeIndex)
+      this.editorNodes.features = this.editorNodes.features.filter(node => node.properties.index !== nodeIndex)
       // changing link1 change editorLinks as it is an observer.
-      const link1 = state.editorLinks.features.filter(link => link.properties.b === nodeIndex)[0] // link is extented
-      const link2 = state.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0] // link is deleted
+      const link1 = this.editorLinks.features.filter(link => link.properties.b === nodeIndex)[0] // link is extented
+      const link2 = this.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0] // link is deleted
       // if the last or first node is selected, there is only one link. The node and the link are deleted.
       if (!link1) {
-        state.editorLinks.features = state.editorLinks.features.filter(
+        this.editorLinks.features = this.editorLinks.features.filter(
           link => link.properties.index !== link2.properties.index)
         // a link was remove, link_sequence -1
-        state.editorLinks.features.forEach(link => link.properties.link_sequence -= 1)
+        this.editorLinks.features.forEach(link => link.properties.link_sequence -= 1)
       } else if (!link2) {
-        state.editorLinks.features = state.editorLinks.features.filter(
+        this.editorLinks.features = this.editorLinks.features.filter(
           link => link.properties.index !== link1.properties.index)
         // the node is inbetween 2 links. 1 link is deleted, and the other is extented.
       } else {
@@ -493,60 +497,60 @@ export default {
         link1.properties.length = Number(link1.properties.length) + Number(link2.properties.length)
         link1.properties.time = Number(link1.properties.time) + Number(link2.properties.time)
         // find removed link index. drop everylinks link_sequence after by 1
-        const featureIndex = state.editorLinks.features.findIndex(
+        const featureIndex = this.editorLinks.features.findIndex(
           link => link.properties.index === link2.properties.index)
-        state.editorLinks.features.slice(featureIndex).forEach(
+        this.editorLinks.features.slice(featureIndex).forEach(
           link => link.properties.link_sequence -= 1)
         // delete link2
-        state.editorLinks.features = state.editorLinks.features.filter(
+        this.editorLinks.features = this.editorLinks.features.filter(
           link => link.properties.index !== link2.properties.index)
       }
-      console.log(state.editorLinks)
+      console.log(this.editorLinks)
     },
 
-    splitLink (state, payload) {
+    splitLink (payload) {
       const linkIndex = payload.selectedLink.index
-      const featureIndex = state.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
+      const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link1 change editorLinks as it is an observer.
-      const link1 = state.editorLinks.features[featureIndex] // this link is extented
+      const link1 = this.editorLinks.features[featureIndex] // this link is extented
       const link2 = cloneDeep(link1)
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
 
-      link1.properties.b = state.newNode.features[0].properties.index
+      link1.properties.b = this.newNode.features[0].properties.index
       link1.geometry.coordinates = [
         ...link1.geometry.coordinates.slice(0, payload.sliceIndex),
-        state.newNode.features[0].geometry.coordinates,
+        this.newNode.features[0].geometry.coordinates,
       ]
 
       link1.properties.index = 'link_' + short.generate() // link1.properties.index+ '-1'
       link1.properties.length = link1.properties.length * ratio
       link1.properties.time = link1.properties.time * ratio
 
-      link2.properties.a = state.newNode.features[0].properties.index
+      link2.properties.a = this.newNode.features[0].properties.index
       link2.geometry.coordinates = [
-        state.newNode.features[0].geometry.coordinates,
+        this.newNode.features[0].geometry.coordinates,
         ...link2.geometry.coordinates.slice(payload.sliceIndex),
       ]
       link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
       link2.properties.time = link2.properties.time * (1 - ratio)
 
-      state.editorLinks.features.splice(featureIndex + 1, 0, link2)
-      state.editorNodes.features.push(state.newNode.features[0])
+      this.editorLinks.features.splice(featureIndex + 1, 0, link2)
+      this.editorNodes.features.push(this.newNode.features[0])
 
       // add +1 to every link sequence afer link1
       const seq = link1.properties.link_sequence
       // everything after link1 except link2
-      state.editorLinks.features.filter(link => link.properties.link_sequence > seq).forEach(
+      this.editorLinks.features.filter(link => link.properties.link_sequence > seq).forEach(
         link => link.properties.link_sequence += 1)
       // add link2 sequence after.
       link2.properties.link_sequence += 1
     },
 
-    addNodeInline (state, payload) {
+    addNodeInline (payload) {
       // payload contain selectedLink and event.lngLat (clicked point)
-      let linkGeom = state.editorLinks.features.filter((link) => link.properties.index === payload.selectedLink.index)
+      let linkGeom = this.editorLinks.features.filter((link) => link.properties.index === payload.selectedLink.index)
       const nodeCopyId = linkGeom[0].properties.a
       linkGeom = Linestring(linkGeom[0].geometry.coordinates)
       const clickedPoint = Point(Object.values(payload.lngLat))
@@ -556,11 +560,11 @@ export default {
       const sliceIndex = snapped.properties.index + 1
       const offset = snapped.properties.location / dist
       if (payload.nodes === 'editorNodes') {
-        this.commit('setNewNode', { coordinates: snapped.geometry.coordinates, nodeCopyId })
-        this.commit('splitLink', { selectedLink: payload.selectedLink, offset, sliceIndex })
+        this.setNewNode({ coordinates: snapped.geometry.coordinates, nodeCopyId })
+        this.splitLink({ selectedLink: payload.selectedLink, offset, sliceIndex })
       // Anchor Nodes
       } else {
-        this.commit('addAnchorNode', {
+        this.addAnchorNode({
           selectedLink: payload.selectedLink,
           coordinates: snapped.geometry.coordinates,
           sliceIndex,
@@ -569,24 +573,24 @@ export default {
 
       // this.commit('setNewNode', null) // init new node to null
     },
-    addAnchorNode (state, payload) {
+    addAnchorNode (payload) {
       const linkIndex = payload.selectedLink.index
-      const featureIndex = state.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
+      const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link change editorLinks as it is an observer.
-      const link = state.editorLinks.features[featureIndex]
+      const link = this.editorLinks.features[featureIndex]
       link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
     },
-    deleteAnchorNode (state, payload) {
+    deleteAnchorNode (payload) {
       const linkIndex = payload.selectedNode.linkIndex
       const coordinatedIndex = payload.selectedNode.coordinatedIndex
-      const link = state.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
-    moveAnchor (state, payload) {
+    moveAnchor (payload) {
       const linkIndex = payload.selectedNode.properties.linkIndex
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
-      const link = state.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
@@ -594,19 +598,19 @@ export default {
       // update time and distance
       const distance = length(link)
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
 
-    moveNode (state, payload) {
+    moveNode (payload) {
       const nodeIndex = payload.selectedNode.properties.index
       // remove node
-      const newNode = state.editorNodes.features.filter(node => node.properties.index === nodeIndex)[0]
+      const newNode = this.editorNodes.features.filter(node => node.properties.index === nodeIndex)[0]
       newNode.geometry.coordinates = payload.lngLat
 
       // changing links
-      const link1 = state.editorLinks.features.filter(link => link.properties.b === nodeIndex)[0]
-      const link2 = state.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0]
+      const link1 = this.editorLinks.features.filter(link => link.properties.b === nodeIndex)[0]
+      const link2 = this.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0]
       // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
       if (link1) {
         // note: props are unchanged. even tho the length change, the time and length are unchanged.
@@ -614,7 +618,7 @@ export default {
         // update time and distance
         const distance = length(link1)
         link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
         link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
       if (link2) {
@@ -622,74 +626,74 @@ export default {
         // update time and distance
         const distance = length(link2)
         link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / state.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
         link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
     },
 
-    cutLineFromNode (state, payload) {
+    cutLineFromNode (payload) {
       // Filter links from selected line
       const nodeId = payload.selectedNode.index
-      state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+      this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
 
       let toDelete = []
-      for (const [i, link] of state.editorLinks.features.entries()) {
+      for (const [i, link] of this.editorLinks.features.entries()) {
         if (link.properties.b === nodeId) {
-          toDelete = state.editorLinks.features.slice(i + 1)
+          toDelete = this.editorLinks.features.slice(i + 1)
           break
         }
       }
       // Delete links
-      state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item))
-      this.commit('getEditorNodes', { nodes: state.editorNodes })
+      this.editorLinks.features = this.editorLinks.features.filter(item => !toDelete.includes(item))
+      this.getEditorNodes({ nodes: this.editorNodes })
     },
 
-    cutLineAtNode (state, payload) {
+    cutLineAtNode (payload) {
       // Filter links from selected line
       const nodeId = payload.selectedNode.index
-      state.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+      this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
 
       let toDelete = []
-      for (const [i, link] of state.editorLinks.features.entries()) {
+      for (const [i, link] of this.editorLinks.features.entries()) {
         if (link.properties.a === nodeId) {
-          toDelete = state.editorLinks.features.slice(0, i)
+          toDelete = this.editorLinks.features.slice(0, i)
           break
         }
       }
       // Delete links
-      state.editorLinks.features = state.editorLinks.features.filter(item => !toDelete.includes(item))
-      this.commit('getEditorNodes', { nodes: state.editorNodes })
+      this.editorLinks.features = this.editorLinks.features.filter(item => !toDelete.includes(item))
+      this.getEditorNodes({ nodes: this.editorNodes })
     },
 
-    editLineInfo (state, payload) {
-      state.editorLineInfo = payload
+    editLineInfo (payload) {
+      this.editorLineInfo = payload
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(payload).filter(key =>
         ((payload[key].value !== '') || !payload[key].placeholder) && (!payload[key].disabled))
       // add new line info to each links of each trips.
-      state.editorLinks.features.forEach(
+      this.editorLinks.features.forEach(
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
     },
 
-    editLinkInfo (state, payload) {
+    editLinkInfo (payload) {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedLinkId, info } = payload
       const props = Object.keys(info)
-      state.editorLinks.features.filter(
+      this.editorLinks.features.filter(
         function (link) {
           if (link.properties.index === selectedLinkId) {
             props.forEach((key) => link.properties[key] = info[key].value)
           }
         },
       )
-      this.commit('getEditorLineInfo')
+      this.getEditorLineInfo()
     },
 
-    editNodeInfo (state, payload) {
+    editNodeInfo (payload) {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedNodeId, info } = payload
       const props = Object.keys(info)
-      state.editorNodes.features.filter(
+      this.editorNodes.features.filter(
         // eslint-disable-next-line array-callback-return
         function (node) {
           if (node.properties.index === selectedNodeId) {
@@ -699,7 +703,7 @@ export default {
       )
     },
 
-    editGroupInfo (state, payload) {
+    editGroupInfo (payload) {
       // edit line info on multiple trips at once.
       const editorGroupInfo = payload.info
       const groupTripIds = payload.groupTripIds
@@ -707,48 +711,48 @@ export default {
       const props = Object.keys(editorGroupInfo).filter(key =>
         ((editorGroupInfo[key].value !== '') || !editorGroupInfo[key].placeholder))
       // add new line info to each links of each trips.
-      const tempLinks = state.links.features.filter(link => groupTripIds.includes(link.properties.trip_id))
+      const tempLinks = this.links.features.filter(link => groupTripIds.includes(link.properties.trip_id))
       tempLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = editorGroupInfo[key].value))
       // get tripId list
-      this.commit('getTripId')
+      this.getTripId()
     },
-    deleteUnusedNodes (state) {
+    deleteUnusedNodes () {
       // delete every every nodes not in links
-      const a = state.links.features.map(item => item.properties.a)
-      const b = state.links.features.map(item => item.properties.b)
+      const a = this.links.features.map(item => item.properties.a)
+      const b = this.links.features.map(item => item.properties.b)
       const nodesInLinks = new Set([...a, ...b])
-      state.nodes.features = state.nodes.features.filter(node => nodesInLinks.has(node.properties.index))
+      this.nodes.features = this.nodes.features.filter(node => nodesInLinks.has(node.properties.index))
     },
 
-    confirmChanges (state) { // apply change to Links
-      const filtered = { ...state.links }
+    confirmChanges () { // apply change to Links
+      const filtered = { ...this.links }
 
-      filtered.features = filtered.features.filter(link => link.properties.trip_id === state.editorTrip)
-      const toDelete = filtered.features.filter(item => !state.editorLinks.features.includes(item))
+      filtered.features = filtered.features.filter(link => link.properties.trip_id === this.editorTrip)
+      const toDelete = filtered.features.filter(item => !this.editorLinks.features.includes(item))
       // find index of soon to be deleted links
-      if (state.tripId.includes(state.editorTrip)) {
+      if (this.tripId.includes(this.editorTrip)) {
         // eslint-disable-next-line no-var
-        var index = state.links.features.findIndex(link => link.properties.trip_id === state.editorTrip)
+        var index = this.links.features.findIndex(link => link.properties.trip_id === this.editorTrip)
       } else {
         // eslint-disable-next-line no-var, no-redeclare
         var index = 0
       }
       // delete links that were edited.
-      state.links.features = state.links.features.filter(item => !toDelete.includes(item))
+      this.links.features = this.links.features.filter(item => !toDelete.includes(item))
       // add edited links to links.
 
-      state.links.features.splice(index, 0, ...state.editorLinks.features)
+      this.links.features.splice(index, 0, ...this.editorLinks.features)
       // all new nodes.
-      const nodesList = state.nodes.features.map(item => item.properties.index)
-      const newNodes = { ...state.editorNodes }
+      const nodesList = this.nodes.features.map(item => item.properties.index)
+      const newNodes = { ...this.editorNodes }
       newNodes.features = newNodes.features.filter(node => !nodesList.includes(node.properties.index))
-      state.nodes.features.push(...newNodes.features)
+      this.nodes.features.push(...newNodes.features)
 
       // for each editor nodes, apply new properties.
-      state.nodes.features.filter(
+      this.nodes.features.filter(
         function (node) {
-          state.editorNodes.features.forEach(
+          this.editorNodes.features.forEach(
             function (eNode) {
               if (node.properties.index === eNode.properties.index) {
                 node.properties = eNode.properties
@@ -758,78 +762,67 @@ export default {
         })
 
       // delete every every nodes not in links
-      this.commit('deleteUnusedNodes')
+      this.deleteUnusedNodes()
 
       // For every Links containing an editor Nodes. update Geometry.
       // (this is necessary when we move a node that is share between multiplde lines)
       // get a list of all links (excluding editorLinks) that contain the selected node
-      const editorNodesList = new Set(state.editorNodes.features.map(item => item.properties.index))
+      const editorNodesList = new Set(this.editorNodes.features.map(item => item.properties.index))
       // get list of link with a node A modifieed
-      const linksA = state.links.features.filter(
-        link => link.properties.trip_id !== state.editorTrip).filter(
+      const linksA = this.links.features.filter(
+        link => link.properties.trip_id !== this.editorTrip).filter(
         item => editorNodesList.has(item.properties.a))
       // apply new node geometry
       linksA.forEach(link => link.geometry.coordinates = [
-        state.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
+        this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
         ...link.geometry.coordinates.slice(1),
       ])
       // same for nodes b
-      const linksB = state.links.features.filter(
-        link => link.properties.trip_id !== state.editorTrip).filter(
+      const linksB = this.links.features.filter(
+        link => link.properties.trip_id !== this.editorTrip).filter(
         item => editorNodesList.has(item.properties.b))
       linksB.forEach(link => link.geometry.coordinates = [
         ...link.geometry.coordinates.slice(0, -1),
-        state.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
+        this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
       ])
 
-      state.newLink = {}
-      state.newNode = {}
+      this.newLink = {}
+      this.newNode = {}
 
-      this.commit('applyPropertiesTypes')
+      this.applyPropertiesTypes()
 
       // get tripId list
-      this.commit('getTripId')
-      this.commit('getLinksProperties')
+      this.getTripId()
+
+      this.getLinksProperties()
     },
 
-    deleteTrip (state, payload) {
+    deleteTrip (payload) {
       // payload = a single trip_id or a list or trips_id
       // if its a list : delete all of them. else: delete single trip
       if (typeof payload === 'object') {
-        state.links.features = state.links.features.filter(link => !payload.includes(link.properties.trip_id))
+        this.links.features = this.links.features.filter(link => !payload.includes(link.properties.trip_id))
       } else {
-        state.links.features = state.links.features.filter(link => link.properties.trip_id !== payload)
+        this.links.features = this.links.features.filter(link => link.properties.trip_id !== payload)
       }
       // delete every every nodes not in links
-      this.commit('deleteUnusedNodes')
+      this.deleteUnusedNodes()
       // get tripId list
-      this.commit('getTripId')
+      this.getTripId()
     },
-    applyPropertiesTypes (state) {
-      state.defaultAttributes.forEach(attr => {
+    applyPropertiesTypes () {
+      this.defaultAttributes.forEach(attr => {
         if (attr.type === 'String') {
-          state.links.features.forEach(link => link.properties[attr.name] = String(link.properties[attr.name]))
+          this.links.features.forEach(link => link.properties[attr.name] = String(link.properties[attr.name]))
         } else if (attr.type === 'Number') {
-          state.links.features.forEach(link => link.properties[attr.name] = Number(link.properties[attr.name]))
+          this.links.features.forEach(link => link.properties[attr.name] = Number(link.properties[attr.name]))
         }
       })
     },
   },
 
   getters: {
-    links: (state) => state.links,
-    nodes: (state) => state.nodes,
-    linkSpeed: (state) => state.linkSpeed,
     linksIsEmpty: (state) => state.links.features.length === 0,
-    route_id: (state) => state.route_id,
-    editorTrip: (state) => state.editorTrip,
-    editorLinks: (state) => state.editorLinks,
-    editorNodes: (state) => state.editorNodes,
-    tripId: (state) => state.tripId,
-    selectedTrips: (state) => state.selectedTrips,
-    editorLineInfo: (state) => state.editorLineInfo,
-    newLink: (state) => state.newLink,
-    newNode: (state) => state.newNode,
     firstNodeId: (state) => state.editorNodes.features.length > 1
       ? state.editorLinks.features[0].properties.a
       : state.editorNodes.features[0].properties.index,
@@ -844,11 +837,6 @@ export default {
       ? state.editorNodes.features.filter(
         (node) => node.properties.index === getters.lastNodeId)[0]
       : null,
-    lineAttributes: (state) => state.lineAttributes.sort(),
-    nodeAttributes: (state) => state.nodeAttributes,
-    changeBounds: (state) => state.changeBounds,
-    nodesHeader: (state) => state.nodesHeader,
-    linksHeader: (state) => state.linksHeader,
     anchorNodes: (state) => {
       const nodes = cloneDeep(state.nodesHeader)
       state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
@@ -868,6 +856,5 @@ export default {
     // this return the attribute type, of undefined.
     attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
     defaultAttributesNames: (state) => state.defaultAttributes.map(attr => attr.name),
-    linksAttributesChoices: (state) => state.linksAttributesChoices,
   },
-}
+})
