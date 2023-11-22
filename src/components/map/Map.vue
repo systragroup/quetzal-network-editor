@@ -399,10 +399,7 @@ export default {
       v-if="mapIsLoaded"
       :style="{'display':'flex'}"
     >
-      <!---
-          <Settings />
-
-    -->
+      <Settings />
 
       <LayerSelector
         v-if="rasterFiles.length>0"

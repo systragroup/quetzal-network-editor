@@ -1,55 +1,91 @@
 <script>
+import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+
 const $gettext = s => s
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Settings',
   events: ['submit'],
+  setup () {
+    const store = useIndexStore()
+    const linksStore = useLinksStore()
+    const rlinksStore = userLinksStore()
+    const linkSpeed = {
+      name: $gettext('PT speed'),
+      type: 'Number',
+      value: 0,
+      units: 'km/h',
+      hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
+    }
+    const roadSpeed = {
+      name: $gettext('Road speed'),
+      type: 'Number',
+      value: 0,
+      units: 'km/h',
+      hint: $gettext('Speed used to calculate road travel time when a link is drawn'),
+    }
+    const linksPopupContent = {
+      name: $gettext('PT Popup Content'),
+      type: 'String',
+      choices: [],
+      value: '',
+      hint: $gettext('Link field to display when hovering a trip on the map'),
+    }
+    const roadsPopupContent = {
+      name: $gettext('Road Popup Content'),
+      type: 'String',
+      choices: [],
+      value: '',
+      hint: $gettext('Link field to display when hovering road link on the map'),
+    }
+    const defaultHighway = {
+      name: $gettext('Road Highway name'),
+      type: 'String',
+      value: '',
+      hint: $gettext('New road links Highway property name'),
+    }
+    const outputName = {
+      name: $gettext('Export name'),
+      type: 'String',
+      value: '',
+      units: '.zip',
+      hint: $gettext('the name of the exported zip file'),
+    }
+
+    const fetch = () => {
+      // value are init with this function.
+      // we want to get the value each time we show the settings.
+      // if not, Cancel will not work as the state here and in the store will differ.
+      linkSpeed.value = linksStore.linkSpeed
+      roadSpeed.value = rlinksStore.roadSpeed
+      linksPopupContent.choices = linksStore.lineAttributes
+      linksPopupContent.value = store.linksPopupContent
+      roadsPopupContent.choices = rlinksStore.rlineAttributes
+      roadsPopupContent.value = store.roadsPopupContent
+      defaultHighway.value = rlinksStore.defaultHighway
+      outputName.value = store.outputName
+    }
+
+    return {
+      store,
+      linksStore,
+      rlinksStore,
+      linkSpeed,
+      roadSpeed,
+      linksPopupContent,
+      roadsPopupContent,
+      defaultHighway,
+      outputName,
+      fetch,
+    }
+  },
   data () {
     return {
       show: false,
 
-      linkSpeed: {
-        name: $gettext('PT speed'),
-        type: 'Number',
-        value: 0,
-        units: 'km/h',
-        hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
-      },
-      roadSpeed: {
-        name: $gettext('Road speed'),
-        type: 'Number',
-        value: 0,
-        units: 'km/h',
-        hint: $gettext('Speed used to calculate road travel time when a link is drawn'),
-      },
-      linksPopupContent: {
-        name: $gettext('PT Popup Content'),
-        type: 'String',
-        choices: [],
-        value: '',
-        hint: $gettext('Link field to display when hovering a trip on the map'),
-      },
-      roadsPopupContent: {
-        name: $gettext('Road Popup Content'),
-        type: 'String',
-        choices: [],
-        value: '',
-        hint: $gettext('Link field to display when hovering road link on the map'),
-      },
-      defaultHighway: {
-        name: $gettext('Road Highway name'),
-        type: 'String',
-        value: '',
-        hint: $gettext('New road links Highway property name'),
-      },
-      outputName: {
-        name: $gettext('Export name'),
-        type: 'String',
-        value: '',
-        units: '.zip',
-        hint: $gettext('the name of the exported zip file'),
-      },
       errorMessage: null,
       showHint: false,
       shake: false,
@@ -70,19 +106,6 @@ export default {
     this.fetch()
   },
   methods: {
-    fetch () {
-      // value are init with this function.
-      // we want to get the value each time we show the settings.
-      // if not, Cancel will not work as the state here and in the store will differ.
-      this.linkSpeed.value = this.$store.getters.linkSpeed
-      this.roadSpeed.value = this.$store.getters.roadSpeed
-      this.linksPopupContent.choices = this.$store.getters.lineAttributes
-      this.linksPopupContent.value = this.$store.getters.linksPopupContent
-      this.roadsPopupContent.choices = this.$store.getters.rlineAttributes
-      this.roadsPopupContent.value = this.$store.getters.roadsPopupContent
-      this.defaultHighway.value = this.$store.getters.defaultHighway
-      this.outputName.value = this.$store.getters.outputName
-    },
 
     submit () {
       if (this.$refs.form.validate()) {
@@ -94,10 +117,10 @@ export default {
           outputName: this.outputName.value,
           defaultHighway: this.defaultHighway.value,
         }
-        this.$store.commit('applySettings', payload)
+        this.store.applySettings(payload)
         this.$emit('submit', true)
         this.show = false
-        this.$store.commit('changeNotification',
+        this.store.changeNotification(
           { text: $gettext('modification applied'), autoClose: true, color: 'success' })
       } else {
         this.shake = true
