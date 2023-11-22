@@ -41,7 +41,7 @@ export default {
     const numLinks = computed(() => { return Array.isArray(editorForm.value) ? editorForm.value.length : 1 })
     const attributesChoices = computed(() => {
       if (['pt', 'road'].includes(mode.value)) {
-        return this.store.attributesChoices[mode.value]
+        return store.attributesChoices[mode.value]
       } else { return {} }
     })
 

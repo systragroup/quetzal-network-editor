@@ -1,8 +1,10 @@
 <script>
 
 import short from 'short-uuid'
+import { ref, computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
 const $gettext = s => s
-
 export default {
   name: 'LinksSidePanel',
   components: {
@@ -10,43 +12,33 @@ export default {
 
   props: ['selectedTrips', 'height'], // height is here to resize with the windows...
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
-
-  data () {
-    return {
-      showDialog: false,
-      open: [],
-      tripList: [],
-      // for some reason, the v-model does not update when i force it in a watcher or a method.
-      // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
-      selectedFilter: '',
-      vmodelSelectedFilter: '',
-    }
-  },
-  computed: {
-    filterChoices () { return this.$store.getters.lineAttributes },
-    editorTrip () { return this.$store.getters.editorTrip },
-    tripId () { return this.$store.getters.tripId },
-    arrayUniqueTripId () {
-      // drop duplicates links trips. each line is a trip here.
-      const arrayUniqueByKey = [...new Map(this.$store.getters.links.features.map(item =>
+  setup () {
+    const store = useIndexStore()
+    const linksStore = useLinksStore()
+    const selectedFilter = ref('')
+    const filterChoices = computed(() => { return linksStore.lineAttributes })
+    const editorTrip = computed(() => { return linksStore.editorTrip })
+    const tripId = computed(() => { return linksStore.tripId })
+    const arrayUniqueTripId = computed(() => { // drop duplicates links trips. each line is a trip here.
+      const arrayUniqueByKey = [...new Map(linksStore.links.features.map(item =>
         [item.properties.trip_id, item.properties])).values()]
       return arrayUniqueByKey
-    },
-    filteredCat () {
+    })
+    const filteredCat = computed(() => {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(this.arrayUniqueTripId.map(
-        item => item[this.selectedFilter])))
+      const val = Array.from(new Set(arrayUniqueTripId.value.map(
+        item => item[selectedFilter.value])))
       return val
-    },
+    })
 
-    classifiedTripId () {
+    const classifiedTripId = computed(() => {
       // return this list of object, {cat_name, tripId list}
       const classifiedTripId = []
       const undefinedCat = { name: $gettext('undefined'), tripId: [] }
-      this.filteredCat.forEach(c => {
-        const arr = this.arrayUniqueTripId.filter(
-          item => item[this.selectedFilter] === c,
+      filteredCat.value.forEach(c => {
+        const arr = arrayUniqueTripId.value.filter(
+          item => item[selectedFilter.value] === c,
         ).map((item) => item.trip_id).sort()
 
         // regroup all null values into a single list 'undefined'
@@ -61,7 +53,31 @@ export default {
         classifiedTripId.push(undefinedCat)
       }
       return classifiedTripId
-    },
+    })
+    // const  = computed(() => {  })
+
+    return {
+      store,
+      linksStore,
+      selectedFilter,
+      filterChoices,
+      editorTrip,
+      tripId,
+      arrayUniqueTripId,
+      filteredCat,
+      classifiedTripId,
+    }
+  },
+  data () {
+    return {
+      showDialog: false,
+      open: [],
+      tripList: [],
+      // for some reason, the v-model does not update when i force it in a watcher or a method.
+      // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
+      // selectedFilter: '',
+      vmodelSelectedFilter: '',
+    }
   },
 
   watch: {
@@ -94,12 +110,11 @@ export default {
         // if it is larger, return to oldValue
         this.selectedFilter = oldVal
         // display error message
-        this.$store.commit('changeNotification',
-          {
-            text: $gettext('Cannot filter by this field. There is more than 500 groups'),
-            autoClose: true,
-            color: 'red darken-2',
-          })
+        this.store.changeNotification({
+          text: $gettext('Cannot filter by this field. There is more than 500 groups'),
+          autoClose: true,
+          color: 'red darken-2',
+        })
         // return the value in the v-select as the old Value
         // eslint-disable-next-line no-return-assign
         this.$nextTick(() => this.vmodelSelectedFilter = oldVal)
@@ -119,8 +134,8 @@ export default {
       if (this.editorTrip === value) {
         this.showDialog = true
       } else {
-        this.$store.commit('setEditorTrip', { tripId: value, changeBounds: true })
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
+        this.store.setEditorTrip({ tripId: value, changeBounds: true })
+        this.store.changeNotification({ text: '', autoClose: true })
       }
     },
 
@@ -129,17 +144,17 @@ export default {
       if (typeof value === 'object') {
         this.$emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
       } else if (!this.editorTrip) {
-        this.$store.commit('setEditorTrip', { tripId: value, changeBounds: false })
+        this.store.setEditorTrip({ tripId: value, changeBounds: false })
         this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
         // just open dialog
       } else {
         this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
+        this.store.changeNotification({ text: '', autoClose: true })
       }
     },
     createNewLine () {
       const name = 'trip_' + short.generate()
-      this.$store.commit('setEditorTrip', { tripId: name, changeBounds: false })
+      this.linksStore.setEditorTrip({ tripId: name, changeBounds: false })
       this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
     },
 
@@ -237,7 +252,7 @@ export default {
         <v-list>
           <v-list-item
             link
-            @click="$store.dispatch('exportFiles')"
+            @click="store.exportFiles()"
           >
             <v-list-item-title>
               {{ $gettext("Export All") }}
@@ -245,7 +260,7 @@ export default {
           </v-list-item>
           <v-list-item
             link
-            @click="$store.dispatch('exportFiles','visibles')"
+            @click="store.exportFiles('visibles')"
           >
             <v-list-item-title>
               {{ $gettext("Export Only Visible") }}
@@ -484,9 +499,9 @@ export default {
             <v-btn
 
               class="mx-2"
-              :color="$store.getters.anchorMode? 'grey':'regular'"
+              :color="store.anchorMode? 'grey':'regular'"
               v-bind="props"
-              @click="$store.commit('changeAnchorMode')"
+              @click="store.changeAnchorMode()"
             >
               <v-icon size="small">
                 fas fa-anchor

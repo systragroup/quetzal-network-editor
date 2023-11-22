@@ -2,6 +2,10 @@
 import LinksSidePanel from './LinksSidePanel.vue'
 import RoadSidePanel from './RoadSidePanel.vue'
 import ODSidePanel from './ODSidePanel.vue'
+import { ref, computed, onMounted } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
+
 export default {
   name: 'SidePanel',
   components: {
@@ -11,20 +15,30 @@ export default {
   },
   props: ['selectedTrips', 'selectedrGroup'],
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
+  setup () {
+    const store = useIndexStore()
+    const linksStore = useLinksStore()
+    const showLeftPanel = computed(() => { return store.showLeftPanel })
+    const toggleLeftPanel = () => { store.changeLeftPanel() }
+    const windowHeight = computed(() => { return store.windowHeight - 200 })
 
+    const tab = ref(0)
+    onMounted(() => {
+      if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
+        tab.value = 1
+      }
+    })
+
+    return { tab, showLeftPanel, windowHeight, toggleLeftPanel }
+  },
   data () {
     return {
       showLeftPanelContent: true,
-      tab: 0,
       mode: 'pt',
       isResizing: false,
       windowOffest: 0,
       width: 400, // Initial width of the resizable section
     }
-  },
-  computed: {
-    showLeftPanel () { return this.$store.getters.showLeftPanel },
-    windowHeight () { return this.$store.getters.windowHeight - 200 },
   },
 
   watch: {
@@ -50,11 +64,7 @@ export default {
       this.$emit('change-mode', this.mode)
     },
   },
-  created () {
-    if (this.$store.getters.links.features.length === 0 && !this.$store.getters.projectIsEmpty) {
-      this.tab = 1
-    }
-  },
+
   methods: {
     startResize (event) {
       event.preventDefault()
@@ -88,7 +98,7 @@ export default {
   >
     <div
       class="left-panel-toggle-btn elevation-4"
-      @click="$store.commit('changeLeftPanel')"
+      @click="toggleLeftPanel"
     >
       <v-icon
         size="small"

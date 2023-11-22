@@ -1,4 +1,7 @@
 <script>
+import { useIndexStore } from '@src/store/index'
+import { useODStore } from '@src/store/od'
+import { computed } from 'vue'
 
 export default {
   name: 'RoadSidePanel',
@@ -6,7 +9,25 @@ export default {
   },
   props: ['height'], // height is here to resize with the windows...
   events: ['deleteButton', 'propertiesButton'],
+  setup () {
+    const store = useIndexStore()
+    const odStore = useODStore()
+    const layer = computed(() => { return odStore.layer })
+    const filterChoices = computed(() => { return odStore.layerAttributes })
+    const selectedFilter = computed(() => { return odStore.selectedFilter })
+    const selectedCat = computed(() => { return odStore.selectedCategory })
+    const filteredCat = computed(() => { return odStore.filteredCategory })
 
+    return {
+      store,
+      odStore,
+      layer,
+      filterChoices,
+      selectedFilter,
+      selectedCat,
+      filteredCat,
+    }
+  },
   data () {
     return {
       // for some reason, the v-model does not update when i force it in a watcher or a method.
@@ -15,20 +36,13 @@ export default {
       vmodelSelectedCat: [],
     }
   },
-  computed: {
-    layer () { return this.$store.getters['od/layer'] },
-    filterChoices () { return this.$store.getters['od/layerAttributes'] },
-    selectedFilter () { return this.$store.getters['od/selectedFilter'] },
-    selectedCat () { return this.$store.getters['od/selectedCategory'] },
-    filteredCat () { return this.$store.getters['od/filteredCategory'] },
-  },
 
   watch: {
     vmodelSelectedCat (val) {
-      this.$store.commit('od/changeSelectedCategory', val)
+      this.odStore.changeSelectedCategory(val)
     },
     vmodelSelectedFilter (val) {
-      this.$store.commit('od/changeSelectedFilter', val)
+      this.odStore.changeSelectedFilter(val)
       this.vmodelSelectedCat = [] // reset.
     },
 
@@ -140,7 +154,7 @@ export default {
         <v-list>
           <v-list-item
             link
-            @click="$store.dispatch('exportFiles','all')"
+            @click="store.exportFiles('all')"
           >
             <v-list-item-title>
               {{ $gettext("Export All") }}
@@ -148,7 +162,7 @@ export default {
           </v-list-item>
           <v-list-item
             link
-            @click="$store.dispatch('exportFiles','visible')"
+            @click="store.exportFiles('visibles')"
           >
             <v-list-item-title>
               {{ $gettext("Export Only Visible") }}

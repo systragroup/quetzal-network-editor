@@ -1,5 +1,8 @@
 <script>
-import { toRaw } from 'vue'
+import { toRaw, computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { userLinksStore } from '@src/store/rlinks'
+import { useLinksStore } from '@src/store/links'
 
 export default {
   name: 'RoadSidePanel',
@@ -7,7 +10,20 @@ export default {
   },
   props: ['selectedrGoup', 'height'], // height is here to resize with the windows...
   events: ['deleteButton', 'propertiesButton', 'update-tripList'],
-
+  setup () {
+    const store = useIndexStore()
+    const rlinksStore = userLinksStore()
+    const linksStore = useLinksStore()
+    const filterChoices = computed(() => { return rlinksStore.rlineAttributes })
+    const filteredCat = computed(() => { return rlinksStore.filteredrCategory })
+    return {
+      store,
+      rlinksStore,
+      linksStore,
+      filterChoices,
+      filteredCat,
+    }
+  },
   data () {
     return {
       tripList: this.selectedrGoup,
@@ -16,11 +32,6 @@ export default {
       selectedFilter: '',
       vmodelSelectedFilter: '',
     }
-  },
-  computed: {
-    filterChoices () { return this.$store.getters.rlineAttributes },
-    filteredCat () { return this.$store.getters.filteredrCategory },
-
   },
 
   watch: {
@@ -58,7 +69,7 @@ export default {
     vmodelSelectedFilter (newVal, oldVal) {
       this.selectedFilter = newVal
       // only reset if we change the filter.
-      this.$store.commit('changeSelectedrFilter', this.selectedFilter)
+      this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
       // when the component is loaded, oldVal is null and we dont want to overwrite tripList to [].
       if (oldVal) {
         this.tripList = []
@@ -68,12 +79,12 @@ export default {
   },
   mounted () {
     this.tripList = this.selectedrGoup
-    this.selectedFilter = this.$store.getters.selectedrFilter
+    this.selectedFilter = this.rlinksStore.selectedrFilter
     this.vmodelSelectedFilter = this.selectedFilter
-    this.$store.commit('changeSelectedrFilter', this.selectedFilter)
+    this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
 
-    if (this.$store.getters.links.features.length === 0 &&
-    !this.$store.getters.projectIsEmpty &&
+    if (this.linksStore.links.features.length === 0 &&
+    !this.store.projectIsEmpty &&
     this.selectedrGoup.length === 0) {
       this.showAll()
     }
@@ -180,7 +191,7 @@ export default {
         <v-list>
           <v-list-item
             link
-            @click="$store.dispatch('exportFiles','all')"
+            @click="store.exportFiles('all')"
           >
             <v-list-item-title>
               {{ $gettext("Export All") }}
@@ -188,7 +199,7 @@ export default {
           </v-list-item>
           <v-list-item
             link
-            @click="$store.dispatch('exportFiles','visible')"
+            @click="store.exportFiles('visible')"
           >
             <v-list-item-title>
               {{ $gettext("Export Only Visible") }}
@@ -287,9 +298,9 @@ export default {
             <v-btn
 
               class="mx-2"
-              :color="$store.getters.anchorMode? 'grey':'regular'"
+              :color="rlinksStore.anchorMode? 'grey':'regular'"
               v-bind="props"
-              @click="$store.commit('changeAnchorMode')"
+              @click="rlinksStore.changeAnchorMode()"
             >
               <v-icon size="small">
                 fas fa-anchor
@@ -306,10 +317,10 @@ export default {
             <v-btn
 
               class="mx-2"
-              :disabled="!$store.getters.hasCycleway"
-              :color="$store.getters.cyclewayMode? 'green':'regular'"
+              :disabled="!rlinksStore.hasCycleway"
+              :color="rlinksStore.cyclewayMode? 'green':'regular'"
               v-bind="props"
-              @click="$store.commit('changeCyclewayMode')"
+              @click="rlinksStore.changeCyclewayMode()"
             >
               <v-icon size="small">
                 fas fa-biking
