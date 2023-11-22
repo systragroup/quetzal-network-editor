@@ -110,9 +110,7 @@ export default {
         </v-btn>
       </template>
     </v-snackbar>
-    <!--
-     <Alert />
-    -->
+    <Alert />
   </v-app>
 </template>
 <style lang="scss" scoped>

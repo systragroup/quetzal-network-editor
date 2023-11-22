@@ -3,7 +3,7 @@ import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
 
-import { toRaw } from 'vue'
+import { toRaw, computed } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -15,7 +15,10 @@ import RoadLinks from './RoadLinks.vue'
 import StaticLayer from '../utils/StaticLayer.vue'
 import LayerSelector from '../utils/LayerSelector.vue'
 import ODMap from './ODMap.vue'
-
+import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+import { useODStore } from '@src/store/od'
 const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 
 // Filter links from selected line
@@ -48,6 +51,41 @@ export default {
 
   },
   events: ['clickFeature'],
+
+  setup () {
+    const store = useIndexStore()
+    const linksStore = useLinksStore()
+    const rlinksStore = userLinksStore()
+    const ODStore = useODStore()
+    const mapStyle = computed(() => { return store.mapStyle })
+    const showLeftPanel = computed(() => { return store.showLeftPanel })
+    const editorTrip = computed(() => { return linksStore.editorTrip })
+    const editorNodes = computed(() => { return linksStore.editorNodes })
+    const firstNode = computed(() => { return linksStore.firstNode })
+    const lastNode = computed(() => { return linksStore.lastNode })
+    const anchorMode = computed(() => { return store.anchorMode })
+    const visibleRasters = computed(() => { return store.visibleRasters })
+    const rasterFiles = computed(() => { return store.styles })
+    const availableLayers = computed(() => { return store.availableLayers })
+
+    return {
+      store,
+      linksStore,
+      rlinksStore,
+      ODStore,
+      mapStyle,
+      showLeftPanel,
+      editorTrip,
+      editorNodes,
+      firstNode,
+      lastNode,
+      anchorMode,
+      visibleRasters,
+      rasterFiles,
+      availableLayers,
+
+    }
+  },
   data () {
     return {
       mapboxPublicKey: null,
@@ -66,26 +104,7 @@ export default {
     }
   },
   computed: {
-    mapStyle () { return this.$store.getters.mapStyle },
-    showLeftPanel () {
-      return this.$store.getters.showLeftPanel
-    },
-    editorTrip () {
-      return this.$store.getters.editorTrip
-    },
-    editorNodes () {
-      return this.$store.getters.editorNodes
-    },
-    firstNode () {
-      return this.$store.getters.firstNode
-    },
-    lastNode () {
-      return this.$store.getters.lastNode
-    },
-    anchorMode () { return this.$store.getters.anchorMode },
-    visibleRasters () { return this.$store.getters.visibleRasters },
-    rasterFiles () { return this.$store.getters.styles },
-    availableLayers () { return this.$store.getters.availableLayers },
+
   },
   watch: {
 
@@ -96,10 +115,10 @@ export default {
     anchorMode (val) {
       if (val) {
         this.drawMode = false
-        this.$store.commit('changeNotification',
+        this.this.store.changeNotification(
           { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
       } else {
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
+        this.this.store.changeNotification({ text: '', autoClose: true })
       }
     },
     mode (val) {
@@ -112,10 +131,10 @@ export default {
     },
 
     editorNodes (newVal, oldVal) {
-      this.$store.commit('setAnchorMode', false)
+      this.store.setAnchorMode(false)
       this.isEditorMode = (newVal.features.length > 0)
       if (this.isEditorMode) {
-        if (this.$store.getters.changeBounds) {
+        if (this.linksStore.changeBounds) {
           const bounds = new Mapbox.LngLatBounds()
           newVal.features.forEach(node => {
             bounds.extend(node.geometry.coordinates)
@@ -176,7 +195,7 @@ export default {
   mounted () {
     if (this.editorTrip) { this.isEditorMode = true }
     this.mapboxPublicKey = mapboxPublicKey
-    this.drawLink = toRaw(this.$store.getters.linksHeader)
+    this.drawLink = toRaw(this.linksStore.linksHeader)
   },
   beforeUnmount () {
     this.saveMapPosition()
@@ -185,7 +204,7 @@ export default {
   methods: {
     saveMapPosition () {
       const center = this.map.getCenter()
-      this.$store.commit('saveMapPosition', {
+      this.this.store.saveMapPosition({
         mapCenter: [center.lng, center.lat],
         mapZoom: this.map.getZoom(),
       })
@@ -195,13 +214,13 @@ export default {
       if (this.map) this.mapIsLoaded = false
       const bounds = new Mapbox.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-      if (this.$store.getters.links.features.length > 0) {
-        this.$store.getters.links.features.forEach(link => {
+      if (this.linksStore.links.features.length > 0) {
+        this.linksStore.links.features.forEach(link => {
           bounds.extend([link.geometry.coordinates[0],
             link.geometry.coordinates[link.geometry.coordinates.length - 1]])
         })
       } else {
-        this.$store.getters.rlinks.features.forEach(link => {
+        this.rlinksStore.rlinks.features.forEach(link => {
           bounds.extend([link.geometry.coordinates[0],
             link.geometry.coordinates[link.geometry.coordinates.length - 1]])
         })
@@ -256,7 +275,7 @@ export default {
               layerId: this.hoverLayer,
             }
             // this action overwrite payload.nodeIdB to the actual newLink nodeB.
-            this.$store.commit('createrLink', payload)
+            this.rlinksStore.createrLink(payload)
             this.drawMode = false
             // then, create a hover (and off hover) to the new node b to continue drawing
             this.onHoverRoad({ layerId: 'rnodes', selectedId: [payload.nodeIdB] })
@@ -265,19 +284,19 @@ export default {
           // onHoverRoad (event)
           } else { // PT nodes
             if (this.drawMode & !this.anchorMode & !this.hoverId) {
-              const action = (this.selectedNode.id === this.$store.getters.lastNodeId)
+              const action = (this.selectedNode.id === this.linksStore.lastNodeId)
                 ? 'Extend Line Upward'
                 : 'Extend Line Downward'
               const pointGeom = Object.values(event.mapboxEvent.lngLat)
 
-              this.$store.commit('applyNewLink', { nodeId: this.selectedNode.id, geom: pointGeom, action })
+              this.this.linksStore.applyNewLink({ nodeId: this.selectedNode.id, geom: pointGeom, action })
             }
           }
         } else {
         // for a new Line
           if (this.editorNodes.features.length === 0 && this.editorTrip) {
-            this.$store.commit('createNewNode', Object.values(event.mapboxEvent.lngLat))
-            this.$store.commit('changeNotification', { text: '', autoClose: true })
+            this.linksStore.createNewNode(Object.values(event.mapboxEvent.lngLat))
+            this.this.store.changeNotification({ text: '', autoClose: true })
           }
         }
       }
@@ -302,8 +321,8 @@ export default {
       this.hoverId = event.selectedId
       if (this.drawMode) { this.map.setLayoutProperty('drawLink', 'visibility', 'none') }
       // change hook when we hover first or last node.
-      if ([this.$store.getters.lastNodeId, this.$store.getters.firstNodeId].includes(this.hoverId)) {
-        const node = this.$store.getters.editorNodes.features.filter(node =>
+      if ([this.linksStore.lastNodeId, this.linksStore.firstNodeId].includes(this.hoverId)) {
+        const node = this.linksStore.editorNodes.features.filter(node =>
           node.properties.index === event.selectedId)
         this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
         this.selectedNode.id = this.hoverId
@@ -321,7 +340,7 @@ export default {
           this.connectedDrawLink = true
         } else {
           this.connectedDrawLink = false
-          const node = this.$store.getters.visiblerNodes.features.filter(node =>
+          const node = this.rlinksStore.visiblerNodes.features.filter(node =>
             node.properties.index === this.hoverId)
           this.drawLink = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
           this.drawMode = true
@@ -369,8 +388,8 @@ export default {
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
     :map-style="mapStyle"
-    :center="$store.getters.mapCenter"
-    :zoom="$store.getters.mapZoom"
+    :center="store.mapCenter"
+    :zoom="store.mapZoom"
     @load="onMapLoaded"
     @mousemove="draw"
     @mouseout="resetDraw()"

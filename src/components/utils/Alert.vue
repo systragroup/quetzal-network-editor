@@ -1,4 +1,6 @@
 <script>
+import { useIndexStore } from '@src/store/index'
+import { ref, computed, watch } from 'vue'
 export default {
   name: 'Alert',
   components: {
@@ -7,31 +9,25 @@ export default {
 
   props: [],
   events: [],
-  data () {
-    return {
-      sheet: false,
 
+  setup () {
+    const store = useIndexStore()
+    const sheet = ref(false)
+    const err = computed(() => { return store.alert })
+    const close = () => {
+      store.changeAlert({})
+      sheet.value = !sheet.value
     }
-  },
-  computed: {
-    err () {
-      return this.$store.getters.alert
-    },
-  },
-  watch: {
-    err (val) {
+    watch(err, (val) => {
       if (val.name) {
-        this.sheet = true
+        sheet.value = true
         console.error(val)
       }
-    },
+    })
+
+    return { sheet, err, close }
   },
-  methods: {
-    close () {
-      this.$store.commit('changeAlert', {})
-      this.sheet = !this.sheet
-    },
-  },
+
 }
 </script>
 <template>

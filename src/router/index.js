@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Import from '@page/Import.vue'
 import Home from '@page/Home.vue'
-import { useIndexStore } from '@src/store/index'
+import { useRunStore } from '@src/store/run'
+import { useIndexStore } from '../store'
 
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
@@ -35,7 +36,9 @@ const router = createRouter({
       icon: 'fa-solid fa-play',
       title: $gettext('Parameters and Run'),
       beforeEnter: (to, from, next) => {
-        if (store.getters['run/parametersIsEmpty']) {
+        const store = useIndexStore()
+        const runStore = useRunStore()
+        if (runStore.parametersIsEmpty) {
           store.commit('changeNotification',
             {
               text: $gettext('you need parameters to enter this page'),
