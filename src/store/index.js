@@ -303,7 +303,7 @@ export const useIndexStore = defineStore('store', {
       let rnodes = ''
       let od = ''
       // export only visible line (line selected)
-      this.applyPropertiesTypes()
+      linksStore.applyPropertiesTypes()
       if (payload !== 'all') {
         const tempLinks = cloneDeep(linksStore.links)
         tempLinks.features = tempLinks.features.filter(
@@ -408,7 +408,7 @@ export const useIndexStore = defineStore('store', {
       const runStore = useRunStore()
       const userStore = useUserStore()
       userStore.isTokenExpired()
-      this.applyPropertiesTypes()
+      linksStore.applyPropertiesTypes()
       const scen = userStore.scenario + '/'
       const bucket = userStore.model
       const inputFolder = scen + 'inputs/'

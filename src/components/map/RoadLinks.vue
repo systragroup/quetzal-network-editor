@@ -1,7 +1,9 @@
 <script>
 
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
-
+import { computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
@@ -13,9 +15,37 @@ export default {
     MglImageLayer,
     MglPopup,
   },
-  props: ['map', 'isEditorMode', 'anchorMode', 'isRoadMode'],
+  props: ['map', 'isEditorMode', 'isRoadMode'],
   events: ['clickFeature'],
+  setup () {
+    const store = useIndexStore()
+    const rlinksStore = userLinksStore()
+    const anchorMode = computed(() => { return store.anchorMode })
+    const selectedPopupContent = computed(() => { return store.roadsPopupContent })
+    const selectedrGroup = computed(() => { return rlinksStore.selectedrGroup })
+    const cyclewayMode = computed(() => { return store.cyclewayMode })
+    const rnodes = computed(() => { return rlinksStore.visiblerNodes })
+    const rlinks = computed(() => { return rlinksStore.visiblerLinks })
+    const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
+    const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
+    const renderedAnchorrNodes = computed(() => {
+      return anchorMode.value ? rlinksStore.anchorrNodes : rlinksStore.rnodesHeader
+    })
 
+    return {
+      store,
+      rlinksStore,
+      anchorMode,
+      selectedPopupContent,
+      selectedrGroup,
+      cyclewayMode,
+      rlinks,
+      rnodes,
+      renderedrLinks,
+      renderedrNodes,
+      renderedAnchorrNodes,
+    }
+  },
   data () {
     return {
       hoveredStateId: null,
@@ -39,16 +69,7 @@ export default {
     }
   },
   computed: {
-    selectedPopupContent () { return this.$store.getters.roadsPopupContent },
-    selectedrGroup () { return this.$store.getters.selectedrGroup },
-    cyclewayMode () { return this.$store.getters.cyclewayMode },
-    rnodes () { return this.$store.getters.visiblerNodes },
-    rlinks () { return this.$store.getters.visiblerLinks },
-    renderedrLinks () { return this.$store.getters.renderedrLinks },
-    renderedrNodes () { return this.$store.getters.renderedrNodes },
-    renderedAnchorrNodes () {
-      return this.anchorMode ? this.$store.getters.anchorrNodes : this.$store.getters.rnodesHeader
-    },
+
     ArrowSizeCondition () {
       // when we want to show the cycleway direction.
       // [cycleway, cycleway_reverse]
@@ -160,15 +181,15 @@ export default {
       if (this.map.getZoom() > this.minZoom.rendered) {
         // get links in or intersecting with bbox
         this.routeWidth = 2
-        this.$store.commit('getRenderedrLinks', { bbox: this.bbox })
+        this.rlinksStore.getRenderedrLinks({ bbox: this.bbox })
       } else if (this.map.getZoom() > this.minZoom.links) {
         // evrey links are rendered (not editable). no nodes
         this.routeWidth = 1
-        this.$store.commit('setRenderedrLinks', { method: 'visible' })
+        this.rlinksStore.setRenderedrLinks({ method: 'visible' })
       } else {
         this.routeWidth = 1
         // Nothing is is rendered.
-        this.$store.commit('setRenderedrLinks', { method: 'None' })
+        this.rlinksStore.setRenderedrLinks({ method: 'None' })
       }
     },
     onCursor (event) {
@@ -322,7 +343,7 @@ export default {
           // disable popup
           this.disablePopup = true
           if (this.hoveredStateId.layerId === 'rnodes') {
-            this.$store.commit('getConnectedLinks', { selectedNode: this.selectedFeature })
+            this.rlinksStore.getConnectedLinks({ selectedNode: this.selectedFeature })
           }
           // get position
           this.map.on('mousemove', this.onMove)
@@ -467,7 +488,7 @@ export default {
       source-id="anchorrNodes"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedAnchorrNodes: $store.getters.rnodesHeader,
+        data: isRoadMode? renderedAnchorrNodes: rlinksStore.rnodesHeader,
         buffer: 0,
         promoteId: 'index',
       }"

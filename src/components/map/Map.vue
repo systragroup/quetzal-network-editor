@@ -115,10 +115,10 @@ export default {
     anchorMode (val) {
       if (val) {
         this.drawMode = false
-        this.this.store.changeNotification(
+        this.store.changeNotification(
           { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
       } else {
-        this.this.store.changeNotification({ text: '', autoClose: true })
+        this.store.changeNotification({ text: '', autoClose: true })
       }
     },
     mode (val) {
@@ -204,13 +204,12 @@ export default {
   methods: {
     saveMapPosition () {
       const center = this.map.getCenter()
-      this.this.store.saveMapPosition({
+      this.store.saveMapPosition({
         mapCenter: [center.lng, center.lat],
         mapZoom: this.map.getZoom(),
       })
     },
     onMapLoaded (event) {
-      console.log('load')
       if (this.map) this.mapIsLoaded = false
       const bounds = new Mapbox.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
@@ -263,7 +262,7 @@ export default {
       }
     },
     addPoint (event) {
-      console.log(event)
+      // console.log(event)
       if (Object.keys(event).includes('mapboxEvent')) {
         if (this.drawMode) {
           if (this.selectedNode.layerId === 'rnodes') {
@@ -289,14 +288,14 @@ export default {
                 : 'Extend Line Downward'
               const pointGeom = Object.values(event.mapboxEvent.lngLat)
 
-              this.this.linksStore.applyNewLink({ nodeId: this.selectedNode.id, geom: pointGeom, action })
+              this.linksStore.applyNewLink({ nodeId: this.selectedNode.id, geom: pointGeom, action })
             }
           }
         } else {
         // for a new Line
           if (this.editorNodes.features.length === 0 && this.editorTrip) {
             this.linksStore.createNewNode(Object.values(event.mapboxEvent.lngLat))
-            this.this.store.changeNotification({ text: '', autoClose: true })
+            this.store.changeNotification({ text: '', autoClose: true })
           }
         }
       }
@@ -432,7 +431,6 @@ export default {
         :map="map"
         :is-editor-mode="isEditorMode"
         :is-road-mode="mode==='road'"
-        :anchor-mode="anchorMode"
         v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
@@ -448,7 +446,6 @@ export default {
     <template v-if="mapIsLoaded">
       <EditorLinks
         :map="map"
-        :anchor-mode="anchorMode"
         v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>

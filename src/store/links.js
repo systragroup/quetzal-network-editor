@@ -9,17 +9,18 @@ import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
+import { ref } from 'vue'
 import short from 'short-uuid'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
   state: () => ({
-    links: {},
+    links: ref({}),
     editorTrip: null,
     editorNodes: {},
     editorLinks: {},
     editorLineInfo: {},
-    nodes: {},
+    nodes: ref({}),
     nodesHeader: {},
     linksHeader: {},
     tripId: [],
@@ -64,9 +65,9 @@ export const useLinksStore = defineStore('links', {
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.links.crs.properties.name)) {
         const linksHeader = cloneDeep(this.links)
         linksHeader.features = []
-        this.linksHeader = linksHeader
+        this.linksHeader = cloneDeep(linksHeader)
 
-        this.editorLinks = linksHeader
+        this.editorLinks = cloneDeep(linksHeader)
         // limit geometry precision to 6 digit
         this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -81,12 +82,12 @@ export const useLinksStore = defineStore('links', {
     },
 
     loadNodes (payload) {
-      this.nodes = JSON.parse(JSON.stringify(payload))
+      this.nodes = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.nodes.crs.properties.name)) {
         const nodesHeader = cloneDeep(this.nodes)
         nodesHeader.features = []
-        this.nodesHeader = nodesHeader
-        this.editorNodes = nodesHeader
+        this.nodesHeader = cloneDeep(nodesHeader)
+        this.editorNodes = cloneDeep(nodesHeader)
         // limit geometry precision to 6 digit
         this.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
@@ -219,7 +220,7 @@ export const useLinksStore = defineStore('links', {
       this.changeBounds = payload.changeBounds
       // set editor links corresponding to trip id
       // var filtered = {...this.links}
-      const filtered = JSON.parse(JSON.stringify(this.links))
+      const filtered = cloneDeep(this.links)
       filtered.features = filtered.features.filter(link => link.properties.trip_id === this.editorTrip)
       this.editorLinks = filtered
       // get the corresponding nodes
@@ -279,7 +280,7 @@ export const useLinksStore = defineStore('links', {
       const b = this.editorLinks.features.map(item => item.properties.b)
       const editorNodesList = new Set([...a, ...b])
       // set nodes corresponding to trip id
-      const filtered = JSON.parse(JSON.stringify(payload.nodes))
+      const filtered = cloneDeep(payload.nodes)
       filtered.features = filtered.features.filter(node => editorNodesList.has(node.properties.index))
       this.editorNodes = filtered
     },
@@ -430,7 +431,7 @@ export const useLinksStore = defineStore('links', {
         uncopiedPropeties[key] = null
       })
       // Copy specified node
-      const tempNode = JSON.parse(JSON.stringify(this.editorNodes))
+      const tempNode = cloneDeep(this.editorNodes)
       const features = tempNode.features.filter(node => node.properties.index === payload.nodeCopyId)[0]
       Object.assign(features.properties, uncopiedPropeties)
       features.properties.index = 'node_' + short.generate()
@@ -726,40 +727,18 @@ export const useLinksStore = defineStore('links', {
     },
 
     confirmChanges () { // apply change to Links
-      const filtered = { ...this.links }
-
-      filtered.features = filtered.features.filter(link => link.properties.trip_id === this.editorTrip)
-      const toDelete = filtered.features.filter(item => !this.editorLinks.features.includes(item))
-      // find index of soon to be deleted links
-      if (this.tripId.includes(this.editorTrip)) {
-        // eslint-disable-next-line no-var
-        var index = this.links.features.findIndex(link => link.properties.trip_id === this.editorTrip)
-      } else {
-        // eslint-disable-next-line no-var, no-redeclare
-        var index = 0
-      }
-      // delete links that were edited.
-      this.links.features = this.links.features.filter(item => !toDelete.includes(item))
-      // add edited links to links.
-
-      this.links.features.splice(index, 0, ...this.editorLinks.features)
+      this.links.features = this.links.features.filter(link => link.properties.trip_id !== this.editorTrip)
+      this.links.features.push(...this.editorLinks.features)
       // all new nodes.
-      const nodesList = this.nodes.features.map(item => item.properties.index)
-      const newNodes = { ...this.editorNodes }
-      newNodes.features = newNodes.features.filter(node => !nodesList.includes(node.properties.index))
-      this.nodes.features.push(...newNodes.features)
-
-      // for each editor nodes, apply new properties.
-      this.nodes.features.filter(
-        function (node) {
-          this.editorNodes.features.forEach(
-            function (eNode) {
-              if (node.properties.index === eNode.properties.index) {
-                node.properties = eNode.properties
-                node.geometry = eNode.geometry
-              }
-            })
-        })
+      for (const eNode of this.editorNodes.features) {
+        const filteredNode = this.nodes.features.filter((node) => node.properties.index === eNode.properties.index)
+        if (filteredNode.length === 0) {
+          this.nodes.features.push(eNode)
+        } else {
+          filteredNode[0].properties = eNode.properties
+          filteredNode[0].geometry = eNode.geometry
+        }
+      }
 
       // delete every every nodes not in links
       this.deleteUnusedNodes()
@@ -785,7 +764,6 @@ export const useLinksStore = defineStore('links', {
         ...link.geometry.coordinates.slice(0, -1),
         this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
       ])
-
       this.newLink = {}
       this.newNode = {}
 
@@ -829,13 +807,13 @@ export const useLinksStore = defineStore('links', {
     lastNodeId: (state) => state.editorNodes.features.length > 1
       ? state.editorLinks.features.slice(-1)[0].properties.b
       : state.editorNodes.features[0].properties.index,
-    firstNode: (state, getters) => state.editorTrip
+    firstNode: (state) => state.editorTrip
       ? state.editorNodes.features.filter(
-        (node) => node.properties.index === getters.firstNodeId)[0]
+        (node) => node.properties.index === state.firstNodeId)[0]
       : null,
-    lastNode: (state, getters) => state.editorTrip
+    lastNode: (state) => state.editorTrip
       ? state.editorNodes.features.filter(
-        (node) => node.properties.index === getters.lastNodeId)[0]
+        (node) => node.properties.index === state.lastNodeId)[0]
       : null,
     anchorNodes: (state) => {
       const nodes = cloneDeep(state.nodesHeader)

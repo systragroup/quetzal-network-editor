@@ -422,7 +422,9 @@ export default {
     },
     confirmChanges () {
       // confirm changes on sidePanel, this overwrite Links in store.
-      this.store.confirmChanges()
+      console.log('before')
+      this.linksStore.confirmChanges()
+      console.log('after')
       // put editTrip and action to null.
       this.editorTrip = null
       this.linksStore.setEditorTrip({ tripId: null, changeBounds: false })

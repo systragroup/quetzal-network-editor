@@ -2,6 +2,10 @@
 <script>
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
 import short from 'short-uuid'
+import { computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useODStore } from '@src/store/od'
+
 const $gettext = s => s
 
 export default {
@@ -13,7 +17,14 @@ export default {
   },
   props: ['map', 'isODMode', 'isEditorMode'],
   events: [],
+  setup () {
+    const store = useIndexStore()
+    const ODStore = useODStore()
+    const layer = computed(() => { return ODStore.visibleLayer })
+    const nodes = computed(() => { return ODStore.nodes(layer.value) })
 
+    return { store, ODStore, layer, nodes }
+  },
   data () {
     return {
       hoveredStateId: null,
@@ -30,16 +41,6 @@ export default {
 
     }
   },
-  computed: {
-    layer () { return this.$store.getters['od/visibleLayer'] },
-    nodes () {
-      return this.$store.getters['od/nodes'](this.layer)
-    },
-
-  },
-
-  watch: {
-  },
 
   created () {
     this.map.on('click', this.test)
@@ -50,7 +51,7 @@ export default {
       if (this.isODMode) {
         if (!this.drawMode) {
           const index = 'OD_' + short.generate()
-          this.$store.commit('od/createNewLink', { lngLat: Object.values(event.lngLat), index })
+          this.ODStore.createNewLink({ lngLat: Object.values(event.lngLat), index })
           this.dragNode = true
           this.selectedFeature = { properties: { linkIndex: index, coordinatedIndex: 1 } }
           // get position
@@ -126,7 +127,7 @@ export default {
           selectedFeature: this.selectedFeature,
           lngLat: Object.values(event.lngLat),
         }
-        this.$store.commit('od/moveNode', click)
+        this.ODStore.moveNode(click)
         // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
         // this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
         //  booleanContains(this.bbox, node))
@@ -225,7 +226,7 @@ export default {
       source-id="ODNodes"
       :source="{
         type: 'geojson',
-        data: isODMode? nodes : $store.getters['od/layerHeader'],
+        data: isODMode? nodes : ODStore.layerHeader,
         buffer: 0,
         promoteId: 'index',
       }"

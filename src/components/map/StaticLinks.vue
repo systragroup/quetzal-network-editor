@@ -3,7 +3,9 @@
 import { MglGeojsonLayer } from 'vue-mapbox'
 import mapboxgl from 'mapbox-gl'
 import { cloneDeep } from 'lodash'
-
+import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
+import { computed } from 'vue'
 export default {
   name: 'StaticLinks',
   components: {
@@ -11,7 +13,15 @@ export default {
   },
   props: ['map', 'showedTrips', 'isEditorMode'],
   events: ['rightClick'],
+  setup () {
+    const store = useIndexStore()
+    const linksStore = useLinksStore()
+    const selectedPopupContent = computed(() => { return store.linksPopupContent })
+    const links = computed(() => { return linksStore.links })
+    const nodes = computed(() => { return linksStore.nodes })
 
+    return { store, linksStore, selectedPopupContent, links, nodes }
+  },
   data () {
     return {
       visibleNodes: {},
@@ -19,11 +29,6 @@ export default {
       selectedFeatures: [],
 
     }
-  },
-  computed: {
-    selectedPopupContent () { return this.$store.getters.linksPopupContent },
-    links () { return this.$store.getters.links },
-    nodes () { return this.$store.getters.nodes },
   },
 
   watch: {
@@ -36,8 +41,8 @@ export default {
   },
 
   created () {
-    this.visibleLinks = cloneDeep(this.$store.getters.linksHeader)
-    this.visibleNodes = cloneDeep(this.$store.getters.nodesHeader)
+    this.visibleLinks = cloneDeep(this.linksStore.linksHeader)
+    this.visibleNodes = cloneDeep(this.linksStore.nodesHeader)
     this.setHiddenFeatures()
     this.map.on('dblclick', this.selectLine)
   },
@@ -115,13 +120,13 @@ export default {
       if (this.selectedFeatures.length > 0) {
         // set. the first one as editor mode
         // eslint-disable-next-line max-len
-        this.$store.commit('setEditorTrip', { tripId: this.selectedFeatures[0].properties.trip_id, changeBounds: false })
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
+        this.linksStore.setEditorTrip({ tripId: this.selectedFeatures[0].properties.trip_id, changeBounds: false })
+        this.store.changeNotification({ text: '', autoClose: true })
       }
     },
     editLineProperties (event) {
       // eslint-disable-next-line max-len
-      this.$store.commit('setEditorTrip', { tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
+      this.linksStore.setEditorTrip({ tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       this.$emit('rightClick', { action: 'Edit Line Info', lingering: false })
     },
 

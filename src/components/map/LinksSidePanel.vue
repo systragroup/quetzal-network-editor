@@ -134,7 +134,7 @@ export default {
       if (this.editorTrip === value) {
         this.showDialog = true
       } else {
-        this.store.setEditorTrip({ tripId: value, changeBounds: true })
+        this.linksStore.setEditorTrip({ tripId: value, changeBounds: true })
         this.store.changeNotification({ text: '', autoClose: true })
       }
     },
@@ -144,7 +144,7 @@ export default {
       if (typeof value === 'object') {
         this.$emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
       } else if (!this.editorTrip) {
-        this.store.setEditorTrip({ tripId: value, changeBounds: false })
+        this.linksStore.setEditorTrip({ tripId: value, changeBounds: false })
         this.$emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
         // just open dialog
       } else {
@@ -392,7 +392,6 @@ export default {
                   <template v-slot:activator="{ props }">
                     <v-list-item-title
                       v-if="item==editorTrip"
-                      v-on="on"
                     >
                       <strong>{{ item }}</strong>
                     </v-list-item-title>

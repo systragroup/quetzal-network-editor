@@ -1,5 +1,10 @@
 <script>
 import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox'
+import { useIndexStore } from '@src/store/index'
+
+import { useLinksStore } from '@src/store/links'
+
+import { computed } from 'vue'
 const $gettext = s => s
 
 export default {
@@ -9,8 +14,17 @@ export default {
     MglImageLayer,
     MglGeojsonLayer,
   },
-  props: ['map', 'anchorMode'],
+  props: ['map'],
   events: ['clickFeature', 'onHover', 'offHover'],
+  setup () {
+    const store = useIndexStore()
+
+    const linksStore = useLinksStore()
+    const anchorMode = computed(() => { return store.anchorMode })
+    const anchorNodes = computed(() => { return anchorMode.value ? linksStore.anchorNodes : linksStore.nodesHeader })
+
+    return { store, linksStore, anchorMode, anchorNodes }
+  },
   data () {
     return {
       selectedFeature: null,
@@ -31,15 +45,6 @@ export default {
         type: null, // link of node
       },
     }
-  },
-  computed: {
-    anchorNodes () { return this.anchorMode ? this.$store.getters.anchorNodes : this.$store.getters.nodesHeader },
-  },
-
-  watch: {
-
-  },
-  created () {
   },
 
   methods: {
@@ -122,13 +127,13 @@ export default {
 
         const selectedNode = this.contextMenu.feature.properties.index
 
-        if (selectedNode === this.$store.getters.firstNodeId) {
+        if (selectedNode === this.linksStore.firstNodeId) {
           this.contextMenu.actions =
           [
             $gettext('Edit Node Info'),
             $gettext('Delete Stop'),
           ]
-        } else if (selectedNode === this.$store.getters.lastNodeId) {
+        } else if (selectedNode === this.linksStore.lastNodeId) {
           this.contextMenu.actions =
           [
             $gettext('Edit Node Info'),
@@ -243,7 +248,7 @@ export default {
       source-id="editorLinks"
       :source="{
         type: 'geojson',
-        data: $store.getters.editorLinks,
+        data: linksStore.editorLinks,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -289,7 +294,7 @@ export default {
       source-id="editorNodes"
       :source="{
         type: 'geojson',
-        data: $store.getters.editorNodes,
+        data: linksStore.editorNodes,
         buffer: 0,
         promoteId: 'index',
       }"
