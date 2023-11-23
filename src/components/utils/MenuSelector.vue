@@ -2,23 +2,17 @@
 
 export default {
   name: 'MenuSelector',
-  model: {
-    prop: 'selectedVal',
-    event: 'select',
-  },
   // eslint-disable-next-line vue/require-prop-types
-  props: { items: { type: Array, default: () => [] }, selectedVal: { default: () => null } },
-  events: ['select'],
+  props: {
+    items: { type: Array, default: () => [] },
+    value: { default: () => null },
+  },
+  events: ['update:value'],
   data () {
     return {
-      selectedLayer: 1,
       openMenu: false,
 
     }
-  },
-  computed: {
-  },
-  watch: {
   },
 
   //  mounted () {
@@ -60,8 +54,8 @@ export default {
         <v-list-item
           v-for="(val,key) in items"
           :key="key"
-          :class="{ 'is-active': val === selectedVal}"
-          @click="()=>$emit('select',val)"
+          :class="{ 'is-active': val === value}"
+          @click="()=>$emit('update:value',val)"
         >
           <v-list-item-title>
             {{ val }}

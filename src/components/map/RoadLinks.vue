@@ -26,6 +26,7 @@ export default {
     const cyclewayMode = computed(() => { return store.cyclewayMode })
     const rnodes = computed(() => { return rlinksStore.visiblerNodes })
     const rlinks = computed(() => { return rlinksStore.visiblerLinks })
+    console.log(rlinks)
     const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
     const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
     const renderedAnchorrNodes = computed(() => {
@@ -412,7 +413,7 @@ export default {
         type: 'line',
         minzoom: minZoom.links,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], '#7EBAAC'],
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
           'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*routeWidth, routeWidth],
                          ['case', ['has', 'route_width'],

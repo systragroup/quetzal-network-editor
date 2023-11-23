@@ -29,14 +29,12 @@ export default {
   computed: {
   },
   watch: {
-    loading (val) { console.log(val) },
     notification () {
       this.snackbar = !!this.notification.text
     },
     snackbar (val) {
       if (val === false) {
         this.store.changeNotification({ text: '', autoClose: true })
-        console.log(this.notification)
       }
     },
   },

@@ -342,7 +342,6 @@ export const userLinksStore = defineStore('rlinks', {
       const bbox = toRaw(payload.bbox)
       this.renderedrLinks.features = this.visiblerLinks.features.filter(
         link => (booleanContains(bbox, link) || booleanCrosses(bbox, link)))
-      console.log(this.visiblerLinks)
       this.getRenderedrNodes()
     },
     getRenderedrNodes () { // get rendered nodes

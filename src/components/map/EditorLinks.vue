@@ -1,9 +1,7 @@
 <script>
 import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox'
 import { useIndexStore } from '@src/store/index'
-
 import { useLinksStore } from '@src/store/links'
-
 import { computed } from 'vue'
 const $gettext = s => s
 

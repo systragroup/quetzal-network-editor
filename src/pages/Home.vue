@@ -671,15 +671,14 @@ export default {
               @keydown.enter.stop="addField"
               @wheel="$event.target.blur()"
             >
-              <template v-slot:append-outer>
+              <template v-slot:append>
                 <v-btn
                   color="primary"
+                  icon="fas fa-plus"
                   class="text--primary"
                   size="x-small"
                   @click="addField"
-                >
-                  <v-icon>fas fa-plus</v-icon>
-                </v-btn>
+                />
               </template>
             </v-text-field>
           </v-row>

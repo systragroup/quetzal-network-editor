@@ -38,7 +38,7 @@ export default {
     tripList (newVal, oldVal) {
       let changes = ''
       let method = 'add'
-      if (newVal === this.filteredCat) {
+      if (JSON.stringify(newVal) === JSON.stringify(this.filteredCat)) {
         changes = newVal
         method = 'showAll'
       } else if (newVal.length === 0) {
