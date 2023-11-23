@@ -26,44 +26,36 @@ export default {
 
 }
 </script>
-<template
-  v-slot:append
->
-  <div>
-    <v-menu
-      v-model="openMenu"
-      close-delay="100"
-      max-height="60%"
-      transition="slide-y-transition"
-    >
-      <template v-slot:activator="{ props }">
-        <v-btn
-          icon
-          color="regular"
-          size="small"
-          v-bind="props"
-          @click="openMenu = !openMenu"
-        >
-          <v-icon>
-            {{ openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}
-          </v-icon>
-        </v-btn>
-      </template>
+<template>
+  <v-menu
+    v-model="openMenu"
+    close-delay="100"
+    max-height="100%"
+    transition="slide-y-transition"
+  >
+    <template v-slot:activator="{ props }">
+      <v-btn
+        variant="text"
+        :icon="openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down'"
+        color="regular"
+        size="x-small"
+        v-bind="props"
+      />
+    </template>
 
-      <v-list>
-        <v-list-item
-          v-for="(val,key) in items"
-          :key="key"
-          :class="{ 'is-active': val === value}"
-          @click="()=>$emit('update:value',val)"
-        >
-          <v-list-item-title>
-            {{ val }}
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-  </div>
+    <v-list>
+      <v-list-item
+        v-for="(val,key) in items"
+        :key="key"
+        :class="{ 'is-active': val === value}"
+        @click="()=>$emit('update:value',val)"
+      >
+        <v-list-item-title>
+          {{ val }}
+        </v-list-item-title>
+      </v-list-item>
+    </v-list>
+  </v-menu>
 </template>
 <style lang="scss" scoped>
 .is-active{

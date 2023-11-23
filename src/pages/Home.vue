@@ -640,8 +640,9 @@ export default {
                     v-slot:append
                   >
                     <MenuSelector
-                      v-model="value['value']"
+                      :value="value['value']"
                       :items="attributesChoices[key]"
+                      @update:value="val=>value['value']=val"
                     />
                   </template>
                   <template
