@@ -26,7 +26,6 @@ export default {
     const cyclewayMode = computed(() => { return store.cyclewayMode })
     const rnodes = computed(() => { return rlinksStore.visiblerNodes })
     const rlinks = computed(() => { return rlinksStore.visiblerLinks })
-    console.log(rlinks)
     const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
     const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
     const renderedAnchorrNodes = computed(() => {

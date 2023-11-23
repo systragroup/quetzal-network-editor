@@ -122,6 +122,7 @@ export const useIndexStore = defineStore('store', {
 
         outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
         otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
+        // at this point. nothing is used in otherFiles.
 
         // PT files should be in pair of 2 (links and nodes)
         if (ptFiles.length % 2 !== 0) {
@@ -139,26 +140,26 @@ export const useIndexStore = defineStore('store', {
         rlinksStore.loadRoadFiles(roadFiles)
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.getLocalParameters(paramFile.content)
+        if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
         if (stylesFile) {
           const json = stylesSerializer(stylesFile.content)
           this.styles = json
         }
-        if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
 
         this.loadOtherFiles(inputFiles)
-
+        // TODO
         // get outputs geojson files and create Layer with them.
-        const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
-        outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
-        this.loadLayers(layerFiles)
+        // const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
+        // outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
+        // this.loadLayers(layerFiles)
 
         // get JSON files with the same name as Modules (they are matrix)
-        const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
-        this.availableLayersStore.includes(el.path.slice(0, -5)),
-        )
-        outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
+        // const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
+        // this.availableLayersStore.includes(el.path.slice(0, -5)),
+        // )
+        // outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
 
-        this.loadMatrix(matrixFiles)
+        // this.loadMatrix(matrixFiles)
 
         // load the rest
         this.loadOtherFiles(outputFiles)
@@ -170,7 +171,7 @@ export const useIndexStore = defineStore('store', {
     },
 
     loadOtherFiles (payload) {
-      // payload = [{path, content, type}]
+      // payload = [{path, content}]
       // if a file is updated with the same path (already exist). remove it
       const newPaths = payload.map(file => file.path)
       this.otherFiles = this.otherFiles.filter(file => !newPaths.includes(file.path))
@@ -515,7 +516,7 @@ export const useIndexStore = defineStore('store', {
       const links = useLinksStore()
       const rlinks = userLinksStore()
       const od = useODStore()
-      let filteredLayers = structuredClone(toRaw(state.availableLayersStore))
+      let filteredLayers = cloneDeep(state.availableLayersStore)
       if (links.links.features.length === 0) {
         filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
       }

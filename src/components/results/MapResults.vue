@@ -3,6 +3,9 @@
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
+import { useIndexStore } from '@src/store/index'
+import { toRaw } from 'vue'
+import { cloneDeep } from 'lodash'
 
 const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 const $gettext = s => s
@@ -18,9 +21,12 @@ export default {
     MglImageLayer,
 
   },
-  props: ['selectedFeature', 'opacity', 'offset'],
+  props: ['selectedFeature', 'layerType', 'links', 'nanLinks', 'opacity', 'offset'],
   events: ['selectClick'],
-
+  setup () {
+    const store = useIndexStore()
+    return { store }
+  },
   data () {
     return {
       mapIsLoaded: false,
@@ -34,11 +40,8 @@ export default {
     }
   },
   computed: {
-    mapStyle () { return this.$store.getters.mapStyle },
-    layerType () { return this.$store.getters['results/type'] },
+    mapStyle () { return this.store.mapStyle },
     offsetValue () { return this.offset ? -1 : 1 },
-    NaNLinks () { return this.$store.getters['results/NaNLinks'] },
-    links () { return this.$store.getters['results/visibleLinks'] },
 
   },
   watch: {
@@ -68,7 +71,7 @@ export default {
   methods: {
     saveMapPosition () {
       const center = this.map.getCenter()
-      this.$store.commit('saveMapPosition', {
+      this.store.saveMapPosition({
         mapCenter: [center.lng, center.lat],
         mapZoom: this.map.getZoom(),
       })
@@ -114,7 +117,7 @@ export default {
       if (this.layerType !== 'extrusion') {
         event.map.dragRotate.disable()
       } else {
-        this.$store.commit('changeNotification',
+        this.store.changeNotification(
           { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
       }
 
@@ -167,8 +170,8 @@ export default {
     :style="{'width': '100%'}"
     :access-token="mapboxPublicKey"
     :map-style="mapStyle"
-    :center="$store.getters.mapCenter"
-    :zoom="$store.getters.mapZoom"
+    :center="store.mapCenter"
+    :zoom="store.mapZoom"
     @load="onMapLoaded"
   >
     <MglScaleControl position="bottom-right" />
@@ -321,7 +324,7 @@ export default {
       source-id="NaNPolygon"
       :source="{
         type: 'geojson',
-        data: NaNLinks,
+        data: nanLinks,
         promoteId: 'index',
       }"
       layer-id="NaNresults"

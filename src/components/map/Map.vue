@@ -111,7 +111,6 @@ export default {
     showLeftPanel () {
       setTimeout(() => this.map.resize(), 250)
     },
-    'visibleRasters.value' (val) { console.log(val) },
     anchorMode (val) {
       if (val) {
         this.drawMode = false
@@ -403,6 +402,7 @@ export default {
 
       <LayerSelector
         v-if="rasterFiles.length>0"
+
         :choices="rasterFiles"
         :available-layers="availableLayers"
       />

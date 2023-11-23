@@ -1,4 +1,6 @@
 <script>
+import { useIndexStore } from '@src/store/index'
+import { ref, onMounted, watch } from 'vue'
 
 export default {
   name: 'LayerSelector',
@@ -14,31 +16,25 @@ export default {
       default: () => [],
     },
   },
-  data () {
-    return {
-      show: false,
-      selectedLayers: [],
-      selectedOpacity: 0,
-
-    }
-  },
-  watch: {
-    selectedLayers (val) {
+  setup (props) {
+    const store = useIndexStore()
+    const show = ref(false)
+    const selectedLayers = ref([])
+    onMounted(() => { selectedLayers.value = store.visibleRasters })
+    watch(selectedLayers, (val) => {
       const resp = []
       val.forEach(item => resp.push(item))
-      console.log(resp)
-      this.$store.commit('setVisibleRasters', resp)
-    },
-    choices (vals) {
+      store.setVisibleRasters(resp)
+    })
+    watch(props.choices, (vals) => {
       const choices = vals.map(el => el.name)
-      this.selectedLayers = this.selectedLayers.filter(layer => choices.includes(layer))
-    },
+      selectedLayers.value = selectedLayers.value.filter(layer => choices.includes(layer))
+    })
 
-  },
-  mounted () {
-    this.selectedLayers = this.$store.getters.visibleRasters
-  },
+    const selectedOpacity = ref(0)
 
+    return { show, selectedLayers, selectedOpacity }
+  },
 }
 </script>
 <template>
@@ -52,16 +48,10 @@ export default {
     <template v-slot:activator="{ props }">
       <div class="layer-button">
         <v-btn
-          size="small"
-
           v-bind="props"
-        >
-          <v-icon
-            :color="(selectedLayers.length > 0)? 'success' : 'regular'"
-          >
-            fas fa-layer-group
-          </v-icon>
-        </v-btn>
+          :color="(selectedLayers.length > 0)? 'success' : 'regular'"
+          icon="fas fa-layer-group"
+        />
       </div>
     </template>
     <v-card
@@ -74,7 +64,7 @@ export default {
         v-for="(item,key) in choices"
         :key="key"
       >
-        <v-list-item-action>
+        <template v-slot:append>
           <v-checkbox
             v-model="selectedLayers"
             :value="item.name"
@@ -82,8 +72,7 @@ export default {
             :true-icon="'fa-eye fa'"
             :disabled="!availableLayers.includes(item.layer)"
           />
-        </v-list-item-action>
-
+        </template>
         <v-tooltip
           location="top"
           open-delay="300"
@@ -106,15 +95,14 @@ export default {
 </template>
 <style lang="scss" scoped>
 .layer-button {
-  left: 98%;
+  left: 92.5%;
   top:3rem;
-  width: 0px;
   z-index: 2;
   display: flex;
   position: relative;
   align-items: center;
   justify-content: center;
-  height: 50px;
+  height: 100px;
 }
 .card {
   width: 500px;

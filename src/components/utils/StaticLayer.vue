@@ -1,7 +1,8 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
 import MapLegend from '@comp/utils/MapLegend.vue'
-import { toRaw } from 'vue'
+import { toRaw, onBeforeUnmount, ref, toRefs, onMounted } from 'vue'
+import { useIndexStore } from '@src/store/index'
 const $gettext = s => s
 
 // set visibility. to render or not by fetching the data.
@@ -15,23 +16,36 @@ export default {
 
   },
   props: ['preset', 'map', 'order'],
-  data () {
+  setup (props) {
+    const store = useIndexStore()
+    const { preset } = toRefs(props.preset)
+    const type = ref('')
+    const layer = ref({})
+    const opacity = ref(preset.value.displaySettings.opacity)
+    const offsetValue = ref(preset.value.displaySettings.offset ? -1 : 1)
+    const displaySettings = ref({})
+    const colorScale = ref(null)
+    onBeforeUnmount(() => {
+      if (props.map.getLayer(preset.value.name + '-layer')) {
+        props.map.removeLayer(preset.value.name + '-layer')
+      }
+    })
+
+    onMounted(() => {
+
+    })
+
     return {
-      type: '',
-      layer: {},
-      opacity: 100,
-      offsetValue: -1,
-      displaySettings: {},
-      colorScale: null,
-
+      store,
+      type,
+      layer,
+      opacity,
+      offsetValue,
+      displaySettings,
+      colorScale,
     }
   },
 
-  beforeUnmount () {
-    if (this.map.getLayer(this.preset.name + '-layer')) {
-      this.map.removeLayer(this.preset.name + '-layer')
-    }
-  },
   mounted () {
     // move layer under rlinks (links and OD are over this one)
     if (this.map.getLayer('results')) {
@@ -42,11 +56,6 @@ export default {
     }
   },
   created () {
-    // init data to empty geojson to load the mapbox layer
-    this.$store.commit('registerStaticLayer')
-    this.opacity = this.preset.displaySettings.opacity
-    this.offsetValue = this.preset.displaySettings.offset ? -1 : 1
-
     this.changeLayer(this.preset.layer)
     if (Object.keys(this.preset).includes('selectedFilter')) {
       if (this.$store.getters['staticLayer/lineAttributes'].includes(this.preset.selectedFilter)) {

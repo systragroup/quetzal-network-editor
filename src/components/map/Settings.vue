@@ -147,7 +147,6 @@ export default {
     <template v-slot:activator="{ props }">
       <div class="setting">
         <v-btn
-
           icon="fa-solid fa-cog"
           v-bind="props"
         />
