@@ -1,4 +1,6 @@
 <script>
+import { useIndexStore } from '@src/store/index'
+import { computed } from 'vue'
 
 export default {
   name: 'SidePanel',
@@ -8,7 +10,16 @@ export default {
 
   props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer', 'presetChoices', 'selectedPreset'],
   events: ['update-selectedCategory', 'select-layer', 'update-selected-filter', 'select-preset', 'delete-preset'],
-
+  setup () {
+    const store = useIndexStore()
+    const showLeftPanel = computed(() => { return store.showLeftPanel })
+    const windowHeight = computed(() => { return store.windowHeight })
+    return {
+      store,
+      showLeftPanel,
+      windowHeight,
+    }
+  },
   data () {
     return {
       showLeftPanelContent: true,
@@ -17,12 +28,6 @@ export default {
       selectedCat: [],
       vmodelSelectedFilter: '',
     }
-  },
-
-  computed: {
-    showLeftPanel () { return this.$store.getters.showLeftPanel },
-    windowHeight () { return this.$store.getters.windowHeight - 130 },
-    running () { return this.$store.getters['run/running'] },
   },
 
   watch: {
@@ -93,7 +98,7 @@ export default {
   >
     <div
       class="left-panel-toggle-btn elevation-4"
-      @click="$store.commit('changeLeftPanel')"
+      @click="store.changeLeftPanel()"
     >
       <v-icon
         size="small"

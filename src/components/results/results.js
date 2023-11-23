@@ -1,6 +1,6 @@
 // mouse.js
 import { cloneDeep } from 'lodash'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import chroma from 'chroma-js'
 import { seedrandom } from 'seedrandom'
@@ -287,6 +287,14 @@ export function useResult () {
     updateSelectedFeature()
   }
 
+  const filteredCategory = computed(() => {
+    // for a given filter (key) get array of unique value
+    // e.g. get ['bus','subway'] for route_type
+    const val = Array.from(new Set(layer.value.features.map(
+      item => item.properties[selectedFilter.value])))
+    return val
+  })
+
   // expose managed state as return value
   return {
     layer,
@@ -309,5 +317,6 @@ export function useResult () {
     changeSelectedFilter,
     changeSelectedCategory,
     applySettings,
+    filteredCategory,
   }
 }
