@@ -78,7 +78,6 @@ export default {
     } else {
       this.color = this.pcolor
     }
-    console.log(this.cmenu)
   },
 
   methods: {

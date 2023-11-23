@@ -147,16 +147,10 @@ export default {
     <template v-slot:activator="{ props }">
       <div class="setting">
         <v-btn
-          size="small"
 
+          icon="fa-solid fa-cog"
           v-bind="props"
-        >
-          <v-icon
-            color="regular"
-          >
-            fa-solid fa-cog
-          </v-icon>
-        </v-btn>
+        />
       </div>
     </template>
 
@@ -274,14 +268,13 @@ export default {
 </template>
 <style lang="scss" scoped>
 .setting {
-  left: 98%;
-  width: 0px;
+  left: 96%;
   z-index: 2;
   display: flex;
   position: relative;
   align-items: center;
   justify-content: center;
-  height: 50px;
+  height: 70px;
 }
 
 .layout {

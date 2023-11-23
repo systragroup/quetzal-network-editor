@@ -1,8 +1,44 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script>
+import { computed } from 'vue'
+import { useRunStore } from '@src/store/run'
+import { useUserStore } from '@src/store/user'
 const $gettext = s => s
 export default {
   name: 'Settings',
+  setup () {
+    const runStore = useRunStore()
+    const userStore = useUserStore()
+    const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
+    const paramsBrute = computed(() => { return runStore.parameters })
+    const parameters = computed(() => {
+      return paramsBrute.value.filter(
+        param => (Object.keys(param).includes('category') && param.model === selectedStepFunction.value))
+    })
+    const info = computed(() => {
+      return paramsBrute.value.filter(param => (param?.info && param?.model) === selectedStepFunction.value)[0]?.info
+    })
+
+    const scenariosList = computed(() => { return userStore.scenariosList })
+    const activeScenario = computed(() => { return userStore.scenario })
+
+    const reset = () => {
+      runStore.getParameters({
+        model: userStore.model,
+        path: userStore.scenario + '/inputs/params.json',
+      })
+    }
+
+    return {
+      selectedStepFunction,
+      paramsBrute,
+      parameters,
+      info,
+      scenariosList,
+      activeScenario,
+      reset,
+    }
+  },
   data () {
     return {
       rules: {
@@ -15,19 +51,7 @@ export default {
       panel: [],
     }
   },
-  computed: {
-    paramsBrute () { return this.$store.getters['run/parameters'] },
-    parameters () {
-      return this.paramsBrute.filter(
-        param => (Object.keys(param).includes('category') && param.model === this.selectedStepFunction))
-    },
-    info () {
-      return this.paramsBrute.filter(
-        param => (param?.info && param?.model) === this.selectedStepFunction)[0]?.info
-    },
-    selectedStepFunction () { return this.$store.getters['run/selectedStepFunction'] },
 
-  },
   mounted () {
     this.panel = [...Array(this.parameters.length).keys()].map((k, i) => i)
   },
@@ -39,17 +63,12 @@ export default {
         this.panel = []
       }
     },
-    reset () {
-      this.$store.dispatch('run/getParameters', {
-        model: this.$store.getters.model,
-        path: this.$store.getters.scenario + '/inputs/params.json',
-      })
-    },
+
     removeDeletedScenarios (item) {
       // when selecting a value. make sure it exist in the scen list.
       // if a scen selected was deleted. it will be remove from the v-model here.
       // this is not perfect, but a user who toggle a scen will fix the problem...
-      const scenarios = this.$store.getters.scenariosList.map(el => el.scenario)
+      const scenarios = this.scenariosList.map(el => el.scenario)
       item.value = item.value.filter(name => scenarios.includes(name))
     },
   },
@@ -107,9 +126,9 @@ export default {
                   v-else-if="item.items === '$scenarios'"
                   v-model="item.value"
                   :type="item.type"
-                  :items="$store.getters.scenariosList.map(
+                  :items="scenariosList.map(
                     el=>el.scenario).filter(
-                    scen=>scen!==$store.getters.scenario)"
+                    scen=>scen!==activeScenario)"
                   multiple
                   :label="$gettext(item.text)"
                   :suffix="item.units"

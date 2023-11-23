@@ -36,8 +36,10 @@ const router = createRouter({
       icon: 'fa-solid fa-play',
       title: $gettext('Parameters and Run'),
       beforeEnter: (to, from, next) => {
+        const store = useIndexStore()
+        const runStore = useRunStore()
         if (runStore.parametersIsEmpty) {
-          store.commit('changeNotification',
+          store.changeNotification(
             {
               text: $gettext('you need parameters to enter this page'),
               autoClose: true,
@@ -72,15 +74,6 @@ const router = createRouter({
     },
 
   ],
-})
-
-router.beforeEach((to) => {
-  // ✅ This will work because the router starts its navigation after
-  // the router is installed and pinia will be installed too
-  const store = useIndexStore()
-  const runStore = useRunStore()
-
-  // if (to.meta.requiresAuth && !store.isLoggedIn) return '/login'
 })
 
 export default router

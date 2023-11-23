@@ -1,50 +1,68 @@
 <script>
 
 import ParamForm from '@comp/run/ParamForm.vue'
-
+import { computed, ref } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useRunStore } from '@src/store/run'
+import { useUserStore } from '@src/store/user'
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Run',
   components: {
     ParamForm,
   },
-  data () {
+  setup () {
+    const store = useIndexStore()
+    const runStore = useRunStore()
+    const userStore = useUserStore()
+    const stepFunction = ref(null)
+    const steps = computed(() => { return runStore.steps })
+    const avalaibleStepFunctions = computed(() => {
+      const modelsSet = runStore.availableModels
+      return runStore.avalaibleStepFunctions.filter(el => modelsSet.has(el))
+    })
+    const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
+    const running = computed(() => { return runStore.running })
+    const currentStep = computed(() => { return runStore.currentStep })
+    const error = computed(() => { return runStore.error })
+    const errorMessage = computed(() => { return runStore.errorMessage })
+    const synchronized = computed(() => { return runStore.synchronized })
+    const isProtected = computed(() => { return userStore.protected })
+    const modelIsLoaded = computed(() => { return userStore.model !== null })
+
     return {
-      stepFunction: null,
+      stepFunction,
+      store,
+      runStore,
+      userStore,
+      steps,
+      avalaibleStepFunctions,
+      selectedStepFunction,
+      running,
+      currentStep,
+      error,
+      errorMessage,
+      synchronized,
+      isProtected,
+      modelIsLoaded,
     }
   },
-  computed: {
-    steps () { return this.$store.getters['run/steps'] },
-    avalaibleStepFunctions () {
-      const modelsSet = this.$store.getters['run/availableModels']
-      return this.$store.getters['run/avalaibleStepFunctions'].filter(el => modelsSet.has(el))
-    },
-    selectedStepFunction () { return this.$store.getters['run/selectedStepFunction'] },
-    running () { return this.$store.getters['run/running'] },
-    currentStep () { return this.$store.getters['run/currentStep'] },
-    error () { return this.$store.getters['run/error'] },
-    errorMessage () { return this.$store.getters['run/errorMessage'] },
-    synchronized () { return this.$store.getters['run/synchronized'] },
-    isProtected () {
-      return this.$store.getters.protected
-    },
-    modelIsLoaded () { return this.$store.getters.model !== null },
-  },
+
   watch: {
     async stepFunction (newVal, oldVal) {
       if (newVal < 0) {
-        this.$store.commit('run/setSelectedStepFunction', this.avalaibleStepFunctions[0])
-        this.$store.dispatch('run/getSteps')
+        this.runStore.setSelectedStepFunction(this.avalaibleStepFunctions[0])
+        this.runStore.getSteps()
       } else if (oldVal !== null) {
         // val is an index here
-        this.$store.commit('run/setSelectedStepFunction', this.avalaibleStepFunctions[newVal])
-        this.$store.dispatch('run/getSteps')
+        this.runStore.setSelectedStepFunction(this.avalaibleStepFunctions[newVal])
+        this.runStore.getSteps()
       }
     },
   },
   async created () {
     if (this.modelIsLoaded) {
-      await this.$store.dispatch('run/getSteps')
+      await this.runStore.getSteps()
       // here stepfuntion is an index v-model. 0,1.
       this.stepFunction = this.avalaibleStepFunctions.indexOf(this.selectedStepFunction)
     }
@@ -52,17 +70,17 @@ export default {
   methods: {
     async run () {
       try {
-        this.$store.commit('run/initExecution') // start the stepper at first step
-        await this.$store.dispatch('exportToS3', 'inputs')
-        await this.$store.dispatch('deleteOutputsOnS3')
-        this.$store.dispatch('run/startExecution', { scenario: this.$store.getters.scenario })
+        this.runStore.initExecution() // start the stepper at first step
+        await this.store.exportToS3('inputs')
+        await this.store.deleteOutputsOnS3()
+        this.runStore.startExecution({ scenario: this.userStore.scenario })
       } catch (err) {
-        this.$store.commit('run/terminateExecution')
-        this.$store.commit('changeAlert', err)
+        this.runStore.terminateExecution()
+        this.store.changeAlert(err)
       }
     },
     stopRun () {
-      this.$store.dispatch('run/stopExecution')
+      this.runStore.stopExecution()
       //
     },
   },
