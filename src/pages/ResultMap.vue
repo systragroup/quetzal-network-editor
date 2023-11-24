@@ -11,6 +11,8 @@ import MapResults from '@comp/results/MapResults.vue'
 import ResultsSidePanel from '@comp/results/ResultsSidePanel.vue'
 import ResultsSettings from '@comp/results/ResultsSettings.vue'
 import MapLegend from '@comp/utils/MapLegend.vue'
+import LayerSelector from '@comp/utils/LayerSelector.vue'
+import StaticLayer from '@comp/utils/StaticLayer.vue'
 
 const $gettext = s => s
 
@@ -21,6 +23,8 @@ export default {
     ResultsSidePanel,
     ResultsSettings,
     MapLegend,
+    LayerSelector,
+    StaticLayer,
 
   },
 
@@ -65,12 +69,11 @@ export default {
           loadLayer(ODStore.layer, null, null, 'name')
           break
         default:
-          this.$store.commit('results/loadLinks', {
-            geojson: this.$store.getters[`${layer}/layer`],
-            type: this.$store.getters[`${layer}/type`],
-            hasOD: this.$store.getters[`${layer}/hasOD`],
-            ODindex: this.$store.getters[`${layer}/matAvailableIndex`],
-          })
+          // TODO: gerer les ODs.
+          // eslint-disable-next-line no-case-declarations
+          const data = store.otherFiles.filter(file => file.name === layer)[0].content
+          loadLayer(data, null, null, '')
+
           break
       }
     }
@@ -84,6 +87,7 @@ export default {
     })
 
     const visibleRasters = computed(() => store.visibleRasters)
+    const availableStyles = computed(() => store.styles)
 
     const presetToDelete = ref('')
     const showDeleteDialog = ref(false)
@@ -220,6 +224,7 @@ export default {
       clickSavePreset,
       createPreset,
       featureClicked,
+      availableStyles,
       visibleRasters,
       showDialog,
     }
@@ -237,7 +242,7 @@ export default {
       :selected-layer="selectedLayer"
       :filter-choices="attributes"
       :filtered-cat="filteredCategory"
-      :preset-choices="store.styles"
+      :preset-choices="availableStyles"
       :selected-preset="selectedPreset"
       @update-selectedCategory="updateSelectedCategory"
       @update-selectedFilter="updateSelectedFilter"
@@ -252,6 +257,11 @@ export default {
       @submit="applySettings"
       @save-preset="clickSavePreset"
     />
+    <LayerSelector
+      v-if="availableStyles.length>0"
+      :choices="availableStyles"
+      :available-layers="availableLayers"
+    />
     <div class="left-panel">
       <MapLegend
         v-show="visibleLayer.features.length>0"
@@ -264,6 +274,7 @@ export default {
     <MapResults
       v-if="visibleLayer.features"
       :key="type"
+      v-slot="{ map }"
       :layer-type="type"
       :links="visibleLayer"
       :nan-links="NaNLayer"
@@ -272,9 +283,8 @@ export default {
       :offset="displaySettings.offset"
       @selectClick="featureClicked"
     >
-    <!--
       <div
-        v-for="file in availablePresets"
+        v-for="file in availableStyles"
         :key="file.name"
       >
         <template v-if=" visibleRasters.includes(file.name) && availableLayers.includes(file.layer)">
@@ -285,7 +295,6 @@ export default {
           />
         </template>
       </div>
-    -->
     </MapResults>
 
     <v-dialog

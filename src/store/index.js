@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import resultsModule from './results.js'
 import layerModule from './layer.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -44,8 +43,7 @@ export const useIndexStore = defineStore('store', {
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     importPoly: null,
-    availableLayersStore: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
-    visibleRasters: ref([]), // list of rasterFiles path.
+    visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
     attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
@@ -98,7 +96,6 @@ export const useIndexStore = defineStore('store', {
       try {
         let otherFiles = []
         let outputFiles = []
-
         const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
         otherFiles = payload.filter(el => !ptFiles.includes(el))
 
@@ -147,22 +144,8 @@ export const useIndexStore = defineStore('store', {
         }
 
         this.loadOtherFiles(inputFiles)
-        // TODO
-        // get outputs geojson files and create Layer with them.
-        // const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
-        // outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
-        // this.loadLayers(layerFiles)
-
-        // get JSON files with the same name as Modules (they are matrix)
-        // const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
-        // this.availableLayersStore.includes(el.path.slice(0, -5)),
-        // )
-        // outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
-
-        // this.loadMatrix(matrixFiles)
-
-        // load the rest
         this.loadOtherFiles(outputFiles)
+
         this.changeNotification(
           { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
       } catch (err) {
@@ -171,12 +154,16 @@ export const useIndexStore = defineStore('store', {
     },
 
     loadOtherFiles (payload) {
-      // payload = [{path, content}]
+      // payload = [{path, content}]. transform to [{path,content,name,extension}]
       // if a file is updated with the same path (already exist). remove it
       const newPaths = payload.map(file => file.path)
       this.otherFiles = this.otherFiles.filter(file => !newPaths.includes(file.path))
       // push files
-      payload.forEach(file => this.otherFiles.push(file))
+      for (const file of payload) {
+        const extension = file.path.split('.').slice(-1)[0]
+        const name = file.path.split('.').slice(-2)[0]
+        this.otherFiles.push({ ...file, name, extension })
+      }
     },
 
     loadAttributesChoices (payload) {
@@ -192,8 +179,7 @@ export const useIndexStore = defineStore('store', {
     setVisibleRasters (payload) {
       // payload.forEach(el => arr.push({ item: el }))
       // this.visibleRasters = new Set(payload)
-      this.visibleRasters.value = payload
-      console.log(this.visibleRasters)
+      this.visibleRasters = payload
     },
 
     loadLayers (payload) {
@@ -236,11 +222,6 @@ export const useIndexStore = defineStore('store', {
       moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
       this.availableLayersStore = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
     },
-    registerStaticLayer () {
-      this.registerModule('staticLayer', resultsModule)
-      this.commit('staticLayer/setNamespace', 'staticLayer')
-    },
-    unregisterStaticLayer () { this.unregisterModule('staticLayer') },
 
     initNetworks () {
       const links = useLinksStore()
@@ -516,17 +497,22 @@ export const useIndexStore = defineStore('store', {
       const links = useLinksStore()
       const rlinks = userLinksStore()
       const od = useODStore()
-      let filteredLayers = cloneDeep(state.availableLayersStore)
-      if (links.links.features.length === 0) {
-        filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
+      const availableLayers = []
+      if (!links.linksIsEmpty) {
+        availableLayers.push(...['links', 'nodes'])
       }
-      if (rlinks.rlinks.features.length === 0) {
-        filteredLayers = filteredLayers.filter(layer => !['rlinks', 'rnodes'].includes(layer))
+      if (!rlinks.rlinksIsEmpty) {
+        availableLayers.push(...['rlinks', 'rnodes'])
       }
-      if (od.layer.features.length === 0) {
-        filteredLayers = filteredLayers.filter(layer => !['od'].includes(layer))
+      if (!od.layerIsEmpty === 0) {
+        availableLayers.push('od')
       }
-      return filteredLayers
+      state.otherFiles.filter(file => file.extension === 'geojson').forEach(file => {
+        availableLayers.push(file.name)
+      })
+
+      // for now. remove inputs as they are not read. (need to fetch them.)
+      return availableLayers.filter(name => !name.startsWith('inputs/'))
     },
     mapStyle: (state) => {
       if (state.darkMode) {

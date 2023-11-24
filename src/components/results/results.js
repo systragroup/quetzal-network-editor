@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash'
 import { ref, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import chroma from 'chroma-js'
-import { seedrandom } from 'seedrandom'
+import seedrandom from 'seedrandom'
 const $gettext = s => s
 
 const defaultSettings = {
@@ -132,10 +132,25 @@ export function useResult () {
   const ODfeatures = ref([])
   const matAvailableIndex = ref({})
 
+  function reset () {
+    layer.value = { crs: {}, type: 'FeatureCollection', features: [] }
+    header.value = { crs: {}, type: 'FeatureCollection', features: [] }
+    visibleLayer.value = { crs: {}, type: 'FeatureCollection', features: [] }
+    NaNLayer.value = { crs: {}, type: 'FeatureCollection', features: [] }
+    type.value = ''
+    attributes.value = []
+    displaySettings.value = cloneDeep(defaultSettings)
+    selectedFilter.value = ''
+    selectedCategory.value = []
+    hasOD.value = false
+    ODindex.value = {}
+    ODfeatures.value = []
+    matAvailableIndex.value = {}
+  }
+
   function loadLayer (geojson, mat, matIndex, selectedFeature) {
-    // TODO:
-    // state.displaySettings = structuredClone(defaultSettings)
-    // this.commit(`${state.namespace}/cleanLinks`)
+    reset()
+
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
     layer.value = cloneDeep(geojson)
@@ -146,13 +161,11 @@ export function useResult () {
     if (type.value !== 'Polygon') { displaySettings.value.extrusion = false }
     hasOD.value = mat !== null
     ODindex.value = matIndex || {}
+
     if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(layer.value.crs.properties.name)) {
-      const linksHeader = cloneDeep(layer)
-      linksHeader.value.features = []
-      header.value = linksHeader
-      visibleLayer.value.crs = cloneDeep(linksHeader.value.crs)
-      visibleLayer.value.type = cloneDeep(linksHeader.value.type)
-      NaNLayer.value = cloneDeep(linksHeader)
+      header.value.crs = cloneDeep(layer.value.crs)
+      visibleLayer.value.crs = cloneDeep(header.value.crs)
+      NaNLayer.value = cloneDeep(header)
       // set all trips visible
       getLinksProperties()
       if (attributes.value.includes(selectedFeature)) {
@@ -160,6 +173,7 @@ export function useResult () {
       } else {
         displaySettings.value.selectedFeature = null
       }
+
       refreshVisibleLinks()
       updateSelectedFeature()
     } else { alert('invalid CRS. use CRS84 / EPSG:4326') }

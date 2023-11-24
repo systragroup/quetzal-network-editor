@@ -1,8 +1,12 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
 import MapLegend from '@comp/utils/MapLegend.vue'
-import { toRaw, onBeforeUnmount, ref, toRefs, onMounted } from 'vue'
+import { onBeforeUnmount, toRefs, onMounted, onBeforeMount } from 'vue'
 import { useIndexStore } from '@src/store/index'
+import { useResult } from '@comp/results/results.js'
+import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+import { useODStore } from '@src/store/od'
 const $gettext = s => s
 
 // set visibility. to render or not by fetching the data.
@@ -17,125 +21,97 @@ export default {
   },
   props: ['preset', 'map', 'order'],
   setup (props) {
+    const linksStore = useLinksStore()
+    const rlinksStore = userLinksStore()
+    const ODStore = useODStore()
     const store = useIndexStore()
-    const { preset } = toRefs(props.preset)
-    const type = ref('')
-    const layer = ref({})
-    const opacity = ref(preset.value.displaySettings.opacity)
-    const offsetValue = ref(preset.value.displaySettings.offset ? -1 : 1)
-    const displaySettings = ref({})
-    const colorScale = ref(null)
-    onBeforeUnmount(() => {
-      if (props.map.getLayer(preset.value.name + '-layer')) {
-        props.map.removeLayer(preset.value.name + '-layer')
+    const { preset, map, order: zorder } = toRefs(props)
+    const name = preset.value.name
+    const {
+      visibleLayer, type, loadLayer, displaySettings, attributes, applySettings, changeSelectedFilter,
+      changeSelectedCategory, colorScale,
+    } = useResult()
+
+    const opacity = displaySettings.value.opacity
+    const offsetValue = displaySettings.value.offset ? -1 : 1
+
+    function changeLayer (layer) {
+      switch (layer) {
+        case 'links':
+          loadLayer(linksStore.links, null, null, 'headway')
+          break
+        case 'rlinks':
+          loadLayer(rlinksStore.rlinks, null, null, 'speed')
+          break
+        case 'nodes':
+          loadLayer(linksStore.nodes, null, null, 'boardings')
+          break
+        case 'rnodes':
+          loadLayer(rlinksStore.rnodes, null, null, 'boardings')
+          break
+        case 'od':
+          loadLayer(ODStore.layer, null, null, 'name')
+          break
+        default:
+          // TODO: gerer les ODs.
+          // eslint-disable-next-line no-case-declarations
+          const data = store.otherFiles.filter(file => file.name === layer)[0].content
+          loadLayer(data, null, null, '')
+
+          break
+      }
+    }
+
+    onBeforeMount(() => {
+      changeLayer(preset.value.layer)
+      if (attributes.value.includes(preset.value?.selectedFilter)) {
+        // if preset contain a filter. apply it if it exist.
+        changeSelectedFilter(preset.value.selectedFilter)
+        // if there is a list of cat. apply them, else its everything
+        if (Object.keys(preset.value).includes('selectedCategory')) {
+          changeSelectedCategory(preset.value.selectedCategory)
+        } // else it will show all
+      } else {
+        // if the filter is in the preset but not the the layer. just put a warning.
+        if (Object.keys(preset.value).includes('selectedFilter')) {
+          store.changeNotification(
+            {
+              text: preset.value.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
+              autoClose: true,
+              color: 'error',
+            })
+        }
+      }
+      applySettings(preset.value.displaySettings)
+    })
+    // move layer under rlinks (links and OD are over this one)
+    onMounted(() => {
+      if (map.value.getLayer('results')) {
+        map.value.moveLayer(name + '-layer', 'results')
+      }
+      if (map.value.getLayer('rlinks')) {
+        map.value.moveLayer(name + '-layer', 'rlinks')
       }
     })
 
-    onMounted(() => {
-
+    onBeforeUnmount(() => {
+      if (map.value.getLayer(name + '-layer')) {
+        map.value.removeLayer(name + '-layer')
+      }
     })
 
     return {
-      store,
+      name,
       type,
-      layer,
+      visibleLayer,
       opacity,
       offsetValue,
       displaySettings,
+      zorder,
       colorScale,
     }
   },
 
-  mounted () {
-    // move layer under rlinks (links and OD are over this one)
-    if (this.map.getLayer('results')) {
-      this.map.moveLayer(this.preset.name + '-layer', 'results')
-    }
-    if (this.map.getLayer('rlinks')) {
-      this.map.moveLayer(this.preset.name + '-layer', 'rlinks')
-    }
-  },
-  created () {
-    this.changeLayer(this.preset.layer)
-    if (Object.keys(this.preset).includes('selectedFilter')) {
-      if (this.$store.getters['staticLayer/lineAttributes'].includes(this.preset.selectedFilter)) {
-      // if preset contain a filter. apply it if it exist.
-        this.$store.commit('staticLayer/changeSelectedFilter', this.preset.selectedFilter)
-        // if there is a list of cat. apply them, else its everything
-        if (Object.keys(this.preset).includes('selectedCategory')) {
-          this.$store.commit('staticLayer/changeSelectedCategory', this.preset.selectedCategory)
-          this.$store.commit('staticLayer/updateSelectedFeature')
-        }
-      } else {
-        this.$store.commit('changeNotification',
-          {
-            text: this.preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
-            autoClose: true,
-            color: 'error',
-          })
-      }
-    }
-
-    this.$store.commit('staticLayer/applySettings', this.preset.displaySettings)
-    console.log(this.$store.getters['staticLayer/displayLinks'])
-    this.layer = this.$store.getters['staticLayer/displayLinks']
-    this.type = structuredClone(toRaw(this.$store.getters['staticLayer/type']))
-    this.colorScale = this.$store.getters['staticLayer/colorScale']
-    this.displaySettings = structuredClone(toRaw(this.$store.getters['staticLayer/displaySettings']))
-    this.$store.commit('unregisterStaticLayer')
-    //
-  },
-
-  methods: {
-    changeLayer (layer) {
-      this.selectedLayer = layer
-      switch (layer) {
-        case 'links':
-          this.$store.commit('staticLayer/loadLinks', {
-            geojson: this.$store.getters.links,
-            type: 'LineString',
-            selectedFeature: 'headway',
-          })
-          break
-        case 'rlinks':
-          this.$store.commit('staticLayer/loadLinks', {
-            geojson: this.$store.getters.rlinks,
-            type: 'LineString',
-            selectedFeature: 'speed',
-          })
-          break
-        case 'nodes':
-          this.$store.commit('staticLayer/loadLinks', {
-            geojson: this.$store.getters.nodes,
-            type: 'Point',
-            selectedFeature: 'boardings',
-          })
-          break
-        case 'rnodes':
-          this.$store.commit('staticLayer/loadLinks', {
-            geojson: this.$store.getters.rnodes,
-            type: 'Point',
-            selectedFeature: 'boardings',
-          })
-          break
-        case 'od':
-          this.$store.commit('staticLayer/loadLinks', {
-            geojson: this.$store.getters['od/layer'],
-            type: 'LineString',
-            selectedFeature: 'volume',
-          })
-          break
-        default:
-          this.$store.commit('staticLayer/loadLinks', {
-            geojson: this.$store.getters[`${layer}/layer`],
-            type: this.$store.getters[`${layer}/type`],
-          })
-          break
-      }
-    },
-    test (e) { console.log(e) },
-
-  },
 }
 </script>
 <template>
@@ -147,19 +123,19 @@ export default {
         :color-scale="colorScale"
         :display-settings="displaySettings"
         :base-offset="350"
-        :order="order"
+        :order="zorder"
       />
     </div>
 
     <MglGeojsonLayer
       v-if="['MultiPolygon', 'Polygon'].includes(type)"
       :map="map"
-      :source-id="preset.name+ '-layer'"
+      :source-id="name+ '-layer'"
       :source="{
         type: 'geojson',
-        data: layer,
+        data: visibleLayer,
       }"
-      :layer-id="preset.name+ '-layer'"
+      :layer-id="name+ '-layer'"
       :layer="{
         interactive: false,
         type: 'fill',
@@ -174,14 +150,14 @@ export default {
     <MglGeojsonLayer
       v-if="type=='LineString'"
       :map="map"
-      :source-id="preset.name+ '-layer'"
+      :source-id="name+ '-layer'"
       :source="{
         type: 'geojson',
-        data: layer,
+        data: visibleLayer,
         buffer: 0,
         promoteId: 'index',
       }"
-      :layer-id="preset.name+ '-layer'"
+      :layer-id="name+ '-layer'"
       :layer="{
         interactive: true,
         type: 'line',
@@ -198,17 +174,16 @@ export default {
           'line-cap': 'round',
         }
       }"
-      @click="test"
     />
     <MglGeojsonLayer
       v-if="type == 'Point'"
       :map="map"
-      :source-id="preset.name+ '-layer'"
+      :source-id="name+ '-layer'"
       :source="{
         type: 'geojson',
-        data: layer,
+        data: visibleLayer,
       }"
-      :layer-id="preset.name+ '-layer'"
+      :layer-id="name+ '-layer'"
       :layer="{
         interactive: false,
         type: 'circle',
@@ -226,12 +201,12 @@ export default {
     <MglGeojsonLayer
       v-if="type == 'extrusion'"
       :map="map"
-      :source-id="preset.name+ '-layer'"
+      :source-id="name+ '-layer'"
       :source="{
         type: 'geojson',
-        data: layer,
+        data: visibleLayer,
       }"
-      :layer-id="preset.name+ '-layer'"
+      :layer-id="name+ '-layer'"
       :layer="{
         interactive: false,
         type: 'fill-extrusion',

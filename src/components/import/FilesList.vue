@@ -1,78 +1,64 @@
-<!-- eslint-disable no-case-declarations -->
 <script>
 import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
 import { useIndexStore } from '@src/store/index'
-import { computed } from 'vue'
-// const $gettext = s => s
+import { computed, ref } from 'vue'
 
 export default {
   name: 'FilesList',
   events: ['FilesLoaded'],
-  setup () {
+  setup (_, context) {
     const store = useIndexStore()
-    const loadedFiles = computed(() => { return store.otherFiles.map(file => file.path) })
-    const inputFiles = computed(() => { return loadedFiles.value.filter(file => file.startsWith('input')) })
-    const outputFiles = computed(() => { return loadedFiles.value.filter(file => file.startsWith('output')) })
-    const layers = computed(() => {
-      // get available layers, reformat name and add .json and .geojson to have the matrix also.
-      const layers = store.availableLayers.filter(name => name.startsWith('outputs/'))
-      const list = []
-      for (const name of layers) {
-        list.push(name + '.geojson')
-        // TODO
-        if (this.$store.getters[`${name}/hasOD`]) {
-          list.push(name + '.json')
-        }
+    const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })
+    const outputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('output')) })
+    function isMatrix (file) {
+      // check to put the little logo if a json has a geojson associated with
+      if (file.extension !== 'json') {
+        return false
+      } else {
+        const filtered = outputFiles.value.filter(el => el.name === file.name).map(el => el.extension)
+        return filtered.includes('geojson')
       }
-      return list
-    })
-    return {
-      store,
-      loadedFiles,
-      inputFiles,
-      outputFiles,
-      layers,
     }
-  },
-
-  methods: {
-    buttonHandle (choice) {
-      this.choice = choice
-      if (this.choice === 'outputs') {
-        this.$refs.otherOutputs.click()
+    const otherOutputs = ref()
+    const otherInputs = ref()
+    const choice = ref('')
+    function buttonHandle (event) {
+      choice.value = event
+      if (choice.value === 'outputs') {
+        otherOutputs.value.click()
         document.getElementById('other-outputs').value = '' // clean it for next file
-      } else if (this.choice.startsWith('inputs')) {
+      } else if (choice.value.startsWith('inputs')) {
         // inputs or a path (if we want to change an existing input)
-        this.$refs.otherInputs.click()
+        otherInputs.value.click()
         document.getElementById('other-inputs').value = '' // clean it for next file
       }
-    },
-    async readOtherInputs (event) {
-      this.store.changeLoading(true)
+    }
+    async function readOtherInputs (event) {
+      store.changeLoading(true)
       const fileList = []
       const files = event.target.files
 
       for (const file of files) {
         let name = 'inputs/' + file.name
         // if we want to replace an existing input. this.choice contains the existing path name
-        if (this.choice !== 'inputs') {
-          name = this.choice
+        if (choice.value !== 'inputs') {
+          name = choice.value
         }
         try {
           const content = await readFileAsBytes(file)
           fileList.push({ content, path: name })
-          this.store.changeLoading(false)
+          store.changeLoading(false)
         } catch (err) {
-          this.store.changeLoading(false)
-          this.store.changeAlert(err)
+          store.changeLoading(false)
+          store.changeAlert(err)
         }
       }
-      this.store.changeLoading(false)
-      this.$emit('FilesLoaded', fileList)
-    },
-    async readOtherOutputs (event) {
+      store.changeLoading(false)
+      context.emit('FilesLoaded', fileList)
+    }
+    async function readOtherOutputs (event) {
       // load outputs as Layer Module and as other files (ex: png)
-      this.store.changeLoading(true)
+      store.changeLoading(true)
       const fileList = []
       const files = event.target.files
       for (const file of files) {
@@ -87,17 +73,29 @@ export default {
             fileList.push({ content, path: name })
           }
 
-          this.store.changeLoading(false)
+          store.changeLoading(false)
         } catch (err) {
-          this.store.changeLoading(false)
-          this.store.changeAlert(err)
+          store.changeLoading(false)
+          store.changeAlert(err)
         }
       }
-      this.store.changeLoading(false)
-      this.$emit('FilesLoaded', fileList)
-    },
+      store.changeLoading(false)
+      context.emit('FilesLoaded', fileList)
+    }
 
+    return {
+      store,
+      inputFiles,
+      outputFiles,
+      isMatrix,
+      otherInputs,
+      otherOutputs,
+      buttonHandle,
+      readOtherInputs,
+      readOtherOutputs,
+    }
   },
+
 }
 </script>
 <template>
@@ -137,10 +135,10 @@ export default {
       </div>
       <div class="list">
         <li
-          v-for="(path, key) in inputFiles"
+          v-for="(file, key) in inputFiles"
           :key="key"
         >
-          {{ path }}
+          {{ file.path }}
           <v-tooltip
             location="top"
             open-delay="250"
@@ -151,7 +149,7 @@ export default {
                 class="list-button"
                 icon=" fa-solid fa-upload"
                 v-bind="props"
-                @click="()=>buttonHandle(path)"
+                @click="()=>buttonHandle(file.path)"
               />
             </template>
             <span>{{ $gettext('Replace file inplace') }}</span>
@@ -178,23 +176,17 @@ export default {
       </div>
       <div class="list">
         <li
-          v-for="path in outputFiles"
-          :key="path"
+          v-for="file in outputFiles"
+          :key="file.path"
         >
-          {{ path }}
-        </li>
-        <li
-          v-for="item in layers"
-          :key="item"
-        >
-          {{ item }}
+          {{ file.path }}
           <v-tooltip
+            v-if="file.extension==='geojson' | isMatrix(file)"
             location="top"
             open-delay="250"
           >
             <template v-slot:activator="{ props }">
               <v-icon
-
                 size="small"
                 class="list-icon"
                 v-bind="props"
