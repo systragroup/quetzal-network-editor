@@ -6,9 +6,11 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 import { useIndexStore } from '@src/store/index'
-
+import { cloneDeep } from 'lodash'
 import MapResults from '@comp/results/MapResults.vue'
 import ResultsSidePanel from '@comp/results/ResultsSidePanel.vue'
+import ResultsSettings from '@comp/results/ResultsSettings.vue'
+import MapLegend from '@comp/utils/MapLegend.vue'
 
 const $gettext = s => s
 
@@ -17,23 +19,21 @@ export default {
   components: {
     MapResults,
     ResultsSidePanel,
+    ResultsSettings,
+    MapLegend,
 
   },
 
   setup () {
-    const selectedLayer = ref('links')
-    const selectedPreset = ref(null)
-
     const linksStore = useLinksStore()
     const rlinksStore = userLinksStore()
     const ODStore = useODStore()
     const store = useIndexStore()
     const {
-      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, matAvailableIndex,
+      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, matAvailableIndex, ODfeatures,
       selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter, filteredCategory,
-      updateSelectedFeature, changeSelectedCategory,
+      updateSelectedFeature, changeSelectedCategory, colorScale,
     } = useResult()
-    loadLayer(linksStore.links, null, null, 'headway')
 
     function updateSelectedFilter (val) {
       changeSelectedFilter(val)
@@ -43,6 +43,8 @@ export default {
       changeSelectedCategory(val)
       updateSelectedFeature(val)
     }
+
+    const selectedLayer = ref('links')
 
     function changeLayer (layer) {
       selectedLayer.value = layer
@@ -73,10 +75,128 @@ export default {
       }
     }
 
+    const selectedPreset = ref(null)
+    const availableLayers = computed(() => store.availableLayers)
+    onMounted(() => {
+      // chose first available layer. if none. use Links as its an empty geojson (no bug with that)
+      if (availableLayers.value.lenght > 0) { selectedLayer.value = availableLayers.value[0] }
+      changeLayer(selectedLayer.value)
+    })
+
+    const visibleRasters = computed(() => store.visibleRasters)
+
+    const presetToDelete = ref('')
+    const showDeleteDialog = ref(false)
+    const showPresetDialog = ref(false)
+    const inputName = ref('')
+    const tempDisplaySettings = ref({})
+
+    function changePreset (preset) {
+      selectedPreset.value = preset.name
+      if (availableLayers.value.includes(preset.layer)) {
+        // change layer if it exist
+        changeLayer(preset.layer)
+        if (attributes.value.includes(preset?.selectedFilter)) {
+          // if preset contain a filter. apply it if it exist.
+          changeSelectedFilter(preset.selectedFilter)
+          // if there is a list of cat. apply them, else its everything
+          if (Object.keys(preset).includes('selectedCategory')) {
+            changeSelectedCategory(preset.selectedCategory)
+          } // else it will show all
+        } else {
+          // if the filter is in the preset but not the the layer. just put a warning.
+          if (Object.keys(preset).includes('selectedFilter')) {
+            store.changeNotification(
+              {
+                text: preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
+                autoClose: true,
+                color: 'error',
+              })
+          }
+        }
+      } else {
+        store.changeNotification(
+          { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
+      }
+      applySettings(preset.displaySettings)
+    }
+
+    function clickDeletePreset (event) {
+      // open a dialog to make sure we want to delete
+      presetToDelete.value = event.name
+      showDeleteDialog.value = true
+    }
+
+    function clickSavePreset (event) {
+      // open a dialog to chose the name and accept
+      tempDisplaySettings.value = event
+      inputName.value = selectedPreset.value
+      showPresetDialog.value = true
+    }
+    async function createPreset (event) {
+      const resp = await event
+      if (resp.valid) {
+        showPresetDialog.value = false
+        const style = {
+          name: cloneDeep(inputName.value),
+          layer: cloneDeep(selectedLayer.value),
+          displaySettings: cloneDeep(tempDisplaySettings.value),
+          selectedFilter: cloneDeep(selectedFilter.value),
+        }
+        // only add the list of category (eyes) if its not everything.
+        // first filter to only get possible cat. we way load a style with non existing cat (ex highway=quenedi)
+        const filteredCat = selectedCategory.value.filter(val => filteredCategory.value.includes(val))
+        if (filteredCat.length < filteredCategory.value.length) {
+          style.selectedCategory = cloneDeep(selectedCategory)
+        }
+        store.addStyle(style)
+        if (visibleRasters.value.includes(inputName.value)) {
+          store.changeNotification(
+            {
+              text: $gettext('Preset changed. Please reload the active layer on the map'),
+              autoClose: true,
+              color: 'warning',
+            })
+        } else {
+          store.changeNotification(
+            { text: $gettext('Preset Saved'), autoClose: true, color: 'success' })
+        }
+
+        selectedPreset.value = cloneDeep(inputName.value)
+      }
+    }
+
+    function deletePreset () {
+      store.deleteStyle(presetToDelete.value)
+      showDeleteDialog.value = false
+      if (presetToDelete.value === selectedPreset.value) {
+        // if it was selected. unselect it
+        selectedPreset.value = null
+      }
+      store.changeNotification(
+        { text: $gettext('Preset deleted'), autoClose: true, color: 'success' })
+      presetToDelete.value = ''
+    }
+
+    const showDialog = ref(false)
+    const form = ref([])
+    function featureClicked (event) {
+      const prop = displaySettings.selectedFeature
+      if (event.action === 'featureClick') {
+        form.value = event.feature
+        showDialog.value = true
+        // OD click.
+      } else if (hasOD && ODfeatures.includes(prop)) {
+        // changeOD({ index: event.feature.index, selectedProperty: prop })
+        // this.$store.commit('results/updateLinks', this.$store.getters[`${this.selectedLayer}/layer`])
+      }
+    }
+
     return {
       store,
       selectedLayer,
       selectedPreset,
+      availableLayers,
       visibleLayer,
       NaNLayer,
       type,
@@ -86,9 +206,22 @@ export default {
       attributes,
       filteredCategory,
       applySettings,
+      colorScale,
       updateSelectedFilter,
       updateSelectedCategory,
       changeLayer,
+      changePreset,
+      showDeleteDialog,
+      presetToDelete,
+      clickDeletePreset,
+      deletePreset,
+      showPresetDialog,
+      inputName,
+      clickSavePreset,
+      createPreset,
+      featureClicked,
+      visibleRasters,
+      showDialog,
     }
   },
 
@@ -100,7 +233,7 @@ export default {
       ref="sidePanel"
       :selected-category="selectedCategory"
       :selected-filter="selectedFilter"
-      :layer-choices="store.availableLayers"
+      :layer-choices="availableLayers"
       :selected-layer="selectedLayer"
       :filter-choices="attributes"
       :filtered-cat="filteredCategory"
@@ -112,6 +245,22 @@ export default {
       @select-preset="changePreset"
       @delete-preset="clickDeletePreset"
     />
+    <ResultsSettings
+      :display-settings="displaySettings"
+      :feature-choices="attributes"
+      :type="type"
+      @submit="applySettings"
+      @save-preset="clickSavePreset"
+    />
+    <div class="left-panel">
+      <MapLegend
+        v-show="visibleLayer.features.length>0"
+        key="result"
+        :order="0"
+        :color-scale="colorScale"
+        :display-settings="displaySettings"
+      />
+    </div>
     <MapResults
       v-if="visibleLayer.features"
       :key="type"
@@ -138,6 +287,124 @@ export default {
       </div>
     -->
     </MapResults>
+
+    <v-dialog
+      v-model="showDialog"
+      scrollable
+      persistent
+      max-width="300"
+      @keydown.enter="showDialog=false"
+      @keydown.esc="showDialog=false"
+    >
+      <v-card max-height="60rem">
+        <v-card-title class="text-h5">
+          {{ $gettext("link Properties") }}
+        </v-card-title>
+        <v-divider />
+        <v-card-text>
+          <v-list>
+            <v-text-field
+              v-for="(value, key) in form"
+              :key="key"
+              :model-value="value"
+              :label="key"
+              variant="filled"
+              readonly
+            />
+          </v-list>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="success"
+            variant="text"
+            @click="showDialog=false"
+          >
+            {{ $gettext("ok") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="showPresetDialog"
+      persistent
+      max-width="400"
+      @keydown.esc="showPresetDialog=false"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $gettext("Create or modify preset") }}
+        </v-card-title>
+        <v-form
+          validate-on="submit lazy"
+          @submit.prevent="createPreset"
+        >
+          <v-card-text>
+            <v-container>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="inputName"
+                  autofocus
+                  :rules="[value => !!value || 'Required.']"
+                  :label="$gettext('name')"
+                />
+              </v-col>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+
+            <v-btn
+              color="grey"
+              variant="text"
+              @click="showPresetDialog=false"
+            >
+              {{ $gettext("Cancel") }}
+            </v-btn>
+
+            <v-btn
+              color="green-darken-1"
+              variant="text"
+              type="submit"
+            >
+              {{ $gettext("ok") }}
+            </v-btn>
+          </v-card-actions>
+        </v-form>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="showDeleteDialog"
+      persistent
+      max-width="400"
+      @keydown.esc="showDeleteDialog=false"
+      @keydown.enter="deletePreset"
+    >
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $gettext("Delete") + ' ' + presetToDelete + ' ?' }}
+        </v-card-title>
+        <v-card-actions>
+          <v-spacer />
+
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="showDeleteDialog=false"
+          >
+            {{ $gettext("Cancel") }}
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="text"
+            @click="deletePreset"
+          >
+            {{ $gettext("delete") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </section>
 </template>
 <style lang="scss" scoped>

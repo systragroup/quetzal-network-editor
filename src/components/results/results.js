@@ -1,4 +1,3 @@
-// mouse.js
 import { cloneDeep } from 'lodash'
 import { ref, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
@@ -120,9 +119,9 @@ export function useResult () {
   // state encapsulated and managed by the composable
   const store = useIndexStore()
   const layer = ref({ crs: {}, type: 'FeatureCollection', features: [] })
-  const header = ref({ crs: {}, type: '', features: [] })
-  const visibleLayer = ref({ crs: {}, type: '', features: [] })
-  const NaNLayer = ref({ crs: {}, type: '', features: [] })
+  const header = ref({ crs: {}, type: 'FeatureCollection', features: [] })
+  const visibleLayer = ref({ crs: {}, type: 'FeatureCollection', features: [] })
+  const NaNLayer = ref({ crs: {}, type: 'FeatureCollection', features: [] })
   const type = ref('')
   const attributes = ref([])
   const displaySettings = ref(cloneDeep(defaultSettings))
@@ -130,6 +129,7 @@ export function useResult () {
   const selectedCategory = ref([])
   const hasOD = ref(false)
   const ODindex = ref({})
+  const ODfeatures = ref([])
   const matAvailableIndex = ref({})
 
   function loadLayer (geojson, mat, matIndex, selectedFeature) {
@@ -170,15 +170,15 @@ export function useResult () {
     updateSelectedFeature()
   }
   function getLinksProperties () {
-    const header = new Set([])
+    const attrs = new Set([])
     layer.value.features.forEach(element => {
-      Object.keys(element.properties).forEach(key => header.add(key))
+      Object.keys(element.properties).forEach(key => attrs.add(key))
     })
-    attributes.value = Array.from(header)
+    attributes.value = Array.from(attrs)
     attributes.value = attributes.value.filter(attr => !['display_width', 'display_color'].includes(attr))
 
     // eslint-disable-next-line max-len
-    selectedFilter.value = header.has('route_type') ? 'route_type' : header.has('highway') ? 'highway' : attributes.value[0]
+    selectedFilter.value = attrs.has('route_type') ? 'route_type' : attrs.has('highway') ? 'highway' : attributes.value[0]
     selectedCategory.value = Array.from(new Set(layer.value.features.map(
       item => item.properties[selectedFilter.value])))
   }
@@ -234,7 +234,7 @@ export function useResult () {
     let pad = cloneDeep(displaySettings.value.padding)
     pad = [pad[0] / 100, 1 - pad[1] / 100]
     pad = displaySettings.value.reverseColor ? pad.reverse() : pad
-    const colorScale = chroma.scale(cmap).padding(pad)
+    const chromaScale = chroma.scale(cmap).padding(pad)
       .domain([0, 1], scale).classes(numStep)
 
     visibleLayer.value.features.forEach(
@@ -243,7 +243,7 @@ export function useResult () {
         if (isHexColor(val)) {
           link.properties.display_color = val
         } else {
-          link.properties.display_color = colorScale(
+          link.properties.display_color = chromaScale(
             remap(val, minVal, maxVal, reverse, scale, false)).hex()
         }
       },
@@ -295,6 +295,19 @@ export function useResult () {
     return val
   })
 
+  const colorScale = computed(() => {
+    const arr = []
+    let pad = displaySettings.value.padding
+    pad = [pad[0] / 100, 1 - pad[1] / 100]
+    pad = displaySettings.value.reverseColor ? pad.reverse() : pad
+    const chromaScale = chroma.scale(displaySettings.value.cmap).padding(pad)
+      .domain([0, 1]).classes(displaySettings.value.numStep)
+    for (let i = 0; i < 100; i++) {
+      arr.push(chromaScale(remap(i, 0, 100, displaySettings.value.reverseColor, displaySettings.value.scale, false)))
+    }
+    return arr
+  })
+
   // expose managed state as return value
   return {
     layer,
@@ -308,6 +321,7 @@ export function useResult () {
     selectedCategory,
     hasOD,
     ODindex,
+    ODfeatures,
     matAvailableIndex,
     loadLayer,
     updateLayer,
@@ -318,5 +332,6 @@ export function useResult () {
     changeSelectedCategory,
     applySettings,
     filteredCategory,
+    colorScale,
   }
 }

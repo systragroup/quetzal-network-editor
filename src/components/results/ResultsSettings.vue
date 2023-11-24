@@ -1,18 +1,23 @@
 <script>
 import chroma from 'chroma-js'
+import { computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
+
 const $gettext = s => s
 
 export default {
   name: 'ResultsSettings',
-  model: {
-    prop: 'show',
-    event: 'update-show',
-  },
-  props: ['show', 'displaySettings', 'featureChoices'],
-  events: ['update-show', 'submit', 'save-preset'],
 
+  props: ['displaySettings', 'featureChoices', 'type'],
+  events: ['submit', 'save-preset'],
+  setup () {
+    const store = useIndexStore()
+    const windowHeight = computed(() => store.windowHeight - 100)
+    return { windowHeight }
+  },
   data () {
     return {
+      showDialog: false,
       parameters: [{
         name: $gettext('selectedFeature'),
         type: 'String',
@@ -121,23 +126,15 @@ export default {
         largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
         nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
       },
-      showDialog: false,
     }
-  },
-  computed: {
-    windowHeight () { return this.$store.getters.windowHeight - 100 },
   },
   watch: {
     showDialog (val) {
       this.refresh()
       this.showFixScale = this.parameters[11].value
-      this.$emit('update-show', val)
     },
     // when we change layer
     featureChoices () { this.refresh() },
-  },
-  created () {
-    this.showDialog = this.show
   },
 
   methods: {
@@ -223,6 +220,7 @@ export default {
     persistent
     :origin="'top right'"
     transition="scale-transition"
+    no-click-animation
   >
     <template v-slot:activator="{ props }">
       <div class="setting">
@@ -329,23 +327,26 @@ export default {
                 >
                   <div class="gradient">
                     <span
-                      v-for="(color,key) in getColor(item)"
+                      v-for="(color,key) in getColor(item.value)"
                       :key="key"
                       class="grad-step-small"
                       :style="{'backgroundColor':color}"
                     />
-                    <span class="domain-title-small">{{ item }}</span>
+                    <span class="domain-title-small">{{ item.value }}</span>
                   </div>
                 </template>
-                <template v-slot:item="{item}">
-                  <div class="gradient">
+                <template v-slot:item="{props,item}">
+                  <div
+                    class="gradient"
+                    v-bind="props"
+                  >
                     <span
-                      v-for="(color,key) in getColor(item)"
+                      v-for="(color,key) in getColor(item.value)"
                       :key="key"
                       class="grad-step"
                       :style="{'backgroundColor':color}"
                     />
-                    <span class="domain-title">{{ item }}</span>
+                    <span class="domain-title">{{ item.value }}</span>
                   </div>
                 </template>
               </v-select>
@@ -399,12 +400,12 @@ export default {
                 :persistent-hint="showHint"
               />
               <v-switch
-                v-if="['Polygon','extrusion'].includes($store.getters['results/type'])"
+                v-if="['Polygon','extrusion'].includes(type)"
                 :key="parameters[13].name"
                 v-model="parameters[13].value"
                 density="compact"
                 :label="$gettext(parameters[13].name)"
-                :disabled="!['Polygon','extrusion'].includes($store.getters['results/type'])"
+                :disabled="!['Polygon','extrusion'].includes(type)"
                 :hint="showHint? $gettext(parameters[13].hint): ''"
                 :persistent-hint="showHint"
               />

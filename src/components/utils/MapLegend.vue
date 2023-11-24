@@ -1,5 +1,6 @@
 <script>
-
+import { computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
 export default {
   name: 'MapLegend',
   components: {
@@ -22,17 +23,13 @@ export default {
       default: () => 0,
     },
   },
-  data () {
-    return {
-
-    }
-  },
-
-  computed: {
-    windowHeight () { return this.$store.getters.windowHeight - 70 },
-    leftOffset () {
-      return this.$store.getters.showLeftPanel ? 50 + (180 * this.order) + this.baseOffset : 50 + (180 * this.order)
-    },
+  setup (props) {
+    const store = useIndexStore()
+    const windowHeight = computed(() => store.windowHeight - 70)
+    const leftOffset = computed(() => {
+      return store.showLeftPanel ? 50 + (180 * props.order) + props.baseOffset : 50 + (180 * props.order)
+    })
+    return { windowHeight, leftOffset }
   },
 
 }
