@@ -1,5 +1,9 @@
 <script>
 import router from '@src/router/index'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { computed } from 'vue'
+const $gettext = s => s
 
 export default {
   name: 'NavigationDrawer',
@@ -9,14 +13,21 @@ export default {
       required: true,
     },
   },
-  emits: [
-    'changeOverlay',
-  ],
+  emits: ['changeOverlay'],
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const isProtected = computed(() => userStore.protected)
+    const scenario = computed(() => userStore.scenario)
+
+    return { store, isProtected, scenario }
+  },
   data () {
     return {
       drawer: true,
       menuItems: [],
       rail: false,
+      saving: false,
     }
   },
   computed: {
@@ -26,11 +37,16 @@ export default {
   },
   created () {
     // only used to force to see translation to vue-gettext
-    const $gettext = s => s
     this.menuItems = router.options.routes.concat({
-      name: 'Disconnect',
-      icon: 'fas fa-sign-out-alt',
-      title: $gettext('Disconnect'),
+      name: 'Save',
+      icon: 'fa-solid fa-save',
+      margin: 'auto',
+      title: $gettext('Save'),
+    })
+    this.menuItems = this.menuItems.concat({
+      name: 'Export',
+      icon: 'fa-solid fa-download',
+      title: $gettext('Export'),
     })
   },
   methods: {
@@ -44,8 +60,21 @@ export default {
     },
     handleClickMenuItem (route) {
       switch (route.name) {
-        case 'Disconnect':
-          this.$router.push('/login')
+        case 'Export':
+          this.store.exportFiles()
+          break
+        case 'Save':
+          this.saving = true
+          this.store.exportToS3().then(
+            () => {
+              this.saving = false
+              this.store.changeNotification(
+                { text: this.$gettext('Scenario saved'), autoClose: true, color: 'success' })
+            }).catch(
+            err => {
+              this.saving = false
+              this.store.changeAlert(err)
+            })
           break
         default:
           this.$router.push(route.path)
@@ -94,6 +123,8 @@ export default {
             class="app-menu-item"
             :class="[$route.name=== item.name ? 'app-menu-item-selected' : '']"
             :style="{marginTop: getListItemMarginTop(item)}"
+            :disabled="(item.name === 'Save') && ((!scenario) || (isProtected))"
+
             @click="handleClickMenuItem(item)"
           >
             <template #prepend>

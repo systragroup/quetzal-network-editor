@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import layerModule from './layer.js'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
@@ -196,32 +195,6 @@ export const useIndexStore = defineStore('store', {
           })
         })
     },
-    loadMatrix (payload) {
-      // payload : [{path,content}]
-      payload.forEach(
-        file => {
-          const moduleName = file.path.slice(0, -5)
-          this.commit(`${moduleName}/addMatrix`, file.content)
-        },
-      )
-    },
-
-    createLayer (payload) {
-      const moduleName = payload.fileName
-      if (!Object.keys(this._modules.root._children).includes(moduleName)) {
-        this.registerModule(moduleName, layerModule)
-      }
-      this.commit(`${moduleName}/createLayer`, payload)
-      if (!this.availableLayersStore.includes(moduleName)) {
-        this.availableLayersStore.push(moduleName)
-      }
-    },
-    unloadLayers () {
-      const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
-      this.availableLayersStore = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
-    },
 
     initNetworks () {
       const links = useLinksStore()
@@ -345,20 +318,6 @@ export const useIndexStore = defineStore('store', {
           const blob = new Blob([JSON.stringify(this.attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
-        // TODO
-        const layers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-        for (const layer of layers) {
-          const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
-          const name = layer + '.geojson'
-          // zip name = layer.replace('/', '_') + '.geojson'
-          zip.file(name, blob)
-          if (this.getters[`${layer}/mat`]) {
-            const blob = new Blob([JSON.stringify(this.getters[`${layer}/mat`])], { type: 'application/json' })
-            const name = layer + '.json'
-            zip.file(name, blob)
-          }
-        }
 
         for (const file of this.otherFiles) {
           // if others file loaded from S3 (they are not loaded yet. need to download them.)
@@ -374,10 +333,11 @@ export const useIndexStore = defineStore('store', {
           }
         }
       }
+      console.log(this.outputName)
       zip.generateAsync({ type: 'blob' })
-        .then(function (content) {
+        .then((content) => {
           // see FileSaver.js
-          saveAs(content, this.outputName + '.zip')
+          saveAs(content, `${this.outputName}.zip`)
         })
     },
 
@@ -443,19 +403,6 @@ export const useIndexStore = defineStore('store', {
         s3.deleteFolder(bucket, odFolder)
       }
       // save outputs Layers
-      // TODO
-      if (payload !== 'inputs') {
-        const layers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-        for (const layer of layers) {
-          const name = layer + '.geojson'
-          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
-          if (this.getters[`${layer}/mat`]) {
-            const name = layer + '.json'
-            await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
-          }
-        }
-      }
       // save others layers
       // if payload === inputs. only export inputs/ files.
       let otherFiles = this.otherFiles
