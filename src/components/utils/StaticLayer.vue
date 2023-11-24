@@ -83,6 +83,16 @@ export default {
         }
       }
       applySettings(preset.value.displaySettings)
+      // simplify it
+      visibleLayer.value.features = visibleLayer.value.features.map(obj => {
+        return {
+          geometry: obj.geometry,
+          properties: {
+            display_color: obj.properties.display_color,
+            display_width: obj.properties.display_width,
+          },
+        }
+      })
     })
     // move layer under rlinks (links and OD are over this one)
     onMounted(() => {

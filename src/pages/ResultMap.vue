@@ -34,7 +34,7 @@ export default {
     const ODStore = useODStore()
     const store = useIndexStore()
     const {
-      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, matAvailableIndex, ODfeatures,
+      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures,
       selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter, filteredCategory,
       updateSelectedFeature, changeSelectedCategory, colorScale,
     } = useResult()

@@ -414,7 +414,7 @@ export default {
       :key="file.name"
     >
       <StaticLayer
-        v-if="mapIsLoaded && visibleRasters.value.includes(file.name) && availableLayers.includes(file.layer)"
+        v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)"
         :key="file.name"
         :map="map"
         :preset="file"

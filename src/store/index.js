@@ -235,7 +235,7 @@ export const useIndexStore = defineStore('store', {
       links.loadNodes(nodesBase)
       rlinks.loadrNodes(nodesBase)
       od.loadLayer(linksBase)
-      this.visibleRasters.value = []
+      this.visibleRasters = []
       this.styles = []
       this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
       this.loadAttributesChoices(defaultAttributesChoices)
