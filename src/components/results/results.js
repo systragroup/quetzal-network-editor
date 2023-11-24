@@ -128,7 +128,7 @@ export function useResult () {
   const selectedFilter = ref('')
   const selectedCategory = ref([])
   const hasOD = ref(false)
-  const ODindex = ref({})
+  const mat = ref({})
   const ODfeatures = ref([])
   const matAvailableIndex = ref({})
 
@@ -143,14 +143,13 @@ export function useResult () {
     selectedFilter.value = ''
     selectedCategory.value = []
     hasOD.value = false
-    ODindex.value = {}
+    mat.value = {}
     ODfeatures.value = []
     matAvailableIndex.value = {}
   }
 
-  function loadLayer (geojson, mat, matIndex, selectedFeature) {
+  function loadLayer (geojson, matData, matIndex, selectedFeature) {
     reset()
-
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
     layer.value = cloneDeep(geojson)
@@ -159,13 +158,14 @@ export function useResult () {
     type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value
     // extrusion only for polygon right now. set to false if not a polygon
     if (type.value !== 'Polygon') { displaySettings.value.extrusion = false }
-    hasOD.value = mat !== null
-    ODindex.value = matIndex || {}
+    hasOD.value = (typeof matData === 'object' && matData !== null)
+
+    if (hasOD.value) { addMatrix(matData) }
 
     if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(layer.value.crs.properties.name)) {
       header.value.crs = cloneDeep(layer.value.crs)
       visibleLayer.value.crs = cloneDeep(header.value.crs)
-      NaNLayer.value = cloneDeep(header)
+      NaNLayer.value.crs = cloneDeep(header.value.crs)
       // set all trips visible
       getLinksProperties()
       if (attributes.value.includes(selectedFeature)) {
@@ -178,6 +178,43 @@ export function useResult () {
       updateSelectedFeature()
     } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
   }
+  function addMatrix (matData) {
+    // payload is a matrix
+    Object.keys(matData).forEach(key => { mat.value[key + ' (OD)'] = matData[key] })
+    ODfeatures.value = Object.keys(mat.value)
+    // force index to string
+    // eslint-disable-next-line no-return-assign
+    layer.value.features.forEach(zone => zone.properties.index = String(zone.properties.index))
+    // if init with nothing, do nothing.
+    if (layer.value.features.length > 0) {
+      ODfeatures.value.forEach(
+        prop => {
+          // get all clickable indexes
+          matAvailableIndex.value[prop] = Object.keys(mat.value[prop])
+          // for each properties in matrix, init the zones to null.
+          layer.value.features.forEach(
+            // eslint-disable-next-line no-return-assign
+            zone => zone.properties[prop] = null,
+          )
+        },
+      )
+    }
+  }
+  function changeOD (payload) {
+    const selectedProperty = payload.selectedProperty
+    if (ODfeatures.value.includes(selectedProperty)) {
+      const index = payload.index
+      const row = mat.value[selectedProperty][index]
+      // apply new value to each zone. (zone_1 is selected, apply time to zone_1 to every zone)
+      // if there is no data, put null (ex: sparse matrix)
+      layer.value.features.forEach(
+        // eslint-disable-next-line no-return-assign
+        zone => zone.properties[selectedProperty] = row ? row[zone.properties.index] : null)
+    }
+    refreshVisibleLinks()
+    updateSelectedFeature()
+  }
+
   function updateLayer (geojson) {
     layer.value = cloneDeep(geojson)
     refreshVisibleLinks()
@@ -205,7 +242,7 @@ export function useResult () {
       // keep track of NaN links to display them when we have a polygon
       NaNLayer.value.features = visibleLayer.value.features.filter(link => !link.properties[key])
       const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
-      if (allNaN && hasOD.value && Object.keys(ODindex.value).includes(key)) {
+      if (allNaN && hasOD.value && Object.keys(matAvailableIndex.value).includes(key)) {
         // keep visible links as we want to show clickable links
       } else {
         // remove NaN from links
@@ -267,8 +304,8 @@ export function useResult () {
     // if OD prop ans all NaN. put green on clickable links.
     //
     const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
-    if (allNaN && hasOD.value && Object.keys(ODindex.value).includes(key)) {
-      const indexList = new Set(ODindex.value[key])
+    if (allNaN && hasOD.value && Object.keys(matAvailableIndex.value).includes(key)) {
+      const indexList = new Set(matAvailableIndex.value[key])
       visibleLayer.value.features.forEach(
         link => {
           if (indexList.has(link.properties.index)) {
@@ -349,9 +386,9 @@ export function useResult () {
     selectedFilter,
     selectedCategory,
     hasOD,
-    ODindex,
     ODfeatures,
     matAvailableIndex,
+    changeOD,
     loadLayer,
     updateLayer,
     getLinksProperties,

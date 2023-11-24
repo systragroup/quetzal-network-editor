@@ -4,8 +4,6 @@ import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
-import { toRaw } from 'vue'
-import { cloneDeep } from 'lodash'
 
 const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 const $gettext = s => s
@@ -21,7 +19,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['selectedFeature', 'layerType', 'links', 'nanLinks', 'opacity', 'offset'],
+  props: ['selectedFeature', 'layerType', 'extrusion', 'links', 'nanLinks', 'opacity', 'offset'],
   events: ['selectClick'],
   setup () {
     const store = useIndexStore()
@@ -80,7 +78,7 @@ export default {
       if (this.map) this.mapIsLoaded = false
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-      if ((['Polygon', 'extrusion']).includes(this.layerType)) {
+      if ((['Polygon']).includes(this.layerType)) {
         this.links.features.forEach(link => {
           try { // try, so NaN will not crash
             if (link.geometry.type === 'Polygon') {
@@ -114,7 +112,7 @@ export default {
       })
 
       this.map = event.map
-      if (this.layerType !== 'extrusion') {
+      if (!this.extrusion) {
         event.map.dragRotate.disable()
       } else {
         this.store.changeNotification(
@@ -271,7 +269,7 @@ export default {
       }"
     />
     <MglGeojsonLayer
-      v-if="layerType === 'extrusion'"
+      v-if="layerType === 'Polygon' && extrusion"
       source-id="polygon"
       :source="{
         type: 'geojson',
@@ -296,7 +294,7 @@ export default {
     />
 
     <MglGeojsonLayer
-      v-if="layerType === 'Polygon'"
+      v-if="layerType === 'Polygon' && !extrusion"
       source-id="polygon"
       :source="{
         type: 'geojson',
@@ -320,7 +318,7 @@ export default {
     />
 
     <MglGeojsonLayer
-      v-if="layerType === 'Polygon'"
+      v-if="layerType === 'Polygon' && !extrusion"
       source-id="NaNPolygon"
       :source="{
         type: 'geojson',

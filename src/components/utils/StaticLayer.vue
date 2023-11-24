@@ -138,7 +138,7 @@ export default {
     </div>
 
     <MglGeojsonLayer
-      v-if="['MultiPolygon', 'Polygon'].includes(type)"
+      v-if="['MultiPolygon', 'Polygon'].includes(type) && !displaySettings.extrusion"
       :map="map"
       :source-id="name+ '-layer'"
       :source="{
@@ -209,7 +209,7 @@ export default {
       }"
     />
     <MglGeojsonLayer
-      v-if="type == 'extrusion'"
+      v-if="['MultiPolygon', 'Polygon'].includes(type) && displaySettings.extrusion"
       :map="map"
       :source-id="name+ '-layer'"
       :source="{

@@ -1,3 +1,4 @@
+<!-- eslint-disable no-case-declarations -->
 <script>
 
 import { onMounted, ref, computed } from 'vue'
@@ -34,7 +35,7 @@ export default {
     const ODStore = useODStore()
     const store = useIndexStore()
     const {
-      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures,
+      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures, changeOD,
       selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter, filteredCategory,
       updateSelectedFeature, changeSelectedCategory, colorScale,
     } = useResult()
@@ -45,7 +46,7 @@ export default {
     }
     function updateSelectedCategory (val) {
       changeSelectedCategory(val)
-      updateSelectedFeature(val)
+      updateSelectedFeature()
     }
 
     const selectedLayer = ref('links')
@@ -70,9 +71,10 @@ export default {
           break
         default:
           // TODO: gerer les ODs.
-          // eslint-disable-next-line no-case-declarations
-          const data = store.otherFiles.filter(file => file.name === layer)[0].content
-          loadLayer(data, null, null, '')
+          const files = store.otherFiles.filter(file => file.name === layer)
+          const data = files.filter(file => file.extension === 'geojson')[0].content
+          const matrix = files.filter(file => file.extension === 'json')[0]?.content
+          loadLayer(data, matrix, null, '')
 
           break
       }
@@ -185,14 +187,13 @@ export default {
     const showDialog = ref(false)
     const form = ref([])
     function featureClicked (event) {
-      const prop = displaySettings.selectedFeature
+      const prop = displaySettings.value.selectedFeature
       if (event.action === 'featureClick') {
         form.value = event.feature
         showDialog.value = true
         // OD click.
-      } else if (hasOD && ODfeatures.includes(prop)) {
-        // changeOD({ index: event.feature.index, selectedProperty: prop })
-        // this.$store.commit('results/updateLinks', this.$store.getters[`${this.selectedLayer}/layer`])
+      } else if (hasOD.value && ODfeatures.value.includes(prop)) {
+        changeOD({ index: event.feature.index, selectedProperty: prop })
       }
     }
 
@@ -273,9 +274,10 @@ export default {
     </div>
     <MapResults
       v-if="visibleLayer.features"
-      :key="type"
+      :key="type+String(displaySettings.extrusion)"
       v-slot="{ map }"
       :layer-type="type"
+      :extrusion="displaySettings.extrusion"
       :links="visibleLayer"
       :nan-links="NaNLayer"
       :selected-feature="displaySettings.selectedFeature"
