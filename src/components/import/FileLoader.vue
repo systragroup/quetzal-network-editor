@@ -57,7 +57,6 @@ export default {
   },
 
   watch: {
-    rlinksIsEmpty (val) { console.log(val) },
 
     localFilesAreLoaded (val) {
       if (val) {

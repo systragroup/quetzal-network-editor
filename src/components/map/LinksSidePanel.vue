@@ -367,7 +367,7 @@ export default {
           <v-virtual-scroll
             :items="value.tripId"
             :item-height="45"
-            :height="Math.min(height-220, 45*value.tripId.length+3)"
+            :height="Math.min(height-220, 48*value.tripId.length)"
           >
             <template v-slot="{ item }">
               <div
@@ -381,7 +381,6 @@ export default {
                   :false-icon="'fa-eye-slash fa'"
                   :color="'primary'"
                   :value="item"
-                  size="10"
                   hide-details
                 />
                 <v-tooltip
@@ -392,11 +391,13 @@ export default {
                   <template v-slot:activator="{ props }">
                     <v-list-item-title
                       v-if="item==editorTrip"
+                      style="{'flex':'2'}"
                     >
                       <strong>{{ item }}</strong>
                     </v-list-item-title>
                     <v-list-item-title
                       v-else
+                      style="{'flex':'2'}"
                       v-bind="props"
                     >
                       {{ item }}
@@ -489,14 +490,13 @@ export default {
       <v-divider />
     </v-card>
     <v-card class="mx-auto">
-      <v-list-item v-if="editorTrip ? true: false">
+      <v-list-item v-if="editorTrip">
         <v-tooltip
           location="right"
           open-delay="500"
         >
           <template v-slot:activator="{ props }">
             <v-btn
-
               class="mx-2"
               :color="store.anchorMode? 'grey':'regular'"
               v-bind="props"
@@ -534,24 +534,22 @@ export default {
           {{ $gettext("Confirm") }}
         </v-btn>
       </v-list-item>
-      <v-list-item v-show="editorTrip ? false: true">
-        <v-spacer />
-
+      <v-list-item
+        v-else
+        :style="{'justify-items':'flex-end'}"
+      >
         <v-tooltip
           location="bottom"
           open-delay="500"
         >
           <template v-slot:activator="{ props }">
             <v-btn
-
               color="primary"
-              class="text--primary"
               size="small"
+              icon="fas fa-plus"
               v-bind="props"
               @click="createNewLine"
-            >
-              <v-icon>fas fa-plus</v-icon>
-            </v-btn>
+            />
           </template>
           <span>{{ $gettext("Create new Line") }}</span>
         </v-tooltip>
@@ -610,6 +608,7 @@ export default {
 }
 .item{
   flex:1;
+  padding-left: 1rem;
 }
 .left-panel {
   height: 100%;
@@ -684,5 +683,7 @@ transition:0.3s
     opacity: 1!important;
     background: var(--v-tooltip-bg, rgba(97, 97, 97, 1)) !important;
 }
-
+.test{
+  border:1px solid red;
+}
 </style>
