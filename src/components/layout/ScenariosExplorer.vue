@@ -217,6 +217,8 @@ export default {
       v-model="menu"
       :persistent="!(!showDialog && !deleteDialog && !copyDialog)"
       :close-on-content-click="false"
+      location="bottom center"
+      offset="10"
       max-width="460px"
     >
       <template v-slot:activator="{ props }">

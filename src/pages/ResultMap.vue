@@ -185,11 +185,11 @@ export default {
     }
 
     const showDialog = ref(false)
-    const form = ref([])
+    const formData = ref([])
     function featureClicked (event) {
       const prop = displaySettings.value.selectedFeature
       if (event.action === 'featureClick') {
-        form.value = event.feature
+        formData.value = event.feature
         showDialog.value = true
         // OD click.
       } else if (hasOD.value && ODfeatures.value.includes(prop)) {
@@ -228,6 +228,7 @@ export default {
       availableStyles,
       visibleRasters,
       showDialog,
+      formData,
     }
   },
 
@@ -315,7 +316,7 @@ export default {
         <v-card-text>
           <v-list>
             <v-text-field
-              v-for="(value, key) in form"
+              v-for="(value, key) in formData"
               :key="key"
               :model-value="value"
               :label="key"

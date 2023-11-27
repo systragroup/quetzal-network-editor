@@ -77,9 +77,9 @@ export default {
       <v-switch
         v-model="$vuetify.theme.dark"
         hide-details
-        color="primary"
+        false-icon="fas fa-sun"
+        true-icon="fas fa-moon"
         inset
-        append-icon="fas fa-moon"
       />
     </div>
     <div>
