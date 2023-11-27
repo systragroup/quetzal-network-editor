@@ -4,6 +4,7 @@ import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { computed, ref, onMounted, watch } from 'vue'
 const $gettext = s => s
+const packageVersion = import.meta.env.VITE_APP_VERSION
 
 export default {
   name: 'NavigationDrawer',
@@ -64,8 +65,17 @@ export default {
     }
 
     function getListItemMarginTop (item) {
-      return item.name === 'Export' ? 'auto' : '0'
+      switch (item.name) {
+        case 'Save':
+          return 'auto'
+        case 'ResultMap':
+          return '5rem'
+        default:
+          return '0'
+      }
     }
+
+    const version = packageVersion
 
     return {
       store,
@@ -78,6 +88,7 @@ export default {
       getDisplayedRoutes,
       handleClickMenuItem,
       getListItemMarginTop,
+      version,
     }
   },
 
@@ -119,8 +130,28 @@ export default {
 
             @click="handleClickMenuItem(item)"
           >
-            <template #prepend>
+            <template v-slot:prepend>
+              <v-badge
+                v-if="item.name === 'Save' && saving"
+                color="rgba(0, 0, 0, 0)"
+              >
+                <template v-slot:badge>
+                  <v-progress-circular
+                    size="18"
+                    width="4"
+                    color="primary"
+                    indeterminate
+                  />
+                </template>
+                <v-icon
+                  class="icon"
+                  size="small"
+                >
+                  {{ item.icon }}
+                </v-icon>
+              </v-badge>
               <v-icon
+                v-else
                 class="icon"
                 size="small"
               >
@@ -132,7 +163,23 @@ export default {
             </v-list-item-title>
           </v-list-item>
         </template>
+        <div
+          class="version-number"
+          :style="{fontSize:24 - 2*version.length+'px'}"
+        >
+          <span>{{ version }}</span>
+        </div>
       </v-list>
     </v-navigation-drawer>
   </div>
 </template>
+<style lang="scss" scoped>
+.version-number {
+  justify-content: center ;
+  display: flex;
+  color:white !important;
+  margin-bottom: -0.5rem;
+  margin-top:1rem;
+
+}
+</style>
