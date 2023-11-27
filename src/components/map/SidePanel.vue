@@ -13,7 +13,6 @@ export default {
     RoadSidePanel,
     ODSidePanel,
   },
-  props: ['selectedTrips', 'selectedrGroup'],
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
   setup () {
     const store = useIndexStore()
@@ -74,6 +73,7 @@ export default {
       document.addEventListener('mouseup', this.stopResize)
     },
     resize (event) {
+      console.log(event)
       if (this.isResizing) {
         const width = event.clientX - this.windowOffest
         this.width = width > 400 ? width : 400
@@ -81,6 +81,7 @@ export default {
       }
     },
     stopResize (event) {
+      console.log('stop')
       this.isResizing = false
       document.removeEventListener('mousemove', this.resize)
       document.removeEventListener('mouseup', this.stopResize)
@@ -132,8 +133,6 @@ export default {
             <LinksSidePanel
               v-show="tab===0"
               :height="windowHeight"
-              :selected-trips="selectedTrips"
-              @update-tripList="(e) => $emit('update-tripList', {type: 'links', data: e})"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
               @abortChanges="(e) => $emit('abortChanges',e)"
               @cloneButton="(e) => $emit('cloneButton',e)"
@@ -143,8 +142,6 @@ export default {
             <RoadSidePanel
               v-show="tab===1"
               :height="windowHeight"
-              :selectedr-goup="selectedrGroup"
-              @update-tripList="(e) => $emit('update-tripList',{type: 'rlinks', data: e})"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />

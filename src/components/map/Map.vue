@@ -40,10 +40,6 @@ export default {
     ODMap,
   },
   props: {
-    selectedTrips: {
-      type: Array,
-      default: () => [],
-    },
     mode: {
       type: String,
       default: 'pt',
@@ -434,7 +430,6 @@ export default {
     <template v-if="mapIsLoaded">
       <StaticLinks
         :map="map"
-        :showed-trips="selectedTrips"
         :is-editor-mode="isEditorMode"
         @rightClick="(e) => $emit('clickFeature',e)"
       />

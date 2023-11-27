@@ -131,6 +131,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     appendNewLinks (payload) {
+      console.log(payload)
       // append new links to the project. payload = links geojson file
       payload.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))

@@ -1,41 +1,73 @@
 <script>
-import { toRaw, computed } from 'vue'
+import { toRaw, ref, onMounted, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
+import { cloneDeep } from 'lodash'
 
 export default {
   name: 'RoadSidePanel',
   components: {
   },
-  props: ['selectedrGoup', 'height'], // height is here to resize with the windows...
+  props: ['height'], // height is here to resize with the windows...
   events: ['deleteButton', 'propertiesButton', 'update-tripList'],
   setup () {
     const store = useIndexStore()
     const rlinksStore = userLinksStore()
     const linksStore = useLinksStore()
+    const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
+    const localSelectedTrip = ref([])
+
+    onMounted(() => { localSelectedTrip.value = cloneDeep(selectedrGoup.value) })
+    watch(localSelectedTrip, (newVal, oldVal) => {
+      let changes = ''
+      let method = 'add'
+      if (JSON.stringify(newVal) === JSON.stringify(filteredCat.value)) {
+        changes = newVal
+        method = 'showAll'
+      } else if (newVal.length === 0) {
+        changes = []
+        method = 'hideAll'
+      } else if (newVal.length < oldVal.length) {
+        // if a tripis unchecked. we remove it
+        changes = oldVal.filter(item => !newVal.includes(item))
+        method = 'remove'
+      } else if (newVal.length > oldVal.length) {
+        // if a trip is added, we add it!
+        changes = newVal.filter(item => !oldVal.includes(item))
+        method = 'add'
+      }
+      if (changes !== '') {
+        rlinksStore.changeVisibleRoads({ category: vmodelSelectedFilter.value, data: changes, method })
+      }
+    })
+    watch(selectedrGoup, (newVal) => {
+      // check selected group in store. if it changes from another component
+      const a = new Set(newVal)
+      const b = new Set(localSelectedTrip.value)
+      if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
+        localSelectedTrip.value = toRaw(newVal)
+      }
+    })
+    const selectedFilter = ref('')
+    const vmodelSelectedFilter = ref('')
     const filterChoices = computed(() => { return rlinksStore.rlineAttributes })
     const filteredCat = computed(() => { return rlinksStore.filteredrCategory })
     return {
       store,
       rlinksStore,
+      selectedrGoup,
+      localSelectedTrip,
+      selectedFilter,
+      vmodelSelectedFilter,
       linksStore,
       filterChoices,
       filteredCat,
     }
   },
-  data () {
-    return {
-      tripList: this.selectedrGoup,
-      // for some reason, the v-model does not update when i force it in a watcher or a method.
-      // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
-      selectedFilter: '',
-      vmodelSelectedFilter: '',
-    }
-  },
 
   watch: {
-    tripList (newVal, oldVal) {
+    localSelectedTrip (newVal, oldVal) {
       let changes = ''
       let method = 'add'
       if (JSON.stringify(newVal) === JSON.stringify(this.filteredCat)) {
@@ -54,15 +86,7 @@ export default {
         method = 'add'
       }
       if (changes !== '') {
-        this.$emit('update-tripList', { category: this.vmodelSelectedFilter, data: changes, method })
-      }
-    },
-    selectedrGoup (newVal) {
-      // check selected group in store. if it changes from another component
-      const a = new Set(newVal)
-      const b = new Set(this.tripList)
-      if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
-        this.tripList = toRaw(newVal)
+        this.rlinksStore.changeVisibleRoads({ category: this.vmodelSelectedFilter, data: changes, method })
       }
     },
 
@@ -70,15 +94,14 @@ export default {
       this.selectedFilter = newVal
       // only reset if we change the filter.
       this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
-      // when the component is loaded, oldVal is null and we dont want to overwrite tripList to [].
+      // when the component is loaded, oldVal is null and we dont want to overwrite localSelectedTrip to [].
       if (oldVal) {
-        this.tripList = []
+        this.localSelectedTrip = []
       }
     },
 
   },
   mounted () {
-    this.tripList = this.selectedrGoup
     this.selectedFilter = this.rlinksStore.selectedrFilter
     this.vmodelSelectedFilter = this.selectedFilter
     this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
@@ -113,14 +136,14 @@ export default {
       this.$emit('deleteButton', obj)
     },
     showAll () {
-      if (this.tripList.length === this.filteredCat.length) {
-        this.tripList = []
+      if (this.localSelectedTrip.length === this.filteredCat.length) {
+        this.localSelectedTrip = []
       } else {
-        this.tripList = this.filteredCat
+        this.localSelectedTrip = this.filteredCat
       }
     },
     showGroup (val) {
-      this.tripList = Array.from(new Set([...this.tripList, ...val]))
+      this.localSelectedTrip = Array.from(new Set([...this.localSelectedTrip, ...val]))
     },
 
   },
@@ -137,14 +160,14 @@ export default {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="tripList.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa'"
+            :icon="localSelectedTrip.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa'"
             class="ma-2"
             :style="{color: 'white'}"
             v-bind="props"
             @click="showAll()"
           />
         </template>
-        <span>{{ tripList.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ localSelectedTrip.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         location="bottom"
@@ -156,7 +179,7 @@ export default {
             icon="fas fa-list"
             class="ma-2"
             :style="{color: 'white'}"
-            :disabled="tripList.length===0? true: false"
+            :disabled="localSelectedTrip.length===0? true: false"
 
             v-bind="props"
             @click="editVisible()"
@@ -236,7 +259,7 @@ export default {
             class="container"
           >
             <v-checkbox-btn
-              v-model="tripList"
+              v-model="localSelectedTrip"
               class="ma-2 pl-2"
               :true-icon="'fa-eye fa'"
               :false-icon="'fa-eye-slash fa'"
@@ -300,7 +323,7 @@ export default {
               class="mx-2"
               :color="rlinksStore.anchorMode? 'grey':'regular'"
               v-bind="props"
-              @click="rlinksStore.changeAnchorMode()"
+              @click="store.changeAnchorMode()"
             >
               <v-icon size="small">
                 fas fa-anchor

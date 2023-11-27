@@ -35,9 +35,6 @@ export default {
     const mode = ref('pt')
     const action = ref(null)
 
-    const selectedTrips = computed(() => { return linksStore.selectedTrips })
-    const selectedrGroup = computed(() => { return rlinksStore.selectedrGroup })
-
     const numLinks = computed(() => { return Array.isArray(editorForm.value) ? editorForm.value.length : 1 })
     const attributesChoices = computed(() => {
       if (['pt', 'road'].includes(mode.value)) {
@@ -67,8 +64,6 @@ export default {
       editorForm,
       mode,
       action,
-      selectedTrips,
-      selectedrGroup,
       numLinks,
       attributesChoices,
       editForm,
@@ -144,14 +139,6 @@ export default {
         {},
       )
       return ordered
-    },
-
-    updateSelectedTrips (event) {
-      if (event.type === 'links') {
-        this.linksStore.changeSelectedTrips(event.data)
-      } else if (event.type === 'rlinks') {
-        this.rlinksStore.changeVisibleRoads(event.data)
-      }
     },
 
     actionClick (event) {
@@ -775,9 +762,6 @@ export default {
     </v-dialog>
 
     <SidePanel
-      :selected-trips="selectedTrips"
-      :selectedr-group="selectedrGroup"
-      @update-tripList="updateSelectedTrips"
       @confirmChanges="confirmChanges"
       @abortChanges="abortChanges"
       @deleteButton="deleteButton"
@@ -786,8 +770,6 @@ export default {
       @change-mode="(e) => mode = e"
     />
     <Map
-
-      :selected-trips="selectedTrips"
       :mode="mode"
       @clickFeature="actionClick"
     />

@@ -11,16 +11,17 @@ export default {
   components: {
     MglGeojsonLayer,
   },
-  props: ['map', 'showedTrips', 'isEditorMode'],
+  props: ['map', 'isEditorMode'],
   events: ['rightClick'],
   setup () {
     const store = useIndexStore()
     const linksStore = useLinksStore()
     const selectedPopupContent = computed(() => { return store.linksPopupContent })
+    const showedTrips = computed(() => { return linksStore.selectedTrips })
     const links = computed(() => { return linksStore.links })
     const nodes = computed(() => { return linksStore.nodes })
 
-    return { store, linksStore, selectedPopupContent, links, nodes }
+    return { store, linksStore, showedTrips, selectedPopupContent, links, nodes }
   },
   data () {
     return {
@@ -33,6 +34,7 @@ export default {
 
   watch: {
     showedTrips (newVal, oldVal) {
+      console.log(newVal)
       this.setHiddenFeatures()
     },
     isEditorMode (val) {

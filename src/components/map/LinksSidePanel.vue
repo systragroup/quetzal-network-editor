@@ -1,24 +1,62 @@
 <script>
 
 import short from 'short-uuid'
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
+import { cloneDeep } from 'lodash'
 const $gettext = s => s
 export default {
   name: 'LinksSidePanel',
   components: {
   },
 
-  props: ['selectedTrips', 'height'], // height is here to resize with the windows...
+  props: ['height'], // height is here to resize with the windows...
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
   setup () {
     const store = useIndexStore()
     const linksStore = useLinksStore()
-    const selectedFilter = ref('')
-    const filterChoices = computed(() => { return linksStore.lineAttributes })
-    const editorTrip = computed(() => { return linksStore.editorTrip })
+
     const tripId = computed(() => { return linksStore.tripId })
+    const selectedTrips = computed(() => { return linksStore.selectedTrips })
+    const localSelectedTrip = ref([])
+    onMounted(() => {
+      localSelectedTrip.value = cloneDeep(selectedTrips.value)
+    })
+
+    watch(localSelectedTrip, (val) => {
+      linksStore.changeSelectedTrips(val)
+    })
+
+    watch(tripId, (newVal, oldVal) => {
+      if (newVal.length < oldVal.length) {
+        // if a trip is deleted. we remove it, no remapping.
+        localSelectedTrip.value = localSelectedTrip.value.filter((trip) => newVal.includes(trip))
+      } else if (newVal.length > oldVal.length) {
+        // if a trip is added, we add it!
+        const newTrip = newVal.filter(item => !oldVal.includes(item))[0]
+        localSelectedTrip.value = [...localSelectedTrip.value, newTrip]
+      } else {
+        // if a trip name changes.
+        // update localSelectedTrip v-model when a trip_id is changed.
+        const dict = {}
+        oldVal.forEach(
+          function (key, i) {
+            dict[key] = newVal[i]
+          })
+        localSelectedTrip.value = localSelectedTrip.value.map((trip) => dict[trip])
+      }
+    })
+
+    const selectedFilter = ref('')
+    const vmodelSelectedFilter = ref('')
+    const filterChoices = computed(() => { return linksStore.lineAttributes })
+    onMounted(() => {
+      selectedFilter.value = 'route_type'
+      vmodelSelectedFilter.value = cloneDeep(selectedFilter.value)
+    })
+    const editorTrip = computed(() => { return linksStore.editorTrip })
+
     const arrayUniqueTripId = computed(() => { // drop duplicates links trips. each line is a trip here.
       const arrayUniqueByKey = [...new Map(linksStore.links.features.map(item =>
         [item.properties.trip_id, item.properties])).values()]
@@ -59,10 +97,13 @@ export default {
     return {
       store,
       linksStore,
+      selectedTrips,
+      localSelectedTrip,
+      tripId,
       selectedFilter,
+      vmodelSelectedFilter,
       filterChoices,
       editorTrip,
-      tripId,
       arrayUniqueTripId,
       filteredCat,
       classifiedTripId,
@@ -72,37 +113,11 @@ export default {
     return {
       showDialog: false,
       open: [],
-      tripList: [],
-      // for some reason, the v-model does not update when i force it in a watcher or a method.
-      // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
-      // selectedFilter: '',
-      vmodelSelectedFilter: '',
     }
   },
 
   watch: {
-    tripList (val) {
-      this.$emit('update-tripList', val)
-    },
-    tripId (newVal, oldVal) {
-      if (newVal.length < oldVal.length) {
-        // if a trip is deleted. we remove it, no remapping.
-        this.tripList = this.tripList.filter((trip) => newVal.includes(trip))
-      } else if (newVal.length > oldVal.length) {
-        // if a trip is added, we add it!
-        const newTrip = newVal.filter(item => !oldVal.includes(item))[0]
-        this.tripList.push(newTrip)
-      } else {
-        // if a trip name changes.
-        // update TripList v-model when a trip_id is changed.
-        const dict = {}
-        oldVal.forEach(
-          function (key, i) {
-            dict[key] = newVal[i]
-          })
-        this.tripList = this.tripList.map((trip) => dict[trip])
-      }
-    },
+
     vmodelSelectedFilter (newVal, oldVal) {
       this.selectedFilter = newVal
       // prevent group larger than 500.
@@ -121,11 +136,6 @@ export default {
       }
     },
 
-  },
-  created () {
-    this.tripList = this.selectedTrips
-    this.selectedFilter = 'route_type'
-    this.vmodelSelectedFilter = this.selectedFilter
   },
 
   methods: {
@@ -167,19 +177,19 @@ export default {
       this.$emit('deleteButton', obj)
     },
     showAll () {
-      if (this.tripList === this.tripId) {
-        this.tripList = []
+      if (this.localSelectedTrip === this.tripId) {
+        this.localSelectedTrip = []
       } else {
-        this.tripList = this.tripId
+        this.localSelectedTrip = this.tripId
       }
     },
     showGroup (val) {
       // at least one value is selected in the group : uncheck all
-      if (val.some(value => this.tripList.includes(value))) {
-        this.tripList = this.tripList.filter(trip => !val.includes(trip))
+      if (val.some(value => this.localSelectedTrip.includes(value))) {
+        this.localSelectedTrip = this.localSelectedTrip.filter(trip => !val.includes(trip))
       // none are selected : select All.
       } else {
-        this.tripList = Array.from(new Set([...this.tripList, ...val]))
+        this.localSelectedTrip = Array.from(new Set([...this.localSelectedTrip, ...val]))
       }
     },
 
@@ -197,7 +207,7 @@ export default {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="tripList == tripId ? 'fa-eye fa' : 'fa-eye-slash fa' "
+            :icon="localSelectedTrip == tripId ? 'fa-eye fa' : 'fa-eye-slash fa' "
             class="ma-2 "
             :style="{color: 'white'}"
 
@@ -205,7 +215,7 @@ export default {
             @click="showAll()"
           />
         </template>
-        <span>{{ tripList == tripId? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ localSelectedTrip == tripId? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         location="bottom"
@@ -218,9 +228,9 @@ export default {
             class="ma-2"
             :style="{color: 'white'}"
 
-            :disabled="tripList.length===0? true: false"
+            :disabled="localSelectedTrip.length===0? true: false"
             v-bind="props"
-            @click="propertiesButton(tripList)"
+            @click="propertiesButton(localSelectedTrip)"
           />
         </template>
         <span>{{ $gettext("Edit Visibles Properties") }}</span>
@@ -305,7 +315,7 @@ export default {
                   <template v-slot:activator="{ props:hover }">
                     <v-btn
                       variant="text"
-                      :icon="value.tripId.some(val => tripList.includes(val))
+                      :icon="value.tripId.some(val => localSelectedTrip.includes(val))
                         ? 'fa-eye fa' :
                           'fa-eye-slash fa' "
 
@@ -314,7 +324,7 @@ export default {
                     />
                   </template>
                   <span>
-                    {{ value.tripId.some(val => tripList.includes(val))
+                    {{ value.tripId.some(val => localSelectedTrip.includes(val))
                       ? $gettext("Hide All"):
                         $gettext("Show All") }}
                   </span>
@@ -375,7 +385,7 @@ export default {
                 class="container"
               >
                 <v-checkbox-btn
-                  v-model="tripList"
+                  v-model="localSelectedTrip"
                   class="pl-2"
                   :true-icon="'fa-eye fa'"
                   :false-icon="'fa-eye-slash fa'"
