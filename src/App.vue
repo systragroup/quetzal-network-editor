@@ -17,9 +17,8 @@ export default {
     const notification = computed(() => store.notification)
     const loading = computed(() => store.loading)
     const snackbar = ref(false)
-    const overlay = ref(false)
 
-    return { notification, loading, snackbar, overlay, store }
+    return { notification, loading, snackbar, store }
   },
   data () {
     return {
@@ -51,30 +50,17 @@ export default {
       // -50 for the ToolBar
       this.store.changeWindowHeight(this.$refs.container.$el.clientHeight - 50)
     },
-    showOverlay (element) {
-      this.overlay = !element
-    },
   },
 }
 </script>
 <template>
   <v-app class="app">
-    <NavigationDrawer
-      :key="overlay"
-      :overlay="overlay"
-      @change-overlay="showOverlay"
-    />
+    <NavigationDrawer />
     <v-card
       ref="container"
       v-resize="onResize"
       class="container rounded-0"
     >
-      <v-overlay
-        v-model="overlay"
-        contained
-        close-on-back
-        scroll-strategy="block"
-      />
       <v-overlay
         :model-value="loading"
       >

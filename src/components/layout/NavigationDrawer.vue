@@ -2,94 +2,85 @@
 import router from '@src/router/index'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { computed } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 const $gettext = s => s
 
 export default {
   name: 'NavigationDrawer',
-  props: {
-    overlay: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  emits: ['changeOverlay'],
-  setup () {
+  setup (props, context) {
     const store = useIndexStore()
     const userStore = useUserStore()
     const isProtected = computed(() => userStore.protected)
     const scenario = computed(() => userStore.scenario)
+    const rail = ref(true)
+    const drawer = ref(true)
+    // force drawer to True. the action of opening it with an overlay set it to false.
+    watch(drawer, () => { drawer.value = true })
 
-    return { store, isProtected, scenario }
-  },
-  data () {
-    return {
-      drawer: true,
-      menuItems: [],
-      rail: false,
-      saving: false,
+    const menuItems = ref([])
+    onMounted(() => {
+      menuItems.value = router.options.routes.concat({
+        name: 'Save',
+        icon: 'fa-solid fa-save',
+        margin: 'auto',
+        title: $gettext('Save'),
+      })
+      menuItems.value = menuItems.value.concat({
+        name: 'Export',
+        icon: 'fa-solid fa-download',
+        title: $gettext('Export'),
+      })
+    })
+
+    function getDisplayedRoutes () {
+      return menuItems.value.filter(o => o.icon)
     }
-  },
-  computed: {
-  },
-  mounted () {
-    this.rail = !this.overlay
-  },
-  created () {
-    // only used to force to see translation to vue-gettext
-    this.menuItems = router.options.routes.concat({
-      name: 'Save',
-      icon: 'fa-solid fa-save',
-      margin: 'auto',
-      title: $gettext('Save'),
-    })
-    this.menuItems = this.menuItems.concat({
-      name: 'Export',
-      icon: 'fa-solid fa-download',
-      title: $gettext('Export'),
-    })
-  },
-  methods: {
-    getDisplayedRoutes () {
-      return this.menuItems.filter(o => o.icon)
-    },
-    getRouteTitle (route) {
-      const tpl = '%{s}'
-      const gettext = this.$gettext
-      return this.$gettextInterpolate(tpl, { s: gettext(route.title) })
-    },
-    handleClickMenuItem (route) {
+
+    const saving = ref(false)
+
+    function handleClickMenuItem (route) {
       switch (route.name) {
         case 'Export':
-          this.store.exportFiles()
+          store.exportFiles()
           break
         case 'Save':
-          this.saving = true
-          this.store.exportToS3().then(
+          saving.value = true
+          store.exportToS3().then(
             () => {
-              this.saving = false
-              this.store.changeNotification(
-                { text: this.$gettext('Scenario saved'), autoClose: true, color: 'success' })
+              saving.value = false
+              store.changeNotification(
+                { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
             }).catch(
             err => {
-              this.saving = false
-              this.store.changeAlert(err)
+              saving.value = false
+              store.changeAlert(err)
             })
           break
         default:
-          this.$router.push(route.path)
-          this.rail = true
+          router.push(route.path)
+          rail.value = true
           break
       }
-    },
-    changeOverlay () {
-      this.rail = !this.rail
-      this.$emit('changeOverlay', this.rail)
-    },
-    getListItemMarginTop (item) {
-      return item.name === 'Disconnect' ? 'auto' : '0'
-    },
+    }
+
+    function getListItemMarginTop (item) {
+      return item.name === 'Export' ? 'auto' : '0'
+    }
+
+    return {
+      store,
+      drawer,
+      menuItems,
+      rail,
+      saving,
+      isProtected,
+      scenario,
+      getDisplayedRoutes,
+      handleClickMenuItem,
+      getListItemMarginTop,
+    }
   },
+
 }
 </script>
 <template>
@@ -99,11 +90,12 @@ export default {
       class="drawer elevation-4"
       :rail="rail"
       rail-width="50"
-      permanent
+      :temporary="!rail"
+      :permanent="rail"
     >
       <div
         class="drawer-header"
-        @click="changeOverlay"
+        @click.stop="rail = !rail"
       >
         <v-icon
           size="small"
@@ -131,13 +123,12 @@ export default {
               <v-icon
                 class="icon"
                 size="small"
-                :title="getRouteTitle(item)"
               >
                 {{ item.icon }}
               </v-icon>
             </template>
             <v-list-item-title class="app-menu-item-title">
-              {{ getRouteTitle(item) }}
+              {{ $gettext(item.title) }}
             </v-list-item-title>
           </v-list-item>
         </template>
