@@ -225,19 +225,16 @@ export default {
           v-for="user in users"
           :key="user.Username"
         >
-          <v-btn
-            v-if="showMore"
-            icon
-          >
-            <v-icon
+          <template v-slot:prepend>
+            <v-btn
+              v-if="showMore"
+              variant="text"
+              icon="fas fa-trash"
               size="small"
               color="error"
               @click="deleteUserButton(user)"
-            >
-              fas fa-trash
-            </v-icon>
-          </v-btn>
-
+            />
+          </template>
           <v-list-item-title>{{ user.Username }}</v-list-item-title>
           <v-list-item-subtitle>
             {{ user.email }}

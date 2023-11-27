@@ -3,7 +3,8 @@ import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
 import { useIndexStore } from '@src/store/index'
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
+import { useTheme } from 'vuetify'
 
 export default {
   name: 'App',
@@ -13,44 +14,24 @@ export default {
     NavigationDrawer,
   },
   setup () {
+    const theme = useTheme()
     const store = useIndexStore()
+    onMounted(() => { store.changeDarkMode(theme.global.current.value.dark) })
+
     const notification = computed(() => store.notification)
     const loading = computed(() => store.loading)
     const snackbar = ref(false)
-
-    return { notification, loading, snackbar, store }
-  },
-  data () {
-    return {
-
-    }
-  },
-  computed: {
-  },
-  watch: {
-    notification () {
-      this.snackbar = !!this.notification.text
-    },
-    snackbar (val) {
-      if (val === false) {
-        this.store.changeNotification({ text: '', autoClose: true })
-      }
-    },
-  },
-  async created () {
-    // init links and node to empty one (new project)
-    this.store.initNetworks()
-    this.store.changeDarkMode(this.$vuetify.theme.global.current.dark)
-  },
-  methods: {
-    closeSnackbar () {
-      this.snackbar = false
-    },
-    onResize () {
+    watch(notification, () => { snackbar.value = !!notification.value.text })
+    watch(snackbar, (val) => { if (val === false) { store.changeNotification({ text: '', autoClose: true }) } })
+    onMounted(() => { store.initNetworks() })
+    const container = ref(null)
+    function onResize () {
       // -50 for the ToolBar
-      this.store.changeWindowHeight(this.$refs.container.$el.clientHeight - 50)
-    },
+      store.changeWindowHeight(container.value.$el.clientHeight - 50)
+    }
+    return { notification, loading, snackbar, store, container, onResize }
   },
+
 }
 </script>
 <template>
@@ -63,8 +44,10 @@ export default {
     >
       <v-overlay
         :model-value="loading"
+        class="align-center justify-center"
       >
         <v-progress-circular
+
           indeterminate
           size="64"
         />
@@ -88,7 +71,7 @@ export default {
           color="secondarydark"
           variant="text"
           v-bind="attrs"
-          @click="closeSnackbar"
+          @click="snackbar=false"
         >
           {{ $gettext("Close") }}
         </v-btn>
