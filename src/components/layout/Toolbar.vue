@@ -3,13 +3,15 @@
 import Profile from './Profile.vue'
 import ScenariosExplorer from './ScenariosExplorer.vue'
 import { useIndexStore } from '@src/store/index'
-
+import { ref } from 'vue'
+import systraLogoUrl from '@static/systra_logo.png'
 export default {
   name: 'Toolbar',
   components: { Profile, ScenariosExplorer },
   setup () {
     const store = useIndexStore()
-    return { store }
+    const imageUrl = ref(systraLogoUrl)
+    return { store, imageUrl }
   },
   data () {
     return {
@@ -43,6 +45,10 @@ export default {
     :class="'app-toolbar elevation-4'"
     dense
   >
+    <v-img
+      :src="imageUrl"
+      max-width="6rem"
+    />
     <span class="copyright">©</span>
     <div class="app-name">
       Quetzal Network Editor
@@ -57,16 +63,12 @@ export default {
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
           <v-btn
-            icon
-
+            icon="fab fa-github"
+            color="'white'"
             href="https://github.com/systragroup/quetzal-network-editor"
             target="_blank"
             v-bind="props"
-          >
-            <v-icon>
-              fab fa-github
-            </v-icon>
-          </v-btn>
+          />
         </template>
         <span>GitHub</span>
       </v-tooltip>
@@ -74,6 +76,9 @@ export default {
     <div class="switch">
       <v-switch
         v-model="$vuetify.theme.dark"
+        hide-details
+        color="primary"
+        inset
         append-icon="fas fa-moon"
       />
     </div>
@@ -116,8 +121,8 @@ export default {
   z-index: 100;
   height: 50px !important;
   display: flex;
-  color: $secondary !important;
   position: relative;
+  padding-right: 1rem;
 }
 .login {
   padding-left: 50px;
@@ -141,12 +146,9 @@ export default {
 }
 .switch {
   display: flex;
-  padding-top: 1rem;
   padding-left:1rem;
   align-items: center;
   justify-content: center;
-  color: $grey-light;
-  cursor: pointer;
 }
 .language {
   width: 50px;

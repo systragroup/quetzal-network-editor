@@ -184,6 +184,7 @@ export default {
         <v-avatar
           v-if="loggedIn"
           size="34"
+          class="pointer"
           color="primary"
 
           v-bind="props"
@@ -407,7 +408,9 @@ export default {
 .form{
   margin: 1rem;
 }
-
+.pointer{
+  cursor: pointer;
+}
 .signin {
   padding:1rem 2rem 2rem 2rem
 }

@@ -221,7 +221,7 @@ export default {
     >
       <template v-slot:activator="{ props }">
         <div
-          class="custom-title"
+          class="custom-title pointer"
           v-bind="props"
         >
           {{ scenario? model + '/' + scenario: $gettext('Projects') }}
@@ -484,6 +484,10 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+
+.pointer{
+  cursor: pointer;
+}
 .container{
   display:flex;
   justify-content:flex-start;
