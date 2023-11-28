@@ -293,6 +293,7 @@ export default {
 .custom-title  {
   color:white;
   font-size: x-large;
+  cursor:pointer;
 }
 .crop {
   white-space: nowrap;     /* Prevents text from wrapping to the next line */

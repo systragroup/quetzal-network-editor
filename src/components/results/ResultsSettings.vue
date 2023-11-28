@@ -218,14 +218,14 @@ export default {
     v-model="showDialog"
     :close-on-content-click="false"
     persistent
-    :origin="'top right'"
-    transition="scale-transition"
     no-click-animation
+    location="bottom end"
+    offset="5"
+    transition="scale-transition"
   >
     <template v-slot:activator="{ props }">
       <div class="setting">
         <v-btn
-          size="small"
           :color="(displaySettings.selectedFeature === null)? 'error' : 'regular'"
           v-bind="props"
           icon="fa-solid fa-cog"
@@ -240,202 +240,214 @@ export default {
       @keydown.enter="submit('apply')"
       @keydown.esc="cancel"
     >
-      <v-card-title class="subtitle">
+      <v-list-item class="subtitle">
         {{ $gettext('Settings') }}
-        <v-spacer />
-        <v-btn
-          icon
-          size="small"
-          @click="showHint = !showHint"
-        >
-          <v-icon>far fa-question-circle small</v-icon>
-        </v-btn>
-      </v-card-title>
+        <template v-slot:append>
+          <v-btn
+            variant="text"
+            icon="far fa-question-circle small"
+            size="small"
+            @click="showHint = !showHint"
+          />
+        </template>
+      </v-list-item>
 
-      <v-card-text>
-        <v-form
-          ref="form"
-          lazy-validation
-        >
-          <v-container>
-            <v-col>
-              <v-select
-
-                v-model="parameters[0].value"
-                :items="featureChoices"
-                :label="$gettext(parameters[0].name)"
-                :hint="showHint? $gettext(parameters[0].hint): ''"
-                :persistent-hint="showHint"
-                required
-              />
-              <v-row>
-                <v-col
-                  v-for="item in parameters.slice(1,3)"
-                  :key="item.name"
-                >
-                  <v-text-field
-                    v-model="item.value"
-                    density="compact"
-                    :type="item.type"
-                    :label="$gettext(item.name)"
-                    :suffix="item.units"
-                    :hint="showHint? $gettext(item.hint): ''"
-                    :persistent-hint="showHint"
-                    required
-                    @wheel="()=>{}"
-                  />
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col>
-                  <v-text-field
-                    v-model="parameters[3].value"
-                    density="compact"
-                    :type="parameters[3].type"
-                    :label="$gettext(parameters[3].name)"
-                    :suffix="parameters[3].units"
-                    :hint="showHint? $gettext(parameters[3].hint): ''"
-                    :persistent-hint="showHint"
-                    required
-                    @wheel="()=>{}"
-                  />
-                </v-col>
-                <v-col>
-                  <v-select
-                    v-model="parameters[5].value"
-                    :items="parameters[5].choices"
-                    :label="$gettext(parameters[5].name)"
-                    :hint="showHint? $gettext(parameters[5].hint): ''"
-                    :persistent-hint="showHint"
-                    required
-                  />
-                </v-col>
-              </v-row>
-
-              <v-select
-
-                v-model="parameters[6].value"
-                :items="parameters[6].choices"
-                :label="$gettext(parameters[6].name)"
-                :hint="showHint? $gettext(parameters[6].hint): ''"
-                :persistent-hint="showHint"
-                required
-                variant="solo"
-              >
-                <template
-                  v-slot:selection="{item}"
-                >
-                  <div class="gradient">
-                    <span
-                      v-for="(color,key) in getColor(item.value)"
-                      :key="key"
-                      class="grad-step-small"
-                      :style="{'backgroundColor':color}"
-                    />
-                    <span class="domain-title-small">{{ item.value }}</span>
-                  </div>
-                </template>
-                <template v-slot:item="{props,item}">
-                  <div
-                    class="gradient"
-                    v-bind="props"
-                  >
-                    <span
-                      v-for="(color,key) in getColor(item.value)"
-                      :key="key"
-                      class="grad-step"
-                      :style="{'backgroundColor':color}"
-                    />
-                    <span class="domain-title">{{ item.value }}</span>
-                  </div>
-                </template>
-              </v-select>
-
-              <v-range-slider
-                v-model="parameters[14].value"
-                step="5"
-                density="compact"
-                :label="$gettext(parameters[14].name)"
-                min="0"
-                max="100"
-                hide-details
-                class="align-center"
-              />
-              <v-slider
-                v-model="parameters[4].value"
-                class="align-center"
-                :label="$gettext(parameters[4].name)"
-                track-color="secondary"
-                :max="100"
-                thumb-label
-                :min="0"
-                hide-details
-              >
-                <template v-slot:thumb-label="{ value }">
-                  {{ value +'%' }}
-                </template>
-              </v-slider>
-              <v-switch
-                :key="parameters[12].name"
-                v-model="parameters[12].value"
-                density="compact"
-                :label="$gettext(parameters[12].name)"
-                :hint="showHint? $gettext(parameters[12].hint): ''"
-                :persistent-hint="showHint"
-              />
-              <v-switch
-                :key="parameters[7].name"
-                v-model="parameters[7].value"
-                density="compact"
-                :label="$gettext(parameters[7].name)"
-                :hint="showHint? $gettext(parameters[7].hint): ''"
-                :persistent-hint="showHint"
-              />
-              <v-switch
-                :key="parameters[8].name"
-                v-model="parameters[8].value"
-                density="compact"
-                :label="$gettext(parameters[8].name)"
-                :hint="showHint? $gettext(parameters[7].hint): ''"
-                :persistent-hint="showHint"
-              />
-              <v-switch
-                v-if="['Polygon','extrusion'].includes(type)"
-                :key="parameters[13].name"
-                v-model="parameters[13].value"
-                density="compact"
-                :label="$gettext(parameters[13].name)"
-                :disabled="!['Polygon','extrusion'].includes(type)"
-                :hint="showHint? $gettext(parameters[13].hint): ''"
-                :persistent-hint="showHint"
-              />
-              <v-switch
-                :key="parameters[11].name"
-                v-model="parameters[11].value"
-                density="compact"
-                :label="$gettext(parameters[11].name)"
-                :hint="showHint? $gettext(parameters[11].hint): ''"
-                :persistent-hint="showHint"
-                @click="toggleFixScale(parameters[11].name)"
-              />
-              <v-text-field
-                v-for="item in parameters.slice(9,11)"
-                v-show="showFixScale"
+      <v-form
+        ref="form"
+        lazy-validation
+      >
+        <v-container>
+          <v-col>
+            <v-select
+              v-model="parameters[0].value"
+              variant="underlined"
+              :items="featureChoices"
+              :label="$gettext(parameters[0].name)"
+              :hint="showHint? $gettext(parameters[0].hint): ''"
+              :persistent-hint="showHint"
+              required
+            />
+            <v-row>
+              <v-col
+                v-for="item in parameters.slice(1,3)"
                 :key="item.name"
-                v-model="item.value"
-                :type="item.type"
+              >
+                <v-text-field
+                  v-model="item.value"
+                  variant="underlined"
+                  density="compact"
+                  :type="item.type"
+                  :label="$gettext(item.name)"
+                  :suffix="item.units"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                  required
+                  @wheel="()=>{}"
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-text-field
+                  v-model="parameters[3].value"
+                  variant="underlined"
+                  density="compact"
+                  :type="parameters[3].type"
+                  :label="$gettext(parameters[3].name)"
+                  :suffix="parameters[3].units"
+                  :hint="showHint? $gettext(parameters[3].hint): ''"
+                  :persistent-hint="showHint"
+                  required
+                  @wheel="()=>{}"
+                />
+              </v-col>
+              <v-col>
+                <v-select
+                  v-model="parameters[5].value"
+                  density="compact"
+                  variant="underlined"
+                  :items="parameters[5].choices"
+                  :label="$gettext(parameters[5].name)"
+                  :hint="showHint? $gettext(parameters[5].hint): ''"
+                  :persistent-hint="showHint"
+                  required
+                />
+              </v-col>
+            </v-row>
 
-                :label="$gettext(item.name)"
-                :suffix="item.units"
-                :hint="showHint? $gettext(item.hint): ''"
-                :persistent-hint="showHint"
-                required
-                @wheel="()=>{}"
-              />
-            </v-col>
-          </v-container>
-        </v-form>
-      </v-card-text>
+            <v-select
+              v-model="parameters[6].value"
+              density="compact"
+              :items="parameters[6].choices"
+              :label="$gettext(parameters[6].name)"
+              :hint="showHint? $gettext(parameters[6].hint): ''"
+              :persistent-hint="showHint"
+              required
+              variant="solo"
+            >
+              <template
+                v-slot:selection="{item}"
+              >
+                <div class="gradient">
+                  <span
+                    v-for="(color,key) in getColor(item.value)"
+                    :key="key"
+                    class="grad-step-small"
+                    :style="{'backgroundColor':color}"
+                  />
+                  <span class="domain-title-small">{{ item.value }}</span>
+                </div>
+              </template>
+              <template v-slot:item="{props,item}">
+                <div
+                  class="gradient"
+                  v-bind="props"
+                >
+                  <span
+                    v-for="(color,key) in getColor(item.value)"
+                    :key="key"
+                    class="grad-step"
+                    :style="{'backgroundColor':color}"
+                  />
+                  <span class="domain-title">{{ item.value }}</span>
+                </div>
+              </template>
+            </v-select>
+
+            <v-range-slider
+              v-model="parameters[14].value"
+              step="5"
+              density="compact"
+              color="primary"
+              :label="$gettext(parameters[14].name)"
+              min="0"
+              max="100"
+              :thumb-size="16"
+              hide-details
+              class="align-center"
+            />
+            <v-slider
+              v-model="parameters[4].value"
+              class="align-center"
+              color="primary"
+              :label="$gettext(parameters[4].name)"
+              track-color="secondary"
+              :max="100"
+              :thumb-size="16"
+              thumb-label
+              :min="0"
+              hide-details
+            >
+              <template v-slot:thumb-label="{ modelValue }">
+                {{ Math.floor(modelValue) +'%' }}
+              </template>
+            </v-slider>
+            <v-switch
+              :key="parameters[12].name"
+              v-model="parameters[12].value"
+              density="compact"
+              color="primary"
+              :label="$gettext(parameters[12].name)"
+              :hint="showHint? $gettext(parameters[12].hint): ''"
+              :persistent-hint="showHint"
+            />
+            <v-switch
+              :key="parameters[7].name"
+              v-model="parameters[7].value"
+              density="compact"
+              color="primary"
+              :label="$gettext(parameters[7].name)"
+              :hint="showHint? $gettext(parameters[7].hint): ''"
+              :persistent-hint="showHint"
+            />
+            <v-switch
+              :key="parameters[8].name"
+              v-model="parameters[8].value"
+              density="compact"
+              color="primary"
+              :label="$gettext(parameters[8].name)"
+              :hint="showHint? $gettext(parameters[7].hint): ''"
+              :persistent-hint="showHint"
+            />
+            <v-switch
+              v-if="['Polygon','extrusion'].includes(type)"
+              :key="parameters[13].name"
+              v-model="parameters[13].value"
+              density="compact"
+              color="primary"
+              :label="$gettext(parameters[13].name)"
+              :disabled="!['Polygon','extrusion'].includes(type)"
+              :hint="showHint? $gettext(parameters[13].hint): ''"
+              :persistent-hint="showHint"
+            />
+            <v-switch
+              :key="parameters[11].name"
+              v-model="parameters[11].value"
+              density="compact"
+              variant="underlined"
+
+              color="primary"
+              :label="$gettext(parameters[11].name)"
+              :hint="showHint? $gettext(parameters[11].hint): ''"
+              :persistent-hint="showHint"
+              @update:modelValue="toggleFixScale(parameters[11].name)"
+            />
+            <v-text-field
+              v-for="item in parameters.slice(9,11)"
+              v-show="showFixScale"
+              :key="item.name"
+              v-model="item.value"
+              variant="underlined"
+              :type="item.type"
+              :label="$gettext(item.name)"
+              :suffix="item.units"
+              :hint="showHint? $gettext(item.hint): ''"
+              :persistent-hint="showHint"
+              required
+            />
+          </v-col>
+        </v-container>
+      </v-form>
       <v-card-actions>
         <v-btn
           color="grey"
@@ -513,19 +525,18 @@ export default {
   font-size: 2em;
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
-  padding:1rem 1rem 0 1rem;
+  padding:0.5rem 1rem 0 1rem;
 
 }
 
 .setting {
-  left: 98%;
-  width: 0px;
+  left: 95.8%;
   z-index: 2;
   display: flex;
   position: relative;
   align-items: center;
   justify-content: center;
-  height: 50px;
+  height: 65px;
 }
 .setting-card {
 overflow-y:auto;

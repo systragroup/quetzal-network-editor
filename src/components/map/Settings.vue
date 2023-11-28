@@ -131,6 +131,7 @@ export default {
     v-model="show"
     :close-on-content-click="false"
     persistent
+    no-click-animation
     location="bottom end"
     offset="5"
     transition="scale-transition"

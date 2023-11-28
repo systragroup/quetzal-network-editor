@@ -42,7 +42,9 @@ export default {
     v-model="show"
     :close-on-content-click="false"
     :persistent="!(true)"
-    :origin="'top right'"
+    no-click-animation
+    location="bottom end"
+    offset="5"
     transition="scale-transition"
   >
     <template v-slot:activator="{ props }">
