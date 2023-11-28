@@ -53,10 +53,11 @@ export const useRunStore = defineStore('run', {
       this.running = payload
     },
     succeedExecution () {
+      const store = useIndexStore()
       this.running = false
       this.currentStep = this.steps.length + 1
       this.executionArn = ''
-      this.commit('changeNotification',
+      store.changeNotification(
         { text: $gettext('simulation executed successfully!'), autoClose: false, color: 'success' })
     },
     updateCurrentStep (payload) {
@@ -73,17 +74,17 @@ export const useRunStore = defineStore('run', {
     setAvalaibleStepFunctions (payload) {
       this.avalaibleStepFunctions = payload
     },
-    async getParameters ({ state, commit }, payload) {
+    async getParameters (payload) {
       // only for the reset button.
       const store = useIndexStore()
       try {
         const params = await s3.readJson(payload.model, payload.path)
         this.parameters = params
       } catch (err) {
-        store.changeAlert(err, { root: true })
+        store.changeAlert(err)
       }
     },
-    async getOutputs (context) {
+    async getOutputs () {
       const userStore = useUserStore()
       const model = userStore.model
       const scen = userStore.scenario + '/'
@@ -102,10 +103,9 @@ export const useRunStore = defineStore('run', {
       }
 
       if (res.length > 0) {
-        // unload all results Layers
-        context.commit('unloadLayers', {}, { root: true })
-        context.commit('loadFiles', res, { root: true })
         // load new Results
+        const store = useIndexStore()
+        store.loadFiles(res)
       }
     },
     async getSteps () {
@@ -129,7 +129,7 @@ export const useRunStore = defineStore('run', {
             if (this.selectedStepFunction === 'default') {
               def.States[key].Next = def.States[key].Default
             } else {
-            // if not default. select the one in the list
+              // if not default. select the one in the list
               const choices = def.States[key].Choices
               def.States[key].Next = choices.filter(el => el.StringEquals === this.selectedStepFunction)[0].Next
             }
@@ -151,7 +151,7 @@ export const useRunStore = defineStore('run', {
         }
         this.setSteps(steps)
       } catch (err) {
-        store.changeAlert(err, { root: true })
+        store.changeAlert(err)
       }
     },
     startExecution (payload) {
@@ -190,7 +190,7 @@ export const useRunStore = defineStore('run', {
           this.pollExecution()
         }).catch(
         err => {
-          store.changeAlert(err, { root: true })
+          store.changeAlert(err)
         })
     },
     pollExecution () {
@@ -217,7 +217,7 @@ export const useRunStore = defineStore('run', {
           }).catch(
           err => {
             const store = useIndexStore()
-            store.changeAlert(err, { root: true })
+            store.changeAlert(err)
             this.running = false
           })
         data = { executionArn: this.executionArn, includeExecutionData: false, reverseOrder: true }

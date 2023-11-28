@@ -98,7 +98,6 @@ export default {
       }
     },
     async localModel (val) {
-      console.log(val)
       // when we click on a tab (model), fetch the scenario list.
       this.userStore.setScenariosList([])
       this.loading = true

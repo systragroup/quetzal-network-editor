@@ -1,10 +1,11 @@
 <script>
 
 import ParamForm from '@comp/run/ParamForm.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onMounted, toRaw } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
+
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Run',
@@ -15,7 +16,7 @@ export default {
     const store = useIndexStore()
     const runStore = useRunStore()
     const userStore = useUserStore()
-    const stepFunction = ref(null)
+    const stepFunction = ref('')
     const steps = computed(() => { return runStore.steps })
     const avalaibleStepFunctions = computed(() => {
       const modelsSet = runStore.availableModels
@@ -29,6 +30,38 @@ export default {
     const synchronized = computed(() => { return runStore.synchronized })
     const isProtected = computed(() => { return userStore.protected })
     const modelIsLoaded = computed(() => { return userStore.model !== null })
+
+    onMounted(() => { stepFunction.value = toRaw(selectedStepFunction.value) })
+    onMounted(async () => {
+      if (modelIsLoaded.value) {
+        await runStore.getSteps()
+        // here stepfuntion is an index v-model. 0,1.
+      }
+    })
+
+    watch(stepFunction, async (val) => {
+      if (avalaibleStepFunctions.value.includes(val)) {
+        runStore.setSelectedStepFunction(val)
+        runStore.getSteps()
+      } else {
+        stepFunction.value = avalaibleStepFunctions.value[0]
+        runStore.setSelectedStepFunction(avalaibleStepFunctions.value[0])
+        runStore.getSteps()
+      }
+    })
+
+    async function run () {
+      try {
+        runStore.initExecution() // start the stepper at first step
+        await store.exportToS3('inputs')
+        await store.deleteOutputsOnS3()
+        runStore.startExecution({ scenario: userStore.scenario })
+      } catch (err) {
+        runStore.terminateExecution()
+        console.log(err)
+        store.changeAlert(err)
+      }
+    }
 
     return {
       stepFunction,
@@ -45,45 +78,10 @@ export default {
       synchronized,
       isProtected,
       modelIsLoaded,
+      run,
     }
   },
 
-  watch: {
-    async stepFunction (newVal, oldVal) {
-      if (newVal < 0) {
-        this.runStore.setSelectedStepFunction(this.avalaibleStepFunctions[0])
-        this.runStore.getSteps()
-      } else if (oldVal !== null) {
-        // val is an index here
-        this.runStore.setSelectedStepFunction(this.avalaibleStepFunctions[newVal])
-        this.runStore.getSteps()
-      }
-    },
-  },
-  async created () {
-    if (this.modelIsLoaded) {
-      await this.runStore.getSteps()
-      // here stepfuntion is an index v-model. 0,1.
-      this.stepFunction = this.avalaibleStepFunctions.indexOf(this.selectedStepFunction)
-    }
-  },
-  methods: {
-    async run () {
-      try {
-        this.runStore.initExecution() // start the stepper at first step
-        await this.store.exportToS3('inputs')
-        await this.store.deleteOutputsOnS3()
-        this.runStore.startExecution({ scenario: this.userStore.scenario })
-      } catch (err) {
-        this.runStore.terminateExecution()
-        this.store.changeAlert(err)
-      }
-    },
-    stopRun () {
-      this.runStore.stopExecution()
-      //
-    },
-  },
 }
 
 </script>
@@ -99,7 +97,7 @@ export default {
         </v-card-title>
         <v-stepper
           v-model="currentStep"
-          style="background-color:var(--v-background-lighten4);"
+          class="stepper"
         >
           <v-tabs
             v-if="avalaibleStepFunctions.length>1"
@@ -110,6 +108,7 @@ export default {
             <v-tab
               v-for="tab in avalaibleStepFunctions"
               :key="tab"
+              :value="tab"
               :disabled="running || !modelIsLoaded"
             >
               {{ tab }}
@@ -169,23 +168,30 @@ export default {
             v-show="running && currentStep!==1"
             color="grey"
             variant="text"
-            @click="stopRun()"
+            @click="runStore.stopExecution()"
           >
             {{ $gettext("Abort Simulation") }}
           </v-btn>
           <div v-if="modelIsLoaded">
             <v-container
               v-for="(step, i) in steps"
-
               :key="i+1"
             >
               <v-stepper-item
+                v-if="!error"
                 :complete="currentStep > i+1"
+                :color="currentStep >= i+1?'primary':'regular'"
+                :title="step.name"
+                :value="i+1"
                 :step="i+1"
-                :rules="[() => !(i+1 == currentStep) || !error]"
-              >
-                {{ step.name }}
-              </v-stepper-item>
+              />
+              <v-stepper-item
+                v-else
+                :complete="currentStep > i+1"
+                :title="step.name"
+                :value="i+1"
+                :step="i+1"
+              />
             </v-container>
           </div>
         </v-stepper>
@@ -202,34 +208,18 @@ export default {
 .background {
   background-color: rgb(var(--v-theme-background));
   height: 100%;
+  padding: 1rem;
   overflow: hidden;
 }
-.layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
-  display: flex;
-  flex-flow: row;
-  justify-content: center;
-  align-items: center;
-}
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
-}
-.card {
-  height: 100%;
-  overflow-y: auto;
-  padding: 40px;
-  background-color: rgb(var(--v-theme-lightergrey));
 
+.card {
+  height: 90vh;
+  overflow-y: hidden;
+  background-color: rgb(var(--v-theme-lightergrey));
 }
 
 .v-card__text {
   max-height: 80%;
-  overflow-y: auto;
 }
 .row {
   height: calc(100% - 38px)
@@ -253,14 +243,10 @@ export default {
   margin: 10px;
   margin-left: 0px;
 }
-.card button {
-  margin-top: 0px;
-}
-.v-stepper__content {
-  border-left: 4px solid rgba(0,0,0,.12);
-}
-.v-sheet.v-stepper:not(.v-sheet--outlined) {
-  box-shadow: none;
+.stepper{
+  background-color:rgb(var(--v-theme-mediumgrey)) ;
+  color:rgb(var(--v-theme-black));
+
 }
 
 </style>

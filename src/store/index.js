@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
-import { toRaw, ref } from 'vue'
+import { toRaw } from 'vue'
 import { useLinksStore } from './links'
 import { userLinksStore } from './rlinks'
 import { useODStore } from './od'
@@ -420,7 +420,7 @@ export const useIndexStore = defineStore('store', {
         }
       }
     },
-    async deleteOutputsOnS3 ({ state }) {
+    async deleteOutputsOnS3 () {
       const userStore = useUserStore()
       await s3.deleteFolder(userStore.model, userStore.scenario + '/outputs/')
     },
