@@ -1,56 +1,57 @@
 <script>
 import s3 from '../AWSClient'
+import { ref, onMounted } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+
 const $gettext = s => s
 
 export default {
   name: 'ResultPicture',
   components: {
   },
-  data () {
-    return {
-      imgs: [],
-      message: '',
-    }
-  },
-  watch: {
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const imgs = ref([])
+    const message = ref('')
 
-  },
-  async created () {
-    this.$store.commit('changeLoading', true)
-    await this.getImg()
-
-    this.$store.commit('changeLoading', false)
-    if (this.imgs.length === 0) {
-      this.message = $gettext('Nothing to display')
-    }
-  },
-
-  methods: {
-    async getImg () {
+    async function getImg () {
       // get the list of CSV from output files.
       // if its undefined (its on s3). fetch it.
-      const scenario = this.$store.getters.scenario + '/'
-      const otherFiles = this.$store.getters.otherFiles
-      const imgFiles = otherFiles.filter(file => file.path.startsWith('outputs/') && file.path.endsWith('.png'))
+      const scenario = userStore.scenario + '/'
+      const otherFiles = store.otherFiles
+      const imgFiles = otherFiles.filter(file => file.extension === 'png')
       for (const file of imgFiles) {
         if (!(file.content instanceof Uint8Array)) {
-          const url = await s3.getImagesURL(this.$store.getters.model, scenario + file.path)
-          this.imgs.push(url)
+          const url = await s3.getImagesURL(userStore.model, scenario + file.path)
+          imgs.value.push(url)
         } else {
           const blob = new Blob([file.content], { type: 'image/png' })
           // Create a data URL from the Blob
           const reader = new FileReader()
           reader.onload = (event) => {
             const url = event.target.result
-            this.imgs.push(url)
+            imgs.value.push(url)
             return url
           }
           reader.readAsDataURL(blob)
         }
       }
-    },
+    }
 
+    onMounted(async () => {
+      store.changeLoading(true)
+      await getImg()
+      store.changeLoading(false)
+      if (imgs.value.length === 0) {
+        message.value = $gettext('Nothing to display')
+      }
+    })
+
+    return { imgs, message }
   },
+
 }
 </script>
 <template>

@@ -1,54 +1,53 @@
 <script>
 import s3 from '../AWSClient'
 import { csvJSON } from '../components/utils/utils.js'
+import { ref, onMounted } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
 const $gettext = s => s
 
 export default {
   name: 'ResultTable',
-  components: {
-  },
-  data () {
-    return {
-      tables: [],
-      message: '',
-    }
-  },
-  watch: {
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const tables = ref([])
+    const message = ref('')
 
-  },
-  async created () {
-    this.$store.commit('changeLoading', true)
-    const files = await this.getCSV()
-    for (const file of files) {
-      // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
-      const name = file.path.slice(0, -4)
-      const data = csvJSON(file.content)
-      const headers = []
-      Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
-      this.tables.push({ headers, data, name })
-    }
-    this.$store.commit('changeLoading', false)
-    if (this.tables.length === 0) {
-      this.message = $gettext('Nothing to display')
-    }
-  },
-
-  methods: {
-    async getCSV () {
+    async function getCSV () {
       // get the list of CSV from output files.
       // if its undefined (its on s3). fetch it.
-      const scenario = this.$store.getters.scenario + '/'
-      const otherFiles = this.$store.getters.otherFiles
-      const csvFiles = otherFiles.filter(file => file.path.endsWith('.csv'))
+      const scenario = userStore.scenario + '/'
+      const otherFiles = store.otherFiles
+      const csvFiles = otherFiles.filter(file => file.extension === 'csv')
       for (const file of csvFiles) {
         if (!(file.content instanceof Uint8Array)) {
-          file.content = await s3.readBytes(this.$store.getters.model, scenario + file.path)
+          file.content = await s3.readBytes(userStore.model, scenario + file.path)
         }
       }
       return csvFiles
-    },
+    }
 
+    onMounted(async () => {
+      store.changeLoading(true)
+      const files = await getCSV()
+      for (const file of files) {
+        // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
+        const name = file.path.slice(0, -4)
+        const data = csvJSON(file.content)
+        const headers = []
+        Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
+        tables.value.push({ headers, data, name })
+      }
+      store.changeLoading(false)
+      if (tables.value.length === 0) {
+        message.value = $gettext('Nothing to display')
+      }
+    })
+
+    return { tables, message }
   },
+
 }
 </script>
 <template>
@@ -77,7 +76,6 @@ export default {
             <v-toolbar-title>
               {{ table.name }}
             </v-toolbar-title>
-
             <v-spacer />
           </v-toolbar>
         </template>

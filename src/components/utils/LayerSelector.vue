@@ -66,8 +66,8 @@ export default {
         v-for="(item,key) in choices"
         :key="key"
       >
-        <template v-slot:append>
-          <v-checkbox
+        <template v-slot:prepend>
+          <v-checkbox-btn
             v-model="selectedLayers"
             :value="item.name"
             :false-icon="!availableLayers.includes(item.layer)? 'fas fa-exclamation-triangle':'fa-eye-slash fa'"
@@ -82,7 +82,7 @@ export default {
         >
           <template v-slot:activator="{ props }">
             <v-list-item-title
-              :style="{'cursor': 'default'}"
+              :style="{'cursor': 'default','padding-left':'1rem'}"
               v-bind="props"
             >
               {{ item.name }}

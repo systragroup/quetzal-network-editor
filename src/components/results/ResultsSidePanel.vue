@@ -225,7 +225,7 @@ export default {
             <v-card
               max-width="100%"
               min-width="100%"
-              :height="windowHeight"
+              :height="windowHeight-180"
               class="mx-auto "
             >
               <v-list-item>
