@@ -19,6 +19,9 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.460.0",
+    "@aws-sdk/credential-providers": "^3.460.0",
+    "@aws-sdk/s3-request-presigner": "^3.461.0",
     "@fortawesome/fontawesome-free": "^6.4.0",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",
@@ -37,7 +40,6 @@
     "@vuepic/vue-datepicker": "^5.4.0",
     "apexcharts": "^3.41.0",
     "aws-amplify": "^5.3.12",
-    "aws-sdk": "^2.1500.0",
     "axios": "^1.6.1",
     "chroma-js": "^2.4.2",
     "crypto-js": "^4.2.0",
