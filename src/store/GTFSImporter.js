@@ -1,13 +1,16 @@
 import s3 from '@src/AWSClient'
 import { quetzalClient } from '@src/axiosClient.js'
 import { v4 as uuid } from 'uuid'
-import router from '../../router'
+import { defineStore } from 'pinia'
+import { useIndexStore } from './index'
+import { useLinksStore } from './links'
+
+import router from '@src/router/index'
 
 const $gettext = s => s
 
-export default {
-  namespaced: true,
-  state: {
+export const useGTFSStore = defineStore('runGTFS', {
+  state: () => ({
     stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api',
     bucket: 'quetzal-api-bucket',
     callID: uuid(),
@@ -30,73 +33,70 @@ export default {
       tram: 5,
     },
 
-  },
-  mutations: {
-    cleanRun (state) {
-      state.running = false
-      state.executionArn = ''
-      state.error = false
-      state.UploadedGTFS = []
-      state.selectedGTFS = []
-      state.callID = uuid()
+  }),
+  actions: {
+
+    cleanRun () {
+      this.running = false
+      this.executionArn = ''
+      this.error = false
+      this.UploadedGTFS = []
+      this.selectedGTFS = []
+      this.callID = uuid()
     },
-    setCallID (state) {
-      state.callID = uuid()
+    setCallID () {
+      this.callID = uuid()
     },
 
-    terminateExecution (state, payload) {
-      state.running = false
-      state.error = true
-      state.errorMessage = payload
-      state.executionArn = ''
+    terminateExecution (payload) {
+      this.running = false
+      this.error = true
+      this.errorMessage = payload
+      this.executionArn = ''
     },
-    changeRunning (state, payload) {
-      state.running = payload
+    changeRunning (payload) {
+      this.running = payload
     },
 
-    saveParams (state, payload) {
+    saveParams (payload) {
       // eslint-disable-next-line no-return-assign
-      payload.forEach(param => state.parameters[param.name] = param.value)
+      payload.forEach(param => this.parameters[param.name] = param.value)
     },
-    saveSelectedGTFS (state, payload) {
+    saveSelectedGTFS (payload) {
       // for web importer
-      state.selectedGTFS = payload
+      this.selectedGTFS = payload
     },
 
-    addGTFS (state, payload) {
-      const nameList = state.UploadedGTFS.map(el => el?.name)
-      if (!nameList.includes(payload.name)) {
-        state.UploadedGTFS.push(payload)
-      }
+    updateProgress (payload) {
+      this.UploadedGTFS.filter(el => el.name === payload.name)[0].progress = payload.progress
     },
-    updateProgress (state, payload) {
-      state.UploadedGTFS.filter(el => el.name === payload.name)[0].progress = payload.progress
-    },
-    succeedExecution (state) {
-      state.running = false
-      state.executionArn = ''
-      this.commit('changeNotification',
+    succeedExecution () {
+      const store = useIndexStore()
+      this.running = false
+      this.executionArn = ''
+      store.changeNotification(
         { text: $gettext('gtfs imported successfully!'), autoClose: false, color: 'success' })
     },
 
-  },
-  actions: {
+    async addGTFS (payload) {
+      const nameList = this.UploadedGTFS.map(el => el?.name)
+      if (!nameList.includes(payload.info.name)) {
+        this.UploadedGTFS.push(payload.info)
+      }
 
-    async addGTFS ({ state, commit }, payload) {
-      commit('addGTFS', payload.info)
-      const upload = s3.uploadObject(state.bucket, state.callID + '/' + payload.info.name, payload.content)
+      const upload = s3.uploadObject(this.bucket, this.callID + '/' + payload.info.name, payload.content)
       upload.on('httpUploadProgress', (progress) => {
         const percent = Math.round(progress.loaded / progress.total * 100)
-        commit('updateProgress', { name: payload.info.name, progress: percent })
+        this.updateProgress({ name: payload.info.name, progress: percent })
       })
       upload.promise()
     },
 
-    startExecution ({ state, commit, dispatch }, payload) {
-      state.running = true
-      state.error = false
+    startExecution (payload) {
+      this.running = true
+      this.error = false
       const input = JSON.stringify({
-        callID: state.callID,
+        callID: this.callID,
         files: payload.files,
         start_time: payload.start_time,
         end_time: payload.end_time,
@@ -104,88 +104,84 @@ export default {
       })
 
       let data = {
-        input: input,
+        input,
         name: uuid(),
-        stateMachineArn: state.stateMachineArn,
+        stateMachineArn: this.stateMachineArn,
       }
       quetzalClient.client.post('',
         data = JSON.stringify(data),
       ).then(
         response => {
-          state.executionArn = response.data.executionArn
-          dispatch('pollExecution')
+          this.executionArn = response.data.executionArn
+          this.pollExecution()
         }).catch(err => {
-        commit('changeAlert', err, { root: true })
-        state.running = false
-        state.status = 'FAILED'
+        const store = useIndexStore()
+        store.changeAlert(err)
+        this.running = false
+        this.status = 'FAILED'
       })
     },
-    async pollExecution ({ commit, state, dispatch }) {
+    async pollExecution () {
       const intervalId = setInterval(() => {
-        let data = { executionArn: state.executionArn }
+        let data = { executionArn: this.executionArn }
         quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
         ).then(
           async response => {
-            state.status = response.data.status
-            console.log(state.status)
-            if (state.status === 'SUCCEEDED') {
+            this.status = response.data.status
+            console.log(this.status)
+            if (this.status === 'SUCCEEDED') {
               clearInterval(intervalId)
-              await dispatch('downloadOSMFromS3')
-              commit('succeedExecution')
-            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(state.status)) {
-              commit('terminateExecution', JSON.parse(response.data.cause))
+              await this.downloadOSMFromS3()
+              this.succeedExecution()
+            } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.status)) {
+              this.terminateExecution(JSON.parse(response.data.cause))
               clearInterval(intervalId)
             }
-          }).catch(err => { commit('changeAlert', err, { root: true }) })
+          }).catch(err => {
+          const store = useIndexStore()
+          store.changeAlert(err)
+        })
       }, 2000)
     },
-    stopExecution ({ state, commit }) {
-      let data = { executionArn: state.executionArn }
+    stopExecution () {
+      const store = useIndexStore()
+      let data = { executionArn: this.executionArn }
       quetzalClient.client.post('/abort',
         data = JSON.stringify(data),
       ).then(
         response => {
-          commit('terminateExecution', response.data)
+          this.terminateExecution(response.data)
           // Maybe we sould wait for back to say that execution is terminated (but the wait is awkward)
         }).catch(
         err => {
-          commit('changeAlert', err, { root: true })
+          store.changeAlert(err)
         })
     },
-    async downloadOSMFromS3 ({ state, commit }) {
+    async downloadOSMFromS3 () {
+      const linksStore = useLinksStore()
       function applyDict (links) {
         // 00BCD4
-        Object.keys(state.widthDict).forEach(routeType => {
+        Object.keys(this.widthDict).forEach(routeType => {
           links.features.filter(link => link.properties.route_type === routeType).forEach(
             link => {
-              link.properties.route_width = state.widthDict[routeType]
+              link.properties.route_width = this.widthDict[routeType]
             })
         })
         return links
       }
 
-      let links = await s3.readJson(state.bucket, state.callID.concat('/links.geojson'))
+      let links = await s3.readJson(this.bucket, this.callID.concat('/links.geojson'))
       if (links.features.length > 0) {
         links = applyDict(links)
       }
-      commit('appendNewLinks', links, { root: true })
-      const nodes = await s3.readJson(state.bucket, state.callID.concat('/nodes.geojson'))
-      commit('appendNewNodes', nodes, { root: true })
-      console.log('downloaded')
+      linksStore.appendNewLinks(links)
+      const nodes = await s3.readJson(this.bucket, this.callID.concat('/nodes.geojson'))
+      linksStore.appendNewNodes(nodes)
       router.push('/Home').catch(() => {})
     },
   },
   getters: {
-    UploadedGTFS: (state) => state.UploadedGTFS,
-    selectedGTFS: (state) => state.selectedGTFS,
-    parameters: (state) => state.parameters,
-    running: (state) => state.running,
-    status: (state) => state.status,
-    executionArn: (state) => state.executionArn,
-    error: (state) => state.error,
-    errorMessage: (state) => state.errorMessage,
-    callID: (state) => state.callID,
-    bucket: (state) => state.bucket,
+
   },
-}
+})

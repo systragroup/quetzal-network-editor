@@ -3,17 +3,20 @@ import Import from '@page/Import.vue'
 import Home from '@page/Home.vue'
 import { useRunStore } from '@src/store/run'
 import { useIndexStore } from '../store'
-
+import { useUserStore } from '../store/user'
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')
 const ResultTable = () => import('@page/ResultTable.vue')
-// import Run from '@page/Run.vue'
-// only used to force to see translation to vue-gettext
+const Microservices = () => import('@page/Microservices.vue')
+
+const basePath = import.meta.env.VITE_BASE_PATH
 const $gettext = s => s
+console.log(basePath)
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  base: basePath,
   routes: [
     {
       path: '/',
@@ -21,6 +24,27 @@ const router = createRouter({
       component: Import,
       icon: 'fa-solid fa-upload',
       title: $gettext('Import'),
+    },
+    {
+      path: '/Microservices',
+      name: Microservices.name,
+      component: Microservices,
+      icon: 'fas fa-tachometer-alt',
+      title: $gettext('Microservices'),
+      beforeEnter: (to, from, next) => {
+        const store = useIndexStore()
+        const userStore = useUserStore()
+        if (!userStore.loggedIn) {
+          store.changeNotification(
+            {
+              text: $gettext('Must be logged in'),
+              autoClose: true,
+              color: 'error',
+            })
+        } else {
+          next()
+        }
+      },
     },
     {
       path: '/Home',

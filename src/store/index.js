@@ -196,17 +196,23 @@ export const useIndexStore = defineStore('store', {
         })
     },
 
-    initNetworks () {
+    initLinks () {
       const links = useLinksStore()
-      const rlinks = userLinksStore()
-      const od = useODStore()
-
       links.initLinks()
-      rlinks.initrLinks()
       links.loadLinks(linksBase)
-      rlinks.loadrLinks(linksBase)
       links.loadNodes(nodesBase)
+    },
+
+    initrLinks () {
+      const rlinks = userLinksStore()
+      rlinks.initrLinks()
+      rlinks.loadrLinks(linksBase)
       rlinks.loadrNodes(nodesBase)
+    },
+    initNetworks () {
+      const od = useODStore()
+      this.initLinks()
+      this.initrLinks()
       od.loadLayer(linksBase)
       this.visibleRasters = []
       this.styles = []

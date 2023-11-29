@@ -10,7 +10,9 @@ import InfoZip from '@comp/import/InfoZip.vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
-
+// import audioFile from '@static/samsung-washing-machine-melody-made-with-Voicemod-technology.mp3'
+// const audio = new Audio(audioFile)
+// audio.play()
 const $gettext = s => s
 
 export default {
