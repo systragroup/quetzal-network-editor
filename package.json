@@ -7,8 +7,9 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "build-test": "vite build --mode staging",
+    "build-test": "vite build --mode test",
     "preview": "vite preview",
+    "preview-test": "vite preview --mode staging",
     "clean": "rm -rf dist src/config.js src/translations.json",
     "setup": "sh build/setup.sh",
     "lint": "eslint --ext .js,.vue,.jsx,.cjs,.mjs src test",

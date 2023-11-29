@@ -65,18 +65,18 @@ export default {
       <span class="snackbar-text">
         {{ $gettext(notification.text) }}
       </span>
-      <template v-slot:action="{ attrs }">
+      <template #actions>
         <v-btn
           size="small"
           color="secondarydark"
           variant="text"
-          v-bind="attrs"
           @click="snackbar=false"
         >
           {{ $gettext("Close") }}
         </v-btn>
       </template>
     </v-snackbar>
+
     <Alert />
   </v-app>
 </template>

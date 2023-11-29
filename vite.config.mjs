@@ -7,10 +7,17 @@ import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
 
 const mode = process.env.NODE_ENV
+let basePath = '/quetzal-network-editor-dev/'
 let defineOption = {}
+console.log(mode)
 if (mode === 'development') {
   defineOption = { global: 'window' }
+} else if (mode === 'test') {
+  basePath = '/quetzal-network-editor-dev/'
+} else if (mode === 'production') {
+  basePath = '/quetzal-network-editor/'
 }
+
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
@@ -24,6 +31,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ['map-promisified'],
   },
+  base: basePath,
   plugins: [
     vue(),
     vuetify(),

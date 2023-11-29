@@ -37,12 +37,12 @@ export default {
 <template>
   <div :style="{'margin-left':'10px'}">
     <v-btn
-      icon
-      small
+      variant="text"
+      icon="far fa-question-circle"
+      color="grey"
+      size="small"
       @click="show"
-    >
-      <v-icon>far fa-question-circle small</v-icon>
-    </v-btn>
+    />
     <v-dialog
       v-model="showDialog"
       :height="height"
@@ -50,7 +50,7 @@ export default {
     >
       <v-img
         :src="url"
-        contain
+        cover
         :height="height"
         :width="width"
         :alt="'image'"
