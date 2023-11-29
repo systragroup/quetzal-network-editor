@@ -45,6 +45,13 @@ export default {
         path: this.$store.getters.scenario + '/inputs/params.json',
       })
     },
+    removeDeletedScenarios (item) {
+      // when selecting a value. make sure it exist in the scen list.
+      // if a scen selected was deleted. it will be remove from the v-model here.
+      // this is not perfect, but a user who toggle a scen will fix the problem...
+      const scenarios = this.$store.getters.scenariosList.map(el => el.scenario)
+      item.value = item.value.filter(name => scenarios.includes(name))
+    },
   },
 }
 </script>
@@ -109,6 +116,7 @@ export default {
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
+                  @change="removeDeletedScenarios(item)"
                 />
                 <v-select
                   v-else

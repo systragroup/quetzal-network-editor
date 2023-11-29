@@ -7,8 +7,8 @@ const $gettext = s => s
 export default {
   namespaced: true,
   state: {
-    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:ML_MatrixRoadCaster',
-    bucket: 'matrixroadcaster',
+    stateMachineArn: 'arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-matrixroadcaster-api',
+    bucket: 'quetzal-api-bucket',
     callID: '',
     status: '',
     timer: 0,

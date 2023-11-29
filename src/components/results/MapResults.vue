@@ -3,7 +3,9 @@
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
+
 const mapboxPublicKey = process.env.VUE_APP_MAPBOX_PUBLIC_KEY
+const $gettext = s => s
 
 export default {
   name: 'ResultMap',
@@ -75,7 +77,7 @@ export default {
       if (this.map) this.mapIsLoaded = false
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-      if (this.layerType === 'Polygon') {
+      if ((['Polygon', 'extrusion']).includes(this.layerType)) {
         this.links.features.forEach(link => {
           try { // try, so NaN will not crash
             if (link.geometry.type === 'Polygon') {
@@ -109,19 +111,27 @@ export default {
       })
 
       this.map = event.map
-      event.map.dragRotate.disable()
+      if (this.layerType !== 'extrusion') {
+        event.map.dragRotate.disable()
+      } else {
+        this.$store.commit('changeNotification',
+          { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
+      }
+
       this.mapIsLoaded = true
     },
     enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
       this.selectedLinks = event.mapboxEvent.features
       if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-      if (this.selectedFeature.length > 0 && this.layerType !== 'Polygon') { // do not show popup if nothing is selected
+      if (this.selectedFeature && this.layerType !== 'Polygon') { // do not show popup if nothing is selected
         const val = this.selectedLinks[0].properties[this.selectedFeature]
-        this.popup = new mapboxgl.Popup({ closeButton: false })
-          .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-          .setHTML(`${this.selectedFeature}: <br> ${val}`)
-          .addTo(event.map)
+        if (val) {
+          this.popup = new mapboxgl.Popup({ closeButton: false })
+            .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+            .setHTML(`${this.selectedFeature}: <br> ${val}`)
+            .addTo(event.map)
+        }
       }
     },
     leaveLink (event) {
@@ -163,7 +173,12 @@ export default {
   >
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
+    <slot
+      v-if="mapIsLoaded"
 
+      :map="map"
+      :map-is-loaded="mapIsLoaded"
+    />
     <MglGeojsonLayer
       v-if="layerType == 'LineString'"
       source-id="links"
@@ -173,7 +188,7 @@ export default {
         buffer: 0,
         promoteId: 'index',
       }"
-      layer-id="links"
+      layer-id="results"
       :layer="{
         interactive: true,
         type: 'line',
@@ -206,7 +221,7 @@ export default {
         buffer: 0,
         promoteId: 'index',
       }"
-      layer-id="nodes"
+      layer-id="results"
       :layer="{
         interactive: true,
         type: 'circle',
@@ -253,6 +268,31 @@ export default {
       }"
     />
     <MglGeojsonLayer
+      v-if="layerType === 'extrusion'"
+      source-id="polygon"
+      :source="{
+        type: 'geojson',
+        data: links,
+        promoteId: 'index',
+      }"
+      layer-id="results"
+      :layer="{
+        interactive: true,
+        type: 'fill-extrusion',
+        'paint': {
+          'fill-extrusion-color':['get', 'display_color'],
+          'fill-extrusion-opacity': opacity/100,
+          'fill-extrusion-height':['*',1000,['to-number', ['get', 'display_width']]],
+
+        }
+      }"
+      @mouseenter="zoneHover"
+      @mouseleave="zoneLeave"
+      @click="zoneClick"
+      @contextmenu="selectClick"
+    />
+
+    <MglGeojsonLayer
       v-if="layerType === 'Polygon'"
       source-id="polygon"
       :source="{
@@ -260,7 +300,7 @@ export default {
         data: links,
         promoteId: 'index',
       }"
-      layer-id="zones"
+      layer-id="results"
       :layer="{
         interactive: true,
         type: 'fill',
@@ -275,6 +315,7 @@ export default {
       @click="zoneClick"
       @contextmenu="selectClick"
     />
+
     <MglGeojsonLayer
       v-if="layerType === 'Polygon'"
       source-id="NaNPolygon"
@@ -283,7 +324,7 @@ export default {
         data: NaNLinks,
         promoteId: 'index',
       }"
-      layer-id="NaNZones"
+      layer-id="NaNresults"
       :layer="{
         interactive: true,
         type: 'fill',

@@ -105,51 +105,48 @@ export default {
         // load new Results
       }
     },
-    getSteps ({ state, commit, rootState }) {
-      let data = { stateMachineArn: state.stateMachineArnBase + rootState.user.model }
-      quetzalClient.client.post('/describe/model',
-        data = JSON.stringify(data),
-      ).then(
-        response => {
-          const def = JSON.parse(response.data.definition)
-          const firstStep = def.StartAt
+    async getSteps ({ state, commit, rootState }) {
+      try {
+        let data = { stateMachineArn: state.stateMachineArnBase + rootState.user.model }
+        const response = await quetzalClient.client.post('/describe/model',
+          data = JSON.stringify(data))
+        const def = JSON.parse(response.data.definition)
+        const firstStep = def.StartAt
 
-          // check if there is a choice in the definition.
-          // if So. Get all choices in state.availableStepFunctions
-          // replace the Next of the choice step with the selected one.
-          Object.keys(def.States).forEach((key) => {
-            if (def.States[key].Type === 'Choice') {
-              // could be a list of choices
-              state.avalaibleStepFunctions = ['default', ...def.States[key].Choices.map(el => el.StringEquals)]
-              if (state.selectedStepFunction === 'default') {
-                def.States[key].Next = def.States[key].Default
-              } else {
-                // if not default. select the one in the list
-                const choices = def.States[key].Choices
-                def.States[key].Next = choices.filter(el => el.StringEquals === state.selectedStepFunction)[0].Next
-              }
+        // check if there is a choice in the definition.
+        // if So. Get all choices in state.availableStepFunctions
+        // replace the Next of the choice step with the selected one.
+        Object.keys(def.States).forEach((key) => {
+          if (def.States[key].Type === 'Choice') {
+          // could be a list of choices
+            state.avalaibleStepFunctions = ['default', ...def.States[key].Choices.map(el => el.StringEquals)]
+            if (state.selectedStepFunction === 'default') {
+              def.States[key].Next = def.States[key].Default
+            } else {
+            // if not default. select the one in the list
+              const choices = def.States[key].Choices
+              def.States[key].Next = choices.filter(el => el.StringEquals === state.selectedStepFunction)[0].Next
             }
-          })
-          // if there is a choice
+          }
+        })
+        // if there is a choice
 
-          // let next = def.States[firstStep].Next
-          const steps = []
-          let next = firstStep
-          while (true) {
-            // if there is a choice
-            if (def.States[next].Type === 'Choice') {
-              next = def.States[next].Next
-            }
-            steps.push({ name: next })
-            if (def.States[next].Next === undefined) break
+        // let next = def.States[firstStep].Next
+        const steps = []
+        let next = firstStep
+        while (true) {
+        // if there is a choice
+          if (def.States[next].Type === 'Choice') {
             next = def.States[next].Next
           }
-
-          commit('setSteps', steps)
-        }).catch(
-        err => {
-          commit('changeAlert', err, { root: true })
-        })
+          steps.push({ name: next })
+          if (def.States[next].Next === undefined) break
+          next = def.States[next].Next
+        }
+        commit('setSteps', steps)
+      } catch (err) {
+        commit('changeAlert', err, { root: true })
+      }
     },
     startExecution ({ state, commit, dispatch, rootState }, payload) {
       const filteredParams = state.parameters.filter(param =>
@@ -258,5 +255,7 @@ export default {
     synchronized: (state) => state.synchronized,
     parameters: (state) => state.parameters,
     parametersIsEmpty: (state) => state.parameters.length === 0,
+    availableModels: (state) => new Set(state.parameters.map(param => param.model)),
+
   },
 }

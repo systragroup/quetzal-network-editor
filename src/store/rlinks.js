@@ -15,6 +15,10 @@ const $gettext = s => s
 
 const short = require('short-uuid')
 
+// eslint-disable-next-line max-len
+const defaultrCstAttributes = ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway', 'cycleway', 'cycleway_reverse', 'incline']
+const defaultrUndeletable = ['index', 'a', 'b', 'length', 'route_color', 'oneway', 'time', 'speed', 'time_r', 'speed_r']
+
 export default {
   state: {
     rlinks: {},
@@ -35,13 +39,23 @@ export default {
     defaultHighway: 'quenedi',
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
+    rlinksAttributesChoices: {},
     // those are the list of attributes we do not want to duplicated with _r.
-    rcstAttributes: ['a', 'b', 'index', 'length', 'route_color', 'oneway', 'route_width', 'highway', 'cycleway', 'cycleway_reverse', 'incline'],
-    rundeletable: ['index', 'a', 'b', 'length', 'route_color', 'oneway', 'time', 'speed', 'time_r', 'speed_r'],
+    rcstAttributes: defaultrCstAttributes,
+    rundeletable: defaultrUndeletable,
     reversedAttributes: [],
   },
 
   mutations: {
+    initrLinks (state) {
+      state.rlinksAttributesChoices = {}
+      state.rlineAttributes = []
+      state.rnodeAttributes = []
+      state.rcstAttributes = structuredClone(defaultrCstAttributes)
+      state.rundeletable = structuredClone(defaultrUndeletable)
+      state.rseversedAttributes = []
+    },
+
     loadrLinks (state, payload) {
       state.rlinks = structuredClone(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.rlinks.crs.properties.name)) {
@@ -132,9 +146,11 @@ export default {
       })
       // header.delete('index')
       // add all default attributes
+
       const defaultAttributes = [
         'index', 'a', 'b', 'route_color']
       defaultAttributes.forEach(att => header.add(att))
+      state.rlineAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       state.rlineAttributes = header
       if (header.includes('highway')) {
@@ -154,6 +170,23 @@ export default {
       header = Array.from(header)
       state.rnodeAttributes = header
     },
+
+    loadrLinksAttributesChoices (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload).forEach(key => state.rlinksAttributesChoices[key] = payload[key])
+      const attrs = Object.keys(state.rlinksAttributesChoices) // all attrbutes in attributesChoices
+      let newAttrs = attrs.filter(item => !state.rlineAttributes.includes(item)) // ones not in rlinks
+      // in all new attrs. put as cst the ones that does not have a _r defined. (dont create one.)
+      const reversedAttrs = attrs.filter(item => item.endsWith('_r'))
+      let cstAttrs = attrs.filter(attr => !reversedAttrs.includes(attr + '_r'))
+      cstAttrs = cstAttrs.filter(attr => !state.rcstAttributes.includes(attr)) // not already there
+      cstAttrs.forEach(attr => state.rcstAttributes.push(attr)) // push as constant
+      newAttrs = newAttrs.filter(item => !item.endsWith('_r'))
+      // if an attribute is not desined in its _r variant. we do not create a _r attrivbute
+      // add eeach not _r attributes in the attributes.
+      newAttrs.forEach(item => this.commit('addRoadPropertie', { table: 'rlinks', name: item }))
+    },
+
     addRoadPropertie (state, payload) {
       // when a new line properties is added (in dataframe page)
       if (payload.table === 'rlinks') {
@@ -670,6 +703,7 @@ export default {
     defaultHighway: (state) => state.defaultHighway,
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     rcstAttributes: (state) => state.rcstAttributes,
+    rlinksAttributesChoices: (state) => state.rlinksAttributesChoices,
     newrNode: (state) => state.newrNode,
     rundeletable: (state) => state.rundeletable,
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),

@@ -362,15 +362,19 @@ export default {
     @click="addPoint"
     @mouseup="rightClickMap"
   >
-    <template v-if="mapIsLoaded">
+    <div
+      v-if="mapIsLoaded"
+      :style="{'display':'flex'}"
+    >
       <Settings />
-    </template>
-    <template v-if="mapIsLoaded & rasterFiles.length>0">
+
       <LayerSelector
+        v-if="rasterFiles.length>0"
         :choices="rasterFiles"
         :available-layers="availableLayers"
       />
-    </template>
+    </div>
+
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
     <div
@@ -448,7 +452,6 @@ export default {
 <style lang="scss" scoped>
 .map-view {
   width: 100%;
-
 }
 .my-custom-dialog {
   position: absolute !important;

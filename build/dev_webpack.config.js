@@ -45,7 +45,7 @@ module.exports = {
       // Enables a full-screen overlay in the browser when there are compiler errors or warnings
       overlay: true,
     },
-    https: false,
+    https: true,
   },
   module: {
     rules: [

@@ -21,6 +21,7 @@ export default {
       visibleLinks: {},
       disablePopup: false,
       editorRnodes: {},
+      routeWidth: 1,
       bbox: null,
       minZoom: {
         links: 2,
@@ -61,43 +62,35 @@ export default {
       // The direction is determined with the another function (ArrowDirCondition)
 
       const defaultCondition = ['case', ['has', 'oneway'],
-        ['case', ['to-boolean', ['to-number', ['get', 'oneway']]], 0.15, 0],
-        0.15]
+        ['case', ['to-boolean', ['to-number', ['get', 'oneway']]], 0.25, 0],
+        0.25]
 
       const getRouteWidth = ['case', ['has', 'route_width'],
         ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
           ['to-number', ['get', 'route_width']], 2], 2]
 
       if (this.cyclewayMode) {
-        // if cycle in both way: 0
+        // if any null value -> no arrow: 0
+        // if cycle in both way (not no and not no) -> no arrow: 0
+        // if both no -> no arrow: 0
         // else if not cycle. check default condition (its a normal road)
         // else : 0.15: its cycle in one way
-        const exp = ['*',
-          ['case',
-            ['any',
-              ['all',
-                ['==', ['get', 'cycleway'], 'yes'],
-                ['==', ['get', 'cycleway_reverse'], 'yes'],
-              ],
-              ['all',
-                ['==', ['get', 'cycleway'], 'shared'],
-                ['==', ['get', 'cycleway_reverse'], 'shared'],
-              ],
-              ['all',
-                ['==', ['get', 'cycleway'], 'yes'],
-                ['==', ['get', 'cycleway_reverse'], 'shared'],
-              ],
-              ['all',
-                ['==', ['get', 'cycleway'], 'shared'],
-                ['==', ['get', 'cycleway_reverse'], 'yes'],
-              ],
 
-            ], 0, ['case', ['all',
-              ['==', ['get', 'cycleway'], 'no'],
-              ['==', ['get', 'cycleway_reverse'], 'no'],
-            ], defaultCondition, 0.15],
-          ],
-          getRouteWidth,
+        const exp = ['*',
+          ['case', ['all',
+            ['to-boolean', ['get', 'cycleway']],
+            ['to-boolean', ['get', 'cycleway_reverse']],
+          ], ['case',
+            ['all',
+              ['!=', ['downcase', ['get', 'cycleway']], 'no'],
+              ['!=', ['downcase', ['get', 'cycleway_reverse']], 'no'],
+            ], 0,
+            ['case',
+              ['all',
+                ['==', ['downcase', ['get', 'cycleway']], 'no'],
+                ['==', ['downcase', ['get', 'cycleway_reverse']], 'no'],
+              ], defaultCondition, 0.25],
+          ], 0], getRouteWidth,
         ]
         return exp
       } else {
@@ -112,16 +105,11 @@ export default {
         // if false. we either have no arrow (so it doesnt matter)
         // or an arrow in the right direction.
         const exp = ['case',
-          ['any',
-            ['all',
-              ['==', ['get', 'cycleway'], 'no'],
-              ['==', ['get', 'cycleway_reverse'], 'yes'],
-            ],
-            ['all',
-              ['==', ['get', 'cycleway'], 'no'],
-              ['==', ['get', 'cycleway_reverse'], 'shared'],
-            ],
-          ], -90, 90,
+          ['all',
+            ['==', ['downcase', ['get', 'cycleway']], 'no'],
+            ['!=', ['downcase', ['get', 'cycleway_reverse']], 'no'],
+          ],
+          -90, 90,
         ]
         return exp
       } else {
@@ -168,11 +156,14 @@ export default {
       // this way, only a small number of anchor points are computed
       if (this.map.getZoom() > this.minZoom.rendered) {
         // get links in or intersecting with bbox
+        this.routeWidth = 2
         this.$store.commit('getRenderedrLinks', { bbox: this.bbox })
       } else if (this.map.getZoom() > this.minZoom.links) {
         // evrey links are rendered (not editable). no nodes
+        this.routeWidth = 1
         this.$store.commit('setRenderedrLinks', { method: 'visible' })
       } else {
+        this.routeWidth = 1
         // Nothing is is rendered.
         this.$store.commit('setRenderedrLinks', { method: 'None' })
       }
@@ -399,7 +390,7 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 3, 1],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*routeWidth, routeWidth],
                          ['case', ['has', 'route_width'],
                           ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
                            ['to-number', ['get', 'route_width']],
@@ -459,7 +450,7 @@ export default {
           'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.accent],
           'circle-stroke-color': $vuetify.theme.currentTheme.white,
           'circle-stroke-width': 1,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 3],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 6],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         },
       }"
@@ -485,7 +476,7 @@ export default {
         paint: {
           'circle-color': '#ffffff',
           'circle-opacity':0.5,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
           'circle-stroke-color': $vuetify.theme.currentTheme.darkgrey,
           'circle-stroke-width': 2,

@@ -40,13 +40,14 @@ export default {
       v-model="openMenu"
       close-delay="100"
       offset-y
+      max-height="60%"
       transition="slide-y-transition"
     >
       <template v-slot:activator="{ on }">
         <v-btn
           icon
           color="regular"
-          x-small
+          small
           v-on="on"
           @click="openMenu = !openMenu"
         >

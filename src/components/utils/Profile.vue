@@ -1,9 +1,17 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script>
-import auth from '../../auth'
+import { quetzalClient } from '@src/axiosClient.js'
+import { generatePassword } from './utils.js'
+import auth from '@src/auth'
+import { axiosClient } from '@src/axiosClient'
+import s3 from '@src/AWSClient'
+import Signin from './Signin.vue'
+const $gettext = s => s
 
 export default {
   name: 'Profile',
   components: {
+    Signin,
 
   },
 
@@ -12,8 +20,22 @@ export default {
   data () {
     return {
       menu: false,
+      ui: false,
       showDialog: false,
       action: 'login',
+      showMore: false,
+      groups: [],
+      users: [],
+      selectedGroup: null,
+      selectedUsername: null,
+      userForm: { username: '', given_name: '', family_name: '', email: '', password: '' },
+      re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/,
+      rules: {
+        required: v => !!v || $gettext('Required'),
+        email: v => v.includes('@') || $gettext('invalid email address'),
+        length: v => v.length > 8 || $gettext('at least 8 character long'),
+        password: v => this.re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
+      },
     }
   },
   computed: {
@@ -25,10 +47,94 @@ export default {
     initial () { return (this.cognitoInfo?.given_name[0] + this.cognitoInfo?.family_name[0]).toUpperCase() },
   },
   watch: {
+    async menu (val) {
+      if (val) {
+        this.showMore = false
+        await this.listGroup()
+        if (!this.selectedGroup && this.groups.includes('admin')) this.selectedGroup = 'admin'
+        if (!this.selectedGroup) this.selectedGroup = this.groups[0]
+        await this.listUser(this.selectedGroup)
+      }
+    },
+    async selectedGroup (newVal, oldVal) {
+      if (oldVal) {
+        await this.listUser(this.selectedGroup)
+      }
+    },
 
+  },
+  async mounted () {
+    if (await auth.isUserSignedIn()) {
+      await auth.login()
+      await s3.login()
+      await axiosClient.loginAll(this.$store.getters.idToken)
+      this.$store.dispatch('getBucketList')
+    }
   },
 
   methods: {
+    async listGroup () {
+      try {
+        const resp = await quetzalClient.client.get('listGroups/')
+        this.groups = resp.data
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
+    async listUser (group) {
+      try {
+        const resp = await quetzalClient.client.get(`listUser/${group}/`)
+        this.users = resp.data
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
+    async createUser () {
+      try {
+        await quetzalClient.client.post(`createUser/${this.selectedGroup}/`, this.userForm)
+        this.$store.commit('changeNotification',
+          { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
+
+    async deleteUser (username) {
+      try {
+        await quetzalClient.client.post('deleteUser/', { username: username })
+        this.$store.commit('changeNotification',
+          { text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
+      } catch (err) {
+        this.$store.commit('changeAlert',
+          { name: 'Cognito Client error', message: err.response.data.detail })
+      }
+    },
+
+    createUserButton () {
+      this.action = 'createUser'
+      this.userForm.password = generatePassword(12)
+      this.showDialog = true
+    },
+    deleteUserButton (user) {
+      this.action = 'deleteUser'
+      this.selectedUsername = user.Username
+      this.showDialog = true
+    },
+
+    toggleShowMore () { this.showMore = !this.showMore },
+
+    async signin (event) {
+      if (event) {
+        this.ui = false
+        await auth.login()
+        await s3.login()
+        await axiosClient.loginAll(this.$store.getters.idToken)
+        this.$store.dispatch('getBucketList')
+      }
+    },
 
     login () {
       if (this.projectIsEmpty) {
@@ -47,11 +153,20 @@ export default {
         this.showDialog = true
       }
     },
-    applyDialog () {
-      this.menu = false
-      this.showDialog = false
+    async applyDialog () {
       if (this.action === 'login') auth.login()
       if (this.action === 'logout') auth.logout()
+      if (this.action === 'createUser') {
+        if (!this.$refs.form.validate()) { return }
+        await this.createUser()
+      }
+      if (this.action === 'deleteUser') {
+        this.deleteUser(this.selectedUsername)
+        this.selectedUsername = null
+      }
+      this.action = 'login'
+      this.menu = false
+      this.showDialog = false
     },
 
   },
@@ -63,12 +178,14 @@ export default {
       v-if="loggedIn"
       v-model="menu"
       :close-on-content-click="false"
-      :nudge-width="200"
+      :close-on-click="false"
+      :nudge-width="250"
       offset-x
       offset-y
     >
       <template v-slot:activator="{ on, attrs }">
         <v-avatar
+          v-if="loggedIn"
           size="34"
           color="primary"
           v-bind="attrs"
@@ -77,9 +194,18 @@ export default {
           <span class="white--text text-h6">{{ initial }}</span>
         </v-avatar>
       </template>
-      <v-card>
+      <v-card
+        width="20rem"
+      >
         <v-list>
           <v-list-item>
+            <v-avatar
+              size="34"
+              color="primary"
+              :style="{'margin-right':'1rem'}"
+            >
+              <span class="white--text text-h6">{{ initial }}</span>
+            </v-avatar>
             <v-list-item-content>
               <v-list-item-title>{{ cognitoInfo.given_name+' '+ cognitoInfo.family_name }}</v-list-item-title>
               <v-list-item-subtitle>{{ cognitoInfo.email }}</v-list-item-subtitle>
@@ -88,13 +214,66 @@ export default {
         </v-list>
 
         <v-divider />
+        <v-list-item>
+          <v-list-item-content>
+            <v-select
+              v-model="selectedGroup"
+              :label="$gettext('Team')"
+              :disabled="groups.length <= 1"
+              :items="groups"
+            />
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider />
         <v-list-item
-          v-for="group in bucketList"
-          :key="group"
+          v-for="user in users"
+          :key="user.Username"
         >
-          {{ group }}
+          <v-btn
+            v-if="showMore"
+            icon
+          >
+            <v-icon
+              small
+              color="error"
+              :disabled="user.Username === cognitoInfo['cognito:username']"
+              @click="deleteUserButton(user)"
+            >
+              fas fa-trash
+            </v-icon>
+          </v-btn>
+          <v-list-item-content>
+            <v-list-item-title>{{ user.Username }}</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ user.email }}
+            </v-list-item-subtitle>
+          </v-list-item-content>
         </v-list-item>
         <v-card-actions>
+          <v-btn
+            color="success"
+            outlined
+            @click="createUserButton()"
+          >
+            {{ $gettext('create user') }}
+          </v-btn>
+        </v-card-actions>
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn
+            icon
+            x-small
+            @click="toggleShowMore"
+          >
+            <v-icon v-if="showMore">
+              fas fa-minus-circle fa-rotate-90
+            </v-icon>
+            <v-icon v-else>
+              fas fa-minus-circle
+            </v-icon>
+          </v-btn>
           <v-spacer />
 
           <v-btn
@@ -107,25 +286,32 @@ export default {
         </v-card-actions>
       </v-card>
     </v-menu>
-    <v-tooltip
-      v-else
-      bottom
-      open-delay="250"
+    <v-menu
+      v-show="!loggedIn"
+      v-model="ui"
+      :close-on-content-click="false"
+      :close-on-click="true"
+      :nudge-width="300"
+      offset-x
+      offset-y
     >
       <template v-slot:activator="{ on, attrs }">
         <v-btn
+          v-show="!loggedIn"
           icon
           v-bind="attrs"
           v-on="on"
-          @click="login"
         >
           <v-icon>
             fas fa-sign-in-alt
           </v-icon>
         </v-btn>
       </template>
-      <span>{{ $gettext('login / signin') }}</span>
-    </v-tooltip>
+      <Signin
+        v-if="ui"
+        @signin="signin"
+      />
+    </v-menu>
     <v-dialog
       v-model="showDialog"
       persistent
@@ -134,12 +320,79 @@ export default {
       @keydown.esc="()=>showDialog=false"
     >
       <v-card>
-        <v-card-title class="text-h4">
-          {{ $gettext("Redirect") }}
+        <v-card-title
+          v-if="action === 'logout'"
+          class="text-h4"
+        >
+          {{ $gettext("Sign out") }}
         </v-card-title>
-        <v-card-text class="text-h6">
-          {{ $gettext("This will ERASE the current project") }}
+        <v-card-title
+          v-else-if="action === 'createUser'"
+          class="text-h4"
+        >
+          {{ $gettext('Create User') }}
+        </v-card-title>
+        <v-card-title
+          v-else-if="action === 'deleteUser'"
+          class="text-h4"
+        >
+          {{ $gettext('delete User') + ' ' + selectedUsername + ' ?' }}
+        </v-card-title>
+        <v-card-text
+          v-if="action === 'logout'"
+          class="text-h8"
+        >
+          {{ $gettext("This action will sign you out") }}
         </v-card-text>
+        <v-card-text
+          v-else-if="action === 'createUser'"
+          class="text-h8"
+        >
+          {{ $gettext('create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization') }}
+        </v-card-text>
+        <v-card-text
+          v-else-if="action === 'deleteUser'"
+          class="text-h8"
+        >
+          {{ $gettext('This will permanently delete the user account.') }}
+        </v-card-text>
+        <v-form
+          v-if="action=='createUser'"
+          ref="form"
+          class="form"
+          lazy-validation
+        >
+          <v-text-field
+            v-model="userForm.username"
+            :label="$gettext('username')"
+            :rules="[rules['required']]"
+            required
+          />
+          <v-text-field
+            v-model="userForm.given_name"
+            :label="$gettext('first name')"
+            :rules="[rules['required']]"
+            required
+          />
+          <v-text-field
+            v-model="userForm.family_name"
+            :rules="[rules['required']]"
+            :label="$gettext('last name')"
+            required
+          />
+          <v-text-field
+            v-model="userForm.email"
+            :rules="[rules['required'], rules['email']]"
+            :label="$gettext('email address')"
+            required
+          />
+          <v-text-field
+            v-model="userForm.password"
+            :label="$gettext('temporary password')"
+            :rules="[rules['required'], rules['length'], rules['password']]"
+            required
+          />
+        </v-form>
         <v-card-actions>
           <v-spacer />
           <v-btn
@@ -161,5 +414,12 @@ export default {
   </section>
 </template>
 <style lang="scss" scoped>
+.form{
+  margin: 1rem;
+}
+
+.signin {
+  padding:1rem 2rem 2rem 2rem
+}
 
 </style>

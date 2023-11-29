@@ -28,6 +28,7 @@ export default {
     linksDefaultColor: '2196F3',
     lineAttributes: [],
     nodeAttributes: [],
+    linksAttributesChoices: {},
     defaultAttributes: [
       { name: 'index', type: 'String' },
       { name: 'a', type: 'String' },
@@ -50,6 +51,11 @@ export default {
   },
 
   mutations: {
+    initLinks (state) {
+      state.linksAttributesChoices = {}
+      state.lineAttributes = []
+      state.nodeAttributes = []
+    },
     loadLinks (state, payload) {
       state.links = structuredClone(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.links.crs.properties.name)) {
@@ -167,6 +173,13 @@ export default {
       header = Array.from(header)
       state.nodeAttributes = header
     },
+    loadLinksAttributesChoices (state, payload) {
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload).forEach(key => state.linksAttributesChoices[key] = payload[key])
+      const attrs = Object.keys(state.linksAttributesChoices) // all attrbutes in attributesChoices
+      const newAttrs = attrs.filter(item => !state.lineAttributes.includes(item)) // ones not in rlinks
+      newAttrs.forEach(item => this.commit('addPropertie', { table: 'links', name: item }))
+    },
 
     addPropertie (state, payload) {
       // when a new line properties is added (in dataframe page)
@@ -235,7 +248,23 @@ export default {
       }
       // inverser l'ordre des features
       cloned.features.reverse()
+      // duplicate nodes and rename them
+      const a = cloned.features.map(item => item.properties.a)
+      const b = cloned.features.map(item => item.properties.b)
+      const ab = new Set([...a, ...b])
+      const clonedNodes = structuredClone(state.nodes)
+      clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
+      const newName = {}
+      ab.forEach(node => newName[node] = 'node_' + short.generate())
+      clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
+
+      cloned.features.forEach(link => link.properties.a = newName[link.properties.a])
+      cloned.features.forEach(link => link.properties.b = newName[link.properties.b])
+
+      // push cloned links and nodes
       state.links.features.push(...cloned.features)
+      state.nodes.features.push(...clonedNodes.features)
+
       this.commit('getTripId')
     },
     getEditorNodes (state, payload) {
@@ -839,5 +868,6 @@ export default {
     // this return the attribute type, of undefined.
     attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
     defaultAttributesNames: (state) => state.defaultAttributes.map(attr => attr.name),
+    linksAttributesChoices: (state) => state.linksAttributesChoices,
   },
 }

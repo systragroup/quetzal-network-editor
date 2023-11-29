@@ -2,9 +2,6 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
-import auth from './auth'
-import s3 from './AWSClient'
-import { axiosClient } from './axiosClient'
 
 export default {
   name: 'App',
@@ -30,22 +27,20 @@ export default {
     notification () {
       this.snackbar = !!this.notification.text
     },
+    snackbar (val) {
+      if (val === false) {
+        this.$store.commit('changeNotification', { text: '', autoClose: true })
+      }
+    },
   },
   async created () {
     // init links and node to empty one (new project)
     this.$store.commit('initNetworks')
     this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
-
-    if (auth.auth.isUserSignedIn()) {
-      await auth.login()
-      await s3.login()
-      axiosClient.loginAll(this.$store.getters.idToken)
-    }
   },
   methods: {
     closeSnackbar () {
       this.snackbar = false
-      this.$store.notification = {}
     },
     onResize () {
       // -50 for the ToolBar

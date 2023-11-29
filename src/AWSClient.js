@@ -2,6 +2,7 @@ import { store } from '@src/store/index.js'
 import AWS from 'aws-sdk'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
+import md5 from 'crypto-js/md5'
 
 const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
@@ -33,6 +34,7 @@ async function readBytes (bucket, key) {
 async function downloadFolder (bucket, prefix) {
   // zip everything in a folder. keep filename. Folder structure will not work.
   const zip = new JSZip()
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
@@ -48,25 +50,18 @@ async function downloadFolder (bucket, prefix) {
   })
 }
 
-async function getBucketList () {
-  // from the cognito group name. get the list of available buckets on quetzal-config.
-  try {
-    const bucketList = await this.readJson('quetzal-config', 'cognito_group_access.json')
-    store.commit('setBucketList', bucketList[store.getters.cognitoGroup])
-  } catch (err) {
-    store.commit('changeAlert', err)
-  }
-}
 async function listFiles (bucket, prefix) {
   if (Array.isArray(prefix)) {
     const paths = []
     prefix.forEach(async pref => {
-      const params = { Bucket: bucket, Prefix: prefix }
+      if (pref.slice(-1) !== '/') { pref = pref + '/' }
+      const params = { Bucket: bucket, Prefix: pref }
       const Content = await s3Client.listObjectsV2(params).promise()
       paths.push(...Content.Contents.map(item => item.Key))
     })
     return paths
   } else {
+    if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
     const params = { Bucket: bucket, Prefix: prefix }
     const Content = await s3Client.listObjectsV2(params).promise()
     return Content.Contents.map(item => item.Key)
@@ -76,21 +71,22 @@ async function getImagesURL (bucket, key) {
   const presignedGETURL = s3Client.getSignedUrl('getObject', {
     Bucket: bucket,
     Key: key, // filename
-    Expires: 100, // time to expire in seconds
+    Expires: 86400, // time to expire in seconds
   })
   return presignedGETURL
 }
 
 async function copyFolder (bucket, prefix, newName) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
-  response.Contents = response.Contents.filter(el => el.Key !== (prefix + '/.lock'))
+  response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
   for (const file of response.Contents) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
     newFile = newFile.join('/')
-    // need to encore special character (é for example).
+    // need to encode special character (é for example).
     let oldPath = file.Key.split('/')
     oldPath[0] = encodeURIComponent(oldPath[0])
     oldPath = oldPath.join('/')
@@ -107,10 +103,11 @@ async function copyFolder (bucket, prefix, newName) {
 }
 
 async function newScenario (bucket, prefix, newName) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const filesToCopy = [
-    prefix + '/inputs/params.json',
-    prefix + '/styles.json',
-    prefix + '/attributesChoices.json',
+    prefix + 'inputs/params.json',
+    prefix + 'styles.json',
+    prefix + 'attributesChoices.json',
   ]
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
@@ -138,6 +135,7 @@ async function newScenario (bucket, prefix, newName) {
 }
 
 async function deleteFolder (bucket, prefix) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params).promise()
   const arr = []
@@ -150,7 +148,7 @@ async function deleteFolder (bucket, prefix) {
 
 async function createFolder (bucket, key) {
   // create an empty folder
-  if (key.slice(-1) !== '/') key = key + '/'
+  if (key.slice(-1) !== '/') { key = key + '/' }
   const params = { Bucket: bucket, Key: key, Body: '' }
 
   s3Client.upload(params, function (err, data) {
@@ -162,25 +160,31 @@ async function createFolder (bucket, key) {
   })
 }
 async function putObject (bucket, key, body = '') {
-  const params = {
-    Bucket: bucket,
-    Key: key,
-    Body: body,
-    Metadata: { user_email: store.getters.cognitoInfo.email },
-    ContentType: ' application/json',
-  }
-  const resp = await s3Client.putObject(params).promise()
-  return resp
+  const oldChecksum = await getChecksum(bucket, key)
+  const newChecksum = md5(JSON.stringify(body)).toString()
+  if (oldChecksum !== newChecksum) {
+    const params = {
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      Metadata: { user_email: store.getters.cognitoInfo.email, checksum: newChecksum },
+      ContentType: ' application/json',
+    }
+    const resp = await s3Client.putObject(params).promise()
+    return resp
+  } else { return 'no changes' }
 }
-async function putBytes (bucket, key, body = '') {
+
+function uploadObject (bucket, key, body = '') {
+  const checksum = md5(JSON.stringify(body)).toString()
   const params = {
     Bucket: bucket,
     Key: key,
     Body: body,
-    Metadata: { user_email: store.getters.cognitoInfo.email },
+    Metadata: { user_email: store.getters.cognitoInfo.email, checksum: checksum },
   }
-  const resp = await s3Client.putObject(params).promise()
-  return resp
+  const upload = s3Client.upload(params)
+  return upload
 }
 
 async function getScenario (bucket) {
@@ -202,15 +206,16 @@ async function getScenario (bucket) {
   // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
   const scenList = []
   for (const scen of scenarios) {
-    const files = list.filter(item => item.Key.startsWith(scen))
-
+    let files = list.filter(item => item.Key.startsWith(scen + '/'))
     // if there is .lock file in the root dir of the scen. it is protected.
     const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
     const isLocked = lockedList.length > 0 || scen === 'base'
 
-    // let maxDate = new Date(Math.max.apply(null, dates))
+    // remove attributesChoices as an admin could changed it on every projects.
+    files = files.filter(file => !file.Key.endsWith('/attributesChoices.json'))
     const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
+    const timestamp = maxDateObj.LastModified.getTime()
     // get user email metadata on newest object. undefined if empty or error.
     let userEmail // this = undefined
     try {
@@ -218,9 +223,22 @@ async function getScenario (bucket) {
       // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
       userEmail = resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
     } catch (err) { store.commit('changeAlert', err) }
-    scenList.push({ model: bucket, scenario: scen, lastModified: maxDate, userEmail: userEmail, protected: isLocked })
+    scenList.push({
+      model: bucket,
+      scenario: scen,
+      lastModified: maxDate,
+      timestamp: timestamp,
+      userEmail: userEmail,
+      protected: isLocked,
+    })
   }
   return scenList
+}
+async function getChecksum (bucket, key) {
+  try {
+    const resp = await s3Client.headObject({ Bucket: bucket, Key: key }).promise()
+    return resp.Metadata.checksum
+  } catch (err) { return null }
 }
 
 export default {
@@ -234,21 +252,19 @@ export default {
       },
     })
     s3Client.config.credentials = AWS.config.credentials
-    await this.getBucketList()
   },
 
   getScenario,
   readJson,
   readBytes,
-  getBucketList,
   listFiles,
   copyFolder,
   deleteFolder,
   createFolder,
   putObject,
-  putBytes,
   getImagesURL,
   downloadFolder,
   newScenario,
-
+  uploadObject,
+  getChecksum,
 }

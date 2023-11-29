@@ -14,6 +14,7 @@ export default {
       exporting: false,
       applying: false,
       validForm: true,
+      showP: false,
 
       parameters: [{
         name: 'num_zones',
@@ -86,7 +87,7 @@ export default {
         name: 'hereApiKey',
         text: 'HERE api key',
         value: null,
-        type: 'String',
+        type: 'password',
         units: '',
         hint: 'HERE api key to download a set of OD',
         rules: [
@@ -200,7 +201,20 @@ export default {
             :key="key"
           >
             <v-text-field
-              v-if="typeof item.items === 'undefined'"
+              v-if="item.type==='password'"
+              v-model="item.value"
+              :type="showP ? 'text' : 'password'"
+              :append-icon="showP ? 'fas fa-eye' : 'fas fa-eye-slash'"
+              :label="$gettext(item.text)"
+              :suffix="item.units"
+              :hint="showHint? $gettext(item.hint): ''"
+              :persistent-hint="showHint"
+              :rules="item.rules.map((rule) => rules[rule])"
+              required
+              @click:append="showP = !showP"
+            />
+            <v-text-field
+              v-else-if="typeof item.items === 'undefined'"
               v-model="item.value"
               :type="item.type"
               :label="$gettext(item.text)"
@@ -328,46 +342,20 @@ export default {
   </v-row>
 </template>
 <style lang="scss" scoped>
-.container {
-  width: 100%;
-  overflow: hidden;
-  margin-left: 0 auto;
-  margin-right: 0 auto;
-  padding: 0 0 0 0;
-}
-.layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
-  display: flex;
-  flex-flow: row;
-  justify-content: center;
-  align-items: center;
-}
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
-}
+
 .card {
-  height: 100%;
+  height: 95%;
   overflow-y: auto;
   padding: 2.5rem;
 }
 .card2 {
-  height: 100%;
+  height: 95%;
   overflow-y: auto;
   padding: 2.5rem;
   margin-right: 3rem;
 }
-
-.v-card__text {
-  max-height: 80%;
-  overflow-y: auto;
-}
 .row {
-  height: calc(100% - 38px)
+  height: 100%
 }
 .col {
   max-height: 100%;
