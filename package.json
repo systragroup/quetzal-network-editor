@@ -7,6 +7,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
+    "build-test": "vite build --mode staging",
     "preview": "vite preview",
     "clean": "rm -rf dist src/config.js src/translations.json",
     "setup": "sh build/setup.sh",

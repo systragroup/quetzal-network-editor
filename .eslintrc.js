@@ -26,5 +26,6 @@ module.exports = {
     'no-irregular-whitespace': 'off',
     'quote-props': ['warn', 'as-needed', { 'unnecessary': false }],
     'max-len': ['warn', { code: 120 }],
+
   },
 }
