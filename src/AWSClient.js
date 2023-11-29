@@ -1,7 +1,7 @@
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 
-import { S3 } from '@aws-sdk/client-s3'
+import { S3, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
@@ -84,10 +84,11 @@ async function getImagesURL (bucket, key) {
     Bucket: bucket,
     Key: key, // filename
   }
-  const response = await s3Client.getObject(params)
-  const presignedGETURL = await getSignedUrl(s3Client, response, { expiresIn: 86400 })
+  const command = new GetObjectCommand(params)
+  const url = await getSignedUrl(s3Client, command, { expiresIn: 86400 })
+  console.log(url)
 
-  return presignedGETURL
+  return url
 }
 
 async function copyFolder (bucket, prefix, newName) {
