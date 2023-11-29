@@ -4,7 +4,7 @@ import s3 from '@src/AWSClient'
 import { defineStore } from 'pinia'
 import { useIndexStore } from './index'
 import { useUserStore } from './user'
-
+import audioFile from '@static/samsung-washing-machine-melody-made-with-Voicemod-technology.mp3'
 const $gettext = s => s
 
 export const useRunStore = defineStore('run', {
@@ -57,6 +57,13 @@ export const useRunStore = defineStore('run', {
       this.running = false
       this.currentStep = this.steps.length + 1
       this.executionArn = ''
+      const audio = new Audio(audioFile)
+      audio.play()
+      // Stop the audio after 2 seconds
+      setTimeout(function () {
+        audio.pause()
+        audio.currentTime = 0
+      }, 5000)
       store.changeNotification(
         { text: $gettext('simulation executed successfully!'), autoClose: false, color: 'success' })
     },
