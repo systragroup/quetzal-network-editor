@@ -28,8 +28,6 @@ import translations from './translations.json'
 import '@scss/main.scss'
 
 // config
-import { mapboxPublicKey } from '@src/config.js'
-console.assert(mapboxPublicKey)
 
 const languageMixin = {
   methods: {

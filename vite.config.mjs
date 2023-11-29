@@ -6,6 +6,11 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
 
+const mode = process.env.NODE_ENV
+let defineOption = {}
+if (mode === 'development') {
+  defineOption = { global: 'window' }
+}
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
@@ -14,7 +19,8 @@ export default defineConfig({
   preview: {
     port: 8081,
   },
-  define: { global: 'window' }, // only for dev
+
+  define: defineOption, // only for dev
   optimizeDeps: {
     include: ['map-promisified'],
   },
