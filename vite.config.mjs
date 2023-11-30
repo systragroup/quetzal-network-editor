@@ -15,7 +15,7 @@ if (mode === 'development') {
 } else if (mode === 'test') {
   basePath = '/quetzal-network-editor-dev/'
 } else if (mode === 'production') {
-  basePath = '/quetzal-network-editor/'
+  basePath = '/quetzal-network-editor-dev/'
 }
 
 // https://vitejs.dev/config/

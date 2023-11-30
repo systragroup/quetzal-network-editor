@@ -5,14 +5,14 @@ import { useGTFSStore } from '@src/store/GTFSImporter'
 import OSMImporter from '@comp/microservices/OSMImporter.vue'
 import GTFSZipImporter from '@comp/microservices/GTFSZipImporter.vue'
 import GTFSWebImporter from '@comp/microservices/GTFSWebImporter.vue'
-const MatrixRoadCaster = () => import('@comp/microservices/MatrixRoadCaster.vue')
+import MatrixRoadCaster from '@comp/microservices/MatrixRoadCaster.vue'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Microservices',
   components: {
     OSMImporter,
-    // MatrixRoadCaster,
+    MatrixRoadCaster,
     GTFSWebImporter,
     GTFSZipImporter,
   },
@@ -72,7 +72,7 @@ export default {
 
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
 
-      <MatrixRoadCaster v-else-if="tab===2" />
+      <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
     </v-window>
   </section>
 </template>
