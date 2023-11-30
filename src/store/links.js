@@ -254,22 +254,24 @@ export const useLinksStore = defineStore('links', {
       }
       // inverser l'ordre des features
       cloned.features.reverse()
+      if (payload.cloneNodes) {
       // duplicate nodes and rename them
-      const a = cloned.features.map(item => item.properties.a)
-      const b = cloned.features.map(item => item.properties.b)
-      const ab = new Set([...a, ...b])
-      const clonedNodes = cloneDeep(this.nodes)
-      clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
-      const newName = {}
-      ab.forEach(node => newName[node] = 'node_' + short.generate())
-      clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
+        const a = cloned.features.map(item => item.properties.a)
+        const b = cloned.features.map(item => item.properties.b)
+        const ab = new Set([...a, ...b])
+        const clonedNodes = cloneDeep(this.nodes)
+        clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
+        const newName = {}
+        ab.forEach(node => newName[node] = 'node_' + short.generate())
+        clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
 
-      cloned.features.forEach(link => link.properties.a = newName[link.properties.a])
-      cloned.features.forEach(link => link.properties.b = newName[link.properties.b])
+        cloned.features.forEach(link => link.properties.a = newName[link.properties.a])
+        cloned.features.forEach(link => link.properties.b = newName[link.properties.b])
 
+        this.nodes.features.push(...clonedNodes.features)
+      }
       // push cloned links and nodes
       this.links.features.push(...cloned.features)
-      this.nodes.features.push(...clonedNodes.features)
 
       this.getTripId()
     },
