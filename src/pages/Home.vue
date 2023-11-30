@@ -35,6 +35,7 @@ export default {
       tripToClone: null,
       message: '',
       cloneName: null,
+      cloneNodes: false,
       errorMessage: null,
       lingering: true,
       groupTripIds: [],
@@ -429,7 +430,7 @@ export default {
       if (this.$store.getters.tripId.includes(this.cloneName)) {
         this.errorMessage = 'already exist'
       } else {
-        this.$store.commit('cloneTrip', { tripId: this.tripToClone, name: this.cloneName })
+        this.$store.commit('cloneTrip', { tripId: this.tripToClone, name: this.cloneName, cloneNodes: this.cloneNodes })
         this.errorMessage = ''
         this.cloneDialog = false
       }
@@ -726,6 +727,10 @@ export default {
           <v-text-field
             v-model="cloneName"
             :label="$gettext('New name')"
+          />
+          <v-checkbox
+            v-model="cloneNodes"
+            :label="$gettext('duplicate nodes')"
           />
         </v-card-text>
         <v-card-text :style="{textAlign: 'center',color:'red'}">
