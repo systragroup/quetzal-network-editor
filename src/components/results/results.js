@@ -208,7 +208,8 @@ export function useResult () {
   function isIndexAvailable (index) {
     // check if the selected index (from preset) is in the selected property (and if the selected property is an OD)
     const selectedProperty = displaySettings.value.selectedFeature
-    if (Object.keys(matAvailableIndex.value).includes(selectedProperty)) {
+
+    if (ODfeatures.value.includes(selectedProperty)) {
       return matAvailableIndex.value[selectedProperty].includes(index)
     } else { return false }
   }

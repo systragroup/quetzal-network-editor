@@ -1,3 +1,4 @@
+<!-- eslint-disable no-case-declarations -->
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
 import MapLegend from '@comp/utils/MapLegend.vue'
@@ -53,10 +54,10 @@ export default {
           loadLayer(ODStore.layer, null, null, 'name')
           break
         default:
-          // TODO: gerer les ODs.
-          // eslint-disable-next-line no-case-declarations
-          const data = store.otherFiles.filter(file => file.name === layer)[0].content
-          loadLayer(data, null, null, '')
+          const files = store.otherFiles.filter(file => file.name === layer)
+          const data = files.filter(file => file.extension === 'geojson')[0].content
+          const matrix = files.filter(file => file.extension === 'json')[0]?.content
+          loadLayer(data, matrix, null, '')
 
           break
       }
@@ -85,8 +86,9 @@ export default {
       applySettings(preset.value.displaySettings)
 
       // if its an OD. click on the selected index.
-      if (Object.keys(preset).includes('selectedIndex') && isIndexAvailable(preset.value.selectedIndex)) {
+      if (Object.keys(preset.value).includes('selectedIndex') && isIndexAvailable(preset.value.selectedIndex)) {
         changeOD(preset.value.selectedIndex)
+        store.changeNotification({})
       }
       // simplify it
       visibleLayer.value.features = visibleLayer.value.features.map(obj => {

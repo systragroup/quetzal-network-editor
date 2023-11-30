@@ -70,7 +70,6 @@ export default {
           loadLayer(ODStore.layer, null, null, 'name')
           break
         default:
-          // TODO: gerer les ODs.
           const files = store.otherFiles.filter(file => file.name === layer)
           const data = files.filter(file => file.extension === 'geojson')[0].content
           const matrix = files.filter(file => file.extension === 'json')[0]?.content
@@ -131,6 +130,7 @@ export default {
       // if its an OD. click on the selected index.
       if (Object.keys(preset).includes('selectedIndex') && isIndexAvailable(preset.selectedIndex)) {
         changeOD(preset.selectedIndex)
+        store.changeNotification({})
       }
     }
 
