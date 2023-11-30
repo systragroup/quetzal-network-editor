@@ -35,9 +35,9 @@ export default {
     const ODStore = useODStore()
     const store = useIndexStore()
     const {
-      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures, changeOD,
-      selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter, filteredCategory,
-      updateSelectedFeature, changeSelectedCategory, colorScale,
+      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures, matSelectedIndex, changeOD,
+      isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter,
+      filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
     } = useResult()
 
     function updateSelectedFilter (val) {
@@ -108,7 +108,8 @@ export default {
           // if there is a list of cat. apply them, else its everything
           if (Object.keys(preset).includes('selectedCategory')) {
             changeSelectedCategory(preset.selectedCategory)
-          } // else it will show all
+          }
+          // else it will show all
         } else {
           // if the filter is in the preset but not the the layer. just put a warning.
           if (Object.keys(preset).includes('selectedFilter')) {
@@ -124,7 +125,13 @@ export default {
         store.changeNotification(
           { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
       }
+      // apply all settings.
       applySettings(preset.displaySettings)
+
+      // if its an OD. click on the selected index.
+      if (Object.keys(preset).includes('selectedIndex') && isIndexAvailable(preset.selectedIndex)) {
+        changeOD(preset.selectedIndex)
+      }
     }
 
     function clickDeletePreset (event) {
@@ -155,6 +162,11 @@ export default {
         if (filteredCat.length < filteredCategory.value.length) {
           style.selectedCategory = cloneDeep(selectedCategory)
         }
+        // if its an OD preset. save the selected index.
+        if (ODfeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
+          style.selectedIndex = matSelectedIndex.value
+        }
+
         store.addStyle(style)
         if (visibleRasters.value.includes(inputName.value)) {
           store.changeNotification(
@@ -187,13 +199,13 @@ export default {
     const showDialog = ref(false)
     const formData = ref([])
     function featureClicked (event) {
-      const prop = displaySettings.value.selectedFeature
       if (event.action === 'featureClick') {
         formData.value = event.feature
         showDialog.value = true
         // OD click.
-      } else if (hasOD.value && ODfeatures.value.includes(prop)) {
-        changeOD({ index: event.feature.index, selectedProperty: prop })
+      } else {
+        // will verify in this function if hasOD and the selected feature is an OD.
+        changeOD(event.feature.index)
       }
     }
 

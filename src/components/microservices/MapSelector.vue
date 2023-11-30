@@ -245,11 +245,6 @@ export default {
 </template>
 <style lang="scss" scoped>
 
-.map {
-  max-width: 100rem;
-  min-width:50rem;
-  height: 45rem;
-}
 .freeform-button {
   position: absolute;
   top: 5px;

@@ -127,10 +127,12 @@ export function useResult () {
   const displaySettings = ref(cloneDeep(defaultSettings))
   const selectedFilter = ref('')
   const selectedCategory = ref([])
+
   const hasOD = ref(false)
   const mat = ref({})
   const ODfeatures = ref([])
   const matAvailableIndex = ref({})
+  const matSelectedIndex = ref({})
 
   function reset () {
     layer.value = { crs: {}, type: 'FeatureCollection', features: [] }
@@ -142,10 +144,12 @@ export function useResult () {
     displaySettings.value = cloneDeep(defaultSettings)
     selectedFilter.value = ''
     selectedCategory.value = []
+
     hasOD.value = false
     mat.value = {}
     ODfeatures.value = []
     matAvailableIndex.value = {}
+    matSelectedIndex.value = null
   }
 
   function loadLayer (geojson, matData, matIndex, selectedFeature) {
@@ -200,11 +204,19 @@ export function useResult () {
       )
     }
   }
-  function changeOD (payload) {
-    const selectedProperty = payload.selectedProperty
-    if (ODfeatures.value.includes(selectedProperty)) {
-      const index = payload.index
-      const row = mat.value[selectedProperty][index]
+
+  function isIndexAvailable (index) {
+    // check if the selected index (from preset) is in the selected property (and if the selected property is an OD)
+    const selectedProperty = displaySettings.value.selectedFeature
+    if (Object.keys(matAvailableIndex.value).includes(selectedProperty)) {
+      return matAvailableIndex.value[selectedProperty].includes(index)
+    } else { return false }
+  }
+  function changeOD (index) {
+    const selectedProperty = displaySettings.value.selectedFeature
+    if (ODfeatures.value.includes(selectedProperty) && hasOD.value) {
+      matSelectedIndex.value = index
+      const row = mat.value[selectedProperty][matSelectedIndex.value]
       // apply new value to each zone. (zone_1 is selected, apply time to zone_1 to every zone)
       // if there is no data, put null (ex: sparse matrix)
       layer.value.features.forEach(
@@ -388,7 +400,9 @@ export function useResult () {
     hasOD,
     ODfeatures,
     matAvailableIndex,
+    matSelectedIndex,
     changeOD,
+    isIndexAvailable,
     loadLayer,
     updateLayer,
     getLinksProperties,

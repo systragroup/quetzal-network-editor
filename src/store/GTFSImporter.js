@@ -160,12 +160,12 @@ export const useGTFSStore = defineStore('runGTFS', {
     },
     async downloadOSMFromS3 () {
       const linksStore = useLinksStore()
-      function applyDict (links) {
+      function applyDict (links, widthDict) {
         // 00BCD4
-        Object.keys(this.widthDict).forEach(routeType => {
+        Object.keys(widthDict).forEach(routeType => {
           links.features.filter(link => link.properties.route_type === routeType).forEach(
             link => {
-              link.properties.route_width = this.widthDict[routeType]
+              link.properties.route_width = widthDict[routeType]
             })
         })
         return links
@@ -173,7 +173,7 @@ export const useGTFSStore = defineStore('runGTFS', {
 
       let links = await s3.readJson(this.bucket, this.callID.concat('/links.geojson'))
       if (links.features.length > 0) {
-        links = applyDict(links)
+        links = applyDict(links, this.widthDict)
       }
       linksStore.appendNewLinks(links)
       const nodes = await s3.readJson(this.bucket, this.callID.concat('/nodes.geojson'))

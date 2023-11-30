@@ -29,7 +29,7 @@ export default {
     const name = preset.value.name
     const {
       visibleLayer, type, loadLayer, displaySettings, attributes, applySettings, changeSelectedFilter,
-      changeSelectedCategory, colorScale,
+      changeSelectedCategory, colorScale, isIndexAvailable, changeOD,
     } = useResult()
 
     const opacity = displaySettings.value.opacity
@@ -83,6 +83,11 @@ export default {
         }
       }
       applySettings(preset.value.displaySettings)
+
+      // if its an OD. click on the selected index.
+      if (Object.keys(preset).includes('selectedIndex') && isIndexAvailable(preset.value.selectedIndex)) {
+        changeOD(preset.value.selectedIndex)
+      }
       // simplify it
       visibleLayer.value.features = visibleLayer.value.features.map(obj => {
         return {

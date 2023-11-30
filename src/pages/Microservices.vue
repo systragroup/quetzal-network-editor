@@ -1,10 +1,10 @@
 <script>
 
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import OSMImporter from '@comp/microservices/OSMImporter.vue'
 import GTFSZipImporter from '@comp/microservices/GTFSZipImporter.vue'
-const GTFSWebImporter = () => import('@comp/microservices/GTFSWebImporter.vue')
+import GTFSWebImporter from '@comp/microservices/GTFSWebImporter.vue'
 const MatrixRoadCaster = () => import('@comp/microservices/MatrixRoadCaster.vue')
 
 export default {
@@ -21,7 +21,6 @@ export default {
     const tab = ref('OSM importer')
     const subtab = ref('Zip importer')
     const GTFSrunning = computed(() => { return runGTFS.running })
-    watch(subtab, () => { console.log(tab.value === 'GTFS importer' && subtab.value === 'Zip importer') })
 
     return { tab, subtab, GTFSrunning }
   },

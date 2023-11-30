@@ -1,7 +1,7 @@
 <script>
 import { unzipCalendar } from '@comp/utils/utils.js'
 import DatePicker from '@comp/utils/DatePicker.vue'
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
@@ -30,6 +30,16 @@ export default {
     const error = computed(() => { return runGTFS.error })
     const errorMessage = computed(() => { return runGTFS.errorMessage })
     const isUploading = computed(() => { return UploadedGTFS.value.filter(item => item.progress < 100).length > 0 })
+
+    onBeforeUnmount(() => {
+      runGTFS.saveParams(parameters.value)
+    })
+
+    const re = /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/
+    const rules = {
+      required: v => !!v || $gettext('Required'),
+      timeRule: v => re.test(v) || $gettext('invalid date time'),
+    }
 
     const parameters = ref([{
       name: 'start_time',
@@ -65,6 +75,7 @@ export default {
       checkall,
       showHint,
       parameters,
+      rules,
       linksIsEmpty,
       UploadedGTFS,
       callID,
@@ -73,21 +84,6 @@ export default {
       errorMessage,
       isUploading,
     }
-  },
-  data () {
-    return {
-
-      // eslint-disable-next-line max-len, no-useless-escape
-      re: /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
-      rules: {
-        required: v => !!v || $gettext('Required'),
-        timeRule: v => this.re.test(v) || $gettext('invalid date time'),
-      },
-    }
-  },
-
-  beforeDestroy () {
-    this.runGTFS.saveParams(this.parameters)
   },
 
   methods: {

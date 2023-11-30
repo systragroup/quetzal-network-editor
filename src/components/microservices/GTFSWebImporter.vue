@@ -1,10 +1,12 @@
 <script>
 import bboxPolygon from '@turf/bbox-polygon'
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
 import booleanContains from '@turf/boolean-contains'
 import booleanIntersects from '@turf/boolean-intersects'
 import Polygon from 'turf-polygon'
+import { ref, computed, onBeforeUnmount } from 'vue'
+import { useGTFSStore } from '@src/store/GTFSImporter'
+import { useLinksStore } from '@src/store/links'
+import { useIndexStore } from '@src/store/index'
 
 import { csvJSON } from '../utils/utils.js'
 
@@ -16,72 +18,97 @@ export default {
   components: {
     MapSelector,
   },
-
-  data () {
-    return {
-      showOverwriteDialog: false,
-      poly: null,
-      nodes: {},
-      gtfsList: [],
-      availableGTFS: [],
-      selectedGTFS: this.$store.getters['runGTFS/selectedGTFS'],
-      checkall: false,
-      showHint: false,
-      parameters: [{
-        name: 'start_time',
-        text: 'start time',
-        value: this.$store.getters['runGTFS/parameters'].start_time,
-        type: 'String',
-        units: '',
-        hint: 'Start Time to restrict the GTFS in a period',
-        rules: [
-          'required', 'timeRule',
-        ],
-      },
-      {
-        name: 'end_time',
-        text: 'end time',
-        value: this.$store.getters['runGTFS/parameters'].end_time,
-        type: 'String',
-        units: '',
-        hint: 'End Time to restrict the GTFS in a period',
-        rules: [
-          'required', 'timeRule',
-        ],
-      },
-      {
-        name: 'day',
-        text: 'day',
-        value: this.$store.getters['runGTFS/parameters'].day,
-        type: 'String',
-        items: ['monday',
-          'tuesday',
-          'wednesday',
-          'thursday',
-          'friday',
-          'saturday',
-          'sunday'],
-        units: '',
-        hint: 'restrict each GTFS to this day.',
-        rules: [
-          'required',
-        ],
-      },
+  setup () {
+    const runGTFS = useGTFSStore()
+    const linksStore = useLinksStore()
+    const store = useIndexStore()
+    const showOverwriteDialog = ref(false)
+    const poly = ref(null)
+    const nodes = ref({})
+    const gtfsList = ref([])
+    const availableGTFS = ref([])
+    const checkall = ref(false)
+    const showHint = ref(false)
+    const selectedGTFS = ref(runGTFS.selectedGTFS)
+    const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
+    const UploadedGTFS = computed(() => { return runGTFS.UploadedGTFS })
+    const callID = computed(() => { return runGTFS.callID })
+    const running = computed(() => { return runGTFS.running })
+    const error = computed(() => { return runGTFS.error })
+    const errorMessage = computed(() => { return runGTFS.errorMessage })
+    const isUploading = computed(() => { return UploadedGTFS.value.filter(item => item.progress < 100).length > 0 })
+    onBeforeUnmount(() => {
+      runGTFS.saveParams(parameters.value)
+      runGTFS.saveSelectedGTFS(selectedGTFS.value)
+    })
+    const parameters = ref([{
+      name: 'start_time',
+      text: 'start time',
+      value: runGTFS.parameters.start_time,
+      type: 'String',
+      units: '',
+      hint: 'Start Time to restrict the GTFS in a period',
+      rules: [
+        'required', 'timeRule',
       ],
-      // eslint-disable-next-line max-len, no-useless-escape
-      re: /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
-      rules: {
-        required: v => !!v || $gettext('Required'),
-        timeRule: v => this.re.test(v) || $gettext('invalid date time'),
-      },
+    },
+    {
+      name: 'end_time',
+      text: 'end time',
+      value: runGTFS.parameters.end_time,
+      type: 'String',
+      units: '',
+      hint: 'End Time to restrict the GTFS in a period',
+      rules: [
+        'required', 'timeRule',
+      ],
+    },
+    {
+      name: 'day',
+      text: 'day',
+      value: runGTFS.parameters.day,
+      type: 'String',
+      items: ['monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+        'sunday'],
+      units: '',
+      hint: 'restrict each GTFS to this day.',
+      rules: [
+        'required',
+      ],
+    },
+    ])
+    const re = /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/
+    const rules = {
+      required: v => !!v || $gettext('Required'),
+      timeRule: v => re.test(v) || $gettext('invalid date time'),
     }
-  },
-  computed: {
-    linksIsEmpty () { return this.$store.getters.linksIsEmpty },
-    callID () { return this.$store.getters['runGTFS/callID'] },
-    running () { return this.$store.getters['runGTFS/running'] },
-    error () { return this.$store.getters['runGTFS/error'] },
-    errorMessage () { return this.$store.getters['runGTFS/errorMessage'] },
+
+    return {
+      showOverwriteDialog,
+      poly,
+      runGTFS,
+      store,
+      nodes,
+      gtfsList,
+      availableGTFS,
+      selectedGTFS,
+      checkall,
+      showHint,
+      parameters,
+      rules,
+      linksIsEmpty,
+      UploadedGTFS,
+      callID,
+      running,
+      error,
+      errorMessage,
+      isUploading,
+    }
   },
 
   async created () {
@@ -107,10 +134,7 @@ export default {
       return 0
     })
   },
-  beforeDestroy () {
-    this.$store.commit('runGTFS/saveParams', this.parameters)
-    this.$store.commit('runGTFS/saveSelectedGTFS', this.selectedGTFS)
-  },
+
   methods: {
 
     async fetchCSV () {
@@ -118,13 +142,13 @@ export default {
         const response = await fetch('https://storage.googleapis.com/storage/v1/b/mdb-csv/o/sources.csv?alt=media', {
         })
         if (!response.ok) {
-          this.$store.commit('changeAlert', { name: 'Network error', message: 'cannot fetch GTFS list' })
+          this.store.changeAlert({ name: 'Network error', message: 'cannot fetch GTFS list' })
         }
         const data = await response.arrayBuffer()
         const json = csvJSON(data)
         return json
       } catch (err) {
-        this.$store.commit('changeAlert', err)
+        this.store.changeAlert(err)
       }
     },
     getBBOX (val) {
@@ -156,7 +180,7 @@ export default {
 
     importGTFS () {
       if (this.linksIsEmpty) {
-        this.$store.commit('runGTFS/setCallID')
+        this.runGTFS.setCallID()
 
         const selected = this.availableGTFS.filter(el => this.selectedGTFS.includes(el.index))
         const filesPath = selected.map(el => el['urls.latest'])
@@ -164,15 +188,14 @@ export default {
         this.parameters.forEach(item => {
           inputs[item.name] = item.value
         })
-        this.$store.dispatch('runGTFS/startExecution', inputs)
+        this.runGTFS.startExecution(inputs)
       } else {
         this.showOverwriteDialog = true
       }
     },
 
     applyOverwriteDialog () {
-      this.$store.commit('loadLinks', linksBase)
-      this.$store.commit('loadNodes', nodesBase)
+      this.store.initLinks()
       this.showOverwriteDialog = false
       this.importGTFS()
     },
@@ -181,128 +204,127 @@ export default {
 }
 </script>
 <template>
-  <v-row class="ma-0 pa-2 background">
-    <v-col>
-      <v-card class="card">
-        <v-card-title class="subtitle">
-          {{ $gettext('GTFS importer') }}
-        </v-card-title>
-        <MapSelector @change="getBBOX" />
-      </v-card>
-    </v-col>
-    <v-col>
-      <v-card class="card2">
-        <v-card-title class="subtitle">
-          {{ $gettext('Available GTFS') }}
-        </v-card-title>
-        <v-card-subtitle>
-          {{ $gettext('Data fetch from')+ ' https://database.mobilitydata.org/' }}
-        </v-card-subtitle>
+  <div class=" background">
+    <v-card class="card">
+      <v-card-title class="subtitle">
+        {{ $gettext('GTFS importer') }}
+      </v-card-title>
+      <MapSelector @change="getBBOX" />
+    </v-card>
+    <v-card class="card2">
+      <v-card-title class="subtitle">
+        {{ $gettext('Available GTFS') }}
+      </v-card-title>
+      <v-card-subtitle>
+        {{ $gettext('Data fetch from')+ ' https://database.mobilitydata.org/' }}
+      </v-card-subtitle>
 
-        <v-btn
-          :disabled="running"
-          @click="getAvaileGTFS"
+      <v-btn
+        :disabled="running"
+        @click="getAvaileGTFS"
+      >
+        <v-icon
+          size="small"
+          style="margin-right: 10px;"
         >
-          <v-icon
-            small
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-sync
-          </v-icon>
-          {{ $gettext('fetch available GTFS') }}
-        </v-btn>
-        <v-btn
-          :loading="running"
-          :disabled="running || selectedGTFS.length===0"
-          color="success"
-          @click="importGTFS"
+          fa-solid fa-sync
+        </v-icon>
+        {{ $gettext('fetch available GTFS') }}
+      </v-btn>
+      <v-btn
+        :loading="running"
+        :disabled="running || selectedGTFS.length===0"
+        color="success"
+        @click="importGTFS"
+      >
+        <v-icon
+          size="small"
+          style="margin-right: 10px;"
         >
-          <v-icon
-            small
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-play
-          </v-icon>
-          {{ $gettext('Download') }}
-        </v-btn>
-        <v-card-subtitle>
-          <v-alert
-            v-if="error"
-            dense
-            outlined
-            text
-            type="error"
-          >
-            {{ $gettext("There as been an error while importing OSM network. \
+          fa-solid fa-play
+        </v-icon>
+        {{ $gettext('Download') }}
+      </v-btn>
+      <v-card-subtitle>
+        <v-alert
+          v-if="error"
+          density="compact"
+          variant="outlined"
+          text
+          type="error"
+        >
+          {{ $gettext("There as been an error while importing OSM network. \
             Please try again. If the problem persist, contact us.") }}
-            <p
-              v-for="key in Object.keys(errorMessage)"
-              :key="key"
-            >
-              <b>{{ key }}: </b>{{ errorMessage[key] }}
-            </p>
-          </v-alert>
-        </v-card-subtitle>
-        <div class="params-row">
-          <div
-            v-for="(item, key) in parameters"
+          <p
+            v-for="key in Object.keys(errorMessage)"
             :key="key"
           >
-            <v-text-field
-              v-if="typeof item.items === 'undefined'"
-              v-model="item.value"
-              :type="item.type"
-              :label="$gettext(item.text)"
-              :suffix="item.units"
-              :hint="showHint? $gettext(item.hint): ''"
-              :persistent-hint="showHint"
-              :rules="item.rules.map((rule) => rules[rule])"
-              required
-              @wheel="()=>{}"
-            />
-            <v-select
-              v-else
-              v-model="item.value"
-              :type="item.type"
-              :items="item.items"
-              :label="$gettext(item.text)"
-              :suffix="item.units"
-              :hint="showHint? $gettext(item.hint): ''"
-              :persistent-hint="showHint"
-              :rules="item.rules.map((rule) => rules[rule])"
-              required
-              @wheel="()=>{}"
-            />
-          </div>
+            <b>{{ key }}: </b>{{ errorMessage[key] }}
+          </p>
+        </v-alert>
+      </v-card-subtitle>
+      <div class="params-row">
+        <div
+          v-for="(item, key) in parameters"
+          :key="key"
+          class="params"
+        >
+          <v-text-field
+            v-if="typeof item.items === 'undefined'"
+            v-model="item.value"
+            :type="item.type"
+            :label="$gettext(item.text)"
+            :suffix="item.units"
+            variant="underlined"
+            :hint="showHint? $gettext(item.hint): ''"
+            :persistent-hint="showHint"
+            :rules="item.rules.map((rule) => rules[rule])"
+            required
+            @wheel="()=>{}"
+          />
+          <v-select
+            v-else
+            v-model="item.value"
+            variant="underlined"
+            :type="item.type"
+            :items="item.items"
+            :label="$gettext(item.text)"
+            :suffix="item.units"
+            :hint="showHint? $gettext(item.hint): ''"
+            :persistent-hint="showHint"
+            :rules="item.rules.map((rule) => rules[rule])"
+            required
+            @wheel="()=>{}"
+          />
         </div>
-        <div class="list">
-          <ul class="list-row">
-            <span class="list-item-small"><v-checkbox :disabled="true" /></span>
-            <span class="list-item-small">All in polygon</span>
-            <span class="list-item-small">Code</span>
-            <span class="list-item-medium">Name</span>
-            <span class="list-item-large">City</span>
-            <span class="list-item-large">Agency</span>
-          </ul>
-          <ul
-            v-for="(item,key) in availableGTFS"
-            :key="item.index"
-            class="list-row"
-          >
-            <span class="list-item-small"> <v-checkbox
-              v-model="selectedGTFS"
-              :value="item.index"
-              :label="String(key)"
-            /></span>
-            <span class="list-item-small">{{ item['allInPolygon'] }} </span>
-            <span class="list-item-small">{{ item['location.country_code'] }} </span>
-            <span class="list-item-medium">{{ item['location.subdivision_name'] }}</span>
-            <span class="list-item-large">{{ item['location.municipality'] }}</span>
-            <span class="list-item-large">{{ item.provider }}</span>
-          </ul>
-        </div>
-      </v-card>
-    </v-col>
+      </div>
+      <div class="list">
+        <ul class="list-row">
+          <span class="list-item-small"><v-checkbox :disabled="true" /></span>
+          <span class="list-item-small">All in polygon</span>
+          <span class="list-item-small">Code</span>
+          <span class="list-item-medium">Name</span>
+          <span class="list-item-large">City</span>
+          <span class="list-item-large">Agency</span>
+        </ul>
+        <ul
+          v-for="(item,key) in availableGTFS"
+          :key="item.index"
+          class="list-row"
+        >
+          <span class="list-item-small"> <v-checkbox-btn
+            v-model="selectedGTFS"
+            :value="item.index"
+            :label="String(key)"
+          /></span>
+          <span class="list-item-small">{{ item['allInPolygon'] }} </span>
+          <span class="list-item-small">{{ item['location.country_code'] }} </span>
+          <span class="list-item-medium">{{ item['location.subdivision_name'] }}</span>
+          <span class="list-item-large">{{ item['location.municipality'] }}</span>
+          <span class="list-item-large">{{ item.provider }}</span>
+        </ul>
+      </div>
+    </v-card>
     <v-dialog
       v-model="showOverwriteDialog"
       persistent
@@ -332,26 +354,34 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-row>
+  </div>
 </template>
 <style lang="scss" scoped>
-
+.background {
+  background-color:var(--v-background-base);
+  padding:2rem;
+  width:100vw;
+  height:90vh;
+  display:flex;
+  align-items:stretch;
+}
 .card {
   height: 90%;
+  margin:1rem;
+  flex:1;
   padding: 2.5rem;
+  background-color: rgb(var(--v-theme-lightergrey));
+
 }
 .card2 {
   height: 90%;
+  flex:1;
+  margin:1rem;
   padding: 2.5rem 0rem 2.5rem 2.0rem;
   margin-right: 3rem;
-  overflow-y: auto;
+  overflow-y: hidden;
+  background-color: rgb(var(--v-theme-lightergrey));
 
-}
-.row {
-  height: 100%
-}
-.col {
-  max-height: 100%;
 }
 .card button {
   margin-top: 0px;
@@ -375,9 +405,6 @@ export default {
 .card button {
   margin-top: 0px;
 }
-.background {
-  background-color:var(--v-background-base);
-}
 
 .params-row {
   /* Add individual list item styles here */
@@ -389,14 +416,19 @@ export default {
   gap: 1rem;
 
 }
+.params{
+  width: 10rem;
+}
 
 .list {
-  height:80%;
+  height:70%;
   //border: 1px solid red;
   margin-top:1rem;
+  margin-right:1rem;
   overflow-y: auto;
   overflow-x: hidden;
-  border-top: 1px solid var(--v-background-lighten3);
+  border-top: 1px solid rgb(var(--v-theme-mediumgrey));
+  border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
 
 }
 .list-row {
@@ -405,7 +437,7 @@ export default {
   padding-left:0;
   align-items: center;
   justify-content:flex-start;
-  border-bottom: 1px solid var(--v-background-lighten3);
+  border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
 }
 
 .list-item-small {
