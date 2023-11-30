@@ -24,7 +24,6 @@ export default {
         console.error(val)
       }
     })
-
     return { sheet, err, close }
   },
 
@@ -35,38 +34,17 @@ export default {
     <v-bottom-sheet
       v-model="sheet"
       persistent
+      inset
     >
-      <v-sheet
-        class="text-center"
-      >
-        <div>
-          <v-alert
-            prominent
-            type="error"
-          >
-            <v-row>
-              <v-col class="grow">
-                <h2>
-                  ERROR: {{ err.name }}
-                </h2>
-                <p>
-                  {{ err.message }}
-                </p>
-              </v-col>
-              <v-col class="shrink">
-                <v-btn
-                  icon
-                  @click="close"
-                >
-                  <v-icon>
-                    fas fa-times
-                  </v-icon>
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-alert>
-        </div>
-      </v-sheet>
+      <div>
+        <v-alert
+          type="error"
+          closable
+          :title="`ERROR: ${err.name}`"
+          :text="err.message"
+          @click:close="close"
+        />
+      </div>
     </v-bottom-sheet>
   </div>
 </template>

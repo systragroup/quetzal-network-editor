@@ -19,6 +19,8 @@ export default {
     const linksStore = useLinksStore()
     const showLeftPanel = computed(() => { return store.showLeftPanel })
     const toggleLeftPanel = () => { store.changeLeftPanel() }
+    const editorTrip = computed(() => { return linksStore.editorTrip })
+
     const windowHeight = computed(() => { return store.windowHeight - 200 })
 
     const tab = ref(0)
@@ -28,7 +30,7 @@ export default {
       }
     })
 
-    return { tab, showLeftPanel, windowHeight, toggleLeftPanel }
+    return { tab, showLeftPanel, windowHeight, editorTrip, toggleLeftPanel }
   },
   data () {
     return {
@@ -73,7 +75,6 @@ export default {
       document.addEventListener('mouseup', this.stopResize)
     },
     resize (event) {
-      console.log(event)
       if (this.isResizing) {
         const width = event.clientX - this.windowOffest
         this.width = width > 400 ? width : 400
@@ -81,7 +82,6 @@ export default {
       }
     },
     stopResize (event) {
-      console.log('stop')
       this.isResizing = false
       document.removeEventListener('mousemove', this.resize)
       document.removeEventListener('mouseup', this.stopResize)
@@ -123,6 +123,7 @@ export default {
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
             <v-tabs
               v-model="tab"
+              :disabled="editorTrip"
               bg-color="secondary"
               grow
             >

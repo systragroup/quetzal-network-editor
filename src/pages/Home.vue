@@ -14,7 +14,7 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '../store/od'
 
-import { computed, ref } from 'vue'
+import { computed, ref, onUnmounted } from 'vue'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -40,6 +40,12 @@ export default {
       if (['pt', 'road'].includes(mode.value)) {
         return store.attributesChoices[mode.value]
       } else { return {} }
+    })
+
+    onUnmounted(() => {
+      linksStore.setEditorTrip({ tripId: null, changeBounds: false })
+      if (store.anchorMode) { store.changeAnchorMode() }
+      if (store.cyclewayMode) { store.changeCyclewayMode() }
     })
 
     const editForm = computed(() => {

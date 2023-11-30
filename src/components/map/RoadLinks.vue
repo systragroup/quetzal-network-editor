@@ -157,7 +157,6 @@ export default {
 
   },
   created () {
-    console.log(this.$vuetify.theme.current.colors.linksprimary)
     this.map.on('dragend', this.getBounds)
     this.map.on('zoomend', this.getBounds)
   },

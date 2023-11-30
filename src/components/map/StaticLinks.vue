@@ -34,7 +34,6 @@ export default {
 
   watch: {
     showedTrips (newVal, oldVal) {
-      console.log(newVal)
       this.setHiddenFeatures()
     },
     isEditorMode (val) {

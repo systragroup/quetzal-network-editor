@@ -60,10 +60,10 @@ app.use(router)
 // app.component('VueDatePicker', VueDatePicker)
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 library.add(fas)
-
+app.config.devtools = true
 // const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr'])
 const bestLanguage = 'en'
-const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+// const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
 const vuetify = createVuetify({
   // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
   components: {

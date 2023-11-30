@@ -311,49 +311,46 @@ export default {
 
       <v-divider />
     </v-card>
-    <v-card class="mx-auto">
-      <v-list-item>
-        <v-tooltip
-          location="right"
-          open-delay="500"
-        >
-          <template v-slot:activator="{ props }">
-            <v-btn
+    <v-card class="mx-auto py-2">
+      <v-tooltip
+        location="right"
+        open-delay="500"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
 
-              class="mx-2"
-              :color="rlinksStore.anchorMode? 'grey':'regular'"
-              v-bind="props"
-              @click="store.changeAnchorMode()"
-            >
-              <v-icon size="small">
-                fas fa-anchor
-              </v-icon>
-            </v-btn>
-          </template>
-          <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
-        </v-tooltip>
-        <v-tooltip
-          location="right"
-          open-delay="500"
-        >
-          <template v-slot:activator="{ props }">
-            <v-btn
-
-              class="mx-2"
-              :disabled="!rlinksStore.hasCycleway"
-              :color="rlinksStore.cyclewayMode? 'green':'regular'"
-              v-bind="props"
-              @click="rlinksStore.changeCyclewayMode()"
-            >
-              <v-icon size="small">
-                fas fa-biking
-              </v-icon>
-            </v-btn>
-          </template>
-          <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
-        </v-tooltip>
-        <v-spacer />
-      </v-list-item>
+            class="mx-2"
+            :color="store.anchorMode? 'grey':'regular'"
+            v-bind="props"
+            @click="store.changeAnchorMode()"
+          >
+            <v-icon size="small">
+              fas fa-anchor
+            </v-icon>
+          </v-btn>
+        </template>
+        <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
+      </v-tooltip>
+      <v-tooltip
+        location="right"
+        open-delay="500"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
+            class="mx-2"
+            :disabled="!rlinksStore.hasCycleway"
+            :color="store.cyclewayMode? 'green':'regular'"
+            v-bind="props"
+            @click="store.changeCyclewayMode()"
+          >
+            <v-icon size="small">
+              fas fa-biking
+            </v-icon>
+          </v-btn>
+        </template>
+        <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
+      </v-tooltip>
+      <v-spacer />
     </v-card>
   </section>
 </template>

@@ -4,13 +4,15 @@ import nodesBase from '@static/nodes_base.geojson'
 
 import { unzipCalendar } from '@comp/utils/utils.js'
 import DatePicker from '@comp/utils/DatePicker.vue'
-
+import { ref } from 'vue'
 const $gettext = s => s
 
 export default {
   name: 'GTFSWebImporter',
   components: { DatePicker },
+  setup () {
 
+  },
   data () {
     return {
       showOverwriteDialog: false,
@@ -88,7 +90,7 @@ export default {
 
           const payload = {
             content: file,
-            info: { name: file.name, minDate: minDate, maxDate: maxDate, date: minDate, progress: 0 },
+            info: { name: file.name, minDate, maxDate, date: minDate, progress: 0 },
           }
           await this.$store.dispatch('runGTFS/addGTFS', payload)
         }
@@ -103,7 +105,7 @@ export default {
       if (this.linksIsEmpty) {
         const files = this.UploadedGTFS.map(el => el.name)
         const dates = this.UploadedGTFS.map(el => el.date)
-        const inputs = { files: files, dates: dates }
+        const inputs = { files, dates }
         this.parameters.forEach(item => {
           inputs[item.name] = item.value
         })
@@ -153,7 +155,7 @@ export default {
           @click="uploadGTFS"
         >
           <v-icon
-            small
+            size="small"
             style="margin-right: 10px;"
           >
             fa-solid fa-file-archive
@@ -164,8 +166,8 @@ export default {
         <v-card-subtitle>
           <v-alert
             v-if="error"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             text
             type="error"
           >
@@ -240,7 +242,7 @@ export default {
                                              v-if="item.progress<100"
                                              absolute
                                              color="primary"
-                                             :value="item.progress"
+                                             :model-value="item.progress"
                                            />
               <v-icon v-else>fas fa-check</v-icon></span>
           </ul>
@@ -253,7 +255,7 @@ export default {
             @click="importGTFS"
           >
             <v-icon
-              small
+              size="small"
               style="margin-right: 10px;"
             >
               fa-solid fa-play

@@ -499,8 +499,8 @@ export default {
 
       <v-divider />
     </v-card>
-    <v-card class="mx-auto">
-      <v-list-item v-if="editorTrip">
+    <v-card class="mx-auto py-2">
+      <div v-if="editorTrip">
         <v-tooltip
           location="right"
           open-delay="500"
@@ -533,6 +533,8 @@ export default {
         </v-btn>
         <v-btn
           color="primary"
+          class="mx-2"
+
           @click="$emit('confirmChanges')"
         >
           <v-icon
@@ -543,10 +545,10 @@ export default {
           </v-icon>
           {{ $gettext("Confirm") }}
         </v-btn>
-      </v-list-item>
-      <v-list-item
+      </div>
+      <div
         v-else
-        :style="{'justify-items':'flex-end'}"
+        :style="{'justify-content':'flex-end'}"
       >
         <v-tooltip
           location="bottom"
@@ -556,6 +558,7 @@ export default {
             <v-btn
               color="primary"
               size="small"
+              class="mx-2"
               icon="fas fa-plus"
               v-bind="props"
               @click="createNewLine"
@@ -563,7 +566,7 @@ export default {
           </template>
           <span>{{ $gettext("Create new Line") }}</span>
         </v-tooltip>
-      </v-list-item>
+      </div>
     </v-card>
     <v-dialog
       v-model="showDialog"

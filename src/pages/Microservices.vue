@@ -21,7 +21,6 @@ export default {
     const tab = ref('OSM importer')
     const subtab = ref('Zip importer')
     const GTFSrunning = computed(() => { return runGTFS.running })
-    watch(tab, (val) => console.log(val))
     return { tab, subtab, GTFSrunning }
   },
 }
