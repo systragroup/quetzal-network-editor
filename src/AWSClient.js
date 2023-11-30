@@ -3,6 +3,7 @@ import { useUserStore } from '@src/store/user'
 
 import { S3, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { Upload } from '@aws-sdk/lib-storage'
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
@@ -159,20 +160,6 @@ async function deleteFolder (bucket, prefix) {
   }
 }
 
-async function createFolder (bucket, key) {
-  // create an empty folder
-  const store = useIndexStore()
-  if (key.slice(-1) !== '/') { key = key + '/' }
-  const params = { Bucket: bucket, Key: key, Body: '' }
-
-  s3Client.upload(params, function (err, data) {
-    if (err) {
-      store.changeAlert(err)
-    } else {
-      console.log('Successfully created a folder on S3')
-    }
-  })
-}
 async function putObject (bucket, key, body = '') {
   const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
@@ -199,8 +186,8 @@ function uploadObject (bucket, key, body = '') {
     Body: body,
     Metadata: { user_email: userStore.cognitoInfo.email, checksum },
   }
-  const upload = s3Client.upload(params)
-  return upload
+  const resp = new Upload({ client: s3Client, params })
+  return resp
 }
 
 async function getScenario (bucket) {
@@ -285,7 +272,6 @@ export default {
   listFiles,
   copyFolder,
   deleteFolder,
-  createFolder,
   putObject,
   getImagesURL,
   downloadFolder,

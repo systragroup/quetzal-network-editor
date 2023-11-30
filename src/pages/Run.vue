@@ -40,13 +40,16 @@ export default {
     })
 
     watch(stepFunction, async (val) => {
-      if (avalaibleStepFunctions.value.includes(val)) {
-        runStore.setSelectedStepFunction(val)
-        runStore.getSteps()
-      } else {
-        stepFunction.value = avalaibleStepFunctions.value[0]
-        runStore.setSelectedStepFunction(avalaibleStepFunctions.value[0])
-        runStore.getSteps()
+      if (modelIsLoaded.value) {
+        if (avalaibleStepFunctions.value.includes(val)) {
+          console.log(val)
+          runStore.setSelectedStepFunction(val)
+          runStore.getSteps()
+        } else {
+          stepFunction.value = avalaibleStepFunctions.value[0]
+          runStore.setSelectedStepFunction(avalaibleStepFunctions.value[0])
+          runStore.getSteps()
+        }
       }
     })
 

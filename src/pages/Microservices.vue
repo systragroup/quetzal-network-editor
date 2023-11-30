@@ -3,9 +3,9 @@
 import { ref, computed, watch } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import OSMImporter from '@comp/microservices/OSMImporter.vue'
-// const GTFSWebImporter = () => import('@comp/microservices/GTFSWebImporter.vue')
-// const GTFSZipImporter = () => import('@comp/microservices/GTFSZipImporter.vue')
-// const MatrixRoadCaster = () => import('@comp/microservices/MatrixRoadCaster.vue')
+import GTFSZipImporter from '@comp/microservices/GTFSZipImporter.vue'
+const GTFSWebImporter = () => import('@comp/microservices/GTFSWebImporter.vue')
+const MatrixRoadCaster = () => import('@comp/microservices/MatrixRoadCaster.vue')
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -13,14 +13,16 @@ export default {
   components: {
     OSMImporter,
     // MatrixRoadCaster,
-    // GTFSWebImporter,
-    // GTFSZipImporter,
+    GTFSWebImporter,
+    GTFSZipImporter,
   },
   setup () {
     const runGTFS = useGTFSStore()
     const tab = ref('OSM importer')
     const subtab = ref('Zip importer')
     const GTFSrunning = computed(() => { return runGTFS.running })
+    watch(subtab, () => { console.log(tab.value === 'GTFS importer' && subtab.value === 'Zip importer') })
+
     return { tab, subtab, GTFSrunning }
   },
 }
@@ -37,14 +39,12 @@ export default {
       <v-tab value="OSM importer">
         OSM importer
       </v-tab>
-      <!--
-         <v-tab value="GTFS importer">
+      <v-tab value="GTFS importer">
         GTFS importer
       </v-tab>
       <v-tab value="Matrix Road Caster">
         Matrix Road Caster
       </v-tab>
-      -->
     </v-tabs>
     <v-tabs
       v-if="tab==='GTFS importer'"
@@ -54,36 +54,39 @@ export default {
       bg-color="lightergrey"
       align-tabs="center"
     >
-      <v-tab :disabled="GTFSrunning">
+      <v-tab
+        :disabled="GTFSrunning"
+        value="Zip importer"
+      >
         Zip importer
       </v-tab>
-      <v-tab :disabled="GTFSrunning">
+      <v-tab
+        :disabled="GTFSrunning"
+        value="Web importer"
+      >
         Web importer
       </v-tab>
     </v-tabs>
-    <div class="layout">
-      <div class="layout-overlay" />
+    <v-window class="layout">
       <OSMImporter v-if="tab==='OSM importer' " />
-      <!--
       <GTFSZipImporter v-else-if="tab==='GTFS importer' && subtab==='Zip importer'" />
 
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
 
       <MatrixRoadCaster v-else-if="tab===2" />
-
-      -->
-    </div>
+    </v-window>
   </section>
 </template>
 <style lang="scss" scoped>
 .layout {
   position: absolute;
-  width:100vw;
-  height: 100vh;
+  width:100%;
+  height: 100%;
   display: flex;
-  flex-flow: row;
   justify-content: center;
   align-items: center;
+  background-color: rgb(var(--v-theme-background));
+
 }
 .layout-overlay {
   height: 100%;

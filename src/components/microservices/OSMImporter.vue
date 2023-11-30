@@ -187,6 +187,7 @@ export default {
 }
 .card {
   background-color: rgb(var(--v-theme-lightergrey));
+  margin:1rem;
   height: 100%;
   overflow-y: auto;
   padding: 2.5rem;

@@ -89,7 +89,7 @@ export const useGTFSStore = defineStore('runGTFS', {
         const percent = Math.round(progress.loaded / progress.total * 100)
         this.updateProgress({ name: payload.info.name, progress: percent })
       })
-      upload.promise()
+      upload.done()
     },
 
     startExecution (payload) {

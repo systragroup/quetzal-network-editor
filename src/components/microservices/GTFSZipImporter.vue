@@ -1,49 +1,82 @@
 <script>
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
-
 import { unzipCalendar } from '@comp/utils/utils.js'
 import DatePicker from '@comp/utils/DatePicker.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useGTFSStore } from '@src/store/GTFSImporter'
+import { useLinksStore } from '@src/store/links'
+import { useIndexStore } from '@src/store/index'
+
 const $gettext = s => s
 
 export default {
   name: 'GTFSWebImporter',
-  components: { DatePicker },
+  components: {
+    DatePicker,
+  },
   setup () {
+    const runGTFS = useGTFSStore()
+    const linksStore = useLinksStore()
+    const store = useIndexStore()
+    const showOverwriteDialog = ref(false)
+    const poly = ref(null)
+    const nodes = ref({})
+    const gtfsList = ref([])
+    const checkall = ref(false)
+    const showHint = ref(false)
+    const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
+    const UploadedGTFS = computed(() => { return runGTFS.UploadedGTFS })
+    const callID = computed(() => { return runGTFS.callID })
+    const running = computed(() => { return runGTFS.running })
+    const error = computed(() => { return runGTFS.error })
+    const errorMessage = computed(() => { return runGTFS.errorMessage })
+    const isUploading = computed(() => { return UploadedGTFS.value.filter(item => item.progress < 100).length > 0 })
 
+    const parameters = ref([{
+      name: 'start_time',
+      text: 'start time',
+      value: runGTFS.parameters.start_time,
+      type: 'String',
+      units: '',
+      hint: 'Start Time to restrict the GTFS in a period',
+      rules: [
+        'required', 'timeRule',
+      ],
+    },
+    {
+      name: 'end_time',
+      text: 'end time',
+      value: runGTFS.parameters.end_time,
+      type: 'String',
+      units: '',
+      hint: 'End Time to restrict the GTFS in a period',
+      rules: [
+        'required', 'timeRule',
+      ],
+    },
+    ])
+
+    return {
+      showOverwriteDialog,
+      poly,
+      runGTFS,
+      store,
+      nodes,
+      gtfsList,
+      checkall,
+      showHint,
+      parameters,
+      linksIsEmpty,
+      UploadedGTFS,
+      callID,
+      running,
+      error,
+      errorMessage,
+      isUploading,
+    }
   },
   data () {
     return {
-      showOverwriteDialog: false,
-      poly: null,
-      nodes: {},
-      gtfsList: [],
-      checkall: false,
-      showHint: false,
-      parameters: [{
-        name: 'start_time',
-        text: 'start time',
-        value: this.$store.getters['runGTFS/parameters'].start_time,
-        type: 'String',
-        units: '',
-        hint: 'Start Time to restrict the GTFS in a period',
-        rules: [
-          'required', 'timeRule',
-        ],
-      },
-      {
-        name: 'end_time',
-        text: 'end time',
-        value: this.$store.getters['runGTFS/parameters'].end_time,
-        type: 'String',
-        units: '',
-        hint: 'End Time to restrict the GTFS in a period',
-        rules: [
-          'required', 'timeRule',
-        ],
-      },
-      ],
+
       // eslint-disable-next-line max-len, no-useless-escape
       re: /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
       rules: {
@@ -52,17 +85,9 @@ export default {
       },
     }
   },
-  computed: {
-    linksIsEmpty () { return this.$store.getters.linksIsEmpty },
-    UploadedGTFS () { return this.$store.getters['runGTFS/UploadedGTFS'] },
-    callID () { return this.$store.getters['runGTFS/callID'] },
-    running () { return this.$store.getters['runGTFS/running'] },
-    error () { return this.$store.getters['runGTFS/error'] },
-    errorMessage () { return this.$store.getters['runGTFS/errorMessage'] },
-    isUploading () { return this.UploadedGTFS.filter(item => item.progress < 100).length > 0 },
-  },
+
   beforeDestroy () {
-    this.$store.commit('runGTFS/saveParams', this.parameters)
+    this.runGTFS.saveParams(this.parameters)
   },
 
   methods: {
@@ -74,11 +99,11 @@ export default {
 
     async readZip (event) {
       try {
-        this.$store.commit('changeLoading', true)
+        this.store.changeLoading(true)
         const zfiles = event.target.files
         // there is a file
         if (!zfiles.length) {
-          this.$store.commit('changeLoading', false)
+          this.store.changeLoading(false)
           return
         }
         for (const file of zfiles) {
@@ -92,12 +117,12 @@ export default {
             content: file,
             info: { name: file.name, minDate, maxDate, date: minDate, progress: 0 },
           }
-          await this.$store.dispatch('runGTFS/addGTFS', payload)
+          await this.runGTFS.addGTFS(payload)
         }
-        this.$store.commit('changeLoading', false)
+        this.store.changeLoading(false)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
 
@@ -109,15 +134,14 @@ export default {
         this.parameters.forEach(item => {
           inputs[item.name] = item.value
         })
-        this.$store.dispatch('runGTFS/startExecution', inputs)
+        this.runGTFS.startExecution(inputs)
       } else {
         this.showOverwriteDialog = true
       }
     },
 
     applyOverwriteDialog () {
-      this.$store.commit('loadLinks', linksBase)
-      this.$store.commit('loadNodes', nodesBase)
+      this.store.initLinks()
       this.showOverwriteDialog = false
       this.importGTFS()
     },
@@ -126,7 +150,7 @@ export default {
 }
 </script>
 <template>
-  <v-row class="ma-0 pa-2 background">
+  <div>
     <input
       id="zip-input"
       ref="zipInput"
@@ -136,135 +160,137 @@ export default {
       multiple="multiple"
       @change="readZip"
     >
-    <v-col
-      class="d-flex flex-column "
-    >
-      <v-card class="card">
-        <v-card-title class="subtitle">
-          {{ $gettext('GTFS importer') }}
-        </v-card-title>
-        <v-card-subtitle>
-          {{ $gettext('import GTFS from local computer') }}
-        </v-card-subtitle>
-        <v-card-subtitle>
-          {{ $gettext('Add GTFS files. When its done uploading press Convert') }}
-        </v-card-subtitle>
+    <v-card class="card">
+      <v-card-title class="subtitle">
+        {{ $gettext('GTFS importer') }}
+      </v-card-title>
+      <v-card-subtitle>
+        {{ $gettext('import GTFS from local computer') }}
+      </v-card-subtitle>
+      <v-card-subtitle>
+        {{ $gettext('Add GTFS files. When its done uploading press Convert') }}
+      </v-card-subtitle>
 
+      <v-btn
+        width="10rem"
+        :disabled="running"
+        @click="uploadGTFS"
+      >
+        <v-icon
+          size="small"
+          style="margin-right: 10px;"
+        >
+          fa-solid fa-file-archive
+        </v-icon>
+        {{ $gettext('upload GTFS') }}
+      </v-btn>
+
+      <v-card-subtitle>
+        <v-alert
+          v-if="error"
+          density="compact"
+          variant="outlined"
+          text
+          type="error"
+        >
+          {{ $gettext("There as been an error while converting your GTFS. \
+            Please try again. If the problem persist, contact us.") }}
+          <p
+            v-for="key in Object.keys(errorMessage)"
+            :key="key"
+          >
+            <b>{{ key }}: </b>{{ errorMessage[key] }}
+          </p>
+        </v-alert>
+      </v-card-subtitle>
+      <div class="params-row">
+        <div
+          v-for="(item, key) in parameters"
+          :key="key"
+          class="params"
+        >
+          <v-text-field
+            v-if="typeof item.items === 'undefined'"
+            v-model="item.value"
+            :type="item.type"
+            variant="underlined"
+            :label="$gettext(item.text)"
+            :suffix="item.units"
+            :hint="showHint? $gettext(item.hint): ''"
+            :persistent-hint="showHint"
+            :rules="item.rules.map((rule) => rules[rule])"
+            required
+            @wheel="()=>{}"
+          />
+          <v-select
+            v-else
+            v-model="item.value"
+            :type="item.type"
+            :items="item.items"
+            :label="$gettext(item.text)"
+            :suffix="item.units"
+            :hint="showHint? $gettext(item.hint): ''"
+            :persistent-hint="showHint"
+            :rules="item.rules.map((rule) => rules[rule])"
+            required
+            @wheel="()=>{}"
+          />
+        </div>
+      </div>
+      <div class="list">
+        <li class="list-row bold">
+          <span class="list-item-small" />
+          <span class="list-item-large">{{ $gettext('name') }} </span>
+          <span class="list-item-medium">{{ $gettext('from') }} </span>
+          <span class="list-item-medium">{{ $gettext('to') }} </span>
+          <span class="list-item-medium">{{ $gettext('selected date') }}</span>
+          <span class="list-item-small"> {{ $gettext('Uploaded') }}</span>
+        </li>
+        <ul
+          v-for="(item,key) in UploadedGTFS"
+          :key="key"
+          class="list-row"
+        >
+          <span class="list-item-small">{{ key }} </span>
+          <span class="list-item-large">{{ item.name }} </span>
+          <span class="list-item-medium">{{ item.minDate }} </span>
+          <span class="list-item-medium">{{ item.maxDate }} </span>
+          <span class="list-item-medium">
+            <DatePicker
+              :date="item.date"
+              :from="item.minDate"
+              :to="item.maxDate"
+              @update:date="(val)=>item.date=val"
+            />
+
+          </span>
+          <span class="list-item-small"> <v-progress-circular
+                                           v-if="item.progress<100"
+                                           :indeterminate="item.progress===0"
+                                           absolute
+                                           color="primary"
+                                           :model-value="item.progress"
+                                         />
+            <v-icon v-else>fas fa-check</v-icon></span>
+        </ul>
+      </div>
+      <div class="bottom-button">
         <v-btn
-          :disabled="running"
-          @click="uploadGTFS"
+          :loading="running"
+          :disabled="running || UploadedGTFS.length==0 || isUploading"
+          color="success"
+          @click="importGTFS"
         >
           <v-icon
             size="small"
             style="margin-right: 10px;"
           >
-            fa-solid fa-file-archive
+            fa-solid fa-play
           </v-icon>
-          {{ $gettext('upload GTFS') }}
+          {{ $gettext('convert') }}
         </v-btn>
-
-        <v-card-subtitle>
-          <v-alert
-            v-if="error"
-            density="compact"
-            variant="outlined"
-            text
-            type="error"
-          >
-            {{ $gettext("There as been an error while importing OSM network. \
-            Please try again. If the problem persist, contact us.") }}
-            <p
-              v-for="key in Object.keys(errorMessage)"
-              :key="key"
-            >
-              <b>{{ key }}: </b>{{ errorMessage[key] }}
-            </p>
-          </v-alert>
-        </v-card-subtitle>
-        <div class="params-row">
-          <div
-            v-for="(item, key) in parameters"
-            :key="key"
-          >
-            <v-text-field
-              v-if="typeof item.items === 'undefined'"
-              v-model="item.value"
-              :type="item.type"
-              :label="$gettext(item.text)"
-              :suffix="item.units"
-              :hint="showHint? $gettext(item.hint): ''"
-              :persistent-hint="showHint"
-              :rules="item.rules.map((rule) => rules[rule])"
-              required
-              @wheel="()=>{}"
-            />
-            <v-select
-              v-else
-              v-model="item.value"
-              :type="item.type"
-              :items="item.items"
-              :label="$gettext(item.text)"
-              :suffix="item.units"
-              :hint="showHint? $gettext(item.hint): ''"
-              :persistent-hint="showHint"
-              :rules="item.rules.map((rule) => rules[rule])"
-              required
-              @wheel="()=>{}"
-            />
-          </div>
-        </div>
-        <div class="list">
-          <li class="list-row bold">
-            <span class="list-item-small" />
-            <span class="list-item-large">{{ $gettext('name') }} </span>
-            <span class="list-item-medium">{{ $gettext('from') }} </span>
-            <span class="list-item-medium">{{ $gettext('to') }} </span>
-            <span class="list-item-medium">{{ $gettext('selected date') }}</span>
-            <span class="list-item-small"> {{ $gettext('Uploaded') }}</span>
-          </li>
-          <ul
-            v-for="(item,key) in UploadedGTFS"
-            :key="key"
-            class="list-row"
-          >
-            <span class="list-item-small">{{ key }} </span>
-            <span class="list-item-large">{{ item.name }} </span>
-            <span class="list-item-medium">{{ item.minDate }} </span>
-            <span class="list-item-medium">{{ item.maxDate }} </span>
-            <span class="list-item-medium">
-              <DatePicker
-                v-model="item.date"
-                :from="item.minDate"
-                :to="item.maxDate"
-              />
-            </span>
-            <span class="list-item-small"> <v-progress-circular
-                                             v-if="item.progress<100"
-                                             absolute
-                                             color="primary"
-                                             :model-value="item.progress"
-                                           />
-              <v-icon v-else>fas fa-check</v-icon></span>
-          </ul>
-        </div>
-        <div class="bottom-button">
-          <v-btn
-            :loading="running"
-            :disabled="running || UploadedGTFS.length==0 || isUploading"
-            color="success"
-            @click="importGTFS"
-          >
-            <v-icon
-              size="small"
-              style="margin-right: 10px;"
-            >
-              fa-solid fa-play
-            </v-icon>
-            {{ $gettext('convert') }}
-          </v-btn>
-        </div>
-      </v-card>
-    </v-col>
+      </div>
+    </v-card>
     <v-dialog
       v-model="showOverwriteDialog"
       persistent
@@ -294,15 +320,17 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-row>
+  </div>
 </template>
 <style lang="scss" scoped>
 
 .card {
-  height: 90%;
-  width: 80%;
+  height: 75vh;
+  width: 80vw;
+  margin: 1rem;
   padding: 2.5rem 2rem 2.5rem 2rem;
-  margin-right: 3rem;
+  justify-content: center;
+  background-color: rgb(var(--v-theme-lightergrey));
 }
 .row {
   height: 100%;
@@ -326,16 +354,13 @@ export default {
 }
 .subtitle {
   font-size: 2em;
-  color:var(--v-secondary-dark);
+  color:rgb(var(--v-theme-secondary-dark));
   font-weight: bold;
   margin: 10px;
   margin-left: 0px;
 }
 .card button {
   margin-top: 0px;
-}
-.background {
-  background-color:var(--v-background-base);
 }
 
 .params-row {
@@ -347,14 +372,17 @@ export default {
   justify-content:flex-start;
   gap: 1rem;
 }
+.params{
+  width: 10rem;
+}
 
 .list {
   height:70%;
   margin-top:1rem;
   overflow-y: auto;
   overflow-x: hidden;
-  border-top: 1px solid var(--v-background-lighten3);
-  border-bottom: 1px solid var(--v-background-lighten3);
+  border-top: 1px solid rgb(var(--v-theme-mediumgrey));
+  border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
 
 }
 .list-row {
@@ -364,7 +392,7 @@ export default {
   height:3rem;
   align-items: center;
   justify-content:flex-start;
-  border-bottom: 1px solid var(--v-background-lighten3);
+  border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
 }
 
 .list ul {
@@ -373,7 +401,7 @@ export default {
 }
 
 .list ul:hover {
-  background-color: var(--v-background-lighten4); /* Change the background color on hover */
+  background-color: rgb(var(--v-theme-mediumgrey)); /* Change the background color on hover */
 }
 
 .list-item-small {
@@ -396,8 +424,9 @@ export default {
 
 .bottom-button{
   padding:2rem;
-  position: absolute;
+  position: relative;
   right: 0;
+  align-items: right;
 
 }
 </style>
