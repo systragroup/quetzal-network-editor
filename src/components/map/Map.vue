@@ -3,8 +3,7 @@ import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
 
-import { computed, watch, ref, toRefs, onMounted, onBeforeUnmount } from 'vue'
-import { cloneDeep } from 'lodash'
+import { computed, watch, ref, toRefs, onBeforeUnmount } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -64,7 +63,6 @@ export default {
     const visibleRasters = computed(() => { return store.visibleRasters })
     const rasterFiles = computed(() => { return store.styles })
     const availableLayers = computed(() => { return store.availableLayers })
-
     const { mode } = toRefs(props)
 
     const map = ref(null)
@@ -77,7 +75,7 @@ export default {
     const mapIsLoaded = ref(false)
     const hoverId = ref(null)
     const hoverLayer = ref(null)
-    const drawLink = ref({ crs: {}, type: 'FeatureCollection', features: [] })
+    const drawLink = ref(Linestring([]))
     const mouseout = ref(false)
     const selectedNode = ref({ id: null, layerId: null })
 
@@ -158,14 +156,14 @@ export default {
     // when the first or last node change (delete or new) change the value of those nodes.
     watch(firstNode, (val) => {
       if (editorTrip.value && val) {
-        drawLink.value = Linestring([val.geometry.coordinates, val.geometry.coordinates])
+        drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
         selectedNode.value.layerId = 'nodes'
         selectedNode.value.id = firstNode.value?.properties.index
       }
     })
     watch(lastNode, (val) => {
       if (editorTrip.value && val) {
-        drawLink.value = Linestring([val.geometry.coordinates, val.geometry.coordinates])
+        drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
         selectedNode.value.layerId = 'nodes'
         selectedNode.value.id = lastNode.value?.properties.index
       }
@@ -225,7 +223,7 @@ export default {
           if (drawMode.value && !anchorMode.value) {
             // update draw line with new geometry.
             const geometry = [drawLink.value.geometry.coordinates[0], Object.values(event.mapboxEvent.lngLat)]
-            drawLink.value = Linestring(geometry)
+            drawLink.value.geometry.coordinates = geometry
           }
         }
       }
@@ -289,13 +287,19 @@ export default {
       hoverId.value = event.selectedId
       if (drawMode.value) { map.value.setLayoutProperty('drawLink', 'visibility', 'none') }
       // change hook when we hover first or last node.
-      if ([linksStore.lastNodeId, linksStore.firstNodeId].includes(hoverId.value)) {
-        const node = linksStore.editorNodes.features.filter(node =>
-          node.properties.index === event.selectedId)
-        drawLink.value = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
+      if (hoverId.value === linksStore.firstNodeId) {
+        // eslint-disable-next-line max-len
+        drawLink.value.geometry.coordinates = [firstNode.value.geometry.coordinates, firstNode.value.geometry.coordinates]
         selectedNode.value.id = hoverId.value
         selectedNode.value.layerId = event.layerId
         drawMode.value = true
+      }
+      if (hoverId.value === linksStore.lastNodeId) {
+        drawLink.value.geometry.coordinates = [lastNode.value.geometry.coordinates, lastNode.value.geometry.coordinates]
+        selectedNode.value.id = hoverId.value
+        selectedNode.value.layerId = event.layerId
+        drawMode.value = true
+        // linksStore.firstNodeId
       }
     }
     function onHoverRoad (event) {
@@ -309,7 +313,7 @@ export default {
           connectedDrawLink.value = false
           const node = rlinksStore.visiblerNodes.features.filter(node =>
             node.properties.index === hoverId.value)
-          drawLink.value = Linestring([node[0].geometry.coordinates, node[0].geometry.coordinates])
+          drawLink.value.geometry.coordinates = [node[0].geometry.coordinates, node[0].geometry.coordinates]
           drawMode.value = true
           connectedDrawLink.value = false
           selectedNode.value.id = hoverId.value
@@ -341,11 +345,6 @@ export default {
         context.emit('clickFeature', event)
       }
     }
-
-    onMounted(() => {
-      if (editorTrip.value) { isEditorMode.value = true }
-      drawLink.value.crs = cloneDeep(linksStore.linksHeader.crs)
-    })
     onBeforeUnmount(() => {
       saveMapPosition()
     })
