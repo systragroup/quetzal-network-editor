@@ -41,7 +41,7 @@ async function readBytes (bucket, key) {
   const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
   // const params = { Bucket: bucket, Key: key }
   const response = await s3Client.getObject(params) // await the promise
-  const fileContent = await response.Body.transformToByteArray // can also do 'base64' here if desired
+  const fileContent = await response.Body.transformToByteArray() // can also do 'base64' here if desired
   return fileContent
 }
 async function downloadFolder (bucket, prefix) {
@@ -50,16 +50,16 @@ async function downloadFolder (bucket, prefix) {
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params)
-  if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
+  if (response.Contents.length === 0) throw new Error('nothing to download')
   for (const file of response.Contents) {
     const fileName = file.Key.split('/').slice(-1)[0]
-    const params = { Bucket: bucket, Key: file.Key, ResponseCacheControl: 'no-cache' }
-    const response = await s3Client.getObject(params)
-    zip.file(fileName, response.Body)
+    const content = await readBytes(bucket, file.Key)
+    const blob = new Blob([content]) // { type: 'text/csv' }
+    zip.file(fileName, blob)
   }
 
   zip.generateAsync({ type: 'blob' }).then(function (content) {
-    saveAs(content, 'example.zip')
+    saveAs(content, 'calibration report.zip')
   })
 }
 

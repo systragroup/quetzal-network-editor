@@ -126,8 +126,9 @@ export default {
       if (val === 'SUCCEEDED') { getImagesURL() }
     })
 
-    function run () {
-      if (!this.$refs.form.validate()) { return }
+    async function run (event) {
+      const resp = await event
+      if (!resp.valid) { return }
       runMRC.setCallID()
       const inputs = { callID: callID.value }
       parameters.value.forEach(item => {
@@ -164,7 +165,7 @@ export default {
 
     async function download () {
       exporting.value = true
-      s3.downloadFolder(bucket.value, callID.value.concat('/'))
+      await s3.downloadFolder(bucket.value, callID.value.concat('/'))
       exporting.value = false
     }
 
@@ -212,9 +213,8 @@ export default {
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
 
         <v-form
-          ref="form"
-          v-model="validForm"
-          lazy-validation
+          validate-on="submit lazy"
+          @submit.prevent="run"
         >
           <div
             v-for="(item, key) in parameters"
@@ -259,42 +259,43 @@ export default {
               @wheel="()=>{}"
             />
           </div>
-        </v-form>
-        <v-card-actions>
-          <v-btn
-            color="success"
-            :loading="running || importStatus === 'RUNNING'"
-            :disabled="running || importStatus === 'RUNNING' || !validForm"
-            @click="run()"
-          >
-            <v-icon
-              size="small"
-              style="margin-right: 10px;"
+          <v-card-actions>
+            <v-btn
+              variant="regular"
+              color="success"
+              :loading="running || importStatus === 'RUNNING'"
+              :disabled="running || importStatus === 'RUNNING' || !validForm"
+              type="submit"
             >
-              fa-solid fa-play
-            </v-icon>
-            {{ $gettext("Run") }}
-          </v-btn>
-          <v-btn
-            v-show="importStatus == 'RUNNING'"
-            color="grey"
-            variant="text"
-            @click="stopRun()"
-          >
-            {{ $gettext("Abort") }}
-          </v-btn>
-          <v-card-text v-show="importStatus == 'RUNNING'">
-            ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
-          </v-card-text>
-          <v-spacer />
-          <v-btn
-            icon
-            size="small"
-            @click="showHint = !showHint"
-          >
-            <v-icon>far fa-question-circle small</v-icon>
-          </v-btn>
-        </v-card-actions>
+              <v-icon
+                size="small"
+                style="margin-right: 10px;"
+              >
+                fa-solid fa-play
+              </v-icon>
+              {{ $gettext("Run") }}
+            </v-btn>
+            <v-btn
+              v-show="importStatus == 'RUNNING'"
+              color="grey"
+              variant="text"
+              @click="stopRun()"
+            >
+              {{ $gettext("Abort") }}
+            </v-btn>
+            <v-card-text v-show="importStatus == 'RUNNING'">
+              ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
+            </v-card-text>
+            <v-spacer />
+            <v-btn
+
+              size="small"
+              @click="showHint = !showHint"
+            >
+              <v-icon>far fa-question-circle small</v-icon>
+            </v-btn>
+          </v-card-actions>
+        </v-form>
       </v-card>
     </v-col>
     <v-col>
@@ -364,14 +365,14 @@ export default {
 <style lang="scss" scoped>
 
 .card {
-  height: 95%;
+  height: 85vh;
   overflow-y: auto;
   padding: 2.5rem;
   background-color: rgb(var(--v-theme-lightergrey));
 
 }
 .card2 {
-  height: 95%;
+  height: 85vh;
   overflow-y: auto;
   padding: 2.5rem;
   margin-right: 3rem;
@@ -405,6 +406,7 @@ export default {
 }
 .background {
   background-color:var(--v-background-base);
+  overflow-y: auto;
 }
 
 div.gallery {

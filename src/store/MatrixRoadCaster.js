@@ -62,7 +62,8 @@ export const useMRCStore = defineStore('runMRC', {
     succeedExecution () {
       this.running = false
       this.executionArn = ''
-      this.commit('changeNotification',
+      const store = useIndexStore()
+      store.changeNotification(
         { text: $gettext('Matrix Road Caster executed successfully!'), autoClose: false, color: 'success' })
     },
 
