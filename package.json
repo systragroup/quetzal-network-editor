@@ -2,7 +2,7 @@
   "name": "myapp",
   "description": "Vue Boilerplate",
   "author": "SYSTRA",
-  "version": "5.0.0",
+  "version": "5.0.a",
   "private": true,
   "scripts": {
     "start": "vite",
@@ -102,8 +102,7 @@
     "vite-plugin-stylelint": "^4.3.0",
     "vite-plugin-vuetify": "^1.0.2",
     "vitest": "^0.34.5",
-    "write-file-webpack-plugin": "^4.5.1",
-    "xunit-viewer": "^10.4.1"
+    "write-file-webpack-plugin": "^4.5.1"
   },
   "resolutions": {
     "@babel/generator": "<7.17.9",
