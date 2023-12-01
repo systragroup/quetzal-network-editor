@@ -106,7 +106,6 @@ export default {
 
       hints: attributesHints,
 
-      // todo: this should elsewhere. depend on type (TC or road) and be read on S3.
     }
   },
   watch: {
@@ -609,7 +608,7 @@ export default {
                   :key="key"
                   v-model="value['value']"
                   :label="key"
-                  :hint="showHint? $gettext(hints[key]): ''"
+                  :hint="showHint? hints[key]: ''"
                   :persistent-hint="showHint"
                   :variant="value['disabled']? 'underlined': 'filled'"
                   :type="linksStore.attributeType(key)"
