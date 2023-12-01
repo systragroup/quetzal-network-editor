@@ -87,6 +87,9 @@ export default {
         isEditorMode.value = false
         connectedDrawLink.value = false
         drawMode.value = false
+        // for some reason. isEditorMode watcher not working when creating a
+        // a new line. so need to apply the values that were supposed to be applied.
+        drawLink.value.geometry.coordinates = []
       }
     })
 
@@ -112,10 +115,12 @@ export default {
         drawMode.value = true
       } else {
         drawMode.value = false
+        drawLink.value.geometry.coordinates = []
       }// remove drawmode if we quit edition mode.
 
       if (!val & drawMode.value) {
         drawMode.value = false
+        drawLink.value.geometry.coordinates = []
       }
     })
 
