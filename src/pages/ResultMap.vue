@@ -7,6 +7,7 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 import { useIndexStore } from '@src/store/index'
+
 import { cloneDeep } from 'lodash'
 import MapResults from '@comp/results/MapResults.vue'
 import ResultsSidePanel from '@comp/results/ResultsSidePanel.vue'
@@ -51,7 +52,7 @@ export default {
 
     const selectedLayer = ref('links')
 
-    function changeLayer (layer) {
+    async function changeLayer (layer) {
       selectedLayer.value = layer
       switch (layer) {
         case 'links':
@@ -70,21 +71,19 @@ export default {
           loadLayer(ODStore.layer, null, null, 'name')
           break
         default:
-          const files = store.otherFiles.filter(file => file.name === layer)
-          const data = files.filter(file => file.extension === 'geojson')[0].content
-          const matrix = files.filter(file => file.extension === 'json')[0]?.content
+          const data = await store.getOtherFile(layer, 'geojson')
+          const matrix = await store.getOtherFile(layer, 'json')
           loadLayer(data, matrix, null, '')
-
           break
       }
     }
 
     const selectedPreset = ref(null)
     const availableLayers = computed(() => store.availableLayers)
-    onMounted(() => {
+    onMounted(async () => {
       // chose first available layer. if none. use Links as its an empty geojson (no bug with that)
       if (availableLayers.value.lenght > 0) { selectedLayer.value = availableLayers.value[0] }
-      changeLayer(selectedLayer.value)
+      await changeLayer(selectedLayer.value)
     })
 
     const visibleRasters = computed(() => store.visibleRasters)
@@ -96,11 +95,11 @@ export default {
     const inputName = ref('')
     const tempDisplaySettings = ref({})
 
-    function changePreset (preset) {
+    async function changePreset (preset) {
       selectedPreset.value = preset.name
       if (availableLayers.value.includes(preset.layer)) {
         // change layer if it exist
-        changeLayer(preset.layer)
+        await changeLayer(preset.layer)
         if (attributes.value.includes(preset?.selectedFilter)) {
           // if preset contain a filter. apply it if it exist.
           changeSelectedFilter(preset.selectedFilter)

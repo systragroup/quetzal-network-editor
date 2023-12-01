@@ -164,6 +164,19 @@ export const useIndexStore = defineStore('store', {
         this.otherFiles.push({ ...file, name, extension })
       }
     },
+    async getOtherFile (name, extension) {
+      const files = this.otherFiles.filter(file => file.name === name)
+      const file = files.filter(file => file.extension === extension)[0]
+      // if its null. fetch it!
+      if (!file) { return null }
+      if (!file.content) {
+        this.changeLoading(true)
+        const userStore = useUserStore()
+        file.content = await s3.readJson(userStore.model, userStore.scenario + '/' + file.path)
+        this.changeLoading(false)
+      }
+      return file.content
+    },
 
     loadAttributesChoices (payload) {
       const links = useLinksStore()

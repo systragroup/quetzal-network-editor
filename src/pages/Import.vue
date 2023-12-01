@@ -172,7 +172,7 @@ export default {
               const content = await s3.readJson(model, file)
               res.push({ path: name, content })
             }
-          } else if (file.endsWith('.json') || file.endsWith('.geojson')) {
+          } else if (name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/') || name === 'inputs/params.json') {
             const content = await s3.readJson(model, file)
             res.push({ path: name, content })
           } else {

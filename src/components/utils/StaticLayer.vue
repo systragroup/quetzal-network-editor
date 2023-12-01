@@ -36,7 +36,7 @@ export default {
     const opacity = displaySettings.value.opacity
     const offsetValue = displaySettings.value.offset ? -1 : 1
 
-    function changeLayer (layer) {
+    async function changeLayer (layer) {
       switch (layer) {
         case 'links':
           loadLayer(linksStore.links, null, null, 'headway')
@@ -54,17 +54,16 @@ export default {
           loadLayer(ODStore.layer, null, null, 'name')
           break
         default:
-          const files = store.otherFiles.filter(file => file.name === layer)
-          const data = files.filter(file => file.extension === 'geojson')[0].content
-          const matrix = files.filter(file => file.extension === 'json')[0]?.content
+          const data = await store.getOtherFile(layer, 'geojson')
+          const matrix = await store.getOtherFile(layer, 'json')
           loadLayer(data, matrix, null, '')
 
           break
       }
     }
 
-    onBeforeMount(() => {
-      changeLayer(preset.value.layer)
+    onBeforeMount(async () => {
+      await changeLayer(preset.value.layer)
       if (attributes.value.includes(preset.value?.selectedFilter)) {
         // if preset contain a filter. apply it if it exist.
         changeSelectedFilter(preset.value.selectedFilter)
