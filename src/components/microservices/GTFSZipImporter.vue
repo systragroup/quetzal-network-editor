@@ -166,20 +166,15 @@ export default {
       <v-card-subtitle>
         {{ $gettext('Add GTFS files. When its done uploading press Convert') }}
       </v-card-subtitle>
-
-      <v-btn
-        width="10rem"
-        :disabled="running"
-        @click="uploadGTFS"
-      >
-        <v-icon
-          size="small"
-          style="margin-right: 10px;"
+      <v-card-action>
+        <v-btn
+          :disabled="running"
+          prepend-icon="fa-solid fa-file-archive"
+          @click="uploadGTFS"
         >
-          fa-solid fa-file-archive
-        </v-icon>
-        {{ $gettext('upload GTFS') }}
-      </v-btn>
+          {{ $gettext('upload GTFS') }}
+        </v-btn>
+      </v-card-action>
 
       <v-card-subtitle>
         <v-alert

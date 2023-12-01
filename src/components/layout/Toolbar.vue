@@ -34,7 +34,7 @@ export default {
 
   methods: {
     handleChangeLanguage (lang) {
-      this.$vuetify.lang.current = lang
+      this.$vuetify.locale.current = lang
       this.$language.current = lang
     },
   },

@@ -373,23 +373,23 @@ export default {
         <v-list
           density="compact"
         >
-          <v-list-item>
-            <v-list-item
-              v-for="action in contextMenu.actions"
-              :key="action.id"
+          <v-list-item
+            v-for="action in contextMenu.actions"
+            :key="action.id"
+            width="300"
+          >
+
+            <v-btn
+              variant="outlined"
+              size="small"
+              block
+              @click="actionClick({action: action,
+                                   feature: contextMenu.feature,
+                                   coordinates: contextMenu.coordinates})"
             >
+              {{ $gettext(action) }}
+            </v-btn>
 
-              <v-btn
-                variant="outlined"
-                size="small"
-                @click="actionClick({action: action,
-                                     feature: contextMenu.feature,
-                                     coordinates: contextMenu.coordinates})"
-              >
-                {{ $gettext(action) }}
-              </v-btn>
-
-            </v-list-item>
           </v-list-item>
         </v-list>
       </span>
