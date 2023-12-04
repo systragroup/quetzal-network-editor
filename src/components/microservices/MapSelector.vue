@@ -10,6 +10,8 @@ import { ref, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { cloneDeep } from 'lodash'
+import geojson from '@constants/geojson'
+
 import short from 'short-uuid'
 const $gettext = s => s
 const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
@@ -33,11 +35,11 @@ export default {
     const mapIsLoaded = ref(false)
     const poly = ref(null)
     const nodes = ref({})
+    const header = geojson
     const freeForm = ref(false)
 
     const mapStyle = computed(() => { return store.mapStyle })
     const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-    const nodesHeader = computed(() => { return rlinksStore.rnodesHeader })
 
     return {
       store,
@@ -45,10 +47,10 @@ export default {
       mapboxPublicKey,
       poly,
       nodes,
+      header,
       freeForm,
       mapStyle,
       rlinksIsEmpty,
-      nodesHeader,
     }
   },
 
@@ -128,7 +130,7 @@ export default {
     },
 
     getNodes () {
-      const nodes = cloneDeep(this.nodesHeader)
+      const nodes = cloneDeep(geojson)
       const poly = this.poly.geometry.coordinates[0]
       // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
       poly.slice(0, poly.length - 1).forEach(
@@ -236,7 +238,7 @@ export default {
     <NodesLayer
       v-if="mapIsLoaded"
       :map="map"
-      :nodes="freeForm? nodes: nodesHeader"
+      :nodes="freeForm? nodes: header"
       :active="freeForm"
       @move="moveNode"
       @rightClick="removeNode"

@@ -6,6 +6,8 @@ import { cloneDeep } from 'lodash'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed } from 'vue'
+import geojson from '@constants/geojson'
+
 export default {
   name: 'StaticLinks',
   components: {
@@ -42,8 +44,8 @@ export default {
   },
 
   created () {
-    this.visibleLinks = cloneDeep(this.linksStore.linksHeader)
-    this.visibleNodes = cloneDeep(this.linksStore.nodesHeader)
+    this.visibleLinks = cloneDeep(geojson)
+    this.visibleNodes = cloneDeep(geojson)
     this.setHiddenFeatures()
     this.map.on('dblclick', this.selectLine)
   },

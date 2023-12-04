@@ -7,13 +7,13 @@ import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
+import geojson from '@constants/geojson'
 const $gettext = s => s
 
 export const useODStore = defineStore('od', {
   state: () => ({
     layer: {},
     visibleLayer: {},
-    layerHeader: {}, // empty geojson
     layerAttributes: [], // all the available attributes (columns in pandas)
     filteredCategory: [], // all possible category (to be in selectedCat)
     selectedFilter: '', // ex: highway
@@ -25,10 +25,7 @@ export const useODStore = defineStore('od', {
     loadLayer (payload) {
       this.layer = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.layer.crs.properties.name)) {
-        const layerHeader = cloneDeep(this.layer)
-        layerHeader.features = []
-        this.layerHeader = layerHeader
-        this.visibleLayer = cloneDeep(layerHeader)
+        this.visibleLayer = cloneDeep(geojson)
         // set all trips visible
         this.getProperties()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
@@ -215,7 +212,7 @@ export const useODStore = defineStore('od', {
       return form
     },
     nodes: (state) => (layer) => {
-      const nodes = cloneDeep(state.layerHeader)
+      const nodes = cloneDeep(geojson)
       layer.features.forEach(
         feature => {
           const Index = feature.properties.index

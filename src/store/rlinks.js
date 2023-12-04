@@ -14,6 +14,7 @@ import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import { toRaw } from 'vue'
+import geojson from '@constants/geojson'
 
 import short from 'short-uuid'
 
@@ -27,8 +28,6 @@ export const userLinksStore = defineStore('rlinks', {
   state: () => ({
     rlinks: {},
     rnodes: {},
-    rlinksHeader: {},
-    rnodesHeader: {},
     selectedrFilter: '',
     selectedrGroup: [],
     filteredrCategory: [],
@@ -63,11 +62,8 @@ export const userLinksStore = defineStore('rlinks', {
     loadrLinks (payload) {
       this.rlinks = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.rlinks.crs.properties.name)) {
-        const rlinksHeader = cloneDeep(this.rlinks)
-        rlinksHeader.features = []
-        this.rlinksHeader = rlinksHeader
-        this.visiblerLinks = cloneDeep(rlinksHeader)
-        this.renderedrLinks = cloneDeep(rlinksHeader)
+        this.visiblerLinks = cloneDeep(geojson)
+        this.renderedrLinks = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -82,11 +78,8 @@ export const userLinksStore = defineStore('rlinks', {
     loadrNodes (payload) {
       this.rnodes = JSON.parse(JSON.stringify(payload))
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.rnodes.crs.properties.name)) {
-        const rnodesHeader = cloneDeep(this.rnodes)
-        rnodesHeader.features = []
-        this.rnodesHeader = rnodesHeader
-        this.visiblerNodes = cloneDeep(rnodesHeader)
-        this.renderedrNodes = cloneDeep(rnodesHeader)
+        this.visiblerNodes = cloneDeep(geojson)
+        this.renderedrNodes = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
@@ -395,7 +388,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     createNewrNode (payload) {
-      const newNode = cloneDeep(this.rnodesHeader)
+      const newNode = cloneDeep(geojson)
       const nodeProperties = {}
       this.rnodeAttributes.forEach(key => {
         nodeProperties[key] = null
@@ -696,7 +689,7 @@ export const userLinksStore = defineStore('rlinks', {
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
 
     anchorrNodes: (state) => {
-      const nodes = cloneDeep(state.rnodesHeader)
+      const nodes = cloneDeep(geojson)
       state.renderedrLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index

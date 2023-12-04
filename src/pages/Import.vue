@@ -160,9 +160,9 @@ export default {
       try {
         let filesList = await s3.listFiles(model, scen)
         filesList = filesList.filter(name => !name.endsWith('/'))
-        // console.log(filesList)
         for (const file of filesList) {
           const name = file.slice(scen.length) // remove scen name from file
+          // take knowned files outside of outputs and inputs (styles and attrivutesChoides)
           if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
             if (name === 'styles.json') {
               const content = await s3.readJson(model, file)
@@ -172,9 +172,11 @@ export default {
               const content = await s3.readJson(model, file)
               res.push({ path: name, content })
             }
+            // take PT and road network and param.json.
           } else if (name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/') || name === 'inputs/params.json') {
             const content = await s3.readJson(model, file)
             res.push({ path: name, content })
+            // else. we do not load the file. (outputs or inputs.) we will fetch them when needed.
           } else {
             res.push({ path: name, content: null })
           }

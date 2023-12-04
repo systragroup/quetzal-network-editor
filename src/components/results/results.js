@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import chroma from 'chroma-js'
 import seedrandom from 'seedrandom'
+import geojson from '@constants/geojson'
 const $gettext = s => s
 
 const defaultSettings = {
@@ -118,10 +119,9 @@ function remap (val, minVal, maxVal, reverse, scale, isWidth) {
 export function useResult () {
   // state encapsulated and managed by the composable
   const store = useIndexStore()
-  const layer = ref({ crs: {}, type: 'FeatureCollection', features: [] })
-  const header = ref({ crs: {}, type: 'FeatureCollection', features: [] })
-  const visibleLayer = ref({ crs: {}, type: 'FeatureCollection', features: [] })
-  const NaNLayer = ref({ crs: {}, type: 'FeatureCollection', features: [] })
+  const layer = ref(geojson)
+  const visibleLayer = ref(geojson)
+  const NaNLayer = ref(geojson)
   const type = ref('')
   const attributes = ref([])
   const displaySettings = ref(cloneDeep(defaultSettings))
@@ -135,10 +135,10 @@ export function useResult () {
   const matSelectedIndex = ref({})
 
   function reset () {
-    layer.value = { crs: {}, type: 'FeatureCollection', features: [] }
-    header.value = { crs: {}, type: 'FeatureCollection', features: [] }
-    visibleLayer.value = { crs: {}, type: 'FeatureCollection', features: [] }
-    NaNLayer.value = { crs: {}, type: 'FeatureCollection', features: [] }
+    // TODO clone
+    layer.value = cloneDeep(geojson)
+    visibleLayer.value = cloneDeep(geojson)
+    NaNLayer.value = cloneDeep(geojson)
     type.value = ''
     attributes.value = []
     displaySettings.value = cloneDeep(defaultSettings)
@@ -152,11 +152,11 @@ export function useResult () {
     matSelectedIndex.value = null
   }
 
-  function loadLayer (geojson, matData, matIndex, selectedFeature) {
+  function loadLayer (data, matData, matIndex, selectedFeature) {
     reset()
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
-    layer.value = cloneDeep(geojson)
+    layer.value = cloneDeep(data)
     type.value = layer.value.features[0]?.geometry.type
     // change Multipolygon to polygon type. just as they the same for mapbox and the app.
     type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value
@@ -167,9 +167,6 @@ export function useResult () {
     if (hasOD.value) { addMatrix(matData) }
 
     if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(layer.value.crs.properties.name)) {
-      header.value.crs = cloneDeep(layer.value.crs)
-      visibleLayer.value.crs = cloneDeep(header.value.crs)
-      NaNLayer.value.crs = cloneDeep(header.value.crs)
       // set all trips visible
       getLinksProperties()
       if (attributes.value.includes(selectedFeature)) {
@@ -228,8 +225,8 @@ export function useResult () {
     updateSelectedFeature()
   }
 
-  function updateLayer (geojson) {
-    layer.value = cloneDeep(geojson)
+  function updateLayer (data) {
+    layer.value = cloneDeep(data)
     refreshVisibleLinks()
     updateSelectedFeature()
   }
@@ -391,7 +388,6 @@ export function useResult () {
   return {
     layer,
     type,
-    header,
     attributes,
     visibleLayer,
     NaNLayer,

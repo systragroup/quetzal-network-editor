@@ -11,6 +11,7 @@ import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import { ref } from 'vue'
 import short from 'short-uuid'
+import geojson from '@constants/geojson'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
@@ -21,8 +22,6 @@ export const useLinksStore = defineStore('links', {
     editorLinks: {},
     editorLineInfo: {},
     nodes: ref({}),
-    nodesHeader: {},
-    linksHeader: {},
     tripId: [],
     selectedTrips: [],
     newLink: {},
@@ -63,11 +62,7 @@ export const useLinksStore = defineStore('links', {
     loadLinks (payload) {
       this.links = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.links.crs.properties.name)) {
-        const linksHeader = cloneDeep(this.links)
-        linksHeader.features = []
-        this.linksHeader = cloneDeep(linksHeader)
-
-        this.editorLinks = cloneDeep(linksHeader)
+        this.editorLinks = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -84,10 +79,7 @@ export const useLinksStore = defineStore('links', {
     loadNodes (payload) {
       this.nodes = cloneDeep(payload)
       if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.nodes.crs.properties.name)) {
-        const nodesHeader = cloneDeep(this.nodes)
-        nodesHeader.features = []
-        this.nodesHeader = cloneDeep(nodesHeader)
-        this.editorNodes = cloneDeep(nodesHeader)
+        this.editorNodes = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
@@ -407,7 +399,7 @@ export const useLinksStore = defineStore('links', {
         features.properties.a = this.newNode.features[0].properties.index
         features.properties.index = 'link_' + short.generate()
       }
-      this.newLink = cloneDeep(this.linksHeader)
+      this.newLink = cloneDeep(geojson)
       this.newLink.features = [features]
       this.newLink.action = payload.action
     },
@@ -817,7 +809,7 @@ export const useLinksStore = defineStore('links', {
         (node) => node.properties.index === state.lastNodeId)[0]
       : null,
     anchorNodes: (state) => {
-      const nodes = cloneDeep(state.nodesHeader)
+      const nodes = cloneDeep(geojson)
       state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index
@@ -829,7 +821,6 @@ export const useLinksStore = defineStore('links', {
           )
         },
       )
-
       return nodes
     },
     // this return the attribute type, of undefined.

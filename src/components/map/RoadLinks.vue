@@ -7,6 +7,8 @@ import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
+import geojson from '@constants/geojson'
+
 const $gettext = s => s
 export default {
   name: 'StaticLinks',
@@ -20,7 +22,6 @@ export default {
   setup () {
     const store = useIndexStore()
     const rlinksStore = userLinksStore()
-    const anchorMode = computed(() => { return store.anchorMode })
     const selectedPopupContent = computed(() => { return store.roadsPopupContent })
     const selectedrGroup = computed(() => { return rlinksStore.selectedrGroup })
     const cyclewayMode = computed(() => { return store.cyclewayMode })
@@ -28,8 +29,11 @@ export default {
     const rlinks = computed(() => { return rlinksStore.visiblerLinks })
     const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
     const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
+
+    const anchorMode = computed(() => { return store.anchorMode })
+    const header = geojson
     const renderedAnchorrNodes = computed(() => {
-      return anchorMode.value ? rlinksStore.anchorrNodes : rlinksStore.rnodesHeader
+      return anchorMode.value ? rlinksStore.anchorrNodes : geojson
     })
 
     return {
@@ -44,6 +48,7 @@ export default {
       renderedrLinks,
       renderedrNodes,
       renderedAnchorrNodes,
+      header,
     }
   },
   data () {
@@ -487,7 +492,7 @@ export default {
       source-id="anchorrNodes"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedAnchorrNodes: rlinksStore.rnodesHeader,
+        data: isRoadMode? renderedAnchorrNodes: header,
         buffer: 0,
         promoteId: 'index',
       }"

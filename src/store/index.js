@@ -11,16 +11,9 @@ import { useRunStore } from './run'
 import { serializer, stylesSerializer } from '../components/utils/serializer.js'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
-const linksBase = {
-  'type': 'FeatureCollection',
-  'crs': { 'type': 'name', 'properties': { 'name': 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
-  'features': [],
-}
-const nodesBase = {
-  'type': 'FeatureCollection',
-  'crs': { 'type': 'name', 'properties': { 'name': 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
-  'features': [],
-}
+
+import geojson from '@constants/geojson'
+
 const $gettext = s => s
 
 const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
@@ -212,21 +205,21 @@ export const useIndexStore = defineStore('store', {
     initLinks () {
       const links = useLinksStore()
       links.initLinks()
-      links.loadLinks(linksBase)
-      links.loadNodes(nodesBase)
+      links.loadLinks(geojson)
+      links.loadNodes(geojson)
     },
 
     initrLinks () {
       const rlinks = userLinksStore()
       rlinks.initrLinks()
-      rlinks.loadrLinks(linksBase)
-      rlinks.loadrNodes(nodesBase)
+      rlinks.loadrLinks(geojson)
+      rlinks.loadrNodes(geojson)
     },
     initNetworks () {
       const od = useODStore()
       this.initLinks()
       this.initrLinks()
-      od.loadLayer(linksBase)
+      od.loadLayer(geojson)
       this.visibleRasters = []
       this.styles = []
       this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))

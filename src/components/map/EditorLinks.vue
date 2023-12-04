@@ -3,6 +3,8 @@ import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed } from 'vue'
+import geojson from '@constants/geojson'
+
 const $gettext = s => s
 
 export default {
@@ -19,7 +21,7 @@ export default {
 
     const linksStore = useLinksStore()
     const anchorMode = computed(() => { return store.anchorMode })
-    const anchorNodes = computed(() => { return anchorMode.value ? linksStore.anchorNodes : linksStore.nodesHeader })
+    const anchorNodes = computed(() => { return anchorMode.value ? linksStore.anchorNodes : geojson })
 
     return { store, linksStore, anchorMode, anchorNodes }
   },

@@ -5,6 +5,7 @@ import short from 'short-uuid'
 import { computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useODStore } from '@src/store/od'
+import geojson from '@constants/geojson'
 
 const $gettext = s => s
 
@@ -18,12 +19,13 @@ export default {
   props: ['map', 'isODMode', 'isEditorMode'],
   events: [],
   setup () {
+    const header = geojson
     const store = useIndexStore()
     const ODStore = useODStore()
     const layer = computed(() => { return ODStore.visibleLayer })
     const nodes = computed(() => { return ODStore.nodes(layer.value) })
 
-    return { store, ODStore, layer, nodes }
+    return { store, ODStore, layer, nodes, header }
   },
   data () {
     return {
@@ -226,7 +228,7 @@ export default {
       source-id="ODNodes"
       :source="{
         type: 'geojson',
-        data: isODMode? nodes : ODStore.layerHeader,
+        data: isODMode? nodes : header,
         buffer: 0,
         promoteId: 'index',
       }"
