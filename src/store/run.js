@@ -78,9 +78,6 @@ export const useRunStore = defineStore('run', {
     setSelectedStepFunction (payload) {
       this.selectedStepFunction = payload
     },
-    setAvalaibleStepFunctions (payload) {
-      this.avalaibleStepFunctions = payload
-    },
     async getParameters (payload) {
       // only for the reset button.
       const store = useIndexStore()

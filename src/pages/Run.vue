@@ -1,7 +1,7 @@
 <script>
 
 import ParamForm from '@comp/run/ParamForm.vue'
-import { computed, ref, watch, onMounted, toRaw } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
@@ -31,18 +31,16 @@ export default {
     const isProtected = computed(() => { return userStore.protected })
     const modelIsLoaded = computed(() => { return userStore.model !== null })
 
-    onMounted(() => { stepFunction.value = toRaw(selectedStepFunction.value) })
     onMounted(async () => {
       if (modelIsLoaded.value) {
         await runStore.getSteps()
-        // here stepfuntion is an index v-model. 0,1.
+        stepFunction.value = selectedStepFunction.value
       }
     })
 
     watch(stepFunction, async (val) => {
       if (modelIsLoaded.value) {
         if (avalaibleStepFunctions.value.includes(val)) {
-          console.log(val)
           runStore.setSelectedStepFunction(val)
           runStore.getSteps()
         } else {
