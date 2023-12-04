@@ -247,22 +247,6 @@ export default {
           }, {})
         this.editorForm = filtered
         this.showDialog = true
-      } else if (['Cut Before Node', 'Cut After Node',
-        'Move Stop', 'Delete Stop', 'Delete Anchor', 'Delete Road Anchor'].includes(this.action)) {
-        this.selectedNode = event.selectedFeature.properties
-        this.applyAction()
-      } else if (['Add Stop Inline', 'Add Anchor Inline'].includes(this.action)) {
-        this.selectedLink = event.selectedFeature.properties
-        this.cursorPosition = event.lngLat
-        this.applyAction()
-      } else if (['Add Road Node Inline', 'Add Road Anchor Inline', 'Delete rLink'].includes(this.action)) {
-        this.selectedIndex = event.selectedIndex
-        this.cursorPosition = event.lngLat
-        this.applyAction()
-      } else if (['Move Node', 'Move Anchor', 'Move rNode', 'Move rAnchor'].includes(this.action)) {
-        this.selectedNode = event.selectedFeature
-        this.cursorPosition = event.lngLat
-        this.applyAction()
       } else if (this.action === 'Delete OD') {
         this.selectedIndex = event.selectedIndex
         this.cursorPosition = event.lngLat
@@ -274,15 +258,6 @@ export default {
       // click yes on dialog
       this.showDialog = false
       switch (this.action) {
-        case 'Cut Before Node':
-          this.linksStore.cutLineAtNode({ selectedNode: this.selectedNode })
-          break
-        case 'Cut After Node':
-          this.linksStore.cutLineFromNode({ selectedNode: this.selectedNode })
-          break
-        case 'Delete Stop':
-          this.linksStore.deleteNode({ selectedNode: this.selectedNode })
-          break
         case 'Edit Link Info':
           this.linksStore.editLinkInfo({ selectedLinkId: this.selectedLink.index, info: this.editorForm })
           break
@@ -313,26 +288,6 @@ export default {
         case 'Edit Group Info':
           this.linksStore.editGroupInfo({ groupTripIds: this.groupTripIds, info: this.editorForm })
           break
-        case 'deleteTrip':
-          this.linksStore.deleteTrip(this.tripToDelete)
-          break
-        case 'Add Stop Inline':
-          this.linksStore.addNodeInline({
-            selectedLink: this.selectedLink,
-            lngLat: this.cursorPosition,
-            nodes: 'editorNodes',
-          })
-          break
-        case 'Add Anchor Inline':
-          this.linksStore.addNodeInline({
-            selectedLink: this.selectedLink,
-            lngLat: this.cursorPosition,
-            nodes: 'anchorNodes',
-          })
-          break
-        case 'Delete Anchor':
-          this.linksStore.deleteAnchorNode({ selectedNode: this.selectedNode })
-          break
         case 'Edit rLink Info':
           this.rlinksStore.editrLinkInfo({ selectedLinkId: this.selectedLink, info: this.editorForm })
           break
@@ -360,37 +315,8 @@ export default {
         case 'Edit OD Info':
           this.ODStore.editLinkInfo({ selectedLinkId: this.selectedLink, info: this.editorForm })
           break
-        case 'Add Road Node Inline':
-          this.rlinksStore.addRoadNodeInline({
-            selectedIndex: this.selectedIndex,
-            lngLat: this.cursorPosition,
-            nodes: 'rnodes',
-          })
-          break
-        case 'Add Road Anchor Inline':
-          this.rlinksStore.addRoadNodeInline({
-            selectedIndex: this.selectedIndex,
-            lngLat: this.cursorPosition,
-            nodes: 'anchorrNodes',
-          })
-          break
-        case 'Move Node':
-          this.linksStore.moveNode({ selectedNode: this.selectedNode, lngLat: this.cursorPosition })
-          break
-        case 'Move Anchor':
-          this.linksStore.moveAnchor({ selectedNode: this.selectedNode, lngLat: this.cursorPosition })
-          break
-        case 'Move rNode':
-          this.rlinksStore.moverNode({ selectedNode: this.selectedNode, lngLat: this.cursorPosition })
-          break
-        case 'Move rAnchor':
-          this.rlinksStore.moverAnchor({ selectedNode: this.selectedNode, lngLat: this.cursorPosition })
-          break
-        case 'Delete Road Anchor':
-          this.rlinksStore.deleteAnchorrNode({ selectedNode: this.selectedNode })
-          break
-        case 'Delete rLink':
-          this.rlinksStore.deleterLink({ selectedIndex: this.selectedIndex })
+        case 'deleteTrip':
+          this.linksStore.deleteTrip(this.tripToDelete)
           break
         case 'deleterGroup':
           this.rlinksStore.deleterGroup(this.tripToDelete)
@@ -400,6 +326,7 @@ export default {
           break
         case 'deleteODGroup':
           this.ODStore.deleteGroup(this.tripToDelete)
+          break
       }
       if (!this.lingering) {
         this.confirmChanges()

@@ -268,13 +268,13 @@ export default {
 
           if (this.selectedFeature !== null) {
             if (this.hoveredStateId.layerId === 'rlinks') {
-              const action = this.anchorMode ? 'Add Road Anchor Inline' : 'Add Road Node Inline'
-              const click = {
+              const action = this.anchorMode ? 'anchorrNodes' : 'rnodes'
+
+              this.rlinksStore.addRoadNodeInline({
                 selectedIndex: this.selectedFeature,
-                action,
                 lngLat: event.mapboxEvent.lngLat,
-              }
-              this.$emit('clickFeature', click)
+                nodes: action,
+              })
             }
           }
         }
@@ -296,12 +296,16 @@ export default {
       }
     },
     actionClick (event) {
-      const click = {
-        selectedIndex: event.feature,
-        action: event.action,
-        lngLat: event.coordinates,
+      if (event.action === 'Delete rLink') {
+        this.rlinksStore.deleterLink({ selectedIndex: event.feature })
+      } else {
+        // edit rlinks info
+        this.$emit('clickFeature', {
+          selectedIndex: event.feature,
+          action: event.action,
+          lngLat: event.coordinates,
+        })
       }
-      this.$emit('clickFeature', click)
       this.contextMenu.showed = false
       this.contextMenu.type = null
       // this.getBounds()
@@ -314,20 +318,13 @@ export default {
 
         if (this.selectedFeature.length > 0) {
           if (this.hoveredStateId?.layerId === 'rnodes') {
-            const click = {
+            this.$emit('clickFeature', {
               selectedFeature: this.selectedFeature[0],
               action: 'Edit rNode Info',
               lngLat: event.mapboxEvent.lngLat,
-            }
-            this.$emit('clickFeature', click)
+            })
           } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
-            const click = {
-              selectedFeature: this.selectedFeature[0],
-              action: 'Delete Road Anchor',
-              lngLat: null,
-            }
-            this.$emit('clickFeature', click)
-            // this.getBounds()
+            this.rlinksStore.deleteAnchorrNode({ selectedNode: this.selectedFeature[0].properties })
           }
         }
       }
@@ -359,18 +356,11 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.dragNode && this.selectedFeature) {
-        const click = {
-          selectedFeature: this.selectedFeature,
-          action: null,
-          lngLat: Object.values(event.lngLat),
-        }
         if (this.hoveredStateId.layerId === 'anchorrNodes') {
-          click.action = 'Move rAnchor'
-          this.$emit('clickFeature', click)
+          this.rlinksStore.moverAnchor({ selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
           // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
         } else {
-          click.action = 'Move rNode'
-          this.$emit('clickFeature', click)
+          this.rlinksStore.moverNode({ selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
         }
       }
     },

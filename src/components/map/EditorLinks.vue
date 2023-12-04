@@ -57,13 +57,19 @@ export default {
 
         if (this.selectedFeature !== null) {
           if (this.hoveredStateId.layerId === 'editorLinks') {
-            const action = this.anchorMode ? 'Add Anchor Inline' : 'Add Stop Inline'
-            const click = {
-              selectedFeature: this.selectedFeature,
-              action,
-              lngLat: event.mapboxEvent.lngLat,
+            if (this.anchorMode) {
+              this.linksStore.addNodeInline({
+                selectedLink: this.selectedFeature.properties,
+                lngLat: event.mapboxEvent.lngLat,
+                nodes: 'anchorNodes',
+              })
+            } else {
+              this.linksStore.addNodeInline({
+                selectedLink: this.selectedFeature.properties,
+                lngLat: event.mapboxEvent.lngLat,
+                nodes: 'editorNodes',
+              })
             }
-            this.$emit('clickFeature', click)
           }
         }
       }
@@ -151,12 +157,7 @@ export default {
       } else if (this.hoveredStateId?.layerId === 'anchorNodes') {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
         this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)
-        const click = {
-          selectedFeature: this.selectedFeature[0],
-          action: 'Delete Anchor',
-          lngLat: null,
-        }
-        this.$emit('clickFeature', click)
+        this.linksStore.deleteAnchorNode({ selectedNode: this.selectedFeature[0].properties })
       }
     },
 
@@ -175,13 +176,25 @@ export default {
     },
 
     actionClick (event) {
-      const click = {
-        selectedFeature: event.feature,
-        action: event.action,
-        lngLat: event.coordinates,
+      switch (event.action) {
+        case 'Cut Before Node':
+          this.linksStore.cutLineAtNode({ selectedNode: event.feature.properties })
+          break
+        case 'Cut After Node':
+          this.linksStore.cutLineFromNode({ selectedNode: event.feature.properties })
+          break
+        case 'Delete Stop':
+          this.linksStore.deleteNode({ selectedNode: event.feature.properties })
+          break
+        default:
+          // edit node info
+          this.$emit('clickFeature', {
+            selectedFeature: event.feature,
+            action: event.action,
+            lngLat: event.coordinates,
+          })
+          break
       }
-      this.$emit('clickFeature', click)
-
       this.contextMenu.showed = false
       this.contextMenu.type = null
     },
@@ -209,17 +222,10 @@ export default {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
       if (this.map.loaded() && this.dragNode && this.selectedFeature) {
-        const click = {
-          selectedFeature: this.selectedFeature,
-          action: null,
-          lngLat: Object.values(event.lngLat),
-        }
         if (this.hoveredStateId.layerId === 'anchorNodes') {
-          click.action = 'Move Anchor'
-          this.$emit('clickFeature', click)
+          this.linksStore.moveAnchor({ selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
         } else {
-          click.action = 'Move Node'
-          this.$emit('clickFeature', click)
+          this.linksStore.moveNode({ selectedNode: this.selectedFeature, lngLat: Object.values(event.lngLat) })
         }
       }
     },
