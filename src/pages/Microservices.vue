@@ -1,20 +1,17 @@
 <script>
 
-import { ref, computed } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import OSMImporter from '@comp/microservices/OSMImporter.vue'
-import GTFSZipImporter from '@comp/microservices/GTFSZipImporter.vue'
-import GTFSWebImporter from '@comp/microservices/GTFSWebImporter.vue'
-import MatrixRoadCaster from '@comp/microservices/MatrixRoadCaster.vue'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Microservices',
   components: {
     OSMImporter,
-    MatrixRoadCaster,
-    GTFSWebImporter,
-    GTFSZipImporter,
+    MatrixRoadCaster: defineAsyncComponent(() => import('@comp/microservices/MatrixRoadCaster.vue')),
+    GTFSWebImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSWebImporter.vue')),
+    GTFSZipImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue')),
   },
   setup () {
     const runGTFS = useGTFSStore()

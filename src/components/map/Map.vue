@@ -3,7 +3,7 @@ import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
 
-import { computed, watch, ref, toRefs, onBeforeUnmount } from 'vue'
+import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -11,16 +11,12 @@ import Linestring from 'turf-linestring'
 import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
-import RoadLinks from './RoadLinks.vue'
-import StaticLayer from '../utils/StaticLayer.vue'
-import LayerSelector from '../utils/LayerSelector.vue'
 import ODMap from './ODMap.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
-
 // Filter links from selected line
 const $gettext = s => s
 
@@ -31,13 +27,14 @@ export default {
     MglNavigationControl,
     MglScaleControl,
     MglGeojsonLayer,
-    LayerSelector,
-    StaticLayer,
     StaticLinks,
     EditorLinks,
-    RoadLinks,
     Settings,
     ODMap,
+    LayerSelector: defineAsyncComponent(() => import('../utils/LayerSelector.vue')),
+    StaticLayer: defineAsyncComponent(() => import('../utils/StaticLayer.vue')),
+    RoadLinks: defineAsyncComponent(() => import('./RoadLinks.vue')),
+
   },
   props: {
     mode: {
@@ -60,6 +57,9 @@ export default {
     const firstNode = computed(() => { return linksStore.firstNode })
     const lastNode = computed(() => { return linksStore.lastNode })
     const anchorMode = computed(() => { return store.anchorMode })
+
+    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+
     const visibleRasters = computed(() => { return store.visibleRasters })
     const rasterFiles = computed(() => { return store.styles })
     const availableLayers = computed(() => { return store.availableLayers })
@@ -351,7 +351,9 @@ export default {
       }
     }
     onBeforeUnmount(() => {
-      saveMapPosition()
+      try {
+        saveMapPosition()
+      } catch (err) {}
     })
 
     return {
@@ -383,6 +385,7 @@ export default {
       drawMode,
       isEditorMode,
       connectedDrawLink,
+      rlinksIsEmpty,
 
       onMapLoaded,
       draw,
@@ -440,8 +443,7 @@ export default {
         :order="visibleRasters.indexOf(file.name)"
       />
     </div>
-
-    <template v-if="mapIsLoaded">
+    <template v-if="mapIsLoaded && !rlinksIsEmpty">
       <RoadLinks
         ref="roadref"
         :map="map"
