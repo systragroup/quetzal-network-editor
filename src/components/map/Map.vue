@@ -307,6 +307,7 @@ export default {
         // linksStore.firstNodeId
       }
     }
+
     function onHoverRoad (event) {
       if (event?.layerId === 'rnodes') {
         hoverLayer.value = event.layerId
@@ -315,10 +316,9 @@ export default {
           // nodes are sticky. drawlink change size and style
           connectedDrawLink.value = true
         } else {
-          connectedDrawLink.value = false
-          const node = rlinksStore.visiblerNodes.features.filter(node =>
-            node.properties.index === hoverId.value)
-          drawLink.value.geometry.coordinates = [node[0].geometry.coordinates, node[0].geometry.coordinates]
+          const node = rlinksStore.renderedrNodes.features.filter(node =>
+            node.properties.index === hoverId.value)[0]
+          drawLink.value.geometry.coordinates = [node.geometry.coordinates, node.geometry.coordinates]
           drawMode.value = true
           connectedDrawLink.value = false
           selectedNode.value.id = hoverId.value
@@ -342,7 +342,7 @@ export default {
       // when we move a rNode, we need to update drawlink as it is link to this moved node.
       if (['Move rNode', 'Delete rLink'].includes(event.action)) {
         drawMode.value = false
-        // this.drawLink = Linestring([event.lngLat, event.lngLat])
+        connectedDrawLink.value = false
       }
       // prevent emitting add road node inline when drawmode is on.
       // we will add the node inlne and create the new link in this component.
