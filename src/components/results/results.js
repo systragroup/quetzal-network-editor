@@ -122,7 +122,7 @@ export function useResult () {
   const layer = ref(geojson)
   const visibleLayer = ref(geojson)
   const NaNLayer = ref(geojson)
-  const type = ref('')
+  const type = ref(undefined)
   const attributes = ref([])
   const displaySettings = ref(cloneDeep(defaultSettings))
   const selectedFilter = ref('')
@@ -139,7 +139,7 @@ export function useResult () {
     layer.value = cloneDeep(geojson)
     visibleLayer.value = cloneDeep(geojson)
     NaNLayer.value = cloneDeep(geojson)
-    type.value = ''
+    type.value = undefined
     attributes.value = []
     displaySettings.value = cloneDeep(defaultSettings)
     selectedFilter.value = ''

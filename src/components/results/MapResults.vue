@@ -1,11 +1,13 @@
+<!-- eslint-disable vue/no-dupe-keys -->
 <script>
 
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox'
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
+import { ref, computed, onBeforeUnmount, watch, toRefs, onMounted } from 'vue'
 
-const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
+const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 const $gettext = s => s
 
 export default {
@@ -21,66 +23,52 @@ export default {
   },
   props: ['selectedFeature', 'layerType', 'extrusion', 'links', 'nanLinks', 'opacity', 'offset'],
   events: ['selectClick'],
-  setup () {
+  setup (props, context) {
     const store = useIndexStore()
-    return { store }
-  },
-  data () {
-    return {
-      mapIsLoaded: false,
-      mapboxPublicKey: null,
-      selectedLinks: [],
-      minZoom: {
-        nodes: 14,
-        links: 2,
-      },
 
-    }
-  },
-  computed: {
-    mapStyle () { return this.store.mapStyle },
-    offsetValue () { return this.offset ? -1 : 1 },
+    // Mapbox
+    const mapIsLoaded = ref(false)
+    const mapboxPublicKey = key
+    const map = ref(null)
+    const minZoom = ref({
+      nodes: 14,
+      links: 2,
+    })
+    onMounted(() => { console.log(layerType.value) })
 
-  },
-  watch: {
-    mapStyle (val) {
-      if (this.map) {
-        if (this.map.getLayer('arrow')) this.map.removeLayer('arrow')
-        if (this.map.getLayer('links')) this.map.removeLayer('links')
-        if (this.map.getLayer('zones')) this.map.removeLayer('zones')
-        if (this.map.getLayer('nodes')) this.map.removeLayer('nodes')
-        this.mapIsLoaded = false
-        this.saveMapPosition()
+    const mapStyle = computed(() => { return store.mapStyle })
+
+    watch(mapStyle, (val) => {
+      if (map.value) {
+        if (map.value.getLayer('arrow')) map.value.removeLayer('arrow')
+        if (map.value.getLayer('links')) map.value.removeLayer('links')
+        if (map.value.getLayer('zones')) map.value.removeLayer('zones')
+        if (map.value.getLayer('nodes')) map.value.removeLayer('nodes')
+        mapIsLoaded.value = false
+        saveMapPosition()
       }
-    },
+    })
 
-  },
-  created () {
-    this.mapboxPublicKey = mapboxPublicKey
-  },
-  beforeDestroy () {
-    console.log('destroy')
-    // remove arrow layer first as it depend on rlink layer
-    if (this.map.getLayer('arrow')) {
-      this.map.removeLayer('arrow')
-    }
-    this.saveMapPosition()
-  },
+    onBeforeUnmount(() => {
+      // remove arrow layer first as it depend on rlink layer
+      if (map.value) { saveMapPosition() }
+      if (map.value?.getLayer('arrow')) { map.value.removeLayer('arrow') }
+    })
 
-  methods: {
-    saveMapPosition () {
-      const center = this.map.getCenter()
-      this.store.saveMapPosition({
+    function saveMapPosition () {
+      const center = map.value.getCenter()
+      store.saveMapPosition({
         mapCenter: [center.lng, center.lat],
-        mapZoom: this.map.getZoom(),
+        mapZoom: map.value.getZoom(),
       })
-    },
-    onMapLoaded (event) {
-      if (this.map) this.mapIsLoaded = false
+    }
+
+    function onMapLoaded (event) {
+      if (map.value) mapIsLoaded.value = false
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
-      if ((['Polygon']).includes(this.layerType)) {
-        this.links.features.forEach(link => {
+      if ((['Polygon']).includes(layerType.value)) {
+        links.value.features.forEach(link => {
           try { // try, so NaN will not crash
             if (link.geometry.type === 'Polygon') {
               bounds.extend([link.geometry.coordinates[0][0],
@@ -92,7 +80,7 @@ export default {
           } catch (err) { }
         })
       } else {
-        this.links.features.forEach(link => {
+        links.value.features.forEach(link => {
           bounds.extend([link.geometry.coordinates[0],
             link.geometry.coordinates[link.geometry.coordinates.length - 1]])
         })
@@ -112,54 +100,88 @@ export default {
         event.map.addImage('arrow', image, { sdf: true })
       })
 
-      this.map = event.map
-      if (!this.extrusion) {
+      map.value = event.map
+      if (!extrusion.value) {
         event.map.dragRotate.disable()
       } else {
-        this.store.changeNotification(
+        store.changeNotification(
           { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
       }
 
-      this.mapIsLoaded = true
-    },
-    enterLink (event) {
+      mapIsLoaded.value = true
+    }
+
+    const selectedLinks = ref([])
+    const popup = ref(null)
+    const { selectedFeature, layerType, extrusion, links, nanLinks, opacity, offset } = toRefs(props)
+
+    const offsetValue = computed(() => { return offset.value ? -1 : 1 })
+
+    function enterLink (event) {
       event.map.getCanvas().style.cursor = 'pointer'
-      this.selectedLinks = event.mapboxEvent.features
-      if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-      if (this.selectedFeature && this.layerType !== 'Polygon') { // do not show popup if nothing is selected
-        const val = this.selectedLinks[0].properties[this.selectedFeature]
+      selectedLinks.value = event.mapboxEvent.features
+      if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
+      if (selectedFeature.value && layerType.value !== 'Polygon') { // do not show popup if nothing is selected
+        const val = selectedLinks.value[0].properties[selectedFeature.value]
         if (val) {
-          this.popup = new mapboxgl.Popup({ closeButton: false })
+          popup.value = new mapboxgl.Popup({ closeButton: false })
             .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-            .setHTML(`${this.selectedFeature}: <br> ${val}`)
+            .setHTML(`${selectedFeature.value}: <br> ${val}`)
             .addTo(event.map)
         }
       }
-    },
-    leaveLink (event) {
-      this.selectedLinks = []
-      if (this.popup?.isOpen()) this.popup.remove()
-      event.map.getCanvas().style.cursor = ''
-    },
-    selectClick (event) {
-      this.selectedLinks = event.mapboxEvent.features
-      if (this.selectedLinks?.length > 0) {
-        this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'featureClick' })
-      }
-    },
-    zoneClick (event) {
-      this.selectedLinks = event.mapboxEvent.features
-      if (this.selectedLinks?.length > 0) {
-        this.$emit('selectClick', { feature: this.selectedLinks[0].properties, action: 'zoneClick' })
-      }
-    },
-    zoneHover (event) {
-      event.map.getCanvas().style.cursor = 'pointer'
-    },
-    zoneLeave (event) {
-      event.map.getCanvas().style.cursor = ''
-    },
+    }
 
+    function leaveLink (event) {
+      selectedLinks.value = []
+      if (popup.value?.isOpen()) popup.value.remove()
+      event.map.getCanvas().style.cursor = ''
+    }
+
+    function selectClick (event) {
+      selectedLinks.value = event.mapboxEvent.features
+      if (selectedLinks.value?.length > 0) {
+        context.emit('selectClick', { feature: selectedLinks.value[0].properties, action: 'featureClick' })
+      }
+    }
+
+    function zoneClick (event) {
+      selectedLinks.value = event.mapboxEvent.features
+      if (selectedLinks.value?.length > 0) {
+        context.emit('selectClick', { feature: selectedLinks.value[0].properties, action: 'zoneClick' })
+      }
+    }
+
+    function zoneHover (event) {
+      event.map.getCanvas().style.cursor = 'pointer'
+    }
+
+    function zoneLeave (event) {
+      event.map.getCanvas().style.cursor = ''
+    }
+
+    return {
+      store,
+      mapIsLoaded,
+      mapboxPublicKey,
+      minZoom,
+      map,
+      mapStyle,
+      onMapLoaded,
+      layerType,
+      extrusion,
+      links,
+      nanLinks,
+      opacity,
+      offset,
+      offsetValue,
+      enterLink,
+      leaveLink,
+      selectClick,
+      zoneClick,
+      zoneHover,
+      zoneLeave,
+    }
   },
 }
 </script>
@@ -176,7 +198,6 @@ export default {
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
     <slot
-      v-if="mapIsLoaded"
       :map="map"
       :map-is-loaded="mapIsLoaded"
     />

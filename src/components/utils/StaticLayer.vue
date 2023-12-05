@@ -2,7 +2,7 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
 import MapLegend from '@comp/utils/MapLegend.vue'
-import { onBeforeUnmount, toRefs, onBeforeMount, onUpdated } from 'vue'
+import { onBeforeUnmount, toRefs, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useResult } from '@comp/results/results.js'
 import { useLinksStore } from '@src/store/links'
@@ -62,7 +62,7 @@ export default {
       }
     }
 
-    onBeforeMount(async () => {
+    onMounted(async () => {
       await changeLayer(preset.value.layer)
       if (attributes.value.includes(preset.value?.selectedFilter)) {
         // if preset contain a filter. apply it if it exist.
@@ -99,15 +99,12 @@ export default {
           },
         }
       })
-    })
-    // move layer under rlinks (links and OD are over this one)
-    onUpdated(() => {
-      if (map.value.getLayer('results')) {
-        map.value.moveLayer(name + '-layer', 'results')
-      }
-      if (map.value.getLayer('rlinks')) {
-        map.value.moveLayer(name + '-layer', 'rlinks')
-      }
+      // those lines over were beforeMounted and those in Mounted. but because au the async.
+      // it was mounted befor the beforeMounted had finished.
+      // move layer under results (links and OD are over this one)
+      if (map.value.getLayer('results')) { map.value.moveLayer(name + '-layer', 'results') }
+      // move layer under rlinks (links and OD are over this one)
+      if (map.value.getLayer('rlinks')) { map.value.moveLayer(name + '-layer', 'rlinks') }
     })
 
     onBeforeUnmount(() => {

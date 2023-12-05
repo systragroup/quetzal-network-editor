@@ -276,7 +276,7 @@ export default {
     <MapResults
       v-if="visibleLayer.features"
       :key="type+String(displaySettings.extrusion)"
-      v-slot="{ map }"
+      v-slot="slotProps"
       :layer-type="type"
       :extrusion="displaySettings.extrusion"
       :links="visibleLayer"
@@ -307,7 +307,7 @@ export default {
         <template v-if=" visibleRasters.includes(file.name) && availableLayers.includes(file.layer)">
           <StaticLayer
             :preset="file"
-            :map="map"
+            :map="slotProps.map"
             :order="visibleRasters.indexOf(file.name)+1"
           />
         </template>
