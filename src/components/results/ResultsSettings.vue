@@ -530,13 +530,13 @@ export default {
 }
 
 .setting {
-  left: 95.8%;
+  left: 96%;
   z-index: 2;
-  display: flex;
-  position: relative;
+  top:1rem;
+  position: absolute;
   align-items: center;
   justify-content: center;
-  height: 65px;
+
 }
 .setting-card {
 overflow-y:auto;

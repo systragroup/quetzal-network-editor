@@ -696,7 +696,5 @@ transition:0.3s
     opacity: 1!important;
     background: var(--v-tooltip-bg, rgba(97, 97, 97, 1)) !important;
 }
-.test{
-  border:1px solid red;
-}
+
 </style>

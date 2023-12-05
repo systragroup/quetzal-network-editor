@@ -97,14 +97,13 @@ export default {
 </template>
 <style lang="scss" scoped>
 .layer-button {
-  left: 92.5%;
-  top:3rem;
+  left: 96%;
+  top:5rem;
   z-index: 2;
-  display: flex;
   position: relative;
   align-items: center;
   justify-content: center;
-  height: 100px;
+
 }
 .card {
   width: 500px;

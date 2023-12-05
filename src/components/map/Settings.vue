@@ -264,11 +264,11 @@ export default {
 .setting {
   left: 96%;
   z-index: 2;
-  display: flex;
-  position: relative;
+  top:1rem;
+  position: absolute;
   align-items: center;
   justify-content: center;
-  height: 70px;
+
 }
 
 .layout {

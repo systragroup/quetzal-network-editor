@@ -263,18 +263,7 @@ export default {
       @select-preset="changePreset"
       @delete-preset="clickDeletePreset"
     />
-    <ResultsSettings
-      :display-settings="displaySettings"
-      :feature-choices="attributes"
-      :type="type"
-      @submit="applySettings"
-      @save-preset="clickSavePreset"
-    />
-    <LayerSelector
-      v-if="availableStyles.length>0"
-      :choices="availableStyles"
-      :available-layers="availableLayers"
-    />
+
     <div class="left-panel">
       <MapLegend
         v-show="visibleLayer.features.length>0"
@@ -297,6 +286,20 @@ export default {
       :offset="displaySettings.offset"
       @selectClick="featureClicked"
     >
+      <div :style="{'display':'flex'}">
+        <ResultsSettings
+          :display-settings="displaySettings"
+          :feature-choices="attributes"
+          :type="type"
+          @submit="applySettings"
+          @save-preset="clickSavePreset"
+        />
+        <LayerSelector
+          v-if="availableStyles.length>0"
+          :choices="availableStyles"
+          :available-layers="availableLayers"
+        />
+      </div>
       <div
         v-for="file in availableStyles"
         :key="file.name"

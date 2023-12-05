@@ -424,7 +424,6 @@ export default {
 
       <LayerSelector
         v-if="rasterFiles.length>0"
-
         :choices="rasterFiles"
         :available-layers="availableLayers"
       />

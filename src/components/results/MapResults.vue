@@ -176,7 +176,6 @@ export default {
     <MglNavigationControl position="bottom-right" />
     <slot
       v-if="mapIsLoaded"
-
       :map="map"
       :map-is-loaded="mapIsLoaded"
     />
