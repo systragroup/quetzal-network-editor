@@ -19,9 +19,6 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 import '@fortawesome/fontawesome-free/css/all.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-// import VueDatePicker from '@vuepic/vue-datepicker'
-// import '@vuepic/vue-datepicker/dist/main.css'
-
 import { fr, en } from 'vuetify/locale'
 import translations from './translations.json'
 
