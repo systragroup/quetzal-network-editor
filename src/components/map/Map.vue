@@ -1,7 +1,7 @@
 <script>
 import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
-import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox'
+import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
 import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'

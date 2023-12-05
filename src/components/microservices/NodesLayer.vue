@@ -1,5 +1,5 @@
 <script>
-import { MglGeojsonLayer } from 'vue-mapbox'
+import { MglGeojsonLayer } from 'vue-mapbox3'
 
 export default {
   name: 'NodesLayer',

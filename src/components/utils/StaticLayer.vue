@@ -1,6 +1,6 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
-import { MglGeojsonLayer } from 'vue-mapbox'
+import { MglGeojsonLayer } from 'vue-mapbox3'
 import MapLegend from '@comp/utils/MapLegend.vue'
 import { onBeforeUnmount, toRefs, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'

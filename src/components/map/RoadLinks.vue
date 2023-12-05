@@ -1,6 +1,6 @@
 <script>
 
-import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
 import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'

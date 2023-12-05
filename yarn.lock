@@ -10587,9 +10587,10 @@ vue-i18n@^9.2.2:
     "@intlify/vue-devtools" "9.2.2"
     "@vue/devtools-api" "^6.2.1"
 
-"vue-mapbox@https://github.com/systragroup/vue-mapbox.git":
-  version "0.6.0"
-  resolved "https://github.com/systragroup/vue-mapbox.git#b098d64909bb9c75de2ff22ea7f77435f01138c4"
+vue-mapbox3@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/vue-mapbox3/-/vue-mapbox3-0.6.1.tgz#80d89ae073f38ddc031cd1b7115e94f4aadd8191"
+  integrity sha512-NqPMOoGqXWuEljgwP/5DWED0WliZ14oFa6eZOPK4am9m3qjxs+qjDHrQHVfPrAEKp5ueOqCCeaCBLv3ZQ1XF2A==
 
 vue-router@^4.2.2:
   version "4.2.2"

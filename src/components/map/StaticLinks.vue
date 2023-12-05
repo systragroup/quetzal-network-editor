@@ -1,6 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer } from 'vue-mapbox'
+import { MglGeojsonLayer } from 'vue-mapbox3'
 import mapboxgl from 'mapbox-gl'
 import { cloneDeep } from 'lodash'
 import { useIndexStore } from '@src/store/index'

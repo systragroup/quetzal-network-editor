@@ -1,5 +1,5 @@
 <script>
-import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
+import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox3'
 import NodesLayer from './NodesLayer.vue'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'

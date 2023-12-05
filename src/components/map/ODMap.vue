@@ -1,6 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script>
-import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
 import short from 'short-uuid'
 import { computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
