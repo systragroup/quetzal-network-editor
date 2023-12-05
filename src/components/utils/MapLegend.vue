@@ -112,8 +112,8 @@ export default {
   justify-content: center;
   transition: 0.3s;
   height: 50px;
-  background-color: var(--v-white-base);
-  border: thin solid var(--v-mediumgrey-base);
+  background-color: rgb(var(--v-theme-lightergrey));
+  border: thin solid rgb(var(--v-theme-mediumgrey));
 }
 
 </style>

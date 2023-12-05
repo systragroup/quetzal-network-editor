@@ -59,6 +59,7 @@ export default {
     this.mapboxPublicKey = mapboxPublicKey
   },
   beforeDestroy () {
+    console.log('destroy')
     // remove arrow layer first as it depend on rlink layer
     if (this.map.getLayer('arrow')) {
       this.map.removeLayer('arrow')

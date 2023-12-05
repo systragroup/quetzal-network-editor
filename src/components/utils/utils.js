@@ -1,5 +1,4 @@
 import JSZip from 'jszip'
-import { useIndexStore } from '@src/store/index'
 
 const $gettext = s => s
 
@@ -98,20 +97,6 @@ function IndexAreDifferent (geojsonA, geojsonB) {
   const linksIndex = new Set(geojsonA.features.map(item => item.properties.index))
   const newLinksIndex = new Set(geojsonB.features.map(item => item.properties.index))
   return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
-}
-
-function createIndex (geojson, type, prefix) {
-  // not done. we should check links and node as there is nodes index in links (a,b)
-  switch (type) {
-    case 'PT':
-      // eslint-disable-next-line no-case-declarations
-      const len = store.getters.links.features.length
-      // eslint-disable-next-line no-return-assign
-      geojson.features.forEach((feat, index) => feat.properties.index = prefix + (index + len))
-      break
-    case 'road':
-      break
-  }
 }
 
 async function unzip (file) {
@@ -217,7 +202,6 @@ export {
   extractZip,
   getGroupForm,
   indexAreUnique,
-  createIndex,
   IndexAreDifferent,
   unzip,
   csvJSON,

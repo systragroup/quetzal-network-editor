@@ -2,7 +2,7 @@
 <script>
 import { MglGeojsonLayer } from 'vue-mapbox'
 import MapLegend from '@comp/utils/MapLegend.vue'
-import { onBeforeUnmount, toRefs, onMounted, onBeforeMount } from 'vue'
+import { onBeforeUnmount, toRefs, onBeforeMount, onUpdated } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useResult } from '@comp/results/results.js'
 import { useLinksStore } from '@src/store/links'
@@ -101,7 +101,7 @@ export default {
       })
     })
     // move layer under rlinks (links and OD are over this one)
-    onMounted(() => {
+    onUpdated(() => {
       if (map.value.getLayer('results')) {
         map.value.moveLayer(name + '-layer', 'results')
       }
