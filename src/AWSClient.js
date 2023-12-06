@@ -153,7 +153,7 @@ async function deleteFolder (bucket, prefix) {
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params)
   const arr = []
-  if (response.Contents.length > 0) {
+  if (response.Contents?.length > 0) {
     response.Contents.forEach(file => arr.push({ Key: file.Key }))
     const deleteParams = { Bucket: bucket, Delete: { Objects: arr } }
     return s3Client.deleteObjects(deleteParams)
@@ -163,7 +163,9 @@ async function deleteFolder (bucket, prefix) {
 async function putObject (bucket, key, body = '') {
   const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
-  const newChecksum = md5(JSON.stringify(body)).toString()
+  // if a json. already a string (we pass json.stringify()).
+  // so only apply string to bytesArray. json.stringify crash with large array...
+  const newChecksum = md5(String(body)).toString()
   if (oldChecksum !== newChecksum) {
     const params = {
       Bucket: bucket,

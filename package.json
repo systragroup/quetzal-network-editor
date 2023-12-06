@@ -2,7 +2,7 @@
   "name": "myapp",
   "description": "Vue Boilerplate",
   "author": "SYSTRA",
-  "version": "5.0.g",
+  "version": "5.0.h",
   "private": true,
   "scripts": {
     "start": "vite",
