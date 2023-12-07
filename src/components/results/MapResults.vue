@@ -34,7 +34,6 @@ export default {
       nodes: 14,
       links: 2,
     })
-    onMounted(() => { console.log(layerType.value) })
 
     const mapStyle = computed(() => { return store.mapStyle })
 
