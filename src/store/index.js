@@ -274,7 +274,7 @@ export const useIndexStore = defineStore('store', {
       if (payload !== 'all') {
         const tempLinks = cloneDeep(linksStore.links)
         tempLinks.features = tempLinks.features.filter(
-          link => this.links.selectedTrips.includes(link.properties.trip_id))
+          link => linksStore.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
         // delete every every nodes not in links
         const a = tempLinks.features.map(item => item.properties.a)

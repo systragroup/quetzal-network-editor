@@ -51,7 +51,7 @@
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "map-promisified": "latest",
-    "mapbox-gl": "^2.15.0",
+    "mapbox-gl": "^3.0.0",
     "moment": "^2.29.1",
     "pinia": "^2.1.7",
     "promise-polyfill": "^8.2.0",
