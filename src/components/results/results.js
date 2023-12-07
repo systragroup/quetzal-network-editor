@@ -369,21 +369,6 @@ export function useResult () {
     return arr
   })
 
-  const displayLayer = computed(() => {
-    const layer = ref({ crs: {}, type: 'FeatureCollection', features: [] })
-    layer.value.features = visibleLayer.value.features.map(obj => {
-      return {
-        geometry: obj.geometry,
-        properties: {
-          display_color: obj.properties.display_color,
-          display_width: obj.properties.display_width,
-        },
-
-      }
-    })
-    return layer
-  })
-
   // expose managed state as return value
   return {
     layer,
@@ -410,6 +395,5 @@ export function useResult () {
     applySettings,
     filteredCategory,
     colorScale,
-    displayLayer,
   }
 }

@@ -1,6 +1,5 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
-import { MglGeojsonLayer } from 'vue-mapbox3'
 import MapLegend from '@comp/utils/MapLegend.vue'
 import { onBeforeUnmount, toRefs, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
@@ -16,7 +15,6 @@ const $gettext = s => s
 export default {
   name: 'StaticLayer',
   components: {
-    MglGeojsonLayer,
     MapLegend,
 
   },
@@ -28,6 +26,8 @@ export default {
     const store = useIndexStore()
     const { preset, map, order: zorder } = toRefs(props)
     const name = preset.value.name
+    const sourceId = name + '-source'
+    const layerId = name + '-layer'
     const {
       visibleLayer, type, loadLayer, displaySettings, attributes, applySettings, changeSelectedFilter,
       changeSelectedCategory, colorScale, isIndexAvailable, changeOD,
@@ -99,26 +99,88 @@ export default {
           },
         }
       })
+
       // those lines over were beforeMounted and those in Mounted. but because au the async.
       // it was mounted befor the beforeMounted had finished.
+
+      map.value.addSource(sourceId, {
+        'type': 'geojson',
+        data: visibleLayer.value
+        ,
+      })
+
+      if (type.value === 'LineString') {
+        map.value.addLayer({
+          'id': layerId,
+          'type': 'line',
+          'minzoom': 5,
+          'source': sourceId,
+          'layout': {
+            'line-sort-key': ['to-number', ['get', 'display_width']],
+            'line-cap': 'round',
+          },
+          'paint': {
+            'line-color': ['get', 'display_color'],
+            'line-opacity': opacity / 100,
+            'line-offset': ['*', offsetValue * 0.5, ['to-number', ['get', 'display_width']]],
+            'line-width': ['get', 'display_width'],
+          },
+        })
+      } else if (type.value === 'Point') {
+        map.value.addLayer({
+          'id': layerId,
+          'type': 'circle',
+          'minzoom': 5,
+          'source': sourceId,
+          'layout': {
+            'circle-sort-key': ['to-number', ['get', 'display_width']],
+          },
+          'paint': {
+            'circle-color': ['get', 'display_color'],
+            'circle-radius': ['get', 'display_width'],
+            'circle-opacity': opacity / 100,
+          },
+        })
+      } else if (['MultiPolygon', 'Polygon'].includes(type.value) && !displaySettings.value.extrusion) {
+        map.value.addLayer({
+          'id': layerId,
+          'type': 'fill',
+          'minzoom': 5,
+          'source': sourceId,
+          'paint': {
+            'fill-color': ['get', 'display_color'],
+            'fill-opacity': opacity / 100,
+          },
+        })
+      } else if (['MultiPolygon', 'Polygon'].includes(type.value) && displaySettings.value.extrusion) {
+        map.value.addLayer({
+          'id': layerId,
+          'type': 'fill-extrusion',
+          'minzoom': 5,
+          'source': sourceId,
+          'paint': {
+            'fill-extrusion-color': ['get', 'display_color'],
+            'fill-extrusion-opacity': opacity / 100,
+            'fill-extrusion-height': ['*', 1000, ['to-number', ['get', 'display_width']]],
+
+          },
+        })
+      }
+
       // move layer under results (links and OD are over this one)
-      if (map.value.getLayer('results')) { map.value.moveLayer(name + '-layer', 'results') }
+      if (map.value.getLayer('results')) { map.value.moveLayer(layerId, 'results') }
       // move layer under rlinks (links and OD are over this one)
-      if (map.value.getLayer('rlinks')) { map.value.moveLayer(name + '-layer', 'rlinks') }
+      if (map.value.getLayer('rlinks')) { map.value.moveLayer(layerId, 'rlinks') }
     })
 
     onBeforeUnmount(() => {
-      if (map.value.getLayer(name + '-layer')) {
-        map.value.removeLayer(name + '-layer')
+      if (map.value.getLayer(layerId)) {
+        map.value.removeLayer(layerId)
+        map.value.removeSource(sourceId)
       }
     })
 
     return {
-      name,
-      type,
-      visibleLayer,
-      opacity,
-      offsetValue,
       displaySettings,
       zorder,
       colorScale,
@@ -139,100 +201,6 @@ export default {
         :order="zorder"
       />
     </div>
-
-    <MglGeojsonLayer
-      v-if="['MultiPolygon', 'Polygon'].includes(type) && !displaySettings.extrusion"
-      :map="map"
-      :source-id="name+ '-layer'"
-      :source="{
-        type: 'geojson',
-        data: visibleLayer,
-      }"
-      :layer-id="name+ '-layer'"
-      :layer="{
-        interactive: false,
-        type: 'fill',
-        minzoom: 5,
-        'paint': {
-          'fill-color': ['get', 'display_color'],
-          'fill-opacity': opacity/100,
-
-        }
-      }"
-    />
-    <MglGeojsonLayer
-      v-if="type=='LineString'"
-      :map="map"
-      :source-id="name+ '-layer'"
-      :source="{
-        type: 'geojson',
-        data: visibleLayer,
-        buffer: 0,
-        promoteId: 'index',
-      }"
-      :layer-id="name+ '-layer'"
-      :layer="{
-        interactive: true,
-        type: 'line',
-        minzoom: 5,
-        paint: {
-          'line-color': ['get', 'display_color'],
-          'line-opacity':opacity/100,
-          'line-offset': ['*',offsetValue*0.5,['to-number', ['get', 'display_width']]],
-
-          'line-width': ['get', 'display_width'],
-        },
-        layout: {
-          'line-sort-key': ['to-number',['get', 'display_width']],
-          'line-cap': 'round',
-        }
-      }"
-    />
-    <MglGeojsonLayer
-      v-if="type == 'Point'"
-      :map="map"
-      :source-id="name+ '-layer'"
-      :source="{
-        type: 'geojson',
-        data: visibleLayer,
-      }"
-      :layer-id="name+ '-layer'"
-      :layer="{
-        interactive: false,
-        type: 'circle',
-        minzoom: 5,
-        paint: {
-          'circle-color': ['get', 'display_color'],
-          'circle-radius': ['get', 'display_width'],
-          'circle-opacity':opacity/100,
-        },
-        layout: {
-          'circle-sort-key': ['to-number',['get', 'display_width']],
-        }
-      }"
-    />
-    <MglGeojsonLayer
-      v-if="['MultiPolygon', 'Polygon'].includes(type) && displaySettings.extrusion"
-      :map="map"
-      :source-id="name+ '-layer'"
-      :source="{
-        type: 'geojson',
-        data: visibleLayer,
-      }"
-      :layer-id="name+ '-layer'"
-      :layer="{
-        interactive: false,
-        type: 'fill-extrusion',
-        minzoom: 5,
-        'paint': {
-          'fill-extrusion-color':['get', 'display_color'],
-          'fill-extrusion-opacity': opacity/100,
-          'fill-extrusion-height':['*',1000,['to-number', ['get', 'display_width']]],
-
-        },
-
-      }"
-    />
   </section>
 </template>
 
