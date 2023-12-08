@@ -374,7 +374,7 @@ export default {
           </v-tooltip>
           <v-btn
             :disabled="!filesAdded"
-            color="primary"
+            :color="filesAdded? 'primary' :'regular'"
             @click="login()"
           >
             {{ $gettext('Go!') }}
