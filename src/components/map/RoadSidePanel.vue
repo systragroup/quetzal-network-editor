@@ -160,14 +160,14 @@ export default {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="localSelectedTrip.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa'"
+            :icon="localSelectedTrip.length === filteredCat.length? 'fa-eye-slash fa' : 'fa-eye fa'"
             class="ma-2"
             :style="{color: 'white'}"
             v-bind="props"
             @click="showAll()"
           />
         </template>
-        <span>{{ localSelectedTrip.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ localSelectedTrip.length ===filteredCat.length ? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         location="bottom"
