@@ -401,7 +401,6 @@ export default {
                     </v-list-item-title>
                     <v-list-item-title
                       v-else
-                      style="{'flex':'2'}"
                       v-bind="props"
                     >
                       {{ item }}
@@ -616,7 +615,11 @@ export default {
 .item{
   flex:1;
   padding-left: 1rem;
+  white-space: nowrap;     /* Prevents text from wrapping to the next line */
+  overflow: hidden;        /* Hides any overflowed content */
+  text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
 }
+
 .left-panel {
   height: 100%;
   background-color: $primary-dark;

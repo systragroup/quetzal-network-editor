@@ -2,7 +2,7 @@
 import LinksSidePanel from './LinksSidePanel.vue'
 import RoadSidePanel from './RoadSidePanel.vue'
 import ODSidePanel from './ODSidePanel.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 
@@ -14,79 +14,76 @@ export default {
     ODSidePanel,
   },
   events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
-  setup () {
+  setup (_, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()
+
     const showLeftPanel = computed(() => { return store.showLeftPanel })
+    const showLeftPanelContent = ref(true)
     const toggleLeftPanel = () => { store.changeLeftPanel() }
-    const editorTrip = computed(() => { return linksStore.editorTrip })
-
-    const windowHeight = computed(() => { return store.windowHeight - 200 })
-
-    const tab = ref(0)
-    onMounted(() => {
-      if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
-        tab.value = 1
-      }
-    })
-
-    return { tab, showLeftPanel, windowHeight, editorTrip, toggleLeftPanel }
-  },
-  data () {
-    return {
-      showLeftPanelContent: true,
-      mode: 'pt',
-      isResizing: false,
-      windowOffest: 0,
-      width: 400, // Initial width of the resizable section
-    }
-  },
-
-  watch: {
-    showLeftPanel (val) {
+    watch(showLeftPanel, (val) => {
       if (val) {
         // Leave time for animation to end (.fade-enter-active css rule)
         setTimeout(() => {
-          this.showLeftPanelContent = true
+          showLeftPanelContent.value = true
         }, 500)
       } else {
-        this.showLeftPanelContent = false
+        showLeftPanelContent.value = false
       }
-    },
+    })
 
-    tab (val) {
-      if (val === 0) {
-        this.mode = 'pt'
-      } else if (val === 1) {
-        this.mode = 'road'
-      } else {
-        this.mode = 'od'
+    const editorTrip = computed(() => { return linksStore.editorTrip })
+    const windowHeight = computed(() => { return store.windowHeight - 200 })
+
+    const tab = ref('pt')
+    onMounted(() => {
+      if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
+        tab.value = 'road'
       }
-      this.$emit('change-mode', this.mode)
-    },
-  },
+    })
+    watch(tab, (mode) => {
+      context.emit('change-mode', mode)
+    })
 
-  methods: {
-    startResize (event) {
+    const leftPanelDiv = ref(null)
+    const isResizing = ref(false)
+    const windowOffest = ref(0)
+    const width = ref(400) // Initial width of the resizable section
+    function startResize (event) {
       event.preventDefault()
-      this.isResizing = true
-      this.windowOffest = event.clientX - this.$refs.leftPanelDiv.clientWidth
-      document.addEventListener('mousemove', this.resize)
-      document.addEventListener('mouseup', this.stopResize)
-    },
-    resize (event) {
-      if (this.isResizing) {
-        const width = event.clientX - this.windowOffest
-        this.width = width > 400 ? width : 400
+      isResizing.value = true
+      console.log(leftPanelDiv)
+      windowOffest.value = event.clientX - leftPanelDiv.value.clientWidth
+      document.addEventListener('mousemove', resize)
+      document.addEventListener('mouseup', stopResize)
+    }
+    function resize (event) {
+      if (isResizing.value) {
+        const w = event.clientX - windowOffest.value
+        width.value = w > 400 ? w : 400
         // event.target.style.cursor = 'col-resize'
       }
-    },
-    stopResize (event) {
-      this.isResizing = false
-      document.removeEventListener('mousemove', this.resize)
-      document.removeEventListener('mouseup', this.stopResize)
+    }
+    function stopResize (event) {
+      isResizing.value = false
+      document.removeEventListener('mousemove', resize)
+      document.removeEventListener('mouseup', stopResize)
       // event.target.style.cursor = 'default'
-    },
+    }
+
+    return {
+      tab,
+      showLeftPanel,
+      windowHeight,
+      editorTrip,
+      toggleLeftPanel,
+      showLeftPanelContent,
+      leftPanelDiv,
+      isResizing,
+      windowOffest,
+      width,
+      startResize,
+    }
   },
 
 }
@@ -127,12 +124,18 @@ export default {
               bg-color="secondary"
               grow
             >
-              <v-tab>{{ $gettext("PT") }}</v-tab>
-              <v-tab>{{ $gettext("Road") }}</v-tab>
-              <v-tab>{{ $gettext("OD") }}</v-tab>
+              <v-tab value="pt">
+                {{ $gettext("PT") }}
+              </v-tab>
+              <v-tab value="road">
+                {{ $gettext("Road") }}
+              </v-tab>
+              <v-tab value="od">
+                {{ $gettext("OD") }}
+              </v-tab>
             </v-tabs>
             <LinksSidePanel
-              v-show="tab===0"
+              v-show="tab==='pt'"
               :height="windowHeight"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
               @abortChanges="(e) => $emit('abortChanges',e)"
@@ -141,13 +144,13 @@ export default {
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />
             <RoadSidePanel
-              v-show="tab===1"
+              v-show="tab==='road'"
               :height="windowHeight"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />
             <ODSidePanel
-              v-show="tab===2"
+              v-show="tab==='od'"
               :height="windowHeight"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"

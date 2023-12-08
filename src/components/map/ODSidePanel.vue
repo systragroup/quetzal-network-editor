@@ -99,7 +99,7 @@ export default {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="vmodelSelectedCat.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa' "
+            :icon="vmodelSelectedCat.length ===filteredCat.length ? 'fa-eye-slash fa' : 'fa-eye fa' "
             class="ma-2"
             :style="{color: 'white'}"
 
@@ -107,7 +107,7 @@ export default {
             @click="showAll()"
           />
         </template>
-        <span>{{ vmodelSelectedCat.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ vmodelSelectedCat.length === filteredCat.length ? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         location="bottom"
@@ -213,11 +213,12 @@ export default {
               content-class="custom-tooltip"
             >
               <template v-slot:activator="{ props }">
-                <v-list-item-title
+                <div
+                  class="item ma-2"
                   v-bind="props"
                 >
                   {{ item }}
-                </v-list-item-title>
+                </div>
               </template>
               <span>{{ item }}</span>
             </v-tooltip>
@@ -283,10 +284,14 @@ export default {
   display:flex;
   justify-content:flex-end;
   align-items: center;
+}.item{
+  flex:3;
+  padding-left: 1rem;
+  white-space: nowrap;     /* Prevents text from wrapping to the next line */
+  overflow: hidden;        /* Hides any overflowed content */
+  text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
 }
-.item{
-  flex:1;
-}
+
 .left-panel {
   height: 100%;
   background-color: $primary-dark;

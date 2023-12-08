@@ -368,7 +368,11 @@ export default {
 }
 .item{
   flex:1;
+  white-space: nowrap;     /* Prevents text from wrapping to the next line */
+  overflow: hidden;        /* Hides any overflowed content */
+  text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
 }
+
 .v-selection-control{
   flex:0 !important;
 }
