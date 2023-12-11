@@ -29,12 +29,12 @@ msgstr " est vide"
 msgid " minutes remaining"
 msgstr " minutes restantes"
 
-#: src/components/utils/utils.js:37
+#: src/components/utils/utils.js:36
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr " Les dossiers à la racines devraient être inputs/ et outputs/. non: "
 
-#: src/store/links.js:117 src/store/links.js:125 src/store/od.js:43
-#: src/store/rlinks.js:109 src/store/rlinks.js:117
+#: src/store/links.js:109 src/store/links.js:117 src/store/od.js:40
+#: src/store/rlinks.js:102 src/store/rlinks.js:110
 msgid " there is duplicated index, "
 msgstr " il y a des index en double, "
 
@@ -65,7 +65,7 @@ msgstr " il y a des index en double, "
 #: src/components/results/ResultsSettings.vue:260
 #: src/components/results/ResultsSettings.vue:274
 #: src/components/results/ResultsSettings.vue:275
-#: src/pages/ResultPicture.vue:11 src/pages/ResultTable.vue:15
+#: src/pages/ResultPicture.vue:64 src/pages/ResultTable.vue:15
 msgid "_ctx"
 msgstr ""
 
@@ -73,7 +73,7 @@ msgstr ""
 msgid ". Import aborted in "
 msgstr ". Importation interrompue dans "
 
-#: src/pages/Import.vue:230
+#: src/pages/Import.vue:232
 msgid "$gettext"
 msgstr ""
 
@@ -127,7 +127,7 @@ msgid ""
 "time using an iterative algorithm"
 msgstr ""
 
-#: src/components/map/LinksSidePanel.vue:429
+#: src/components/map/LinksSidePanel.vue:423
 #: src/components/microservices/MatrixRoadCaster.vue:116
 msgid "Abort"
 msgstr "Annuler"
@@ -141,17 +141,17 @@ msgstr "Abandonner la simulation"
 msgid "action"
 msgstr ""
 
-#: src/pages/Home.vue:149
+#: src/pages/Home.vue:148
 msgid "add field"
 msgstr "ajouter un champ"
 
-#: src/components/microservices/GTFSZipImporter.vue:61
+#: src/components/microservices/GTFSZipImporter.vue:62
 msgid "Add GTFS files. When its done uploading press Convert"
 msgstr ""
 "Ajouter des fichiers GTFS. Lorsque le téléversement est terminé, cliquer "
 "Convertir."
 
-#: src/pages/Import.vue:230
+#: src/pages/Import.vue:232
 msgid "An error occur fetching example on github"
 msgstr ""
 "Une erreur s'est produite lors de la récupération de l'exemple sur github"
@@ -177,9 +177,8 @@ msgid "at least 8 character long"
 msgstr ""
 
 #: src/components/microservices/GTFSWebImporter.vue:53
-#, fuzzy
 msgid "Available GTFS"
-msgstr "rafraîchir la liste"
+msgstr "GTFS disponibles"
 
 #: src/components/run/ParamForm.vue:142
 msgid "back to default"
@@ -195,11 +194,11 @@ msgstr "Annuler"
 
 #: src/components/layout/ScenariosExplorer.vue:328
 #: src/components/layout/ScenariosExplorer.vue:405
-#: src/components/map/LinksSidePanel.vue:502
+#: src/components/map/LinksSidePanel.vue:496
 #: src/components/map/Settings.vue:147
-#: src/components/results/ResultsSettings.vue:311 src/pages/Home.vue:227
-#: src/pages/Home.vue:299 src/pages/ResultMap.vue:214
-#: src/pages/ResultMap.vue:268
+#: src/components/results/ResultsSettings.vue:311 src/pages/Home.vue:226
+#: src/pages/Home.vue:297 src/pages/ResultMap.vue:217
+#: src/pages/ResultMap.vue:271
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -207,27 +206,27 @@ msgstr "Annuler"
 msgid "cannot add empty field"
 msgstr "impossible d'ajouter un champ vide"
 
-#: src/components/microservices/MapSelector.vue:154
+#: src/components/microservices/MapSelector.vue:156
 msgid "Cannot delete anymore"
 msgstr "Nombre de point minimum. Impossible de supprimer d'avantage"
 
-#: src/components/microservices/MapSelector.vue:157
+#: src/components/microservices/MapSelector.vue:159
 msgid "cannot delete first point of polygon"
 msgstr "Le premier point du polygone ne peut pas être supprimé"
 
-#: src/components/map/LinksSidePanel.vue:127
+#: src/components/map/LinksSidePanel.vue:69
 msgid "Cannot filter by this field. There is more than 500 groups"
 msgstr "Impossible de filtrer par ce champ. Il y a plus de 500 groupes"
 
-#: src/pages/Home.vue:307
+#: src/pages/Home.vue:282
 msgid "Click on the map to start drawing"
 msgstr "Cliquer sur la carte pour commencer"
 
-#: src/components/microservices/MapSelector.vue:109
+#: src/components/microservices/MapSelector.vue:111
 msgid "Click to add points. Right click de remove"
 msgstr "Clique pour ajouter un point, clique droit pour supprimer"
 
-#: src/components/results/results.js:330
+#: src/components/results/results.js:327
 msgid "Clickable element in green"
 msgstr "Éléments cliquables en vert"
 
@@ -251,7 +250,7 @@ msgstr "palette de couleur"
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr "couleur à afficher sur la carte (ex: FFFFFF)"
 
-#: src/components/map/LinksSidePanel.vue:448
+#: src/components/map/LinksSidePanel.vue:442
 msgid "Confirm"
 msgstr "Valider"
 
@@ -259,7 +258,7 @@ msgstr "Valider"
 msgid "Continue Without Project"
 msgstr "Continuer sans Projet"
 
-#: src/components/microservices/GTFSZipImporter.vue:210
+#: src/components/microservices/GTFSZipImporter.vue:207
 msgid "convert"
 msgstr "convertir"
 
@@ -267,7 +266,7 @@ msgstr "convertir"
 msgid "copy"
 msgstr "copier"
 
-#: src/pages/Home.vue:299
+#: src/pages/Home.vue:274
 msgid "Could not apply modification. Trip_id already exist"
 msgstr "Les modifications n'ont pas pu être appliquées. Le trip_id existe déjà"
 
@@ -280,11 +279,11 @@ msgstr ""
 "de passe temporaire puisque le couriel d'invitation pourrait être bloqué par "
 "l'organisation."
 
-#: src/components/map/LinksSidePanel.vue:467
+#: src/components/map/LinksSidePanel.vue:461
 msgid "Create new Line"
 msgstr "Créer une nouvelle ligne"
 
-#: src/pages/ResultMap.vue:174
+#: src/pages/ResultMap.vue:177
 msgid "Create or modify preset"
 msgstr "Créer ou modifier un préréglage"
 
@@ -304,11 +303,11 @@ msgstr "échelle personnalisée"
 msgid "customize to inputs values"
 msgstr "personnaliser l'échelle"
 
-#: src/components/map/EditorLinks.vue:144
+#: src/components/map/EditorLinks.vue:150
 msgid "Cut After Node"
 msgstr "Couper après l'arrêt"
 
-#: src/components/map/EditorLinks.vue:143
+#: src/components/map/EditorLinks.vue:149
 msgid "Cut Before Node"
 msgstr "Couper avant l'arrêt"
 
@@ -320,12 +319,12 @@ msgstr "Données récupérées de"
 msgid "Data not found: "
 msgstr "Données introuvables: "
 
-#: src/pages/ResultMap.vue:278
+#: src/pages/ResultMap.vue:281
 msgid "delete"
 msgstr "Supprimer "
 
-#: src/components/layout/ScenariosExplorer.vue:337 src/pages/Home.vue:45
-#: src/pages/ResultMap.vue:255
+#: src/components/layout/ScenariosExplorer.vue:337 src/pages/Home.vue:44
+#: src/pages/ResultMap.vue:258
 msgid "Delete"
 msgstr "Supprimer "
 
@@ -341,27 +340,27 @@ msgstr "effacer tout "
 msgid "Delete all network and start from scratch"
 msgstr "Créer un réseau à partir de zéro"
 
-#: src/components/map/LinksSidePanel.vue:223
+#: src/components/map/LinksSidePanel.vue:220
 msgid "Delete Group"
 msgstr "Supprimer le groupe"
 
-#: src/components/map/LinksSidePanel.vue:363
-#: src/components/map/ODSidePanel.vue:211
+#: src/components/map/LinksSidePanel.vue:357
+#: src/components/map/ODSidePanel.vue:206
 #: src/components/map/RoadSidePanel.vue:195
 msgid "Delete Line"
 msgstr "Supprimer"
 
-#: src/components/map/ODMap.vue:164
+#: src/components/map/ODMap.vue:166
 msgid "Delete OD"
 msgstr "Supprimer "
 
-#: src/components/map/RoadLinks.vue:286
+#: src/components/map/RoadLinks.vue:199
 msgid "Delete rLink"
 msgstr "Supprimer"
 
-#: src/components/map/EditorLinks.vue:131
 #: src/components/map/EditorLinks.vue:137
-#: src/components/map/EditorLinks.vue:145
+#: src/components/map/EditorLinks.vue:143
+#: src/components/map/EditorLinks.vue:151
 msgid "Delete Stop"
 msgstr "Supprimer l'arrêt"
 
@@ -393,53 +392,48 @@ msgstr "n'ajouté pas de .zip à la fin"
 msgid "Download"
 msgstr "Télécharger"
 
-#: src/components/map/LinksSidePanel.vue:343
-msgid "Duplicate"
-msgstr "Dupliquer"
-
-#: src/pages/Home.vue:264
+#: src/components/map/LinksSidePanel.vue:337 src/pages/Home.vue:263
 msgid "Duplicate and reverse"
 msgstr "Dupliquer et inverser"
 
-#: src/pages/Home.vue:279
-#, fuzzy
+#: src/pages/Home.vue:277
 msgid "duplicate nodes"
-msgstr "Dupliquer et inverser"
+msgstr "Dupliquer les noeuds"
 
-#: src/components/map/LinksSidePanel.vue:204
+#: src/components/map/LinksSidePanel.vue:201
 msgid "Edit Group Properties"
 msgstr "Modifier les propriétés du groupe"
 
-#: src/components/map/LinksSidePanel.vue:301
+#: src/components/map/LinksSidePanel.vue:295
 msgid "Edit Line"
 msgstr "Modifier la ligne"
 
-#: src/components/map/LinksSidePanel.vue:410
+#: src/components/map/LinksSidePanel.vue:404
 #: src/components/map/RoadSidePanel.vue:233
 msgid "Edit Line geometry"
 msgstr "Modifier La géométrie de la ligne"
 
-#: src/components/map/LinksSidePanel.vue:322
-#: src/components/map/ODSidePanel.vue:190
+#: src/components/map/LinksSidePanel.vue:316
+#: src/components/map/ODSidePanel.vue:185
 #: src/components/map/RoadSidePanel.vue:175
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
-#: src/components/map/EditorLinks.vue:130
 #: src/components/map/EditorLinks.vue:136
 #: src/components/map/EditorLinks.vue:142
+#: src/components/map/EditorLinks.vue:148
 msgid "Edit Node Info"
 msgstr "Modifier les infos"
 
-#: src/components/map/ODMap.vue:163
+#: src/components/map/ODMap.vue:165
 msgid "Edit OD Info"
 msgstr "Modifier les infos"
 
-#: src/pages/Home.vue:45
+#: src/pages/Home.vue:44
 msgid "Edit Properties"
 msgstr "Modifier"
 
-#: src/components/map/RoadLinks.vue:285
+#: src/components/map/RoadLinks.vue:198
 msgid "Edit rLink Info"
 msgstr "Modifier les infos"
 
@@ -481,7 +475,7 @@ msgstr "Exporter les visibles"
 msgid "fetch available GTFS"
 msgstr "rafraîchir la liste"
 
-#: src/pages/Home.vue:511
+#: src/pages/Home.vue:438
 msgid "Field added"
 msgstr "Champ ajouté"
 
@@ -493,7 +487,7 @@ msgstr "Le champ existe déjà"
 msgid "field cannot end with _r"
 msgstr ""
 
-#: src/pages/Home.vue:542
+#: src/pages/Home.vue:469
 msgid "Field deleted"
 msgstr "Champ ajouté"
 
@@ -501,18 +495,18 @@ msgstr "Champ ajouté"
 msgid "file is not a zip"
 msgstr "le fichier n'est pas un zip"
 
-#: src/store/index.js:149
+#: src/store/index.js:142
 msgid "File(s) added"
 msgstr "Fichier(s) ajouté(s)"
 
 #: src/components/map/LinksSidePanel.vue:143
 #: src/components/map/ODSidePanel.vue:130
 #: src/components/map/RoadSidePanel.vue:133
-#: src/components/results/ResultsSidePanel.vue:195
+#: src/components/results/ResultsSidePanel.vue:205
 msgid "filter"
 msgstr "filtre"
 
-#: src/components/utils/StaticLayer.vue:78 src/pages/ResultMap.vue:114
+#: src/components/utils/StaticLayer.vue:77 src/pages/ResultMap.vue:113
 msgid "filter does not exist. use default one"
 msgstr "Le filtre n'existe pas. valeur par défaut utilisé"
 
@@ -520,13 +514,12 @@ msgstr "Le filtre n'existe pas. valeur par défaut utilisé"
 msgid "first name"
 msgstr "prénom"
 
-#: src/components/microservices/GTFSZipImporter.vue:152
+#: src/components/microservices/GTFSZipImporter.vue:149
 #: src/components/utils/LayerSelector.vue:73
 msgid "from"
 msgstr "de"
 
 #: src/constants/hints.js:20
-#, fuzzy
 msgid ""
 "Full name of a route.This name is generally more descriptive than the "
 "route_short_name and often includes the roudefaultAttributeste's destination "
@@ -544,15 +537,15 @@ msgid "gtfs imported successfully!"
 msgstr "GTFS importés avec succès"
 
 #: src/components/microservices/GTFSWebImporter.vue:41
-#: src/components/microservices/GTFSZipImporter.vue:49
+#: src/components/microservices/GTFSZipImporter.vue:50
 msgid "GTFS importer"
 msgstr "GTFS importer"
 
 #: src/components/map/LinksSidePanel.vue:50
-#: src/components/map/LinksSidePanel.vue:181
+#: src/components/map/LinksSidePanel.vue:178
 #: src/components/map/ODSidePanel.vue:37
 #: src/components/map/RoadSidePanel.vue:40
-#: src/components/results/ResultsSidePanel.vue:135
+#: src/components/results/ResultsSidePanel.vue:142
 msgid "Hide All"
 msgstr "Cacher Tout"
 
@@ -569,7 +562,6 @@ msgid "Identifies a route. Often a string"
 msgstr "Identifie une route. Souvent un String"
 
 #: src/constants/hints.js:33
-#, fuzzy
 msgid ""
 "if the road contain a bike path in the opposite direction. either yes, no or "
 "shared. a road can be a oneway and have cycleway on both side."
@@ -586,7 +578,7 @@ msgstr "si la route contient une piste cyclable. soit oui, non ou partagé"
 msgid "Import"
 msgstr "Importer"
 
-#: src/components/microservices/GTFSZipImporter.vue:55
+#: src/components/microservices/GTFSZipImporter.vue:56
 msgid "import GTFS from local computer"
 msgstr "importer des GTFS depuis votre ordinateur (.zip)"
 
@@ -617,10 +609,10 @@ msgstr "adresse courriel invalide"
 #: src/components/microservices/GTFSWebImporter.vue:142
 #: src/components/microservices/GTFSWebImporter.vue:155
 #: src/components/microservices/GTFSWebImporter.vue:157
-#: src/components/microservices/GTFSZipImporter.vue:123
-#: src/components/microservices/GTFSZipImporter.vue:125
-#: src/components/microservices/GTFSZipImporter.vue:137
-#: src/components/microservices/GTFSZipImporter.vue:139
+#: src/components/microservices/GTFSZipImporter.vue:120
+#: src/components/microservices/GTFSZipImporter.vue:122
+#: src/components/microservices/GTFSZipImporter.vue:134
+#: src/components/microservices/GTFSZipImporter.vue:136
 #: src/components/microservices/MatrixRoadCaster.vue:49
 #: src/components/microservices/MatrixRoadCaster.vue:51
 #: src/components/microservices/MatrixRoadCaster.vue:63
@@ -641,6 +633,10 @@ msgstr "item"
 #: src/components/layout/Profile.vue:330
 msgid "last name"
 msgstr "nom"
+
+#: src/components/results/ResultsSidePanel.vue:154
+msgid "Layer"
+msgstr "Couche"
 
 #: src/components/map/EditorLinks.vue:122
 msgid "Left click to add a stop"
@@ -678,7 +674,7 @@ msgstr "Propriété des liens TC à afficher lorsqu'on survole sur la carte"
 msgid "Link field to display when hovering road link on the map"
 msgstr "Propriété des routes à afficher lorsqu'on survole sur la carte"
 
-#: src/pages/ResultMap.vue:115
+#: src/pages/ResultMap.vue:118
 msgid "link Properties"
 msgstr "Modifier"
 
@@ -761,15 +757,15 @@ msgstr "Largeur min"
 msgid "ML Matrix Road Caster"
 msgstr "ML Matrix Road Caster"
 
-#: src/pages/Home.vue:431
+#: src/pages/Home.vue:358
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/components/map/Settings.vue:98 src/pages/Home.vue:422
+#: src/components/map/Settings.vue:98 src/pages/Home.vue:349
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
-#: src/pages/Home.vue:87
+#: src/pages/Home.vue:86
 msgid "multiple Values"
 msgstr "Valeurs multiples"
 
@@ -779,8 +775,8 @@ msgstr ""
 
 #: src/components/layout/ScenariosExplorer.vue:101
 #: src/components/layout/ScenariosExplorer.vue:379
-#: src/components/microservices/GTFSZipImporter.vue:151
-#: src/pages/ResultMap.vue:194
+#: src/components/microservices/GTFSZipImporter.vue:148
+#: src/pages/ResultMap.vue:197
 msgid "name"
 msgstr "nom"
 
@@ -788,26 +784,25 @@ msgstr "nom"
 msgid "need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol"
 msgstr ""
 
-#: src/store/index.js:125
+#: src/store/index.js:118
 msgid "Need the same number of links and nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds"
 
-#: src/store/index.js:131
+#: src/store/index.js:124
 msgid "Need the same number of road_links and road_nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds routiers"
 
-#: src/pages/Home.vue:150
+#: src/pages/Home.vue:149
 msgid "new field name"
 msgstr "nouveau champ"
 
-#: src/pages/Home.vue:274
+#: src/pages/Home.vue:272
 msgid "New name"
 msgstr "Nouveau nom"
 
 #: src/components/layout/Signin.vue:19
-#, fuzzy
 msgid "New password"
-msgstr "mot de passe temporaire"
+msgstr "Nouveau mot de passe"
 
 #: src/components/map/Settings.vue:49
 msgid "New road links Highway property name"
@@ -823,9 +818,9 @@ msgstr "Nouveau Scénario"
 
 #: src/components/layout/Profile.vue:357
 #: src/components/layout/ScenariosExplorer.vue:276
-#: src/components/map/LinksSidePanel.vue:512
+#: src/components/map/LinksSidePanel.vue:506
 #: src/components/microservices/GTFSWebImporter.vue:228
-#: src/components/microservices/GTFSZipImporter.vue:245
+#: src/components/microservices/GTFSZipImporter.vue:242
 #: src/components/microservices/OSMImporter.vue:142 src/pages/Import.vue:229
 msgid "No"
 msgstr "Non"
@@ -848,8 +843,8 @@ msgstr "nombre de pas "
 msgid "OD"
 msgstr ""
 
-#: src/components/layout/ScenariosExplorer.vue:415 src/pages/ResultMap.vue:149
-#: src/pages/ResultMap.vue:224
+#: src/components/layout/ScenariosExplorer.vue:415 src/pages/ResultMap.vue:152
+#: src/pages/ResultMap.vue:227
 msgid "ok"
 msgstr "ok"
 
@@ -883,7 +878,7 @@ msgid "Overwrite current Project ?"
 msgstr "Écraser le projet en cours ?"
 
 #: src/components/microservices/GTFSWebImporter.vue:216
-#: src/components/microservices/GTFSZipImporter.vue:233
+#: src/components/microservices/GTFSZipImporter.vue:230
 #: src/components/microservices/OSMImporter.vue:130
 msgid "Overwrite current road network ?"
 msgstr "Écraser le projet en cours ?"
@@ -909,24 +904,24 @@ msgstr ""
 msgid "password must match"
 msgstr ""
 
-#: src/pages/ResultMap.vue:171
+#: src/pages/ResultMap.vue:170
 msgid "Preset changed. Please reload the active layer on the map"
 msgstr ""
 
-#: src/pages/ResultMap.vue:192
+#: src/pages/ResultMap.vue:191
 msgid "Preset deleted"
 msgstr "Préréglage supprimé"
 
-#: src/pages/ResultMap.vue:122
+#: src/pages/ResultMap.vue:121
 msgid "Preset Layer does not exist"
 msgstr "La couche du préréglage n'existe pas"
 
-#: src/pages/ResultMap.vue:177
+#: src/pages/ResultMap.vue:176
 msgid "Preset Saved"
 msgstr "Préréglage sauvegardé"
 
-#: src/components/results/ResultsSidePanel.vue:63
-#: src/components/results/ResultsSidePanel.vue:74
+#: src/components/results/ResultsSidePanel.vue:67
+#: src/components/results/ResultsSidePanel.vue:79
 msgid "Presets"
 msgstr "Préréglages"
 
@@ -1008,10 +1003,9 @@ msgstr "inverser les couleurs"
 msgid "reverse color scale"
 msgstr "inverse la palette de couleur"
 
-#: src/components/results/MapResults.vue:117
-#, fuzzy
+#: src/components/results/MapResults.vue:104
 msgid "Right click and drag to tilt the map"
-msgstr "Clique droit pour modifier"
+msgstr "Clique droit et glisser pour incliner la carte"
 
 #: src/components/map/EditorLinks.vue:127
 msgid "Right click for context menu"
@@ -1062,12 +1056,12 @@ msgid "save"
 msgstr "Sauv..."
 
 #: src/components/layout/NavigationDrawer.vue:26
-#: src/components/map/Settings.vue:157 src/pages/Home.vue:237
-#: src/pages/Home.vue:309
+#: src/components/map/Settings.vue:157 src/pages/Home.vue:236
+#: src/pages/Home.vue:307
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/components/map/LinksSidePanel.vue:490
+#: src/components/map/LinksSidePanel.vue:484
 msgid "Save Changes?"
 msgstr "Sauvegarder ?"
 
@@ -1116,7 +1110,7 @@ msgstr "Sélectionner un Projet"
 msgid "Select which side of the road the links are display"
 msgstr "Sélectionner de quel coté les liens sont affichés"
 
-#: src/components/microservices/GTFSZipImporter.vue:154
+#: src/components/microservices/GTFSZipImporter.vue:151
 msgid "selected date"
 msgstr "date sélectionné"
 
@@ -1161,10 +1155,10 @@ msgid "should be larger than 0"
 msgstr "devrait être plus grand que 0"
 
 #: src/components/map/LinksSidePanel.vue:50
-#: src/components/map/LinksSidePanel.vue:182
+#: src/components/map/LinksSidePanel.vue:179
 #: src/components/map/ODSidePanel.vue:37
 #: src/components/map/RoadSidePanel.vue:40
-#: src/components/results/ResultsSidePanel.vue:135
+#: src/components/results/ResultsSidePanel.vue:142
 msgid "Show All"
 msgstr "Montrer Tout"
 
@@ -1190,12 +1184,11 @@ msgstr ""
 
 #: src/store/user.js:98
 msgid "sign out"
-msgstr "déconnecté"
+msgstr "déconnection"
 
 #: src/components/layout/Profile.vue:248
-#, fuzzy
 msgid "Sign out"
-msgstr "déconnecté"
+msgstr "déconnection"
 
 #: src/pages/Run.vue:93
 msgid ""
@@ -1262,15 +1255,13 @@ msgstr "Le nom du fichier .zip à l'export."
 msgid "The scenario will be permanently deleted"
 msgstr "Le scénario sera supprimé définitivement"
 
-#: src/components/microservices/GTFSZipImporter.vue:95
-#, fuzzy
+#: src/components/microservices/GTFSZipImporter.vue:92
 msgid ""
 "There as been an error while converting your GTFS.             Please try "
 "again. If the problem persist, contact us."
 msgstr ""
-"La simulation s'est terminée avec une erreur d'execution ou a été abadonnée."
-"SVP, executer la simulation de nouveau. Si le problème persiste, veuillez "
-"nous contacter."
+"Erreur lors de la conversion des GTFS"
+"Si le problème persiste, veuillez nous contacter."
 
 #: src/components/microservices/GTFSWebImporter.vue:112
 #: src/components/microservices/OSMImporter.vue:46
@@ -1278,9 +1269,8 @@ msgid ""
 "There as been an error while importing OSM network.             Please try "
 "again. If the problem persist, contact us."
 msgstr ""
-"La simulation s'est terminée avec une erreur d'execution ou a été abadonnée."
-"SVP, executer la simulation de nouveau. Si le problème persiste, veuillez "
-"nous contacter."
+"Erreur lors de l'import du réseau OSM"
+"Si le problème persiste, veuillez nous contacter."
 
 #: src/components/utils/serializer.js:27
 msgid ""
@@ -1288,7 +1278,7 @@ msgid ""
 msgstr ""
 "il y a des index de liens ou de noeds en double. Importation interrompue"
 
-#: src/pages/Home.vue:556
+#: src/pages/Home.vue:483
 msgid ""
 "This action will delete properties on every links (and reversed one for two-"
 "way roads)"
@@ -1316,7 +1306,7 @@ msgstr "le compte utilisateur sera supprimé définitivement"
 msgid "Time between departures in seconds"
 msgstr "Temps entre chaque départ en secondes"
 
-#: src/components/microservices/GTFSZipImporter.vue:153
+#: src/components/microservices/GTFSZipImporter.vue:150
 msgid "to"
 msgstr "à"
 
@@ -1332,15 +1322,15 @@ msgstr ""
 "Temps de parcours sur le lien. Défini comme distance / vitesse quand un lien "
 "est créé ou modifier (secondes)"
 
-#: src/components/map/LinksSidePanel.vue:74
+#: src/components/map/LinksSidePanel.vue:98
 msgid "undefined"
 msgstr "indéfini"
 
-#: src/components/microservices/GTFSZipImporter.vue:80
+#: src/components/microservices/GTFSZipImporter.vue:74
 msgid "upload GTFS"
 msgstr "téléverser des GTFS"
 
-#: src/components/microservices/GTFSZipImporter.vue:155
+#: src/components/microservices/GTFSZipImporter.vue:152
 msgid "Uploaded"
 msgstr "Téléversé"
 
@@ -1356,7 +1346,7 @@ msgstr "Utilisateur supprimé définitivement"
 msgid "username"
 msgstr "nom d'utilisateur"
 
-#: src/components/map/LinksSidePanel.vue:187
+#: src/components/map/LinksSidePanel.vue:184
 msgid "value"
 msgstr "valeur"
 
@@ -1370,9 +1360,9 @@ msgstr "Largeur à afficher sur la carte"
 
 #: src/components/layout/Profile.vue:366
 #: src/components/layout/ScenariosExplorer.vue:285
-#: src/components/map/LinksSidePanel.vue:521
+#: src/components/map/LinksSidePanel.vue:515
 #: src/components/microservices/GTFSWebImporter.vue:237
-#: src/components/microservices/GTFSZipImporter.vue:254
+#: src/components/microservices/GTFSZipImporter.vue:251
 #: src/components/microservices/OSMImporter.vue:151 src/pages/Import.vue:238
 msgid "Yes"
 msgstr "Oui"
@@ -1382,10 +1372,12 @@ msgid "you need parameters to enter this page"
 msgstr ""
 
 #: src/store/user.js:99
-#, fuzzy
 msgid "your session has expired. Please sign in again"
 msgstr ""
 "Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
+
+#~ msgid "Duplicate"
+#~ msgstr "Dupliquer"
 
 #~ msgid "%{s}"
 #~ msgstr "%{s}"

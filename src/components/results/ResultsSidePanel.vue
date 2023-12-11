@@ -141,12 +141,12 @@ export default {
                     class="title-div"
                     v-bind="props"
                   >
-                    <v-list-item-title class="crop custom-title">
+                    <span class="custom-title">
                       {{ $gettext("Presets") }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle class="crop">
+                    </span>
+                    <span class="crop">
                       {{ selectedPreset }}
-                    </v-list-item-subtitle>
+                    </span>
                   </div>
                 </template>
                 <v-list>
@@ -207,12 +207,12 @@ export default {
                     class="title-div"
                     v-bind="props"
                   >
-                    <v-list-item-title class="crop custom-title">
+                    <span class="custom-title">
                       {{ $gettext("Layer") }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle class="crop">
+                    </span>
+                    <span class="crop">
                       {{ selectedLayer }}
-                    </v-list-item-subtitle>
+                    </span>
                   </div>
                 </template>
                 <v-list>
@@ -307,6 +307,7 @@ export default {
 .title-div {
   color:white;
   cursor:pointer;
+  max-width: 12rem;
   display:flex;
   justify-content: center;
   flex-direction: column;
@@ -321,6 +322,8 @@ export default {
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
   cursor:pointer;
+  font-size:0.875rem;
+  opacity:var(--v-medium-emphasis-opacity);
 
 }
 .preset {
