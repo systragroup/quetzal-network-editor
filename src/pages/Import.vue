@@ -25,7 +25,11 @@ export default {
     const userStore = useUserStore()
     const runStore = useRunStore()
     const projectIsEmpty = computed(() => store.projectIsEmpty)
-    return { store, userStore, runStore, projectIsEmpty }
+
+    function showScenarios () {
+      store.changeShowScenarios()
+    }
+    return { store, userStore, runStore, projectIsEmpty, showScenarios }
   },
 
   data () {
@@ -262,7 +266,10 @@ export default {
         <v-row>
           <v-col>
             <v-card-text :style="{textAlign: 'center'}">
-              <div class="custom-title">
+              <div
+                class="custom-title clickage"
+                @click="showScenarios"
+              >
                 {{ $gettext("Select a Project") }}
               </div>
               <div>
@@ -451,6 +458,9 @@ export default {
   color: rgb(var(--v-theme-primary));
   font-weight: bold;
   margin-top:18px;
+}
+.clickage{
+  cursor:pointer
 }
 .subtitle {
   font-size: 1.5em;

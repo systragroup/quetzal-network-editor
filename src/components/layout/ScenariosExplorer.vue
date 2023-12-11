@@ -4,8 +4,9 @@ import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
+import router from '@src/router/index'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const $gettext = s => s
 
@@ -14,15 +15,36 @@ export default {
   components: {
 
   },
-
-  props: [],
-  events: [],
   setup () {
     const store = useIndexStore()
     const userStore = useUserStore()
     const runStore = useRunStore()
     const windowHeight = computed(() => store.windowHeight)
     const projectIsEmpty = computed(() => store.projectIsEmpty)
+    const showScenarios = computed(() => store.showScenarios)
+    const menu = ref(false)
+    const localModel = ref('')
+    const loading = ref(false)
+    watch(showScenarios, (val) => {
+      if (val !== menu.value) { menu.value = val }
+    })
+    watch(menu, async (val) => {
+      if (val !== showScenarios.value) { store.changeShowScenarios() }
+      if (val) {
+        userStore.isTokenExpired()
+        // when we click on the menu. fetch the scenario list (update in place)
+        loading.value = true
+        await userStore.getScenario({ model: localModel.value })
+        loading.value = false
+      }
+    })
+    watch(localModel, async (val) => {
+      // when we click on a tab (model), fetch the scenario list.
+      userStore.setScenariosList([])
+      loading.value = true
+      await userStore.getScenario({ model: val })
+      loading.value = false
+    })
 
     const loggedIn = computed(() => userStore.loggedIn)
 
@@ -52,8 +74,123 @@ export default {
       })
     })
 
+    const showDialog = ref(false)
+    const modelScen = ref('')
+    const localScen = ref('')
+    const errorMessage = ref('')
+    const copyDialog = ref(false)
+    const selectedScenario = ref(null)
+    const scenarioToDelete = ref(null)
+    const input = ref('')
+    const deleteDialog = ref(false)
+    const locked = ref(false)
+
+    watch(modelsList, async (val) => {
+      // This component is rendered before we fetch on S3 the bucket list.
+      // so, when its fetched, set the model to the first one and get the scenario.
+      if (localModel.value === '') { localModel.value = modelsList.value[0] }
+      await userStore.getScenario({ model: localModel.value })
+    })
+
+    watch(scenario, (val) => {
+      if (val !== localScen.value) {
+        localScen.value = ''
+        modelScen.value = ''
+      }
+    })
+
+    function selectScenario (e, val) {
+      if (e.type === 'keydown') { return }
+      modelScen.value = val.model + val.scenario
+      localScen.value = val.scenario
+      locked.value = val.protected
+      if (val.scenario) {
+        if (projectIsEmpty.value) {
+          loadProject()
+        } else {
+          showDialog.value = true
+        }
+      }
+    }
+    async function loadProject () {
+      runStore.cleanRun()
+      userStore.setModel(localModel.value)
+      userStore.setScenario({ scenario: localScen.value, protected: locked.value })
+      router.push({ name: 'Import', query: { s3Path: localModel.value } })
+      menu.value = false
+    }
+
+    function applyDialog () {
+      menu.value = false
+      showDialog.value = false
+      loadProject()
+    }
+    function cancelDialog () {
+      // reset vmodel back to loaded scenario
+      modelScen.value = model.value + scenario.value
+      localScen.value = scenario.value
+      showDialog.value = false
+      menu.value = false
+    }
+    function deleteScenario () {
+      deleteDialog.value = false
+      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(resp => {
+        deleteDialog.value = false
+        userStore.getScenario({ model: localModel.value })
+        store.changeNotification(
+          { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
+      }).catch((err) => {
+        deleteDialog.value = false
+        console.error(err)
+        store.changeNotification(
+          { text: $gettext('An error occured'), autoClose: true, color: 'error' })
+      })
+    }
+    async function createProject () {
+      if (input.value === '') {
+        errorMessage.value = 'Please enter a name'
+      } else if (input.value.includes('/')) {
+        errorMessage.value = 'cannot have / in name'
+      } else if (scenariosList.value.map(p => p.scenario).includes(input.value)) {
+        errorMessage.value = 'project already exist'
+      } else {
+        try {
+          if (selectedScenario.value) {
+            // this is a copy
+            await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value)
+            store.changeNotification(
+              { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
+          } else {
+            // this is a new project
+            // copy the parameters file from Base. this will create a new project .
+            // take first Scen. should be base or any locked scen
+            const protectedList = userStore.scenariosList.filter(scen => scen.protected)
+            const base = protectedList[0].scenario
+            await s3.newScenario(localModel.value, base, input.value)
+            store.changeNotification(
+              { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
+          }
+        } catch (err) { store.changeAlert(err); selectedScenario.value = null }
+        closeCopy()
+        loading.value = true
+        // wait 500ms to fetch the scenarios to make sure its available on the DB
+        setTimeout(() => {
+          userStore.getScenario({ model: localModel.value }).then(() => { loading.value = false })
+            .catch((err) => { store.changeAlert(err); loading.value = false })
+        }, 500)
+      }
+    }
+
+    function closeCopy () {
+      copyDialog.value = false
+      input.value = ''
+      selectedScenario.value = null
+      errorMessage.value = ''
+    }
+
     return {
       store,
+      menu,
       userStore,
       runStore,
       searchString,
@@ -64,150 +201,30 @@ export default {
       loggedIn,
       modelsList,
       model,
+      localModel,
       scenario,
       scenariosList,
+      loading,
+      showDialog,
+      modelScen,
+      localScen,
+      errorMessage,
+      copyDialog,
+      selectedScenario,
+      scenarioToDelete,
+      input,
+      deleteDialog,
+      locked,
+      selectScenario,
+      loadProject,
+      applyDialog,
+      cancelDialog,
+      deleteScenario,
+      createProject,
+      closeCopy,
     }
   },
-  data () {
-    return {
-      menu: false,
-      showDialog: false,
-      modelScen: '',
-      localModel: '',
-      localScen: '',
-      errorMessage: '',
-      copyDialog: false,
-      selectedScenario: null,
-      scenarioToDelete: null,
-      input: '',
-      deleteDialog: false,
-      loading: false,
-      protected: false,
 
-    }
-  },
-
-  watch: {
-    async  menu (val) {
-      if (val) {
-        this.userStore.isTokenExpired()
-        // when we click on the menu. fetch the scenario list (update in place)
-        this.loading = true
-        await this.userStore.getScenario({ model: this.localModel })
-        this.loading = false
-      }
-    },
-    async localModel (val) {
-      // when we click on a tab (model), fetch the scenario list.
-      this.userStore.setScenariosList([])
-      this.loading = true
-      await this.userStore.getScenario({ model: val })
-      this.loading = false
-    },
-    async modelsList (val) {
-      // This component is rendered before we fetch on S3 the bucket list.
-      // so, when its fetched, set the model to the first one and get the scenario.
-      if (this.localModel === '') { this.localModel = this.modelsList[0] }
-      await this.userStore.getScenario({ model: this.localModel })
-    },
-    scenario (val) {
-      if (val !== this.localScen) {
-        this.localScen = ''
-        this.modelScen = ''
-      }
-    },
-  },
-
-  methods: {
-    selectScenario (val) {
-      this.modelScen = val.model + val.scenario
-      this.localScen = val.scenario
-      this.protected = val.protected
-      if (val.scenario) {
-        if (this.projectIsEmpty) {
-          this.loadProject()
-        } else {
-          this.showDialog = true
-        }
-      }
-    },
-    async loadProject () {
-      this.runStore.cleanRun()
-      this.userStore.setModel(this.localModel)
-      this.userStore.setScenario({ scenario: this.localScen, protected: this.protected })
-      this.$router.push({ name: 'Import', query: { s3Path: this.localModel } })
-      this.menu = false
-    },
-
-    applyDialog () {
-      this.menu = false
-      this.showDialog = false
-      this.loadProject()
-    },
-    cancelDialog () {
-      // reset vmodel back to loaded scenario
-      this.modelScen = this.model + this.scenario
-      this.localScen = this.scenario
-      this.showDialog = false
-      this.menu = false
-    },
-    deleteScenario () {
-      this.deleteDialog = false
-      s3.deleteFolder(this.localModel, this.scenarioToDelete + '/').then(resp => {
-        this.deleteDialog = false
-        this.userStore.getScenario({ model: this.localModel })
-        this.store.changeNotification(
-          { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
-      }).catch((err) => {
-        this.deleteDialog = false
-        console.error(err)
-        this.store.changeNotification(
-          { text: $gettext('An error occured'), autoClose: true, color: 'error' })
-      })
-    },
-    async createProject () {
-      if (this.input === '') {
-        this.errorMessage = 'Please enter a name'
-      } else if (this.input.includes('/')) {
-        this.errorMessage = 'cannot have / in name'
-      } else if (this.scenariosList.map(p => p.scenario).includes(this.input)) {
-        this.errorMessage = 'project already exist'
-      } else {
-        try {
-          if (this.selectedScenario) {
-            // this is a copy
-            await s3.copyFolder(this.localModel, this.selectedScenario + '/', this.input)
-            this.store.changeNotification(
-              { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
-          } else {
-            // this is a new project
-            // copy the parameters file from Base. this will create a new project .
-            // take first Scen. should be base or any locked scen
-            const protectedList = this.userStore.scenariosList.filter(scen => scen.protected)
-            const base = protectedList[0].scenario
-            await s3.newScenario(this.localModel, base, this.input)
-            this.store.changeNotification(
-              { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
-          }
-        } catch (err) { this.store.changeAlert(err); this.selectedScenario = null }
-        this.closeCopy()
-        this.loading = true
-        // wait 500ms to fetch the scenarios to make sure its available on the DB
-        setTimeout(() => {
-          this.userStore.getScenario({ model: this.localModel }).then(() => { this.loading = false })
-            .catch((err) => { this.store.changeAlert(err); this.loading = false })
-        }, 500)
-      }
-    },
-
-    closeCopy () {
-      this.copyDialog = false
-      this.input = ''
-      this.selectedScenario = null
-      this.errorMessage = ''
-    },
-
-  },
 }
 </script>
 <template>
@@ -316,7 +333,7 @@ export default {
             :value="scen.model + scen.scenario"
             :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
             lines="two"
-            @click="selectScenario(scen)"
+            @click="(e)=>{selectScenario(e,scen)}"
           >
             <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
             <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
@@ -341,14 +358,13 @@ export default {
               />
             </template>
           </v-list-item>
-          <v-list-item v-show="loading">
-            <v-spacer />
-            <v-progress-circular
-              color="primary"
-              indeterminate
-            />
-            <v-spacer />
-          </v-list-item>
+          <v-spacer />
+          <v-progress-linear
+            v-if="loading"
+            color="primary"
+            indeterminate
+          />
+          <v-spacer />
         </div>
         <v-divider />
         <v-list-item>
@@ -362,117 +378,6 @@ export default {
         </v-list-item>
       </v-card>
     </v-menu>
-    <v-dialog
-      v-model="showDialog"
-      persistent
-      max-width="350"
-      @keydown.enter="applyDialog"
-      @keydown.esc="cancelDialog"
-    >
-      <v-card>
-        <v-card-title class="text-h4">
-          {{ $gettext("Load Scenario?") }}
-        </v-card-title>
-        <v-card-text class="text-h6">
-          {{ $gettext("This will ERASE the current project") }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="cancelDialog"
-          >
-            {{ $gettext("No") }}
-          </v-btn>
-
-          <v-btn
-            color="primary"
-            @click="applyDialog"
-          >
-            {{ $gettext("Yes") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      v-model="deleteDialog"
-      persistent
-      max-width="350"
-      @keydown.esc="()=>deleteDialog=false"
-    >
-      <v-card>
-        <v-card-title class="text-h4">
-          {{ $gettext("Delete ")+ scenarioToDelete+' ?' }}
-        </v-card-title>
-        <v-card-text class="text-h6">
-          {{ $gettext("The scenario will be permanently deleted") }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="()=>deleteDialog=false"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-
-          <v-btn
-            color="error"
-            @click="deleteScenario"
-          >
-            {{ $gettext("Delete") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog
-      v-model="copyDialog"
-      persistent
-      max-width="290"
-      @keydown.enter="createProject"
-      @keydown.esc="cancelDialog"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ selectedScenario? $gettext("copy") +' '+ selectedScenario : $gettext('New Scenario') }}
-        </v-card-title>
-        <v-card-text>
-          <v-container>
-            <v-col cols="12">
-              <v-text-field
-                v-model="input"
-                autofocus
-                :label="$gettext('name')"
-              />
-            </v-col>
-          </v-container>
-        </v-card-text>
-        <v-card-text :style="{textAlign: 'center',color:'red'}">
-          {{ errorMessage }}
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer />
-
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="closeCopy"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-
-          <v-btn
-            color="green-darken-1"
-            variant="text"
-            @click="createProject"
-          >
-            {{ $gettext("ok") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
   <div v-else-if="loggedIn && modelsList.length==0">
     <div>
@@ -483,6 +388,127 @@ export default {
       />
     </div>
   </div>
+  <v-dialog
+    v-if="showDialog"
+    v-model="showDialog"
+    persistent
+    max-width="350"
+  >
+    <v-card>
+      <v-card-text>
+        <span class="text-h5">
+          <strong>
+            {{ $gettext("Load Scenario?") }}
+          </strong>
+        </span>
+      </v-card-text>
+      <v-card-text class="text-h6">
+        {{ $gettext("This will ERASE the current project") }}
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn
+          color="regular"
+          @click="cancelDialog"
+        >
+          {{ $gettext("No") }}
+        </v-btn>
+
+        <v-btn
+          color="primary"
+          @click="applyDialog"
+        >
+          {{ $gettext("Yes") }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog
+    v-if="deleteDialog"
+    v-model="deleteDialog"
+    persistent
+    max-width="350"
+  >
+    <v-card>
+      <v-card-text>
+        <span class="text-h5">
+          <strong>
+            {{ $gettext("Delete") + ' '+ scenarioToDelete+' ?' }}
+          </strong>
+        </span>
+      </v-card-text>
+      <v-card-text class="text-h6">
+        {{ $gettext("The scenario will be permanently deleted") }}
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn
+          color="regular"
+          @click="()=>deleteDialog=false"
+        >
+          {{ $gettext("Cancel") }}
+        </v-btn>
+
+        <v-btn
+          color="error"
+          @click="deleteScenario"
+        >
+          {{ $gettext("Delete") }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog
+    v-if="copyDialog"
+    v-model="copyDialog"
+    persistent
+    max-width="290"
+  >
+    <v-card>
+      <v-card-text>
+        <span class="text-h5">
+          <strong>
+            {{ selectedScenario? $gettext("copy") +' '+ selectedScenario : $gettext('New Scenario') }}
+          </strong>
+        </span>
+      </v-card-text>
+      <v-card-text>
+        <v-container>
+          <v-col cols="12">
+            <v-text-field
+              v-model="input"
+              variant="underlined"
+              autofocus
+              :label="$gettext('name')"
+            />
+          </v-col>
+        </v-container>
+      </v-card-text>
+      <v-card-text :style="{textAlign: 'center',color:'red'}">
+        {{ errorMessage }}
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+
+        <v-btn
+          color="grey"
+          variant="text"
+          @click="closeCopy"
+        >
+          {{ $gettext("Cancel") }}
+        </v-btn>
+
+        <v-btn
+          color="green-darken-1"
+          variant="text"
+          @click="createProject"
+        >
+          {{ $gettext("ok") }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 <style lang="scss" scoped>
 
