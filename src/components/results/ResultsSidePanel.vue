@@ -1,6 +1,6 @@
 <script>
 import { useIndexStore } from '@src/store/index'
-import { computed } from 'vue'
+import { computed, ref, watch, toRefs, onMounted } from 'vue'
 
 export default {
   name: 'SidePanel',
@@ -10,85 +10,86 @@ export default {
 
   props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer', 'presetChoices', 'selectedPreset'],
   events: ['update-selectedCategory', 'select-layer', 'update-selected-filter', 'select-preset', 'delete-preset'],
-  setup () {
+  setup (props, context) {
     const store = useIndexStore()
-    const showLeftPanel = computed(() => { return store.showLeftPanel })
     const windowHeight = computed(() => { return store.windowHeight })
-    return {
-      store,
-      showLeftPanel,
-      windowHeight,
-    }
-  },
-  data () {
-    return {
-      showLeftPanelContent: true,
-      openMenu: false,
-      presetsMenu: false,
-      selectedCat: [],
-      vmodelSelectedFilter: '',
-    }
-  },
-
-  watch: {
-    showLeftPanel (val) {
+    const showLeftPanel = computed(() => { return store.showLeftPanel })
+    const showLeftPanelContent = ref(true)
+    watch(showLeftPanel, (val) => {
       if (val) {
         // Leave time for animation to end (.fade-enter-active css rule)
         setTimeout(() => {
-          this.showLeftPanelContent = true
+          showLeftPanelContent.value = true
         }, 500)
       } else {
-        this.showLeftPanelContent = false
+        showLeftPanelContent.value = false
       }
-    },
+    })
+    const openMenu = ref(false)
+    const presetsMenu = ref(false)
 
-    selectedCategory (newVal, oldVal) {
+    const { selectedCategory, filteredCat } = toRefs(props)
+    const selectedCat = ref([])
+    watch(selectedCategory, (newVal, oldVal) => {
       if (newVal !== oldVal) {
-        this.selectedCat = newVal
+        selectedCat.value = newVal
       }
-    },
-    selectedFilter (val) {
+    })
+    watch(selectedCat, (val) => {
+      if (val !== selectedCategory.value) {
+        context.emit('update-selectedCategory', val)
+      }
+    })
+    function init (payload) {
+      selectedCat.value = payload.selectedCategory
+    }
+    function showAll () {
+      if (selectedCat.value.length === filteredCat.value.length) {
+        selectedCat.value = []
+      } else {
+        selectedCat.value = filteredCat.value
+      }
+    }
+
+    const { selectedFilter } = toRefs(props)
+    const vmodelSelectedFilter = ref('')
+    watch(selectedFilter, (val) => {
       // when we change seledted filter from other component (changing layer.)
-      if (val !== this.vmodelSelectedFilter) {
-        this.vmodelSelectedFilter = val
+      if (val !== vmodelSelectedFilter.value) {
+        vmodelSelectedFilter.value = val
         // this.selectedCat = this.selectedCategory
       }
-    },
-
-    selectedCat (val) {
-      if (val !== this.selectedCategory) {
-        this.$emit('update-selectedCategory', val)
+    })
+    watch(vmodelSelectedFilter, (newVal, oldVal) => {
+      if ((newVal !== selectedFilter.value)) { // when created, we dont want to emit
+        context.emit('update-selectedFilter', newVal)
+        selectedCat.value = selectedCategory.value // show all. when we change layer
       }
-    },
+    })
 
-    vmodelSelectedFilter (newVal, oldVal) {
-      if ((newVal !== this.selectedFilter)) { // when created, we dont want to emit
-        this.$emit('update-selectedFilter', newVal)
-        this.selectedCat = this.selectedCategory // show all. when we change layer
-      }
-    },
+    onMounted(() => {
+      vmodelSelectedFilter.value = selectedFilter.value
+      selectedCat.value = selectedCategory.value
+      // this is necessary to show the initial layer on the map.
+      context.emit('update-selectedFilter', selectedFilter.value)
+      context.emit('update-selectedCategory', selectedCategory.value)
+    })
+
+    return {
+      store,
+      showLeftPanel,
+      showLeftPanelContent,
+      windowHeight,
+      openMenu,
+      presetsMenu,
+
+      selectedCat,
+      vmodelSelectedFilter,
+      init,
+      showAll,
+    }
   },
 
-  created () {
-    this.vmodelSelectedFilter = this.selectedFilter
-    this.selectedCat = this.selectedCategory
-    // this is necessary to show the initial layer on the map.
-    this.$emit('update-selectedFilter', this.selectedFilter)
-    this.$emit('update-selectedCategory', this.selectedCategory)
-  },
-
-  methods: {
-    init (payload) {
-      this.selectedCat = payload.selectedCategory
-    },
-    showAll () {
-      if (this.selectedCat.length === this.filteredCat.length) {
-        this.selectedCat = []
-      } else {
-        this.selectedCat = this.filteredCat
-      }
-    },
-  },
 }
 </script>
 <template>
@@ -136,10 +137,17 @@ export default {
                 transition="slide-y-transition"
               >
                 <template v-slot:activator="{ props }">
-                  <span
-                    class="custom-title crop"
+                  <div
+                    class="title-div"
                     v-bind="props"
-                  >{{ selectedPreset || $gettext("Presets") }}</span>
+                  >
+                    <v-list-item-title class="crop custom-title">
+                      {{ $gettext("Presets") }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="crop">
+                      {{ selectedPreset }}
+                    </v-list-item-subtitle>
+                  </div>
                 </template>
                 <v-list>
                   <v-list-item
@@ -195,11 +203,17 @@ export default {
                 transition="slide-y-transition"
               >
                 <template v-slot:activator="{ props }">
-                  <span
-                    class="custom-title crop"
-
+                  <div
+                    class="title-div"
                     v-bind="props"
-                  >{{ selectedLayer }}</span>
+                  >
+                    <v-list-item-title class="crop custom-title">
+                      {{ $gettext("Layer") }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="crop">
+                      {{ selectedLayer }}
+                    </v-list-item-subtitle>
+                  </div>
                 </template>
                 <v-list>
                   <v-list-item
@@ -290,15 +304,24 @@ export default {
 .item{
   flex:1;
 }
-.custom-title  {
+.title-div {
   color:white;
-  font-size: x-large;
   cursor:pointer;
+  display:flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.custom-title {
+  text-align: center;
+  font-size: x-large;
+
 }
 .crop {
   white-space: nowrap;     /* Prevents text from wrapping to the next line */
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
+  cursor:pointer;
+
 }
 .preset {
   padding: 0.5rem 0.5rem 0.5rem 1rem;

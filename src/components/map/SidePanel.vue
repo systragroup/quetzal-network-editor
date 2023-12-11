@@ -20,7 +20,6 @@ export default {
 
     const showLeftPanel = computed(() => { return store.showLeftPanel })
     const showLeftPanelContent = ref(true)
-    const toggleLeftPanel = () => { store.changeLeftPanel() }
     watch(showLeftPanel, (val) => {
       if (val) {
         // Leave time for animation to end (.fade-enter-active css rule)
@@ -74,10 +73,9 @@ export default {
     return {
       tab,
       showLeftPanel,
+      showLeftPanelContent,
       windowHeight,
       editorTrip,
-      toggleLeftPanel,
-      showLeftPanelContent,
       leftPanelDiv,
       isResizing,
       windowOffest,
@@ -96,7 +94,7 @@ export default {
   >
     <div
       class="left-panel-toggle-btn elevation-4"
-      @click="toggleLeftPanel"
+      @click="store.changeLeftPanel()"
     >
       <v-icon
         size="small"
