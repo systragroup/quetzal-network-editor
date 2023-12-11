@@ -20,11 +20,15 @@ export default {
     const userStore = useUserStore()
     const runStore = useRunStore()
     const windowHeight = computed(() => store.windowHeight)
+    const loading = ref(false)
+    const loggedIn = computed(() => userStore.loggedIn)
+
     const projectIsEmpty = computed(() => store.projectIsEmpty)
+
+    // logic to show the v-menu
     const showScenarios = computed(() => store.showScenarios)
     const menu = ref(false)
     const localModel = ref('')
-    const loading = ref(false)
     watch(showScenarios, (val) => {
       if (val !== menu.value) { menu.value = val }
     })
@@ -46,52 +50,20 @@ export default {
       loading.value = false
     })
 
-    const loggedIn = computed(() => userStore.loggedIn)
-
-    const modelsList = computed(() => { return userStore.bucketList })
-    const model = computed(() => { return userStore.model })
-    const scenario = computed(() => { return userStore.scenario })
-
-    const searchString = ref('')
-    const sortModel = ref('scenario')
-    const sortDirection = ref(true)
-    const scenariosList = computed(() => {
-      // sort by alphabetical order, with protectedScens one one top
-      let arr = userStore.scenariosList
-      if (searchString.value) {
-        arr = arr.filter(el => el.scenario.toLowerCase().includes(searchString.value.toLowerCase()))
-      }
-      return arr.sort((a, b) => {
-        if (a.protected === b.protected) { // both true or both false. we go alphabetically
-          const res = String(a[sortModel.value]).localeCompare(String(b[sortModel.value]),
-            undefined, { sensitivity: 'base' })
-          return sortDirection.value ? res : -res
-        } else if (a.protected) {
-          return -1 // `a` comes before `b`
-        } else {
-          return 1 // `b` comes before `a`
-        }
-      })
-    })
-
-    const showDialog = ref(false)
-    const modelScen = ref('')
-    const localScen = ref('')
-    const errorMessage = ref('')
-    const copyDialog = ref(false)
-    const selectedScenario = ref(null)
-    const scenarioToDelete = ref(null)
-    const input = ref('')
-    const deleteDialog = ref(false)
+    const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
+    const model = computed(() => { return userStore.model }) // globaly selected Model
+    const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
+    const modelScen = ref('') // model+scen (unique key)
+    const localScen = ref('') // locally selected scen. need to cancel selection for example.
     const locked = ref(false)
 
     watch(modelsList, async (val) => {
-      // This component is rendered before we fetch on S3 the bucket list.
-      // so, when its fetched, set the model to the first one and get the scenario.
+      // kind of a onMounted
+      // This component is rendered before we fetch the bucket list on cognito API.
+      // so, when it fetch, set the model to the first one and get the scenario.
       if (localModel.value === '') { localModel.value = modelsList.value[0] }
       await userStore.getScenario({ model: localModel.value })
     })
-
     watch(scenario, (val) => {
       if (val !== localScen.value) {
         localScen.value = ''
@@ -120,32 +92,36 @@ export default {
       menu.value = false
     }
 
-    function applyDialog () {
-      menu.value = false
-      showDialog.value = false
-      loadProject()
-    }
-    function cancelDialog () {
-      // reset vmodel back to loaded scenario
-      modelScen.value = model.value + scenario.value
-      localScen.value = scenario.value
-      showDialog.value = false
-      menu.value = false
-    }
-    function deleteScenario () {
-      deleteDialog.value = false
-      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(resp => {
-        deleteDialog.value = false
-        userStore.getScenario({ model: localModel.value })
-        store.changeNotification(
-          { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
-      }).catch((err) => {
-        deleteDialog.value = false
-        console.error(err)
-        store.changeNotification(
-          { text: $gettext('An error occured'), autoClose: true, color: 'error' })
+    const searchString = ref('')
+    const sortModel = ref('scenario')
+    const sortDirection = ref(true)
+    const scenariosList = computed(() => {
+      // sort by alphabetical order, with protectedScens one one top
+      let arr = userStore.scenariosList
+      if (searchString.value) {
+        arr = arr.filter(el => el.scenario.toLowerCase().includes(searchString.value.toLowerCase()))
+      }
+      return arr.sort((a, b) => {
+        if (a.protected === b.protected) { // both true or both false. we go alphabetically
+          const res = String(a[sortModel.value]).localeCompare(String(b[sortModel.value]),
+            undefined, { sensitivity: 'base' })
+          return sortDirection.value ? res : -res
+        } else if (a.protected) {
+          return -1 // `a` comes before `b`
+        } else {
+          return 1 // `b` comes before `a`
+        }
       })
-    }
+    })
+
+    const showDialog = ref(false)
+    const copyDialog = ref(false)
+    const deleteDialog = ref(false)
+    const input = ref('')
+    const errorMessage = ref('')
+    const selectedScenario = ref(null)
+    const scenarioToDelete = ref(null)
+
     async function createProject () {
       if (input.value === '') {
         errorMessage.value = 'Please enter a name'
@@ -180,7 +156,32 @@ export default {
         }, 500)
       }
     }
-
+    function applyDialog () {
+      menu.value = false
+      showDialog.value = false
+      loadProject()
+    }
+    function cancelDialog () {
+      // reset vmodel back to loaded scenario
+      modelScen.value = model.value + scenario.value
+      localScen.value = scenario.value
+      showDialog.value = false
+      menu.value = false
+    }
+    function deleteScenario () {
+      deleteDialog.value = false
+      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(resp => {
+        deleteDialog.value = false
+        userStore.getScenario({ model: localModel.value })
+        store.changeNotification(
+          { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
+      }).catch((err) => {
+        deleteDialog.value = false
+        console.error(err)
+        store.changeNotification(
+          { text: $gettext('An error occured'), autoClose: true, color: 'error' })
+      })
+    }
     function closeCopy () {
       copyDialog.value = false
       input.value = ''
