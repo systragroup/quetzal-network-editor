@@ -56,6 +56,7 @@ async function extractZip (file) {
         content = JSON.parse(str)
       } catch (err) {
         err.name = 'ImportError in ' + filesNames[i]
+        if (str.length === 0) { err.message = 'file is empty' }
         throw err
       }
     } else {

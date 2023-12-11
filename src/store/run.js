@@ -98,18 +98,12 @@ export const useRunStore = defineStore('run', {
       const res = []
       for (const file of filesList) {
         const name = file.slice(scen.length) // remove scen name from file
-        if (file.endsWith('.json') || file.endsWith('.geojson')) {
-          const content = await s3.readJson(model, file)
-          res.push({ path: name, content })
-        } else {
-          res.push({ path: name, content: null })
-        }
+        res.push({ path: name, content: null })
       }
-
       if (res.length > 0) {
         // load new Results
         const store = useIndexStore()
-        store.loadFiles(res)
+        store.loadOtherFiles(res)
       }
     },
     async getSteps () {

@@ -28,13 +28,19 @@ let s3Client = new S3({
 })
 
 async function readJson (bucket, key) {
-  const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
-  // const params = { Bucket: bucket, Key: key }
-
-  const response = await s3Client.getObject(params) // await the promise
-  const str = await response.Body.transformToString('utf-8')
-  const fileContent = JSON.parse(str.trim())
-  return fileContent
+  try {
+    const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
+    // const params = { Bucket: bucket, Key: key }
+    const response = await s3Client.getObject(params) // await the promise
+    const str = await response.Body.transformToString('utf-8')
+    const fileContent = JSON.parse(str.trim())
+    return fileContent
+  } catch (err) {
+    const store = useIndexStore()
+    err.name = 'ImportError in ' + key
+    store.changeAlert(err)
+    return {}
+  }
 }
 
 async function readBytes (bucket, key) {
