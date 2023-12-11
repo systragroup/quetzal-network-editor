@@ -654,10 +654,10 @@ export default {
       @keydown.esc="cancelClone"
     >
       <v-card>
-        <v-card-title>
-          <span class="text-h5">{{ $gettext('Duplicate and reverse') }}</span>
-          <span class="text-h5">{{ message +' ?' }}</span>
-        </v-card-title>
+        <v-card-text>
+          <span class="text-h6">
+            {{ $gettext('Duplicate and reverse') + ' ' + message + ' ?' }}</span>
+        </v-card-text>
         <v-card-text>
           <v-text-field
             v-model="cloneName"

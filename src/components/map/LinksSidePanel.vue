@@ -463,7 +463,7 @@ export default {
                       @click="cloneButton({trip:item,message:item})"
                     />
                   </template>
-                  <span>{{ $gettext("Duplicate") }}</span>
+                  <span>{{ $gettext("Duplicate and reverse") }}</span>
                 </v-tooltip>
 
                 <v-tooltip
