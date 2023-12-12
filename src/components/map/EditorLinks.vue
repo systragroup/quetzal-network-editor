@@ -163,7 +163,7 @@ export default {
         const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
         selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
         const click = {
-          selectedFeature,
+          selectedFeature: selectedFeature.value,
           action: 'Edit Link Info',
           lngLat: event.mapboxEvent.lngLat,
           lingering: true,

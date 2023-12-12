@@ -90,6 +90,9 @@ export default {
         visibleNodes.value.features.push(...newNodes)
       })
 
+      map.value.getSource('links').setData(visibleLinks.value)
+      map.value.getSource('nodes').setData(visibleNodes.value)
+
       // const endTime = performance.now()
     }
     function selectLine (e) {
@@ -142,6 +145,7 @@ export default {
   <section>
     <MglGeojsonLayer
       source-id="links"
+      :reactive="false"
       :source="{
         type: 'geojson',
         data: visibleLinks,
@@ -173,6 +177,7 @@ export default {
 
     <MglGeojsonLayer
       source-id="nodes"
+      :reactive="false"
       :source="{
         type: 'geojson',
         data: visibleNodes,

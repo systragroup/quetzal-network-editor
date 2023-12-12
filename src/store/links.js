@@ -598,7 +598,7 @@ export const useLinksStore = defineStore('links', {
 
     moveNode (payload) {
       const nodeIndex = payload.selectedNode.properties.index
-      // remove node
+      // change node geometry
       const newNode = this.editorNodes.features.filter(node => node.properties.index === nodeIndex)[0]
       newNode.geometry.coordinates = payload.lngLat
 
