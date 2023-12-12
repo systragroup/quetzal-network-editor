@@ -6,7 +6,7 @@ import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
 import router from '@src/router/index'
 
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, toRaw, onMounted } from 'vue'
 
 const $gettext = s => s
 
@@ -28,6 +28,7 @@ export default {
     // logic to show the v-menu
     const showScenarios = computed(() => store.showScenarios)
     const menu = ref(false)
+    const model = computed(() => { return userStore.model }) // globaly selected Model
     const localModel = ref('')
     watch(showScenarios, (val) => {
       if (val !== menu.value) { menu.value = val }
@@ -42,6 +43,10 @@ export default {
         loading.value = false
       }
     })
+    onMounted(() => {
+      localModel.value = model.value
+      localScen.value = scenario.value
+    })
     watch(localModel, async (val) => {
       // when we click on a tab (model), fetch the scenario list.
       userStore.setScenariosList([])
@@ -51,12 +56,10 @@ export default {
     })
 
     const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
-    const model = computed(() => { return userStore.model }) // globaly selected Model
     const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
-    const modelScen = ref('') // model+scen (unique key)
+    const modelScen = computed(() => { return model.value + scenario.value })
     const localScen = ref('') // locally selected scen. need to cancel selection for example.
     const locked = ref(false)
-
     watch(modelsList, async (val) => {
       // kind of a onMounted
       // This component is rendered before we fetch the bucket list on cognito API.
@@ -67,13 +70,11 @@ export default {
     watch(scenario, (val) => {
       if (val !== localScen.value) {
         localScen.value = ''
-        modelScen.value = ''
       }
     })
 
     function selectScenario (e, val) {
       if (e.type === 'keydown') { return }
-      modelScen.value = val.model + val.scenario
       localScen.value = val.scenario
       locked.value = val.protected
       if (val.scenario) {
@@ -316,7 +317,8 @@ export default {
         v-for="scen in scenariosList"
         :key="scen.model + scen.scenario"
         :value="scen.model + scen.scenario"
-        :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
+        class="list-item"
+        :class="{'is-active': modelScen === scen.model + scen.scenario}"
         lines="two"
         @click="(e)=>{selectScenario(e,scen)}"
       >
@@ -337,7 +339,7 @@ export default {
             :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
             :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
             class="ma-1"
-            color="grey"
+            color="regular"
             size="small"
             @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
           />
@@ -352,23 +354,21 @@ export default {
       <v-spacer />
     </div>
     <v-divider />
-    <v-list-item>
+    <v-list-action>
       <v-btn
-        variant="text"
-        block
+        width="100%"
+        class="mt-2"
+        prepend-icon="fa-solid fa-cloud-arrow-up"
+
         @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
       >
         {{ $gettext('new scenario') }}
       </v-btn>
-    </v-list-item>
+    </v-list-action>
   </div>
   <div v-else-if="loggedIn && modelsList.length==0">
     <div>
-      <v-progress-linear
-        color="primary"
-        absolute
-        indeterminate
-      />
+      <v-skeleton-loader type="heading,list-item-three-line,list-item-three-line" />
     </div>
   </div>
   <v-dialog
@@ -505,10 +505,9 @@ export default {
   margin:0.5rem;
 }
 .test{
-  width:28rem;
   display:flex;
   flex-direction: column;
-  border:solid green 1px;
+  height:calc(100% - 100px);
 }
 .item{
   flex:1;
@@ -522,7 +521,9 @@ export default {
 .is-active{
   opacity:1;
   background-color: rgb(var(--v-theme-primary));
-
+}
+.list-item{
+  border-top: 1px solid rgb(var(--v-theme-lightgrey));
 }
 .lowercase-text {
   text-transform: lowercase;
@@ -534,7 +535,7 @@ export default {
 .v-card-content {
   //max-height:400px; /* Set a max height for the middle content */
   overflow: auto; /* Enable scrolling if the content overflows */
-  height:70%;
-  border: 1px solid red
+  max-height:calc(100% - 10rem);
+
 }
 </style>

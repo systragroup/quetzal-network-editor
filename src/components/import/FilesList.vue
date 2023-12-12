@@ -99,111 +99,109 @@ export default {
 }
 </script>
 <template>
-  <div>
-    <input
-      id="other-inputs"
-      ref="otherInputs"
-      type="file"
-      style="display: none"
-      multiple="multiple"
-      @change="readOtherInputs"
-    >
-    <input
-      id="other-outputs"
-      ref="otherOutputs"
-      type="file"
-      style="display: none"
-      multiple="multiple"
-      @change="readOtherOutputs"
-    >
-    <div class="files-container">
-      <div class="title-box">
-        <h1 class="custom-title">
-          {{ $gettext('Other Inputs') }}
-        </h1>
-        <div class="upload-button">
-          <v-btn
-            icon
-            variant="outlined"
-            @click="()=>buttonHandle('inputs')"
-          >
-            <v-icon size="small">
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
-        </div>
-      </div>
-      <div class="list">
-        <li
-          v-for="(file, key) in inputFiles"
-          :key="key"
+  <input
+    id="other-inputs"
+    ref="otherInputs"
+    type="file"
+    style="display: none"
+    multiple="multiple"
+    @change="readOtherInputs"
+  >
+  <input
+    id="other-outputs"
+    ref="otherOutputs"
+    type="file"
+    style="display: none"
+    multiple="multiple"
+    @change="readOtherOutputs"
+  >
+  <div class="files-container">
+    <div class="title-box">
+      <h1 class="custom-title">
+        {{ $gettext('Other Inputs') }}
+      </h1>
+      <div class="upload-button">
+        <v-btn
+          icon
+          variant="outlined"
+          @click="()=>buttonHandle('inputs')"
         >
-          {{ file.path }}
-          <v-tooltip
-            location="top"
-            open-delay="250"
-          >
-            <template v-slot:activator="{ props }">
-              <v-btn
-                variant="text"
-                class="list-button"
-                icon=" fa-solid fa-upload"
-                v-bind="props"
-                @click="()=>buttonHandle(file.path)"
-              />
-            </template>
-            <span>{{ $gettext('Replace file inplace') }}</span>
-          </v-tooltip>
-        </li>
+          <v-icon size="small">
+            fa-solid fa-upload
+          </v-icon>
+        </v-btn>
       </div>
     </div>
-    <div class="files-container">
-      <div class="title-box">
-        <h1 class="custom-title">
-          {{ $gettext('Outputs') }}
-        </h1>
-        <div class="upload-button">
-          <v-btn
-            icon
-            variant="outlined"
-            @click="()=>buttonHandle('outputs')"
-          >
-            <v-icon size="small">
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
-        </div>
-      </div>
-      <div class="list">
-        <li
-          v-for="file in outputFiles"
-          :key="file.path"
+    <div class="list">
+      <li
+        v-for="(file, key) in inputFiles"
+        :key="key"
+      >
+        {{ file.path }}
+        <v-tooltip
+          location="top"
+          open-delay="250"
         >
-          {{ file.path }}
-          <v-tooltip
-            v-if="file.extension==='geojson' | isMatrix(file)"
-            location="top"
-            open-delay="250"
-          >
-            <template v-slot:activator="{ props }">
-              <v-icon
-                size="small"
-                class="list-icon"
-                v-bind="props"
-              >
-                fa-solid fa-layer-group
-              </v-icon>
-            </template>
-            <span>{{ $gettext('Viewable in results') }}</span>
-          </v-tooltip>
-        </li>
+          <template v-slot:activator="{ props }">
+            <v-btn
+              variant="text"
+              class="list-button"
+              icon=" fa-solid fa-upload"
+              v-bind="props"
+              @click="()=>buttonHandle(file.path)"
+            />
+          </template>
+          <span>{{ $gettext('Replace file inplace') }}</span>
+        </v-tooltip>
+      </li>
+    </div>
+  </div>
+  <div class="files-container">
+    <div class="title-box">
+      <h1 class="custom-title">
+        {{ $gettext('Outputs') }}
+      </h1>
+      <div class="upload-button">
+        <v-btn
+          icon
+          variant="outlined"
+          @click="()=>buttonHandle('outputs')"
+        >
+          <v-icon size="small">
+            fa-solid fa-upload
+          </v-icon>
+        </v-btn>
       </div>
+    </div>
+    <div class="list">
+      <li
+        v-for="file in outputFiles"
+        :key="file.path"
+      >
+        {{ file.path }}
+        <v-tooltip
+          v-if="file.extension==='geojson' | isMatrix(file)"
+          location="top"
+          open-delay="250"
+        >
+          <template v-slot:activator="{ props }">
+            <v-icon
+              size="small"
+              class="list-icon"
+              v-bind="props"
+            >
+              fa-solid fa-layer-group
+            </v-icon>
+          </template>
+          <span>{{ $gettext('Viewable in results') }}</span>
+        </v-tooltip>
+      </li>
     </div>
   </div>
 </template>
 <style lang="scss" scoped>
 .files-container{
-  height: 17rem;
+  height: calc(50% - 35px );
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
 

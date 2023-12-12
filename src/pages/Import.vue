@@ -8,7 +8,6 @@ import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
 
 import { computed } from 'vue'
 
-import InfoZip from '@comp/import/InfoZip.vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
@@ -20,20 +19,18 @@ export default {
   components: {
     ScenariosExplorer,
     FileLoader,
-    InfoZip,
     FilesList,
   },
   setup () {
     const store = useIndexStore()
     const userStore = useUserStore()
-    const scenariosList = computed(() => { return userStore.scenariosList.splice(0, 4) })
     const runStore = useRunStore()
     const projectIsEmpty = computed(() => store.projectIsEmpty)
 
     function showScenarios () {
       store.changeShowScenarios()
     }
-    return { store, userStore, runStore, projectIsEmpty, showScenarios, scenariosList }
+    return { store, userStore, runStore, projectIsEmpty, showScenarios }
   },
 
   data () {
@@ -269,7 +266,50 @@ export default {
       >
         <v-row>
           <v-col class="left-col">
-            <scenariosExplorer />
+            <div
+              class="custom-title"
+            >
+              {{ $gettext("Select a Project") }}
+            </div>
+            <ScenariosExplorer />
+            <div class="button-row">
+              <v-btn
+                prepend-icon="fas fa-file-archive"
+                @click="buttonHandle('zip')"
+              >
+                {{ $gettext('Load Zip File') }}
+              </v-btn>
+              <v-menu
+                close-delay="100"
+                transition="slide-y-transition"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                  >
+                    {{ $gettext('Load Example') }}
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item
+                    link
+                    @click="()=>buttonHandle('example1')"
+                  >
+                    <v-list-item-title>
+                      {{ $gettext("PT & Road") }}
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item
+                    link
+                    @click="()=>buttonHandle('example2')"
+                  >
+                    <v-list-item-title>
+                      {{ $gettext("PT, Road, Zones, OD & Results") }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </div>
           </v-col>
           <v-divider vertical />
           <v-col class="center-col">
@@ -287,10 +327,10 @@ export default {
                     v-bind="props"
                     @click="buttonHandle('newProject')"
                   >
-                    {{ $gettext('delete all') }}
+                    {{ $gettext('Empty all') }}
                   </v-btn>
                 </template>
-                <span>{{ $gettext("Delete all network and start from scratch") }}</span>
+                <span>{{ $gettext("Empty all loaded files and start from scratch") }}</span>
               </v-tooltip>
               <v-btn
                 :disabled="!filesAdded"
@@ -303,7 +343,7 @@ export default {
           </v-col>
           <v-divider vertical />
 
-          <v-col>
+          <v-col class="left-col">
             <FilesList
               @FilesLoaded="(files) => loadNetwork(files)"
             />
@@ -353,14 +393,20 @@ export default {
   align-items: center;
   overflow-y: auto;
 }
+
 .center-col{
   display: flex;
   flex-direction: column;
+  width:28rem;
+  padding:0.5rem;
+
 }
 .left-col{
   display: flex;
-  height:37rem;
-  border:solid blue 1px
+  height:80vh;
+  flex-direction: column;
+  width:28rem;
+  padding:0.5rem;
 }
 
 .layout-overlay {
@@ -370,8 +416,6 @@ export default {
   position: absolute;
 }
 .card {
-  width:80rem;
-  height:38rem;
   overflow-y:hidden;
   padding: 20px;
   background-color: rgb(var(--v-theme-lightergrey));
@@ -389,7 +433,7 @@ export default {
   font-size: 2em !important;
   color: rgb(var(--v-theme-primary));
   font-weight: bold;
-  margin-top:18px;
+  border-bottom: 1px solid rgb(var(--v-theme-lightgrey));
 }
 .card-title {
   font-size: 2em !important;
@@ -405,7 +449,7 @@ export default {
   margin: 20px;
 }
 .card button {
-  margin: 0.5rem;
+  margin: 0.5rem 0.5rem 0rem 0.5rem;
 }
 .animate-login {
   transform: translateY(-185%);
