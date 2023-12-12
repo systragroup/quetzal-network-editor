@@ -4,6 +4,8 @@ import s3 from '../AWSClient'
 import { extractZip, unzip } from '../components/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
+import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
+
 import { computed } from 'vue'
 
 import InfoZip from '@comp/import/InfoZip.vue'
@@ -16,6 +18,7 @@ export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Import',
   components: {
+    ScenariosExplorer,
     FileLoader,
     InfoZip,
     FilesList,
@@ -23,13 +26,14 @@ export default {
   setup () {
     const store = useIndexStore()
     const userStore = useUserStore()
+    const scenariosList = computed(() => { return userStore.scenariosList.splice(0, 4) })
     const runStore = useRunStore()
     const projectIsEmpty = computed(() => store.projectIsEmpty)
 
     function showScenarios () {
       store.changeShowScenarios()
     }
-    return { store, userStore, runStore, projectIsEmpty, showScenarios }
+    return { store, userStore, runStore, projectIsEmpty, showScenarios, scenariosList }
   },
 
   data () {
@@ -264,96 +268,38 @@ export default {
         :class="{ 'animate-login': loggedIn }"
       >
         <v-row>
-          <v-col>
-            <v-card-text :style="{textAlign: 'center'}">
-              <div
-                class="custom-title clickage"
-                @click="showScenarios"
-              >
-                {{ $gettext("Select a Project") }}
-              </div>
-              <div>
-                {{ $gettext("Log in and select an existing project or create a new project from project navigation menu") }}
-              </div>
-              <div class="subtitle">
-                {{ $gettext("OR") }}
-              </div>
-              <div class="custom-title">
-                {{ $gettext("Continue Without Project") }}
-              </div>
-              <div>
-                {{ $gettext("Start importing files individually or start with an empty project") }}
-              </div>
-              <div class="subtitle">
-                {{ $gettext("OR") }}
-              </div>
-              <div class="custom-title">
-                {{ $gettext("Load Zip") }}
-                <InfoZip />
-              </div>
-              <div>
-                <v-btn
-                  :style="{'margin-right':'auto'}"
-                  :color="'normal'"
-                  @click="buttonHandle('zip')"
-                >
-                  <v-icon
-                    size="small"
-                    start
-                  >
-                    fas fa-file-archive
-                  </v-icon>
-                  {{ $gettext('Load Zip File') }}
-                </v-btn>
-              </div>
-              <div class="subtitle">
-                {{ $gettext("OR") }}
-              </div>
-              <div class="custom-title">
-                {{ $gettext("Load Example") }}
-              </div>
-
-              <v-menu
-
-                offset="70"
-                close-delay="100"
-                transition="slide-y-transition"
-              >
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    :style="{'margin-bottom':'2rem'}"
-
-                    v-bind="props"
-                  >
-                    {{ $gettext('Load Example') }}
-                  </v-btn>
-                </template>
-                <v-list>
-                  <v-list-item
-                    link
-                    @click="()=>buttonHandle('example1')"
-                  >
-                    <v-list-item-title>
-                      {{ $gettext("PT & Road") }}
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-item
-                    link
-                    @click="()=>buttonHandle('example2')"
-                  >
-                    <v-list-item-title>
-                      {{ $gettext("PT, Road, Zones, OD & Results") }}
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </v-card-text>
+          <v-col class="left-col">
+            <scenariosExplorer />
           </v-col>
           <v-divider vertical />
-          <v-col>
+          <v-col class="center-col">
             <FileLoader
               @FilesLoaded="(files) => loadNetwork(files)"
             />
+            <div class="button-row">
+              <v-tooltip
+                location="bottom"
+                open-delay="500"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-btn
+
+                    v-bind="props"
+                    @click="buttonHandle('newProject')"
+                  >
+                    {{ $gettext('delete all') }}
+                  </v-btn>
+                </template>
+                <span>{{ $gettext("Delete all network and start from scratch") }}</span>
+              </v-tooltip>
+              <v-btn
+                :disabled="!filesAdded"
+                :color="filesAdded? 'primary' :'regular'"
+                @click="login()"
+              >
+                {{ $gettext('Go!') }}
+              </v-btn>
+            </div>
           </v-col>
           <v-divider vertical />
 
@@ -363,30 +309,6 @@ export default {
             />
           </v-col>
         </v-row>
-        <div class="button-row">
-          <v-tooltip
-            location="bottom"
-            open-delay="500"
-          >
-            <template v-slot:activator="{ props }">
-              <v-btn
-
-                v-bind="props"
-                @click="buttonHandle('newProject')"
-              >
-                {{ $gettext('delete all') }}
-              </v-btn>
-            </template>
-            <span>{{ $gettext("Delete all network and start from scratch") }}</span>
-          </v-tooltip>
-          <v-btn
-            :disabled="!filesAdded"
-            :color="filesAdded? 'primary' :'regular'"
-            @click="login()"
-          >
-            {{ $gettext('Go!') }}
-          </v-btn>
-        </div>
       </v-card>
     </div>
     <v-dialog
@@ -429,17 +351,27 @@ export default {
   flex-flow: row;
   justify-content: center;
   align-items: center;
+  overflow-y: auto;
+}
+.center-col{
+  display: flex;
+  flex-direction: column;
+}
+.left-col{
+  display: flex;
+  height:37rem;
+  border:solid blue 1px
 }
 
 .layout-overlay {
   height: 100%;
   width: 100%;
   background-color:rgb(var(--v-theme-background));
-
   position: absolute;
 }
 .card {
   width:80rem;
+  height:38rem;
   overflow-y:hidden;
   padding: 20px;
   background-color: rgb(var(--v-theme-lightergrey));
@@ -458,6 +390,11 @@ export default {
   color: rgb(var(--v-theme-primary));
   font-weight: bold;
   margin-top:18px;
+}
+.card-title {
+  font-size: 2em !important;
+  color: rgb(var(--v-theme-primary));
+  font-weight: bold;
 }
 .clickage{
   cursor:pointer
@@ -480,10 +417,8 @@ export default {
 }
 .button-row{
   display: flex;
-  align-items: center;
+  margin-top:auto;
   justify-content:center;
-  margin-top : 1rem;
-  padding-top:0.5rem;
   border-top: 1px solid rgb(var(--v-theme-lightgrey));
 }
 

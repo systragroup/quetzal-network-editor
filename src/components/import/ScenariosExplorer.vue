@@ -229,156 +229,138 @@ export default {
 }
 </script>
 <template>
-  <div v-if="loggedIn && modelsList.length>0">
-    <v-menu
-      v-model="menu"
-      :persistent="!(!showDialog && !deleteDialog && !copyDialog)"
-      :close-on-content-click="false"
-      location="bottom center"
-      offset="10"
-      max-width="460px"
+  <div
+    v-if="loggedIn && modelsList.length>0"
+    class="test"
+  >
+    <v-tabs
+      v-model="localModel"
+      show-arrows
+      fixed-tabs
     >
-      <template v-slot:activator="{ props }">
-        <div
-          class="custom-title pointer"
-          v-bind="props"
+      <v-tab
+        v-for="tab in modelsList"
+        :key="tab"
+        :value="tab"
+        :disabled="loading"
+      >
+        {{ tab.slice(8) }}
+      </v-tab>
+    </v-tabs>
+    <v-divider />
+    <div
+      class="container"
+    >
+      <v-text-field
+        v-model="searchString"
+        :style="{'padding-right': '0.5rem'}"
+        density="compact"
+        variant="outlined"
+        clear-icon="fas fa-times-circle"
+        clearable
+        class="item"
+        label="search"
+        hide-details
+        prepend-inner-icon="fas fa-search"
+        @click:clear="searchString=null"
+      />
+      <v-btn-toggle
+        v-model="sortModel"
+        density="compact"
+        mandatory
+        variant="outlined"
+      >
+        <v-btn
+          value="scenario"
+          size="small"
         >
-          {{ scenario? model + '/' + scenario: $gettext('Projects') }}
-        </div>
-      </template>
-      <v-card>
-        <v-tabs
-          v-model="localModel"
-          show-arrows
-          fixed-tabs
+          <span class="hidden-sm-and-down lowercase-text">{{ $gettext('name') }}</span>
+
+          <v-icon end>
+            fas fa-font
+          </v-icon>
+        </v-btn>
+        <v-btn
+          value="timestamp"
+          size="small"
         >
-          <v-tab
-            v-for="tab in modelsList"
-            :key="tab"
-            :value="tab"
-            :disabled="loading"
-          >
-            {{ tab.slice(8) }}
-          </v-tab>
-        </v-tabs>
-        <v-divider />
-        <div
-          class="container"
+          <span class="hidden-sm-and-down lowercase-text">date</span>
+
+          <v-icon end>
+            fas fa-calendar-week
+          </v-icon>
+        </v-btn>
+        <v-btn
+          value="userEmail"
+          size="small"
         >
-          <v-text-field
-            v-model="searchString"
-            :style="{'padding-right': '0.5rem'}"
-            density="compact"
-            variant="outlined"
-            clear-icon="fas fa-times-circle"
-            clearable
-            class="item"
-            label="search"
-            hide-details
-            prepend-inner-icon="fas fa-search"
-            @click:clear="searchString=null"
-          />
-          <v-btn-toggle
-            v-model="sortModel"
-            density="compact"
-            mandatory
-            variant="outlined"
-          >
-            <v-btn
-              value="scenario"
-              size="small"
-            >
-              <span class="hidden-sm-and-down lowercase-text">{{ $gettext('name') }}</span>
+          <span class="hidden-sm-and-down lowercase-text">email</span>
 
-              <v-icon end>
-                fas fa-font
-              </v-icon>
-            </v-btn>
-            <v-btn
-              value="timestamp"
-              size="small"
-            >
-              <span class="hidden-sm-and-down lowercase-text">date</span>
-
-              <v-icon end>
-                fas fa-calendar-week
-              </v-icon>
-            </v-btn>
-            <v-btn
-              value="userEmail"
-              size="small"
-            >
-              <span class="hidden-sm-and-down lowercase-text">email</span>
-
-              <v-icon end>
-                fas fa-at
-              </v-icon>
-            </v-btn>
-          </v-btn-toggle>
+          <v-icon end>
+            fas fa-at
+          </v-icon>
+        </v-btn>
+      </v-btn-toggle>
+      <v-btn
+        size="small"
+        variant="text"
+        :icon=" sortDirection? 'fas fa-sort-down' : 'fas fa-sort-up' "
+        @click="sortDirection=!sortDirection"
+      />
+    </div>
+    <v-divider />
+    <div
+      class="v-card-content"
+    >
+      <v-list-item
+        v-for="scen in scenariosList"
+        :key="scen.model + scen.scenario"
+        :value="scen.model + scen.scenario"
+        :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
+        lines="two"
+        @click="(e)=>{selectScenario(e,scen)}"
+      >
+        <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
+        <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
+        <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
+        <template v-slot:append>
           <v-btn
+            variant="text"
+            icon="fas fa-copy"
+            class="ma-1"
             size="small"
-            variant="text"
-            :icon=" sortDirection? 'fas fa-sort-down' : 'fas fa-sort-up' "
-            @click="sortDirection=!sortDirection"
+            color="regular"
+            @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
           />
-        </div>
-        <v-divider />
-        <div
-          class="v-card-content"
-          :style="{'max-height': `${windowHeight-200}px`}"
-        >
-          <v-list-item
-            v-for="scen in scenariosList"
-            :key="scen.model + scen.scenario"
-            max-height="200px"
-            :value="scen.model + scen.scenario"
-            :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
-            lines="two"
-            @click="(e)=>{selectScenario(e,scen)}"
-          >
-            <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
-            <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
-            <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
-            <template v-slot:append>
-              <v-btn
-                variant="text"
-                icon="fas fa-copy"
-                class="ma-1"
-                size="small"
-                color="regular"
-                @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
-              />
-              <v-btn
-                variant="text"
-                :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
-                :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
-                class="ma-1"
-                color="grey"
-                size="small"
-                @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
-              />
-            </template>
-          </v-list-item>
-          <v-spacer />
-          <v-progress-linear
-            v-if="loading"
-            color="primary"
-            indeterminate
-          />
-          <v-spacer />
-        </div>
-        <v-divider />
-        <v-list-item>
           <v-btn
             variant="text"
-            block
-            @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
-          >
-            {{ $gettext('new scenario') }}
-          </v-btn>
-        </v-list-item>
-      </v-card>
-    </v-menu>
+            :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
+            :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
+            class="ma-1"
+            color="grey"
+            size="small"
+            @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+          />
+        </template>
+      </v-list-item>
+      <v-spacer />
+      <v-progress-linear
+        v-if="loading"
+        color="primary"
+        indeterminate
+      />
+      <v-spacer />
+    </div>
+    <v-divider />
+    <v-list-item>
+      <v-btn
+        variant="text"
+        block
+        @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
+      >
+        {{ $gettext('new scenario') }}
+      </v-btn>
+    </v-list-item>
   </div>
   <div v-else-if="loggedIn && modelsList.length==0">
     <div>
@@ -522,6 +504,12 @@ export default {
   align-items: center;
   margin:0.5rem;
 }
+.test{
+  width:28rem;
+  display:flex;
+  flex-direction: column;
+  border:solid green 1px;
+}
 .item{
   flex:1;
 }
@@ -546,5 +534,7 @@ export default {
 .v-card-content {
   //max-height:400px; /* Set a max height for the middle content */
   overflow: auto; /* Enable scrolling if the content overflows */
+  height:70%;
+  border: 1px solid red
 }
 </style>

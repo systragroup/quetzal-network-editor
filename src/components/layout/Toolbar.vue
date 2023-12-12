@@ -1,13 +1,12 @@
 <script>
 
 import Profile from './Profile.vue'
-import ScenariosExplorer from './ScenariosExplorer.vue'
 import { useIndexStore } from '@src/store/index'
 import { ref } from 'vue'
 import systraLogoUrl from '@static/systra_logo.png'
 export default {
   name: 'Toolbar',
-  components: { Profile, ScenariosExplorer },
+  components: { Profile },
   setup () {
     const store = useIndexStore()
     const imageUrl = ref(systraLogoUrl)
@@ -56,7 +55,7 @@ export default {
 
     <v-spacer />
     <div>
-      <ScenariosExplorer />
+      <p>salut</p>
     </div>
     <v-spacer />
     <div>
