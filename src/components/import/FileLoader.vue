@@ -225,6 +225,7 @@ export default {
               <v-btn
                 icon="fa-solid fa-upload"
                 size="small"
+                color="regular"
                 variant="outlined"
                 v-bind="props"
               />

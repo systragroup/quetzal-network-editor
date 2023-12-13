@@ -26,7 +26,6 @@ export const useIndexStore = defineStore('store', {
     darkMode: false,
     loading: false,
     showLeftPanel: true,
-    showScenarios: false,
     windowHeight: 0,
     anchorMode: false,
     linksPopupContent: ['trip_id'],
@@ -66,9 +65,7 @@ export const useIndexStore = defineStore('store', {
     changeLeftPanel () {
       this.showLeftPanel = !this.showLeftPanel
     },
-    changeShowScenarios () {
-      this.showScenarios = !this.showScenarios
-    },
+
     saveMapPosition (payload) {
       this.mapCenter = payload.mapCenter
       this.mapZoom = payload.mapZoom
@@ -161,6 +158,10 @@ export const useIndexStore = defineStore('store', {
         this.otherFiles.push({ ...file, name, extension })
       }
     },
+    deleteOutputs () {
+      this.otherFiles = this.otherFiles.filter(file => !file.path.startsWith('outputs/'))
+    },
+
     async getOtherFile (name, extension) {
       const files = this.otherFiles.filter(file => file.name === name)
       const file = files.filter(file => file.extension === extension)[0]

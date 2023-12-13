@@ -4,7 +4,6 @@ import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
-import router from '@src/router/index'
 
 import { computed, ref, watch } from 'vue'
 
@@ -12,10 +11,8 @@ const $gettext = s => s
 
 export default {
   name: 'ScenariosExplorer',
-  components: {
-
-  },
-  setup () {
+  event: ['loadScen'],
+  setup (_, context) {
     const store = useIndexStore()
     const userStore = useUserStore()
     const runStore = useRunStore()
@@ -26,23 +23,11 @@ export default {
     const projectIsEmpty = computed(() => store.projectIsEmpty)
 
     // logic to show the v-menu
-    const showScenarios = computed(() => store.showScenarios)
-    const menu = ref(false)
-    const localModel = ref('')
-    watch(showScenarios, (val) => {
-      if (val !== menu.value) { menu.value = val }
-    })
-    watch(menu, async (val) => {
-      if (val !== showScenarios.value) { store.changeShowScenarios() }
-      if (val) {
-        userStore.isTokenExpired()
-        // when we click on the menu. fetch the scenario list (update in place)
-        loading.value = true
-        await userStore.getScenario({ model: localModel.value })
-        loading.value = false
-      }
-    })
+    const model = computed(() => { return userStore.model }) // globaly selected Model
+    const localModel = ref(model.value)
+
     watch(localModel, async (val) => {
+      userStore.isTokenExpired()
       // when we click on a tab (model), fetch the scenario list.
       userStore.setScenariosList([])
       loading.value = true
@@ -51,33 +36,30 @@ export default {
     })
 
     const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
-    const model = computed(() => { return userStore.model }) // globaly selected Model
     const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
-    const modelScen = ref('') // model+scen (unique key)
-    const localScen = ref('') // locally selected scen. need to cancel selection for example.
+    const modelScen = computed(() => { return model.value + scenario.value })
+    const localScen = ref(scenario.value) // locally selected scen. need to cancel selection for example.
     const locked = ref(false)
-
     watch(modelsList, async (val) => {
       // kind of a onMounted
       // This component is rendered before we fetch the bucket list on cognito API.
       // so, when it fetch, set the model to the first one and get the scenario.
-      if (localModel.value === '') { localModel.value = modelsList.value[0] }
+      if (localModel.value === null) { localModel.value = modelsList.value[0] }
       await userStore.getScenario({ model: localModel.value })
-    })
+    }, { immediate: true })
     watch(scenario, (val) => {
       if (val !== localScen.value) {
         localScen.value = ''
-        modelScen.value = ''
       }
     })
 
     function selectScenario (e, val) {
       if (e.type === 'keydown') { return }
-      modelScen.value = val.model + val.scenario
       localScen.value = val.scenario
       locked.value = val.protected
       if (val.scenario) {
         if (projectIsEmpty.value) {
+          userStore.isTokenExpired()
           loadProject()
         } else {
           showDialog.value = true
@@ -88,8 +70,7 @@ export default {
       runStore.cleanRun()
       userStore.setModel(localModel.value)
       userStore.setScenario({ scenario: localScen.value, protected: locked.value })
-      router.push({ name: 'Import', query: { s3Path: localModel.value } })
-      menu.value = false
+      context.emit('loadScen')
     }
 
     const searchString = ref('')
@@ -157,7 +138,6 @@ export default {
       }
     }
     function applyDialog () {
-      menu.value = false
       showDialog.value = false
       loadProject()
     }
@@ -166,7 +146,6 @@ export default {
       modelScen.value = model.value + scenario.value
       localScen.value = scenario.value
       showDialog.value = false
-      menu.value = false
     }
     function deleteScenario () {
       deleteDialog.value = false
@@ -191,7 +170,6 @@ export default {
 
     return {
       store,
-      menu,
       userStore,
       runStore,
       searchString,
@@ -229,166 +207,148 @@ export default {
 }
 </script>
 <template>
-  <div v-if="loggedIn && modelsList.length>0">
-    <v-menu
-      v-model="menu"
-      :persistent="!(!showDialog && !deleteDialog && !copyDialog)"
-      :close-on-content-click="false"
-      location="bottom center"
-      offset="10"
-      max-width="460px"
+  <div
+    v-if="loggedIn && modelsList.length>0"
+    class="test"
+  >
+    <v-tabs
+      v-model="localModel"
+      show-arrows
+      fixed-tabs
     >
-      <template v-slot:activator="{ props }">
-        <div
-          class="custom-title pointer"
-          v-bind="props"
+      <v-tab
+        v-for="tab in modelsList"
+        :key="tab"
+        :value="tab"
+        :disabled="loading"
+      >
+        {{ tab.slice(8) }}
+      </v-tab>
+    </v-tabs>
+    <v-divider />
+    <div
+      class="container"
+    >
+      <v-text-field
+        v-model="searchString"
+        :style="{'padding-right': '0.5rem'}"
+        density="compact"
+        variant="outlined"
+        clear-icon="fas fa-times-circle"
+        clearable
+        class="item"
+        label="search"
+        hide-details
+        prepend-inner-icon="fas fa-search"
+        @click:clear="searchString=null"
+      />
+      <v-btn-toggle
+        v-model="sortModel"
+        density="compact"
+        mandatory
+        variant="outlined"
+      >
+        <v-btn
+          value="scenario"
+          size="small"
         >
-          {{ scenario? model + '/' + scenario: $gettext('Projects') }}
-        </div>
-      </template>
-      <v-card>
-        <v-tabs
-          v-model="localModel"
-          show-arrows
-          fixed-tabs
+          <span class="hidden-sm-and-down lowercase-text">{{ $gettext('name') }}</span>
+
+          <v-icon end>
+            fas fa-font
+          </v-icon>
+        </v-btn>
+        <v-btn
+          value="timestamp"
+          size="small"
         >
-          <v-tab
-            v-for="tab in modelsList"
-            :key="tab"
-            :value="tab"
-            :disabled="loading"
-          >
-            {{ tab.slice(8) }}
-          </v-tab>
-        </v-tabs>
-        <v-divider />
-        <div
-          class="container"
+          <span class="hidden-sm-and-down lowercase-text">date</span>
+
+          <v-icon end>
+            fas fa-calendar-week
+          </v-icon>
+        </v-btn>
+        <v-btn
+          value="userEmail"
+          size="small"
         >
-          <v-text-field
-            v-model="searchString"
-            :style="{'padding-right': '0.5rem'}"
-            density="compact"
-            variant="outlined"
-            clear-icon="fas fa-times-circle"
-            clearable
-            class="item"
-            label="search"
-            hide-details
-            prepend-inner-icon="fas fa-search"
-            @click:clear="searchString=null"
-          />
-          <v-btn-toggle
-            v-model="sortModel"
-            density="compact"
-            mandatory
-            variant="outlined"
-          >
-            <v-btn
-              value="scenario"
-              size="small"
-            >
-              <span class="hidden-sm-and-down lowercase-text">{{ $gettext('name') }}</span>
+          <span class="hidden-sm-and-down lowercase-text">email</span>
 
-              <v-icon end>
-                fas fa-font
-              </v-icon>
-            </v-btn>
-            <v-btn
-              value="timestamp"
-              size="small"
-            >
-              <span class="hidden-sm-and-down lowercase-text">date</span>
-
-              <v-icon end>
-                fas fa-calendar-week
-              </v-icon>
-            </v-btn>
-            <v-btn
-              value="userEmail"
-              size="small"
-            >
-              <span class="hidden-sm-and-down lowercase-text">email</span>
-
-              <v-icon end>
-                fas fa-at
-              </v-icon>
-            </v-btn>
-          </v-btn-toggle>
+          <v-icon end>
+            fas fa-at
+          </v-icon>
+        </v-btn>
+      </v-btn-toggle>
+      <v-btn
+        size="small"
+        variant="text"
+        :icon=" sortDirection? 'fas fa-sort-down' : 'fas fa-sort-up' "
+        @click="sortDirection=!sortDirection"
+      />
+    </div>
+    <v-divider />
+    <div
+      class="v-card-content"
+    >
+      <v-list-item
+        v-for="scen in scenariosList"
+        :key="scen.model + scen.scenario"
+        :value="scen.model + scen.scenario"
+        class="list-item"
+        :class="{'is-active': modelScen === scen.model + scen.scenario}"
+        lines="two"
+        @click="(e)=>{selectScenario(e,scen)}"
+      >
+        <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
+        <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
+        <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
+        <template v-slot:append>
           <v-btn
+            variant="text"
+            icon="fas fa-copy"
+            class="ma-1"
             size="small"
-            variant="text"
-            :icon=" sortDirection? 'fas fa-sort-down' : 'fas fa-sort-up' "
-            @click="sortDirection=!sortDirection"
+            color="regular"
+            @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
           />
-        </div>
-        <v-divider />
-        <div
-          class="v-card-content"
-          :style="{'max-height': `${windowHeight-200}px`}"
-        >
-          <v-list-item
-            v-for="scen in scenariosList"
-            :key="scen.model + scen.scenario"
-            max-height="200px"
-            :value="scen.model + scen.scenario"
-            :class="{ 'is-active': modelScen === scen.model + scen.scenario}"
-            lines="two"
-            @click="(e)=>{selectScenario(e,scen)}"
-          >
-            <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
-            <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
-            <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
-            <template v-slot:append>
-              <v-btn
-                variant="text"
-                icon="fas fa-copy"
-                class="ma-1"
-                size="small"
-                color="regular"
-                @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
-              />
-              <v-btn
-                variant="text"
-                :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
-                :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
-                class="ma-1"
-                color="grey"
-                size="small"
-                @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
-              />
-            </template>
-          </v-list-item>
-          <v-spacer />
-          <v-progress-linear
-            v-if="loading"
-            color="primary"
-            indeterminate
-          />
-          <v-spacer />
-        </div>
-        <v-divider />
-        <v-list-item>
           <v-btn
             variant="text"
-            block
-            @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
-          >
-            {{ $gettext('new scenario') }}
-          </v-btn>
-        </v-list-item>
-      </v-card>
-    </v-menu>
+            :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
+            :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
+            class="ma-1"
+            color="regular"
+            size="small"
+            @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+          />
+        </template>
+      </v-list-item>
+      <v-spacer />
+      <v-progress-linear
+        v-if="loading"
+        color="primary"
+        indeterminate
+      />
+      <v-spacer />
+    </div>
+    <v-divider />
+    <v-list-action>
+      <v-btn
+        width="100%"
+        class="mt-2"
+        prepend-icon="fa-solid fa-cloud-arrow-up"
+
+        @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
+      >
+        {{ $gettext('new scenario') }}
+      </v-btn>
+    </v-list-action>
   </div>
   <div v-else-if="loggedIn && modelsList.length==0">
     <div>
-      <v-progress-linear
-        color="primary"
-        absolute
-        indeterminate
-      />
+      <v-skeleton-loader type="heading,list-item-three-line,list-item-three-line" />
     </div>
   </div>
+
   <v-dialog
     v-if="showDialog"
     v-model="showDialog"
@@ -522,6 +482,11 @@ export default {
   align-items: center;
   margin:0.5rem;
 }
+.test{
+  display:flex;
+  flex-direction: column;
+  height:calc(100% - 100px);
+}
 .item{
   flex:1;
 }
@@ -534,7 +499,9 @@ export default {
 .is-active{
   opacity:1;
   background-color: rgb(var(--v-theme-primary));
-
+}
+.list-item{
+  border-top: 1px solid rgb(var(--v-theme-lightgrey));
 }
 .lowercase-text {
   text-transform: lowercase;
@@ -546,5 +513,7 @@ export default {
 .v-card-content {
   //max-height:400px; /* Set a max height for the middle content */
   overflow: auto; /* Enable scrolling if the content overflows */
+  max-height:calc(100% - 10rem);
+
 }
 </style>

@@ -1,17 +1,19 @@
 <script>
 
 import Profile from './Profile.vue'
-import ScenariosExplorer from './ScenariosExplorer.vue'
 import { useIndexStore } from '@src/store/index'
-import { ref } from 'vue'
+import { useUserStore } from '@src/store/user'
+import { ref, computed } from 'vue'
 import systraLogoUrl from '@static/systra_logo.png'
 export default {
   name: 'Toolbar',
-  components: { Profile, ScenariosExplorer },
+  components: { Profile },
   setup () {
     const store = useIndexStore()
+    const userStore = useUserStore()
     const imageUrl = ref(systraLogoUrl)
-    return { store, imageUrl }
+    const scenario = computed(() => { return userStore.model + '/' + userStore.scenario })
+    return { store, imageUrl, scenario }
   },
   data () {
     return {
@@ -56,7 +58,10 @@ export default {
 
     <v-spacer />
     <div>
-      <ScenariosExplorer />
+      <span
+        v-if="scenario !== 'null/null'"
+        class="custom-title"
+      > {{ scenario }}</span>
     </div>
     <v-spacer />
     <div>
@@ -164,5 +169,11 @@ export default {
 }
 .language:last-child {
   border-right: 0;
+}
+
+.custom-title {
+  font-size: 1.2em;
+  padding-left: 1.2rem;
+  color: rgb(var(--v-theme-secondarydark));
 }
 </style>

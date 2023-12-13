@@ -4,9 +4,10 @@
 .theme--light.v-application {
   color: $secondary;
 }
-.theme--light.v-icon {
-  color: inherit !important;
+.v-theme--light.v-icon {
+  opacity:80%
 }
+
 .theme--dark.v-label {
   color: white;
 }

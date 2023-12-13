@@ -855,9 +855,9 @@
     tslib "^2.0.0"
 
 "@aws-sdk/client-s3@^3.460.0":
-  version "3.470.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-s3/-/client-s3-3.470.0.tgz#35b0f8004487e83133f9bea993cfaa66a14fc824"
-  integrity sha512-HdhNlz25ImxID17qK7qfLXileJPYdPT7kgC+gm083edhFk0JI0+N8y7N9ybnVYpoHzZZPXeO1KZkmfdWK4IQhw==
+  version "3.472.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-s3/-/client-s3-3.472.0.tgz#a4f5e3f2e7daaa345068ae205d95785d8343fead"
+  integrity sha512-Gth+HNhCIjEE6YoeC59ypGqaJ+cZuznuLJ2t3PL+9BQ/2pWXaxhZ5QXFxaJidtzdyebOAgY87/7g3D6PHnWQDg==
   dependencies:
     "@aws-crypto/sha1-browser" "3.0.0"
     "@aws-crypto/sha256-browser" "3.0.0"
@@ -882,7 +882,7 @@
     "@aws-sdk/util-endpoints" "3.470.0"
     "@aws-sdk/util-user-agent-browser" "3.468.0"
     "@aws-sdk/util-user-agent-node" "3.470.0"
-    "@aws-sdk/xml-builder" "3.465.0"
+    "@aws-sdk/xml-builder" "3.472.0"
     "@smithy/config-resolver" "^2.0.21"
     "@smithy/eventstream-serde-browser" "^2.0.15"
     "@smithy/eventstream-serde-config-resolver" "^2.0.15"
@@ -1617,9 +1617,9 @@
     tslib "^1.8.0"
 
 "@aws-sdk/lib-storage@^3.462.0":
-  version "3.470.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/lib-storage/-/lib-storage-3.470.0.tgz#f3c52155740f8fa119943836f3405821d4498717"
-  integrity sha512-K3qLp6oEpcz8WEfob/TYRdFkgwqoGSzqADoF4HY7GuHZASu5zEK87hTiBUZt/cli7/jjZMw2Am/jKbowPUG5Tw==
+  version "3.472.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/lib-storage/-/lib-storage-3.472.0.tgz#4cb029c6f6e87856d72620b110d29cc95466d8c4"
+  integrity sha512-5P57iNMYhdz9u6jt7gDZJyJtwvNSDxVg1TDbMvXsb1MHgokTdDhj+VOBYvxKyHRCNB6y1gIYfsAwBikm5kMBPA==
   dependencies:
     "@smithy/abort-controller" "^2.0.1"
     "@smithy/middleware-endpoint" "^2.2.3"
@@ -2067,9 +2067,9 @@
     tslib "^2.5.0"
 
 "@aws-sdk/s3-request-presigner@^3.461.0":
-  version "3.470.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.470.0.tgz#3f96fb965d2863c917cd8ef5eb2949be7f9d2e49"
-  integrity sha512-HaYcw/RsIimGEF8jcSnTUA09xChAG/pVtPz8Mo/cU6Jpq9XiOnbGrWZ+3bkWEOtZRSbcz/0Gelws6QuLsxkt0w==
+  version "3.472.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.472.0.tgz#9da9a791f62e4bc1b85dbdaed0511e19da8d88ca"
+  integrity sha512-BynrM9F1Wn2qdllJQPQR/ilkf/RZTmNnWdPrjHsA8n26UL/O2qt5zvPlx/uRF+2kqN5jR+AeRjik84/gBU7xVQ==
   dependencies:
     "@aws-sdk/signature-v4-multi-region" "3.470.0"
     "@aws-sdk/types" "3.468.0"
@@ -2520,11 +2520,12 @@
     "@aws-sdk/types" "3.6.1"
     tslib "^1.8.0"
 
-"@aws-sdk/xml-builder@3.465.0":
-  version "3.465.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/xml-builder/-/xml-builder-3.465.0.tgz#0914bc0b9708848f1fa509dd6e474e8c691a0cb2"
-  integrity sha512-9TKW5ZgsReygePTnAUdvaqxr/k1HXsEz2yDnk/jTLaUeRPsd5la8fFjb6OfgYYlbEVNlxTcKzaqOdrqxpUkmyQ==
+"@aws-sdk/xml-builder@3.472.0":
+  version "3.472.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/xml-builder/-/xml-builder-3.472.0.tgz#fe804e26517779868f7093e361dce4816be546d6"
+  integrity sha512-PwjVxz1hr9up8QkddabuScPZ/d5aDHgvHYgK4acHYzltXL4wngfvimi5ZqXTzVWF2QANxHmWnHUr45QJX71oJQ==
   dependencies:
+    "@smithy/types" "^2.7.0"
     tslib "^2.5.0"
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.22.13", "@babel/code-frame@^7.22.5", "@babel/code-frame@^7.23.5":
@@ -2807,15 +2808,10 @@
     chalk "^2.4.2"
     js-tokens "^4.0.0"
 
-"@babel/parser@^7.18.11", "@babel/parser@^7.20.15", "@babel/parser@^7.21.3", "@babel/parser@^7.22.15", "@babel/parser@^7.22.5", "@babel/parser@^7.23.0", "@babel/parser@^7.23.6":
+"@babel/parser@^7.18.11", "@babel/parser@^7.20.15", "@babel/parser@^7.21.3", "@babel/parser@^7.22.15", "@babel/parser@^7.22.5", "@babel/parser@^7.23.0", "@babel/parser@^7.23.5", "@babel/parser@^7.23.6":
   version "7.23.6"
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.23.6.tgz#ba1c9e512bda72a47e285ae42aff9d2a635a9e3b"
   integrity sha512-Z2uID7YJ7oNvAI20O9X0bblw7Qqs8Q2hFy0R9tAfnfLkp5MW0UH9eUvnDSnFwKZ0AvgS1ucqR4KzvVHgnke1VQ==
-
-"@babel/parser@^7.23.5":
-  version "7.23.5"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.23.5.tgz#37dee97c4752af148e1d38c34b856b2507660563"
-  integrity sha512-hOOqoiNXrmGdFbhgCzu6GiURxUgM27Xwd/aPuu8RfHEZPBzL1Z54okAHAQjXfcQNwvrlkAmAp4SlRTZ45vlthQ==
 
 "@babel/parser@^7.6.0", "@babel/parser@^7.9.6":
   version "7.22.5"
@@ -4853,10 +4849,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@vite-plugin-vue-devtools/core@1.0.0-rc.7":
-  version "1.0.0-rc.7"
-  resolved "https://registry.yarnpkg.com/@vite-plugin-vue-devtools/core/-/core-1.0.0-rc.7.tgz#9a242f34f63ac91fed8bd130be3631a183b9d4cd"
-  integrity sha512-Tv9JeRZQ6KDwSkOQJvXc5TBcc4fkSazA96GDhi99v4VCthTgXjnhaah41CeZD3hFDKnNS0MHKFFqN+RHAgYDyQ==
+"@vite-plugin-vue-devtools/core@1.0.0-rc.8":
+  version "1.0.0-rc.8"
+  resolved "https://registry.yarnpkg.com/@vite-plugin-vue-devtools/core/-/core-1.0.0-rc.8.tgz#b3096e4a62510f3bfe911661e037c1fd86e080d3"
+  integrity sha512-UtNf/I5D6vk/xr/V+O6lMgqYbCJQ+ctjXPiebzz/wgMuNj4DF1iEuui9E260vrIgUsqaK4O1zmTkjoYtb9lYYw==
   dependencies:
     "@babel/parser" "^7.23.0"
     birpc "^0.2.14"
@@ -5666,9 +5662,9 @@ camelcase@^6.3.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001565:
-  version "1.0.30001568"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001568.tgz#53fa9297273c9a977a560663f48cbea1767518b7"
-  integrity sha512-vSUkH84HontZJ88MiNrOau1EBrCqEQYgkC5gIySiDlpsm8sGVrhU7Kx4V6h0tnqaHzIHZv08HlJIwPbL4XL9+A==
+  version "1.0.30001570"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001570.tgz#b4e5c1fa786f733ab78fc70f592df6b3f23244ca"
+  integrity sha512-+3e0ASu4sw1SWaoCtvPeyXp+5PsjigkSt8OXZbF9StH5pQWbxEjLAZE3n8Aup5udop1uRiKA7a4utUk/uoSpUw==
 
 capital-case@^1.0.4:
   version "1.0.4"
@@ -6261,9 +6257,9 @@ editorconfig@^1.0.3:
     semver "^7.5.3"
 
 electron-to-chromium@^1.4.601:
-  version "1.4.610"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.610.tgz#e17b22203f4aa2e1ed77759c720546d95a51186f"
-  integrity sha512-mqi2oL1mfeHYtOdCxbPQYV/PL7YrQlxbvFEZ0Ee8GbDdShimqt2/S6z2RWqysuvlwdOrQdqvE0KZrBTipAeJzg==
+  version "1.4.611"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.611.tgz#92d3a8f03110fbf5f99b054da97825f994fa480a"
+  integrity sha512-ZtRpDxrjHapOwxtv+nuth5ByB8clyn8crVynmRNGO3wG3LOp8RTcyZDqwaI6Ng6y8FCK2hVZmJoqwCskKbNMaw==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -10056,11 +10052,11 @@ vite-plugin-stylelint@^4.3.0:
     chokidar "^3.5.3"
 
 vite-plugin-vue-devtools@^1.0.0-rc.5:
-  version "1.0.0-rc.7"
-  resolved "https://registry.yarnpkg.com/vite-plugin-vue-devtools/-/vite-plugin-vue-devtools-1.0.0-rc.7.tgz#f9ad1b53746b0510b5814d987c32e8fbf83130b5"
-  integrity sha512-vkAj9a6s7Qo8yJ4R6mpa1wMovnZNZrWezsXorAoguydWrzYirKOhu8FrosK/csbjqTibKktmgfpzMxtqCqMaqQ==
+  version "1.0.0-rc.8"
+  resolved "https://registry.yarnpkg.com/vite-plugin-vue-devtools/-/vite-plugin-vue-devtools-1.0.0-rc.8.tgz#52701a7cd21655499d3d12735428cbc7f54be006"
+  integrity sha512-xl7m81yHaMG4TuOFSLkHjbOLUJ8IEMHxc5TJJUDgqDDxrvethXFy6Ay+AOH1ilZLZ1N45KR13YnqWw+f89NwOw==
   dependencies:
-    "@vite-plugin-vue-devtools/core" "1.0.0-rc.7"
+    "@vite-plugin-vue-devtools/core" "1.0.0-rc.8"
     "@webfansplz/vuedoc-parser" "^0.0.4"
     birpc "^0.2.14"
     execa "^8.0.1"
@@ -10238,9 +10234,9 @@ vue@^3.3.11:
     "@vue/shared" "3.3.11"
 
 vuetify@^3.4.4:
-  version "3.4.6"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.4.6.tgz#2ea7e9d97bb90a856a96b9e83f14c01d69792025"
-  integrity sha512-Zp6BjKkNcnyHlOmr01Y/Rc4d686PORO+hcpfM76qRaDMIU4H1GnP0JIF3jwxI1q3Uj/2bHKLwn81oCLJZd+8sg==
+  version "3.4.7"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.4.7.tgz#3bb39f081fc66be0ad1038cf3c8458584a03354f"
+  integrity sha512-K++yer5H94Yi/uzgKDOTYRPA9qipVntomEohRsegfAnRqmFyw2x9clHVEoTRa/Fvk3nkHti0zn90Mp7mSUwVnw==
 
 w3c-xmlserializer@^4.0.0:
   version "4.0.0"

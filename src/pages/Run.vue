@@ -104,6 +104,8 @@ export default {
             v-if="avalaibleStepFunctions.length>1"
             v-model="stepFunction"
             show-arrows
+            bg-color="lightgrey"
+            color="success"
             fixed-tabs
           >
             <v-tab
@@ -155,6 +157,7 @@ export default {
             :loading="running"
             :disabled="running || isProtected || !modelIsLoaded"
             color="success"
+            class="ma-2"
             @click="run()"
           >
             <v-icon
@@ -173,8 +176,10 @@ export default {
           >
             {{ $gettext("Abort Simulation") }}
           </v-btn>
-          <div v-if="modelIsLoaded">
-            <v-container
+          <div
+            v-if="modelIsLoaded"
+          >
+            <div
               v-for="(step, i) in steps"
               :key="i+1"
             >
@@ -184,6 +189,7 @@ export default {
                 :color="currentStep >= i+1?'primary':'regular'"
                 :title="step.name"
                 :value="i+1"
+                compact
                 :step="i+1"
               />
               <v-stepper-item
@@ -193,7 +199,7 @@ export default {
                 :value="i+1"
                 :step="i+1"
               />
-            </v-container>
+            </div>
           </div>
         </v-stepper>
       </v-card>
@@ -244,9 +250,11 @@ export default {
   margin: 10px;
   margin-left: 0px;
 }
+
 .stepper{
   background-color:rgb(var(--v-theme-mediumgrey)) ;
   color:rgb(var(--v-theme-black));
+  overflow-y: auto;
 
 }
 
