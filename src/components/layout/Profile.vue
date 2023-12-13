@@ -19,6 +19,7 @@ export default {
   },
 
   props: [],
+  emits: ['logout'],
   setup () {
     const store = useIndexStore()
     const userStore = useUserStore()
@@ -198,7 +199,6 @@ export default {
 
     }
   },
-  events: ['logout'],
 }
 </script>
 <template>

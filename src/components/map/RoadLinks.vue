@@ -18,7 +18,7 @@ export default {
     MglPopup,
   },
   props: ['map', 'isEditorMode', 'isRoadMode'],
-  events: ['clickFeature'],
+  emits: ['clickFeature', 'onHover', 'offHover'],
   setup (props, context) {
     const store = useIndexStore()
     const rlinksStore = userLinksStore()

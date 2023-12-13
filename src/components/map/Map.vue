@@ -43,7 +43,7 @@ export default {
     },
 
   },
-  events: ['clickFeature'],
+  emits: ['clickFeature'],
 
   setup (props, context) {
     const store = useIndexStore()

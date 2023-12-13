@@ -13,7 +13,7 @@ export default {
     RoadSidePanel,
     ODSidePanel,
   },
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
+  emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
   setup (_, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()
@@ -72,6 +72,7 @@ export default {
 
     return {
       tab,
+      store,
       showLeftPanel,
       showLeftPanelContent,
       windowHeight,
@@ -118,7 +119,7 @@ export default {
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
             <v-tabs
               v-model="tab"
-              :disabled="editorTrip"
+              :disabled="editorTrip!==null"
               bg-color="secondary"
               grow
             >

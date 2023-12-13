@@ -8,7 +8,7 @@ export default {
   components: {
   },
   props: ['height'], // height is here to resize with the windows...
-  events: ['deleteButton', 'propertiesButton'],
+  emits: ['deleteButton', 'propertiesButton'],
   setup () {
     const store = useIndexStore()
     const odStore = useODStore()

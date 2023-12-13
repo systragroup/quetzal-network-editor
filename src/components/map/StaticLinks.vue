@@ -14,7 +14,7 @@ export default {
     MglGeojsonLayer,
   },
   props: ['map', 'isEditorMode'],
-  events: ['rightClick'],
+  emits: ['rightClick'],
   setup (props, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()

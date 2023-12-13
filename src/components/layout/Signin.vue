@@ -11,7 +11,7 @@ export default {
   },
 
   props: [],
-  events: ['signin'],
+  emits: ['signin'],
   data () {
     return {
       newPasswordUI: false,

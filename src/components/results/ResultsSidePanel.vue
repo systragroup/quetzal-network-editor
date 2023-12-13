@@ -9,7 +9,7 @@ export default {
   },
 
   props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer', 'presetChoices', 'selectedPreset'],
-  events: ['update-selectedCategory', 'select-layer', 'update-selected-filter', 'select-preset', 'delete-preset'],
+  emits: ['update-selectedCategory', 'select-layer', 'select-preset', 'delete-preset', 'update-selectedFilter'],
   setup (props, context) {
     const store = useIndexStore()
     const windowHeight = computed(() => { return store.windowHeight })

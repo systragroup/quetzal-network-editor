@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
 
 export default {
   name: 'FilesList',
-  events: ['FilesLoaded'],
+  emits: ['FilesLoaded'],
   setup (_, context) {
     const store = useIndexStore()
     const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })

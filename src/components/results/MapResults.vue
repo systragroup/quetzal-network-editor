@@ -22,7 +22,7 @@ export default {
 
   },
   props: ['selectedFeature', 'layerType', 'extrusion', 'links', 'nanLinks', 'opacity', 'offset'],
-  events: ['selectClick'],
+  emits: ['selectClick'],
   setup (props, context) {
     const store = useIndexStore()
 

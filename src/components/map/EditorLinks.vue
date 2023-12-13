@@ -15,7 +15,7 @@ export default {
     MglGeojsonLayer,
   },
   props: ['map'],
-  events: ['clickFeature', 'onHover', 'offHover'],
+  emits: ['clickFeature', 'onHover', 'offHover'],
   setup (props, context) {
     const store = useIndexStore()
 

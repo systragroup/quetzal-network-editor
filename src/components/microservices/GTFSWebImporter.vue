@@ -221,28 +221,18 @@ export default {
 
       <v-btn
         :disabled="running"
+        prepend-icon="fa-solid fa-sync"
         @click="getAvaileGTFS"
       >
-        <v-icon
-          size="small"
-          style="margin-right: 10px;"
-        >
-          fa-solid fa-sync
-        </v-icon>
         {{ $gettext('fetch available GTFS') }}
       </v-btn>
       <v-btn
         :loading="running"
         :disabled="running || selectedGTFS.length===0"
-        color="success"
+        :color="(running || selectedGTFS.length===0)? 'regular': 'success'"
+        prepend-icon="fa-solid fa-play"
         @click="importGTFS"
       >
-        <v-icon
-          size="small"
-          style="margin-right: 10px;"
-        >
-          fa-solid fa-play
-        </v-icon>
         {{ $gettext('Download') }}
       </v-btn>
       <v-card-subtitle>

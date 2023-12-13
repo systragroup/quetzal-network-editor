@@ -10,7 +10,7 @@ export default {
   components: {
   },
   props: ['height'], // height is here to resize with the windows...
-  events: ['deleteButton', 'propertiesButton', 'update-tripList'],
+  emits: ['deleteButton', 'propertiesButton', 'update-tripList'],
   setup () {
     const store = useIndexStore()
     const rlinksStore = userLinksStore()

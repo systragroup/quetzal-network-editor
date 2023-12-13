@@ -9,7 +9,7 @@ export default {
   name: 'ResultsSettings',
 
   props: ['displaySettings', 'featureChoices', 'type'],
-  events: ['submit', 'save-preset'],
+  emits: ['submit', 'save-preset'],
   setup () {
     const store = useIndexStore()
     const windowHeight = computed(() => store.windowHeight - 100)

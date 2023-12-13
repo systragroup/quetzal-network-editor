@@ -254,7 +254,7 @@ export default {
               {{ userStore.loggedIn? $gettext("Select a Project"): $gettext("Login to access projects") }}
             </div>
             <ScenariosExplorer
-              @loadScen="loadFilesFromS3"
+              @load="loadFilesFromS3"
             />
             <div class="button-row">
               <v-btn

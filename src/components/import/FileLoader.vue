@@ -13,7 +13,7 @@ import { computed, ref } from 'vue'
 
 export default {
   name: 'FileLoader',
-  events: ['FilesLoaded'],
+  emits: ['FilesLoaded'],
   setup () {
     const store = useIndexStore()
     const userStore = useUserStore()

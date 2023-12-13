@@ -12,7 +12,7 @@ export default {
   },
 
   props: ['height'], // height is here to resize with the windows...
-  events: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
+  emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
   setup (_, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()

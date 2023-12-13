@@ -18,7 +18,6 @@ const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 
 export default {
   name: 'MapSelector',
-  events: ['change'],
   components: {
     MglMap,
     MglNavigationControl,
@@ -26,6 +25,7 @@ export default {
     MglGeojsonLayer,
     NodesLayer,
   },
+  emits: ['change'],
 
   setup () {
     const store = useIndexStore()

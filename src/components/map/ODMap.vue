@@ -17,7 +17,6 @@ export default {
     MglPopup,
   },
   props: ['map', 'isODMode', 'isEditorMode'],
-  events: [],
   setup () {
     const header = geojson
     const store = useIndexStore()

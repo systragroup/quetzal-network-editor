@@ -166,15 +166,16 @@ export default {
       <v-card-subtitle>
         {{ $gettext('Add GTFS files. When its done uploading press Convert') }}
       </v-card-subtitle>
-      <v-card-action>
+      <v-card-actions>
         <v-btn
+          variant="elevated"
           :disabled="running"
           prepend-icon="fa-solid fa-file-archive"
           @click="uploadGTFS"
         >
           {{ $gettext('upload GTFS') }}
         </v-btn>
-      </v-card-action>
+      </v-card-actions>
 
       <v-card-subtitle>
         <v-alert
@@ -269,15 +270,10 @@ export default {
         <v-btn
           :loading="running"
           :disabled="running || UploadedGTFS.length==0 || isUploading"
-          color="success"
+          :color="(running || UploadedGTFS.length==0 || isUploading)? 'regular' :'success'"
+          prepend-icon="fa-solid fa-play"
           @click="importGTFS"
         >
-          <v-icon
-            size="small"
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-play
-          </v-icon>
           {{ $gettext('convert') }}
         </v-btn>
       </div>

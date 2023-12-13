@@ -188,6 +188,7 @@ export default {
       showHint,
       rules,
       timer,
+      importStatus,
       running,
       error,
       errorMessage,
@@ -261,18 +262,13 @@ export default {
           </div>
           <v-card-actions>
             <v-btn
-              variant="regular"
               color="success"
+              variant="elevated"
               :loading="running || importStatus === 'RUNNING'"
               :disabled="running || importStatus === 'RUNNING' || !validForm"
               type="submit"
+              prepend-icon=" fa-solid fa-play"
             >
-              <v-icon
-                size="small"
-                style="margin-right: 10px;"
-              >
-                fa-solid fa-play
-              </v-icon>
               {{ $gettext("Run") }}
             </v-btn>
             <v-btn

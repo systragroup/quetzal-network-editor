@@ -9,7 +9,7 @@ const $gettext = s => s
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Settings',
-  events: ['submit'],
+  emits: ['submit'],
   setup (_, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()

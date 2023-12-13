@@ -3,13 +3,6 @@ import { useIndexStore } from '@src/store/index'
 import { ref, computed, watch } from 'vue'
 export default {
   name: 'Alert',
-  components: {
-
-  },
-
-  props: [],
-  events: [],
-
   setup () {
     const store = useIndexStore()
     const sheet = ref(false)

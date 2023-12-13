@@ -11,7 +11,8 @@ const $gettext = s => s
 
 export default {
   name: 'ScenariosExplorer',
-  event: ['loadScen'],
+  emits: ['load'],
+
   setup (_, context) {
     const store = useIndexStore()
     const userStore = useUserStore()
@@ -70,7 +71,7 @@ export default {
       runStore.cleanRun()
       userStore.setModel(localModel.value)
       userStore.setScenario({ scenario: localScen.value, protected: locked.value })
-      context.emit('loadScen')
+      context.emit('load', 'emit')
     }
 
     const searchString = ref('')
@@ -331,7 +332,7 @@ export default {
       <v-spacer />
     </div>
     <v-divider />
-    <v-list-action>
+    <div>
       <v-btn
         width="100%"
         class="mt-2"
@@ -341,7 +342,7 @@ export default {
       >
         {{ $gettext('new scenario') }}
       </v-btn>
-    </v-list-action>
+    </div>
   </div>
   <div v-else-if="loggedIn && modelsList.length==0">
     <div>
