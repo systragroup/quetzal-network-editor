@@ -26,7 +26,6 @@ export const useIndexStore = defineStore('store', {
     darkMode: false,
     loading: false,
     showLeftPanel: true,
-    showScenarios: false,
     windowHeight: 0,
     anchorMode: false,
     linksPopupContent: ['trip_id'],
@@ -66,9 +65,7 @@ export const useIndexStore = defineStore('store', {
     changeLeftPanel () {
       this.showLeftPanel = !this.showLeftPanel
     },
-    changeShowScenarios () {
-      this.showScenarios = !this.showScenarios
-    },
+
     saveMapPosition (payload) {
       this.mapCenter = payload.mapCenter
       this.mapZoom = payload.mapZoom

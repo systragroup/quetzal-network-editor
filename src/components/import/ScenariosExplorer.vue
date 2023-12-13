@@ -4,18 +4,15 @@ import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
-import router from '@src/router/index'
 
-import { computed, ref, watch, toRaw, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const $gettext = s => s
 
 export default {
   name: 'ScenariosExplorer',
-  components: {
-
-  },
-  setup () {
+  event: ['loadScen'],
+  setup (_, context) {
     const store = useIndexStore()
     const userStore = useUserStore()
     const runStore = useRunStore()
@@ -26,28 +23,11 @@ export default {
     const projectIsEmpty = computed(() => store.projectIsEmpty)
 
     // logic to show the v-menu
-    const showScenarios = computed(() => store.showScenarios)
-    const menu = ref(false)
     const model = computed(() => { return userStore.model }) // globaly selected Model
-    const localModel = ref('')
-    watch(showScenarios, (val) => {
-      if (val !== menu.value) { menu.value = val }
-    })
-    watch(menu, async (val) => {
-      if (val !== showScenarios.value) { store.changeShowScenarios() }
-      if (val) {
-        userStore.isTokenExpired()
-        // when we click on the menu. fetch the scenario list (update in place)
-        loading.value = true
-        await userStore.getScenario({ model: localModel.value })
-        loading.value = false
-      }
-    })
-    onMounted(() => {
-      localModel.value = model.value
-      localScen.value = scenario.value
-    })
+    const localModel = ref(model.value)
+
     watch(localModel, async (val) => {
+      userStore.isTokenExpired()
       // when we click on a tab (model), fetch the scenario list.
       userStore.setScenariosList([])
       loading.value = true
@@ -58,15 +38,15 @@ export default {
     const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
     const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
     const modelScen = computed(() => { return model.value + scenario.value })
-    const localScen = ref('') // locally selected scen. need to cancel selection for example.
+    const localScen = ref(scenario.value) // locally selected scen. need to cancel selection for example.
     const locked = ref(false)
     watch(modelsList, async (val) => {
       // kind of a onMounted
       // This component is rendered before we fetch the bucket list on cognito API.
       // so, when it fetch, set the model to the first one and get the scenario.
-      if (localModel.value === '') { localModel.value = modelsList.value[0] }
+      if (localModel.value === null) { localModel.value = modelsList.value[0] }
       await userStore.getScenario({ model: localModel.value })
-    })
+    }, { immediate: true })
     watch(scenario, (val) => {
       if (val !== localScen.value) {
         localScen.value = ''
@@ -79,6 +59,8 @@ export default {
       locked.value = val.protected
       if (val.scenario) {
         if (projectIsEmpty.value) {
+          userStore.isTokenExpired()
+
           loadProject()
         } else {
           showDialog.value = true
@@ -89,8 +71,7 @@ export default {
       runStore.cleanRun()
       userStore.setModel(localModel.value)
       userStore.setScenario({ scenario: localScen.value, protected: locked.value })
-      router.push({ name: 'Import', query: { s3Path: localModel.value } })
-      menu.value = false
+      context.emit('loadScen')
     }
 
     const searchString = ref('')
@@ -158,7 +139,6 @@ export default {
       }
     }
     function applyDialog () {
-      menu.value = false
       showDialog.value = false
       loadProject()
     }
@@ -167,7 +147,6 @@ export default {
       modelScen.value = model.value + scenario.value
       localScen.value = scenario.value
       showDialog.value = false
-      menu.value = false
     }
     function deleteScenario () {
       deleteDialog.value = false
@@ -192,7 +171,6 @@ export default {
 
     return {
       store,
-      menu,
       userStore,
       runStore,
       searchString,

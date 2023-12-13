@@ -27,10 +27,7 @@ export default {
     const runStore = useRunStore()
     const projectIsEmpty = computed(() => store.projectIsEmpty)
 
-    function showScenarios () {
-      store.changeShowScenarios()
-    }
-    return { store, userStore, runStore, projectIsEmpty, showScenarios }
+    return { store, userStore, runStore, projectIsEmpty }
   },
 
   data () {
@@ -42,19 +39,8 @@ export default {
     }
   },
 
-  computed: {
-    s3Path () { return this.$route.query.s3Path },
-
-  },
-  watch: {
-    s3Path (val) {
-      if (val) this.loadFilesFromS3(val)
-    },
-
-  },
   mounted () {
     this.store.changeNotification('')
-    if (this.s3Path) this.loadFilesFromS3(this.s3Path)
   },
   methods: {
     login () {
@@ -107,8 +93,6 @@ export default {
 
     newProject () {
       this.store.initNetworks()
-      // TODO
-      // this.store.unloadLayers()
       this.userStore.unloadProject()
       this.runStore.cleanRun()
       // TODO
@@ -150,13 +134,11 @@ export default {
       if (!this.projectIsEmpty) {
         this.store.initNetworks()
         this.runStore.cleanRun()
-        // this.store.unloadLayers()
         // TODO
         // this.runOSMStore.cleanRun()
         // this.runGTFSStore.cleanRun()
       }
       this.store.changeLoading(true)
-      this.$router.replace({ query: null }) // remove query in url when page is load.
 
       const model = this.userStore.model
       const scen = this.userStore.scenario + '/'
@@ -271,7 +253,9 @@ export default {
             >
               {{ $gettext("Select a Project") }}
             </div>
-            <ScenariosExplorer />
+            <ScenariosExplorer
+              @loadScen="loadFilesFromS3"
+            />
             <div class="button-row">
               <v-btn
                 prepend-icon="fas fa-file-archive"
