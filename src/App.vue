@@ -44,6 +44,7 @@ export default {
     >
       <v-overlay
         :model-value="loading"
+        persistent
         class="align-center justify-center"
       >
         <v-progress-circular
