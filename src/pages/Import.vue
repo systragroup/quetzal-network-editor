@@ -251,7 +251,7 @@ export default {
             <div
               class="custom-title"
             >
-              {{ $gettext("Select a Project") }}
+              {{ userStore.loggedIn? $gettext("Select a Project"): $gettext("Login to access projects") }}
             </div>
             <ScenariosExplorer
               @loadScen="loadFilesFromS3"

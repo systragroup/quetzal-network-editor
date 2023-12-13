@@ -60,7 +60,6 @@ export default {
       if (val.scenario) {
         if (projectIsEmpty.value) {
           userStore.isTokenExpired()
-
           loadProject()
         } else {
           showDialog.value = true
@@ -349,6 +348,7 @@ export default {
       <v-skeleton-loader type="heading,list-item-three-line,list-item-three-line" />
     </div>
   </div>
+
   <v-dialog
     v-if="showDialog"
     v-model="showDialog"
