@@ -154,12 +154,11 @@ export default {
         this.lingering = event.lingering
         this.showDialog = true
       } else if (this.action === 'Edit Group Info') {
-        this.groupTripIds = event.tripIds
+        this.groupTripIds = new Set(event.tripIds)
         const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
         const lineAttributes = this.linksStore.lineAttributes
-        const features = cloneDeep(this.linksStore.links.features.filter(
-          link => this.groupTripIds.includes(link.properties.trip_id)))
-
+        const features = this.linksStore.links.features.filter(
+          link => this.groupTripIds.has(link.properties.trip_id))
         this.editorForm = getGroupForm(features, lineAttributes, uneditable)
         this.lingering = event.lingering
         this.showDialog = true

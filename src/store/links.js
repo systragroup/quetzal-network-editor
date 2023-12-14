@@ -66,7 +66,7 @@ export const useLinksStore = defineStore('links', {
         // limit geometry precision to 6 digit
         this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-        this.applyPropertiesTypes()
+        this.applyPropertiesTypes(this.links)
         this.getTripId()
 
         // set all trips visible
@@ -129,7 +129,7 @@ export const useLinksStore = defineStore('links', {
 
       // this.links.features.push(...payload.links.features) will crash with large array (stack size limit)
       payload.features.forEach(link => this.links.features.push(link))
-      this.applyPropertiesTypes()
+      this.applyPropertiesTypes(this.links)
       this.getLinksProperties()
       this.getTripId()
 
@@ -141,7 +141,6 @@ export const useLinksStore = defineStore('links', {
         coord => Math.round(Number(coord) * 1000000) / 1000000))
 
       payload.features.forEach(node => this.nodes.features.push(node))
-      this.applyPropertiesTypes()
       this.getNodesProperties()
     },
 
@@ -212,18 +211,20 @@ export const useLinksStore = defineStore('links', {
       this.changeBounds = payload.changeBounds
       // set editor links corresponding to trip id
       // var filtered = {...this.links}
-      const filtered = cloneDeep(this.links)
-      filtered.features = filtered.features.filter(link => link.properties.trip_id === this.editorTrip)
-      this.editorLinks = filtered
+      const features = this.links.features.filter(link => link.properties.trip_id === this.editorTrip)
+      this.editorLinks.features = cloneDeep(features)
+
       // get the corresponding nodes
       this.getEditorNodes({ nodes: this.nodes })
+
       this.getEditorLineInfo()
     },
 
     cloneTrip (payload) {
       // clone and reversed a trip.
-      const cloned = cloneDeep(this.links)
-      cloned.features = cloned.features.filter(link => link.properties.trip_id === payload.tripId)
+      const cloned = cloneDeep(geojson)
+      const features = this.links.features.filter(link => link.properties.trip_id === payload.tripId)
+      cloned.features = cloneDeep(features)
 
       let linkSequence = cloned.features.length
       for (const link of cloned.features) {
@@ -251,8 +252,11 @@ export const useLinksStore = defineStore('links', {
         const a = cloned.features.map(item => item.properties.a)
         const b = cloned.features.map(item => item.properties.b)
         const ab = new Set([...a, ...b])
-        const clonedNodes = cloneDeep(this.nodes)
-        clonedNodes.features = clonedNodes.features.filter(node => ab.has(node.properties.index))
+
+        const clonedNodes = cloneDeep(geojson)
+        const features = this.nodes.features.filter(node => ab.has(node.properties.index))
+        clonedNodes.features = cloneDeep(features)
+
         const newName = {}
         ab.forEach(node => newName[node] = 'node_' + short.generate())
         clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
@@ -274,9 +278,9 @@ export const useLinksStore = defineStore('links', {
       const b = this.editorLinks.features.map(item => item.properties.b)
       const editorNodesList = new Set([...a, ...b])
       // set nodes corresponding to trip id
-      const filtered = cloneDeep(payload.nodes)
-      filtered.features = filtered.features.filter(node => editorNodesList.has(node.properties.index))
-      this.editorNodes = filtered
+
+      const features = payload.nodes.features.filter(node => editorNodesList.has(node.properties.index))
+      this.editorNodes.features = cloneDeep(features)
     },
 
     getEditorLineInfo () {
@@ -705,7 +709,7 @@ export const useLinksStore = defineStore('links', {
       const props = Object.keys(editorGroupInfo).filter(key =>
         ((editorGroupInfo[key].value !== '') || !editorGroupInfo[key].placeholder))
       // add new line info to each links of each trips.
-      const tempLinks = this.links.features.filter(link => groupTripIds.includes(link.properties.trip_id))
+      const tempLinks = this.links.features.filter(link => groupTripIds.has(link.properties.trip_id))
       tempLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = editorGroupInfo[key].value))
       // get tripId list
@@ -721,6 +725,7 @@ export const useLinksStore = defineStore('links', {
 
     confirmChanges () { // apply change to Links
       this.links.features = this.links.features.filter(link => link.properties.trip_id !== this.editorTrip)
+      this.applyPropertiesTypes(this.editorLinks)
       this.links.features.push(...this.editorLinks.features)
       // all new nodes.
       for (const eNode of this.editorNodes.features) {
@@ -735,7 +740,6 @@ export const useLinksStore = defineStore('links', {
 
       // delete every every nodes not in links
       this.deleteUnusedNodes()
-
       // For every Links containing an editor Nodes. update Geometry.
       // (this is necessary when we move a node that is share between multiplde lines)
       // get a list of all links (excluding editorLinks) that contain the selected node
@@ -759,12 +763,8 @@ export const useLinksStore = defineStore('links', {
       ])
       this.newLink = {}
       this.newNode = {}
-
-      this.applyPropertiesTypes()
-
       // get tripId list
       this.getTripId()
-
       this.getLinksProperties()
     },
 
@@ -781,14 +781,14 @@ export const useLinksStore = defineStore('links', {
       // get tripId list
       this.getTripId()
     },
-    applyPropertiesTypes () {
-      this.defaultAttributes.forEach(attr => {
-        if (attr.type === 'String') {
-          this.links.features.forEach(link => link.properties[attr.name] = String(link.properties[attr.name]))
-        } else if (attr.type === 'Number') {
-          this.links.features.forEach(link => link.properties[attr.name] = Number(link.properties[attr.name]))
+    applyPropertiesTypes (links) {
+      for (const attr of this.defaultAttributes) {
+        for (const link of links.features) {
+          link.properties[attr.name] = attr.type === 'String'
+            ? String(link.properties[attr.name])
+            : Number(link.properties[attr.name])
         }
-      })
+      }
     },
   },
 
