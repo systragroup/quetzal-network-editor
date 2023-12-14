@@ -181,9 +181,9 @@ export default {
         <v-select
           v-model="vmodelSelectedFilter"
           :items="filterChoices"
+          variant="underlined"
           prepend-icon="fas fa-filter"
           :label="$gettext('filter')"
-          item-props.color="secondarydark"
           color="secondarydark"
         />
       </v-list-item>

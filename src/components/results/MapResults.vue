@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox3'
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
-import { ref, computed, onBeforeUnmount, watch, toRefs, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, watch, toRefs } from 'vue'
 
 const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 const $gettext = s => s

@@ -1,7 +1,7 @@
 <!-- eslint-disable no-case-declarations -->
 <script>
 
-import { onMounted, ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useResult } from '@comp/results/results.js'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
@@ -50,13 +50,13 @@ export default {
       updateSelectedFeature()
     }
 
-    const selectedLayer = ref('links')
+    const selectedLayer = ref('')
 
     async function changeLayer (layer) {
       selectedLayer.value = layer
       switch (layer) {
         case 'links':
-          loadLayer(linksStore.links, null, null, 'headway')
+          loadLayer(linksStore.links, null, null, 'trip_id')
           break
         case 'rlinks':
           loadLayer(rlinksStore.rlinks, null, null, 'speed')
@@ -80,11 +80,6 @@ export default {
 
     const selectedPreset = ref(null)
     const availableLayers = computed(() => store.availableLayers)
-    onMounted(async () => {
-      // chose first available layer. if none. use Links as its an empty geojson (no bug with that)
-      if (availableLayers.value.lenght > 0) { selectedLayer.value = availableLayers.value[0] }
-      await changeLayer(selectedLayer.value)
-    })
 
     const visibleRasters = computed(() => store.visibleRasters)
     const availableStyles = computed(() => store.styles)

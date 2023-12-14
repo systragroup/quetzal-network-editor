@@ -240,15 +240,15 @@ export default {
               max-width="100%"
               min-width="100%"
               :height="windowHeight-180"
-              class="mx-auto "
+              class="mx-auto scrollable"
             >
               <v-list-item>
                 <v-select
                   v-model="vmodelSelectedFilter"
                   :items="filterChoices"
+                  variant="underlined"
                   prepend-icon="fas fa-filter"
                   :label="$gettext('filter')"
-                  item-props.color="secondarydark"
                   color="secondarydark"
                 />
               </v-list-item>
@@ -256,7 +256,7 @@ export default {
               <v-virtual-scroll
                 :items="filteredCat"
                 :item-height="45"
-                :height="windowHeight-80"
+                :height="windowHeight-270"
               >
                 <template v-slot="{ item }">
                   <div

@@ -157,6 +157,7 @@ export function useResult () {
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
     layer.value = cloneDeep(data)
+
     type.value = layer.value.features[0]?.geometry.type
     // change Multipolygon to polygon type. just as they the same for mapbox and the app.
     type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value
@@ -174,7 +175,6 @@ export function useResult () {
       } else {
         displaySettings.value.selectedFeature = null
       }
-
       refreshVisibleLinks()
       updateSelectedFeature()
     } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
@@ -347,7 +347,6 @@ export function useResult () {
     refreshVisibleLinks()
     updateSelectedFeature()
   }
-
   const filteredCategory = computed(() => {
     // for a given filter (key) get array of unique value
     // e.g. get ['bus','subway'] for route_type

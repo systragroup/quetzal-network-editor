@@ -243,7 +243,7 @@ export default {
           :items="filterChoices"
           prepend-icon="fas fa-filter"
           :label="$gettext('filter')"
-          item-props.color="secondarydark"
+          variant="underlined"
           color="secondarydark"
         />
       </v-list-item>

@@ -43,7 +43,7 @@ export default {
     :close-on-content-click="false"
     :persistent="!(true)"
     no-click-animation
-    location="bottom end"
+    location="bottom"
     offset="5"
     transition="scale-transition"
   >
@@ -97,8 +97,8 @@ export default {
 </template>
 <style lang="scss" scoped>
 .layer-button {
-  left: 96%;
-  top:5rem;
+  left: calc(96% - 3.5rem);
+  top:1rem;
   z-index: 2;
   position: relative;
   align-items: center;
