@@ -51,7 +51,6 @@ export default {
     function startResize (event) {
       event.preventDefault()
       isResizing.value = true
-      console.log(leftPanelDiv)
       windowOffest.value = event.clientX - leftPanelDiv.value.clientWidth
       document.addEventListener('mousemove', resize)
       document.addEventListener('mouseup', stopResize)

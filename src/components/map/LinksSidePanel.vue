@@ -75,6 +75,8 @@ export default {
         // return the value in the v-select as the old Value
         nextTick(() => { selectedFilter.value = oldVal })
       }
+      // reste showed Groups
+      ShowGroupList.value = new Set([])
     })
 
     const arrayUniqueTripId = computed(() => {
@@ -167,6 +169,17 @@ export default {
       context.emit('deleteButton', obj)
     }
 
+    const ShowGroupList = ref(new Set([]))
+    function toggleGroup (e) {
+      if (e.isOpen) {
+        ShowGroupList.value.add(e.key)
+      } else {
+        // dont remove them. its not a bottleeck to have unused one.
+        // it can be tricky with the animation and bouble click...
+        // nextTick(() => { ShowGroupList.value.delete(e.key) })
+      }
+    }
+
     return {
       store,
       linksStore,
@@ -186,6 +199,8 @@ export default {
       createNewLine,
       cloneButton,
       deleteButton,
+      ShowGroupList,
+      toggleGroup,
     }
   },
 
@@ -293,13 +308,12 @@ export default {
         <v-list-group
           v-for="(value, key) in classifiedTripId"
           :key="String(value.name) + String(key)"
-
           color="secondarydark"
-          :value="String(value.name) + String(key)"
         >
-          <template v-slot:activator="{ props }">
+          <template v-slot:activator="{ props,isOpen }">
             <v-list-item
               v-bind="props"
+              @click="()=>toggleGroup({key: value.name + key,isOpen:!isOpen})"
             >
               <div class="container">
                 <v-tooltip
@@ -367,8 +381,8 @@ export default {
               </div>
             </v-list-item>
           </template>
-
           <v-virtual-scroll
+            v-if="ShowGroupList.has(value.name + key)"
             :items="value.tripId"
             :item-height="45"
             :height="Math.min(height-220, 48*value.tripId.length)"

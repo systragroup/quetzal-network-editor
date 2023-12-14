@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
-
+// import VueDevTools from 'vite-plugin-vue-devtools'
 const mode = process.env.NODE_ENV
 let basePath = '/quetzal-network-editor-dev/'
 let defineOption = {}
