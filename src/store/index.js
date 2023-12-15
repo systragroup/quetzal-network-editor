@@ -261,6 +261,14 @@ export const useIndexStore = defineStore('store', {
     saveImportPoly (payload) {
       this.importPoly = payload
     },
+    async exportFile (path = '') {
+      if (path === 'styles.json') {
+        if (this.styles.length > 0) {
+          const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
+          saveAs(blob, path)
+        }
+      }
+    },
 
     async exportFiles (payload = 'all') {
       const linksStore = useLinksStore()

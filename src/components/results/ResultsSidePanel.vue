@@ -116,37 +116,39 @@ export default {
         <div>
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
             <div class="preset">
-              <v-tooltip
-                location="bottom"
-                open-delay="500"
+              <v-icon
+                :style="{color: 'white', 'padding-right':'2rem','padding-left':'1rem'}"
               >
-                <template v-slot:activator="{ props }">
-                  <v-icon
-                    :style="{color: 'white', 'padding-right':'2rem','padding-left':'1rem'}"
-                    v-bind="props"
-                  >
-                    fas fa-sliders-h
-                  </v-icon>
-                </template>
-                <span>{{ $gettext("Presets") }}</span>
-              </v-tooltip>
-
+                fas fa-sliders-h
+              </v-icon>
               <v-menu
                 v-model="presetsMenu"
                 close-delay="100"
+                location="bottom center"
+
                 transition="slide-y-transition"
               >
                 <template v-slot:activator="{ props }">
                   <div
-                    class="title-div"
+                    class="menu-container"
                     v-bind="props"
                   >
-                    <span class="custom-title">
-                      {{ $gettext("Presets") }}
-                    </span>
-                    <span class="crop">
-                      {{ selectedPreset }}
-                    </span>
+                    <div
+                      class="title-div"
+                    >
+                      <span class="custom-title">
+                        {{ $gettext("Presets") }}
+                      </span>
+                      <span class="crop">
+                        {{ selectedPreset }}
+                      </span>
+                    </div>
+                    <v-icon
+                      variant="text"
+                      :style="{color: 'white'}"
+                    >
+                      {{ presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}
+                    </v-icon>
                   </div>
                 </template>
                 <v-list>
@@ -172,12 +174,22 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-menu>
-              <v-btn
-                variant="text"
-                :style="{color: 'white'}"
-                :icon="presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down'"
-                @click="presetsMenu=!presetsMenu"
-              />
+              <v-tooltip
+                location="bottom"
+                open-delay="300"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    variant="text"
+                    v-bind="props"
+                    :disabled="presetChoices.length===0"
+                    :style="{color: 'white'}"
+                    icon="fas fa-download"
+                    @click="store.exportFile('styles.json')"
+                  />
+                </template>
+                <span>{{ $gettext("Dowload presets") }}</span>
+              </v-tooltip>
             </div>
             <div class="layer">
               <v-tooltip
@@ -207,12 +219,27 @@ export default {
                     class="title-div"
                     v-bind="props"
                   >
-                    <span class="custom-title">
-                      {{ $gettext("Layer") }}
-                    </span>
-                    <span class="crop">
-                      {{ selectedLayer }}
-                    </span>
+                    <div
+                      class="menu-container"
+                      v-bind="props"
+                    >
+                      <div
+                        class="title-div"
+                      >
+                        <span class="custom-title">
+                          {{ $gettext("Layer") }}
+                        </span>
+                        <span class="crop">
+                          {{ selectedLayer }}
+                        </span>
+                      </div>
+                      <v-icon
+                        variant="text"
+                        :style="{color: 'white'}"
+                      >
+                        {{ presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}
+                      </v-icon>
+                    </div>
                   </div>
                 </template>
                 <v-list>
@@ -228,13 +255,7 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-menu>
-
-              <v-btn
-                :style="{color: 'white'}"
-                variant="text"
-                :icon="openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down'"
-                @click="openMenu=!openMenu"
-              />
+              <v-icon />
             </div>
             <v-card
               max-width="100%"
@@ -304,9 +325,14 @@ export default {
 .item{
   flex:1;
 }
+.menu-container{
+  display: flex;
+  cursor:pointer;
+  gap:0.5rem;
+  align-items: center;
+}
 .title-div {
   color:white;
-  cursor:pointer;
   max-width: 12rem;
   display:flex;
   justify-content: center;
