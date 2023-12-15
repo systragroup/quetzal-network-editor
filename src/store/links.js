@@ -442,9 +442,9 @@ export const useLinksStore = defineStore('links', {
       // for realtime viz. this method change the linestring to the payload (mouse position)
       this.newNode.features[0].geometry.coordinates = payload
       if (this.newLink.action === 'Extend Line Upward') {
-        this.newLink.features[0].geometry.coordinates[1] = payload
+        this.newLink.features[0].geometry.coordinates = [this.newLink.features[0].geometry.coordinates[0], payload]
       } else {
-        this.newLink.features[0].geometry.coordinates[0] = payload
+        this.newLink.features[0].geometry.coordinates = [payload, this.newLink.features[0].geometry.coordinates[1]]
       }
     },
 

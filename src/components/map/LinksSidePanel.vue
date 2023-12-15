@@ -8,9 +8,6 @@ import { cloneDeep } from 'lodash'
 const $gettext = s => s
 export default {
   name: 'LinksSidePanel',
-  components: {
-  },
-
   props: ['height'], // height is here to resize with the windows...
   emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
   setup (_, context) {

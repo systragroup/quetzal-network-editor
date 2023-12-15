@@ -217,7 +217,7 @@ export default {
     function onMove (event) {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
-      if (map.value.loaded() && dragNode.value && selectedFeature.value) {
+      if (dragNode.value && selectedFeature.value) {
         if (hoveredStateId.value.layerId === 'anchorNodes') {
           linksStore.moveAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
         } else {
