@@ -11,7 +11,7 @@ import geojson from '@constants/geojson'
 
 const $gettext = s => s
 export default {
-  name: 'StaticLinks',
+  name: 'RoadLinks',
   components: {
     MglGeojsonLayer,
     MglImageLayer,
@@ -36,11 +36,8 @@ export default {
     const selectedPopupContent = computed(() => { return store.roadsPopupContent })
     const selectedrGroup = computed(() => { return rlinksStore.selectedrGroup })
     const cyclewayMode = computed(() => { return store.cyclewayMode })
-    const rnodes = computed(() => { return rlinksStore.visiblerNodes })
-    const rlinks = computed(() => { return rlinksStore.visiblerLinks })
     const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
     const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
-
     const anchorMode = computed(() => { return store.anchorMode })
     const header = geojson
     const renderedAnchorrNodes = computed(() => {
@@ -68,13 +65,17 @@ export default {
       if (val) {
         map.value.on('dragend', getBounds)
         map.value.on('zoomend', getBounds)
+        getBounds()
       } else {
         map.value.off('dragend', getBounds)
         map.value.off('zoomend', getBounds)
+        // set renderedlinks to all visible (not editable but all visible)
+        routeWidth.value = 1
+        rlinksStore.setRenderedrLinks({ method: 'visible' })
       }
     })
 
-    function getBounds () {
+    function getBounds (e) {
       // get map bounds and return only the features inside of it.
       // this way, only the visible links and node are rendered and updating is fast
       // (i.e. moving a node in real time)
@@ -311,8 +312,6 @@ export default {
       selectedPopupContent,
       selectedrGroup,
       cyclewayMode,
-      rlinks,
-      rnodes,
       renderedrLinks,
       renderedrNodes,
       renderedAnchorrNodes,
@@ -419,7 +418,7 @@ export default {
       source-id="rlinks"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedrLinks : rlinks,
+        data:renderedrLinks ,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -478,7 +477,7 @@ export default {
       source-id="rnodes"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedrNodes:rnodes,
+        data: renderedrNodes,
         buffer: 0,
         promoteId: 'index',
       }"
