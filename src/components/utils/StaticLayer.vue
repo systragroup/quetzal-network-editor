@@ -29,41 +29,41 @@ export default {
     const sourceId = name + '-source'
     const layerId = name + '-layer'
     const {
-      visibleLayer, type, loadLayer, displaySettings, attributes, applySettings, changeSelectedFilter,
+      visibleLayer, type, loadLayer, displaySettings, attributes, changeSelectedFilter,
       changeSelectedCategory, colorScale, isIndexAvailable, changeOD,
     } = useResult()
 
     const opacity = displaySettings.value.opacity
     const offsetValue = displaySettings.value.offset ? -1 : 1
 
-    async function changeLayer (layer) {
+    async function changeLayer (layer, settings = null) {
       switch (layer) {
         case 'links':
-          loadLayer(linksStore.links, null, null, 'headway')
+          loadLayer(linksStore.links, null, settings)
           break
         case 'rlinks':
-          loadLayer(rlinksStore.rlinks, null, null, 'speed')
+          loadLayer(rlinksStore.rlinks, null, settings)
           break
         case 'nodes':
-          loadLayer(linksStore.nodes, null, null, 'boardings')
+          loadLayer(linksStore.nodes, null, settings)
           break
         case 'rnodes':
-          loadLayer(rlinksStore.rnodes, null, null, 'boardings')
+          loadLayer(rlinksStore.rnodes, null, settings)
           break
         case 'od':
-          loadLayer(ODStore.layer, null, null, 'name')
+          loadLayer(ODStore.layer, null, settings)
           break
         default:
           const data = await store.getOtherFile(layer, 'geojson')
           const matrix = await store.getOtherFile(layer, 'json')
-          loadLayer(data, matrix, null, '')
+          loadLayer(data, matrix, settings)
 
           break
       }
     }
 
     onMounted(async () => {
-      await changeLayer(preset.value.layer)
+      await changeLayer(preset.value.layer, preset.value.displaySettings)
       if (attributes.value.includes(preset.value?.selectedFilter)) {
         // if preset contain a filter. apply it if it exist.
         changeSelectedFilter(preset.value.selectedFilter)
@@ -82,7 +82,6 @@ export default {
             })
         }
       }
-      applySettings(preset.value.displaySettings)
 
       // if its an OD. click on the selected index.
       if (Object.keys(preset.value).includes('selectedIndex') && isIndexAvailable(preset.value.selectedIndex)) {

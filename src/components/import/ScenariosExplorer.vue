@@ -5,7 +5,7 @@ import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
 
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 
 const $gettext = s => s
 
@@ -38,7 +38,18 @@ export default {
 
     const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
     const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
-    const modelScen = computed(() => { return model.value + scenario.value })
+    const modelScen = computed(() => { return userStore.model + userStore.scenario })
+    onMounted(async () => {
+      // a scenario is selected: scroll to it.
+      // note: 0 because null + null = 0
+      if (modelScen.value !== 0) {
+        document.getElementById(modelScen.value).scrollIntoView()
+        // also. go fetch the scenario List if DB changed.
+        loading.value = true
+        await userStore.getScenario({ model: localModel.value })
+        loading.value = false
+      }
+    })
     const localScen = ref(scenario.value) // locally selected scen. need to cancel selection for example.
     const locked = ref(false)
     watch(modelsList, async (val) => {
@@ -293,6 +304,7 @@ export default {
     >
       <v-list-item
         v-for="scen in scenariosList"
+        :id="scen.model + scen.scenario"
         :key="scen.model + scen.scenario"
         :value="scen.model + scen.scenario"
         class="list-item"

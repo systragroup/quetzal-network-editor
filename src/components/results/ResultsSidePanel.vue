@@ -122,7 +122,7 @@ export default {
               >
                 <template v-slot:activator="{ props }">
                   <v-icon
-                    :style="{color: 'white', 'padding-right':'2rem'}"
+                    :style="{color: 'white', 'padding-right':'2rem','padding-left':'1rem'}"
                     v-bind="props"
                   >
                     fas fa-sliders-h
@@ -188,13 +188,13 @@ export default {
                   <v-btn
                     :style="{color: 'white', flex:0, 'padding-left':'1.1rem','padding-right':'1.5rem'}"
                     class="eye-button"
-                    :icon=" selectedCat.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa'"
+                    :icon=" selectedCat.length == filteredCat.length ? 'fa-eye-slash fa' : 'fa-eye fa'"
                     variant="text"
                     v-bind="props"
                     @click="showAll()"
                   />
                 </template>
-                <span>{{ selectedCat.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
+                <span>{{ selectedCat.length == filteredCat.length ? $gettext("Hide All"): $gettext("Show All") }}</span>
               </v-tooltip>
 
               <v-menu

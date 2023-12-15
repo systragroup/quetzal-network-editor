@@ -113,6 +113,13 @@ export default {
     const selectedLinks = ref([])
     const popup = ref(null)
     const { selectedFeature, layerType, extrusion, links, nanLinks, opacity, offset } = toRefs(props)
+    watch(links, () => {
+      // update map like that as the mapbox watcher is slower.
+      if (mapIsLoaded.value) {
+        map.value.getSource('results').setData(links.value)
+        map.value.getSource('NaNresults')?.setData(nanLinks.value)
+      }
+    }, { deep: true })
 
     const offsetValue = computed(() => { return offset.value ? -1 : 1 })
 
@@ -202,7 +209,8 @@ export default {
     />
     <MglGeojsonLayer
       v-if="layerType == 'LineString'"
-      source-id="links"
+      source-id="results"
+      :reactive="false"
       :source="{
         type: 'geojson',
         data: links,
@@ -235,7 +243,8 @@ export default {
     />
     <MglGeojsonLayer
       v-if="layerType == 'Point'"
-      source-id="nodes"
+      :reactive="false"
+      source-id="results"
       :source="{
         type: 'geojson',
         data: links,
@@ -264,7 +273,7 @@ export default {
 
     <MglImageLayer
       v-if="layerType == 'LineString'"
-      source-id="links"
+      source-id="results"
       type="symbol"
       source="links"
       layer-id="arrow"
@@ -290,7 +299,8 @@ export default {
     />
     <MglGeojsonLayer
       v-if="layerType === 'Polygon' && extrusion"
-      source-id="polygon"
+      source-id="results"
+      :reactive="false"
       :source="{
         type: 'geojson',
         data: links,
@@ -315,7 +325,8 @@ export default {
 
     <MglGeojsonLayer
       v-if="layerType === 'Polygon' && !extrusion"
-      source-id="polygon"
+      :reactive="false"
+      source-id="results"
       :source="{
         type: 'geojson',
         data: links,
@@ -339,7 +350,8 @@ export default {
 
     <MglGeojsonLayer
       v-if="layerType === 'Polygon' && !extrusion"
-      source-id="NaNPolygon"
+      :reactive="false"
+      source-id="NaNresults"
       :source="{
         type: 'geojson',
         data: nanLinks,

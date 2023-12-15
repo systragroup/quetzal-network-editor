@@ -52,28 +52,28 @@ export default {
 
     const selectedLayer = ref('')
 
-    async function changeLayer (layer) {
+    async function changeLayer (layer, settings = null) {
       selectedLayer.value = layer
       switch (layer) {
         case 'links':
-          loadLayer(linksStore.links, null, null, 'trip_id')
+          loadLayer(linksStore.links, null, settings)
           break
         case 'rlinks':
-          loadLayer(rlinksStore.rlinks, null, null, 'speed')
+          loadLayer(rlinksStore.rlinks, null, settings)
           break
         case 'nodes':
-          loadLayer(linksStore.nodes, null, null, 'boardings')
+          loadLayer(linksStore.nodes, null, settings)
           break
         case 'rnodes':
-          loadLayer(rlinksStore.rnodes, null, null, 'boardings')
+          loadLayer(rlinksStore.rnodes, null, settings)
           break
         case 'od':
-          loadLayer(ODStore.layer, null, null, 'name')
+          loadLayer(ODStore.layer, null, settings)
           break
         default:
           const data = await store.getOtherFile(layer, 'geojson')
           const matrix = await store.getOtherFile(layer, 'json')
-          loadLayer(data, matrix, null, '')
+          loadLayer(data, matrix, settings)
           break
       }
     }
@@ -94,7 +94,7 @@ export default {
       selectedPreset.value = preset.name
       if (availableLayers.value.includes(preset.layer)) {
         // change layer if it exist
-        await changeLayer(preset.layer)
+        await changeLayer(preset.layer, preset.displaySettings)
         if (attributes.value.includes(preset?.selectedFilter)) {
           // if preset contain a filter. apply it if it exist.
           changeSelectedFilter(preset.selectedFilter)
@@ -119,8 +119,6 @@ export default {
           { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
       }
       // apply all settings.
-      applySettings(preset.displaySettings)
-
       // if its an OD. click on the selected index.
       if (Object.keys(preset).includes('selectedIndex') && isIndexAvailable(preset.selectedIndex)) {
         changeOD(preset.selectedIndex)

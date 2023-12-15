@@ -5,12 +5,14 @@ import { extractZip, unzip } from '../components/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
-
 import { computed } from 'vue'
 
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
+import { useOSMStore } from '@src/store/OSMImporter'
+import { useGTFSStore } from '@src/store/GTFSImporter'
+
 const $gettext = s => s
 
 export default {
@@ -25,9 +27,11 @@ export default {
     const store = useIndexStore()
     const userStore = useUserStore()
     const runStore = useRunStore()
+    const runOSMStore = useOSMStore()
+    const runGTFSStore = useGTFSStore()
     const projectIsEmpty = computed(() => store.projectIsEmpty)
 
-    return { store, userStore, runStore, projectIsEmpty }
+    return { store, userStore, runStore, projectIsEmpty, runOSMStore, runGTFSStore }
   },
 
   data () {
@@ -77,9 +81,8 @@ export default {
       // this.store.unloadLayers()
       this.userStore.unloadProject()
       this.runStore.cleanRun()
-      // TODO
-      // this.runOSMStore.cleanRun()
-      // this.runGTFSStore.cleanRun()
+      this.runOSMStore.cleanRun()
+      this.runGTFSStore.cleanRun()
 
       if (this.choice === 'example1') {
         this.loadExample(['PT', 'road'])
@@ -95,9 +98,8 @@ export default {
       this.store.initNetworks()
       this.userStore.unloadProject()
       this.runStore.cleanRun()
-      // TODO
-      // this.runOSMStore.cleanRun()
-      // this.runGTFSStore.cleanRun()
+      this.runOSMStore.cleanRun()
+      this.runGTFSStore.cleanRun()
       this.store.changeNotification({ text: $gettext('project overwrited'), autoClose: true, color: 'success' })
     },
 
@@ -134,9 +136,8 @@ export default {
       if (!this.projectIsEmpty) {
         this.store.initNetworks()
         this.runStore.cleanRun()
-        // TODO
-        // this.runOSMStore.cleanRun()
-        // this.runGTFSStore.cleanRun()
+        this.runOSMStore.cleanRun()
+        this.runGTFSStore.cleanRun()
       }
       this.store.changeLoading(true)
 

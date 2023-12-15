@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash'
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import chroma from 'chroma-js'
 import seedrandom from 'seedrandom'
@@ -122,7 +122,7 @@ export function useResult () {
   const layer = ref(geojson)
   const visibleLayer = ref(geojson)
   const NaNLayer = ref(geojson)
-  const type = ref(undefined)
+  const type = ref('LineString')
   const attributes = ref([])
   const displaySettings = ref(cloneDeep(defaultSettings))
   const selectedFilter = ref('')
@@ -139,7 +139,7 @@ export function useResult () {
     layer.value = cloneDeep(geojson)
     visibleLayer.value = cloneDeep(geojson)
     NaNLayer.value = cloneDeep(geojson)
-    type.value = undefined
+    type.value = 'LineString'
     attributes.value = []
     displaySettings.value = cloneDeep(defaultSettings)
     selectedFilter.value = ''
@@ -152,28 +152,31 @@ export function useResult () {
     matSelectedIndex.value = null
   }
 
-  function loadLayer (data, matData, matIndex, selectedFeature) {
+  function loadLayer (data, matData, settings = null) {
     reset()
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
-    layer.value = cloneDeep(data)
+    layer.value = toRaw(data)
 
     type.value = layer.value.features[0]?.geometry.type
     // change Multipolygon to polygon type. just as they the same for mapbox and the app.
     type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value
     // extrusion only for polygon right now. set to false if not a polygon
     if (type.value !== 'Polygon') { displaySettings.value.extrusion = false }
-    hasOD.value = (typeof matData === 'object' && matData !== null)
 
+    hasOD.value = (typeof matData === 'object' && matData !== null)
     if (hasOD.value) { addMatrix(matData) }
 
     if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(layer.value.crs.properties.name)) {
-      // set all trips visible
+      // apply settings
       getLinksProperties()
-      if (attributes.value.includes(selectedFeature)) {
-        displaySettings.value.selectedFeature = selectedFeature
+      if (attributes.value.includes(settings?.selectedFeature)) {
+        displaySettings.value.selectedFeature = settings?.selectedFeature
       } else {
         displaySettings.value.selectedFeature = null
+      }
+      if (settings != null) {
+        applySettings(settings, true)
       }
       refreshVisibleLinks()
       updateSelectedFeature()
@@ -225,11 +228,6 @@ export function useResult () {
     updateSelectedFeature()
   }
 
-  function updateLayer (data) {
-    layer.value = cloneDeep(data)
-    refreshVisibleLinks()
-    updateSelectedFeature()
-  }
   function getLinksProperties () {
     const attrs = new Set([])
     layer.value.features.forEach(element => {
@@ -338,14 +336,16 @@ export function useResult () {
     selectedCategory.value = payload
     refreshVisibleLinks()
   }
-  function applySettings (payload) {
+  function applySettings (payload, skip = false) {
     const keys = Object.keys(payload)
     // apply all payload settings to state.displaySettings
     for (const key of keys) {
       displaySettings.value[key] = payload[key]
     }
-    refreshVisibleLinks()
-    updateSelectedFeature()
+    if (!skip) {
+      refreshVisibleLinks()
+      updateSelectedFeature()
+    }
   }
   const filteredCategory = computed(() => {
     // for a given filter (key) get array of unique value
@@ -385,7 +385,6 @@ export function useResult () {
     changeOD,
     isIndexAvailable,
     loadLayer,
-    updateLayer,
     getLinksProperties,
     refreshVisibleLinks,
     updateSelectedFeature,
