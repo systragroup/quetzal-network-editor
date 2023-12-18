@@ -1,5 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
-<script>
+<script setup>
+
 import { quetzalClient } from '@src/axiosClient.js'
 import { generatePassword } from '@src/components/utils/utils'
 import auth from '@src/auth'
@@ -7,206 +8,156 @@ import { axiosClient } from '@src/axiosClient'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { computed, ref, watch, onMounted } from 'vue'
-import Signin from './Signin.vue'
+import { computed, ref, watch, onMounted, defineAsyncComponent } from 'vue'
+const Signin = defineAsyncComponent(() => import('./Signin.vue'))
+
 const $gettext = s => s
 
-export default {
-  name: 'Profile',
-  components: {
-    Signin,
+const store = useIndexStore()
+const userStore = useUserStore()
+const projectIsEmpty = computed(() => store.projectIsEmpty)
+const loggedIn = computed(() => userStore.loggedIn)
+const cognitoInfo = computed(() => userStore.cognitoInfo)
+const initial = computed(() => (cognitoInfo.value?.given_name[0] + cognitoInfo.value?.family_name[0]).toUpperCase())
+const idToken = computed(() => userStore.idToken)
 
-  },
+onMounted(async () => {
+  if (await auth.isUserSignedIn()) {
+    await auth.login()
+    await s3.login()
+    await axiosClient.loginAll(idToken.value)
+    userStore.getBucketList()
+  }
+})
 
-  props: [],
-  emits: ['logout'],
-  setup () {
-    const store = useIndexStore()
-    const userStore = useUserStore()
-    const windowHeight = computed(() => store.windowHeight)
-    const projectIsEmpty = computed(() => store.projectIsEmpty)
-    const loggedIn = computed(() => userStore.loggedIn)
-    const cognitoInfo = computed(() => userStore.cognitoInfo)
-    const bucketList = computed(() => userStore.bucketList)
-    const initial = computed(() => (cognitoInfo.value?.given_name[0] + cognitoInfo.value?.family_name[0]).toUpperCase())
-    const idToken = computed(() => userStore.idToken)
-
-    onMounted(async () => {
-      if (await auth.isUserSignedIn()) {
-        await auth.login()
-        await s3.login()
-        await axiosClient.loginAll(idToken.value)
-        userStore.getBucketList()
-      }
-    })
-
-    const ui = ref(false)
-    async function signin (event) {
-      if (event) {
-        ui.value = false
-        await auth.login()
-        await s3.login()
-        await axiosClient.loginAll(idToken.value)
-        userStore.getBucketList()
-      }
-    }
-
-    const showDialog = ref(false)
-    const menu = ref(false)
-
-    function login () {
-      if (projectIsEmpty.value) {
-        auth.login()
-      } else {
-        action.value = 'login'
-        showDialog.value = true
-      }
-    }
-    function logout () {
-      if (projectIsEmpty.value) {
-        menu.value = false
-        auth.logout()
-      } else {
-        action.value = 'logout'
-        showDialog.value = true
-      }
-    }
-
-    const groups = ref([])
-    const selectedGroup = ref(null)
-    const users = ref([])
-
-    watch(menu, async (val) => {
-      if (val) {
-        showMore.value = false
-        await listGroup()
-        if (!selectedGroup.value && groups.value.includes('admin')) selectedGroup.value = 'admin'
-        if (!selectedGroup.value) selectedGroup.value = groups.value[0]
-        await listUser(selectedGroup.value)
-      }
-    })
-    watch(selectedGroup, async (_, oldVal) => {
-      if (oldVal) {
-        await listUser(selectedGroup.value)
-      }
-    })
-
-    async function listGroup () {
-      try {
-        const resp = await quetzalClient.client.get('listGroups/')
-        groups.value = resp.data
-      } catch (err) {
-        store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
-      }
-    }
-    async function listUser (group) {
-      try {
-        const resp = await quetzalClient.client.get(`listUser/${group}/`)
-        users.value = resp.data
-      } catch (err) {
-        store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
-      }
-    }
-
-    const action = ref('login')
-    const showMore = ref(false)
-    const selectedUsername = ref(null)
-    const userForm = ref({ username: '', given_name: '', family_name: '', email: '', password: '' })
-    const re = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/
-    const rules = {
-      required: v => !!v || $gettext('Required'),
-      email: v => v.includes('@') || $gettext('invalid email address'),
-      length: v => v.length > 8 || $gettext('at least 8 character long'),
-      password: v => re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
-    }
-    async function createUser () {
-      try {
-        await quetzalClient.client.post(`createUser/${selectedGroup.value}/`, userForm.value)
-        store.changeNotification(
-          { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
-      } catch (err) {
-        store.changeAlert(
-          { name: 'Cognito Client error', message: err.response.data.detail })
-      }
-    }
-
-    async function deleteUser (username) {
-      try {
-        await quetzalClient.client.post('deleteUser/', { username })
-        store.changeNotification({ text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
-      } catch (err) {
-        store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
-      }
-    }
-
-    async function applyDialog (event) {
-      const resp = await event
-      if (action.value === 'login') auth.login()
-      if (action.value === 'logout') auth.logout()
-      if (action.value === 'createUser') {
-        if (!resp.valid) { return }
-        await createUser()
-      }
-      if (action.value === 'deleteUser') {
-        deleteUser(selectedUsername.value)
-        selectedUsername.value = null
-      }
-      action.value = 'login'
-      menu.value = false
-      showDialog.value = false
-    }
-
-    function createUserButton () {
-      action.value = 'createUser'
-      userForm.value.password = generatePassword(12)
-      showDialog.value = true
-    }
-    function deleteUserButton (user) {
-      action.value = 'deleteUser'
-      selectedUsername.value = user.Username
-      showDialog.value = true
-    }
-
-    return {
-      store,
-      userStore,
-      windowHeight,
-      projectIsEmpty,
-      loggedIn,
-      cognitoInfo,
-      bucketList,
-      initial,
-      idToken,
-      ui,
-      signin,
-      menu,
-      showDialog,
-      login,
-      logout,
-      groups,
-      users,
-      listGroup,
-      listUser,
-      action,
-      showMore,
-      rules,
-      selectedGroup,
-      selectedUsername,
-      userForm,
-      applyDialog,
-      createUserButton,
-      deleteUserButton,
-
-    }
-  },
+const ui = ref(false)
+async function signin (event) {
+  if (event) {
+    ui.value = false
+    await auth.login()
+    await s3.login()
+    await axiosClient.loginAll(idToken.value)
+    userStore.getBucketList()
+  }
 }
+
+const showDialog = ref(false)
+const menu = ref(false)
+
+function logout () {
+  if (projectIsEmpty.value) {
+    menu.value = false
+    auth.logout()
+  } else {
+    action.value = 'logout'
+    showDialog.value = true
+  }
+}
+
+const groups = ref([])
+const selectedGroup = ref(null)
+const users = ref([])
+
+watch(menu, async (val) => {
+  if (val) {
+    showMore.value = false
+    await listGroup()
+    if (!selectedGroup.value && groups.value.includes('admin')) selectedGroup.value = 'admin'
+    if (!selectedGroup.value) selectedGroup.value = groups.value[0]
+    await listUser(selectedGroup.value)
+  }
+})
+watch(selectedGroup, async (_, oldVal) => {
+  if (oldVal) {
+    await listUser(selectedGroup.value)
+  }
+})
+
+async function listGroup () {
+  try {
+    const resp = await quetzalClient.client.get('listGroups/')
+    groups.value = resp.data
+  } catch (err) {
+    store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
+  }
+}
+async function listUser (group) {
+  try {
+    const resp = await quetzalClient.client.get(`listUser/${group}/`)
+    users.value = resp.data
+  } catch (err) {
+    store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
+  }
+}
+
+const action = ref('login')
+const showMore = ref(false)
+const selectedUsername = ref(null)
+const userForm = ref({ username: '', given_name: '', family_name: '', email: '', password: '' })
+const re = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/
+const rules = {
+  required: v => !!v || $gettext('Required'),
+  email: v => v.includes('@') || $gettext('invalid email address'),
+  length: v => v.length > 8 || $gettext('at least 8 character long'),
+  password: v => re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
+}
+async function createUser () {
+  try {
+    await quetzalClient.client.post(`createUser/${selectedGroup.value}/`, userForm.value)
+    store.changeNotification(
+      { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
+  } catch (err) {
+    store.changeAlert(
+      { name: 'Cognito Client error', message: err.response.data.detail })
+  }
+}
+
+async function deleteUser (username) {
+  try {
+    await quetzalClient.client.post('deleteUser/', { username })
+    store.changeNotification({ text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
+  } catch (err) {
+    store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
+  }
+}
+
+async function applyDialog (event) {
+  const resp = await event
+  if (action.value === 'login') auth.login()
+  if (action.value === 'logout') auth.logout()
+  if (action.value === 'createUser') {
+    if (!resp.valid) { return }
+    await createUser()
+  }
+  if (action.value === 'deleteUser') {
+    deleteUser(selectedUsername.value)
+    selectedUsername.value = null
+  }
+  action.value = 'login'
+  menu.value = false
+  showDialog.value = false
+}
+
+function createUserButton () {
+  action.value = 'createUser'
+  userForm.value.password = generatePassword(12)
+  showDialog.value = true
+}
+function deleteUserButton (user) {
+  action.value = 'deleteUser'
+  selectedUsername.value = user.Username
+  showDialog.value = true
+}
+
 </script>
 <template>
   <div v-if="loggedIn">
     <v-menu
       v-model="menu"
       :close-on-content-click="false"
-      :persistent="!(false)"
+      location="bottom"
+      offset="8"
+      :persistent="false"
     >
       <template v-slot:activator="{ props }">
         <v-avatar
@@ -222,6 +173,7 @@ export default {
       </template>
       <v-card
         width="20rem"
+        max-height="80vh"
       >
         <v-list>
           <v-list-item>
@@ -309,13 +261,14 @@ export default {
     <v-menu
       v-model="ui"
       :close-on-content-click="false"
-      :persistent="!(true)"
+      location="bottom"
+      offset="8"
+      :persistent="false"
     >
       <template v-slot:activator="{ props }">
         <v-btn
           v-show="!loggedIn"
           icon
-
           v-bind="props"
         >
           <v-icon>
@@ -323,7 +276,8 @@ export default {
           </v-icon>
         </v-btn>
       </template>
-      <Signin
+      <component
+        :is="Signin"
         v-if="ui"
         @signin="signin"
       />

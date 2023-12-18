@@ -1,7 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script>
 import auth from '@src/auth'
-
 const $gettext = s => s
 
 export default {
@@ -150,6 +149,7 @@ export default {
 }
 
 .signin {
+  width:20rem;
   padding:1rem 2rem 2rem 2rem
 }
 .shake {

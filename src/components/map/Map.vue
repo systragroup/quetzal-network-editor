@@ -3,7 +3,7 @@ import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
-import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent } from 'vue'
+import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -34,14 +34,12 @@ export default {
     LayerSelector: defineAsyncComponent(() => import('../utils/LayerSelector.vue')),
     StaticLayer: defineAsyncComponent(() => import('../utils/StaticLayer.vue')),
     RoadLinks: defineAsyncComponent(() => import('./RoadLinks.vue')),
-
   },
   props: {
     mode: {
       type: String,
       default: 'pt',
     },
-
   },
   emits: ['clickFeature'],
 
@@ -65,7 +63,7 @@ export default {
     const availableLayers = computed(() => { return store.availableLayers })
     const { mode } = toRefs(props)
 
-    const map = ref(null)
+    const map = shallowRef(null)
     const isEditorMode = ref(false)
     const connectedDrawLink = ref(false)
     const drawMode = ref(false)

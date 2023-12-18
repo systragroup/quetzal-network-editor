@@ -237,7 +237,7 @@ export default {
                         variant="text"
                         :style="{color: 'white'}"
                       >
-                        {{ presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}
+                        {{ openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}
                       </v-icon>
                     </div>
                   </div>
