@@ -13,7 +13,9 @@ export default {
     const userStore = useUserStore()
     const tables = ref([])
     const message = ref('')
-
+    const loading = ref([])
+    const sortModel = ref([])
+    const numItems = ref(10)
     async function getCSV () {
       // get the list of CSV from output files.
       // if its undefined (its on s3). fetch it.
@@ -31,13 +33,16 @@ export default {
     onMounted(async () => {
       store.changeLoading(true)
       const files = await getCSV()
+      // create a an array for each table. [false,false,...]
+      loading.value = Array(files.length).fill(false)
+      sortModel.value = Array(files.length).fill({ key: null, order: null })
       for (const file of files) {
         // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
         const name = file.path.slice(0, -4)
         const data = csvJSON(file.content)
         const headers = []
         Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
-        tables.value.push({ headers, data, name })
+        tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
       }
       store.changeLoading(false)
       if (tables.value.length === 0) {
@@ -45,7 +50,33 @@ export default {
       }
     })
 
-    return { tables, message }
+    async function getData ({ key, page, itemsPerPage, sortBy }) {
+      const start = (page - 1) * itemsPerPage
+      const end = start + itemsPerPage
+      const items = tables.value[key].data
+
+      if (sortBy.length) {
+        const sortKey = sortBy[0].key
+        const sortOrder = sortBy[0].order
+        if ((sortKey !== sortModel.value[key].key) || (sortOrder !== sortModel.value[key].order)) {
+          items.sort((a, b) => {
+            const aValue = a[sortKey]
+            const bValue = b[sortKey]
+            return sortOrder === 'desc' ? bValue - aValue : aValue - bValue
+          })
+        }
+        sortModel.value[key] = sortBy[0]
+      }
+
+      return items.slice(start, end)
+    }
+    async function loadItems ({ key, page, itemsPerPage, sortBy }) {
+      loading.value[key] = true
+      const paginated = await getData({ key, page, itemsPerPage, sortBy })
+      tables.value[key].items = paginated
+      loading.value[key] = false
+    }
+    return { tables, message, numItems, loadItems, loading }
   },
 
 }
@@ -60,16 +91,16 @@ export default {
       :key="key"
       class="card elevation-3"
     >
-      <v-data-table
+      <v-data-table-server
+        :items-per-page="numItems"
         :headers="table.headers"
-        :height="table.data.length >= 10 ? '35rem':'auto'"
+        :loading="loading[key]"
+        :height="table.items.length >= 10 ? '35rem':'auto'"
+        :items-length="table.totalItems"
         fixed-header
         fixed-footer
-        :items="table.data"
-        :items-per-page="10"
-        :footer-props="{
-          'items-per-page-options': table.data.length <= 500? [10, 20, 100, 200, -1] : [10, 20, 100, 200, 500]
-        }"
+        :items="table.items"
+        @update:options="(event)=>loadItems({key,...event})"
       >
         <template v-slot:top>
           <v-toolbar class="custom-title">
@@ -79,7 +110,7 @@ export default {
             <v-spacer />
           </v-toolbar>
         </template>
-      </v-data-table>
+      </v-data-table-server>
     </v-card>
   </section>
 </template>
