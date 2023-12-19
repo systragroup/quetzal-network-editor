@@ -171,7 +171,7 @@ async function putObject (bucket, key, body = '') {
   const oldChecksum = await getChecksum(bucket, key)
   // if a json. already a string (we pass json.stringify()).
   // so only apply string to bytesArray. json.stringify crash with large array...
-  const newChecksum = md5(String(body)).toString()
+  const newChecksum = md5(body).toString()
   if (oldChecksum !== newChecksum) {
     const params = {
       Bucket: bucket,

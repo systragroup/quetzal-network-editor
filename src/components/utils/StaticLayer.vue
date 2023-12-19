@@ -33,8 +33,8 @@ export default {
       changeSelectedCategory, colorScale, isIndexAvailable, changeOD,
     } = useResult()
 
-    const opacity = displaySettings.value.opacity
-    const offsetValue = displaySettings.value.offset ? -1 : 1
+    const opacity = preset.value.displaySettings.opacity
+    const offsetValue = preset.value.displaySettings.offset ? -1 : 1
 
     async function changeLayer (layer, settings = null) {
       switch (layer) {
