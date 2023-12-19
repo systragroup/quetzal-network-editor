@@ -79,8 +79,18 @@ export default {
 
     watch(editorTrip, (val) => {
       if (val) {
+        store.setAnchorMode(false)
         isEditorMode.value = true
         connectedDrawLink.value = false
+        if (linksStore.changeBounds) {
+          const bounds = new Mapbox.LngLatBounds()
+          editorNodes.value.features.forEach(node => {
+            bounds.extend(node.geometry.coordinates)
+          })
+          map.value.fitBounds(bounds, {
+            padding: 200,
+          })
+        }
       } else {
         isEditorMode.value = false
         connectedDrawLink.value = false
@@ -88,22 +98,6 @@ export default {
         // for some reason. isEditorMode watcher not working when creating a
         // a new line. so need to apply the values that were supposed to be applied.
         drawLink.value.geometry.coordinates = []
-      }
-    })
-
-    watch(editorNodes, (newVal, oldVal) => {
-      store.setAnchorMode(false)
-      isEditorMode.value = (newVal.features.length > 0)
-      if (isEditorMode.value) {
-        if (linksStore.changeBounds) {
-          const bounds = new Mapbox.LngLatBounds()
-          newVal.features.forEach(node => {
-            bounds.extend(node.geometry.coordinates)
-          })
-          map.value.fitBounds(bounds, {
-            padding: 100,
-          })
-        }
       }
     })
 
@@ -449,53 +443,46 @@ export default {
         v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />
     </template>
-    <template v-if="mapIsLoaded">
-      <StaticLinks
-        :map="map"
-        :is-editor-mode="isEditorMode"
-        @rightClick="(e) => $emit('clickFeature',e)"
-      />
-    </template>
+    <StaticLinks
+      :map="map"
+      :is-editor-mode="isEditorMode"
+      :mode="mode"
+      @rightClick="(e) => $emit('clickFeature',e)"
+    />
 
-    <template v-if="mapIsLoaded">
-      <EditorLinks
-        :map="map"
-        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
-      />
-    </template>
-    <template v-if="mapIsLoaded">
-      <ODMap
-        :map="map"
-        :is-editor-mode="isEditorMode"
-        :is-o-d-mode="mode==='od'"
-        @clickFeature="clickFeature"
-      />
-    </template>
+    <EditorLinks
+      :map="map"
+      v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature}"
+    />
+    <ODMap
+      :map="map"
+      :is-editor-mode="isEditorMode"
+      :is-o-d-mode="mode==='od'"
+      @clickFeature="clickFeature"
+    />
 
-    <template v-if="mapIsLoaded">
-      <MglGeojsonLayer
-        v-if="drawMode"
-        source-id="drawLink"
-        :source="{
-          type: 'geojson',
-          data:drawLink,
-          buffer: 0,
-          generateId: true,
-        }"
-        layer-id="drawLink"
-        :layer="{
-          type: 'line',
-          minzoom: 2,
-          paint: {
-            'line-opacity': 1,
-            'line-color': $vuetify.theme.current.colors.linksprimary,
-            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
-            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
+    <MglGeojsonLayer
+      v-if="drawMode"
+      source-id="drawLink"
+      :source="{
+        type: 'geojson',
+        data:drawLink,
+        buffer: 0,
+        generateId: true,
+      }"
+      layer-id="drawLink"
+      :layer="{
+        type: 'line',
+        minzoom: 2,
+        paint: {
+          'line-opacity': 1,
+          'line-color': $vuetify.theme.current.colors.linksprimary,
+          'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
+          'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 
-          }
-        }"
-      />
-    </template>
+        }
+      }"
+    />
   </MglMap>
 </template>
 <style lang="scss" scoped>

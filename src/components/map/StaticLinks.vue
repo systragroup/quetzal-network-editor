@@ -13,14 +13,17 @@ export default {
   components: {
     MglGeojsonLayer,
   },
-  props: ['map', 'isEditorMode'],
+  props: ['map', 'isEditorMode', 'mode'],
   emits: ['rightClick'],
   setup (props, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()
-    const { map, isEditorMode } = toRefs(props)
+    const { map, isEditorMode, mode } = toRefs(props)
     watch(isEditorMode, (val) => {
       val ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
+    }, { immediate: true })
+    watch(mode, (val) => {
+      val !== 'pt' ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
     })
     const links = computed(() => { return linksStore.links })
     const nodes = computed(() => { return linksStore.nodes })
@@ -35,7 +38,6 @@ export default {
 
     onMounted(() => {
       setHiddenFeatures()
-      map.value.on('dblclick', selectLine)
     })
 
     function enterLink (event) {
