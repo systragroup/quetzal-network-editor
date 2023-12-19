@@ -1,10 +1,13 @@
 <script>
 import s3 from '../AWSClient'
 import { csvJSON } from '../components/utils/utils.js'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, toRaw } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
+import { useWebWorkerFn } from '@vueuse/core'
+import { orderBy } from 'lodash'
 const $gettext = s => s
+const { workerFn: csvJSONWorker } = useWebWorkerFn(csvJSON)
 
 export default {
   name: 'ResultTable',
@@ -13,15 +16,17 @@ export default {
     const userStore = useUserStore()
     const tables = ref([])
     const message = ref('')
-    const loading = ref([])
-    const sortModel = ref([])
+    const skeletons = ref(0)
     const numItems = ref(10)
+
     async function getCSV () {
       // get the list of CSV from output files.
       // if its undefined (its on s3). fetch it.
       const scenario = userStore.scenario + '/'
       const otherFiles = store.otherFiles
       const csvFiles = otherFiles.filter(file => file.extension === 'csv')
+      skeletons.value = csvFiles.length
+
       for (const file of csvFiles) {
         if (!(file.content instanceof Uint8Array)) {
           file.content = await s3.readBytes(userStore.model, scenario + file.path)
@@ -33,16 +38,14 @@ export default {
     onMounted(async () => {
       store.changeLoading(true)
       const files = await getCSV()
-      // create a an array for each table. [false,false,...]
-      loading.value = Array(files.length).fill(false)
-      sortModel.value = Array(files.length).fill({ key: null, order: null })
       for (const file of files) {
         // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
         const name = file.path.slice(0, -4)
-        const data = csvJSON(file.content)
+        const data = await csvJSONWorker(file.content)
         const headers = []
         Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
         tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
+        skeletons.value -= 1
       }
       store.changeLoading(false)
       if (tables.value.length === 0) {
@@ -50,33 +53,22 @@ export default {
       }
     })
 
-    async function getData ({ key, page, itemsPerPage, sortBy }) {
+    function getData (items, page, itemsPerPage, sortBy) {
       const start = (page - 1) * itemsPerPage
       const end = start + itemsPerPage
-      const items = tables.value[key].data
-
-      if (sortBy.length) {
+      if (sortBy.length > 0) {
         const sortKey = sortBy[0].key
         const sortOrder = sortBy[0].order
-        if ((sortKey !== sortModel.value[key].key) || (sortOrder !== sortModel.value[key].order)) {
-          items.sort((a, b) => {
-            const aValue = a[sortKey]
-            const bValue = b[sortKey]
-            return sortOrder === 'desc' ? bValue - aValue : aValue - bValue
-          })
-        }
-        sortModel.value[key] = sortBy[0]
+        items = orderBy(items, sortKey, sortOrder)
       }
-
       return items.slice(start, end)
     }
     async function loadItems ({ key, page, itemsPerPage, sortBy }) {
-      loading.value[key] = true
-      const paginated = await getData({ key, page, itemsPerPage, sortBy })
+      const items = toRaw(tables.value[key].data)
+      const paginated = getData(items, page, itemsPerPage, toRaw(sortBy))
       tables.value[key].items = paginated
-      loading.value[key] = false
     }
-    return { tables, message, numItems, loadItems, loading }
+    return { tables, message, numItems, loadItems, skeletons }
   },
 
 }
@@ -94,7 +86,6 @@ export default {
       <v-data-table-server
         :items-per-page="numItems"
         :headers="table.headers"
-        :loading="loading[key]"
         :height="table.items.length >= 10 ? '35rem':'auto'"
         :items-length="table.totalItems"
         fixed-header
@@ -111,6 +102,14 @@ export default {
           </v-toolbar>
         </template>
       </v-data-table-server>
+    </v-card>
+    <v-card
+      v-if="skeletons>0"
+      class="card elevation-3"
+    >
+      <v-skeleton-loader
+        type="heading,table-thead, table-tbody "
+      />
     </v-card>
   </section>
 </template>

@@ -2,7 +2,7 @@
   "name": "myapp",
   "description": "Vue Boilerplate",
   "author": "SYSTRA",
-  "version": "5.0.r",
+  "version": "5.0.s",
   "private": true,
   "scripts": {
     "start": "vite",
@@ -39,6 +39,7 @@
     "@turf/centroid": "^6.5.0",
     "@turf/length": "^6.5.0",
     "@turf/nearest-point-on-line": "^6.5.0",
+    "@vueuse/core": "^10.7.0",
     "aws-amplify": "^5.3.12",
     "axios": "^1.6.1",
     "chroma-js": "^2.4.2",
