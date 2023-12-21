@@ -66,6 +66,11 @@ export const useUserStore = defineStore('userStore', {
     },
     setScenariosList (payload) {
       this.scenariosList = payload
+      // change email when promise resolve. fetching email il slow. so we lazy load them
+      this.scenariosList.forEach((scen) => {
+        scen.userEmailPromise.then((val) => { scen.userEmail = val }).catch(
+          err => console.log(err))
+      })
     },
     setModel (payload) {
       this.model = payload

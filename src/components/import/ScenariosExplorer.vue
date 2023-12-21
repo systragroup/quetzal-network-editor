@@ -57,8 +57,9 @@ export default {
       // This component is rendered before we fetch the bucket list on cognito API.
       // so, when it fetch, set the model to the first one and get the scenario.
       if (localModel.value === null) { localModel.value = modelsList.value[0] }
-      await userStore.getScenario({ model: localModel.value })
-    }, { immediate: true })
+      // when logout. this will happen. we want to reset localModel for its watcher to work on login.
+      if (val.length === 0) { localModel.value = null }
+    })
     watch(scenario, (val) => {
       if (val !== localScen.value) {
         localScen.value = ''

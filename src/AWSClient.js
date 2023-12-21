@@ -199,10 +199,8 @@ function uploadObject (bucket, key, body = '') {
 }
 
 async function getScenario (bucket) {
-  const store = useIndexStore()
-
   // list all files in bucket
-  const params = { Bucket: bucket }
+  const params = { Bucket: bucket, encodingType: 'url' }
   let moreToLoad = true
   const list = []
   try {
@@ -213,6 +211,7 @@ async function getScenario (bucket) {
       params.ContinuationToken = NextContinuationToken
     }
   } catch (err) { return [] }
+
   // get list of scenarios (unique prefix)
   const scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))
   // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
@@ -228,22 +227,27 @@ async function getScenario (bucket) {
     const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
     const timestamp = maxDateObj.LastModified.getTime()
-    // get user email metadata on newest object. undefined if empty or error.
-    let userEmail // this = undefined
-    try {
-      const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key })
-      // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
-      userEmail = resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
-    } catch (err) { store.changeAlert(err) }
+
+    // get user email metadata on newest object.
+    // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
+    const response = s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key })
+    const userEmailPromise = response.then((resp) => {
+      return resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
+    }).catch((err) => {
+      console.log(err)
+      return 'idns-canada@systra.com'
+    })
     scenList.push({
       model: bucket,
       scenario: scen,
       lastModified: maxDate,
       timestamp,
-      userEmail,
+      userEmail: '...',
+      userEmailPromise,
       protected: isLocked,
     })
   }
+
   return scenList
 }
 async function getChecksum (bucket, key) {

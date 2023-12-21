@@ -41,7 +41,7 @@ export default {
       for (const file of files) {
         // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
         const name = file.path.slice(0, -4)
-        const data = await csvJSONWorker(file.content)
+        const data = await csvJSONWorker(file.content.buffer)
         const headers = []
         Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
         tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
