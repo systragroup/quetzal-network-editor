@@ -75,6 +75,8 @@ export default {
     </template>
     <v-date-picker
       v-model="isoDate"
+      :max="dateMax"
+      :min="dateMin"
     />
   </v-menu>
 </template>

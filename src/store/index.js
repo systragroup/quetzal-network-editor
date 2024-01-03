@@ -455,13 +455,14 @@ export const useIndexStore = defineStore('store', {
       const links = useLinksStore()
       return Object.keys(links.links).length === 0
     },
-    projectIsEmpty: () => {
+    projectIsEmpty: (state) => {
       const links = useLinksStore()
       const rlinks = userLinksStore()
       const od = useODStore()
       return (links.links.features.length === 0 &&
              rlinks.rlinks.features.length === 0 &&
-              od.layer.features.length === 0)
+              od.layer.features.length === 0 &&
+              state.otherFiles.length === 0)
     },
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.

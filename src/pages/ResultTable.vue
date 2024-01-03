@@ -37,18 +37,26 @@ export default {
 
     onMounted(async () => {
       store.changeLoading(true)
-      const files = await getCSV()
-      for (const file of files) {
+      try {
+        const files = await getCSV()
+
+        for (const file of files) {
         // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
-        const name = file.path.slice(0, -4)
-        const data = await csvJSONWorker(file.content.buffer)
-        const headers = []
-        Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
-        tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
-        skeletons.value -= 1
-      }
-      store.changeLoading(false)
-      if (tables.value.length === 0) {
+          const name = file.path.slice(0, -4)
+          const data = await csvJSONWorker(file.content.buffer)
+          const headers = []
+          Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
+          tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
+          skeletons.value -= 1
+        }
+        store.changeLoading(false)
+        if (tables.value.length === 0) {
+          message.value = $gettext('Nothing to display')
+        }
+      } catch (err) {
+        console.error(err)
+        store.changeLoading(false)
+        skeletons.value = 0
         message.value = $gettext('Nothing to display')
       }
     })

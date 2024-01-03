@@ -116,6 +116,7 @@ export default {
                 <v-switch
                   v-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
                   v-model="item.value"
+                  color="primary"
                   :label="$gettext(item.text)"
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
