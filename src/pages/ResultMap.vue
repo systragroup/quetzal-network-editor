@@ -148,12 +148,14 @@ export default {
           displaySettings: cloneDeep(tempDisplaySettings.value),
           selectedFilter: cloneDeep(selectedFilter.value),
         }
+
         // only add the list of category (eyes) if its not everything.
         // first filter to only get possible cat. we way load a style with non existing cat (ex highway=quenedi)
         const filteredCat = selectedCategory.value.filter(val => filteredCategory.value.includes(val))
         if (filteredCat.length < filteredCategory.value.length) {
-          style.selectedCategory = cloneDeep(selectedCategory)
+          style.selectedCategory = cloneDeep(selectedCategory.value)
         }
+
         // if its an OD preset. save the selected index.
         if (ODfeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
           style.selectedIndex = matSelectedIndex.value
