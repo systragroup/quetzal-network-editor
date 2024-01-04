@@ -12,6 +12,7 @@ import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
 import { useOSMStore } from '@src/store/OSMImporter'
 import { useGTFSStore } from '@src/store/GTFSImporter'
+import axios from 'axios'
 
 const $gettext = s => s
 
@@ -77,8 +78,6 @@ export default {
       // this only happen when both files are loaded.
       // remove links and nodes from store. (and filesAreLoaded)
       this.store.initNetworks()
-      // TODO
-      // this.store.unloadLayers()
       this.userStore.unloadProject()
       this.runStore.cleanRun()
       this.runOSMStore.cleanRun()
@@ -184,33 +183,33 @@ export default {
 
       try {
         if (filesToLoads.includes('PT')) {
-          content = await fetch(url + 'links_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/pt/links.geojson', content })
-          content = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/pt/nodes.geojson', content })
+          content = await axios.get(url + 'links_exemple.geojson')
+          res.push({ path: 'inputs/pt/links.geojson', content: content.data })
+          content = await axios.get(url + 'nodes_exemple.geojson')
+          res.push({ path: 'inputs/pt/nodes.geojson', content: content.data })
         }
 
         if (filesToLoads.includes('road')) {
-          content = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/road/links.geojson', content })
-          content = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/road/nodes.geojson', content })
+          content = await axios.get(url + 'road_links_exemple.geojson')
+          res.push({ path: 'inputs/road/links.geojson', content: content.data })
+          content = await axios.get(url + 'road_nodes_exemple.geojson')
+          res.push({ path: 'inputs/road/nodes.geojson', content: content.data })
         }
 
         if (filesToLoads.includes('loaded')) {
-          content = await fetch(url + 'loaded_links.geojson').then(res => res.json())
-          res.push({ path: 'outputs/loaded_links.geojson', content })
-          content = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
-          res.push({ path: 'outputs/loaded_nodes.geojson', content })
+          content = await axios.get(url + 'loaded_links.geojson')
+          res.push({ path: 'outputs/loaded_links.geojson', content: content.data })
+          content = await axios.get(url + 'loaded_nodes.geojson')
+          res.push({ path: 'outputs/loaded_nodes.geojson', content: content.data })
         }
 
         if (filesToLoads.includes('zones')) {
-          content = await fetch(url + 'zones.geojson').then(res => res.json())
-          res.push({ path: 'outputs/zones.geojson', content })
-          content = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
+          content = await axios.get(url + 'zones.geojson')
+          res.push({ path: 'outputs/zones.geojson', content: content.data })
+          content = await axios.request({ url: url + 'zones.zip', method: 'GET', responseType: 'blob' })
+          content = await unzip(content.data)
           res.push({ path: 'outputs/zones.json', content })
         }
-        // this is zones and mat. reuse var to save memory
 
         this.loadNetwork(res)
         // this.loggedIn = true

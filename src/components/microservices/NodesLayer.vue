@@ -43,7 +43,6 @@ export default {
     },
     offCursor (event) {
       if (this.active) {
-      // todo: error warning is throw sometime when we move a node over another node or anchor.
         if (this.hoveredStateId !== null) {
           // eslint-disable-next-line max-len
           // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.

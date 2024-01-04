@@ -11,8 +11,6 @@ import * as labsComponents from 'vuetify/labs/components'
 import * as directives from 'vuetify/directives'
 import { aliases, fa } from 'vuetify/iconsets/fa'
 
-import 'promise-polyfill/src/polyfill'
-
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { fas } from '@fortawesome/free-solid-svg-icons'

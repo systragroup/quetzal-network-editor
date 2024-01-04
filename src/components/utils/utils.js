@@ -105,7 +105,6 @@ async function unzip (file) {
   const ZIP = new JSZip()
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
-  console.log(filesNames)
   const str = await zip.file(filesNames[0]).async('string')
   const content = JSON.parse(str)
   return content

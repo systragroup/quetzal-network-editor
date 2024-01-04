@@ -135,7 +135,6 @@ export function useResult () {
   const matSelectedIndex = ref({})
 
   function reset () {
-    // TODO clone
     layer.value = cloneDeep(geojson)
     visibleLayer.value = cloneDeep(geojson)
     NaNLayer.value = cloneDeep(geojson)

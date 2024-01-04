@@ -5995,11 +5995,6 @@ clipboard@^2.0.10:
     select "^1.1.2"
     tiny-emitter "^2.0.0"
 
-clone@^2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
-  integrity sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w==
-
 color-convert@^1.9.0:
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-1.9.3.tgz#bb71850690e1f136567de629d2d5471deda4c1e8"
@@ -8879,11 +8874,6 @@ process-nextick-args@~2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.1.tgz#7820d9b16120cc55ca9ae7792680ae7dba6d7fe2"
   integrity sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==
-
-promise-polyfill@^8.2.0:
-  version "8.3.0"
-  resolved "https://registry.yarnpkg.com/promise-polyfill/-/promise-polyfill-8.3.0.tgz#9284810268138d103807b11f4e23d5e945a4db63"
-  integrity sha512-H5oELycFml5yto/atYqmjyigJoAo3+OXwolYiH7OfQuYlAqhxNvTfiNMbV9hsC6Yp83yE5r2KTVmtrG6R9i6Pg==
 
 promise@^7.0.1:
   version "7.3.1"

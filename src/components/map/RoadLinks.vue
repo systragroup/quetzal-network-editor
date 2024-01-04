@@ -143,7 +143,6 @@ export default {
 
     function offCursor (event) {
       if (isRoadMode.value) {
-      // todo: error warning is throw sometime when we move a node over another node or anchor.
         if (popup.value?.isOpen()) popup.value.remove()
         if (hoveredStateId.value !== null) {
           // eslint-disable-next-line max-len
