@@ -104,7 +104,6 @@ export const useRunStore = defineStore('run', {
         // load new Results
         // delete outputs
         const store = useIndexStore()
-        store.deleteOutputs()
         store.loadOtherFiles(res)
       }
     },

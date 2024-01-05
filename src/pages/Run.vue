@@ -56,6 +56,7 @@ export default {
         runStore.initExecution() // start the stepper at first step
         await store.exportToS3('inputs')
         await store.deleteOutputsOnS3()
+        store.deleteOutputs()
         runStore.startExecution({ scenario: userStore.scenario })
       } catch (err) {
         runStore.terminateExecution()

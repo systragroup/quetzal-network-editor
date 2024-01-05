@@ -157,14 +157,14 @@ export default {
         selectedNode.value.layerId = 'nodes'
         selectedNode.value.id = firstNode.value?.properties.index
       }
-    })
+    }, { deep: true })
     watch(lastNode, (val) => {
       if (editorTrip.value && val) {
         drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
         selectedNode.value.layerId = 'nodes'
         selectedNode.value.id = lastNode.value?.properties.index
       }
-    })
+    }, { deep: true })
 
     function saveMapPosition () {
       const center = map.value.getCenter()
