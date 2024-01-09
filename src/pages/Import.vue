@@ -77,12 +77,6 @@ export default {
     applyDialog () {
       // this only happen when both files are loaded.
       // remove links and nodes from store. (and filesAreLoaded)
-      this.store.initNetworks()
-      this.userStore.unloadProject()
-      this.runStore.cleanRun()
-      this.runOSMStore.cleanRun()
-      this.runGTFSStore.cleanRun()
-
       if (this.choice === 'example1') {
         this.loadExample(['PT', 'road'])
       } else if (this.choice === 'example2') {
@@ -95,11 +89,10 @@ export default {
 
     newProject () {
       this.store.initNetworks()
-      this.userStore.unloadProject()
       this.runStore.cleanRun()
       this.runOSMStore.cleanRun()
       this.runGTFSStore.cleanRun()
-      this.store.changeNotification({ text: $gettext('project overwrited'), autoClose: true, color: 'success' })
+      this.store.changeNotification({ text: $gettext('Files unloaded'), autoClose: true, color: 'success' })
     },
 
     loadNetwork (files) {
@@ -176,6 +169,12 @@ export default {
     },
 
     async loadExample (filesToLoads) {
+      this.store.initNetworks()
+      this.userStore.unloadProject()
+      this.runStore.cleanRun()
+      this.runOSMStore.cleanRun()
+      this.runGTFSStore.cleanRun()
+
       this.store.changeLoading(true)
       const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
       const res = []
@@ -255,6 +254,7 @@ export default {
             </div>
             <ScenariosExplorer
               @load="loadFilesFromS3"
+              @unload="newProject"
             />
             <div class="button-row">
               <v-btn
@@ -344,7 +344,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{ $gettext("Overwrite current Project ?") }}
+          {{ $gettext("Unload all files ?") }}
         </v-card-title>
         <v-card-actions>
           <v-spacer />

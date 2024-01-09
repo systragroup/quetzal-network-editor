@@ -71,7 +71,7 @@ export default {
       localScen.value = val.scenario
       locked.value = val.protected
       if (val.scenario) {
-        if (projectIsEmpty.value) {
+        if (projectIsEmpty.value && !scenario.value) {
           userStore.isTokenExpired()
           loadProject()
         } else {
@@ -152,7 +152,12 @@ export default {
     }
     function applyDialog () {
       showDialog.value = false
-      loadProject()
+      if (modelScen.value === localModel.value + localScen.value) {
+        userStore.unloadProject()
+        context.emit('unload')
+      } else {
+        loadProject()
+      }
     }
     function cancelDialog () {
       // reset vmodel back to loaded scenario
@@ -372,13 +377,16 @@ export default {
     <v-card>
       <v-card-text>
         <span class="text-h5">
-          <strong>
-            {{ $gettext("Load Scenario?") }}
+          <strong v-if="modelScen === localModel + localScen">
+            {{ $gettext("Unload Scenario?") }}
+          </strong>
+          <strong v-else>
+            {{ $gettext("Change Scenario?") }}
           </strong>
         </span>
       </v-card-text>
       <v-card-text class="text-h6">
-        {{ $gettext("This will ERASE the current project") }}
+        {{ $gettext("Any unsaved changes will be lost") }}
       </v-card-text>
       <v-card-actions>
         <v-spacer />
