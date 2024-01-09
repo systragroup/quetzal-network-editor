@@ -48,6 +48,7 @@ export default {
     const hoveredStateId = ref(null)
     const disablePopup = ref(false)
     const width = { static: 1, rendered: 2 }
+    const lastZoom = ref(100)
     const minZoom = ref({
       links: 4,
       rendered: 14,
@@ -60,6 +61,7 @@ export default {
     })
 
     watch(selectedrGroup, (val) => {
+      lastZoom.value = 100 // this will force the rerender on visiblerLinks in getbounds()
       getBounds()
     })
     watch(isRoadMode, (val) => {
@@ -86,12 +88,16 @@ export default {
       // only get the geojson if the zoom level is bigger than the min.
       // if not, getting all anchorpoint would be very intensive!!
       // this way, only a small number of anchor points are computed
-      if (map.value.getZoom() > minZoom.value.rendered) {
+      const currentZoom = map.value.getZoom()
+      if (currentZoom > minZoom.value.rendered) {
         // create a BBOX with a 200m buffer. get links in or intersecting with bbox
         const bounds = map.value.getBounds()
         const bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.2)
         rlinksStore.getRenderedrLinks({ bbox })
-      } else if (map.value.getZoom() > minZoom.value.links) {
+        map.value.getSource('staticrLinks').setData(header)
+
+        // check lastzoom so we only setData when it changed, not at every zoom and move.
+      } else if (currentZoom > minZoom.value.links && lastZoom.value > minZoom.value.rendered) {
         // evrey links are rendered (not editable). no nodes
         rlinksStore.setRenderedrLinks({ method: 'None' })
         // set Data for static links as the map in not reactive (to same RAM)
@@ -100,6 +106,8 @@ export default {
         // Nothing is is rendered.
         rlinksStore.setRenderedrLinks({ method: 'None' })
       }
+      // save lastZoom value
+      lastZoom.value = currentZoom
     }
 
     const keepHovering = ref(false)
@@ -175,7 +183,7 @@ export default {
           // Emit a click base on layer type (node or link)
 
           if (selectedFeature.value !== null) {
-            if (['rlinks', 'staticrLinks'].includes(hoveredStateId.value.layerId)) {
+            if (hoveredStateId.value.layerId === 'rlinks') {
               const action = anchorMode.value ? 'anchorrNodes' : 'rnodes'
               rlinksStore.addRoadNodeInline({
                 selectedIndex: selectedFeature.value,
@@ -190,7 +198,7 @@ export default {
 
     function linkRightClick (event) {
       if (isRoadMode.value) {
-        if (['rlinks', 'staticrLinks'].includes(hoveredStateId.value.layerId)) {
+        if (hoveredStateId.value.layerId === 'rlinks') {
           contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
           contextMenu.value.showed = true
           contextMenu.value.feature = hoveredStateId.value.id
@@ -418,7 +426,7 @@ export default {
       layer-id="staticrLinks"
       :layer="{
         type: 'line',
-        maxzoom: isRoadMode? minZoom.rendered: 18,
+        maxzoom: 18, // maxZoom set in getData. else. its glitchy and dispapear before rendered appear
         minzoom: minZoom.links,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
@@ -440,9 +448,7 @@ export default {
 
       }"
       v-on="(isEditorMode|| !isRoadMode) ? { } : { mouseenter: onCursor,
-                                                   mouseleave: offCursor,
-                                                   click: selectClick,
-                                                   contextmenu: linkRightClick }"
+                                                   mouseleave: offCursor}"
     />
     <MglGeojsonLayer
       source-id="rlinks"

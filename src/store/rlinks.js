@@ -360,7 +360,7 @@ export const userLinksStore = defineStore('rlinks', {
       const { selectedLinkId, info } = payload
       for (let i = 0; i < selectedLinkId.length; i++) {
         const props = Object.keys(info[i])
-        const link = this.visiblerLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
+        const link = this.renderedrLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
         // if we change a one way to a 2 way, copy one way properties to the reverse one.
         if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '0')) {
           this.reversedAttributes.forEach(
