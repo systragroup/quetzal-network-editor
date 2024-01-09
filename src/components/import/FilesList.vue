@@ -2,6 +2,7 @@
 import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref } from 'vue'
+const $gettext = s => s
 
 export default {
   name: 'FilesList',
@@ -82,6 +83,11 @@ export default {
       store.changeLoading(false)
       context.emit('FilesLoaded', fileList)
     }
+    function deleteFile (file) {
+      store.deleteotherFiles([file])
+      store.changeNotification(
+        { text: file + $gettext(' deleted'), autoClose: true, color: 'success' })
+    }
 
     return {
       store,
@@ -93,6 +99,7 @@ export default {
       buttonHandle,
       readOtherInputs,
       readOtherOutputs,
+      deleteFile,
     }
   },
 
@@ -138,21 +145,29 @@ export default {
         :key="key"
       >
         {{ file.path }}
-        <v-tooltip
-          location="top"
-          open-delay="250"
-        >
-          <template v-slot:activator="{ props }">
-            <v-btn
-              variant="text"
-              class="list-button"
-              icon=" fa-solid fa-upload"
-              v-bind="props"
-              @click="()=>buttonHandle(file.path)"
-            />
-          </template>
-          <span>{{ $gettext('Replace file inplace') }}</span>
-        </v-tooltip>
+        <div class="list-button">
+          <v-tooltip
+            location="top"
+            open-delay="250"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                variant="text"
+                icon="fa-solid fa-upload"
+                size="small"
+                v-bind="props"
+                @click="()=>buttonHandle(file.path)"
+              />
+            </template>
+            <span>{{ $gettext('Replace file inplace') }}</span>
+          </v-tooltip>
+          <v-btn
+            variant="text"
+            size="small"
+            icon="fa-solid fa-trash"
+            @click="()=>deleteFile(file.path)"
+          />
+        </div>
       </li>
     </div>
   </div>
@@ -195,6 +210,13 @@ export default {
           </template>
           <span>{{ $gettext('Viewable in results') }}</span>
         </v-tooltip>
+        <v-btn
+          variant="text"
+          class="list-button"
+          size="small"
+          icon="fa-solid fa-trash"
+          @click="()=>deleteFile(file.path)"
+        />
       </li>
     </div>
   </div>
@@ -229,7 +251,9 @@ export default {
 }
 .list-button{
   margin-left:auto;
-  margin-right:1rem
+  display:flex;
+  flex-direction:row;
+  margin-right:1rem;
 }
 .list-icon{
   margin-left:0.5rem

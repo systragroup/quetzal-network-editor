@@ -37,7 +37,6 @@ export default {
 
   data () {
     return {
-      loggedIn: false,
       choice: null,
       showDialog: false,
       filesAdded: false,
@@ -211,8 +210,6 @@ export default {
         }
 
         this.loadNetwork(res)
-        // this.loggedIn = true
-        // this.login()
       } catch {
         this.store.changeLoading(false)
         this.store.changeAlert({
@@ -237,13 +234,8 @@ export default {
     >
 
     <div class="layout">
-      <div
-        class="layout-overlay"
-        :class="{ 'animate-layer': loggedIn }"
-      />
       <v-card
         class="card"
-        :class="{ 'animate-login': loggedIn }"
       >
         <v-row>
           <v-col class="left-col">
@@ -368,9 +360,9 @@ export default {
 </template>
 <style lang="scss" scoped>
 .layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
+  position: relative;
+  padding: 4rem 2rem 4rem 2rem;
+  height:100%;
   display: flex;
   flex-flow: row;
   justify-content: center;
@@ -393,12 +385,6 @@ export default {
   padding:0.5rem;
 }
 
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color:rgb(var(--v-theme-background));
-  position: absolute;
-}
 .card {
   overflow-y:hidden;
   padding: 20px;

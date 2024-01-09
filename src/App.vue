@@ -87,13 +87,14 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
+
 }
 .container {
   height: 100%;
   margin-left: 50px;
   max-width: calc(100% - 50px);
   padding: 0;
-  background-color: $grey-ultralight;
+  background-color: rgb(var(--v-theme-background));
 }
 .container.login {
   margin-left: 0;

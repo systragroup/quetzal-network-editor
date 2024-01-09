@@ -161,6 +161,10 @@ export const useIndexStore = defineStore('store', {
     deleteOutputs () {
       this.otherFiles = this.otherFiles.filter(file => !file.path.startsWith('outputs/'))
     },
+    deleteotherFiles (paths) {
+      // list of paths
+      this.otherFiles = this.otherFiles.filter(file => !paths.includes(file.path))
+    },
 
     async getOtherFile (name, extension) {
       const files = this.otherFiles.filter(file => file.name === name)
