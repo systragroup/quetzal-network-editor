@@ -269,7 +269,8 @@ export const userLinksStore = defineStore('rlinks', {
           break
         case 'add':
           if (!this.selectedrGroup.includes(data[0])) {
-            this.selectedrGroup.push(data[0])
+            // this keep reactive. pushing on empty arr is not reactive.
+            this.selectedrGroup = [...this.selectedrGroup, ...data]
           }
           tempLinks = this.rlinks.features.filter(
             link => link.properties[cat] === data[0])
@@ -359,7 +360,7 @@ export const userLinksStore = defineStore('rlinks', {
       const { selectedLinkId, info } = payload
       for (let i = 0; i < selectedLinkId.length; i++) {
         const props = Object.keys(info[i])
-        const link = this.renderedrLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
+        const link = this.visiblerLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
         // if we change a one way to a 2 way, copy one way properties to the reverse one.
         if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '0')) {
           this.reversedAttributes.forEach(

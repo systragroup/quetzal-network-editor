@@ -36,6 +36,7 @@ export default {
     const selectedPopupContent = computed(() => { return store.roadsPopupContent })
     const selectedrGroup = computed(() => { return rlinksStore.selectedrGroup })
     const cyclewayMode = computed(() => { return store.cyclewayMode })
+    const visiblerLinks = computed(() => { return rlinksStore.visiblerLinks })
     const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
     const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
     const anchorMode = computed(() => { return store.anchorMode })
@@ -45,12 +46,10 @@ export default {
     })
     const popup = ref(null)
     const hoveredStateId = ref(null)
-    const visibleNodes = ref({})
-    const visibleLinks = ref({})
     const disablePopup = ref(false)
-    const routeWidth = ref(1)
+    const width = { static: 1, rendered: 2 }
     const minZoom = ref({
-      links: 2,
+      links: 4,
       rendered: 14,
     })
     const contextMenu = ref({
@@ -60,7 +59,9 @@ export default {
       feature: null,
     })
 
-    watch(selectedrGroup, () => { getBounds() })
+    watch(selectedrGroup, (val) => {
+      getBounds()
+    })
     watch(isRoadMode, (val) => {
       if (val) {
         map.value.on('dragend', getBounds)
@@ -69,9 +70,9 @@ export default {
       } else {
         map.value.off('dragend', getBounds)
         map.value.off('zoomend', getBounds)
-        // set renderedlinks to all visible (not editable but all visible)
-        routeWidth.value = 1
-        rlinksStore.setRenderedrLinks({ method: 'visible' })
+        // remove rendered and refresh visible (not editable but all visible)
+        rlinksStore.setRenderedrLinks({ method: 'None' })
+        map.value.getSource('staticrLinks').setData(visiblerLinks.value)
       }
     })
 
@@ -79,23 +80,23 @@ export default {
       // get map bounds and return only the features inside of it.
       // this way, only the visible links and node are rendered and updating is fast
       // (i.e. moving a node in real time)
-      // note only line inside the bbox (buffured) are visible.
-      const bounds = map.value.getBounds()
-      // create a BBOX with a 800m buffer
-      const bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.2)
+
+      // Note there is rendered and visible links. only one at the time is visible.
+
       // only get the geojson if the zoom level is bigger than the min.
       // if not, getting all anchorpoint would be very intensive!!
       // this way, only a small number of anchor points are computed
       if (map.value.getZoom() > minZoom.value.rendered) {
-        // get links in or intersecting with bbox
-        routeWidth.value = 2
+        // create a BBOX with a 200m buffer. get links in or intersecting with bbox
+        const bounds = map.value.getBounds()
+        const bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.2)
         rlinksStore.getRenderedrLinks({ bbox })
       } else if (map.value.getZoom() > minZoom.value.links) {
         // evrey links are rendered (not editable). no nodes
-        routeWidth.value = 1
-        rlinksStore.setRenderedrLinks({ method: 'visible' })
+        rlinksStore.setRenderedrLinks({ method: 'None' })
+        // set Data for static links as the map in not reactive (to same RAM)
+        map.value.getSource('staticrLinks').setData(visiblerLinks.value)
       } else {
-        routeWidth.value = 1
         // Nothing is is rendered.
         rlinksStore.setRenderedrLinks({ method: 'None' })
       }
@@ -135,7 +136,6 @@ export default {
             { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
             { hover: true },
           )
-
           context.emit('onHover', { layerId: hoveredStateId.value.layerId, selectedId: hoveredStateId.value.id })
         }
       }
@@ -175,9 +175,8 @@ export default {
           // Emit a click base on layer type (node or link)
 
           if (selectedFeature.value !== null) {
-            if (hoveredStateId.value.layerId === 'rlinks') {
+            if (['rlinks', 'staticrLinks'].includes(hoveredStateId.value.layerId)) {
               const action = anchorMode.value ? 'anchorrNodes' : 'rnodes'
-
               rlinksStore.addRoadNodeInline({
                 selectedIndex: selectedFeature.value,
                 lngLat: event.mapboxEvent.lngLat,
@@ -191,7 +190,7 @@ export default {
 
     function linkRightClick (event) {
       if (isRoadMode.value) {
-        if (hoveredStateId.value.layerId === 'rlinks') {
+        if (['rlinks', 'staticrLinks'].includes(hoveredStateId.value.layerId)) {
           contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
           contextMenu.value.showed = true
           contextMenu.value.feature = hoveredStateId.value.id
@@ -284,7 +283,8 @@ export default {
         dragNode.value = false
         disablePopup.value = false
         // if we drag too quickly, offcursor it will not be call and the node will stay in hovering mode.
-        // calling offscursor will break the sticky node drawlink behaviour, so we only make its state back to hover-false
+        // calling off scursor will break the sticky node drawlink behaviour,
+        // so we only make its state back to hover-false
         map.value.getCanvas().style.cursor = ''
         map.value.setFeatureState(
           { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
@@ -311,10 +311,9 @@ export default {
       header,
       popup,
       hoveredStateId,
-      visibleNodes,
-      visibleLinks,
+      visiblerLinks,
       disablePopup,
-      routeWidth,
+      width,
       minZoom,
       contextMenu,
       getBounds,
@@ -408,21 +407,23 @@ export default {
 <template>
   <section>
     <MglGeojsonLayer
-      source-id="rlinks"
+      source-id="staticrLinks"
+      :reactive="false"
       :source="{
         type: 'geojson',
-        data:renderedrLinks ,
+        data: visiblerLinks ,
         buffer: 0,
         promoteId: 'index',
       }"
-      layer-id="rlinks"
+      layer-id="staticrLinks"
       :layer="{
         type: 'line',
+        maxzoom: isRoadMode? minZoom.rendered: 18,
         minzoom: minZoom.links,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*routeWidth, routeWidth],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width.static, width.static],
                          ['case', ['has', 'route_width'],
                           ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
                            ['to-number', ['get', 'route_width']],
@@ -438,10 +439,46 @@ export default {
         }
 
       }"
-      v-on="isEditorMode ? { } : { mouseenter: onCursor,
-                                   mouseleave: offCursor,
-                                   click: selectClick,
-                                   contextmenu: linkRightClick }"
+      v-on="(isEditorMode|| !isRoadMode) ? { } : { mouseenter: onCursor,
+                                                   mouseleave: offCursor,
+                                                   click: selectClick,
+                                                   contextmenu: linkRightClick }"
+    />
+    <MglGeojsonLayer
+      source-id="rlinks"
+      :source="{
+        type: 'geojson',
+        data: renderedrLinks ,
+        buffer: 0,
+        promoteId: 'index',
+      }"
+      layer-id="rlinks"
+      :layer="{
+        type: 'line',
+        minzoom: minZoom.links,
+        paint: {
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
+          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width.rendered, width.rendered],
+                         ['case', ['has', 'route_width'],
+                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                           ['to-number', ['get', 'route_width']],
+                           2], 2]],
+          'line-blur': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 1, 0],
+                        ['case', ['has', 'route_width'],
+                         ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                          ['to-number', ['get', 'route_width']],
+                          2], 2]],
+        },
+        layout: {
+          'line-sort-key': ['to-number',['get', 'route_width']],
+        }
+
+      }"
+      v-on="(isEditorMode|| !isRoadMode) ? { } : { mouseenter: onCursor,
+                                                   mouseleave: offCursor,
+                                                   click: selectClick,
+                                                   contextmenu: linkRightClick }"
     />
     <MglImageLayer
       source-id="rlinks"
@@ -486,10 +523,10 @@ export default {
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         },
       }"
-      v-on="isEditorMode ? { } : { mouseenter: onCursor,
-                                   mouseleave: offCursor,
-                                   mousedown: moveNode,
-                                   contextmenu:contextMenuNode }"
+      v-on="(isEditorMode|| !isRoadMode) ? { } : { mouseenter: onCursor,
+                                                   mouseleave: offCursor,
+                                                   mousedown: moveNode,
+                                                   contextmenu:contextMenuNode }"
     />
 
     <MglGeojsonLayer
@@ -514,11 +551,11 @@ export default {
           'circle-stroke-width': 2,
         },
       }"
-      @click="selectClick"
-      @mouseover="onCursor"
-      @mouseleave="offCursor"
-      @mousedown="moveNode"
-      @contextmenu="contextMenuNode"
+      v-on="(isEditorMode|| !isRoadMode) ? { } : { click:selectClick,
+                                                   mouseover:onCursor,
+                                                   mouseleave:offCursor,
+                                                   mousedown:moveNode,
+                                                   contextmenu:contextMenuNode }"
     />
     <MglPopup
       :close-button="false"
