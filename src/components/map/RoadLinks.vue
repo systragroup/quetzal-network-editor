@@ -23,7 +23,7 @@ export default {
     const store = useIndexStore()
     const rlinksStore = userLinksStore()
 
-    const { map, isEditorMode, isRoadMode } = toRefs(props)
+    const { map, isRoadMode } = toRefs(props)
     onMounted(() => {
       map.value.on('dragend', getBounds)
       map.value.on('zoomend', getBounds)
@@ -300,12 +300,6 @@ export default {
       store,
       rlinksStore,
       anchorMode,
-      // eslint-disable-next-line vue/no-dupe-keys
-      map,
-      // eslint-disable-next-line vue/no-dupe-keys
-      isEditorMode,
-      // eslint-disable-next-line vue/no-dupe-keys
-      isRoadMode,
       keepHovering,
       dragNode,
       selectedPopupContent,
@@ -423,7 +417,6 @@ export default {
       }"
       layer-id="rlinks"
       :layer="{
-        interactive: true,
         type: 'line',
         minzoom: minZoom.links,
         paint: {

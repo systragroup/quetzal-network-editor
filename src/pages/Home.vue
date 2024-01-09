@@ -14,7 +14,8 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '../store/od'
 
-import { computed, ref, onUnmounted } from 'vue'
+import { computed, ref, watch, onUnmounted, onMounted } from 'vue'
+const $gettext = s => s
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -34,12 +35,21 @@ export default {
     const editorForm = ref({})
     const mode = ref('pt')
     const action = ref(null)
+    const editorTrip = computed(() => linksStore.editorTrip)
 
     const numLinks = computed(() => { return Array.isArray(editorForm.value) ? editorForm.value.length : 1 })
     const attributesChoices = computed(() => {
       if (['pt', 'road'].includes(mode.value)) {
         return store.attributesChoices[mode.value]
       } else { return {} }
+    })
+
+    onMounted(() => {
+      window.addEventListener('keydown', (e) => {
+        if ((e.key === 'Control') && (!showDialog.value) && (!cloneDialog.value)) {
+          store.changeAnchorMode()
+        }
+      })
     })
 
     onUnmounted(() => {
@@ -62,74 +72,44 @@ export default {
         'Edit OD Info'].includes(action.value)
     })
 
-    return {
-      store,
-      linksStore,
-      rlinksStore,
-      ODStore,
-      editorForm,
-      mode,
-      action,
-      numLinks,
-      attributesChoices,
-      editForm,
-    }
-  },
-  data () {
-    return {
-      editorTrip: null,
-      selectedNode: null,
-      selectedLink: null,
-      selectedIndex: null,
-      showDialog: false,
-      cloneDialog: false,
-      cursorPosition: [],
-      tripToDelete: null,
-      tripToClone: null,
-      message: '',
-      cloneName: null,
-      cloneNodes: false,
-      errorMessage: null,
-      lingering: true,
-      groupTripIds: [],
-      showHint: false,
-      showDeleteOption: false,
-      newFieldName: null,
-      linkDir: [],
-      rules: {
-        newField: [
-          val => !Object.keys(this.editorForm).includes(val) || this.$gettext('field already exist'),
-          val => val !== '' || this.$gettext('cannot add empty field'),
-          val => !val?.endsWith('_r') || this.$gettext('field cannot end with _r'),
-        ],
-      },
-
-      hints: attributesHints,
-
-    }
-  },
-  watch: {
-    showDialog (val) {
-      // do not show a notification when dialog is on. sometim its over the confirm button
-      if (val) { this.store.changeNotification({ text: '', autoClose: true }) }
-      this.showHint = false
-      this.showDeleteOption = false
-    },
-
-  },
-  created () {
-    this.editorTrip = this.linksStore.editorTrip
-    window.addEventListener('keydown', (e) => {
-      if ((e.key === 'Control') && (!this.showDialog) && (!this.cloneDialog)) {
-        this.store.changeAnchorMode()
-      }
+    const showDialog = ref(false)
+    watch(showDialog, (val) => {
+      // do not show a notification when dialog is on. sometime its over the confirm button
+      if (val) { store.changeNotification({ text: '', autoClose: true }) }
+      showHint.value = false
+      showDeleteOption.value = false
     })
-  },
 
-  methods: {
-    orderedForm (index) {
+    const selectedNode = ref(null)
+    const selectedLink = ref(null)
+    const selectedIndex = ref(null)
+    const cloneDialog = ref(false)
+    const tripToDelete = ref(null)
+    const tripToClone = ref(null)
+    const message = ref('')
+    const cloneName = ref(null)
+    const cloneNodes = ref(false)
+    const errorMessage = ref(null)
+    const lingering = ref(true)
+    const groupTripIds = ref([])
+    const showHint = ref(false)
+    const showDeleteOption = ref(false)
+    const newFieldName = ref(null)
+    const linkDir = ref([])
+
+    const rules = ({
+      newField: [
+        val => !Object.keys(editorForm.value).includes(val) || $gettext('field already exist'),
+        val => val !== '' || $gettext('cannot add empty field'),
+        val => !val?.endsWith('_r') || $gettext('field cannot end with _r'),
+      ],
+    })
+
+    const hints = attributesHints
+
+    function orderedForm (index) {
       // order editor Form in alphatical order
-      let form = this.editorForm
+      let form = editorForm.value
       // if we have tab. there is a list of form
       if (form.length >= 1) {
         form = form[index]
@@ -145,305 +125,301 @@ export default {
         {},
       )
       return ordered
-    },
+    }
 
-    actionClick (event) {
-      this.action = event.action
-      if (this.action === 'Edit Line Info') {
-        this.editorForm = cloneDeep(this.linksStore.editorLineInfo)
-        this.lingering = event.lingering
-        this.showDialog = true
-      } else if (this.action === 'Edit Group Info') {
-        this.groupTripIds = new Set(event.tripIds)
+    function actionClick (event) {
+      action.value = event.action
+      if (action.value === 'Edit Line Info') {
+        editorForm.value = cloneDeep(linksStore.editorLineInfo)
+        lingering.value = event.lingering
+        showDialog.value = true
+      } else if (action.value === 'Edit Group Info') {
+        groupTripIds.value = new Set(event.tripIds)
         const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
-        const lineAttributes = this.linksStore.lineAttributes
-        const features = this.linksStore.links.features.filter(
-          link => this.groupTripIds.has(link.properties.trip_id))
-        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
-        this.lingering = event.lingering
-        this.showDialog = true
-      } else if (this.action === 'Edit Link Info') {
+        const lineAttributes = linksStore.lineAttributes
+        const features = linksStore.links.features.filter(
+          link => groupTripIds.value.has(link.properties.trip_id))
+        editorForm.value = getGroupForm(features, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      } else if (action.value === 'Edit Link Info') {
         // link is clicked on the map
-        this.selectedLink = event.selectedFeature.properties
+        selectedLink.value = event.selectedFeature.properties
         const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
-        const lineAttributes = this.linksStore.lineAttributes
-        const features = this.linksStore.editorLinks.features.filter(
-          (link) => link.properties.index === this.selectedLink.index)
+        const lineAttributes = linksStore.lineAttributes
+        const features = linksStore.editorLinks.features.filter(
+          (link) => link.properties.index === selectedLink.value.index)
 
-        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
-        this.lingering = event.lingering
-        this.showDialog = true
-      } else if (this.action === 'Edit rLink Info') {
-        this.selectedLink = event.selectedIndex
-        this.editorForm = this.selectedLink.map(linkId => this.rlinksStore.rlinksForm(linkId))
-        this.linkDir = this.rlinksStore.rlinkDirection(this.selectedLink)
+        editorForm.value = getGroupForm(features, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      } else if (action.value === 'Edit rLink Info') {
+        selectedLink.value = event.selectedIndex
+        editorForm.value = selectedLink.value.map(linkId => rlinksStore.rlinksForm(linkId))
+        linkDir.value = rlinksStore.rlinkDirection(selectedLink.value)
         event.selectedIndex.forEach(linkId => {
-          if (this.rlinksStore.onewayIndex.has(linkId)) {
-            this.selectedLink.push(linkId)
-            this.editorForm.push(this.rlinksStore.reversedrLinksForm(linkId))
-            this.linkDir.push(this.rlinksStore.rlinkDirection(this.selectedLink, true))
+          if (rlinksStore.onewayIndex.has(linkId)) {
+            selectedLink.value.push(linkId)
+            editorForm.value.push(rlinksStore.reversedrLinksForm(linkId))
+            linkDir.value.push(rlinksStore.rlinkDirection(selectedLink.value, true))
           }
         })
-        this.showDialog = true
-      } else if (this.action === 'Edit OD Info') {
-        this.selectedLink = event.selectedIndex[0]
-        this.editorForm = this.ODStore.linkForm(this.selectedLink)
-        this.showDialog = true
-      } else if (this.action === 'Edit Road Group Info') {
-        const features = this.rlinksStore.grouprLinks(event.category, event.group)
-        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
-        const lineAttributes = this.rlinksStore.rlineAttributes
+        showDialog.value = true
+      } else if (action.value === 'Edit OD Info') {
+        selectedLink.value = event.selectedIndex[0]
+        editorForm.value = ODStore.linkForm(selectedLink.value)
+        showDialog.value = true
+      } else if (action.value === 'Edit Road Group Info') {
+        const features = rlinksStore.grouprLinks(event.category, event.group)
+        selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = rlinksStore.rlineAttributes
         const uneditable = ['index', 'length', 'a', 'b']
-        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
-        this.lingering = event.lingering
-        this.showDialog = true
-      } else if (this.action === 'Edit Visible Road Info') {
-        const features = this.rlinksStore.visiblerLinks.features
-        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
-        const lineAttributes = this.rlinksStore.rlineAttributes
+        editorForm.value = getGroupForm(features, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      } else if (action.value === 'Edit Visible Road Info') {
+        const features = rlinksStore.visiblerLinks.features
+        selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = rlinksStore.rlineAttributes
         const uneditable = ['index', 'length', 'a', 'b']
-        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
-        this.lingering = event.lingering
-        this.showDialog = true
-      } else if (this.action === 'Edit OD Group Info') {
-        const features = this.ODStore.groupLayer(event.category, event.group)
-        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
-        const lineAttributes = this.ODStore.layerAttributes
+        editorForm.value = getGroupForm(features, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      } else if (action.value === 'Edit OD Group Info') {
+        const features = ODStore.groupLayer(event.category, event.group)
+        selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = ODStore.layerAttributes
         const uneditable = ['index']
-        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
-        this.lingering = event.lingering
-        this.showDialog = true
-      } else if (this.action === 'Edit Visible OD Info') {
-        const features = this.ODStore.visibleLayer.features
-        this.selectedLinks = features // this is an observer. modification will be applied to it in next commit.
-        const lineAttributes = this.ODStore.layerAttributes
+        editorForm.value = getGroupForm(features, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      } else if (action.value === 'Edit Visible OD Info') {
+        const features = ODStore.visibleLayer.features
+        selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
+        const lineAttributes = ODStore.layerAttributes
         const uneditable = ['index']
-        this.editorForm = getGroupForm(features, lineAttributes, uneditable)
-        this.lingering = event.lingering
-        this.showDialog = true
-      } else if (['Edit Node Info', 'Edit rNode Info'].includes(this.action)) {
-        this.selectedNode = event.selectedFeature.properties
+        editorForm.value = getGroupForm(features, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      } else if (['Edit Node Info', 'Edit rNode Info'].includes(action.value)) {
+        selectedNode.value = event.selectedFeature.properties
         // map selected node doesnt not return properties with nanulln value.
         // we need to get the node in the store with the selected index.
-        if (this.action === 'Edit Node Info') {
-          this.editorForm = this.linksStore.editorNodes.features.filter(
-            (node) => node.properties.index === this.selectedNode.index)
-        } else if (this.action === 'Edit rNode Info') {
-          this.editorForm = this.rlinksStore.visiblerNodes.features.filter(
-            (node) => node.properties.index === this.selectedNode.index)
+        if (action.value === 'Edit Node Info') {
+          editorForm.value = linksStore.editorNodes.features.filter(
+            (node) => node.properties.index === selectedNode.value.index)
+        } else if (action.value === 'Edit rNode Info') {
+          editorForm.value = rlinksStore.visiblerNodes.features.filter(
+            (node) => node.properties.index === selectedNode.value.index)
         }
-        this.editorForm = this.editorForm[0].properties
+        editorForm.value = editorForm.value[0].properties
         // filter properties to only the one that are editable.
         const uneditable = ['index', 'route_width']
-        const filtered = Object.keys(this.editorForm)
+        const filtered = Object.keys(editorForm.value)
           .reduce((obj, key) => {
             obj[key] = {
-              value: this.editorForm[key],
+              value: editorForm.value[key],
               disabled: uneditable.includes(key),
               placeholder: false,
             }
             return obj
           }, {})
-        this.editorForm = filtered
-        this.showDialog = true
-      } else if (this.action === 'Delete OD') {
-        this.selectedIndex = event.selectedIndex
-        this.cursorPosition = event.lngLat
-        this.applyAction()
+        editorForm.value = filtered
+        showDialog.value = true
+      } else if (action.value === 'Delete OD') {
+        selectedIndex.value = event.selectedIndex
+        applyAction()
       }
-    },
+    }
 
-    applyAction () {
+    function applyAction () {
       // click yes on dialog
-      this.showDialog = false
-      switch (this.action) {
+      showDialog.value = false
+      switch (action.value) {
         case 'Edit Link Info':
-          this.linksStore.editLinkInfo({ selectedLinkId: this.selectedLink.index, info: this.editorForm })
+          linksStore.editLinkInfo({ selectedLinkId: selectedLink.value.index, info: editorForm.value })
           break
         case 'Edit Node Info':
-          this.linksStore.editNodeInfo({ selectedNodeId: this.selectedNode.index, info: this.editorForm })
+          linksStore.editNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
           break
         case 'Edit Line Info':
           // check if trip_id was changed and if it already exist.
-          if ((this.editorForm.trip_id.value !== this.linksStore.editorTrip) &&
-          this.linksStore.tripId.includes(this.editorForm.trip_id.value)) {
+          if ((editorForm.value.trip_id.value !== linksStore.editorTrip) &&
+          linksStore.tripId.includes(editorForm.value.trip_id.value)) {
             // reset all. just like abortChanges but without the abort changes notification
-            this.lingering = true // if not, applyAction is call after and the notification is overwrite.
-            this.editorTrip = null
-            this.linksStore.setEditorTrip({ tripId: null, changeBounds: false })
-            this.action = null
-            this.store.changeNotification({
-              text: this.$gettext('Could not apply modification. Trip_id already exist'),
+            lingering.value = true // if not, applyAction is call after and the notification is overwrite.
+            linksStore.setEditorTrip({ tripId: null, changeBounds: false })
+            action.value = null
+            store.changeNotification({
+              text: $gettext('Could not apply modification. Trip_id already exist'),
               autoClose: true,
               color: 'red darken-2',
             })
           }
-          this.linksStore.editLineInfo(this.editorForm)
-          if (this.linksStore.editorNodes.features.length === 0) {
-            this.store.changeNotification(
-              { text: this.$gettext('Click on the map to start drawing'), autoClose: false })
+          linksStore.editLineInfo(editorForm.value)
+          if (linksStore.editorNodes.features.length === 0) {
+            store.changeNotification(
+              { text: $gettext('Click on the map to start drawing'), autoClose: false })
           }
           break
         case 'Edit Group Info':
-          this.linksStore.editGroupInfo({ groupTripIds: this.groupTripIds, info: this.editorForm })
+          linksStore.editGroupInfo({ groupTripIds: groupTripIds.value, info: editorForm.value })
           break
         case 'Edit rLink Info':
-          this.rlinksStore.editrLinkInfo({ selectedLinkId: this.selectedLink, info: this.editorForm })
+          rlinksStore.editrLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
           break
         case 'Edit Road Group Info':
-          this.rlinksStore.editrGroupInfo({ selectedLinks: this.selectedLinks, info: this.editorForm })
+          rlinksStore.editrGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
           break
         case 'Edit Visible Road Info':
-          this.rlinksStore.editrGroupInfo({
-            selectedLinks: this.rlinksStore.visiblerLinks.features,
-            info: this.editorForm,
+          rlinksStore.editrGroupInfo({
+            selectedLinks: rlinksStore.visiblerLinks.features,
+            info: editorForm.value,
           })
           break
         case 'Edit OD Group Info':
-          this.ODStore.editGroupInfo({ selectedLinks: this.selectedLinks, info: this.editorForm })
+          ODStore.editGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
           break
         case 'Edit Visible OD Info':
-          this.ODStore.editGroupInfo({
-            selectedLinks: this.ODStore.visibleLayer.features,
-            info: this.editorForm,
+          ODStore.editGroupInfo({
+            selectedLinks: ODStore.visibleLayer.features,
+            info: editorForm.value,
           })
           break
         case 'Edit rNode Info':
-          this.rlinksStore.editrNodeInfo({ selectedNodeId: this.selectedNode.index, info: this.editorForm })
+          rlinksStore.editrNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
           break
         case 'Edit OD Info':
-          this.ODStore.editLinkInfo({ selectedLinkId: this.selectedLink, info: this.editorForm })
+          ODStore.editLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
           break
         case 'deleteTrip':
-          this.linksStore.deleteTrip(this.tripToDelete)
+          linksStore.deleteTrip(tripToDelete.value)
           break
         case 'deleterGroup':
-          this.rlinksStore.deleterGroup(this.tripToDelete)
+          rlinksStore.deleterGroup(tripToDelete.value)
           break
         case 'Delete OD':
-          this.ODStore.deleteOD({ selectedIndex: this.selectedIndex })
+          ODStore.deleteOD({ selectedIndex: selectedIndex.value })
           break
         case 'deleteODGroup':
-          this.ODStore.deleteGroup(this.tripToDelete)
+          ODStore.deleteGroup(tripToDelete.value)
           break
       }
-      if (!this.lingering) {
-        this.confirmChanges()
-        this.lingering = true
+      if (!lingering.value) {
+        confirmChanges()
+        lingering.value = true
       }
-    },
-    cancelAction () {
-      this.showDialog = false
-      if (!this.lingering) {
-        this.abortChanges()
-        this.lingering = true
+    }
+    function cancelAction () {
+      showDialog.value = false
+      if (!lingering.value) {
+        abortChanges()
+        lingering.value = true
       }
-    },
-    confirmChanges () {
+    }
+    function confirmChanges () {
       // confirm changes on sidePanel, this overwrite Links in store.
-      this.linksStore.confirmChanges()
+      linksStore.confirmChanges()
       // put editTrip and action to null.
-      this.editorTrip = null
-      this.linksStore.setEditorTrip({ tripId: null, changeBounds: false })
-      this.action = null
+      linksStore.setEditorTrip({ tripId: null, changeBounds: false })
+      action.value = null
       // notification
-      this.store.changeNotification(
-        { text: this.$gettext('modification applied'), autoClose: true, color: 'success' })
-    },
-    abortChanges () {
+      store.changeNotification(
+        { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+    }
+    function abortChanges () {
       // unselect a trip for edition. nothing to commit on link here.
       // put editTrip and action to null.
-      this.editorTrip = null
-      this.linksStore.setEditorTrip({ tripId: null, changeBounds: false })
-      this.action = null
+      linksStore.setEditorTrip({ tripId: null, changeBounds: false })
+      action.value = null
       // notification
-      this.store.changeNotification({ text: this.$gettext('modification aborted'), autoClose: true })
-    },
-    deleteButton (selection) {
+      store.changeNotification({ text: $gettext('modification aborted'), autoClose: true })
+    }
+    function deleteButton (selection) {
       // could be a trip, or a roadLinks group
-      this.tripToDelete = selection.trip
-      this.message = selection.message
-      this.action = selection.action
-      this.showDialog = true
-    },
+      tripToDelete.value = selection.trip
+      message.value = selection.message
+      action.value = selection.action
+      showDialog.value = true
+    }
 
-    duplicate () {
-      if (this.linksStore.tripId.includes(this.cloneName)) {
-        this.errorMessage = 'already exist'
+    function duplicate () {
+      if (linksStore.tripId.includes(cloneName.value)) {
+        errorMessage.value = 'already exist'
       } else {
-        this.linksStore.cloneTrip({ tripId: this.tripToClone, name: this.cloneName, cloneNodes: this.cloneNodes })
-        this.errorMessage = ''
-        this.cloneDialog = false
+        linksStore.cloneTrip({ tripId: tripToClone.value, name: cloneName.value, cloneNodes: cloneNodes.value })
+        errorMessage.value = ''
+        cloneDialog.value = false
       }
-    },
+    }
 
-    cloneButton (selection) {
-      this.tripToClone = selection.trip
-      this.message = selection.message
+    function cloneButton (selection) {
+      tripToClone.value = selection.trip
+      message.value = selection.message
       // this.action = 'cloneTrip'
-      this.cloneName = selection.trip + ' copy'
-      this.cloneDialog = true
-    },
+      cloneName.value = selection.trip + ' copy'
+      cloneDialog.value = true
+    }
 
-    cancelClone () {
-      this.errorMessage = ''
-      this.cloneDialog = false
-    },
-    addField () {
+    function cancelClone () {
+      errorMessage.value = ''
+      cloneDialog.value = false
+    }
+    function addField () {
       let form = {}
-      if (Array.isArray(this.editorForm)) {
-        form = cloneDeep(this.editorForm[0])
+      if (Array.isArray(editorForm.value)) {
+        form = cloneDeep(editorForm.value[0])
       } else {
-        form = cloneDeep(this.editorForm)
+        form = cloneDeep(editorForm.value)
       }
       // do not append if its null, empty or already exist.
 
-      if ((Object.keys(form).includes(this.newFieldName)) | (this.newFieldName === '') |
-       (!this.newFieldName) | (this.newFieldName?.endsWith('_r'))) {
+      if ((Object.keys(form).includes(newFieldName.value)) | (newFieldName.value === '') |
+       (!newFieldName.value) | (newFieldName.value?.endsWith('_r'))) {
         // put ' ' so the rule error is diplayed.
-        this.newFieldName = ''
+        newFieldName.value = ''
       } else {
         // need to rewrite editorForm object to be updated in DOM
-        if (Array.isArray(this.editorForm)) {
-          const tempArr = cloneDeep(this.editorForm)
+        if (Array.isArray(editorForm.value)) {
+          const tempArr = cloneDeep(editorForm.value)
           tempArr.forEach(el => {
             // if its a reverse link. only add it to the form if its not an excluded one
             // (ex: route_width, no route_width_r)
             if (Object.keys(el)[0].endsWith('_r')) {
-              if (!this.rlinksStore.rcstAttributes.includes(this.newFieldName)) {
-                el[this.newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined }
+              if (!rlinksStore.rcstAttributes.includes(newFieldName.value)) {
+                el[newFieldName.value + '_r'] = { disabled: false, placeholder: false, value: undefined }
               }
             } else { // normal link. add the new field to the list.
-              el[this.newFieldName] = { disabled: false, placeholder: false, value: undefined }
+              el[newFieldName.value] = { disabled: false, placeholder: false, value: undefined }
             }
           })
-          this.editorForm = null
-          this.editorForm = tempArr
+          editorForm.value = null
+          editorForm.value = tempArr
         } else {
-          form[this.newFieldName] = { disabled: false, placeholder: false, value: undefined }
-          this.editorForm = {}
-          this.editorForm = form
+          form[newFieldName.value] = { disabled: false, placeholder: false, value: undefined }
+          editorForm.value = {}
+          editorForm.value = form
         }
 
-        if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(this.action)) {
-          this.linksStore.addPropertie({ name: this.newFieldName, table: 'links' })
-        } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(this.action)) {
-          this.rlinksStore.addRoadPropertie({ name: this.newFieldName, table: 'rlinks' })
-        } else if (this.action === 'Edit Node Info') {
-          this.linksStore.addPropertie({ name: this.newFieldName, table: 'nodes' })
-        } else if (this.action === 'Edit rNode Info') {
-          this.rlinksStore.addRoadPropertie({ name: this.newFieldName, table: 'rnodes' })
-        } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(this.action)) {
-          this.ODStore.addPropertie(this.newFieldName)
+        if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
+          linksStore.addPropertie({ name: newFieldName.value, table: 'links' })
+        } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(action.value)) {
+          rlinksStore.addRoadPropertie({ name: newFieldName.value, table: 'rlinks' })
+        } else if (action.value === 'Edit Node Info') {
+          linksStore.addPropertie({ name: newFieldName.value, table: 'nodes' })
+        } else if (action.value === 'Edit rNode Info') {
+          rlinksStore.addRoadPropertie({ name: newFieldName.value, table: 'rnodes' })
+        } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(action.value)) {
+          ODStore.addPropertie(newFieldName.value)
         }
-        this.newFieldName = null // null so there is no rules error.
-        this.store.changeNotification({ text: this.$gettext('Field added'), autoClose: true, color: 'success' })
+        newFieldName.value = null // null so there is no rules error.
+        store.changeNotification({ text: $gettext('Field added'), autoClose: true, color: 'success' })
       }
-    },
-    deleteField (field) {
-      let form = cloneDeep(this.editorForm)
+    }
+    function deleteField (field) {
+      let form = cloneDeep(editorForm.value)
       // if roadLinks.
-      if (Array.isArray(this.editorForm)) {
+      if (Array.isArray(editorForm.value)) {
         // if we delete a reverse attribute, change it to normal as _r are deleted with normal one
         if (field.endsWith('_r')) {
           field = field.substr(0, field.length - 2)
@@ -454,43 +430,89 @@ export default {
       } else {
         delete form[field]
       }
-      this.editorForm = {}
-      this.editorForm = form
+      editorForm.value = {}
+      editorForm.value = form
 
-      if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(this.action)) {
-        this.linksStore.deletePropertie({ name: field, table: 'links' })
-      } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(this.action)) {
-        this.rlinksStore.deleteRoadPropertie({ name: field, table: 'rlinks' })
-      } else if (this.action === 'Edit Node Info') {
-        this.linksStore.deletePropertie({ name: field, table: 'nodes' })
-      } else if (this.action === 'Edit rNode Info') {
-        this.rlinksStore.deleteRoadPropertie({ name: field, table: 'rnodes' })
-      } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(this.action)) {
-        this.ODStore.deletePropertie({ name: field })
+      if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
+        linksStore.deletePropertie({ name: field, table: 'links' })
+      } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(action.value)) {
+        rlinksStore.deleteRoadPropertie({ name: field, table: 'rlinks' })
+      } else if (action.value === 'Edit Node Info') {
+        linksStore.deletePropertie({ name: field, table: 'nodes' })
+      } else if (action.value === 'Edit rNode Info') {
+        rlinksStore.deleteRoadPropertie({ name: field, table: 'rnodes' })
+      } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(action.value)) {
+        ODStore.deletePropertie({ name: field })
       }
-      this.store.changeNotification({ text: this.$gettext('Field deleted'), autoClose: true, color: 'success' })
-    },
-    attributeNonDeletable (field) {
-      if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info', 'Edit Node Info'].includes(this.action)) {
-        return this.linksStore.defaultAttributesNames.includes(field)
+      store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
+    }
+    function attributeNonDeletable (field) {
+      if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info', 'Edit Node Info'].includes(action.value)) {
+        return linksStore.defaultAttributesNames.includes(field)
       } else {
-        return this.rlinksStore.rundeletable.includes(field)
+        return rlinksStore.rundeletable.includes(field)
       }
-    },
-    ToggleDeleteOption () {
-      this.showDeleteOption = !this.showDeleteOption
+    }
+    function ToggleDeleteOption () {
+      showDeleteOption.value = !showDeleteOption.value
 
-      if (this.showDeleteOption) {
-        this.store.changeNotification({
-          text: this.$gettext('This action will delete properties on every links (and reversed one for two-way roads)'),
+      if (showDeleteOption.value) {
+        store.changeNotification({
+          text: $gettext('This action will delete properties on every links (and reversed one for two-way roads)'),
           autoClose: false,
           color: 'warning',
         })
       } else {
-        this.store.changeNotification({ text: '', autoClose: true })
+        store.changeNotification({ text: '', autoClose: true })
       }
-    },
+    }
 
+    return {
+      orderedForm,
+      actionClick,
+      applyAction,
+      cancelAction,
+      confirmChanges,
+      abortChanges,
+      deleteButton,
+      duplicate,
+      cloneButton,
+      cancelClone,
+      addField,
+      deleteField,
+      attributeNonDeletable,
+      ToggleDeleteOption,
+      selectedNode,
+      selectedLink,
+      selectedIndex,
+      showDialog,
+      cloneDialog,
+      tripToDelete,
+      tripToClone,
+      message,
+      cloneName,
+      cloneNodes,
+      errorMessage,
+      lingering,
+      groupTripIds,
+      showHint,
+      showDeleteOption,
+      newFieldName,
+      linkDir,
+      rules,
+      hints,
+      store,
+      linksStore,
+      rlinksStore,
+      ODStore,
+      editorTrip,
+      editorForm,
+      mode,
+      action,
+      numLinks,
+      attributesChoices,
+      editForm,
+    }
   },
 }
 </script>
@@ -503,8 +525,6 @@ export default {
       scrollable
       persistent
       :max-width="numLinks>1? '40rem':'20rem'"
-      @keydown.enter="applyAction"
-      @keydown.esc="cancelAction"
     >
       <v-card
         max-height="55rem"

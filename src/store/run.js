@@ -155,6 +155,7 @@ export const useRunStore = defineStore('run', {
     },
     startExecution (payload) {
       const userStore = useUserStore()
+      userStore.isTokenExpired()
       const store = useIndexStore()
       const filteredParams = this.parameters.filter(param =>
         (Object.keys(param).includes('category')) && param.model === this.selectedStepFunction)
