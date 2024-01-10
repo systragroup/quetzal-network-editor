@@ -1,36 +1,20 @@
-<script>
+<script setup>
+import { ref } from 'vue'
 
-export default {
-  name: 'MenuSelector',
+defineProps({
+  items: { type: Array, default: () => [] },
   // eslint-disable-next-line vue/require-prop-types
-  props: {
-    items: { type: Array, default: () => [] },
-    value: { default: () => null },
-  },
-  events: ['update:value'],
-  data () {
-    return {
-      openMenu: false,
+  value: { default: () => null },
+})
+defineEmits(['update:value'])
+const openMenu = ref(false)
 
-    }
-  },
-
-  //  mounted () {
-  //    // Listen for the scroll event on the window
-  //    window.addEventListener('wheel', (e) => { this.openMenu = false })
-  //  },
-  //  beforeDestroy () {
-  //    // Remove the scroll event listener when the component is destroyed
-  //    window.removeEventListener('wheel', (e) => { this.openMenu = false })
-  //  },
-
-}
 </script>
 <template>
   <v-menu
     v-model="openMenu"
     close-delay="100"
-    max-height="100%"
+    location="bottom"
     transition="slide-y-transition"
   >
     <template v-slot:activator="{ props }">
@@ -43,7 +27,9 @@ export default {
       />
     </template>
 
-    <v-list>
+    <v-list
+      max-height="60vh"
+    >
       <v-list-item
         v-for="(val,key) in items"
         :key="key"

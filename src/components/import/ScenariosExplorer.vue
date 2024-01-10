@@ -11,7 +11,7 @@ const $gettext = s => s
 
 export default {
   name: 'ScenariosExplorer',
-  emits: ['load'],
+  emits: ['load', 'unload'],
 
   setup (_, context) {
     const store = useIndexStore()

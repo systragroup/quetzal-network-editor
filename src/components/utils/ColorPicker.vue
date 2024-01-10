@@ -83,12 +83,10 @@ export default {
   methods: {
     // this method is call when we select a color, the # is remove and pcolor is updated.
     updateColor () {
-      console.log(this.color)
       this.$emit('update:pcolor', this.color)
       this.cmenu = false
     },
     cancel () {
-      console.log('cancel')
       this.color = this.pcolor
       this.cmenu = false
     },
