@@ -41,13 +41,21 @@ export default {
       filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
     } = useResult()
 
+    const mapRef = ref() //  we update the map with this ref
+
+    function updateSettings (payload) {
+      applySettings(payload)
+      mapRef.value.update()
+    }
     function updateSelectedFilter (val) {
       changeSelectedFilter(val)
       updateSelectedFeature()
+      mapRef.value.update()
     }
     function updateSelectedCategory (val) {
       changeSelectedCategory(val)
       updateSelectedFeature()
+      mapRef.value.update()
     }
 
     const selectedLayer = ref('')
@@ -56,26 +64,27 @@ export default {
       selectedLayer.value = layer
       switch (layer) {
         case 'links':
-          loadLayer(linksStore.links, null, settings)
+          await loadLayer(linksStore.links, null, settings)
           break
         case 'rlinks':
-          loadLayer(rlinksStore.rlinks, null, settings)
+          await loadLayer(rlinksStore.rlinks, null, settings)
           break
         case 'nodes':
-          loadLayer(linksStore.nodes, null, settings)
+          await loadLayer(linksStore.nodes, null, settings)
           break
         case 'rnodes':
-          loadLayer(rlinksStore.rnodes, null, settings)
+          await loadLayer(rlinksStore.rnodes, null, settings)
           break
         case 'od':
-          loadLayer(ODStore.layer, null, settings)
+          await loadLayer(ODStore.layer, null, settings)
           break
         default:
           const data = await store.getOtherFile(layer, 'geojson')
           const matrix = await store.getOtherFile(layer, 'json')
-          loadLayer(data, matrix, settings)
+          await loadLayer(data, matrix, settings)
           break
       }
+      mapRef.value.update()
     }
 
     const selectedPreset = ref(null)
@@ -124,6 +133,7 @@ export default {
         changeOD(preset.selectedIndex)
         store.changeNotification({})
       }
+      mapRef.value.update()
     }
 
     function clickDeletePreset (event) {
@@ -200,11 +210,14 @@ export default {
       } else {
         // will verify in this function if hasOD and the selected feature is an OD.
         changeOD(event.feature.index)
+        mapRef.value.update()
       }
     }
 
     return {
+
       store,
+      mapRef,
       selectedLayer,
       selectedPreset,
       availableLayers,
@@ -216,8 +229,8 @@ export default {
       selectedFilter,
       attributes,
       filteredCategory,
-      applySettings,
       colorScale,
+      updateSettings,
       updateSelectedFilter,
       updateSelectedCategory,
       changeLayer,
@@ -270,8 +283,10 @@ export default {
     </div>
     <MapResults
       v-if="visibleLayer.features"
+      ref="mapRef"
       :key="type+String(displaySettings.extrusion)"
       v-slot="slotProps"
+      :selected-layer="selectedLayer"
       :layer-type="type"
       :extrusion="displaySettings.extrusion"
       :links="visibleLayer"
@@ -286,7 +301,7 @@ export default {
           :display-settings="displaySettings"
           :feature-choices="attributes"
           :type="type"
-          @submit="applySettings"
+          @submit="updateSettings"
           @save-preset="clickSavePreset"
         />
         <LayerSelector

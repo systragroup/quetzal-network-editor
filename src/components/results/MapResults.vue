@@ -21,7 +21,7 @@ export default {
     MglImageLayer,
 
   },
-  props: ['selectedFeature', 'layerType', 'extrusion', 'links', 'nanLinks', 'opacity', 'offset'],
+  props: ['selectedFeature', 'layerType', 'extrusion', 'links', 'nanLinks', 'opacity', 'offset', 'selectedLayer'],
   emits: ['selectClick'],
   setup (props, context) {
     const store = useIndexStore()
@@ -64,6 +64,26 @@ export default {
 
     function onMapLoaded (event) {
       if (map.value) mapIsLoaded.value = false
+      map.value = event.map
+      fitBounds()
+      map.value.loadImage(arrowImage, function (err, image) {
+        if (err) {
+          console.error('err image', err)
+          return
+        }
+        map.value.addImage('arrow', image, { sdf: true })
+      })
+
+      if (!extrusion.value) {
+        map.value.dragRotate.disable()
+      } else {
+        store.changeNotification(
+          { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
+      }
+
+      mapIsLoaded.value = true
+    }
+    function fitBounds () {
       const bounds = new mapboxgl.LngLatBounds()
       // only use first and last point. seems to bug when there is anchor...
       if ((['Polygon']).includes(layerType.value)) {
@@ -87,39 +107,26 @@ export default {
 
       // for empty (new) project, do not fit bounds around the links geometries.
       if (Object.keys(bounds).length !== 0) {
-        event.map.fitBounds(bounds, {
+        map.value.fitBounds(bounds, {
           padding: 100,
         })
       }
-      event.map.loadImage(arrowImage, function (err, image) {
-        if (err) {
-          console.error('err image', err)
-          return
-        }
-        event.map.addImage('arrow', image, { sdf: true })
-      })
-
-      map.value = event.map
-      if (!extrusion.value) {
-        event.map.dragRotate.disable()
-      } else {
-        store.changeNotification(
-          { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
-      }
-
-      mapIsLoaded.value = true
     }
 
     const selectedLinks = ref([])
     const popup = ref(null)
-    const { selectedFeature, layerType, extrusion, links, nanLinks, opacity, offset } = toRefs(props)
-    watch(links, () => {
+    const { selectedFeature, layerType, extrusion, links, nanLinks, opacity, offset, selectedLayer } = toRefs(props)
+    function update () {
+      // childComponentRef.value.update()
       // update map like that as the mapbox watcher is slower.
       if (mapIsLoaded.value) {
         map.value.getSource('results').setData(links.value)
         map.value.getSource('NaNresults')?.setData(nanLinks.value)
       }
-    }, { deep: true })
+    }
+    // as the component is reRender when a layer changes type (ex point to line.) this is only
+    // trigger when we changes layer of the same time. doing this. the map is not reloaded and we need to FitBounds.
+    watch(selectedLayer, (val) => fitBounds())
 
     const offsetValue = computed(() => { return offset.value ? -1 : 1 })
 
@@ -168,6 +175,7 @@ export default {
 
     return {
       store,
+      update,
       mapIsLoaded,
       mapboxPublicKey,
       minZoom,
