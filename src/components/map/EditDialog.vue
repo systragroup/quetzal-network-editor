@@ -1,3 +1,4 @@
+<!-- eslint-disable no-case-declarations -->
 <script setup>
 import ColorPicker from '@comp/utils/ColorPicker.vue'
 import MenuSelector from '@comp/utils/MenuSelector.vue'
@@ -8,6 +9,8 @@ import { useODStore } from '@src/store/od'
 import { computed, ref, watch, defineModel, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
+import attributesUnits from '@constants/units.js'
+
 const $gettext = s => s
 const showDialog = defineModel('showDialog')
 const editorForm = defineModel('editorForm')
@@ -49,6 +52,31 @@ function orderedForm (index) {
   return ordered
 }
 
+// watchEffect(() => {
+//  console.log(editorForm.value.length?.value)
+//  const keys = new Set(Object.keys(editorForm.value))
+//  if (['speed', 'length', 'time'].every((el) => keys.has(el))) {
+//    editorForm.value.time.value = editorForm.value.length.value / editorForm.value.speed.value * 3600
+//  }
+// })
+function change (key, val) {
+  console.log(key, val)
+  switch (key) {
+    case 'speed':
+      const time = editorForm.value.length.value / editorForm.value.speed.value * 3.6
+      editorForm.value.time.value = Number((time).toFixed(0))
+      break
+    case 'time':
+      const speed = editorForm.value.length.value / editorForm.value.time.value * 3.6
+      editorForm.value.speed.value = Number((speed).toFixed(0))
+      break
+    case 'length':
+      const time2 = editorForm.value.length.value / editorForm.value.speed.value * 3.6
+      editorForm.value.time.value = Number((time2).toFixed(0))
+      break
+  }
+}
+
 const showDeleteOption = ref(false)
 
 function ToggleDeleteOption () {
@@ -81,6 +109,7 @@ function attributeNonDeletable (field) {
 
 const showHint = ref(false)
 const hints = attributesHints
+const units = attributesUnits
 const rules = ({
   newField: [
     val => !Object.keys(editorForm.value).includes(val) || $gettext('field already exist'),
@@ -216,7 +245,10 @@ function deleteField (field) {
                 :placeholder="value['placeholder']? $gettext('multiple Values'):''"
                 :persistent-placeholder=" value['placeholder']? true:false "
                 :disabled="value['disabled']"
+                :suffix="units[key]"
+                :prepend-inner-icon="['length','speed','time'].includes(key)? 'fas fa-calculator':''"
                 @wheel="$event.target.blur()"
+                @change="change(key, value['value'])"
               >
                 <template
                   v-if="key==='route_color'"
@@ -266,7 +298,6 @@ function deleteField (field) {
               <v-btn
                 color="primary"
                 icon="fas fa-plus"
-                class="text--primary"
                 size="x-small"
                 @click="addField"
               />
@@ -278,24 +309,17 @@ function deleteField (field) {
 
       <v-card-actions>
         <v-btn
-          icon
+          icon="far fa-question-circle small"
+          variant="text"
           size="x-small"
           @click="()=>showHint = !showHint"
-        >
-          <v-icon>far fa-question-circle small</v-icon>
-        </v-btn>
+        />
         <v-btn
-          icon
+          :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
           size="x-small"
+          variant="text"
           @click="ToggleDeleteOption"
-        >
-          <v-icon v-if="showDeleteOption">
-            fas fa-minus-circle fa-rotate-90
-          </v-icon>
-          <v-icon v-else>
-            fas fa-minus-circle
-          </v-icon>
-        </v-btn>
+        />
         <v-spacer />
 
         <v-btn

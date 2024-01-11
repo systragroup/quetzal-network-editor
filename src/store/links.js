@@ -44,6 +44,7 @@ export const useLinksStore = defineStore('links', {
       { name: 'route_color', type: 'String' },
       { name: 'length', type: 'Number' }, // float
       { name: 'time', type: 'Number' }, // float
+      { name: 'speed', type: 'Number' }, // float
       { name: 'headway', type: 'Number' }, // float
       { name: 'route_width', type: 'Number' }, // float
       { name: 'pickup_type', type: 'Number' }, // float
@@ -156,6 +157,7 @@ export const useLinksStore = defineStore('links', {
       header = Array.from(header)
       this.lineAttributes = header
     },
+
     getNodesProperties () {
       let header = new Set([])
       this.nodes.features.forEach(element => {
