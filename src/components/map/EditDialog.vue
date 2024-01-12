@@ -220,7 +220,7 @@ function deleteField (field) {
               >
                 <template
                   v-if="key==='route_color'"
-                  v-slot:append
+                  v-slot:append-inner
                 >
                   <color-picker
                     v-model:pcolor="value['value']"
@@ -228,7 +228,7 @@ function deleteField (field) {
                 </template>
                 <template
                   v-else-if="Object.keys(attributesChoices).includes(key)"
-                  v-slot:append
+                  v-slot:append-inner
                 >
                   <MenuSelector
                     v-model:value="value['value']"
@@ -262,7 +262,7 @@ function deleteField (field) {
             @keydown.enter.stop="addField"
             @wheel="$event.target.blur()"
           >
-            <template v-slot:append>
+            <template v-slot:append-inner>
               <v-btn
                 color="primary"
                 icon="fas fa-plus"

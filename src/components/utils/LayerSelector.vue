@@ -1,41 +1,33 @@
-<script>
+<script setup>
 import { useIndexStore } from '@src/store/index'
 import { ref, onMounted, watch } from 'vue'
 
-export default {
-  name: 'LayerSelector',
-  components: {
+const props = defineProps({
+  choices: {
+    type: Array,
+    default: () => [],
   },
-  props: {
-    choices: {
-      type: Array,
-      default: () => [],
-    },
-    availableLayers: {
-      type: Array,
-      default: () => [],
-    },
+  availableLayers: {
+    type: Array,
+    default: () => [],
   },
-  setup (props) {
-    const store = useIndexStore()
-    const show = ref(false)
-    const selectedLayers = ref([])
-    onMounted(() => { selectedLayers.value = store.visibleRasters })
-    watch(selectedLayers, (val) => {
-      const resp = []
-      val.forEach(item => resp.push(item))
-      store.setVisibleRasters(resp)
-    })
-    watch(props.choices, (vals) => {
-      const choices = vals.map(el => el.name)
-      selectedLayers.value = selectedLayers.value.filter(layer => choices.includes(layer))
-    })
+})
+const store = useIndexStore()
+const show = ref(false)
+const selectedLayers = ref([])
+onMounted(() => { selectedLayers.value = store.visibleRasters })
+watch(selectedLayers, (val) => {
+  const resp = []
+  val.forEach(item => resp.push(item))
+  store.setVisibleRasters(resp)
+})
+watch(props.choices, (vals) => {
+  const choices = vals.map(el => el.name)
+  selectedLayers.value = selectedLayers.value.filter(layer => choices.includes(layer))
+})
 
-    const selectedOpacity = ref(0)
+// const selectedOpacity = ref(0)
 
-    return { show, selectedLayers, selectedOpacity }
-  },
-}
 </script>
 <template>
   <v-menu
@@ -72,6 +64,7 @@ export default {
             :value="item.name"
             :false-icon="!availableLayers.includes(item.layer)? 'fas fa-exclamation-triangle':'fa-eye-slash fa'"
             :true-icon="'fa-eye fa'"
+            :color="'primary'"
             :disabled="!availableLayers.includes(item.layer)"
           />
         </template>

@@ -169,7 +169,7 @@ export default {
       // move layer under results (links and OD are over this one)
       if (map.value.getLayer('results')) { map.value.moveLayer(layerId, 'results') }
       // move layer under rlinks (links and OD are over this one)
-      if (map.value.getLayer('rlinks')) { map.value.moveLayer(layerId, 'rlinks') }
+      if (map.value.getLayer('staticrLinks')) { map.value.moveLayer(layerId, 'staticrLinks') }
     })
 
     onBeforeUnmount(() => {

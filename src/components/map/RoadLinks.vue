@@ -27,6 +27,10 @@ export default {
     onMounted(() => {
       map.value.on('dragend', getBounds)
       map.value.on('zoomend', getBounds)
+      if (map.value.getLayer('links')) {
+        map.value.moveLayer('rlinks', 'links')
+        map.value.moveLayer('staticrLinks', 'links')
+      }
     })
     onBeforeUnmount(() => {
       // remove arrow layer first as it depend on rlink layer
@@ -447,8 +451,8 @@ export default {
         }
 
       }"
-      v-on="(isEditorMode|| !isRoadMode) ? { } : { mouseenter: onCursor,
-                                                   mouseleave: offCursor}"
+      @mouseenter="onCursor"
+      @mouseleave="offCursor"
     />
     <MglGeojsonLayer
       source-id="rlinks"
@@ -481,10 +485,10 @@ export default {
         }
 
       }"
-      v-on="(isEditorMode|| !isRoadMode) ? { } : { mouseenter: onCursor,
-                                                   mouseleave: offCursor,
-                                                   click: selectClick,
-                                                   contextmenu: linkRightClick }"
+      @mouseenter="onCursor"
+      @mouseleave="offCursor"
+      @click="selectClick"
+      @contextmenu="linkRightClick"
     />
     <MglImageLayer
       source-id="rlinks"
@@ -529,10 +533,10 @@ export default {
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         },
       }"
-      v-on="(isEditorMode|| !isRoadMode) ? { } : { mouseenter: onCursor,
-                                                   mouseleave: offCursor,
-                                                   mousedown: moveNode,
-                                                   contextmenu:contextMenuNode }"
+      @mouseenter="onCursor"
+      @mouseleave="offCursor"
+      @mousedown="moveNode"
+      @contextmenu="contextMenuNode"
     />
 
     <MglGeojsonLayer
@@ -557,11 +561,11 @@ export default {
           'circle-stroke-width': 2,
         },
       }"
-      v-on="(isEditorMode|| !isRoadMode) ? { } : { click:selectClick,
-                                                   mouseover:onCursor,
-                                                   mouseleave:offCursor,
-                                                   mousedown:moveNode,
-                                                   contextmenu:contextMenuNode }"
+      @click="selectClick"
+      @mouseover="onCursor"
+      @mouseleave="offCursor"
+      @mousedown="moveNode"
+      @contextmenu="contextMenuNode"
     />
     <MglPopup
       :close-button="false"
