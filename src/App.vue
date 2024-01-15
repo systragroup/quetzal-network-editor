@@ -24,12 +24,8 @@ export default {
     watch(notification, () => { snackbar.value = !!notification.value.text })
     watch(snackbar, (val) => { if (val === false) { store.changeNotification({ text: '', autoClose: true }) } })
     onMounted(() => { store.initNetworks() })
-    const container = ref(null)
-    function onResize () {
-      // -50 for the ToolBar
-      store.changeWindowHeight(container.value.$el.clientHeight - 50)
-    }
-    return { notification, loading, snackbar, store, container, onResize }
+
+    return { notification, loading, snackbar, store }
   },
 
 }
@@ -38,8 +34,6 @@ export default {
   <v-app class="app">
     <NavigationDrawer />
     <v-card
-      ref="container"
-      v-resize="onResize"
       class="container rounded-0"
     >
       <v-overlay

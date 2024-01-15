@@ -12,7 +12,6 @@ export default {
   emits: ['update-selectedCategory', 'select-layer', 'select-preset', 'delete-preset', 'update-selectedFilter'],
   setup (props, context) {
     const store = useIndexStore()
-    const windowHeight = computed(() => { return store.windowHeight })
     const showLeftPanel = computed(() => { return store.showLeftPanel })
     const showLeftPanelContent = ref(true)
     watch(showLeftPanel, (val) => {
@@ -79,10 +78,8 @@ export default {
       store,
       showLeftPanel,
       showLeftPanelContent,
-      windowHeight,
       openMenu,
       presetsMenu,
-
       selectedCat,
       vmodelSelectedFilter,
       init,
@@ -260,7 +257,7 @@ export default {
             <v-card
               max-width="100%"
               min-width="100%"
-              :height="windowHeight-180"
+              :height="'calc(100vh - 250px)'"
               class="mx-auto scrollable"
             >
               <v-list-item>
@@ -277,7 +274,7 @@ export default {
               <v-virtual-scroll
                 :items="filteredCat"
                 :item-height="45"
-                :height="windowHeight-270"
+                :height="'calc(100vh - 330px)'"
               >
                 <template v-slot="{ item }">
                   <div

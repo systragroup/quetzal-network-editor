@@ -17,7 +17,6 @@ export default {
     const store = useIndexStore()
     const userStore = useUserStore()
     const runStore = useRunStore()
-    const windowHeight = computed(() => store.windowHeight)
     const loading = ref(false)
     const loggedIn = computed(() => userStore.loggedIn)
 
@@ -193,7 +192,6 @@ export default {
       searchString,
       sortModel,
       sortDirection,
-      windowHeight,
       projectIsEmpty,
       loggedIn,
       modelsList,

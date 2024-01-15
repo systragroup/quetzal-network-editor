@@ -7,7 +7,6 @@ export default {
   name: 'RoadSidePanel',
   components: {
   },
-  props: ['height'], // height is here to resize with the windows...
   emits: ['deleteButton', 'propertiesButton'],
   setup () {
     const store = useIndexStore()
@@ -174,7 +173,7 @@ export default {
     <v-card
       max-width="100%"
       min-width="100%"
-      :height="height"
+      :style="{'height':'calc(100vh - 250px)'}"
       class="mx-auto scrollable"
     >
       <v-list-item>
@@ -191,7 +190,7 @@ export default {
       <v-virtual-scroll
         :items="filteredCat"
         :item-height="45"
-        :height="height-88"
+        :height="'calc(100vh - 250px - 88px)'"
       >
         <template v-slot="{ item }">
           <div
@@ -338,7 +337,7 @@ transition:0.3s
   margin-bottom: 10px;
 }
 .trip-list {
-  height: height;
+  height: calc(100vh - 250px);
   padding-left:20px
 }
 

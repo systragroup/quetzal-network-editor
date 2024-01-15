@@ -32,7 +32,6 @@ export default {
     })
 
     const editorTrip = computed(() => { return linksStore.editorTrip })
-    const windowHeight = computed(() => { return store.windowHeight - 200 })
 
     const tab = ref('pt')
     onMounted(() => {
@@ -74,7 +73,6 @@ export default {
       store,
       showLeftPanel,
       showLeftPanelContent,
-      windowHeight,
       editorTrip,
       leftPanelDiv,
       isResizing,
@@ -134,7 +132,6 @@ export default {
             </v-tabs>
             <LinksSidePanel
               v-show="tab==='pt'"
-              :height="windowHeight"
               @confirmChanges="(e) => $emit('confirmChanges',e)"
               @abortChanges="(e) => $emit('abortChanges',e)"
               @cloneButton="(e) => $emit('cloneButton',e)"
@@ -143,13 +140,11 @@ export default {
             />
             <RoadSidePanel
               v-show="tab==='road'"
-              :height="windowHeight"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />
             <ODSidePanel
               v-show="tab==='od'"
-              :height="windowHeight"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"
             />

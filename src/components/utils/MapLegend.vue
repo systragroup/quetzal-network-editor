@@ -25,11 +25,10 @@ export default {
   },
   setup (props) {
     const store = useIndexStore()
-    const windowHeight = computed(() => store.windowHeight - 70)
     const leftOffset = computed(() => {
       return store.showLeftPanel ? 50 + (180 * props.order) + props.baseOffset : 50 + (180 * props.order)
     })
-    return { windowHeight, leftOffset }
+    return { leftOffset }
   },
 
 }
@@ -38,7 +37,7 @@ export default {
   <div
     v-show="!isNaN(displaySettings.minVal) && !isNaN(displaySettings.minVal)"
     class="legend elevation-4"
-    :style="{'top':`${windowHeight}px`,'left':`${leftOffset}px !important`}"
+    :style="{'left':`${leftOffset}px !important`}"
   >
     <div class="gradient">
       <span
@@ -112,6 +111,7 @@ export default {
   justify-content: center;
   transition: 0.3s;
   height: 50px;
+  top:calc(100vh - 120px) !important ;
   background-color: rgb(var(--v-theme-lightergrey));
   border: thin solid rgb(var(--v-theme-mediumgrey));
 }

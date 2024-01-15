@@ -8,7 +8,6 @@ import { cloneDeep } from 'lodash'
 const $gettext = s => s
 export default {
   name: 'LinksSidePanel',
-  props: ['height'], // height is here to resize with the windows...
   emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
   setup (_, context) {
     const store = useIndexStore()
@@ -288,8 +287,8 @@ export default {
     <v-card
       max-width="100%"
       min-width="100%"
-      :height="height"
-      class="mx-auto scrollable"
+      :style="{'height':'calc(100vh - 250px)'}"
+      class=" mx-auto scrollable"
     >
       <v-list-item>
         <v-select
@@ -382,7 +381,8 @@ export default {
             v-if="ShowGroupList.has(value.name + key)"
             :items="value.tripId"
             :item-height="45"
-            :height="Math.min(height-220, 48*value.tripId.length)"
+            :max-height="'calc(100vh - 250px - 220px)'"
+            class="virtual-scroll"
           >
             <template v-slot="{ item }">
               <div
@@ -677,12 +677,16 @@ transition:0.3s
   margin-bottom: 10px;
 }
 .trip-list {
-  height: height;
+  height: calc(100vh - 250px);
   padding-left:20px
 }
 
 .scrollable {
-   overflow-y:scroll;
+  overflow-y:scroll;
+
+}
+.virtual-scroll{
+  margin-right: 3px;
 
 }
 

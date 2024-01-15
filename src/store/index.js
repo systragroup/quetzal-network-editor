@@ -26,7 +26,6 @@ export const useIndexStore = defineStore('store', {
     darkMode: false,
     loading: false,
     showLeftPanel: true,
-    windowHeight: 0,
     anchorMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
@@ -58,9 +57,6 @@ export const useIndexStore = defineStore('store', {
     },
     changeLoading (payload) {
       this.loading = payload
-    },
-    changeWindowHeight (payload) {
-      this.windowHeight = payload
     },
     changeLeftPanel () {
       this.showLeftPanel = !this.showLeftPanel

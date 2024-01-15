@@ -1,7 +1,5 @@
 <script>
 import chroma from 'chroma-js'
-import { computed } from 'vue'
-import { useIndexStore } from '@src/store/index'
 
 const $gettext = s => s
 
@@ -11,9 +9,7 @@ export default {
   props: ['displaySettings', 'featureChoices', 'type'],
   emits: ['submit', 'save-preset'],
   setup () {
-    const store = useIndexStore()
-    const windowHeight = computed(() => store.windowHeight - 100)
-    return { windowHeight }
+
   },
   data () {
     return {
@@ -236,7 +232,7 @@ export default {
       :width="'20rem'"
       class="setting-card"
 
-      :max-height="windowHeight"
+      :max-height="'calc(100vh - 100px)'"
       @keydown.enter="submit('apply')"
       @keydown.esc="cancel"
     >
