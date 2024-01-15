@@ -18,13 +18,13 @@ export default {
     MapLegend,
 
   },
-  props: ['preset', 'map', 'order'],
+  props: ['preset', 'map', 'order', 'visibleRasters'],
   setup (props) {
     const linksStore = useLinksStore()
     const rlinksStore = userLinksStore()
     const ODStore = useODStore()
     const store = useIndexStore()
-    const { preset, map, order: zorder } = toRefs(props)
+    const { preset, map, order: zorder, visibleRasters } = toRefs(props)
     const name = preset.value.name
     const sourceId = name + '-source'
     const layerId = name + '-layer'
@@ -39,24 +39,24 @@ export default {
     async function changeLayer (layer, settings = null) {
       switch (layer) {
         case 'links':
-          loadLayer(linksStore.links, null, settings)
+          await loadLayer(linksStore.links, null, settings)
           break
         case 'rlinks':
-          loadLayer(rlinksStore.rlinks, null, settings)
+          await loadLayer(rlinksStore.rlinks, null, settings)
           break
         case 'nodes':
-          loadLayer(linksStore.nodes, null, settings)
+          await loadLayer(linksStore.nodes, null, settings)
           break
         case 'rnodes':
-          loadLayer(rlinksStore.rnodes, null, settings)
+          await loadLayer(rlinksStore.rnodes, null, settings)
           break
         case 'od':
-          loadLayer(ODStore.layer, null, settings)
+          await loadLayer(ODStore.layer, null, settings)
           break
         default:
           const data = await store.getOtherFile(layer, 'geojson')
           const matrix = await store.getOtherFile(layer, 'json')
-          loadLayer(data, matrix, settings)
+          await loadLayer(data, matrix, settings)
 
           break
       }
@@ -166,10 +166,16 @@ export default {
         })
       }
 
-      // move layer under results (links and OD are over this one)
-      if (map.value.getLayer('results')) { map.value.moveLayer(layerId, 'results') }
-      // move layer under rlinks (links and OD are over this one)
-      if (map.value.getLayer('staticrLinks')) { map.value.moveLayer(layerId, 'staticrLinks') }
+      // move layer in the correct order. if only one (index==0) move under results or rlinks
+      const index = visibleRasters.value.indexOf(name)
+      // console.log(map.value.getStyle().layers)
+      if (index > 0) {
+        const previousLayer = visibleRasters.value[index - 1] + '-layer'
+        // layerId under previousLayer
+        map.value.moveLayer(layerId, previousLayer)
+      } else if (map.value.getLayer('results')) {
+        map.value.moveLayer(layerId, 'results')
+      } else if (map.value.getLayer('staticrLinks')) { map.value.moveLayer(layerId, 'staticrLinks') }
     })
 
     onBeforeUnmount(() => {

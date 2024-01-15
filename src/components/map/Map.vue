@@ -418,6 +418,7 @@ export default {
         v-if="rasterFiles.length>0"
         :choices="rasterFiles"
         :available-layers="availableLayers"
+        :map="map"
       />
     </div>
     <MglScaleControl position="bottom-right" />
@@ -432,6 +433,7 @@ export default {
         :map="map"
         :preset="file"
         :order="visibleRasters.indexOf(file.name)"
+        :visible-rasters="visibleRasters"
       />
     </div>
     <template v-if="mapIsLoaded && !rlinksIsEmpty">

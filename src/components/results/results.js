@@ -155,8 +155,7 @@ export function useResult () {
     reset()
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
-    layer.value = toRaw(data)
-
+    layer.value = cloneDeep(toRaw(data))
     type.value = layer.value.features[0]?.geometry.type
     // change Multipolygon to polygon type. just as they the same for mapbox and the app.
     type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value

@@ -307,6 +307,7 @@ export default {
         <LayerSelector
           v-if="availableStyles.length>0"
           :choices="availableStyles"
+          :map="slotProps.map"
           :available-layers="availableLayers"
         />
       </div>
@@ -319,6 +320,7 @@ export default {
             :preset="file"
             :map="slotProps.map"
             :order="visibleRasters.indexOf(file.name)+1"
+            :visible-rasters="visibleRasters"
           />
         </template>
       </div>
