@@ -195,7 +195,7 @@ export default {
       >
         {{ file.path }}
         <v-tooltip
-          v-if="file.extension==='geojson' | isMatrix(file)"
+          v-if="file.extension==='geojson' || isMatrix(file)"
           location="top"
           open-delay="250"
         >

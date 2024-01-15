@@ -110,7 +110,7 @@ export default {
         drawLink.value.geometry.coordinates = []
       }// remove drawmode if we quit edition mode.
 
-      if (!val & drawMode.value) {
+      if (!val && drawMode.value) {
         drawMode.value = false
         drawLink.value.geometry.coordinates = []
       }
@@ -246,7 +246,7 @@ export default {
 
           // onHoverRoad (event)
           } else { // PT nodes
-            if (drawMode.value & !anchorMode.value & !hoverId.value) {
+            if (drawMode.value && !anchorMode.value && !hoverId.value) {
               const action = (selectedNode.value.id === linksStore.lastNodeId)
                 ? 'Extend Line Upward'
                 : 'Extend Line Downward'
@@ -275,7 +275,7 @@ export default {
 
     function rightClickMap (event) {
       // remove drawmode when we right click on map
-      if (event.mapboxEvent?.originalEvent.button === 2 & !hoverId.value) {
+      if (event.mapboxEvent?.originalEvent.button === 2 && !hoverId.value) {
         drawMode.value = false
       }
     }

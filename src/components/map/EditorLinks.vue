@@ -85,7 +85,7 @@ export default {
           { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
           { hover: true },
         )
-        if (!disablePopup.value & !anchorMode.value) {
+        if (!disablePopup.value && !anchorMode.value) {
           popupEditor.value.coordinates = [event.mapboxEvent.lngLat.lng,
             event.mapboxEvent.lngLat.lat,
           ]

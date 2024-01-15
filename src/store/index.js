@@ -77,7 +77,7 @@ export const useIndexStore = defineStore('store', {
     },
 
     loadFiles (payload) {
-      // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
+      // payload: res.push({ path: inputs/pt/links.geojson, content: Array() || null })
       const linksStore = useLinksStore()
       const rlinksStore = userLinksStore()
       const ODStore = useODStore()

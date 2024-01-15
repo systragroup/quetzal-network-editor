@@ -102,7 +102,7 @@ export default {
         ).map((item) => item.trip_id).sort()
 
         // regroup all null values into a single list 'undefined'
-        if (c === null | c === '' | c === undefined) {
+        if (c === null || c === '' || c === undefined) {
           undefinedCat.tripId.push(...arr)
         } else {
           classifiedTripId.push({ name: c, tripId: arr })
@@ -431,7 +431,7 @@ export default {
                       class="ma-1"
                       size="small"
                       :color="'regular'"
-                      :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
                       v-bind="props"
                       @click="editButton(item)"
                     />
@@ -450,7 +450,7 @@ export default {
                       size="small"
                       class="ma-1"
                       color="regular"
-                      :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
                       v-bind="props"
                       @click="propertiesButton(item)"
                     />
@@ -469,7 +469,7 @@ export default {
                       class="ma-1"
                       size="small"
                       color="regular"
-                      :disabled="(item != editorTrip) & (editorTrip!=null) ? true: false"
+                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
                       v-bind="props"
                       @click="cloneButton({trip:item,message:item})"
                     />

@@ -100,8 +100,8 @@ function addField () {
   }
   // do not append if its null, empty or already exist.
 
-  if ((Object.keys(form).includes(newFieldName.value)) | (newFieldName.value === '') |
-       (!newFieldName.value) | (newFieldName.value?.endsWith('_r'))) {
+  if ((Object.keys(form).includes(newFieldName.value)) || (newFieldName.value === '') |
+       (!newFieldName.value) || (newFieldName.value?.endsWith('_r'))) {
     // put ' ' so the rule error is diplayed.
     newFieldName.value = ''
   } else {
