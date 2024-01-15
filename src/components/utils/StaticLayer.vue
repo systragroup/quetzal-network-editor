@@ -175,7 +175,9 @@ export default {
         map.value.moveLayer(layerId, previousLayer)
       } else if (map.value.getLayer('results')) {
         map.value.moveLayer(layerId, 'results')
-      } else if (map.value.getLayer('staticrLinks')) { map.value.moveLayer(layerId, 'staticrLinks') }
+      } else if (map.value.getLayer('staticrLinks')) {
+        map.value.moveLayer(layerId, 'staticrLinks')
+      } else if (map.value.getLayer('links')) { map.value.moveLayer(layerId, 'links') }
     })
 
     onBeforeUnmount(() => {
