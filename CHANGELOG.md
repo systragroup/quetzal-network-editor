@@ -2,10 +2,10 @@
 ## [5.0.0] (2024-01-12)
 
 # What's Changed
-This version is almost a complete rewrite as we upgraded to Vue3 and th composition api. <br>
+This version is almost a complete rewrite as we upgraded to Vue3 and th composition api. [#193](https://github.com/systragroup/quetzal-network-editor/issues/193)<br>
 The most notable library changes:
 
-- Vuejs 2 -> Vuejs 3
+- Vue 2 -> Vue 3
 - Vuex -> Pinia
 - Vuetify 2 -> Vuetify 3
 - aws-sdk 2 -> aws-sdk 3
@@ -16,6 +16,8 @@ The most notable library changes:
 
 
 ### Features
+
+* **Static Layer order:** Can now change the order of the visible layer by dragging. It is not the click order but the actual list order that defined the order on the map now.
 
 * **Zoom on images:**  added a page scaling on the bottom right of the image page [#454](https://github.com/systragroup/quetzal-network-editor/issues/454)
 
