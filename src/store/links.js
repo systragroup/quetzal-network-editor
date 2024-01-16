@@ -27,7 +27,6 @@ export const useLinksStore = defineStore('links', {
     newLink: {},
     newNode: {},
     changeBounds: true,
-    linkSpeed: 20, // 20KmH for time (speed/distance)
     linksDefaultColor: '2196F3',
     lineAttributes: [],
     nodeAttributes: [],
@@ -287,12 +286,12 @@ export const useLinksStore = defineStore('links', {
 
     getEditorLineInfo () {
       const form = {}
-      const uneditable = ['index', 'length', 'a', 'b', 'link_sequence']
+      const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence']
       // empty trip, when its a newLine
       if (this.editorLinks.features.length === 0) {
         const defaultValue = {
-          route_id: 'Q1',
           agency_id: 'QUENEDI',
+          route_id: 'Q1',
           route_short_name: 'Q1',
           route_type: 'quenedi',
           route_color: this.linksDefaultColor,
@@ -301,6 +300,7 @@ export const useLinksStore = defineStore('links', {
           pickup_type: 0,
           drop_off_type: 0,
           direction_id: 0,
+          speed: 20,
         }
 
         this.lineAttributes.forEach(key => {
@@ -458,7 +458,7 @@ export const useLinksStore = defineStore('links', {
 
       const distance = length(this.newLink)
       this.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / this.newLink.features[0].properties.speed * 3600 // 20kmh hard code speed. time in secs
 
       this.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
 
@@ -598,7 +598,7 @@ export const useLinksStore = defineStore('links', {
       // update time and distance
       const distance = length(link)
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+      const time = distance / link.properties.speed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
 
@@ -618,7 +618,7 @@ export const useLinksStore = defineStore('links', {
         // update time and distance
         const distance = length(link1)
         link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / link1.properties.time * 3600 // 20kmh hard code speed. time in secs
         link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
       if (link2) {
@@ -626,7 +626,7 @@ export const useLinksStore = defineStore('links', {
         // update time and distance
         const distance = length(link2)
         link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / this.linkSpeed * 3600 // 20kmh hard code speed. time in secs
+        const time = distance / link2.properties.time * 3600 // 20kmh hard code speed. time in secs
         link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
     },
@@ -673,6 +673,16 @@ export const useLinksStore = defineStore('links', {
       // add new line info to each links of each trips.
       this.editorLinks.features.forEach(
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
+
+      // apply speed (get time on each link for the new speed.)
+      if (props.includes('speed')) {
+        this.editorLinks.features.forEach(
+          (features) => {
+            const time = features.properties.length / payload.speed.value * 3.6
+            features.properties.time = Number((time).toFixed(0))
+          },
+        )
+      }
     },
 
     editLinkInfo (payload) {
@@ -714,6 +724,15 @@ export const useLinksStore = defineStore('links', {
       const tempLinks = this.links.features.filter(link => groupTripIds.has(link.properties.trip_id))
       tempLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = editorGroupInfo[key].value))
+      // apply speed (get time on each link for the new speed.)
+      if (props.includes('speed')) {
+        tempLinks.forEach(
+          (features) => {
+            const time = features.properties.length / editorGroupInfo.speed.value * 3.6
+            features.properties.time = Number((time).toFixed(0))
+          },
+        )
+      }
       // get tripId list
       this.getTripId()
     },

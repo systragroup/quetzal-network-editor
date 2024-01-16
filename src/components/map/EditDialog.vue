@@ -10,11 +10,12 @@ import { computed, ref, watch, defineModel, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
-
 const $gettext = s => s
+
 const showDialog = defineModel('showDialog')
 const editorForm = defineModel('editorForm')
 const props = defineProps(['mode', 'action', 'linkDir'])
+
 const { mode, action } = toRefs(props)
 const emit = defineEmits(['applyAction', 'cancelAction'])
 
@@ -52,28 +53,30 @@ function orderedForm (index) {
   return ordered
 }
 
-// watchEffect(() => {
-//  console.log(editorForm.value.length?.value)
-//  const keys = new Set(Object.keys(editorForm.value))
-//  if (['speed', 'length', 'time'].every((el) => keys.has(el))) {
-//    editorForm.value.time.value = editorForm.value.length.value / editorForm.value.speed.value * 3600
-//  }
-// })
+// computed speed, time, length. for individual links only.
 function change (key, val) {
-  console.log(key, val)
-  switch (key) {
-    case 'speed':
-      const time = editorForm.value.length.value / editorForm.value.speed.value * 3.6
-      editorForm.value.time.value = Number((time).toFixed(0))
-      break
-    case 'time':
-      const speed = editorForm.value.length.value / editorForm.value.time.value * 3.6
-      editorForm.value.speed.value = Number((speed).toFixed(0))
-      break
-    case 'length':
-      const time2 = editorForm.value.length.value / editorForm.value.speed.value * 3.6
-      editorForm.value.time.value = Number((time2).toFixed(0))
-      break
+  // for now. only for PT
+  if (mode.value === 'pt') {
+    switch (key) {
+      case 'speed':
+        const time = editorForm.value.length.value / editorForm.value.speed.value * 3.6
+        if (!editorForm.value.time.placeholder) {
+          editorForm.value.time.value = Number((time).toFixed(0))
+        }
+        break
+      case 'time':
+        const speed = editorForm.value.length.value / editorForm.value.time.value * 3.6
+        if (!editorForm.value.speed.placeholder) {
+          editorForm.value.speed.value = Number((speed).toFixed(0))
+        }
+        break
+      case 'length':
+        const time2 = editorForm.value.length.value / editorForm.value.speed.value * 3.6
+        if (!editorForm.value.placeholder) {
+          editorForm.value.time.value = Number((time2).toFixed(0))
+        }
+        break
+    }
   }
 }
 
@@ -246,7 +249,7 @@ function deleteField (field) {
                 :persistent-placeholder=" value['placeholder']? true:false "
                 :disabled="value['disabled']"
                 :suffix="units[key]"
-                :prepend-inner-icon="['length','speed','time'].includes(key)? 'fas fa-calculator':''"
+                :prepend-inner-icon="['length','speed','time'].includes(key) && mode === 'pt' ? 'fas fa-calculator':''"
                 @wheel="$event.target.blur()"
                 @change="change(key, value['value'])"
               >

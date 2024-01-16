@@ -234,9 +234,7 @@ export const useIndexStore = defineStore('store', {
     },
 
     applySettings (payload) {
-      const linksStore = useLinksStore()
       const rlinksStore = userLinksStore()
-      linksStore.linkSpeed = Number(payload.linkSpeed)
       rlinksStore.roadSpeed = Number(payload.roadSpeed)
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent

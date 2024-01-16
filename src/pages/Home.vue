@@ -73,7 +73,7 @@ export default {
         showDialog.value = true
       } else if (action.value === 'Edit Group Info') {
         groupTripIds.value = new Set(event.tripIds)
-        const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
+        const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.links.features.filter(
           link => groupTripIds.value.has(link.properties.trip_id))
@@ -111,7 +111,7 @@ export default {
         const features = rlinksStore.grouprLinks(event.category, event.group)
         selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = rlinksStore.rlineAttributes
-        const uneditable = ['index', 'length', 'a', 'b']
+        const uneditable = ['index', 'length', 'time', 'a', 'b']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         lingering.value = event.lingering
         showDialog.value = true
@@ -119,7 +119,7 @@ export default {
         const features = rlinksStore.visiblerLinks.features
         selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = rlinksStore.rlineAttributes
-        const uneditable = ['index', 'length', 'a', 'b']
+        const uneditable = ['index', 'length', 'time', 'a', 'b']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         lingering.value = event.lingering
         showDialog.value = true
