@@ -469,7 +469,7 @@ export default {
                       class="ma-1"
                       size="small"
                       color="regular"
-                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
+                      :disabled="editorTrip ? true: false"
                       v-bind="props"
                       @click="cloneButton({trip:item,message:item})"
                     />
