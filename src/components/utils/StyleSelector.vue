@@ -43,6 +43,9 @@ function changeMapStyle (event) {
       :max-width="500"
       :max-height="'calc(100vh - 200px)'"
     >
+      <v-card-title class="subtitle">
+        {{ $gettext('Map Style') }}
+      </v-card-title>
       <v-list-item
         v-for="(item,key) in styles"
         :key="key"
@@ -65,7 +68,13 @@ function changeMapStyle (event) {
   align-items: center;
   justify-content: center;
 }
+.subtitle {
+  font-size: 1.5em;
+  color:  var(--v-secondarydark-base) !important;
+  font-weight: bold;
+  padding:1rem
 
+}
 .is-active{
   opacity:1;
   background-color: rgb(var(--v-theme-primary));

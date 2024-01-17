@@ -71,10 +71,10 @@ function onDragOver (item, pos, e) {
   opacity: 0.2;
 }
 .down {
-/*   transform: translateY(-20px); */
+ transform: translateY(-20px);
 }
 
 .up {
-/*    transform: translateY(20px); */
+ transform: translateY(20px);
 }
 </style>
