@@ -36,7 +36,7 @@ export default {
 
     onMounted(() => {
       window.addEventListener('keydown', (e) => {
-        if ((e.key === 'Control') && (!showDialog.value) && (!cloneDialog.value)) {
+        if ((e.key === 'Control') && (!showDialog.value) && (!cloneDialog.value) && (!deleteDialog.value)) {
           store.changeAnchorMode()
         }
       })
