@@ -68,7 +68,10 @@ function moveLayer (name) {
         />
       </div>
     </template>
-    <v-card :max-width="300">
+    <v-card
+      :max-width="500"
+      :max-height="'calc(100vh - 200px)'"
+    >
       <v-card-title class="subtitle">
         {{ $gettext('Static Layers') }}
       </v-card-title>
@@ -107,7 +110,8 @@ function moveLayer (name) {
           <template v-slot:append>
             <v-icon
               :style="{'cursor':'grab'}"
-              icon="fas fa-bars"
+              size="small"
+              icon="fa-solid fa-arrows-up-down"
             />
           </template>
         </v-list-item>
@@ -117,7 +121,7 @@ function moveLayer (name) {
 </template>
 <style lang="scss" scoped>
 .layer-button {
-  left: calc(96% - 3.5rem);
+  left: calc(96% - 10rem);
   top:1rem;
   z-index: 2;
   position: relative;
