@@ -168,7 +168,6 @@ export default {
 
       // move layer in the correct order. if only one (index==0) move under results or rlinks
       const index = visibleRasters.value.indexOf(name)
-      // console.log(map.value.getStyle().layers)
       if (index > 0) {
         const previousLayer = visibleRasters.value[index - 1] + '-layer'
         // layerId under previousLayer
@@ -177,7 +176,9 @@ export default {
         map.value.moveLayer(layerId, 'results')
       } else if (map.value.getLayer('staticrLinks')) {
         map.value.moveLayer(layerId, 'staticrLinks')
-      } else if (map.value.getLayer('links')) { map.value.moveLayer(layerId, 'links') }
+      } else if (map.value.getLayer('links')) {
+        map.value.moveLayer(layerId, 'links')
+      }
     })
 
     onBeforeUnmount(() => {
