@@ -20,7 +20,6 @@ export default {
     const linksStore = useLinksStore()
     const { map, isEditorMode, mode } = toRefs(props)
     watch(isEditorMode, (val) => {
-      console.log(val)
       val ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
     }, { immediate: true })
 
