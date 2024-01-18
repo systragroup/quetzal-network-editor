@@ -1,5 +1,10 @@
 <script>
-import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox'
+import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox3'
+import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
+import { computed, toRefs, ref } from 'vue'
+import geojson from '@constants/geojson'
+
 const $gettext = s => s
 
 export default {
@@ -9,133 +14,137 @@ export default {
     MglImageLayer,
     MglGeojsonLayer,
   },
-  props: ['map', 'anchorMode'],
-  events: ['clickFeature', 'onHover', 'offHover'],
-  data () {
-    return {
-      selectedFeature: null,
-      hoveredStateId: null,
-      disablePopup: false,
-      keepHovering: false,
-      dragNode: false,
-      popupEditor: {
-        coordinates: [0, 0],
-        showed: false,
-        content: null,
-      },
-      contextMenu: {
-        coordinates: [0, 0],
-        showed: false,
-        actions: [],
-        feature: null,
-        type: null, // link of node
-      },
-    }
-  },
-  computed: {
-    anchorNodes () { return this.anchorMode ? this.$store.getters.anchorNodes : this.$store.getters.nodesHeader },
-  },
+  props: ['map'],
+  emits: ['clickFeature', 'onHover', 'offHover'],
+  setup (props, context) {
+    const store = useIndexStore()
 
-  watch: {
+    const linksStore = useLinksStore()
+    const editorLinks = computed(() => { return linksStore.editorLinks })
+    const editorNodes = computed(() => { return linksStore.editorNodes })
 
-  },
-  created () {
-  },
+    const anchorMode = computed(() => { return store.anchorMode })
+    const anchorNodes = computed(() => { return anchorMode.value ? linksStore.anchorNodes : geojson })
+    const { map } = toRefs(props)
 
-  methods: {
-    selectClick (event) {
-      if (this.hoveredStateId !== null) {
+    const selectedFeature = ref(null)
+    const hoveredStateId = ref(null)
+    const disablePopup = ref(false)
+    const keepHovering = ref(false)
+    const dragNode = ref(false)
+    const popupEditor = ref({
+      coordinates: [0, 0],
+      showed: false,
+      content: null,
+    })
+    const contextMenu = ref({
+      coordinates: [0, 0],
+      showed: false,
+      actions: [],
+      feature: null,
+      type: null, // link of node
+    })
+
+    function selectClick (event) {
+      if (hoveredStateId.value !== null) {
         // Get the highlighted feature
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
         // Emit a click base on layer type (node or link)
 
-        if (this.selectedFeature !== null) {
-          if (this.hoveredStateId.layerId === 'editorLinks') {
-            const action = this.anchorMode ? 'Add Anchor Inline' : 'Add Stop Inline'
-            const click = {
-              selectedFeature: this.selectedFeature,
-              action: action,
-              lngLat: event.mapboxEvent.lngLat,
+        if (selectedFeature.value !== null) {
+          if (hoveredStateId.value.layerId === 'editorLinks') {
+            if (anchorMode.value) {
+              linksStore.addNodeInline({
+                selectedLink: selectedFeature.value.properties,
+                lngLat: event.mapboxEvent.lngLat,
+                nodes: 'anchorNodes',
+              })
+            } else {
+              linksStore.addNodeInline({
+                selectedLink: selectedFeature.value.properties,
+                lngLat: event.mapboxEvent.lngLat,
+                nodes: 'editorNodes',
+              })
             }
-            this.$emit('clickFeature', click)
           }
         }
       }
-    },
-    onCursor (event) {
-      if (this.hoveredStateId === null || this.hoveredStateId.layerId === 'editorLinks') {
-        this.map.getCanvas().style.cursor = 'pointer'
-        if (this.hoveredStateId !== null) {
-          this.map.setFeatureState(
-            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+    }
+    function onCursor (event) {
+      if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'editorLinks') {
+        map.value.getCanvas().style.cursor = 'pointer'
+        if (hoveredStateId.value !== null) {
+          map.value.setFeatureState(
+            { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
             { hover: false },
           )
         }
-        this.hoveredStateId = { layerId: event.layerId, id: event.mapboxEvent.features[0].id }
-        this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+        hoveredStateId.value = { layerId: event.layerId, id: event.mapboxEvent.features[0].id }
+        map.value.setFeatureState(
+          { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
           { hover: true },
         )
-        if (!this.disablePopup & !this.anchorMode) {
-          this.popupEditor.coordinates = [event.mapboxEvent.lngLat.lng,
+        if (!disablePopup.value && !anchorMode.value) {
+          popupEditor.value.coordinates = [event.mapboxEvent.lngLat.lng,
             event.mapboxEvent.lngLat.lat,
           ]
-          this.popupEditor.content = this.hoveredStateId.id
-          this.popupEditor.showed = true
+          popupEditor.value.content = hoveredStateId.value.id
+          popupEditor.value.showed = true
         }
       }
-      this.$emit('onHover', { selectedId: this.hoveredStateId.id })
-    },
-    offCursor (event) {
-      if (this.hoveredStateId !== null) {
+      context.emit('onHover', { selectedId: hoveredStateId.value.id })
+    }
+    function offCursor (event) {
+      if (hoveredStateId.value !== null) {
         // eslint-disable-next-line max-len
-        if (!(['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId) && event?.layerId === 'editorLinks')) {
+        if (!(['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId) && event?.layerId === 'editorLinks')) {
           // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
-          if (this.keepHovering) {
-            this.dragNode = true
-            this.contextMenu.showed = false
+          if (keepHovering.value) {
+            dragNode.value = true
+            contextMenu.value.showed = false
             // normal behaviours, hovering is false
           } else {
-            this.map.getCanvas().style.cursor = ''
-            this.popupEditor.showed = false
-            this.map.setFeatureState(
-              { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id },
+            map.value.getCanvas().style.cursor = ''
+            popupEditor.value.showed = false
+            map.value.setFeatureState(
+              { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
               { hover: false },
             )
-            this.hoveredStateId = null
-            this.$emit('offHover', event)
+            hoveredStateId.value = null
+            context.emit('offHover', event)
           }
         }
       }
-    },
-    contextMenuNode (event) {
-      if (this.popupEditor.showed && this.hoveredStateId?.layerId === 'editorNodes') {
-        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng,
+    }
+
+    function contextMenuNode (event) {
+      if (popupEditor.value.showed && hoveredStateId.value?.layerId === 'editorNodes') {
+        contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng,
           event.mapboxEvent.lngLat.lat,
         ]
-        this.contextMenu.showed = true
+        contextMenu.value.showed = true
 
-        this.contextMenu.type = 'node'
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.contextMenu.feature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        contextMenu.value.type = 'node'
+        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+        contextMenu.value.feature = features.filter(item => item.id === hoveredStateId.value.id)[0]
 
-        const selectedNode = this.contextMenu.feature.properties.index
+        const selectedNode = contextMenu.value.feature.properties.index
 
-        if (selectedNode === this.$store.getters.firstNodeId) {
-          this.contextMenu.actions =
+        if (selectedNode === linksStore.firstNodeId) {
+          contextMenu.value.actions =
           [
             $gettext('Edit Node Info'),
             $gettext('Delete Stop'),
           ]
-        } else if (selectedNode === this.$store.getters.lastNodeId) {
-          this.contextMenu.actions =
+        } else if (selectedNode === linksStore.lastNodeId) {
+          contextMenu.value.actions =
           [
             $gettext('Edit Node Info'),
             $gettext('Delete Stop'),
           ]
         } else {
-          this.contextMenu.actions =
+          contextMenu.value.actions =
            [
              $gettext('Edit Node Info'),
              $gettext('Cut Before Node'),
@@ -143,96 +152,116 @@ export default {
              $gettext('Delete Stop'),
            ]
         }
-      } else if (this.hoveredStateId?.layerId === 'anchorNodes') {
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)
-        const click = {
-          selectedFeature: this.selectedFeature[0],
-          action: 'Delete Anchor',
-          lngLat: null,
-        }
-        this.$emit('clickFeature', click)
+      } else if (hoveredStateId.value?.layerId === 'anchorNodes') {
+        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)
+        linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value[0].properties })
       }
-    },
-
-    linkRightClick (event) {
-      if (this.hoveredStateId.layerId === 'editorLinks') {
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+    }
+    function linkRightClick (event) {
+      if (hoveredStateId.value.layerId === 'editorLinks') {
+        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
         const click = {
-          selectedFeature: this.selectedFeature,
+          selectedFeature: selectedFeature.value,
           action: 'Edit Link Info',
           lngLat: event.mapboxEvent.lngLat,
           lingering: true,
         }
-        this.$emit('clickFeature', click)
+        context.emit('clickFeature', click)
       }
-    },
-
-    actionClick (event) {
-      const click = {
-        selectedFeature: event.feature,
-        action: event.action,
-        lngLat: event.coordinates,
+    }
+    function actionClick (event) {
+      switch (event.action) {
+        case 'Cut Before Node':
+          linksStore.cutLineAtNode({ selectedNode: event.feature.properties })
+          break
+        case 'Cut After Node':
+          linksStore.cutLineFromNode({ selectedNode: event.feature.properties })
+          break
+        case 'Delete Stop':
+          linksStore.deleteNode({ selectedNode: event.feature.properties })
+          break
+        default:
+          // edit node info
+          context.emit('clickFeature', {
+            selectedFeature: event.feature,
+            action: event.action,
+            lngLat: event.coordinates,
+          })
+          break
       }
-      this.$emit('clickFeature', click)
+      contextMenu.value.showed = false
+      contextMenu.value.type = null
+    }
 
-      this.contextMenu.showed = false
-      this.contextMenu.type = null
-    },
-
-    moveNode (event) {
+    function moveNode (event) {
       if (event.mapboxEvent.originalEvent.button === 0 &
-      ['editorNodes', 'anchorNodes'].includes(this.hoveredStateId.layerId)) {
+      ['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId)) {
         event.mapboxEvent.preventDefault() // prevent map control
-        this.map.getCanvas().style.cursor = 'grab'
+        map.value.getCanvas().style.cursor = 'grab'
         // disable mouseLeave so we stay in hover state.
-        this.keepHovering = true
+        keepHovering.value = true
         // get selected node
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id)[0]
+        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
 
         // disable popup
-        this.disablePopup = true
-        this.popupEditor.showed = false
+        disablePopup.value = true
+        popupEditor.value.showed = false
         // get position
-        this.map.on('mousemove', this.onMove)
-        this.map.on('mouseup', this.stopMovingNode)
+        map.value.on('mousemove', onMove)
+        map.value.on('mouseup', stopMovingNode)
       }
-    },
-    onMove (event) {
+    }
+    function onMove (event) {
       // get position and update node position
       // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.map.loaded() && this.dragNode && this.selectedFeature) {
-        const click = {
-          selectedFeature: this.selectedFeature,
-          action: null,
-          lngLat: Object.values(event.lngLat),
-        }
-        if (this.hoveredStateId.layerId === 'anchorNodes') {
-          click.action = 'Move Anchor'
-          this.$emit('clickFeature', click)
+      if (dragNode.value && selectedFeature.value) {
+        if (hoveredStateId.value.layerId === 'anchorNodes') {
+          linksStore.moveAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
         } else {
-          click.action = 'Move Node'
-          this.$emit('clickFeature', click)
+          linksStore.moveNode({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
         }
       }
-    },
-
-    stopMovingNode (event) {
+    }
+    function stopMovingNode (event) {
       // stop tracking position (moving node.)
-      this.map.getCanvas().style.cursor = 'pointer'
-      this.map.off('mousemove', this.onMove)
+      map.value.getCanvas().style.cursor = 'pointer'
+      map.value.off('mousemove', onMove)
       // enable popup and hovering off back. disable Dragmode
-      this.keepHovering = false
-      this.dragNode = false
-      this.disablePopup = false
+      keepHovering.value = false
+      dragNode.value = false
+      disablePopup.value = false
       // call offCursor event, if we drag too quickly, it will not be call and the node will stay in hovering mode.
-      this.offCursor()
-      this.map.off('mouseup', this.stopMovingNode)
+      offCursor()
+      map.value.off('mouseup', stopMovingNode)
       // emit a clickNode with the selected node.
       // this will work with lag as it is the selectedFeature and not the highlighted one.
-    },
+    }
+
+    return {
+      editorLinks,
+      editorNodes,
+      anchorMode,
+      anchorNodes,
+      // eslint-disable-next-line vue/no-dupe-keys
+      map,
+      selectedFeature,
+      hoveredStateId,
+      disablePopup,
+      keepHovering,
+      dragNode,
+      popupEditor,
+      contextMenu,
+      selectClick,
+      onCursor,
+      offCursor,
+      contextMenuNode,
+      linkRightClick,
+      actionClick,
+      moveNode,
+    }
   },
 
 }
@@ -243,7 +272,7 @@ export default {
       source-id="editorLinks"
       :source="{
         type: 'geojson',
-        data: $store.getters.editorLinks,
+        data: editorLinks,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -252,7 +281,7 @@ export default {
         type: 'line',
         minzoom: 2,
         paint: {
-          'line-color': ['case', ['boolean', anchorMode, false],$vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
+          'line-color': ['case', ['boolean', anchorMode, false],$vuetify.theme.current.colors.linkssecondary, $vuetify.theme.current.colors.linksprimary],
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
         }
@@ -280,7 +309,7 @@ export default {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': ['case', ['boolean', anchorMode, false], $vuetify.theme.currentTheme.linkssecondary, $vuetify.theme.currentTheme.linksprimary],
+          'icon-color': ['case', ['boolean', anchorMode, false], $vuetify.theme.current.colors.linkssecondary, $vuetify.theme.current.colors.linksprimary],
         }
       }"
     />
@@ -289,7 +318,7 @@ export default {
       source-id="editorNodes"
       :source="{
         type: 'geojson',
-        data: $store.getters.editorNodes,
+        data: editorNodes,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -299,7 +328,7 @@ export default {
         type: 'circle',
         minzoom: 2,
         paint: {
-          'circle-color': $vuetify.theme.currentTheme.accent,
+          'circle-color': $vuetify.theme.current.colors.accent,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 16, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         }
@@ -368,27 +397,26 @@ export default {
         @mouseleave="contextMenu.showed=false"
       >
         <v-list
-          dense
-          flat
+          density="compact"
         >
-          <v-list-item-group>
-            <v-list-item
-              v-for="action in contextMenu.actions"
-              :key="action.id"
+          <v-list-item
+            v-for="action in contextMenu.actions"
+            :key="action.id"
+            width="300"
+          >
+
+            <v-btn
+              variant="outlined"
+              size="small"
+              block
+              @click="actionClick({action: action,
+                                   feature: contextMenu.feature,
+                                   coordinates: contextMenu.coordinates})"
             >
-              <v-list-item-content>
-                <v-btn
-                  outlined
-                  small
-                  @click="actionClick({action: action,
-                                       feature: contextMenu.feature,
-                                       coordinates: contextMenu.coordinates})"
-                >
-                  {{ $gettext(action) }}
-                </v-btn>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
+              {{ $gettext(action) }}
+            </v-btn>
+
+          </v-list-item>
         </v-list>
       </span>
     </MglPopup>

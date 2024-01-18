@@ -1,52 +1,346 @@
 <script>
-import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
+
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
+import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
+import geojson from '@constants/geojson'
+
 const $gettext = s => s
 export default {
-  name: 'StaticLinks',
+  name: 'RoadLinks',
   components: {
     MglGeojsonLayer,
     MglImageLayer,
     MglPopup,
   },
-  props: ['map', 'isEditorMode', 'anchorMode', 'isRoadMode'],
-  events: ['clickFeature'],
+  props: ['map', 'isEditorMode', 'isRoadMode'],
+  emits: ['clickFeature', 'onHover', 'offHover'],
+  setup (props, context) {
+    const store = useIndexStore()
+    const rlinksStore = userLinksStore()
 
-  data () {
+    const { map, isRoadMode } = toRefs(props)
+    onMounted(() => {
+      map.value.on('dragend', getBounds)
+      map.value.on('zoomend', getBounds)
+      if (map.value.getLayer('links')) {
+        map.value.moveLayer('rlinks', 'links')
+        map.value.moveLayer('staticrLinks', 'links')
+      }
+    })
+    onBeforeUnmount(() => {
+      // remove arrow layer first as it depend on rlink layer
+      map.value.removeLayer('arrow-rlinks')
+    })
+
+    const selectedPopupContent = computed(() => { return store.roadsPopupContent })
+    const selectedrGroup = computed(() => { return rlinksStore.selectedrGroup })
+    const cyclewayMode = computed(() => { return store.cyclewayMode })
+    const visiblerLinks = computed(() => { return rlinksStore.visiblerLinks })
+    const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
+    const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
+    const anchorMode = computed(() => { return store.anchorMode })
+    const header = geojson
+    const renderedAnchorrNodes = computed(() => {
+      return anchorMode.value ? rlinksStore.anchorrNodes : geojson
+    })
+    const popup = ref(null)
+    const hoveredStateId = ref(null)
+    const disablePopup = ref(false)
+    const width = { static: 1, rendered: 2 }
+    const lastZoom = ref(100)
+    const minZoom = ref({
+      links: 4,
+      rendered: 14,
+    })
+    const contextMenu = ref({
+      coordinates: [0, 0],
+      showed: false,
+      actions: [],
+      feature: null,
+    })
+
+    watch(selectedrGroup, (val) => {
+      lastZoom.value = 100 // this will force the rerender on visiblerLinks in getbounds()
+      getBounds()
+    })
+    watch(isRoadMode, (val) => {
+      if (val) {
+        map.value.on('dragend', getBounds)
+        map.value.on('zoomend', getBounds)
+        getBounds()
+      } else {
+        map.value.off('dragend', getBounds)
+        map.value.off('zoomend', getBounds)
+        // remove rendered and refresh visible (not editable but all visible)
+        rlinksStore.setRenderedrLinks({ method: 'None' })
+        map.value.getSource('staticrLinks').setData(visiblerLinks.value)
+      }
+    })
+
+    function getBounds (e) {
+      // get map bounds and return only the features inside of it.
+      // this way, only the visible links and node are rendered and updating is fast
+      // (i.e. moving a node in real time)
+
+      // Note there is rendered and visible links. only one at the time is visible.
+
+      // only get the geojson if the zoom level is bigger than the min.
+      // if not, getting all anchorpoint would be very intensive!!
+      // this way, only a small number of anchor points are computed
+      const currentZoom = map.value.getZoom()
+      if (currentZoom > minZoom.value.rendered) {
+        // create a BBOX with a 200m buffer. get links in or intersecting with bbox
+        const bounds = map.value.getBounds()
+        const bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.2)
+        rlinksStore.getRenderedrLinks({ bbox })
+        map.value.getSource('staticrLinks').setData(header)
+
+        // check lastzoom so we only setData when it changed, not at every zoom and move.
+      } else if (currentZoom > minZoom.value.links && lastZoom.value > minZoom.value.rendered) {
+        // evrey links are rendered (not editable). no nodes
+        rlinksStore.setRenderedrLinks({ method: 'None' })
+        // set Data for static links as the map in not reactive (to same RAM)
+        map.value.getSource('staticrLinks').setData(visiblerLinks.value)
+      } else {
+        // Nothing is is rendered.
+        rlinksStore.setRenderedrLinks({ method: 'None' })
+      }
+      // save lastZoom value
+      lastZoom.value = currentZoom
+    }
+
+    const keepHovering = ref(false)
+    const dragNode = ref(false)
+    const selectedFeature = ref('')
+
+    function onCursor (event) {
+      if (isRoadMode.value) {
+        if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
+        if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'rlinks') {
+          if (!disablePopup.value && selectedPopupContent.value.length > 0) {
+            const selectedFeature = event.mapboxEvent.features[0]
+            if (selectedFeature.layer.id !== 'rnodes') {
+              // eslint-disable-next-line max-len
+              let htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${selectedFeature.properties[prop]}</b>`)
+              htmlContent = htmlContent.join('<br> ')
+              popup.value = new mapboxgl.Popup({ closeButton: false })
+                .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+                .setHTML(htmlContent)
+                .addTo(event.map)
+            }
+          }
+          map.value.getCanvas().style.cursor = 'pointer'
+          if (hoveredStateId.value !== null) {
+            map.value.setFeatureState(
+              { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
+              { hover: false },
+            )
+          }
+          // get a list of all overID. if there is multiple superposed link get all of them!
+          const uniqueArray = [...new Set(event.mapboxEvent.features.map(item => item.id))]
+          hoveredStateId.value = { layerId: event.layerId, id: uniqueArray }
+          map.value.setFeatureState(
+            { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
+            { hover: true },
+          )
+          context.emit('onHover', { layerId: hoveredStateId.value.layerId, selectedId: hoveredStateId.value.id })
+        }
+      }
+    }
+
+    function offCursor (event) {
+      if (isRoadMode.value) {
+        if (popup.value?.isOpen()) popup.value.remove()
+        if (hoveredStateId.value !== null) {
+          // eslint-disable-next-line max-len
+          if (!(['rnodes', 'anchorrNodes'].includes(hoveredStateId.value?.layerId) && event?.layerId === 'rlinks')) {
+            // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
+            if (keepHovering.value) {
+              dragNode.value = true
+              // normal behaviours, hovering is false
+            } else {
+              map.value.getCanvas().style.cursor = ''
+              map.value.setFeatureState(
+                { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
+                { hover: false },
+              )
+              hoveredStateId.value = null
+              context.emit('offHover', event)
+            }
+          }
+        }
+      }
+    }
+
+    function selectClick (event) {
+      if (isRoadMode.value) {
+        if (hoveredStateId.value !== null) {
+        // Get the highlighted feature
+        // const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
+        // this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
+          selectedFeature.value = hoveredStateId.value.id
+          // Emit a click base on layer type (node or link)
+
+          if (selectedFeature.value !== null) {
+            if (hoveredStateId.value.layerId === 'rlinks') {
+              const action = anchorMode.value ? 'anchorrNodes' : 'rnodes'
+              rlinksStore.addRoadNodeInline({
+                selectedIndex: selectedFeature.value,
+                lngLat: event.mapboxEvent.lngLat,
+                nodes: action,
+              })
+            }
+          }
+        }
+      }
+    }
+
+    function linkRightClick (event) {
+      if (isRoadMode.value) {
+        if (hoveredStateId.value.layerId === 'rlinks') {
+          contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+          contextMenu.value.showed = true
+          contextMenu.value.feature = hoveredStateId.value.id
+          contextMenu.value.actions =
+          [
+            $gettext('Edit rLink Info'),
+            $gettext('Delete rLink'),
+          ]
+        }
+      }
+    }
+    function actionClick (event) {
+      if (event.action === 'Delete rLink') {
+        rlinksStore.deleterLink({ selectedIndex: event.feature })
+        // emit this click to remove the drawlink.
+        context.emit('clickFeature', { action: 'Delete rLink' })
+      } else {
+        // edit rlinks info
+        context.emit('clickFeature', {
+          selectedIndex: event.feature,
+          action: event.action,
+          lngLat: event.coordinates,
+        })
+      }
+      contextMenu.value.showed = false
+      contextMenu.value.type = null
+    }
+
+    function contextMenuNode (event) {
+      if (isRoadMode.value) {
+        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+        selectedFeature.value = features.filter(item => hoveredStateId.value.id.includes(item.id))
+
+        if (selectedFeature.value.length > 0) {
+          if (hoveredStateId.value?.layerId === 'rnodes') {
+            context.emit('clickFeature', {
+              selectedFeature: selectedFeature.value[0],
+              action: 'Edit rNode Info',
+              lngLat: event.mapboxEvent.lngLat,
+            })
+          } else if (hoveredStateId.value?.layerId === 'anchorrNodes') {
+            rlinksStore.deleteAnchorrNode({ selectedNode: selectedFeature.value[0].properties })
+          }
+        }
+      }
+    }
+
+    function moveNode (event) {
+      if (isRoadMode.value) {
+        if (event.mapboxEvent.originalEvent.button === 0 &
+      ['rnodes', 'anchorrNodes'].includes(hoveredStateId.value.layerId)) {
+          event.mapboxEvent.preventDefault() // prevent map control
+          map.value.getCanvas().style.cursor = 'grab'
+          // disable mouseLeave so we stay in hover state.
+          keepHovering.value = true
+          // get selected node
+          const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+          selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id[0])[0]
+          // disable popup
+          disablePopup.value = true
+          if (hoveredStateId.value.layerId === 'rnodes') {
+            rlinksStore.getConnectedLinks({ selectedNode: selectedFeature.value })
+          }
+          // get position
+          map.value.on('mousemove', onMove)
+          map.value.on('mouseup', stopMovingNode)
+        }
+      }
+    }
+    function onMove (event) {
+      // get position and update node position
+      // only if dragmode is activated (we just leave the node hovering state.)
+      if (dragNode.value && selectedFeature.value) {
+        context.emit('clickFeature', { action: 'Move rNode' })
+        if (hoveredStateId.value.layerId === 'anchorrNodes') {
+          rlinksStore.moverAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
+          // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
+        } else {
+          rlinksStore.moverNode({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
+        }
+      }
+    }
+    function stopMovingNode (event) {
+      if (isRoadMode.value) {
+        // stop tracking position (moving node.)
+        map.value.getCanvas().style.cursor = 'pointer'
+        map.value.off('mousemove', onMove)
+        // enable popup and hovering off back. disable Dragmode
+        keepHovering.value = false
+        dragNode.value = false
+        disablePopup.value = false
+        // if we drag too quickly, offcursor it will not be call and the node will stay in hovering mode.
+        // calling off scursor will break the sticky node drawlink behaviour,
+        // so we only make its state back to hover-false
+        map.value.getCanvas().style.cursor = ''
+        map.value.setFeatureState(
+          { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
+          { hover: false },
+        )
+        hoveredStateId.value = null
+        map.value.off('mouseup', stopMovingNode)
+        // this will work with lag as it is the selectedFeature and not the highlighted one.}
+      }
+    }
+
     return {
-      hoveredStateId: null,
-      visibleNodes: {},
-      visibleLinks: {},
-      disablePopup: false,
-      editorRnodes: {},
-      routeWidth: 1,
-      bbox: null,
-      minZoom: {
-        links: 2,
-        rendered: 14,
-      },
-      contextMenu: {
-        coordinates: [0, 0],
-        showed: false,
-        actions: [],
-        feature: null,
-      },
-
+      store,
+      rlinksStore,
+      anchorMode,
+      keepHovering,
+      dragNode,
+      selectedPopupContent,
+      selectedrGroup,
+      cyclewayMode,
+      renderedrLinks,
+      renderedrNodes,
+      renderedAnchorrNodes,
+      header,
+      popup,
+      hoveredStateId,
+      visiblerLinks,
+      disablePopup,
+      width,
+      minZoom,
+      contextMenu,
+      getBounds,
+      onCursor,
+      offCursor,
+      selectClick,
+      linkRightClick,
+      actionClick,
+      contextMenuNode,
+      moveNode,
     }
   },
+
   computed: {
-    selectedPopupContent () { return this.$store.getters.roadsPopupContent },
-    selectedrGroup () { return this.$store.getters.selectedrGroup },
-    cyclewayMode () { return this.$store.getters.cyclewayMode },
-    rnodes () { return this.$store.getters.visiblerNodes },
-    rlinks () { return this.$store.getters.visiblerLinks },
-    renderedrLinks () { return this.$store.getters.renderedrLinks },
-    renderedrNodes () { return this.$store.getters.renderedrNodes },
-    renderedAnchorrNodes () {
-      return this.anchorMode ? this.$store.getters.anchorrNodes : this.$store.getters.rnodesHeader
-    },
+
     ArrowSizeCondition () {
       // when we want to show the cycleway direction.
       // [cycleway, cycleway_reverse]
@@ -120,277 +414,28 @@ export default {
 
   },
 
-  watch: {
-    selectedrGroup (val) { this.getBounds() },
-    isRoadMode (val) {
-      if (val) {
-        this.map.on('dragend', this.getBounds)
-        this.map.on('zoomend', this.getBounds)
-      } else {
-        this.map.off('dragend', this.getBounds)
-        this.map.off('zoomend', this.getBounds)
-      }
-    },
-
-  },
-  created () {
-    this.map.on('dragend', this.getBounds)
-    this.map.on('zoomend', this.getBounds)
-  },
-  beforeDestroy () {
-    // remove arrow layer first as it depend on rlink layer
-    this.map.removeLayer('arrow-rlinks')
-  },
-
-  methods: {
-    getBounds () {
-      // get map bounds and return only the features inside of it.
-      // this way, only the visible links and node are rendered and updating is fast
-      // (i.e. moving a node in real time)
-      // note only line inside the bbox (buffured) are visible.
-      const bounds = this.map.getBounds()
-      // create a BBOX with a 800m buffer
-      this.bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.2)
-      // only get the geojson if the zoom level is bigger than the min.
-      // if not, getting all anchorpoint would be very intensive!!
-      // this way, only a small number of anchor points are computed
-      if (this.map.getZoom() > this.minZoom.rendered) {
-        // get links in or intersecting with bbox
-        this.routeWidth = 2
-        this.$store.commit('getRenderedrLinks', { bbox: this.bbox })
-      } else if (this.map.getZoom() > this.minZoom.links) {
-        // evrey links are rendered (not editable). no nodes
-        this.routeWidth = 1
-        this.$store.commit('setRenderedrLinks', { method: 'visible' })
-      } else {
-        this.routeWidth = 1
-        // Nothing is is rendered.
-        this.$store.commit('setRenderedrLinks', { method: 'None' })
-      }
-    },
-    onCursor (event) {
-      if (this.isRoadMode) {
-        if (this.popup?.isOpen()) this.popup.remove() // make sure there is no popup before creating one.
-        if (this.hoveredStateId === null || this.hoveredStateId.layerId === 'rlinks') {
-          if (!this.disablePopup && this.selectedPopupContent.length > 0) {
-            const selectedFeature = event.mapboxEvent.features[0]
-            if (selectedFeature.layer.id !== 'rnodes') {
-              // eslint-disable-next-line max-len
-              let htmlContent = this.selectedPopupContent.map(prop => `${prop}: <b>${selectedFeature.properties[prop]}</b>`)
-              htmlContent = htmlContent.join('<br> ')
-              this.popup = new mapboxgl.Popup({ closeButton: false })
-                .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-                .setHTML(htmlContent)
-                .addTo(event.map)
-            }
-          }
-          this.map.getCanvas().style.cursor = 'pointer'
-          if (this.hoveredStateId !== null) {
-            this.map.setFeatureState(
-              { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-              { hover: false },
-            )
-          }
-          // get a list of all overID. if there is multiple superposed link get all of them!
-          const uniqueArray = [...new Set(event.mapboxEvent.features.map(item => item.id))]
-          this.hoveredStateId = { layerId: event.layerId, id: uniqueArray }
-          this.map.setFeatureState(
-            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-            { hover: true },
-          )
-
-          this.$emit('onHover', { layerId: this.hoveredStateId.layerId, selectedId: this.hoveredStateId.id })
-        }
-      }
-    },
-
-    offCursor (event) {
-      if (this.isRoadMode) {
-      // todo: error warning is throw sometime when we move a node over another node or anchor.
-        if (this.popup?.isOpen()) this.popup.remove()
-        if (this.hoveredStateId !== null) {
-          // eslint-disable-next-line max-len
-          if (!(['rnodes', 'anchorrNodes'].includes(this.hoveredStateId?.layerId) && event?.layerId === 'rlinks')) {
-            // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
-            if (this.keepHovering) {
-              this.dragNode = true
-              // normal behaviours, hovering is false
-            } else {
-              this.map.getCanvas().style.cursor = ''
-              this.map.setFeatureState(
-                { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-                { hover: false },
-              )
-              this.hoveredStateId = null
-              this.$emit('offHover', event)
-            }
-          }
-        }
-      }
-    },
-
-    selectClick (event) {
-      if (this.isRoadMode) {
-        if (this.hoveredStateId !== null) {
-        // Get the highlighted feature
-        // const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        // this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
-          this.selectedFeature = this.hoveredStateId.id
-          // Emit a click base on layer type (node or link)
-
-          if (this.selectedFeature !== null) {
-            if (this.hoveredStateId.layerId === 'rlinks') {
-              const action = this.anchorMode ? 'Add Road Anchor Inline' : 'Add Road Node Inline'
-              const click = {
-                selectedIndex: this.selectedFeature,
-                action: action,
-                lngLat: event.mapboxEvent.lngLat,
-              }
-              this.$emit('clickFeature', click)
-            }
-          }
-        }
-      }
-    },
-
-    linkRightClick (event) {
-      if (this.isRoadMode) {
-        if (this.hoveredStateId.layerId === 'rlinks') {
-          this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
-          this.contextMenu.showed = true
-          this.contextMenu.feature = this.hoveredStateId.id
-          this.contextMenu.actions =
-          [
-            $gettext('Edit rLink Info'),
-            $gettext('Delete rLink'),
-          ]
-        }
-      }
-    },
-    actionClick (event) {
-      const click = {
-        selectedIndex: event.feature,
-        action: event.action,
-        lngLat: event.coordinates,
-      }
-      this.$emit('clickFeature', click)
-      this.contextMenu.showed = false
-      this.contextMenu.type = null
-      // this.getBounds()
-    },
-
-    contextMenuNode (event) {
-      if (this.isRoadMode) {
-        const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-        this.selectedFeature = features.filter(item => this.hoveredStateId.id.includes(item.id))
-
-        if (this.selectedFeature.length > 0) {
-          if (this.hoveredStateId?.layerId === 'rnodes') {
-            const click = {
-              selectedFeature: this.selectedFeature[0],
-              action: 'Edit rNode Info',
-              lngLat: event.mapboxEvent.lngLat,
-            }
-            this.$emit('clickFeature', click)
-          } else if (this.hoveredStateId?.layerId === 'anchorrNodes') {
-            const click = {
-              selectedFeature: this.selectedFeature[0],
-              action: 'Delete Road Anchor',
-              lngLat: null,
-            }
-            this.$emit('clickFeature', click)
-            // this.getBounds()
-          }
-        }
-      }
-    },
-
-    moveNode (event) {
-      if (this.isRoadMode) {
-        if (event.mapboxEvent.originalEvent.button === 0 &
-      ['rnodes', 'anchorrNodes'].includes(this.hoveredStateId.layerId)) {
-          event.mapboxEvent.preventDefault() // prevent map control
-          this.map.getCanvas().style.cursor = 'grab'
-          // disable mouseLeave so we stay in hover state.
-          this.keepHovering = true
-          // get selected node
-          const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-          this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
-          // disable popup
-          this.disablePopup = true
-          if (this.hoveredStateId.layerId === 'rnodes') {
-            this.$store.commit('getConnectedLinks', { selectedNode: this.selectedFeature })
-          }
-          // get position
-          this.map.on('mousemove', this.onMove)
-          this.map.on('mouseup', this.stopMovingNode)
-        }
-      }
-    },
-    onMove (event) {
-      // get position and update node position
-      // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.dragNode && this.selectedFeature) {
-        const click = {
-          selectedFeature: this.selectedFeature,
-          action: null,
-          lngLat: Object.values(event.lngLat),
-        }
-        if (this.hoveredStateId.layerId === 'anchorrNodes') {
-          click.action = 'Move rAnchor'
-          this.$emit('clickFeature', click)
-          // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
-        } else {
-          click.action = 'Move rNode'
-          this.$emit('clickFeature', click)
-        }
-      }
-    },
-    stopMovingNode (event) {
-      if (this.isRoadMode) {
-        // stop tracking position (moving node.)
-        this.map.getCanvas().style.cursor = 'pointer'
-        this.map.off('mousemove', this.onMove)
-        // enable popup and hovering off back. disable Dragmode
-        this.keepHovering = false
-        this.dragNode = false
-        this.disablePopup = false
-        // if we drag too quickly, offcursor it will not be call and the node will stay in hovering mode.
-        // calling offscursor will break the sticky node drawlink behaviour, so we only make its state back to hover-false
-        this.map.getCanvas().style.cursor = ''
-        this.map.setFeatureState(
-          { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-          { hover: false },
-        )
-        this.hoveredStateId = null
-        this.map.off('mouseup', this.stopMovingNode)
-
-      // emit a clickNode with the selected node.
-      // this will work with lag as it is the selectedFeature and not the highlighted one.}
-      }
-    },
-  },
 }
 </script>
 <template>
   <section>
     <MglGeojsonLayer
-      source-id="rlinks"
+      source-id="staticrLinks"
+      :reactive="false"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedrLinks : rlinks,
+        data: visiblerLinks ,
         buffer: 0,
         promoteId: 'index',
       }"
-      layer-id="rlinks"
+      layer-id="staticrLinks"
       :layer="{
-        interactive: true,
         type: 'line',
+        maxzoom: 18, // maxZoom set in getData. else. its glitchy and dispapear before rendered appear
         minzoom: minZoom.links,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*routeWidth, routeWidth],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width.static, width.static],
                          ['case', ['has', 'route_width'],
                           ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
                            ['to-number', ['get', 'route_width']],
@@ -406,10 +451,44 @@ export default {
         }
 
       }"
-      v-on="isEditorMode ? { } : { mouseenter: onCursor,
-                                   mouseleave: offCursor,
-                                   click: selectClick,
-                                   contextmenu: linkRightClick }"
+      @mouseenter="onCursor"
+      @mouseleave="offCursor"
+    />
+    <MglGeojsonLayer
+      source-id="rlinks"
+      :source="{
+        type: 'geojson',
+        data: renderedrLinks ,
+        buffer: 0,
+        promoteId: 'index',
+      }"
+      layer-id="rlinks"
+      :layer="{
+        type: 'line',
+        minzoom: minZoom.links,
+        paint: {
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
+          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width.rendered, width.rendered],
+                         ['case', ['has', 'route_width'],
+                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                           ['to-number', ['get', 'route_width']],
+                           2], 2]],
+          'line-blur': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 1, 0],
+                        ['case', ['has', 'route_width'],
+                         ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                          ['to-number', ['get', 'route_width']],
+                          2], 2]],
+        },
+        layout: {
+          'line-sort-key': ['to-number',['get', 'route_width']],
+        }
+
+      }"
+      @mouseenter="onCursor"
+      @mouseleave="offCursor"
+      @click="selectClick"
+      @contextmenu="linkRightClick"
     />
     <MglImageLayer
       source-id="rlinks"
@@ -428,7 +507,7 @@ export default {
           'icon-rotate': ArrowDirCondition,
         },
         paint: {
-          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
         }
       }"
     />
@@ -437,7 +516,7 @@ export default {
       source-id="rnodes"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedrNodes:rnodes,
+        data: renderedrNodes,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -447,24 +526,24 @@ export default {
         type: 'circle',
         minzoom: minZoom.rendered,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.currentTheme.mediumgrey, $vuetify.theme.currentTheme.accent],
-          'circle-stroke-color': $vuetify.theme.currentTheme.white,
+          'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
+          'circle-stroke-color': $vuetify.theme.current.colors.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 6],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         },
       }"
-      v-on="isEditorMode ? { } : { mouseenter: onCursor,
-                                   mouseleave: offCursor,
-                                   mousedown: moveNode,
-                                   contextmenu:contextMenuNode }"
+      @mouseenter="onCursor"
+      @mouseleave="offCursor"
+      @mousedown="moveNode"
+      @contextmenu="contextMenuNode"
     />
 
     <MglGeojsonLayer
       source-id="anchorrNodes"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedAnchorrNodes: $store.getters.rnodesHeader,
+        data: isRoadMode? renderedAnchorrNodes: header,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -478,7 +557,7 @@ export default {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': $vuetify.theme.currentTheme.darkgrey,
+          'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
           'circle-stroke-width': 2,
         },
       }"
@@ -498,27 +577,24 @@ export default {
         @mouseleave="contextMenu.showed=false"
       >
         <v-list
-          dense
-          flat
+          density="compact"
         >
-          <v-list-item-group>
-            <v-list-item
-              v-for="action in contextMenu.actions"
-              :key="action.id"
+          <v-list-item
+            v-for="action in contextMenu.actions"
+            :key="action.id"
+          >
+
+            <v-btn
+              variant="outlined"
+              size="small"
+              @click="actionClick({action: action,
+                                   feature: contextMenu.feature,
+                                   coordinates: contextMenu.coordinates})"
             >
-              <v-list-item-content>
-                <v-btn
-                  outlined
-                  small
-                  @click="actionClick({action: action,
-                                       feature: contextMenu.feature,
-                                       coordinates: contextMenu.coordinates})"
-                >
-                  {{ $gettext(action) }}
-                </v-btn>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
+              {{ $gettext(action) }}
+            </v-btn>
+
+          </v-list-item>
         </v-list>
       </span>
     </MglPopup>

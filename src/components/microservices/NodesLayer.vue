@@ -1,5 +1,5 @@
 <script>
-import { MglGeojsonLayer } from 'vue-mapbox'
+import { MglGeojsonLayer } from 'vue-mapbox3'
 
 export default {
   name: 'NodesLayer',
@@ -43,7 +43,6 @@ export default {
     },
     offCursor (event) {
       if (this.active) {
-      // todo: error warning is throw sometime when we move a node over another node or anchor.
         if (this.hoveredStateId !== null) {
           // eslint-disable-next-line max-len
           // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
@@ -67,7 +66,7 @@ export default {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
         const selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
         const click = {
-          selectedFeature: selectedFeature,
+          selectedFeature,
         }
         if (selectedFeature) {
           this.$emit('rightClick', click)
@@ -151,7 +150,7 @@ export default {
         'circle-opacity':0.5,
         'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
         'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-        'circle-stroke-color': $vuetify.theme.currentTheme.darkgrey,
+        'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
         'circle-stroke-width': 2,
       },
     }"

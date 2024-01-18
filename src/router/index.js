@@ -1,25 +1,20 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import Import from '@page/Import.vue'
-
-import auth from '../auth'
 import Home from '@page/Home.vue'
-import { store } from '../store/index.js'
-const Microservices = () => import('@page/Microservices.vue')
+import { useRunStore } from '@src/store/run'
+import { useIndexStore } from '../store'
+import { useUserStore } from '../store/user'
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')
 const ResultTable = () => import('@page/ResultTable.vue')
-const basePath = process.env.VUE_APP_BASE_PATH
+const Microservices = () => import('@page/Microservices.vue')
 
-Vue.use(Router)
-
-// only used to force to see translation to vue-gettext
+const basePath = import.meta.env.VITE_BASE_PATH
 const $gettext = s => s
 
-const router = new Router({
-  linkExactActiveClass: 'active',
-  mode: 'history',
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
   base: basePath,
   routes: [
     {
@@ -36,8 +31,10 @@ const router = new Router({
       icon: 'fas fa-tachometer-alt',
       title: $gettext('Microservices'),
       beforeEnter: (to, from, next) => {
-        if (!store.getters.loggedIn) {
-          store.commit('changeNotification',
+        const store = useIndexStore()
+        const userStore = useUserStore()
+        if (!userStore.loggedIn) {
+          store.changeNotification(
             {
               text: $gettext('Must be logged in'),
               autoClose: true,
@@ -62,8 +59,10 @@ const router = new Router({
       icon: 'fa-solid fa-play',
       title: $gettext('Parameters and Run'),
       beforeEnter: (to, from, next) => {
-        if (store.getters['run/parametersIsEmpty']) {
-          store.commit('changeNotification',
+        const store = useIndexStore()
+        const runStore = useRunStore()
+        if (runStore.parametersIsEmpty) {
+          store.changeNotification(
             {
               text: $gettext('you need parameters to enter this page'),
               autoClose: true,
@@ -78,7 +77,6 @@ const router = new Router({
       path: '/ResultMap',
       name: ResultMap.name,
       component: ResultMap,
-      margin: '5rem',
       icon: 'fa-solid fa-layer-group',
       title: $gettext('Results Map'),
     },
@@ -97,30 +95,12 @@ const router = new Router({
       title: $gettext('Result Table'),
 
     },
-    {
-      path: '/callback',
-      name: 'callback',
-      beforeEnter: (to, from, next) => {
-        const currUrl = window.location.href
-        auth.auth.parseCognitoWebResponse(currUrl)
-        next('/')
-      },
-    },
-    {
-      path: '/signout',
-      name: 'signout',
-      beforeEnter: (to, from, next) => {
-        next('/')
-      },
-    },
+
   ],
 })
 
-// router.replace({ 'query.s3Path': null }) // remove query in url when page is load.
-
 router.beforeEach((to, from, next) => {
-  if ((!['Import', 'callback', 'signout'].includes(to.name)) &&
-      store.getters.projectIsUndefined) {
+  if ((!['Import'].includes(to.name)) && !from.name) {
     next({ name: 'Import' })
   } else next()
 })

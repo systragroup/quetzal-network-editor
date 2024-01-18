@@ -1,184 +1,173 @@
 <!-- eslint-disable no-return-assign -->
-<script>
-import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox'
-const short = require('short-uuid')
+<script setup>
+import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
+import short from 'short-uuid'
+import { computed, watch, toRefs, ref, onUnmounted } from 'vue'
+import { useODStore } from '@src/store/od'
+import geojson from '@constants/geojson'
+
 const $gettext = s => s
 
-export default {
-  name: 'ODMap',
-  components: {
-    MglGeojsonLayer,
-    MglImageLayer,
-    MglPopup,
-  },
-  props: ['map', 'isODMode', 'isEditorMode'],
-  events: [],
+const props = defineProps(['map', 'isODMode', 'isEditorMode'])
+const emit = defineEmits(['[clickFeature]'])
+const header = geojson
+const ODStore = useODStore()
+const layer = computed(() => { return ODStore.visibleLayer })
+const nodes = computed(() => { return ODStore.nodes(layer.value) })
+const { isODMode, map } = toRefs(props)
+watch(isODMode, (val) => {
+  if (val) {
+    map.value.on('click', addPoint)
+  } else {
+    map.value.off('click', addPoint)
+  }
+})
+onUnmounted(() => { map.value.off('click', addPoint) })
 
-  data () {
-    return {
-      hoveredStateId: null,
-      keepHovering: false,
-      dragNode: false,
-      drawMode: false,
-      selectedFeature: null,
-      contextMenu: {
-        coordinates: [0, 0],
-        showed: false,
-        actions: [],
-        feature: null,
-      },
+const hoveredStateId = ref(null)
+const keepHovering = ref(false)
+const dragNode = ref(false)
+const drawMode = ref(false)
+const selectedFeature = ref(null)
+const contextMenu = ref({
+  coordinates: [0, 0],
+  showed: false,
+  actions: [],
+  feature: null,
+})
 
+function addPoint (event) {
+  if (isODMode.value) {
+    if (!drawMode.value) {
+      const index = 'OD_' + short.generate()
+      ODStore.createNewLink({ lngLat: Object.values(event.lngLat), index })
+      dragNode.value = true
+      selectedFeature.value = { properties: { linkIndex: index, coordinatedIndex: 1 } }
+      // get position
+      drawMode.value = true
+      map.value.on('mousemove', onMove)
+      map.value.on('mouseup', stopMovingNode)
+    } else {
+      // here. we dont want the second click to do anything except act like a stop moving node.
+      drawMode.value = false
     }
-  },
-  computed: {
-    layer () { return this.$store.getters['od/visibleLayer'] },
-    nodes () {
-      return this.$store.getters['od/nodes'](this.layer)
-    },
+  }
+}
 
-  },
+function onCursor (event) {
+  if (isODMode.value) {
+    if (hoveredStateId.value === null) {
+      map.value.getCanvas().style.cursor = 'pointer'
+      // get a list of all overID. if there is multiple superposed link get all of them!
+      const uniqueArray = [...new Set(event.mapboxEvent.features.map(item => item.id))]
+      hoveredStateId.value = { layerId: event.layerId, id: uniqueArray }
+      map.value.setFeatureState(
+        { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
+        { hover: true },
+      )
+    }
+  }
+}
 
-  watch: {
-  },
-
-  created () {
-    this.map.on('click', this.test)
-  },
-
-  methods: {
-    test (event) {
-      if (this.isODMode) {
-        if (!this.drawMode) {
-          const index = 'OD_' + short.generate()
-          this.$store.commit('od/createNewLink', { lngLat: Object.values(event.lngLat), index: index })
-          this.dragNode = true
-          this.selectedFeature = { properties: { linkIndex: index, coordinatedIndex: 1 } }
-          // get position
-          this.drawMode = true
-          this.map.on('mousemove', this.onMove)
-          this.map.on('mouseup', this.stopMovingNode)
-        } else {
-          // here. we dont want the second click to do anything except act like a stop moving node.
-          this.drawMode = false
-        }
+function offCursor (event) {
+  if (isODMode.value) {
+    if (hoveredStateId.value !== null) {
+      // eslint-disable-next-line max-len
+      // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
+      if (keepHovering.value) {
+        dragNode.value = true
+        // normal behaviours, hovering is false
+      } else {
+        map.value.getCanvas().style.cursor = ''
+        map.value.setFeatureState(
+          { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
+          { hover: false },
+        )
+        hoveredStateId.value = null
+        // this.$emit('offHover', event)
       }
-    },
-    onCursor (event) {
-      if (this.isODMode) {
-        if (this.hoveredStateId === null) {
-          this.map.getCanvas().style.cursor = 'pointer'
-          // get a list of all overID. if there is multiple superposed link get all of them!
-          const uniqueArray = [...new Set(event.mapboxEvent.features.map(item => item.id))]
-          this.hoveredStateId = { layerId: event.layerId, id: uniqueArray }
-          this.map.setFeatureState(
-            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-            { hover: true },
-          )
-        }
-      }
-    },
+    }
+  }
+}
 
-    offCursor (event) {
-      if (this.isODMode) {
-      // todo: error warning is throw sometime when we move a node over another node or anchor.
-        if (this.hoveredStateId !== null) {
-          // eslint-disable-next-line max-len
-          // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
-          if (this.keepHovering) {
-            this.dragNode = true
-            // normal behaviours, hovering is false
-          } else {
-            this.map.getCanvas().style.cursor = ''
-            this.map.setFeatureState(
-              { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-              { hover: false },
-            )
-            this.hoveredStateId = null
-            // this.$emit('offHover', event)
-          }
-        }
+function moveNode (event) {
+  if (isODMode.value && !drawMode.value && hoveredStateId.value?.layerId === 'ODNodes') {
+    if (event.mapboxEvent.originalEvent.button === 0) {
+      event.mapboxEvent.preventDefault() // prevent map control
+      map.value.getCanvas().style.cursor = 'grab'
+      // disable mouseLeave so we stay in hover state.
+      keepHovering.value = true
+      // get selected node
+      const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+      selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id[0])[0]
+      // get position
+      if (selectedFeature.value?.properties) {
+        map.value.on('mousemove', onMove)
+        map.value.on('mouseup', stopMovingNode)
       }
-    },
+    }
+  }
+}
+function onMove (event) {
+  // get position and update node position
+  // only if dragmode is activated (we just leave the node hovering state.)
+  if (dragNode.value && selectedFeature.value) {
+    const click = {
+      selectedFeature: selectedFeature.value,
+      lngLat: Object.values(event.lngLat),
+    }
+    ODStore.moveNode(click)
+    // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
+    // this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
+    //  booleanContains(this.bbox, node))
+  }
+}
+function stopMovingNode (event) {
+  // console.log(event.originalEvent.button)
+  if (isODMode.value && event.originalEvent.button === 0) {
+    // stop tracking position (moving node.)
+    map.value.getCanvas().style.cursor = 'pointer'
+    map.value.off('mousemove', onMove)
 
-    moveNode (event) {
-      if (this.isODMode && !this.drawMode && this.hoveredStateId?.layerId === 'ODNodes') {
-        if (event.mapboxEvent.originalEvent.button === 0) {
-          event.mapboxEvent.preventDefault() // prevent map control
-          this.map.getCanvas().style.cursor = 'grab'
-          // disable mouseLeave so we stay in hover state.
-          this.keepHovering = true
-          // get selected node
-          const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
-          this.selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]
-          // get position
-          if (this.selectedFeature?.properties) {
-            this.map.on('mousemove', this.onMove)
-            this.map.on('mouseup', this.stopMovingNode)
-          }
-        }
-      }
-    },
-    onMove (event) {
-      // get position and update node position
-      // only if dragmode is activated (we just leave the node hovering state.)
-      if (this.dragNode && this.selectedFeature) {
-        const click = {
-          selectedFeature: this.selectedFeature,
-          lngLat: Object.values(event.lngLat),
-        }
-        this.$store.commit('od/moveNode', click)
-        // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
-        // this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
-        //  booleanContains(this.bbox, node))
-      }
-    },
-    stopMovingNode (event) {
-      if (this.isODMode && event.originalEvent.button === 0) {
-        // stop tracking position (moving node.)
-        this.map.getCanvas().style.cursor = 'pointer'
-        this.map.off('mousemove', this.onMove)
-
-        // enable popup and hovering off back. disable Dragmode
-        this.keepHovering = false
-        this.dragNode = false
-        // if we drag too quickly, offcursor it will not be call and the node will stay in hovering mode.
-        // calling offscursor will break the sticky node drawlink behaviour, so we only make its state back to hover-false
-        this.map.getCanvas().style.cursor = ''
-        if (this.hoveredStateId) {
-          this.map.setFeatureState(
-            { source: this.hoveredStateId.layerId, id: this.hoveredStateId.id[0] },
-            { hover: false },
-          )
-        }
-        this.hoveredStateId = null
-        this.map.off('mouseup', this.stopMovingNode)
-      }
-    },
-    linkRightClick (event) {
-      if (this.isODMode && !this.drawMode) {
-        this.contextMenu.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
-        this.contextMenu.showed = true
-        this.contextMenu.feature = this.hoveredStateId.id
-        this.contextMenu.actions =
+    // enable popup and hovering off back. disable Dragmode
+    keepHovering.value = false
+    dragNode.value = false
+    // if we drag too quickly, offcursor it will not be call and the node will stay in hovering mode.
+    // calling offscursor will break the sticky node drawlink behaviour, so we only make its state back to hover-false
+    map.value.getCanvas().style.cursor = ''
+    if (hoveredStateId.value) {
+      map.value.setFeatureState(
+        { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
+        { hover: false },
+      )
+    }
+    hoveredStateId.value = null
+    map.value.off('mouseup', stopMovingNode)
+  }
+}
+function linkRightClick (event) {
+  if (isODMode.value && !drawMode.value) {
+    contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+    contextMenu.value.showed = true
+    contextMenu.value.feature = hoveredStateId.value.id
+    contextMenu.value.actions =
           [
             $gettext('Edit OD Info'),
             $gettext('Delete OD'),
           ]
-      }
-    },
-    actionClick (event) {
-      const click = {
-        selectedIndex: event.feature,
-        action: event.action,
-        lngLat: event.coordinates,
-      }
-      this.$emit('clickFeature', click)
-      this.contextMenu.showed = false
-      this.contextMenu.type = null
-    },
-
-  },
+  }
 }
+function actionClick (event) {
+  const click = {
+    selectedIndex: event.feature,
+    action: event.action,
+    lngLat: event.coordinates,
+  }
+  emit('clickFeature', click)
+  contextMenu.value.showed = false
+  contextMenu.value.type = null
+}
+
 </script>
 <template>
   <section>
@@ -197,7 +186,7 @@ export default {
         minzoom: 1,
         maxzoom: 18,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
           'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 3, 1],
                          ['case', ['has', 'route_width'],
@@ -225,7 +214,7 @@ export default {
       source-id="ODNodes"
       :source="{
         type: 'geojson',
-        data: isODMode? nodes : $store.getters['od/layerHeader'],
+        data: isODMode? nodes : header,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -238,7 +227,7 @@ export default {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': $vuetify.theme.currentTheme.darkgrey,
+          'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
           'circle-stroke-width': 2,
         },
       }"
@@ -264,7 +253,7 @@ export default {
           'icon-rotate': 90,
         },
         paint: {
-          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.currentTheme.linksprimary],
+          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
         }
       }"
     />
@@ -278,27 +267,24 @@ export default {
         @mouseleave="contextMenu.showed=false"
       >
         <v-list
-          dense
-          flat
+          density="compact"
         >
-          <v-list-item-group>
-            <v-list-item
-              v-for="action in contextMenu.actions"
-              :key="action.id"
+          <v-list-item
+            v-for="action in contextMenu.actions"
+            :key="action.id"
+          >
+
+            <v-btn
+              variant="outlined"
+              size="small"
+              @click="actionClick({action: action,
+                                   feature: contextMenu.feature,
+                                   coordinates: contextMenu.coordinates})"
             >
-              <v-list-item-content>
-                <v-btn
-                  outlined
-                  small
-                  @click="actionClick({action: action,
-                                       feature: contextMenu.feature,
-                                       coordinates: contextMenu.coordinates})"
-                >
-                  {{ $gettext(action) }}
-                </v-btn>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
+              {{ $gettext(action) }}
+            </v-btn>
+
+          </v-list-item>
         </v-list>
       </span>
     </MglPopup>

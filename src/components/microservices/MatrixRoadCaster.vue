@@ -1,6 +1,10 @@
 <script>
 import s3 from '@src/AWSClient'
+import { useMRCStore } from '@src/store/MatrixRoadCaster'
+import { userLinksStore } from '@src/store/rlinks'
+import { useIndexStore } from '@src/store/index'
 
+import { ref, computed, onMounted, watch } from 'vue'
 const $gettext = s => s
 
 export default {
@@ -8,175 +12,193 @@ export default {
   components: {
   },
 
-  data () {
-    return {
-      imgs: [],
-      exporting: false,
-      applying: false,
-      validForm: true,
-      showP: false,
+  setup () {
+    const runMRC = useMRCStore()
+    const rlinksStore = userLinksStore()
+    const store = useIndexStore()
+    const imgs = ref([])
+    const exporting = ref(false)
+    const applying = ref(false)
+    const validForm = ref(true)
+    const showP = ref(false)
 
-      parameters: [{
-        name: 'num_zones',
-        text: 'number of zones',
-        value: null,
-        type: 'Number',
-        units: '',
-        hint: 'number of zones. road nodes will be aggregate to form centroids',
-        rules: [
-          'required', 'largerThanZero',
-        ],
-      },
-      {
-        name: 'train_size',
-        text: 'number of OD (api call)',
-        value: null,
-        type: 'Number',
-        units: '',
-        hint: 'number of OD to get from the API, the rest will be interpolated with ML',
-        rules: [
-          'required', 'largerThanZero',
-        ],
-      },
-      {
-        name: 'date_time',
-        text: 'date Time',
-        value: null,
-        type: 'String',
-        units: '',
-        hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
-        rules: [
-          'required', 'dateTimeRule',
-        ],
-      },
-      {
-        name: 'ff_time_col',
-        text: 'freeflow time on roads',
-        value: null,
-        items: this.$store.getters.rlineAttributes,
-        type: 'String',
-        units: '',
-        hint: 'road links time (link length / speed) to use as a first approximation. this is the freeflow speed, or speed limit',
-        rules: [
-          'required',
-        ],
-      },
-      {
-        name: 'max_speed',
-        text: 'max speed on road',
-        value: null,
-        type: 'Number',
-        units: '',
-        hint: 'Maximum allowed speed on a road. applying an OD matrix on the road network could result il unrealistic speed if not used.',
-        rules: [
-          'required', 'largerThanZero',
-        ],
-      },
-      {
-        name: 'num_random_od',
-        text: 'number of OD to plot',
-        value: null,
-        type: 'Number',
-        units: '',
-        hint: 'number of OD calibration plot to produce. those are random OD.',
-        rules: [
-          'required', 'largerThanZero',
-        ],
-      },
-      {
-        name: 'hereApiKey',
-        text: 'HERE api key',
-        value: null,
-        type: 'password',
-        units: '',
-        hint: 'HERE api key to download a set of OD',
-        rules: [
-          'required',
-        ],
-      },
+    const parameters = ref([{
+      name: 'num_zones',
+      text: 'number of zones',
+      value: null,
+      type: 'Number',
+      units: '',
+      hint: 'number of zones. road nodes will be aggregate to form centroids',
+      rules: [
+        'required', 'largerThanZero',
       ],
-
-      showHint: false,
-      // eslint-disable-next-line max-len, no-useless-escape
-      re: /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/,
-      rules: {
-        required: v => !!v || $gettext('Required'),
-        largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
-        nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
-        dateTimeRule: v => this.re.test(v) || $gettext('invalid date time'),
-      },
-
-    }
-  },
-  computed: {
-    bucket () { return this.$store.getters['runMRC/bucket'] },
-    callID () { return this.$store.getters['runMRC/callID'] },
-    timer () { return this.$store.getters['runMRC/timer'] },
-    importStatus () { return this.$store.getters['runMRC/status'] },
-    running () { return this.$store.getters['runMRC/running'] },
-    error () { return this.$store.getters['runMRC/error'] },
-    errorMessage () { return this.$store.getters['runMRC/errorMessage'] },
-
-  },
-  watch: {
-    importStatus (val) {
-      if (val === 'SUCCEEDED') {
-        this.getImagesURL()
-      }
     },
-  },
-  created () {
-    // init params to the store ones.
-    const storeParams = this.$store.getters['runMRC/parameters']
-    // eslint-disable-next-line no-return-assign
-    this.parameters.forEach(param => param.value = storeParams[param.name])
-    // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
-    // if null, we create a uuid. else we fetch the data on S3
-    if (this.callID) {
-      this.getImagesURL()
-    }
-  },
-  methods: {
-    run () {
-      if (!this.$refs.form.validate()) { return }
-      this.$store.commit('runMRC/setCallID')
-      const inputs = { callID: this.callID }
-      this.parameters.forEach(item => {
+    {
+      name: 'train_size',
+      text: 'number of OD (api call)',
+      value: null,
+      type: 'Number',
+      units: '',
+      hint: 'number of OD to get from the API, the rest will be interpolated with ML',
+      rules: [
+        'required', 'largerThanZero',
+      ],
+    },
+    {
+      name: 'date_time',
+      text: 'date Time',
+      value: null,
+      type: 'String',
+      units: '',
+      hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
+      rules: [
+        'required', 'dateTimeRule',
+      ],
+    },
+    {
+      name: 'ff_time_col',
+      text: 'freeflow time on roads',
+      value: null,
+      items: rlinksStore.rlineAttributes,
+      type: 'String',
+      units: '',
+      hint: 'road links time (link length / speed) to use as a first approximation. this is the freeflow speed, or speed limit',
+      rules: [
+        'required',
+      ],
+    },
+    {
+      name: 'max_speed',
+      text: 'max speed on road',
+      value: null,
+      type: 'Number',
+      units: '',
+      hint: 'Maximum allowed speed on a road. applying an OD matrix on the road network could result il unrealistic speed if not used.',
+      rules: [
+        'required', 'largerThanZero',
+      ],
+    },
+    {
+      name: 'num_random_od',
+      text: 'number of OD to plot',
+      value: null,
+      type: 'Number',
+      units: '',
+      hint: 'number of OD calibration plot to produce. those are random OD.',
+      rules: [
+        'required', 'largerThanZero',
+      ],
+    },
+    {
+      name: 'hereApiKey',
+      text: 'HERE api key',
+      value: null,
+      type: 'password',
+      units: '',
+      hint: 'HERE api key to download a set of OD',
+      rules: [
+        'required',
+      ],
+    },
+    ])
+
+    const bucket = computed(() => { return runMRC.bucket })
+    const callID = computed(() => { return runMRC.callID })
+    const timer = computed(() => { return runMRC.timer })
+    const importStatus = computed(() => { return runMRC.status })
+    const running = computed(() => { return runMRC.running })
+    const error = computed(() => { return runMRC.error })
+    const errorMessage = computed(() => { return runMRC.errorMessage })
+
+    onMounted(() => {
+      // init params to the store ones.
+      const storeParams = runMRC.parameters
+      // eslint-disable-next-line no-return-assign
+      parameters.value.forEach(param => param.value = storeParams[param.name])
+      // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
+      // if null, we create a uuid. else we fetch the data on S3
+      if (callID.value) {
+        getImagesURL()
+      }
+    })
+
+    watch(importStatus, (val) => {
+      if (val === 'SUCCEEDED') { getImagesURL() }
+    })
+
+    async function run (event) {
+      const resp = await event
+      if (!resp.valid) { return }
+      runMRC.setCallID()
+      const inputs = { callID: callID.value }
+      parameters.value.forEach(item => {
         inputs[item.name] = item.value
       })
-      this.$store.dispatch('runMRC/startExecution', {
-        rlinks: this.$store.getters.rlinks,
-        rnodes: this.$store.getters.rnodes,
+      runMRC.startExecution({
+        rlinks: rlinksStore.rlinks,
+        rnodes: rlinksStore.rnodes,
         parameters: inputs,
       })
-    },
-    stopRun () { this.$store.dispatch('runMRC/stopExecution') },
+    }
 
-    async ApplyResults () {
-      this.applying = true
-      const rlinks = await s3.readJson(this.bucket, this.callID.concat('/road_links.geojson'))
-      this.$store.commit('loadrLinks', rlinks)
-      const rnodes = await s3.readJson(this.bucket, this.callID.concat('/road_nodes.geojson'))
-      this.$store.commit('loadrNodes', rnodes)
-      this.applying = false
-      this.$store.commit('changeNotification',
+    function stopRun () { runMRC.stopExecution() }
+
+    async function ApplyResults () {
+      applying.value = true
+      const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
+      rlinksStore.loadrLinks(rlinks)
+      const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
+      rlinksStore.loadrNodes(rnodes)
+      applying.value = false
+      store.changeNotification(
         { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
-    },
-    async getImagesURL () {
-      const outputsFiles = await s3.listFiles(this.bucket, this.callID + '/')
+    }
+
+    async function getImagesURL () {
+      const outputsFiles = await s3.listFiles(bucket.value, callID.value + '/')
       const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
       for (const file of filesNames) {
-        const url = await s3.getImagesURL(this.bucket, file)
-        this.imgs.push(url)
+        const url = await s3.getImagesURL(bucket.value, file)
+        imgs.value.push(url)
       }
-    },
-    async download () {
-      this.exporting = true
-      await s3.downloadFolder(this.bucket, this.callID.concat('/'))
-      this.exporting = false
-    },
+    }
 
+    async function download () {
+      exporting.value = true
+      await s3.downloadFolder(bucket.value, callID.value.concat('/'))
+      exporting.value = false
+    }
+
+    const showHint = ref(false)
+    // eslint-disable-next-line max-len, no-useless-escape
+    const re = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/
+    const rules = {
+      required: v => !!v || $gettext('Required'),
+      largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
+      nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
+      dateTimeRule: v => re.test(v) || $gettext('invalid date time'),
+    }
+    return {
+      imgs,
+      exporting,
+      applying,
+      validForm,
+      showP,
+      parameters,
+      showHint,
+      rules,
+      timer,
+      importStatus,
+      running,
+      error,
+      errorMessage,
+      download,
+      run,
+      stopRun,
+      ApplyResults,
+    }
   },
+
 }
 </script>
 <template>
@@ -192,9 +214,8 @@ export default {
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
 
         <v-form
-          ref="form"
-          v-model="validForm"
-          lazy-validation
+          validate-on="submit lazy"
+          @submit.prevent="run"
         >
           <div
             v-for="(item, key) in parameters"
@@ -239,42 +260,38 @@ export default {
               @wheel="()=>{}"
             />
           </div>
-        </v-form>
-        <v-card-actions>
-          <v-btn
-            color="success"
-            :loading="running || importStatus === 'RUNNING'"
-            :disabled="running || importStatus === 'RUNNING' || !validForm"
-            @click="run()"
-          >
-            <v-icon
-              small
-              style="margin-right: 10px;"
+          <v-card-actions>
+            <v-btn
+              color="success"
+              variant="elevated"
+              :loading="running || importStatus === 'RUNNING'"
+              :disabled="running || importStatus === 'RUNNING' || !validForm"
+              type="submit"
+              prepend-icon=" fa-solid fa-play"
             >
-              fa-solid fa-play
-            </v-icon>
-            {{ $gettext("Run") }}
-          </v-btn>
-          <v-btn
-            v-show="importStatus == 'RUNNING'"
-            color="grey"
-            text
-            @click="stopRun()"
-          >
-            {{ $gettext("Abort") }}
-          </v-btn>
-          <v-card-text v-show="importStatus == 'RUNNING'">
-            ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
-          </v-card-text>
-          <v-spacer />
-          <v-btn
-            icon
-            small
-            @click="showHint = !showHint"
-          >
-            <v-icon>far fa-question-circle small</v-icon>
-          </v-btn>
-        </v-card-actions>
+              {{ $gettext("Run") }}
+            </v-btn>
+            <v-btn
+              v-show="importStatus == 'RUNNING'"
+              color="grey"
+              variant="text"
+              @click="stopRun()"
+            >
+              {{ $gettext("Abort") }}
+            </v-btn>
+            <v-card-text v-show="importStatus == 'RUNNING'">
+              ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
+            </v-card-text>
+            <v-spacer />
+            <v-btn
+
+              size="small"
+              @click="showHint = !showHint"
+            >
+              <v-icon>far fa-question-circle small</v-icon>
+            </v-btn>
+          </v-card-actions>
+        </v-form>
       </v-card>
     </v-col>
     <v-col>
@@ -289,7 +306,7 @@ export default {
           @click="ApplyResults"
         >
           <v-icon
-            small
+            size="small"
             style="margin-right: 10px;"
           >
             fa-solid fa-upload
@@ -303,7 +320,7 @@ export default {
           @click="download"
         >
           <v-icon
-            small
+            size="small"
             style="margin-right: 10px;"
           >
             fa-solid fa-download
@@ -312,8 +329,8 @@ export default {
         </v-btn>
         <v-alert
           v-if="error"
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           text
           type="error"
         >
@@ -334,7 +351,7 @@ export default {
           <v-img
             :src="img"
             :alt="'image'"
-            contain
+            cover
           />
         </div>
       </v-card>
@@ -344,15 +361,19 @@ export default {
 <style lang="scss" scoped>
 
 .card {
-  height: 95%;
+  height: 85vh;
   overflow-y: auto;
   padding: 2.5rem;
+  background-color: rgb(var(--v-theme-lightergrey));
+
 }
 .card2 {
-  height: 95%;
+  height: 85vh;
   overflow-y: auto;
   padding: 2.5rem;
   margin-right: 3rem;
+  background-color: rgb(var(--v-theme-lightergrey));
+
 }
 .row {
   height: 100%
@@ -381,6 +402,7 @@ export default {
 }
 .background {
   background-color:var(--v-background-base);
+  overflow-y: auto;
 }
 
 div.gallery {

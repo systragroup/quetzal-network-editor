@@ -1,15 +1,17 @@
+import { defineStore } from 'pinia'
+import { useIndexStore } from './index'
+
 import s3 from '@src/AWSClient'
 import { quetzalClient } from '../axiosClient'
 import auth from '../auth'
 
 const $gettext = s => s
 
-export default {
-  namespaced: false,
-  state: {
+export const useUserStore = defineStore('userStore', {
+  state: () => ({
     cognitoInfo: {},
     cognitoGroup: '',
-    bucketList: [],
+    bucketListStore: [],
     accesToken: '',
     idToken: '',
     refreshExpTime: 30 * 24 * 60 * 60,
@@ -21,97 +23,92 @@ export default {
     model: null,
     scenario: null,
     protected: false,
-  },
-
-  mutations: {
-    unloadProject (state) {
-      state.model = null
-      state.scenario = null
-    },
-    setLoggedIn (state) {
-      state.loggedIn = true
-    },
-    setLoggedOut (state) {
-      state.cognitoInfo = {}
-      state.cognitoGroup = ''
-      state.bucketList = []
-      state.accesToken = ''
-      state.idToken = ''
-      state.expData = 0
-      state.loggedIn = false
-      state.loadingState = true
-      state.errorLoadingState = false
-      state.scenariosList = []
-      state.model = null
-      state.scenario = null
-      state.protected = false
-    },
-    setCognitoInfo (state, payload) {
-      state.expDate = payload.auth_time
-      state.cognitoInfo = payload
-    },
-    setCognitoGroup (state, payload) {
-      state.cognitoGroup = payload
-    },
-    setBucketList (state, payload) {
-      state.bucketList = payload
-    },
-    setAccessToken (state, payload) {
-      state.accesToken = payload.jwtToken
-    },
-    setIdToken (state, payload) {
-      state.idToken = payload
-    },
-    setScenariosList (state, payload) {
-      state.scenariosList = payload
-    },
-    setModel (state, payload) {
-      state.model = payload
-    },
-    setScenario (state, payload) {
-      state.scenario = payload.scenario
-      state.protected = payload.protected
-      this.commit('changeOutputName', payload.scenario, { root: true })
-    },
-
-  },
+  }),
 
   actions: {
-    async getScenario ({ commit, state, dispatch }, payload) {
-      const res = await s3.getScenario(payload.model)
-      commit('setScenariosList', res)
+    unloadProject (state) {
+      this.model = null
+      this.scenario = null
     },
-    async getBucketList ({ commit }) {
+    setLoggedIn (state) {
+      this.loggedIn = true
+    },
+    setLoggedOut (state) {
+      this.cognitoInfo = {}
+      this.cognitoGroup = ''
+      this.bucketListStore = []
+      this.accesToken = ''
+      this.idToken = ''
+      this.expData = 0
+      this.loggedIn = false
+      this.loadingState = true
+      this.errorLoadingState = false
+      this.scenariosList = []
+      this.model = null
+      this.scenario = null
+      this.protected = false
+    },
+    setCognitoInfo (payload) {
+      this.expDate = payload.auth_time
+      this.cognitoInfo = payload
+    },
+    setCognitoGroup (payload) {
+      this.cognitoGroup = payload
+    },
+    setBucketList (payload) {
+      this.bucketListStore = payload
+    },
+    setAccessToken (payload) {
+      this.accesToken = payload.jwtToken
+    },
+    setIdToken (payload) {
+      this.idToken = payload
+    },
+    setScenariosList (payload) {
+      this.scenariosList = payload
+      // change email when promise resolve. fetching email il slow. so we lazy load them
+      this.scenariosList.forEach((scen) => {
+        scen.userEmailPromise.then((val) => { scen.userEmail = val }).catch(
+          err => console.log(err))
+      })
+    },
+    setModel (payload) {
+      this.model = payload
+    },
+    setScenario (payload) {
+      const store = useIndexStore()
+      this.scenario = payload.scenario
+      this.protected = payload.protected
+      store.changeOutputName(payload.scenario)
+    },
+    async getScenario (payload) {
+      const res = await s3.getScenario(payload.model)
+      this.setScenariosList(res)
+    },
+    async getBucketList () {
       try {
         const resp = await quetzalClient.client.get('buckets/')
-        commit('setBucketList', resp.data)
+        this.setBucketList(resp.data)
       } catch (err) {
-        commit('changeAlert', { name: 'Cognito Client error', message: err.response.data.detail }, { root: true })
+        const store = useIndexStore()
+        store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
       }
     },
-    isTokenExpired ({ state, commit }) {
+    isTokenExpired () {
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
-      if (currentTime > state.expDate + state.refreshExpTime) {
+      if (currentTime > this.expDate + this.refreshExpTime) {
         auth.logout()
-        commit('changeAlert', {
+        const store = useIndexStore()
+        store.changeAlert({
           name: $gettext('sign out'),
           message: $gettext('your session has expired. Please sign in again'),
-        }, { root: true })
+        })
       }
     },
 
   },
 
   getters: {
-    loggedIn: (state) => state.loggedIn,
-    cognitoInfo: (state) => state.cognitoInfo,
-    cognitoGroup: (state) => state.cognitoGroup,
-    bucketList: (state) => state.bucketList ? state.bucketList : [],
-    accesToken: (state) => state.accesToken,
-    idToken: (state) => state.idToken,
-    scenariosList: (state) => state.scenariosList,
-    model: (state) => state.model,
-    scenario: (state) => state.scenario,
-    protected: (state) => state.protected,
+    bucketList: (state) => state.bucketListStore ? state.bucketListStore : [],
   },
-}
+})

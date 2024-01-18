@@ -1,47 +1,31 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-import linksModule from './links.js'
-import rlinksModule from './rlinks.js'
-import odModule from './od.js'
-import resultsModule from './results.js'
-import layerModule from './layer.js'
-import runModule from './api/run.js'
-import MatrixRoadCasterModule from './api/MatrixRoadCaster.js'
-import OSMImporterModule from './api/OSMImporter.js'
-import GTFSImporterModule from './api/GTFSImporter.js'
-import userModule from './user.js'
+import { defineStore } from 'pinia'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
-import { serializer, stylesSerializer } from '../components/utils/serializer.js'
+import { toRaw } from 'vue'
+import { useLinksStore } from './links'
+import { userLinksStore } from './rlinks'
+import { useODStore } from './od'
+import { useRunStore } from './run'
 
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
-Vue.use(Vuex)
+import { serializer, stylesSerializer } from '../components/utils/serializer.js'
+import { useUserStore } from './user.js'
+import { cloneDeep } from 'lodash'
+
+import geojson from '@constants/geojson'
+
 const $gettext = s => s
 
 const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
 
-export const store = new Vuex.Store({
-  modules: {
-    user: userModule,
-    links: linksModule,
-    rlinks: rlinksModule,
-    od: odModule,
-    results: resultsModule,
-    run: runModule,
-    runMRC: MatrixRoadCasterModule,
-    runOSM: OSMImporterModule,
-    runGTFS: GTFSImporterModule,
-  },
+export const useIndexStore = defineStore('store', {
 
-  state: {
-    notification: {},
+  state: () => ({
+    notification: { autoClose: true },
     alert: {},
     darkMode: false,
     loading: false,
     showLeftPanel: true,
-    windowHeight: 0,
     anchorMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
@@ -50,54 +34,57 @@ export const store = new Vuex.Store({
     mapCenter: [-73.570337, 45.498310],
     mapZoom: 11,
     importPoly: null,
-    availableLayers: ['links', 'rlinks', 'od', 'nodes', 'rnodes'],
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     otherFiles: [], // [{path, content}]
     attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
-  },
-  mutations: {
-    changeNotification (state, payload) {
-      state.notification = payload
+  }),
+
+  actions: {
+    changeNotification (payload) {
+      this.notification = payload
     },
-    changeAlert (state, payload) {
+    changeAlert (payload) {
       /// payload {name,message}, or just alert
-      state.alert = payload
+      this.alert = payload
     },
-    changeDarkMode (state, payload) {
-      state.darkMode = payload
-      state.rlinks.rlinksDefaultColor = state.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
-      state.links.linksDefaultColor = state.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
+    changeDarkMode (payload) {
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      this.darkMode = payload
+      rlinks.rlinksDefaultColor = this.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
+      links.linksDefaultColor = this.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
     },
-    changeLoading (state, payload) {
-      state.loading = payload
+    changeLoading (payload) {
+      this.loading = payload
     },
-    changeWindowHeight (state, payload) {
-      state.windowHeight = payload
-    },
-    changeLeftPanel (state) {
-      state.showLeftPanel = !state.showLeftPanel
-    },
-    saveMapPosition (state, payload) {
-      state.mapCenter = payload.mapCenter
-      state.mapZoom = payload.mapZoom
-    },
-    setAnchorMode (state, payload) {
-      state.anchorMode = payload
-    },
-    changeAnchorMode (state) {
-      state.anchorMode = !state.anchorMode
-    },
-    changeCyclewayMode (state, payload) {
-      state.cyclewayMode = !state.cyclewayMode
+    changeLeftPanel () {
+      this.showLeftPanel = !this.showLeftPanel
     },
 
-    loadFiles (state, payload) {
-      // payload: res.push({ path: inputs/pt/links.geojson, content: Array() | null })
+    saveMapPosition (payload) {
+      this.mapCenter = payload.mapCenter
+      this.mapZoom = payload.mapZoom
+    },
+    setAnchorMode (payload) {
+      this.anchorMode = payload
+    },
+    changeAnchorMode () {
+      this.anchorMode = !this.anchorMode
+    },
+    changeCyclewayMode (payload) {
+      this.cyclewayMode = !this.cyclewayMode
+    },
+
+    loadFiles (payload) {
+      // payload: res.push({ path: inputs/pt/links.geojson, content: Array() || null })
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      const ODStore = useODStore()
+      const runStore = useRunStore()
       try {
         let otherFiles = []
         let outputFiles = []
-
         const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
         otherFiles = payload.filter(el => !ptFiles.includes(el))
 
@@ -121,6 +108,7 @@ export const store = new Vuex.Store({
 
         outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
         otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
+        // at this point. nothing is used in otherFiles.
 
         // PT files should be in pair of 2 (links and nodes)
         if (ptFiles.length % 2 !== 0) {
@@ -134,62 +122,77 @@ export const store = new Vuex.Store({
           err.name = 'ImportError'
           throw err
         }
-        this.commit('loadPTFiles', ptFiles)
-        this.commit('loadRoadFiles', roadFiles)
-        this.commit('od/loadODFiles', ODFiles)
-        if (paramFile) this.commit('run/getLocalParameters', paramFile.content)
+        linksStore.loadPTFiles(ptFiles)
+        rlinksStore.loadRoadFiles(roadFiles)
+        ODStore.loadODFiles(ODFiles)
+        if (paramFile) runStore.getLocalParameters(paramFile.content)
+        if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
         if (stylesFile) {
           const json = stylesSerializer(stylesFile.content)
-          state.styles = json
+          this.styles = json
         }
-        if (attributesChoicesFile) { this.commit('loadAttributesChoices', attributesChoicesFile.content) }
 
-        this.commit('loadOtherFiles', inputFiles)
+        this.loadOtherFiles(inputFiles)
+        this.loadOtherFiles(outputFiles)
 
-        // get outputs geojson files and create Layer with them.
-        const layerFiles = outputFiles.filter(el => el.path.endsWith('.geojson'))
-        outputFiles = outputFiles.filter(el => !layerFiles.includes(el))
-        this.commit('loadLayers', layerFiles)
-
-        // get JSON files with the same name as Modules (they are matrix)
-        const matrixFiles = outputFiles.filter(el => el.path.endsWith('.json') &&
-        state.availableLayers.includes(el.path.slice(0, -5)),
-        )
-        outputFiles = outputFiles.filter(el => !matrixFiles.includes(el))
-
-        this.commit('loadMatrix', matrixFiles)
-
-        // load the rest
-        this.commit('loadOtherFiles', outputFiles)
-        this.commit('changeNotification',
+        this.changeNotification(
           { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
       } catch (err) {
-        this.commit('changeAlert', err)
+        this.changeAlert(err)
       }
     },
 
-    loadOtherFiles (state, payload) {
-      // payload = [{path, content, type}]
+    loadOtherFiles (payload) {
+      // payload = [{path, content}]. transform to [{path,content,name,extension}]
       // if a file is updated with the same path (already exist). remove it
       const newPaths = payload.map(file => file.path)
-      state.otherFiles = state.otherFiles.filter(file => !newPaths.includes(file.path))
+      this.otherFiles = this.otherFiles.filter(file => !newPaths.includes(file.path))
       // push files
-      payload.forEach(file => state.otherFiles.push(file))
+      for (const file of payload) {
+        const extension = file.path.split('.').slice(-1)[0]
+        const name = file.path.split('.').slice(-2)[0]
+        this.otherFiles.push({ ...file, name, extension })
+      }
+    },
+    deleteOutputs () {
+      this.otherFiles = this.otherFiles.filter(file => !file.path.startsWith('outputs/'))
+    },
+    deleteotherFiles (paths) {
+      // list of paths
+      this.otherFiles = this.otherFiles.filter(file => !paths.includes(file.path))
     },
 
-    loadAttributesChoices (state, payload) {
-      // eslint-disable-next-line no-return-assign
-      Object.keys(payload.pt).forEach(key => state.attributesChoices.pt[key] = payload.pt[key])
-      this.commit('loadLinksAttributesChoices', payload.pt)
-      // eslint-disable-next-line no-return-assign
-      Object.keys(payload.road).forEach(key => state.attributesChoices.road[key] = payload.road[key])
-      this.commit('loadrLinksAttributesChoices', payload.road)
-    },
-    setVisibleRasters (state, payload) {
-      state.visibleRasters = payload
+    async getOtherFile (name, extension) {
+      const files = this.otherFiles.filter(file => file.name === name)
+      const file = files.filter(file => file.extension === extension)[0]
+      // if its null. fetch it!
+      if (!file) { return null }
+      if (!file.content) {
+        this.changeLoading(true)
+        const userStore = useUserStore()
+        file.content = await s3.readJson(userStore.model, userStore.scenario + '/' + file.path)
+        this.changeLoading(false)
+      }
+      return file.content
     },
 
-    loadLayers (state, payload) {
+    loadAttributesChoices (payload) {
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload.pt).forEach(key => this.attributesChoices.pt[key] = payload.pt[key])
+      links.loadLinksAttributesChoices(payload.pt)
+      // eslint-disable-next-line no-return-assign
+      Object.keys(payload.road).forEach(key => this.attributesChoices.road[key] = payload.road[key])
+      rlinks.loadrLinksAttributesChoices(payload.road)
+    },
+    setVisibleRasters (payload) {
+      // payload.forEach(el => arr.push({ item: el }))
+      // this.visibleRasters = new Set(payload)
+      this.visibleRasters = payload
+    },
+
+    loadLayers (payload) {
       payload.forEach(
         file => {
           const fileName = file.path.slice(0, -8) // remove .geojson
@@ -197,90 +200,82 @@ export const store = new Vuex.Store({
           // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
           file.content = serializer(file.content, file.path, null, false)
 
-          this.commit('createLayer', {
-            fileName: fileName,
+          this.createLayer({
+            fileName,
             data: file.content,
           })
         })
     },
-    loadMatrix (state, payload) {
-      // payload : [{path,content}]
-      payload.forEach(
-        file => {
-          const moduleName = file.path.slice(0, -5)
-          this.commit(`${moduleName}/addMatrix`, file.content)
-        },
-      )
+
+    initLinks () {
+      const links = useLinksStore()
+      links.initLinks()
+      links.loadLinks(geojson)
+      links.loadNodes(geojson)
     },
 
-    createLayer (state, payload) {
-      const moduleName = payload.fileName
-      if (!Object.keys(this._modules.root._children).includes(moduleName)) {
-        this.registerModule(moduleName, layerModule)
-      }
-      this.commit(`${moduleName}/createLayer`, payload)
-      if (!state.availableLayers.includes(moduleName)) {
-        state.availableLayers.push(moduleName)
-      }
+    initrLinks () {
+      const rlinks = userLinksStore()
+      rlinks.initrLinks()
+      rlinks.loadrLinks(geojson)
+      rlinks.loadrNodes(geojson)
     },
-    unloadLayers (state) {
-      const moduleToDelete = Object.keys(this._modules.root._children).filter(
-        x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-      moduleToDelete.forEach(moduleName => this.unregisterModule(moduleName))
-      state.availableLayers = ['links', 'rlinks', 'od', 'nodes', 'rnodes']
-    },
-    registerStaticLayer () {
-      this.registerModule('staticLayer', resultsModule)
-      this.commit('staticLayer/setNamespace', 'staticLayer')
-    },
-    unregisterStaticLayer () { this.unregisterModule('staticLayer') },
-
-    initNetworks (state) {
-      this.commit('initLinks')
-      this.commit('initrLinks')
-      this.commit('loadLinks', linksBase)
-      this.commit('loadrLinks', linksBase)
-      this.commit('loadNodes', nodesBase)
-      this.commit('loadrNodes', nodesBase)
-      this.commit('od/loadLayer', linksBase)
-      state.visibleRasters = []
-      state.styles = []
-      state.attributesChoices = structuredClone(defaultAttributesChoices)
-      this.commit('loadAttributesChoices', defaultAttributesChoices)
-      state.otherFiles = []
-      state.cyclewayMode = false
+    initNetworks () {
+      const od = useODStore()
+      this.initLinks()
+      this.initrLinks()
+      od.loadLayer(geojson)
+      this.visibleRasters = []
+      this.styles = []
+      this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
+      this.loadAttributesChoices(defaultAttributesChoices)
+      this.otherFiles = []
+      this.cyclewayMode = false
     },
 
-    applySettings (state, payload) {
-      state.links.linkSpeed = Number(payload.linkSpeed)
-      state.rlinks.roadSpeed = Number(payload.roadSpeed)
-      state.linksPopupContent = payload.linksPopupContent
-      state.roadsPopupContent = payload.roadsPopupContent
-      state.rlinks.defaultHighway = payload.defaultHighway
-      state.outputName = payload.outputName
+    applySettings (payload) {
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      linksStore.linkSpeed = Number(payload.linkSpeed)
+      rlinksStore.roadSpeed = Number(payload.roadSpeed)
+      this.linksPopupContent = payload.linksPopupContent
+      this.roadsPopupContent = payload.roadsPopupContent
+      rlinksStore.defaultHighway = payload.defaultHighway
+      this.outputName = payload.outputName
     },
-    changeOutputName (state, payload) { state.outputName = payload },
-    addStyle (state, payload) {
+    changeOutputName (payload) { this.outputName = payload },
+    addStyle (payload) {
       // payload: styling for results {name,layer, displaySettings:{...}}
-      const names = state.styles.map(el => el.name)
+      const names = this.styles.map(el => el.name)
       const idx = names.indexOf(payload.name)
       if (idx !== -1) {
-        state.styles[idx] = payload
+        this.styles[idx] = payload
       } else {
-        state.styles.push(payload)
+        this.styles.push(payload)
       }
     },
-    deleteStyle (state, payload) {
+    deleteStyle (payload) {
       // payload = name of the preset to delete
-      state.styles = state.styles.filter(el => el.name !== payload)
+      this.styles = this.styles.filter(el => el.name !== payload)
     },
-    saveImportPoly (state, payload) {
-      state.importPoly = payload
+    saveImportPoly (payload) {
+      this.importPoly = payload
+    },
+    async exportFile (path = '') {
+      if (path === 'styles.json') {
+        if (this.styles.length > 0) {
+          const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
+          saveAs(blob, path)
+        }
+      }
     },
 
-  },
-  actions: {
-    async exportFiles ({ state, commit }, payload = 'all') {
+    async exportFiles (payload = 'all') {
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      const ODStore = useODStore()
+      const runStore = useRunStore()
+      const userStore = useUserStore()
       const zip = new JSZip()
       let links = ''
       let nodes = ''
@@ -288,30 +283,30 @@ export const store = new Vuex.Store({
       let rnodes = ''
       let od = ''
       // export only visible line (line selected)
-      commit('applyPropertiesTypes')
+      linksStore.applyPropertiesTypes(linksStore.links)
       if (payload !== 'all') {
-        const tempLinks = structuredClone(state.links.links)
+        const tempLinks = cloneDeep(linksStore.links)
         tempLinks.features = tempLinks.features.filter(
-          link => state.links.selectedTrips.includes(link.properties.trip_id))
+          link => linksStore.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
         // delete every every nodes not in links
         const a = tempLinks.features.map(item => item.properties.a)
         const b = tempLinks.features.map(item => item.properties.b)
         const nodesInLinks = Array.from(new Set([...a, ...b]))
-        const tempNodes = structuredClone(state.links.nodes)
+        const tempNodes = cloneDeep(linksStore.nodes)
         tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
         nodes = JSON.stringify(tempNodes)
 
-        rlinks = JSON.stringify(state.rlinks.visiblerLinks)
-        rnodes = JSON.stringify(state.rlinks.visiblerNodes)
-        od = JSON.stringify(this.getters['od/visibleLayer'])
+        rlinks = JSON.stringify(rlinksStore.visiblerLinks)
+        rnodes = JSON.stringify(rlinksStore.visiblerNodes)
+        od = JSON.stringify(ODStore.visibleLayer)
       // export everything
       } else {
-        links = JSON.stringify(state.links.links)
-        nodes = JSON.stringify(state.links.nodes)
-        rlinks = JSON.stringify(state.rlinks.rlinks)
-        rnodes = JSON.stringify(state.rlinks.rnodes)
-        od = JSON.stringify(this.getters['od/layer'])
+        links = JSON.stringify(linksStore.links)
+        nodes = JSON.stringify(linksStore.nodes)
+        rlinks = JSON.stringify(rlinksStore.rlinks)
+        rnodes = JSON.stringify(rlinksStore.rnodes)
+        od = JSON.stringify(ODStore.layer)
       }
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
@@ -336,37 +331,23 @@ export const store = new Vuex.Store({
         zip.file('inputs/od/od.geojson', blob)
       }
       if (payload === 'all') {
-        if (!this.getters['run/parametersIsEmpty']) {
-          const blob = new Blob([JSON.stringify(this.getters['run/parameters'])], { type: 'application/json' })
+        if (!runStore.parametersIsEmpty) {
+          const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
           zip.file('inputs/params.json', blob)
         }
-        if (state.styles.length > 0) {
-          const blob = new Blob([JSON.stringify(state.styles)], { type: 'application/json' })
+        if (this.styles.length > 0) {
+          const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           zip.file('styles.json', blob)
         }
-        if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
-          const blob = new Blob([JSON.stringify(state.attributesChoices)], { type: 'application/json' })
+        if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
+          const blob = new Blob([JSON.stringify(this.attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
 
-        const layers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-        for (const layer of layers) {
-          const blob = new Blob([JSON.stringify(this.getters[`${layer}/layer`])], { type: 'application/json' })
-          const name = layer + '.geojson'
-          // zip name = layer.replace('/', '_') + '.geojson'
-          zip.file(name, blob)
-          if (this.getters[`${layer}/mat`]) {
-            const blob = new Blob([JSON.stringify(this.getters[`${layer}/mat`])], { type: 'application/json' })
-            const name = layer + '.json'
-            zip.file(name, blob)
-          }
-        }
-
-        for (const file of state.otherFiles) {
+        for (const file of this.otherFiles) {
           // if others file loaded from S3 (they are not loaded yet. need to download them.)
-          if (file.content == null && state.user.model !== null) {
-            file.content = await s3.readBytes(state.user.model, state.user.scenario + '/' + file.path)
+          if (file.content == null && userStore.model !== null) {
+            file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
           }
           if (file.content instanceof Uint8Array) {
             const blob = new Blob([file.content]) // { type: 'text/csv' }
@@ -378,19 +359,24 @@ export const store = new Vuex.Store({
         }
       }
       zip.generateAsync({ type: 'blob' })
-        .then(function (content) {
+        .then((content) => {
           // see FileSaver.js
-          saveAs(content, state.outputName + '.zip')
+          saveAs(content, `${this.outputName}.zip`)
         })
     },
 
-    async exportToS3 ({ state, commit, dispatch }, payload) {
+    async exportToS3 (payload) {
       // payload = 'inputs'. only export inputs
       // else no payload to export all.
-      dispatch('isTokenExpired')
-      this.commit('applyPropertiesTypes')
-      const scen = state.user.scenario + '/'
-      const bucket = state.user.model
+      const linksStore = useLinksStore()
+      const rlinksStore = userLinksStore()
+      const ODStore = useODStore()
+      const runStore = useRunStore()
+      const userStore = useUserStore()
+      userStore.isTokenExpired()
+      linksStore.applyPropertiesTypes(linksStore.links)
+      const scen = userStore.scenario + '/'
+      const bucket = userStore.model
       const inputFolder = scen + 'inputs/'
       const ptFolder = inputFolder + 'pt/'
       const roadFolder = inputFolder + 'road/'
@@ -406,56 +392,44 @@ export const store = new Vuex.Store({
         attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
-      if (state.run.parameters.length > 0) {
-        await s3.putObject(bucket, paths.params, JSON.stringify(state.run.parameters))
+      if (runStore.parameters.length > 0) {
+        await s3.putObject(bucket, paths.params, JSON.stringify(runStore.parameters))
       }
       // save styles if changed
-      if (state.styles.length > 0) {
-        await s3.putObject(bucket, paths.styles, JSON.stringify(state.styles))
+      if (this.styles.length > 0) {
+        await s3.putObject(bucket, paths.styles, JSON.stringify(this.styles))
       }
       // save attributes choices if changed
-      if (JSON.stringify(state.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
-        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(state.attributesChoices))
+      if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
+        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(this.attributesChoices))
       }
       // save PT
-      if (state.links.links.features.length > 0) {
-        await s3.putObject(bucket, paths.links, JSON.stringify(state.links.links))
-        await s3.putObject(bucket, paths.nodes, JSON.stringify(state.links.nodes))
+      if (linksStore.links.features.length > 0) {
+        await s3.putObject(bucket, paths.links, JSON.stringify(linksStore.links))
+        await s3.putObject(bucket, paths.nodes, JSON.stringify(linksStore.nodes))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, ptFolder)
       }
       // save Roads
-      if (state.rlinks.rlinks.features.length > 0) {
-        await s3.putObject(bucket, paths.rlinks, JSON.stringify(state.rlinks.rlinks))
-        await s3.putObject(bucket, paths.rnodes, JSON.stringify(state.rlinks.rnodes))
+      if (rlinksStore.rlinks.features.length > 0) {
+        await s3.putObject(bucket, paths.rlinks, JSON.stringify(rlinksStore.rlinks))
+        await s3.putObject(bucket, paths.rnodes, JSON.stringify(rlinksStore.rnodes))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, roadFolder)
       }
       // save ods
-      if (!this.getters['od/layerIsEmpty']) {
-        await s3.putObject(bucket, paths.od, JSON.stringify(this.getters['od/layer']))
+      if (!ODStore.layerIsEmpty) {
+        await s3.putObject(bucket, paths.od, JSON.stringify(ODStore.layer))
       } else {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, odFolder)
       }
       // save outputs Layers
-      if (payload !== 'inputs') {
-        const layers = Object.keys(this._modules.root._children).filter(
-          x => !['links', 'rlinks', 'od', 'results', 'run', 'user', 'runMRC', 'runOSM', 'runGTFS'].includes(x))
-        for (const layer of layers) {
-          const name = layer + '.geojson'
-          await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/layer`]))
-          if (this.getters[`${layer}/mat`]) {
-            const name = layer + '.json'
-            await s3.putObject(bucket, scen + name, JSON.stringify(this.getters[`${layer}/mat`]))
-          }
-        }
-      }
       // save others layers
       // if payload === inputs. only export inputs/ files.
-      let otherFiles = state.otherFiles
+      let otherFiles = this.otherFiles
       if (payload === 'inputs') {
         otherFiles = otherFiles.filter(file => !file.path.startsWith('outputs/'))
       }
@@ -469,57 +443,57 @@ export const store = new Vuex.Store({
           await s3.putObject(bucket, scen + file.path, JSON.stringify(file.content))
         }
       }
-      // console.log(res)
-      // commit('setScenariosList', res)
     },
-    async deleteOutputsOnS3 ({ state }) {
-      await s3.deleteFolder(state.user.model, state.user.scenario + '/outputs/')
+    async deleteOutputsOnS3 () {
+      const userStore = useUserStore()
+      await s3.deleteFolder(userStore.model, userStore.scenario + '/outputs/')
     },
 
   },
   getters: {
-    notification: (state) => state.notification,
-    alert: (state) => state.alert,
-    loading: (state) => state.loading,
-    mapCenter: (state) => state.mapCenter,
-    mapZoom: (state) => state.mapZoom,
-    importPoly: (state) => state.importPoly,
-    windowHeight: (state) => state.windowHeight,
-    anchorMode: (state) => state.anchorMode,
-    showLeftPanel: (state) => state.showLeftPanel,
-    linksPopupContent: (state) => state.linksPopupContent,
-    roadsPopupContent: (state) => state.roadsPopupContent,
-    cyclewayMode: (state) => state.cyclewayMode,
-    outputName: (state) => state.outputName,
-    visibleRasters: (state) => state.visibleRasters,
-    styles: (state) => state.styles,
-    attributesChoices: (state) => state.attributesChoices,
-    otherFiles: (state) => state.otherFiles,
-    projectIsUndefined: (state) => Object.keys(state.links.links).length === 0,
+    projectIsUndefined: () => {
+      const links = useLinksStore()
+      return Object.keys(links.links).length === 0
+    },
     projectIsEmpty: (state) => {
-      return (state.links.links.features.length === 0 &&
-              state.rlinks.rlinks.features.length === 0 &&
-              state.od.layer.features.length === 0)
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      const od = useODStore()
+      const runStore = useRunStore()
+      return (links.links.features.length === 0 &&
+             rlinks.rlinks.features.length === 0 &&
+              od.layer.features.length === 0 &&
+              state.otherFiles.length === 0 &&
+              runStore.parameters.length === 0 &&
+              state.styles.length === 0)
     },
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
-      let filteredLayers = structuredClone(state.availableLayers)
-      if (state.links.links.features.length === 0) {
-        filteredLayers = filteredLayers.filter(layer => !['links', 'nodes'].includes(layer))
+      const links = useLinksStore()
+      const rlinks = userLinksStore()
+      const od = useODStore()
+      const availableLayers = []
+      if (!links.linksIsEmpty) {
+        availableLayers.push(...['links', 'nodes'])
       }
-      if (state.rlinks.rlinks.features.length === 0) {
-        filteredLayers = filteredLayers.filter(layer => !['rlinks', 'rnodes'].includes(layer))
+      if (!rlinks.rlinksIsEmpty) {
+        availableLayers.push(...['rlinks', 'rnodes'])
       }
-      if (state.od.layer.features.length === 0) {
-        filteredLayers = filteredLayers.filter(layer => !['od'].includes(layer))
+      if (!od.layerIsEmpty === 0) {
+        availableLayers.push('od')
       }
-      return filteredLayers
+      state.otherFiles.filter(file => file.extension === 'geojson').forEach(file => {
+        availableLayers.push(file.name)
+      })
+
+      // for now. remove inputs as they are not read. (need to fetch them.)
+      return availableLayers.filter(name => !name.startsWith('inputs/'))
     },
     mapStyle: (state) => {
       if (state.darkMode) {
-        return 'mapbox://styles/mapbox/dark-v11?optimize=true'
+        return 'mapbox://styles/mapbox/dark-v11'
       } else {
-        return 'mapbox://styles/mapbox/light-v11?optimize=true'
+        return 'mapbox://styles/mapbox/light-v11'
       }
     },
 

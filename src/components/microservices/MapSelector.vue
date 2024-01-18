@@ -1,17 +1,23 @@
 <script>
-import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox'
+import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox3'
 import NodesLayer from './NodesLayer.vue'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
 import Point from 'turf-point'
 import Linestring from 'turf-linestring'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-const short = require('short-uuid')
+import { ref, computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { userLinksStore } from '@src/store/rlinks'
+import { cloneDeep } from 'lodash'
+import geojson from '@constants/geojson'
+
+import short from 'short-uuid'
 const $gettext = s => s
+const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 
 export default {
   name: 'MapSelector',
-  events: ['change'],
   components: {
     MglMap,
     MglNavigationControl,
@@ -19,21 +25,35 @@ export default {
     MglGeojsonLayer,
     NodesLayer,
   },
+  emits: ['change'],
 
-  data () {
+  setup () {
+    const store = useIndexStore()
+    const rlinksStore = userLinksStore()
+
+    const mapboxPublicKey = key
+    const mapIsLoaded = ref(false)
+    const poly = ref(null)
+    const nodes = ref({})
+    const header = geojson
+    const freeForm = ref(false)
+
+    const mapStyle = computed(() => { return store.mapStyle })
+    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+
     return {
-      mapIsLoaded: false,
-      mapboxPublicKey: process.env.VUE_APP_MAPBOX_PUBLIC_KEY,
-      poly: null,
-      nodes: {},
-      freeForm: false,
+      store,
+      mapIsLoaded,
+      mapboxPublicKey,
+      poly,
+      nodes,
+      header,
+      freeForm,
+      mapStyle,
+      rlinksIsEmpty,
     }
   },
-  computed: {
-    mapStyle () { return this.$store.getters.mapStyle },
-    rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
-    nodesHeader () { return this.$store.getters.nodesHeader },
-  },
+
   watch: {
     mapStyle () {
       try {
@@ -46,18 +66,16 @@ export default {
     // remove stroke layer as it use the polygon layer data.
     const center = this.map?.getCenter()
     if (center) {
-      this.$store.commit('saveMapPosition', {
+      this.store.saveMapPosition({
         mapCenter: [center.lng, center.lat],
         mapZoom: this.map.getZoom(),
       })
     }
-    this.$store.commit('saveImportPoly', { freeForm: this.freeForm, poly: this.poly })
+    this.storesaveImportPoly({ freeForm: this.freeForm, poly: this.poly })
     try {
       this.map.removeLayer('stroke')
     } catch (err) {}
   },
-
-  async created () {},
 
   methods: {
 
@@ -67,8 +85,8 @@ export default {
       this.map.on('dragend', this.getBounds)
       this.map.on('zoomend', this.getBounds)
       this.freeForm = false
-      if (this.$store.getters.importPoly?.freeForm) {
-        this.poly = this.$store.getters.importPoly.poly
+      if (this.store.importPoly?.freeForm) {
+        this.poly = this.store.importPoly.poly
         this.toggleFreeForm()
       } else {
         this.getBounds()
@@ -90,13 +108,13 @@ export default {
         this.map.off('dragend', this.getBounds)
         this.map.off('zoomend', this.getBounds)
         this.getNodes()
-        this.$store.commit('changeNotification',
+        this.store.changeNotification(
           { text: $gettext('Click to add points. Right click de remove'), autoClose: false })
       } else {
         this.map.on('dragend', this.getBounds)
         this.map.on('zoomend', this.getBounds)
         this.getBounds()
-        this.$store.commit('changeNotification',
+        this.store.changeNotification(
           { text: '', autoClose: true })
       }
     },
@@ -112,7 +130,7 @@ export default {
     },
 
     getNodes () {
-      const nodes = structuredClone(this.nodesHeader)
+      const nodes = cloneDeep(geojson)
       const poly = this.poly.geometry.coordinates[0]
       // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
       poly.slice(0, poly.length - 1).forEach(
@@ -135,10 +153,10 @@ export default {
       const idx = event.selectedFeature.properties.coordinatesIndex
       const poly = this.poly.geometry.coordinates[0]
       if (poly.length <= 4) {
-        this.$store.commit('changeNotification',
+        this.store.changeNotification(
           { text: $gettext('Cannot delete anymore'), autoClose: true })
       } else if (idx === 0) {
-        this.$store.commit('changeNotification',
+        this.store.changeNotification(
           { text: $gettext('cannot delete first point of polygon'), autoClose: true })
       } else {
         this.poly.geometry.coordinates[0] = [...poly.slice(0, idx), ...poly.slice(idx + 1)]
@@ -146,7 +164,7 @@ export default {
       }
     },
     addNode (event) {
-      if (this.freeForm) {
+      if (this.freeForm && Object.keys(event).includes('mapboxEvent')) {
         const poly = this.poly.geometry.coordinates[0]
         const lngLat = event.mapboxEvent.lngLat
         const linkGeom = Linestring(poly)
@@ -166,8 +184,8 @@ export default {
   <MglMap
     :key="mapStyle"
     class="map"
-    :center="$store.getters.mapCenter"
-    :zoom="$store.getters.mapZoom"
+    :center="store.mapCenter"
+    :zoom="store.mapZoom"
     :min-zoom="3"
     :access-token="mapboxPublicKey"
     :map-style="mapStyle"
@@ -176,20 +194,12 @@ export default {
   >
     <MglScaleControl position="bottom-right" />
     <MglNavigationControl position="bottom-right" />
-    <template>
-      <v-btn
-        class="freeform-button"
-        fab
-        small
-        @click="toggleFreeForm"
-      >
-        <v-icon
-          color="regular"
-        >
-          {{ freeForm? 'far fa-square':'fas fa-vector-square' }}
-        </v-icon>
-      </v-btn>
-    </template>
+    <v-btn
+      class="freeform-button"
+      size="small"
+      :icon=" freeForm? 'far fa-square':'fas fa-vector-square'"
+      @click="toggleFreeForm"
+    />
 
     <MglGeojsonLayer
       source-id="polygon"
@@ -203,7 +213,7 @@ export default {
         interactive: true,
         type: 'fill',
         'paint': {
-          'fill-color': $vuetify.theme.currentTheme.linksprimary, // blue color fill
+          'fill-color': $vuetify.theme.current.colors.linksprimary, // blue color fill
           'fill-opacity': 0.3,
 
         },
@@ -220,7 +230,7 @@ export default {
       :layer="{
         type: 'line',
         paint: {
-          'line-color':$vuetify.theme.currentTheme.linksprimary,
+          'line-color':$vuetify.theme.current.colors.linksprimary,
           'line-width':3
         }
       }"
@@ -228,7 +238,7 @@ export default {
     <NodesLayer
       v-if="mapIsLoaded"
       :map="map"
-      :nodes="freeForm? nodes: nodesHeader"
+      :nodes="freeForm? nodes: header"
       :active="freeForm"
       @move="moveNode"
       @rightClick="removeNode"
@@ -237,11 +247,6 @@ export default {
 </template>
 <style lang="scss" scoped>
 
-.map {
-  max-width: 100rem;
-  min-width:50rem;
-  height: 45rem;
-}
 .freeform-button {
   position: absolute;
   top: 5px;

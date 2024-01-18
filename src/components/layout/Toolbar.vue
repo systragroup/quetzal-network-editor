@@ -1,25 +1,42 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <script>
-import Profile from '../utils/Profile.vue'
-import ScenariosExplorer from './ScenariosExplorer.vue'
+
+import Profile from './Profile.vue'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { ref, computed } from 'vue'
+import systraLogoUrl from '@static/systra_logo.png'
 export default {
   name: 'Toolbar',
-  components: { Profile, ScenariosExplorer },
+  components: { Profile },
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const imageUrl = ref(systraLogoUrl)
+    const scenario = computed(() => { return userStore.model + '/' + userStore.scenario })
+    return { store, imageUrl, scenario }
+  },
   data () {
     return {
       dialog: true,
+      currentTheme: null,
     }
   },
-
   watch: {
-    '$vuetify.theme.dark' (val) {
-      this.$store.commit('changeDarkMode', val)
+    '$vuetify.theme.dark'  (val) {
+      this.$vuetify.theme.global.name = this.$vuetify.theme.global.current.dark ? 'light' : 'dark'
+      this.store.changeDarkMode(val)
     },
+  },
+
+  created () {
+    const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    this.$vuetify.theme.dark = darkMode
+    this.$vuetify.theme.global.name = darkMode ? 'light' : 'dark'
   },
 
   methods: {
     handleChangeLanguage (lang) {
-      this.$vuetify.lang.current = lang
+      this.$vuetify.locale.current = lang
       this.$language.current = lang
     },
   },
@@ -31,8 +48,7 @@ export default {
     dense
   >
     <v-img
-      :src="require('@static/systra_logo.png')"
-      contain
+      :src="imageUrl"
       max-width="6rem"
     />
     <span class="copyright">©</span>
@@ -42,23 +58,22 @@ export default {
 
     <v-spacer />
     <div>
-      <ScenariosExplorer />
+      <span
+        v-if="scenario !== 'null/null'"
+        class="custom-title"
+      > {{ scenario }}</span>
     </div>
     <v-spacer />
     <div>
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
           <v-btn
-            icon
-            v-bind="attrs"
+            icon="fab fa-github"
+            color="'white'"
             href="https://github.com/systragroup/quetzal-network-editor"
             target="_blank"
-            v-on="on"
-          >
-            <v-icon>
-              fab fa-github
-            </v-icon>
-          </v-btn>
+            v-bind="props"
+          />
         </template>
         <span>GitHub</span>
       </v-tooltip>
@@ -66,21 +81,23 @@ export default {
     <div class="switch">
       <v-switch
         v-model="$vuetify.theme.dark"
-        append-icon="fas fa-moon"
+        hide-details
+        false-icon="fas fa-sun"
+        true-icon="fas fa-moon"
+        inset
       />
     </div>
     <div>
       <v-menu
-        offset-y
         close-delay="100"
         transition="slide-y-transition"
       >
-        <template v-slot:activator="{ on: on,attrs:attrs }">
+        <template v-slot:activator="{ props }">
           <v-btn
-            text
+            variant="text"
             class="language active"
-            v-bind="attrs"
-            v-on="on"
+
+            v-bind="props"
           >
             {{ $language.current }}
           </v-btn>
@@ -109,8 +126,8 @@ export default {
   z-index: 100;
   height: 50px !important;
   display: flex;
-  color: $secondary !important;
   position: relative;
+  padding-right: 1rem;
 }
 .login {
   padding-left: 50px;
@@ -121,25 +138,22 @@ export default {
 .app-name {
   font-size: 1.2em;
   padding-left: 1.2rem;
-  color:var(--v-secondarydark-base);
+  color: rgb(var(--v-theme-secondarydark));
 }
 .copyright {
   font-size: 0.9rem;
   padding-left: 5px;
   padding-top: 1rem;
-  color:var(--v-secondarydark-base);
+  color: rgb(var(--v-theme-secondarydark));
 }
 .languages-container {
   display: flex;
 }
 .switch {
   display: flex;
-  padding-top: 1rem;
   padding-left:1rem;
   align-items: center;
   justify-content: center;
-  color: $grey-light;
-  cursor: pointer;
 }
 .language {
   width: 50px;
@@ -151,9 +165,15 @@ export default {
   transition: 0.3s;
 }
 .language.active, .language:hover {
-  color:var(--v-secondarydark-base);
+  color: rgb(var(--v-theme-secondarydark));
 }
 .language:last-child {
   border-right: 0;
+}
+
+.custom-title {
+  font-size: 1.2em;
+  padding-left: 1.2rem;
+  color: rgb(var(--v-theme-secondarydark));
 }
 </style>

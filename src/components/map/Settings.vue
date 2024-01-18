@@ -1,115 +1,128 @@
 <script>
+import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+import { ref, watch } from 'vue'
+
 const $gettext = s => s
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Settings',
-  events: ['submit'],
-  data () {
-    return {
-      show: false,
+  emits: ['submit'],
+  setup (_, context) {
+    const store = useIndexStore()
+    const linksStore = useLinksStore()
+    const rlinksStore = userLinksStore()
+    const showHint = ref(false)
+    const linkSpeed = ref({
+      name: $gettext('PT speed'),
+      type: 'Number',
+      value: 0,
+      units: 'km/h',
+      hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
+    })
+    const roadSpeed = ref({
+      name: $gettext('Road speed'),
+      type: 'Number',
+      value: 0,
+      units: 'km/h',
+      hint: $gettext('Speed used to calculate road travel time when a link is drawn'),
+    })
+    const linksPopupContent = ref({
+      name: $gettext('PT Popup Content'),
+      type: 'String',
+      choices: [],
+      value: '',
+      hint: $gettext('Link field to display when hovering a trip on the map'),
+    })
+    const roadsPopupContent = ref({
+      name: $gettext('Road Popup Content'),
+      type: 'String',
+      choices: [],
+      value: '',
+      hint: $gettext('Link field to display when hovering road link on the map'),
+    })
+    const defaultHighway = ref({
+      name: $gettext('Road Highway name'),
+      type: 'String',
+      value: '',
+      hint: $gettext('New road links Highway property name'),
+    })
+    const outputName = ref({
+      name: $gettext('Export name'),
+      type: 'String',
+      value: '',
+      units: '.zip',
+      hint: $gettext('the name of the exported zip file'),
+    })
+    const rules = [
+      v => !!v || $gettext('Required'),
+      v => v >= 0 || $gettext('should be larger than 0'),
+    ]
+    const zipRules = [v => v.slice(-4) !== '.zip' || $gettext('do not add .zip to the end')]
 
-      linkSpeed: {
-        name: $gettext('PT speed'),
-        type: 'Number',
-        value: 0,
-        units: 'km/h',
-        hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
-      },
-      roadSpeed: {
-        name: $gettext('Road speed'),
-        type: 'Number',
-        value: 0,
-        units: 'km/h',
-        hint: $gettext('Speed used to calculate road travel time when a link is drawn'),
-      },
-      linksPopupContent: {
-        name: $gettext('PT Popup Content'),
-        type: 'String',
-        choices: [],
-        value: '',
-        hint: $gettext('Link field to display when hovering a trip on the map'),
-      },
-      roadsPopupContent: {
-        name: $gettext('Road Popup Content'),
-        type: 'String',
-        choices: [],
-        value: '',
-        hint: $gettext('Link field to display when hovering road link on the map'),
-      },
-      defaultHighway: {
-        name: $gettext('Road Highway name'),
-        type: 'String',
-        value: '',
-        hint: $gettext('New road links Highway property name'),
-      },
-      outputName: {
-        name: $gettext('Export name'),
-        type: 'String',
-        value: '',
-        units: '.zip',
-        hint: $gettext('the name of the exported zip file'),
-      },
-      errorMessage: null,
-      showHint: false,
-      shake: false,
-
-      rules: [
-        v => !!v || $gettext('Required'),
-        v => v >= 0 || $gettext('should be larger than 0'),
-      ],
-      zipRules: [v => v.slice(-4) !== '.zip' || $gettext('do not add .zip to the end')],
-      showDialog: true,
-    }
-  },
-  watch: {
-    show () { this.fetch() },
-  },
-  created () {
-    this.localShow = this.show
-    this.fetch()
-  },
-  methods: {
-    fetch () {
+    const fetch = () => {
       // value are init with this function.
       // we want to get the value each time we show the settings.
       // if not, Cancel will not work as the state here and in the store will differ.
-      this.linkSpeed.value = this.$store.getters.linkSpeed
-      this.roadSpeed.value = this.$store.getters.roadSpeed
-      this.linksPopupContent.choices = this.$store.getters.lineAttributes
-      this.linksPopupContent.value = this.$store.getters.linksPopupContent
-      this.roadsPopupContent.choices = this.$store.getters.rlineAttributes
-      this.roadsPopupContent.value = this.$store.getters.roadsPopupContent
-      this.defaultHighway.value = this.$store.getters.defaultHighway
-      this.outputName.value = this.$store.getters.outputName
-    },
-
-    submit () {
-      if (this.$refs.form.validate()) {
+      linkSpeed.value.value = linksStore.linkSpeed
+      roadSpeed.value.value = rlinksStore.roadSpeed
+      linksPopupContent.value.choices = linksStore.lineAttributes
+      linksPopupContent.value.value = store.linksPopupContent
+      roadsPopupContent.value.choices = rlinksStore.rlineAttributes
+      roadsPopupContent.value.value = store.roadsPopupContent
+      defaultHighway.value.value = rlinksStore.defaultHighway
+      outputName.value.value = store.outputName
+    }
+    const shake = ref(false)
+    const show = ref(false)
+    function cancel () {
+      context.emit('submit', false)
+      show.value = false
+    }
+    async function submit (event) {
+      const resp = await event
+      if (resp.valid) {
         const payload = {
-          linkSpeed: this.linkSpeed.value,
-          roadSpeed: this.roadSpeed.value,
-          linksPopupContent: this.linksPopupContent.value,
-          roadsPopupContent: this.roadsPopupContent.value,
-          outputName: this.outputName.value,
-          defaultHighway: this.defaultHighway.value,
+          linkSpeed: linkSpeed.value.value,
+          roadSpeed: roadSpeed.value.value,
+          linksPopupContent: linksPopupContent.value.value,
+          roadsPopupContent: roadsPopupContent.value.value,
+          outputName: outputName.value.value,
+          defaultHighway: defaultHighway.value.value,
         }
-        this.$store.commit('applySettings', payload)
-        this.$emit('submit', true)
-        this.show = false
-        this.$store.commit('changeNotification',
+        store.applySettings(payload)
+        context.emit('submit', true)
+        show.value = false
+        store.changeNotification(
           { text: $gettext('modification applied'), autoClose: true, color: 'success' })
       } else {
-        this.shake = true
+        shake.value = true
         setTimeout(() => {
-          this.shake = false
+          shake.value = false
         }, 500)
       }
-    },
-    cancel () {
-      this.$emit('submit', false)
-      this.show = false
-    },
+    }
+
+    watch(show, (val) => { if (val) fetch() })
+
+    return {
+      showHint,
+      linkSpeed,
+      roadSpeed,
+      linksPopupContent,
+      roadsPopupContent,
+      defaultHighway,
+      outputName,
+      rules,
+      zipRules,
+      fetch,
+      submit,
+      cancel,
+      shake,
+      show,
+    }
   },
 }
 </script>
@@ -117,153 +130,145 @@ export default {
   <v-menu
     v-model="show"
     :close-on-content-click="false"
-    :close-on-click="false"
-    :origin="'top right'"
+    persistent
+    no-click-animation
+    location="bottom end"
+    offset="5"
     transition="scale-transition"
-    :position-y="30"
-    :nudge-width="200"
-    offset-x
-    offset-y
   >
-    <template v-slot:activator="{ on, attrs }">
+    <template v-slot:activator="{ props }">
       <div class="setting">
         <v-btn
-          fab
-          small
-          v-bind="attrs"
-          v-on="on"
-        >
-          <v-icon
-            color="regular"
-          >
-            fa-solid fa-cog
-          </v-icon>
-        </v-btn>
+          icon="fa-solid fa-cog"
+          v-bind="props"
+        />
       </div>
     </template>
 
     <v-card
       :class="{'shake':shake}"
-      :max-width="300"
+      :width="300"
       @keydown.enter="submit"
       @keydown.esc="cancel"
     >
       <v-card-title class="subtitle">
         {{ $gettext('Settings') }}
       </v-card-title>
+      <v-form
+        validate-on="submit lazy"
+        @submit.prevent="submit"
+      >
+        <v-container>
+          <v-col>
+            <v-text-field
+              v-model="linkSpeed.value"
+              variant="underlined"
+              :type="linkSpeed.type"
+              :label="$gettext(linkSpeed.name)"
+              :suffix="linkSpeed.units"
+              :hint="showHint? $gettext(linkSpeed.hint): ''"
+              :persistent-hint="showHint"
+              :rules="rules"
+              required
+              @wheel="()=>{}"
+            />
+            <v-text-field
+              v-model="roadSpeed.value"
+              variant="underlined"
+              :type="roadSpeed.type"
+              :label="$gettext(roadSpeed.name)"
+              :suffix="roadSpeed.units"
+              :hint="showHint? $gettext(roadSpeed.hint): ''"
+              :persistent-hint="showHint"
+              :rules="rules"
+              required
+              @wheel="()=>{}"
+            />
+            <v-select
+              v-model="linksPopupContent.value"
+              variant="underlined"
+              :items="linksPopupContent.choices"
+              :label="$gettext(linksPopupContent.name)"
+              :hint="showHint? $gettext(linksPopupContent.hint): ''"
+              :persistent-hint="showHint"
+              :menu-props="{ top: true, offsetY: true }"
+              chips
+              multiple
+            />
+            <v-select
+              v-model="roadsPopupContent.value"
+              variant="underlined"
+              :items="roadsPopupContent.choices"
+              :label="$gettext(roadsPopupContent.name)"
+              :hint="showHint? $gettext(roadsPopupContent.hint): ''"
+              :persistent-hint="showHint"
+              :menu-props="{ top: true, offsetY: true }"
+              chips
+              multiple
+            />
+            <v-text-field
+              v-model="defaultHighway.value"
+              variant="underlined"
+              :type="defaultHighway.type"
+              :label="$gettext(defaultHighway.name)"
+              :suffix="defaultHighway.units"
+              :hint="showHint? $gettext(defaultHighway.hint): ''"
+              :persistent-hint="showHint"
+              :rules="zipRules"
+              required
+            />
+            <v-text-field
+              v-model="outputName.value"
+              variant="underlined"
+              :type="outputName.type"
+              :label="$gettext(outputName.name)"
+              :suffix="outputName.units"
+              :hint="showHint? $gettext(outputName.hint): ''"
+              :persistent-hint="showHint"
+              :rules="zipRules"
+              required
+            />
+          </v-col>
+        </v-container>
+        <v-card-actions>
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="cancel"
+          >
+            {{ $gettext("Cancel") }}
+          </v-btn>
 
-      <v-card-text>
-        <v-form
-          ref="form"
-          lazy-validation
-        >
-          <v-container>
-            <v-col>
-              <v-text-field
-                v-model="linkSpeed.value"
-                :type="linkSpeed.type"
-                :label="$gettext(linkSpeed.name)"
-                :suffix="linkSpeed.units"
-                :hint="showHint? $gettext(linkSpeed.hint): ''"
-                :persistent-hint="showHint"
-                :rules="rules"
-                required
-                @wheel="()=>{}"
-              />
-              <v-text-field
-                v-model="roadSpeed.value"
-                :type="roadSpeed.type"
-                :label="$gettext(roadSpeed.name)"
-                :suffix="roadSpeed.units"
-                :hint="showHint? $gettext(roadSpeed.hint): ''"
-                :persistent-hint="showHint"
-                :rules="rules"
-                required
-                @wheel="()=>{}"
-              />
-              <v-select
-                v-model="linksPopupContent.value"
-                :items="linksPopupContent.choices"
-                :label="$gettext(linksPopupContent.name)"
-                :hint="showHint? $gettext(linksPopupContent.hint): ''"
-                :persistent-hint="showHint"
-                :menu-props="{ top: true, offsetY: true }"
-                chips
-                multiple
-              />
-              <v-select
-                v-model="roadsPopupContent.value"
-                :items="roadsPopupContent.choices"
-                :label="$gettext(roadsPopupContent.name)"
-                :hint="showHint? $gettext(roadsPopupContent.hint): ''"
-                :persistent-hint="showHint"
-                :menu-props="{ top: true, offsetY: true }"
-                chips
-                multiple
-              />
-              <v-text-field
-                v-model="defaultHighway.value"
-                :type="defaultHighway.type"
-                :label="$gettext(defaultHighway.name)"
-                :suffix="defaultHighway.units"
-                :hint="showHint? $gettext(defaultHighway.hint): ''"
-                :persistent-hint="showHint"
-                :rules="zipRules"
-                required
-              />
-              <v-text-field
-                v-model="outputName.value"
-                :type="outputName.type"
-                :label="$gettext(outputName.name)"
-                :suffix="outputName.units"
-                :hint="showHint? $gettext(outputName.hint): ''"
-                :persistent-hint="showHint"
-                :rules="zipRules"
-                required
-              />
-            </v-col>
-          </v-container>
-        </v-form>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn
-          color="grey"
-          text
-          @click="cancel"
-        >
-          {{ $gettext("Cancel") }}
-        </v-btn>
+          <v-btn
+            color="green-darken-1"
+            variant="text"
+            type="submit"
+          >
+            {{ $gettext("Save") }}
+          </v-btn>
 
-        <v-btn
-          color="green darken-1"
-          text
-          @click="submit"
-        >
-          {{ $gettext("Save") }}
-        </v-btn>
-
-        <v-spacer />
-        <v-btn
-          icon
-          small
-          @click="showHint = !showHint"
-        >
-          <v-icon>far fa-question-circle small</v-icon>
-        </v-btn>
-      </v-card-actions>
+          <v-spacer />
+          <v-btn
+            icon
+            size="small"
+            @click="showHint = !showHint"
+          >
+            <v-icon>far fa-question-circle small</v-icon>
+          </v-btn>
+        </v-card-actions>
+      </v-form>
     </v-card>
   </v-menu>
 </template>
 <style lang="scss" scoped>
 .setting {
-  left: 98%;
-  width: 0px;
+  left: 96%;
   z-index: 2;
-  display: flex;
-  position: relative;
+  top:1rem;
+  position: absolute;
   align-items: center;
   justify-content: center;
-  height: 50px;
+
 }
 
 .layout {

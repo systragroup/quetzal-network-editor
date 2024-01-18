@@ -1,4 +1,6 @@
 <script>
+import { useIndexStore } from '@src/store/index'
+import { computed, ref, watch, toRefs, onMounted } from 'vue'
 
 export default {
   name: 'SidePanel',
@@ -7,83 +9,84 @@ export default {
   },
 
   props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer', 'presetChoices', 'selectedPreset'],
-  events: ['update-selectedCategory', 'select-layer', 'update-selected-filter', 'select-preset', 'delete-preset'],
-
-  data () {
-    return {
-      showLeftPanelContent: true,
-      openMenu: false,
-      presetsMenu: false,
-      selectedCat: [],
-      vmodelSelectedFilter: '',
-    }
-  },
-
-  computed: {
-    showLeftPanel () { return this.$store.getters.showLeftPanel },
-    windowHeight () { return this.$store.getters.windowHeight - 130 },
-    running () { return this.$store.getters['run/running'] },
-  },
-
-  watch: {
-    showLeftPanel (val) {
+  emits: ['update-selectedCategory', 'select-layer', 'select-preset', 'delete-preset', 'update-selectedFilter'],
+  setup (props, context) {
+    const store = useIndexStore()
+    const showLeftPanel = computed(() => { return store.showLeftPanel })
+    const showLeftPanelContent = ref(true)
+    watch(showLeftPanel, (val) => {
       if (val) {
         // Leave time for animation to end (.fade-enter-active css rule)
         setTimeout(() => {
-          this.showLeftPanelContent = true
+          showLeftPanelContent.value = true
         }, 500)
       } else {
-        this.showLeftPanelContent = false
+        showLeftPanelContent.value = false
       }
-    },
+    })
+    const openMenu = ref(false)
+    const presetsMenu = ref(false)
 
-    selectedCategory (newVal, oldVal) {
+    const { selectedCategory, filteredCat } = toRefs(props)
+    const selectedCat = ref([])
+    watch(selectedCategory, (newVal, oldVal) => {
       if (newVal !== oldVal) {
-        this.selectedCat = newVal
+        selectedCat.value = newVal
       }
-    },
-    selectedFilter (val) {
+    })
+    watch(selectedCat, (val) => {
+      if (val !== selectedCategory.value) {
+        context.emit('update-selectedCategory', val)
+      }
+    })
+    function init (payload) {
+      selectedCat.value = payload.selectedCategory
+    }
+    function showAll () {
+      if (selectedCat.value.length === filteredCat.value.length) {
+        selectedCat.value = []
+      } else {
+        selectedCat.value = filteredCat.value
+      }
+    }
+
+    const { selectedFilter } = toRefs(props)
+    const vmodelSelectedFilter = ref('')
+    watch(selectedFilter, (val) => {
       // when we change seledted filter from other component (changing layer.)
-      if (val !== this.vmodelSelectedFilter) {
-        this.vmodelSelectedFilter = val
+      if (val !== vmodelSelectedFilter.value) {
+        vmodelSelectedFilter.value = val
         // this.selectedCat = this.selectedCategory
       }
-    },
-
-    selectedCat (val) {
-      if (val !== this.selectedCategory) {
-        this.$emit('update-selectedCategory', val)
+    })
+    watch(vmodelSelectedFilter, (newVal, oldVal) => {
+      if ((newVal !== selectedFilter.value)) { // when created, we dont want to emit
+        context.emit('update-selectedFilter', newVal)
+        selectedCat.value = selectedCategory.value // show all. when we change layer
       }
-    },
+    })
 
-    vmodelSelectedFilter (newVal, oldVal) {
-      if ((newVal !== this.selectedFilter)) { // when created, we dont want to emit
-        this.$emit('update-selectedFilter', newVal)
-        this.selectedCat = this.selectedCategory // show all. when we change layer
-      }
-    },
+    onMounted(() => {
+      vmodelSelectedFilter.value = selectedFilter.value
+      selectedCat.value = selectedCategory.value
+      // this is necessary to show the initial layer on the map.
+      context.emit('update-selectedFilter', selectedFilter.value)
+      context.emit('update-selectedCategory', selectedCategory.value)
+    })
+
+    return {
+      store,
+      showLeftPanel,
+      showLeftPanelContent,
+      openMenu,
+      presetsMenu,
+      selectedCat,
+      vmodelSelectedFilter,
+      init,
+      showAll,
+    }
   },
 
-  created () {
-    this.vmodelSelectedFilter = this.selectedFilter
-    this.selectedCat = this.selectedCategory
-    // this is necessary to show the initial layer on the map.
-    this.$emit('update-selectedFilter', this.selectedFilter)
-    this.$emit('update-selectedCategory', this.selectedCategory)
-  },
-
-  methods: {
-    init (payload) {
-      this.selectedCat = payload.selectedCategory
-    },
-    showAll () {
-      if (this.selectedCat.length === this.filteredCat.length) {
-        this.selectedCat = []
-      } else {
-        this.selectedCat = this.filteredCat
-      }
-    },
-  },
 }
 </script>
 <template>
@@ -93,10 +96,10 @@ export default {
   >
     <div
       class="left-panel-toggle-btn elevation-4"
-      @click="$store.commit('changeLeftPanel')"
+      @click="store.changeLeftPanel()"
     >
       <v-icon
-        small
+        size="small"
         color="secondarydark"
       >
         {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
@@ -110,35 +113,40 @@ export default {
         <div>
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
             <div class="preset">
-              <v-tooltip
-                bottom
-                open-delay="500"
+              <v-icon
+                :style="{color: 'white', 'padding-right':'2rem','padding-left':'1rem'}"
               >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-icon
-                    dark
-                    v-bind="attrs"
-                    :style="{color: 'white'}"
-                    v-on="on"
-                  >
-                    fas fa-sliders-h
-                  </v-icon>
-                </template>
-                <span>{{ $gettext("Presets") }}</span>
-              </v-tooltip>
-
+                fas fa-sliders-h
+              </v-icon>
               <v-menu
                 v-model="presetsMenu"
                 close-delay="100"
-                offset-y
+                location="bottom center"
+
                 transition="slide-y-transition"
               >
-                <template v-slot:activator="{ on, attrs }">
-                  <span
-                    class="title crop"
-                    v-bind="attrs"
-                    v-on="on"
-                  >{{ selectedPreset || $gettext("Presets") }}</span>
+                <template v-slot:activator="{ props }">
+                  <div
+                    class="menu-container"
+                    v-bind="props"
+                  >
+                    <div
+                      class="title-div"
+                    >
+                      <span class="custom-title">
+                        {{ $gettext("Presets") }}
+                      </span>
+                      <span class="crop">
+                        {{ selectedPreset }}
+                      </span>
+                    </div>
+                    <v-icon
+                      variant="text"
+                      :style="{color: 'white'}"
+                    >
+                      {{ presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}
+                    </v-icon>
+                  </div>
                 </template>
                 <v-list>
                   <v-list-item
@@ -150,63 +158,86 @@ export default {
                     <v-list-item-title>
                       {{ preset.name }}
                     </v-list-item-title>
-                    <v-btn
-                      icon
-                      class="ml-10"
-                      @click.stop="()=>$emit('delete-preset', preset)"
-                    >
-                      <v-icon
-                        small
+                    <template v-slot:append>
+                      <v-btn
+                        variant="text"
+                        icon="fas fa-trash"
+                        size="small"
                         color="grey"
-                      >
-                        fas fa-trash
-                      </v-icon>
-                    </v-btn>
+                        class="ml-10"
+                        @click.stop="()=>$emit('delete-preset', preset)"
+                      />
+                    </template>
                   </v-list-item>
                 </v-list>
               </v-menu>
-              <v-btn
-                :style="{color: 'white'}"
-                icon
-                dark
-                @click="presetsMenu=!presetsMenu"
+              <v-tooltip
+                location="bottom"
+                open-delay="300"
               >
-                <v-icon> {{ presetsMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}</v-icon>
-              </v-btn>
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    variant="text"
+                    v-bind="props"
+                    :disabled="presetChoices.length===0"
+                    :style="{color: 'white'}"
+                    icon="fas fa-download"
+                    @click="store.exportFile('styles.json')"
+                  />
+                </template>
+                <span>{{ $gettext("Dowload presets") }}</span>
+              </v-tooltip>
             </div>
             <div class="layer">
               <v-tooltip
-                bottom
+                location="bottom"
                 open-delay="500"
               >
-                <template v-slot:activator="{ on, attrs }">
+                <template v-slot:activator="{ props }">
                   <v-btn
-                    :style="{color: 'white'}"
-                    icon
-                    v-bind="attrs"
-                    v-on="on"
+                    :style="{color: 'white', flex:0, 'padding-left':'1.1rem','padding-right':'1.5rem'}"
+                    class="eye-button"
+                    :icon=" selectedCat.length == filteredCat.length ? 'fa-eye-slash fa' : 'fa-eye fa'"
+                    variant="text"
+                    v-bind="props"
                     @click="showAll()"
-                  >
-                    <v-icon class="list-item-icon">
-                      {{ selectedCat.length > 0 ? 'fa-eye fa' : 'fa-eye-slash fa' }}
-                    </v-icon>
-                  </v-btn>
+                  />
                 </template>
-                <span>{{ selectedCat.length > 0 ? $gettext("Hide All"): $gettext("Show All") }}</span>
+                <span>{{ selectedCat.length == filteredCat.length ? $gettext("Hide All"): $gettext("Show All") }}</span>
               </v-tooltip>
 
               <v-menu
                 v-model="openMenu"
                 close-delay="100"
-                offset-y
                 transition="slide-y-transition"
               >
-                <template v-slot:activator="{ on, attrs }">
-                  <span
-                    class="title crop"
-                    v-bind="attrs"
-                    v-on="on"
-                  >{{ selectedLayer }}</span>
+                <template v-slot:activator="{ props }">
+                  <div
+                    class="title-div"
+                    v-bind="props"
+                  >
+                    <div
+                      class="menu-container"
+                      v-bind="props"
+                    >
+                      <div
+                        class="title-div"
+                      >
+                        <span class="custom-title">
+                          {{ $gettext("Layer") }}
+                        </span>
+                        <span class="crop">
+                          {{ selectedLayer }}
+                        </span>
+                      </div>
+                      <v-icon
+                        variant="text"
+                        :style="{color: 'white'}"
+                      >
+                        {{ openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}
+                      </v-icon>
+                    </div>
+                  </div>
                 </template>
                 <v-list>
                   <v-list-item
@@ -221,29 +252,21 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-menu>
-
-              <v-btn
-                :style="{color: 'white'}"
-                icon
-                dark
-                @click="openMenu=!openMenu"
-              >
-                <v-icon> {{ openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down' }}</v-icon>
-              </v-btn>
+              <v-icon />
             </div>
             <v-card
               max-width="100%"
               min-width="100%"
-              :height="windowHeight"
-              class="mx-auto "
+              :height="'calc(100vh - 250px)'"
+              class="mx-auto scrollable"
             >
               <v-list-item>
                 <v-select
                   v-model="vmodelSelectedFilter"
                   :items="filterChoices"
+                  variant="underlined"
                   prepend-icon="fas fa-filter"
                   :label="$gettext('filter')"
-                  item-color="secondarydark"
                   color="secondarydark"
                 />
               </v-list-item>
@@ -251,37 +274,31 @@ export default {
               <v-virtual-scroll
                 :items="filteredCat"
                 :item-height="45"
-                :height="windowHeight-80"
+                :height="'calc(100vh - 330px)'"
               >
                 <template v-slot="{ item }">
-                  <v-list-item
+                  <div
                     :key="vmodelSelectedFilter.concat(item)"
-                    class="pl-2"
+                    class="container"
                   >
                     <v-list-item-action>
-                      <v-checkbox
+                      <v-checkbox-btn
                         v-model="selectedCat"
-                        class="pl-2"
-                        :on-icon="'fa-eye fa'"
-                        :off-icon="'fa-eye-slash fa'"
+                        class="ma-2 pl-2"
+                        :true-icon="'fa-eye fa'"
+                        :false-icon="'fa-eye-slash fa'"
                         :color="'primary'"
                         :value="item"
-                        size="10"
-                        hide-details
                       />
                     </v-list-item-action>
 
-                    <v-list-item-title>
+                    <div class="item">
                       {{ item }}
-                    </v-list-item-title>
-                  </v-list-item>
+                    </div>
+                  </div>
                 </template>
               </v-virtual-scroll>
             </v-card>
-            <!--
-          </div>
-        </div>
-        -->
           </div>
         </div>
       </div>
@@ -291,31 +308,60 @@ export default {
 <style lang="scss" scoped>
 .left-panel {
   height: 100%;
-  background-color: var(--v-primarydark-base);
+  background-color:rgb(var(--v-theme-primarydark));
   transition: 0.3s;
   position: absolute;
   display: flex;
   z-index: 20;
 }
-.title  {
+.container{
+  display:flex;
+  justify-content:flex-end;
+  align-items: center;
+}
+.item{
+  flex:1;
+}
+.menu-container{
+  display: flex;
+  cursor:pointer;
+  gap:0.5rem;
+  align-items: center;
+}
+.title-div {
   color:white;
+  max-width: 12rem;
+  display:flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.custom-title {
+  text-align: center;
+  font-size: x-large;
+
 }
 .crop {
   white-space: nowrap;     /* Prevents text from wrapping to the next line */
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
+  cursor:pointer;
+  font-size:0.875rem;
+  opacity:var(--v-medium-emphasis-opacity);
+
 }
 .preset {
   padding: 0.5rem 0.5rem 0.5rem 1rem;
-  border-bottom: solid var(--v-primarydark-base);;
-  background-color: var(--v-secondary-base);
+  border-bottom: solid rgb(var(--v-theme-primarydark));
+  background-color: rgb(var(--v-theme-secondary));
   display:flex;
+  align-items: center;
   justify-content: space-between;
 }
 .layer {
   padding: 0.5rem 0.5rem 0.5rem 0.5rem;
-  background-color: var(--v-secondary-base);
+  background-color: rgb(var(--v-theme-secondary));
   display:flex;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -339,7 +385,7 @@ transition:0.3s
   left: 100%;
   width: 25px;
   z-index: 1;
-  background-color: var(--v-primarydark-base);
+  background-color: rgb(var(--v-theme-primarydark));
   display: flex;
   position: relative;
   align-items: center;

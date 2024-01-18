@@ -1,57 +1,81 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script>
+import { computed, ref, onMounted } from 'vue'
+import { useRunStore } from '@src/store/run'
+import { useUserStore } from '@src/store/user'
 const $gettext = s => s
 export default {
   name: 'Settings',
-  data () {
-    return {
-      rules: {
-        required: v => v != null || $gettext('Required'),
-        largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
-        nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
-      },
-      errorMessage: null,
-      showHint: false,
-      panel: [],
-    }
-  },
-  computed: {
-    paramsBrute () { return this.$store.getters['run/parameters'] },
-    parameters () {
-      return this.paramsBrute.filter(
-        param => (Object.keys(param).includes('category') && param.model === this.selectedStepFunction))
-    },
-    info () {
-      return this.paramsBrute.filter(
-        param => (param?.info && param?.model) === this.selectedStepFunction)[0]?.info
-    },
-    selectedStepFunction () { return this.$store.getters['run/selectedStepFunction'] },
+  setup () {
+    const runStore = useRunStore()
+    const userStore = useUserStore()
 
-  },
-  mounted () {
-    this.panel = [...Array(this.parameters.length).keys()].map((k, i) => i)
-  },
-  methods: {
-    expandAll () {
-      if (this.panel.length < this.parameters.length) {
-        this.panel = [...Array(this.parameters.length).keys()].map((k, i) => i)
-      } else {
-        this.panel = []
-      }
-    },
-    reset () {
-      this.$store.dispatch('run/getParameters', {
-        model: this.$store.getters.model,
-        path: this.$store.getters.scenario + '/inputs/params.json',
+    const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
+    const paramsBrute = computed(() => { return runStore.parameters })
+    const parameters = computed(() => {
+      return paramsBrute.value.filter(
+        param => (Object.keys(param).includes('category') && param.model === selectedStepFunction.value))
+    })
+
+    const info = computed(() => {
+      return paramsBrute.value.filter(param => (param?.info && param?.model) === selectedStepFunction.value)[0]?.info
+    })
+
+    const panel = ref([])
+
+    onMounted(() => {
+      panel.value = [...Array(parameters.value.length).keys()].map((k, i) => i)
+    })
+
+    const scenariosList = computed(() => { return userStore.scenariosList })
+    const activeScenario = computed(() => { return userStore.scenario })
+
+    function reset () {
+      runStore.getParameters({
+        model: userStore.model,
+        path: userStore.scenario + '/inputs/params.json',
       })
-    },
-    removeDeletedScenarios (item) {
+    }
+
+    function expandAll () {
+      if (panel.value.length < parameters.value.length) {
+        panel.value = [...Array(parameters.value.length).keys()].map((k, i) => i)
+      } else {
+        panel.value = []
+      }
+    }
+
+    const errorMessage = ref(null)
+    const showHint = ref(false)
+    const rules = {
+      required: v => v != null || $gettext('Required'),
+      largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
+      nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
+    }
+
+    function removeDeletedScenarios (item) {
       // when selecting a value. make sure it exist in the scen list.
       // if a scen selected was deleted. it will be remove from the v-model here.
       // this is not perfect, but a user who toggle a scen will fix the problem...
-      const scenarios = this.$store.getters.scenariosList.map(el => el.scenario)
+      const scenarios = scenariosList.value.map(el => el.scenario)
       item.value = item.value.filter(name => scenarios.includes(name))
-    },
+    }
+
+    return {
+      selectedStepFunction,
+      paramsBrute,
+      errorMessage,
+      showHint,
+      panel,
+      parameters,
+      info,
+      rules,
+      scenariosList,
+      activeScenario,
+      reset,
+      expandAll,
+      removeDeletedScenarios,
+    }
   },
 }
 </script>
@@ -62,10 +86,13 @@ export default {
     <v-card-title class="subtitle">
       {{ $gettext('Scenario Settings') }}
     </v-card-title>
-    <v-card-text v-if="info">
+    <v-card-text
+      v-if="info"
+      class="info-div"
+    >
       {{ info }}
     </v-card-text>
-    <v-card-text>
+    <div class="expansion">
       <v-form
         ref="form"
         lazy-validation
@@ -78,17 +105,26 @@ export default {
             v-for="(group, key) in parameters"
             :key="key"
           >
-            <v-expansion-panel-header class="categorie">
+            <v-expansion-panel-title class="categorie">
               {{ group.category }}
-            </v-expansion-panel-header>
-            <v-expansion-panel-content style="background-color:var(--v-background-lighten4) !important;">
+            </v-expansion-panel-title>
+            <v-expansion-panel-text style="background-color:rgb(var(--v-theme-lightgrey));">
               <li
                 v-for="(item, key2) in group.params"
                 :key="key2"
               >
-                <v-text-field
-                  v-if="typeof item.items === 'undefined' && typeof item.value != 'boolean'"
+                <v-switch
+                  v-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
                   v-model="item.value"
+                  color="primary"
+                  :label="$gettext(item.text)"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                />
+                <v-text-field
+                  v-else-if="typeof item.items === 'undefined' "
+                  v-model="item.value"
+                  variant="underlined"
                   :type="item.type"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
@@ -96,31 +132,27 @@ export default {
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
                 />
-                <v-switch
-                  v-else-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
-                  v-model="item.value"
-                  :label="$gettext(item.text)"
-                  :hint="showHint? $gettext(item.hint): ''"
-                  :persistent-hint="showHint"
-                />
+
                 <v-select
                   v-else-if="item.items === '$scenarios'"
                   v-model="item.value"
+                  variant="underlined"
                   :type="item.type"
-                  :items="$store.getters.scenariosList.map(
+                  :items="scenariosList.map(
                     el=>el.scenario).filter(
-                    scen=>scen!==$store.getters.scenario)"
+                    scen=>scen!==activeScenario)"
                   multiple
                   :label="$gettext(item.text)"
                   :suffix="item.units"
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
-                  @change="removeDeletedScenarios(item)"
+                  @update:model-value="removeDeletedScenarios(item)"
                 />
                 <v-select
                   v-else
                   v-model="item.value"
+                  variant="underlined"
                   :type="item.type"
                   :items="item.items"
                   :label="$gettext(item.text)"
@@ -130,15 +162,15 @@ export default {
                   :rules="item.rules.map((rule) => rules[rule])"
                 />
               </li>
-            </v-expansion-panel-content>
+            </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
       </v-form>
-    </v-card-text>
+    </div>
     <v-card-actions>
       <v-btn
         color="grey"
-        text
+        variant="text"
         @click="reset"
       >
         {{ $gettext("back to default") }}
@@ -146,14 +178,14 @@ export default {
 
       <v-spacer />
       <v-btn
-        text
+        variant="text"
         @click="expandAll"
       >
         {{ panel.length != parameters.length ? $gettext("Expand all") : $gettext("Collapse all") }}
       </v-btn>
       <v-btn
         icon
-        small
+        size="small"
         @click="showHint = !showHint"
       >
         <v-icon>far fa-question-circle small</v-icon>
@@ -162,24 +194,17 @@ export default {
   </v-card>
 </template>
 <style lang="scss" scoped>
-.layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
-  display: flex;
-  flex-flow: row;
-  justify-content: center;
-  align-items: center;
+// card style come from parent component.
+.expansion{
+  max-height:100%;
+  overflow-y:auto;
 }
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
+.info-div{
+  flex:0;
 }
 .subtitle {
   font-size: 2em;
-  color:var(--v-secondary-dark);
+  color:rgb(var(--v-theme-secondary-dark));
   font-weight: bold;
   margin: 10px;
   margin-left: 0px;
@@ -203,7 +228,7 @@ export default {
 .categorie {
   font-size: 1.5em;
   font-weight: bold;
-  background:var(--v-background-lighten3);
+  background:rgb(var(--v-theme-mediumgrey)) ;
 }
 
 </style>

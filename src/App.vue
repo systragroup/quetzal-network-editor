@@ -2,72 +2,54 @@
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
+import { useIndexStore } from '@src/store/index'
+import { computed, ref, watch, onMounted } from 'vue'
+import { useTheme } from 'vuetify'
 
 export default {
   name: 'App',
   components: {
     Toolbar,
-    NavigationDrawer,
     Alert,
+    NavigationDrawer,
   },
-  data () {
-    return {
-      snackbar: false,
-    }
+  setup () {
+    const theme = useTheme()
+    const store = useIndexStore()
+    onMounted(() => { store.changeDarkMode(theme.global.current.value.dark) })
+
+    const notification = computed(() => store.notification)
+    const loading = computed(() => store.loading)
+    const snackbar = ref(false)
+    watch(notification, () => { snackbar.value = !!notification.value.text })
+    watch(snackbar, (val) => { if (val === false) { store.changeNotification({ text: '', autoClose: true }) } })
+    onMounted(() => { store.initNetworks() })
+
+    return { notification, loading, snackbar, store }
   },
-  computed: {
-    notification () {
-      return this.$store.getters.notification
-    },
-    loading () {
-      return this.$store.getters.loading
-    },
-  },
-  watch: {
-    notification () {
-      this.snackbar = !!this.notification.text
-    },
-    snackbar (val) {
-      if (val === false) {
-        this.$store.commit('changeNotification', { text: '', autoClose: true })
-      }
-    },
-  },
-  async created () {
-    // init links and node to empty one (new project)
-    this.$store.commit('initNetworks')
-    this.$store.commit('changeDarkMode', this.$vuetify.theme.dark)
-  },
-  methods: {
-    closeSnackbar () {
-      this.snackbar = false
-    },
-    onResize () {
-      // -50 for the ToolBar
-      this.$store.commit('changeWindowHeight', this.$refs.container.clientHeight - 50)
-    },
-  },
+
 }
 </script>
 <template>
   <v-app class="app">
     <NavigationDrawer />
-    <div
-      ref="container"
-      v-resize="onResize"
-      class="container"
+    <v-card
+      class="container rounded-0"
     >
+      <v-overlay
+        :model-value="loading"
+        persistent
+        class="align-center justify-center"
+      >
+        <v-progress-circular
+
+          indeterminate
+          size="64"
+        />
+      </v-overlay>
       <Toolbar />
-      <transition name="fade">
-        <router-view />
-      </transition>
-    </div>
-    <v-overlay :value="loading">
-      <v-progress-circular
-        indeterminate
-        size="64"
-      />
-    </v-overlay>
+      <RouterView />
+    </v-card>
     <v-snackbar
       v-model="snackbar"
       :timeout="notification.autoClose ? 3000 : -1"
@@ -78,40 +60,38 @@ export default {
       <span class="snackbar-text">
         {{ $gettext(notification.text) }}
       </span>
-      <template v-slot:action="{ attrs }">
+      <template #actions>
         <v-btn
-          small
+          size="small"
           color="secondarydark"
-          text
-          v-bind="attrs"
-          @click="closeSnackbar"
+          variant="text"
+          @click="snackbar=false"
         >
           {{ $gettext("Close") }}
         </v-btn>
       </template>
     </v-snackbar>
+
     <Alert />
   </v-app>
 </template>
 <style lang="scss" scoped>
 .app {
-  background-color: $grey-ultralight !important;
+  background-color: $grey-ultralight!important;
   width: 100%;
   height: 100%;
   overflow: hidden;
-}
-.snackbar-text{
-  color:var(--v-secondarydark-base);
+
 }
 .container {
   height: 100%;
   margin-left: 50px;
-  width: calc(100% - 50px);
   max-width: calc(100% - 50px);
   padding: 0;
+  background-color: rgb(var(--v-theme-background));
 }
 .container.login {
   margin-left: 0;
-  width: 100%;
+  max-width: 100%;
 }
 </style>

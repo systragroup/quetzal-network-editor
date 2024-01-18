@@ -1,54 +1,84 @@
 <script>
 import s3 from '../AWSClient'
 import { csvJSON } from '../components/utils/utils.js'
+import { ref, onMounted, toRaw } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { useWebWorkerFn } from '@vueuse/core'
+import { orderBy } from 'lodash'
 const $gettext = s => s
+const { workerFn: csvJSONWorker } = useWebWorkerFn(csvJSON)
 
 export default {
   name: 'ResultTable',
-  components: {
-  },
-  data () {
-    return {
-      tables: [],
-      message: '',
-    }
-  },
-  watch: {
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const tables = ref([])
+    const message = ref('')
+    const skeletons = ref(0)
+    const numItems = ref(10)
 
-  },
-  async created () {
-    this.$store.commit('changeLoading', true)
-    const files = await this.getCSV()
-    for (const file of files) {
-      // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
-      const name = file.path.slice(0, -4)
-      const data = csvJSON(file.content)
-      const headers = []
-      Object.keys(data[0]).forEach(val => headers.push({ text: val, value: val, width: '1%' }))
-      this.tables.push({ headers: headers, data: data, name: name })
-    }
-    this.$store.commit('changeLoading', false)
-    if (this.tables.length === 0) {
-      this.message = $gettext('Nothing to display')
-    }
-  },
-
-  methods: {
-    async getCSV () {
+    async function getCSV () {
       // get the list of CSV from output files.
       // if its undefined (its on s3). fetch it.
-      const scenario = this.$store.getters.scenario + '/'
-      const otherFiles = this.$store.getters.otherFiles
-      const csvFiles = otherFiles.filter(file => file.path.endsWith('.csv'))
+      const scenario = userStore.scenario + '/'
+      const otherFiles = store.otherFiles
+      const csvFiles = otherFiles.filter(file => file.extension === 'csv')
+      skeletons.value = csvFiles.length
+
       for (const file of csvFiles) {
         if (!(file.content instanceof Uint8Array)) {
-          file.content = await s3.readBytes(this.$store.getters.model, scenario + file.path)
+          file.content = await s3.readBytes(userStore.model, scenario + file.path)
         }
       }
       return csvFiles
-    },
+    }
 
+    onMounted(async () => {
+      store.changeLoading(true)
+      try {
+        const files = await getCSV()
+
+        for (const file of files) {
+        // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
+          const name = file.path.slice(0, -4)
+          const data = await csvJSONWorker(file.content.buffer)
+          const headers = []
+          Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
+          tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
+          skeletons.value -= 1
+        }
+        store.changeLoading(false)
+        if (tables.value.length === 0) {
+          message.value = $gettext('Nothing to display')
+        }
+      } catch (err) {
+        console.error(err)
+        store.changeLoading(false)
+        skeletons.value = 0
+        message.value = $gettext('Nothing to display')
+      }
+    })
+
+    function getData (items, page, itemsPerPage, sortBy) {
+      const start = (page - 1) * itemsPerPage
+      const end = start + itemsPerPage
+      if (sortBy.length > 0) {
+        const sortKey = sortBy[0].key
+        const sortOrder = sortBy[0].order
+        items = orderBy(items, sortKey, sortOrder)
+      }
+      return items.slice(start, end)
+    }
+    async function loadItems ({ key, page, itemsPerPage, sortBy }) {
+      const items = toRaw(tables.value[key].data)
+      const paginated = getData(items, page, itemsPerPage, toRaw(sortBy))
+      tables.value[key].items = paginated
+    }
+    return { tables, message, numItems, loadItems, skeletons }
   },
+
 }
 </script>
 <template>
@@ -61,34 +91,40 @@ export default {
       :key="key"
       class="card elevation-3"
     >
-      <v-data-table
+      <v-data-table-server
+        :items-per-page="numItems"
         :headers="table.headers"
-        :height="table.data.length >= 10 ? '35rem':'auto'"
+        :height="table.items.length >= 10 ? '35rem':'auto'"
+        :items-length="table.totalItems"
         fixed-header
         fixed-footer
-        :items="table.data"
-        :items-per-page="10"
-        :footer-props="{
-          'items-per-page-options': table.data.length <= 500? [10, 20, 100, 200, -1] : [10, 20, 100, 200, 500]
-        }"
+        :items="table.items"
+        @update:options="(event)=>loadItems({key,...event})"
       >
         <template v-slot:top>
-          <v-toolbar
-            flat
-          >
-            <v-toolbar-title>{{ table.name }}</v-toolbar-title>
-
+          <v-toolbar class="custom-title">
+            <v-toolbar-title>
+              {{ table.name }}
+            </v-toolbar-title>
             <v-spacer />
           </v-toolbar>
         </template>
-      </v-data-table>
+      </v-data-table-server>
+    </v-card>
+    <v-card
+      v-if="skeletons>0"
+      class="card elevation-3"
+    >
+      <v-skeleton-loader
+        type="heading,table-thead, table-tbody "
+      />
     </v-card>
   </section>
 </template>
 <style lang="scss" scoped>
 
 .layout {
-  background-color:var(--v-white-base);
+  background-color:rgb(var(--v-theme-background));
   display: flex;
   height: 100%;
   width:100%;
@@ -101,6 +137,12 @@ export default {
 .card {
   width:80%;
   margin: 10px;
+  background-color:rgb(var(--v-theme-lightergrey));
+}
+
+.custom-title {
+  height:3rem;
+  align-content: center  !important;
 }
 
 </style>

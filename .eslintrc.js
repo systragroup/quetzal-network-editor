@@ -1,25 +1,18 @@
 module.exports = {
-  parser: 'vue-eslint-parser',
   parserOptions: {
-    requireConfigFile: false,
     parser: '@babel/eslint-parser',
-    babelOptions: {
-      parserOpts: {
-        plugins: ['jsx'],
-      },
-    },
   },
   extends: [
     'plugin:vue/recommended',
+    'plugin:vuetify/base',
     'standard',
   ],
-  env: {
-  },
   rules: {
     'no-prototype-builtins': 'off',
     'comma-dangle': ['warn', 'always-multiline'],
     'vue/one-component-per-file': 'off',
     'vue/custom-event-name-casing': 'off',
+    'vue/multi-word-component-names': 'off',
     'vue/no-arrow-functions-in-watch': 'off',
     'vue/no-custom-modifiers-on-v-model': 'off',
     'vue/no-dupe-v-else-if': 'off',
@@ -29,9 +22,10 @@ module.exports = {
     'vue/no-v-model-argument': 'off',
     'vue/experimental-script-setup-vars': 'off',
     'vue/v-slot-style': 'off',
-    'vue/script-setup-uses-vars': 'off',
+    'vue/valid-v-slot': ['error', { allowModifiers: true }],
     'no-irregular-whitespace': 'off',
-    'quote-props': ['warn', 'consistent-as-needed'],
+    'quote-props': ['warn', 'as-needed', { 'unnecessary': false }],
     'max-len': ['warn', { code: 120 }],
+
   },
 }

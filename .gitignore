@@ -1,6 +1,7 @@
 .DS_Store
 *~
 node_modules/
+/dist/
 reports/
 .npmrc
 /src/config.js
@@ -9,6 +10,7 @@ reports/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/coverage
 version
 .gitlab-ci-local/
 
@@ -20,3 +22,5 @@ version
 *.njsproj
 *.sln
 
+.nyc_output/
+.tmp/

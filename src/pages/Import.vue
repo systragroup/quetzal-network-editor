@@ -4,42 +4,47 @@ import s3 from '../AWSClient'
 import { extractZip, unzip } from '../components/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
+import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
+import { computed } from 'vue'
 
-import InfoZip from '@comp/import/InfoZip.vue'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { useRunStore } from '@src/store/run'
+import { useOSMStore } from '@src/store/OSMImporter'
+import { useGTFSStore } from '@src/store/GTFSImporter'
+import axios from 'axios'
+
 const $gettext = s => s
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Import',
   components: {
+    ScenariosExplorer,
     FileLoader,
-    InfoZip,
     FilesList,
+  },
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const runStore = useRunStore()
+    const runOSMStore = useOSMStore()
+    const runGTFSStore = useGTFSStore()
+    const projectIsEmpty = computed(() => store.projectIsEmpty)
+
+    return { store, userStore, runStore, projectIsEmpty, runOSMStore, runGTFSStore }
   },
 
   data () {
     return {
-      loggedIn: false,
       choice: null,
       showDialog: false,
       filesAdded: false,
     }
   },
 
-  computed: {
-    projectIsEmpty () { return this.$store.getters.projectIsEmpty },
-    s3Path () { return this.$route.query.s3Path },
-
-  },
-  watch: {
-    s3Path (val) {
-      if (val) this.loadFilesFromS3(val)
-    },
-
-  },
   mounted () {
-    this.$store.commit('changeNotification', '')
-    if (this.s3Path) this.loadFilesFromS3(this.s3Path)
+    this.store.changeNotification('')
   },
   methods: {
     login () {
@@ -71,13 +76,6 @@ export default {
     applyDialog () {
       // this only happen when both files are loaded.
       // remove links and nodes from store. (and filesAreLoaded)
-      this.$store.commit('initNetworks')
-      this.$store.commit('unloadLayers')
-      this.$store.commit('unloadProject')
-      this.$store.commit('run/cleanRun')
-      this.$store.commit('runOSM/cleanRun')
-      this.$store.commit('runGTFS/cleanRun')
-
       if (this.choice === 'example1') {
         this.loadExample(['PT', 'road'])
       } else if (this.choice === 'example2') {
@@ -89,131 +87,132 @@ export default {
     },
 
     newProject () {
-      this.$store.commit('initNetworks')
-      this.$store.commit('unloadLayers')
-      this.$store.commit('unloadProject')
-      this.$store.commit('run/cleanRun')
-      this.$store.commit('runOSM/cleanRun')
-      this.$store.commit('runGTFS/cleanRun')
-      this.$store.commit('changeNotification',
-        { text: $gettext('project overwrited'), autoClose: true, color: 'success' })
+      this.store.initNetworks()
+      this.runStore.cleanRun()
+      this.runOSMStore.cleanRun()
+      this.runGTFSStore.cleanRun()
+      this.store.changeNotification({ text: $gettext('Files unloaded'), autoClose: true, color: 'success' })
     },
 
     loadNetwork (files) {
-      this.$store.commit('loadFiles', files)
+      this.store.loadFiles(files)
       this.filesAdded = true
-      this.$store.commit('changeLoading', false)
+      this.store.changeLoading(false)
     },
 
     async readZip (event) {
       try {
-        this.$store.commit('changeLoading', true)
+        this.store.changeLoading(true)
         const zfiles = event.target.files
         // there is a file
         if (!zfiles.length) {
-          this.$store.commit('changeLoading', false)
+          this.store.changeLoading(false)
           return
         }
         // it is a zip
         if (zfiles[0].name.slice(-3) !== 'zip') {
-          this.$store.commit('changeLoading', false)
-          this.$store.commit('changeAlert', { name: 'ImportError', message: $gettext('file is not a zip') })
+          this.store.changeLoading(false)
+          this.store.changeAlert({ name: 'ImportError', message: $gettext('file is not a zip') })
           return
         }
         const files = await extractZip(zfiles[0])
         this.loadNetwork(files)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
 
     async loadFilesFromS3 () {
       if (!this.projectIsEmpty) {
-        this.$store.commit('initNetworks')
-        this.$store.commit('unloadLayers')
-        this.$store.commit('run/cleanRun')
-        this.$store.commit('runOSM/cleanRun')
-        this.$store.commit('runGTFS/cleanRun')
+        this.store.initNetworks()
+        this.runStore.cleanRun()
+        this.runOSMStore.cleanRun()
+        this.runGTFSStore.cleanRun()
       }
-      this.$store.commit('changeLoading', true)
-      this.$router.replace({ query: null }) // remove query in url when page is load.
+      this.store.changeLoading(true)
 
-      const model = this.$store.getters.model
-      const scen = this.$store.getters.scenario + '/'
+      const model = this.userStore.model
+      const scen = this.userStore.scenario + '/'
 
       const res = []
       try {
         let filesList = await s3.listFiles(model, scen)
         filesList = filesList.filter(name => !name.endsWith('/'))
-        // console.log(filesList)
         for (const file of filesList) {
           const name = file.slice(scen.length) // remove scen name from file
+          // take knowned files outside of outputs and inputs (styles and attrivutesChoides)
           if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
             if (name === 'styles.json') {
               const content = await s3.readJson(model, file)
-              res.push({ path: name, content: content })
+              res.push({ path: name, content })
             }
             if (name === 'attributesChoices.json') {
               const content = await s3.readJson(model, file)
-              res.push({ path: name, content: content })
+              res.push({ path: name, content })
             }
-          } else if (file.endsWith('.json') || file.endsWith('.geojson')) {
+            // take PT and road network and param.json.
+          } else if (name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/') || name === 'inputs/params.json') {
             const content = await s3.readJson(model, file)
-            res.push({ path: name, content: content })
+            res.push({ path: name, content })
+            // else. we do not load the file. (outputs or inputs.) we will fetch them when needed.
           } else {
             res.push({ path: name, content: null })
           }
         }
         this.loadNetwork(res)
       } catch (err) {
-        this.$store.commit('changeAlert', err)
-        this.$store.commit('changeLoading', false)
+        this.store.changeAlert(err)
+        this.store.changeLoading(false)
       }
     },
 
     async loadExample (filesToLoads) {
-      this.$store.commit('changeLoading', true)
+      this.store.initNetworks()
+      this.userStore.unloadProject()
+      this.runStore.cleanRun()
+      this.runOSMStore.cleanRun()
+      this.runGTFSStore.cleanRun()
+
+      this.store.changeLoading(true)
       const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
       const res = []
       let content = {}
 
       try {
         if (filesToLoads.includes('PT')) {
-          content = await fetch(url + 'links_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/pt/links.geojson', content: content })
-          content = await fetch(url + 'nodes_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/pt/nodes.geojson', content: content })
+          content = await axios.get(url + 'links_exemple.geojson')
+          res.push({ path: 'inputs/pt/links.geojson', content: content.data })
+          content = await axios.get(url + 'nodes_exemple.geojson')
+          res.push({ path: 'inputs/pt/nodes.geojson', content: content.data })
         }
 
         if (filesToLoads.includes('road')) {
-          content = await fetch(url + 'road_links_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/road/links.geojson', content: content })
-          content = await fetch(url + 'road_nodes_exemple.geojson').then(res => res.json())
-          res.push({ path: 'inputs/road/nodes.geojson', content: content })
+          content = await axios.get(url + 'road_links_exemple.geojson')
+          res.push({ path: 'inputs/road/links.geojson', content: content.data })
+          content = await axios.get(url + 'road_nodes_exemple.geojson')
+          res.push({ path: 'inputs/road/nodes.geojson', content: content.data })
         }
 
         if (filesToLoads.includes('loaded')) {
-          content = await fetch(url + 'loaded_links.geojson').then(res => res.json())
-          res.push({ path: 'outputs/loaded_links.geojson', content: content })
-          content = await fetch(url + 'loaded_nodes.geojson').then(res => res.json())
-          res.push({ path: 'outputs/loaded_nodes.geojson', content: content })
+          content = await axios.get(url + 'loaded_links.geojson')
+          res.push({ path: 'outputs/loaded_links.geojson', content: content.data })
+          content = await axios.get(url + 'loaded_nodes.geojson')
+          res.push({ path: 'outputs/loaded_nodes.geojson', content: content.data })
         }
 
         if (filesToLoads.includes('zones')) {
-          content = await fetch(url + 'zones.geojson').then(res => res.json())
-          res.push({ path: 'outputs/zones.geojson', content: content })
-          content = await fetch(url + 'zones.zip').then(res => unzip(res.blob()))
-          res.push({ path: 'outputs/zones.json', content: content })
+          content = await axios.get(url + 'zones.geojson')
+          res.push({ path: 'outputs/zones.geojson', content: content.data })
+          content = await axios.request({ url: url + 'zones.zip', method: 'GET', responseType: 'blob' })
+          content = await unzip(content.data)
+          res.push({ path: 'outputs/zones.json', content })
         }
-        // this is zones and mat. reuse var to save memory
 
         this.loadNetwork(res)
-        // this.loggedIn = true
-        // this.login()
       } catch {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', {
+        this.store.changeLoading(false)
+        this.store.changeAlert({
           name: 'ImportError',
           message: $gettext($gettext('An error occur fetching example on github')),
         })
@@ -235,73 +234,34 @@ export default {
     >
 
     <div class="layout">
-      <div
-        class="layout-overlay"
-        :class="{ 'animate-layer': loggedIn }"
-      />
       <v-card
         class="card"
-        :class="{ 'animate-login': loggedIn }"
       >
         <v-row>
-          <v-col>
-            <v-card-text :style="{textAlign: 'center'}">
-              <div class="title">
-                {{ $gettext("Select a Project") }}
-              </div>
-              <div>
-                {{ $gettext("Log in and select an existing project or create a new project from project navigation menu") }}
-              </div>
-              <div class="subtitle">
-                {{ $gettext("OR") }}
-              </div>
-              <div class="title">
-                {{ $gettext("Continue Without Project") }}
-              </div>
-              <div>
-                {{ $gettext("Start importing files individually or start with an empty project") }}
-              </div>
-              <div class="subtitle">
-                {{ $gettext("OR") }}
-              </div>
-              <div class="title">
-                {{ $gettext("Load Zip") }}
-                <InfoZip />
-              </div>
-              <div>
-                <v-btn
-                  :style="{'margin-right':'auto'}"
-                  :color="'normal'"
-                  @click="buttonHandle('zip')"
-                >
-                  <v-icon
-                    small
-                    left
-                  >
-                    fas fa-file-archive
-                  </v-icon>
-                  {{ $gettext('Load Zip File') }}
-                </v-btn>
-              </div>
-              <div class="subtitle">
-                {{ $gettext("OR") }}
-              </div>
-              <div class="title">
-                {{ $gettext("Load Example") }}
-              </div>
-
+          <v-col class="left-col">
+            <div
+              class="custom-title"
+            >
+              {{ userStore.loggedIn? $gettext("Select a Project"): $gettext("Login to access projects") }}
+            </div>
+            <ScenariosExplorer
+              @load="loadFilesFromS3"
+              @unload="newProject"
+            />
+            <div class="button-row">
+              <v-btn
+                prepend-icon="fas fa-file-archive"
+                @click="buttonHandle('zip')"
+              >
+                {{ $gettext('Load Zip File') }}
+              </v-btn>
               <v-menu
-
-                offset-y
-                nudge-left="70"
                 close-delay="100"
                 transition="slide-y-transition"
               >
-                <template v-slot:activator="{ on: on,attrs:attrs }">
+                <template v-slot:activator="{ props }">
                   <v-btn
-                    :style="{'margin-bottom':'2rem'}"
-                    v-bind="attrs"
-                    v-on="on"
+                    v-bind="props"
                   >
                     {{ $gettext('Load Example') }}
                   </v-btn>
@@ -325,46 +285,46 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-menu>
-            </v-card-text>
+            </div>
           </v-col>
           <v-divider vertical />
-          <v-col>
+          <v-col class="center-col">
             <FileLoader
               @FilesLoaded="(files) => loadNetwork(files)"
             />
+            <div class="button-row">
+              <v-tooltip
+                location="bottom"
+                open-delay="500"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-btn
+
+                    v-bind="props"
+                    @click="buttonHandle('newProject')"
+                  >
+                    {{ $gettext('Empty all') }}
+                  </v-btn>
+                </template>
+                <span>{{ $gettext("Empty all loaded files and start from scratch") }}</span>
+              </v-tooltip>
+              <v-btn
+                :disabled="!filesAdded"
+                :color="filesAdded? 'primary' :'regular'"
+                @click="login()"
+              >
+                {{ $gettext('Go!') }}
+              </v-btn>
+            </div>
           </v-col>
           <v-divider vertical />
 
-          <v-col>
+          <v-col class="left-col">
             <FilesList
               @FilesLoaded="(files) => loadNetwork(files)"
             />
           </v-col>
         </v-row>
-        <div class="button-row">
-          <v-tooltip
-            bottom
-            open-delay="500"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                v-bind="attrs"
-                @click="buttonHandle('newProject')"
-                v-on="on"
-              >
-                {{ $gettext('delete all') }}
-              </v-btn>
-            </template>
-            <span>{{ $gettext("Delete all network and start from scratch") }}</span>
-          </v-tooltip>
-          <v-btn
-            :disabled="!filesAdded"
-            color="primary"
-            @click="login()"
-          >
-            {{ $gettext('Go!') }}
-          </v-btn>
-        </div>
       </v-card>
     </div>
     <v-dialog
@@ -376,7 +336,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{ $gettext("Overwrite current Project ?") }}
+          {{ $gettext("Unload all files ?") }}
         </v-card-title>
         <v-card-actions>
           <v-spacer />
@@ -400,40 +360,58 @@ export default {
 </template>
 <style lang="scss" scoped>
 .layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
+  position: relative;
+  padding: 4rem 2rem 4rem 2rem;
+  height:100%;
   display: flex;
   flex-flow: row;
   justify-content: center;
   align-items: center;
+  overflow-y: auto;
 }
 
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color:var(--v-background-base);
+.center-col{
+  display: flex;
+  flex-direction: column;
+  width:28rem;
+  padding:0.5rem;
 
-  position: absolute;
 }
+.left-col{
+  display: flex;
+  height:80vh;
+  flex-direction: column;
+  width:28rem;
+  padding:0.5rem;
+}
+
 .card {
-  width:80rem;
   overflow-y:hidden;
   padding: 20px;
+  background-color: rgb(var(--v-theme-lightergrey));
+
 }
 .button-question{
   display: flex;
   align-items: center ;
 
 }
-.title {
+.custom-title {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2em !important;
-  color: var(--v-primary-base);
+  color: rgb(var(--v-theme-primary));
   font-weight: bold;
-  margin-top:18px;
+  border-bottom: 1px solid rgb(var(--v-theme-lightgrey));
+}
+.card-title {
+  font-size: 2em !important;
+  color: rgb(var(--v-theme-primary));
+  font-weight: bold;
+}
+.clickage{
+  cursor:pointer
 }
 .subtitle {
   font-size: 1.5em;
@@ -441,7 +419,7 @@ export default {
   margin: 20px;
 }
 .card button {
-  margin: 0.5rem;
+  margin: 0.5rem 0.5rem 0rem 0.5rem;
 }
 .animate-login {
   transform: translateY(-185%);
@@ -453,11 +431,9 @@ export default {
 }
 .button-row{
   display: flex;
-  align-items: center;
+  margin-top:auto;
   justify-content:center;
-  margin-top : 1rem;
-  padding-top:0.5rem;
-  border-top: 1px solid var(--v-lightgrey-base);
+  border-top: 1px solid rgb(var(--v-theme-lightgrey));
 }
 
 </style>

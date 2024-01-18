@@ -5,12 +5,8 @@ export default {
   components: {
 
   },
-  model: {
-    prop: 'date',
-    event: 'update-date',
-  },
   props: ['date', 'from', 'to'],
-  events: ['update-date'],
+  events: ['update:date'],
 
   data () {
     return {
@@ -22,10 +18,20 @@ export default {
     }
   },
   computed: {
+    textDate () {
+      if (this.isoDate) {
+        const strDate = this.isoDate.toISOString()
+        return strDate.substring(0, 10)
+      } else {
+        return ''
+      }
+    },
 
   },
   watch: {
-    isoDate (val) { this.$emit('update-date', this.parseOutput(val)) },
+    isoDate (val) {
+      this.$emit('update:date', this.parseOutput(val))
+    },
 
   },
 
@@ -37,10 +43,11 @@ export default {
 
   methods: {
     parseInput (date) {
-      if (date) { return date.substring(0, 4) + '-' + date.substring(4, 6) + '-' + date.substring(6, 8) }
+      if (date) { return new Date(date.substring(0, 4) + '-' + date.substring(4, 6) + '-' + date.substring(6, 8)) }
     },
     parseOutput (date) {
-      return date.replaceAll('-', '')
+      const strDate = date.toISOString()
+      return strDate.substring(0, 10).replaceAll('-', '')
     },
 
   },
@@ -53,24 +60,23 @@ export default {
     v-model="menu"
     :close-on-content-click="false"
     transition="scale-transition"
-    offset-y
     max-width="290px"
     min-width="auto"
   >
-    <template v-slot:activator="{ on, attrs }">
+    <template v-slot:activator="{ props }">
       <v-text-field
-        :value="isoDate"
+        :model-value="textDate"
         persistent-hint
         readonly
-        v-bind="attrs"
-        v-on="on"
+        variant="underlined"
+
+        v-bind="props"
       />
     </template>
     <v-date-picker
       v-model="isoDate"
       :max="dateMax"
       :min="dateMin"
-      @input="menu = false"
     />
   </v-menu>
 </template>

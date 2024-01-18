@@ -1,249 +1,185 @@
 <script>
-import Router from '@src/router/index'
-const version = require('../../../package.json').version
+import router from '@src/router/index'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { computed, ref, onMounted, watch } from 'vue'
+const $gettext = s => s
+const packageVersion = import.meta.env.VITE_APP_VERSION
 
 export default {
   name: 'NavigationDrawer',
-  data () {
-    return {
-      leftSidenav: false,
-      drawer: true,
-      mini: true,
-      menuItems: [],
-      version: version,
-      saving: false,
+  setup (props, context) {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const isProtected = computed(() => userStore.protected)
+    const scenario = computed(() => userStore.scenario)
+    const rail = ref(true)
+    const drawer = ref(true)
+    // force drawer to True. the action of opening it with an overlay set it to false.
+    watch(drawer, () => { drawer.value = true })
+
+    const menuItems = ref([])
+    onMounted(() => {
+      menuItems.value = router.options.routes.concat({
+        name: 'Save',
+        icon: 'fa-solid fa-save',
+        margin: 'auto',
+        title: $gettext('Save'),
+      })
+      menuItems.value = menuItems.value.concat({
+        name: 'Export',
+        icon: 'fa-solid fa-download',
+        title: $gettext('Export'),
+      })
+    })
+
+    function getDisplayedRoutes () {
+      return menuItems.value.filter(o => o.icon)
     }
-  },
-  computed: {
-    running () { return this.$store.getters['run/running'] },
-    runError () { return this.$store.getters['run/error'] },
-    runSychronized () { return this.$store.getters['run/synchronized'] },
-    runWarning () { return (this.runError || !this.runSychronized) },
-    isProtected () {
-      return this.$store.getters.protected
-    },
-  },
-  created () {
-    this.menuItems = Router.options.routes.concat({
-      name: 'Save',
-      icon: 'fa-solid fa-save',
-      margin: 'auto',
-      title: this.$gettext('Save'),
-    })
-    this.menuItems = this.menuItems.concat({
-      name: 'Export',
-      icon: 'fa-solid fa-download',
-      title: this.$gettext('Export'),
-    })
-  },
-  methods: {
-    getDisplayedRoutes () {
-      return this.menuItems.filter(o => o.icon)
-    },
-    getRouteTitle (route) {
-      const tpl = this.$gettext('%{s}')
-      return this.$gettextInterpolate(tpl, { s: route.title })
-    },
-    handleClickMenuItem (route) {
+
+    const saving = ref(false)
+
+    function handleClickMenuItem (route) {
       switch (route.name) {
         case 'Export':
-          this.$store.dispatch('exportFiles', 'all')
+          store.exportFiles()
           break
         case 'Save':
-          this.saving = true
-          this.$store.dispatch('exportToS3').then(
+          saving.value = true
+          store.exportToS3().then(
             () => {
-              this.saving = false
-              this.$store.commit('changeNotification',
-                { text: this.$gettext('Scenario saved'), autoClose: true, color: 'success' })
+              saving.value = false
+              store.changeNotification(
+                { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
             }).catch(
             err => {
-              this.saving = false
-              this.$store.commit('changeAlert', err)
+              saving.value = false
+              store.changeAlert(err)
             })
           break
-        default :
-          this.$router.push(route.path).catch(() => {})
-          this.mini = true
+        default:
+          router.push(route.path)
+          rail.value = true
           break
       }
-    },
+    }
 
+    function getListItemMarginTop (item) {
+      switch (item.name) {
+        case 'Save':
+          return 'auto'
+        case 'ResultMap':
+          return '5rem'
+        default:
+          return '0'
+      }
+    }
+
+    const version = packageVersion
+
+    return {
+      store,
+      drawer,
+      menuItems,
+      rail,
+      saving,
+      isProtected,
+      scenario,
+      getDisplayedRoutes,
+      handleClickMenuItem,
+      getListItemMarginTop,
+      version,
+    }
   },
+
 }
 </script>
 <template>
-  <transition name="fade">
+  <div>
     <v-navigation-drawer
       v-model="drawer"
-      app
       class="drawer elevation-4"
-      stateless
-      :temporary="!mini"
-      :mini-variant.sync="mini"
-      :mini-variant-width="50"
+      :rail="rail"
+      rail-width="50"
+      :temporary="!rail"
+      :permanent="rail"
     >
       <div
         class="drawer-header"
-        @click="mini = !mini"
+        @click.stop="rail = !rail"
       >
         <v-icon
-          small
+          size="small"
+          class="icon"
         >
-          {{ mini ? 'fa fa-bars' : 'fas fa-angle-left' }}
+          {{ rail ? 'fas fa-bars' : 'fas fa-angle-left' }}
         </v-icon>
       </div>
       <v-list
-        dense
-        class="drawer-list"
+        class="app-menu"
       >
-        <v-list-item
-          v-for="( item,key ) in getDisplayedRoutes()"
-          :key="key"
-          class="drawer-list-item"
-          :disabled="(item.name === 'Save') && ((!$store.getters.scenario) || (isProtected))"
-          :class="[ $route.name === item.name ? 'drawer-list-item-selected' : '']"
-          :style="{marginTop: item.margin}"
-          @click.native.stop
-          @click="handleClickMenuItem(item)"
+        <template
+          v-for="item in getDisplayedRoutes()"
+          :key="item.title"
         >
-          <v-list-item-action
-            :class="(item.name === 'Save') && ((!$store.getters.scenario) || (isProtected))?
-              'drawer-list-item-icon-disabled':'drawer-list-item-icon'"
+          <v-list-item
+            class="app-menu-item"
+            :class="[$route.name=== item.name ? 'app-menu-item-selected' : '']"
+            :style="{marginTop: getListItemMarginTop(item)}"
+            :disabled="(item.name === 'Save') && ((!scenario) || (isProtected))"
+
+            @click="handleClickMenuItem(item)"
           >
-            <v-badge
-              v-if="item.name==='Run' && running "
-              :offset-x="'12px'"
-              :offset-y="'10px'"
-              :color="''"
-            >
-              <template v-slot:badge>
-                <v-progress-circular
-                  size="18"
-                  width="4"
-                  color="primary"
-                  indeterminate
-                />
-              </template>
+            <template v-slot:prepend>
+              <v-badge
+                v-if="item.name === 'Save' && saving"
+                color="rgba(0, 0, 0, 0)"
+              >
+                <template v-slot:badge>
+                  <v-progress-circular
+                    size="18"
+                    width="4"
+                    color="primary"
+                    indeterminate
+                  />
+                </template>
+                <v-icon
+                  class="icon"
+                  size="small"
+                >
+                  {{ item.icon }}
+                </v-icon>
+              </v-badge>
               <v-icon
-                small
-                :title="$gettext(item.title)"
+                v-else
+                class="icon"
+                size="small"
               >
                 {{ item.icon }}
               </v-icon>
-            </v-badge>
-            <v-badge
-              v-else-if="item.name==='Run' && runWarning "
-              :offset-x="'6px'"
-              :offset-y="'11px'"
-              :color="runError ? 'error' : 'warning' "
-              :icon="'fa-solid fa-exclamation'"
-            >
-              <v-icon
-                small
-                :title="$gettext(item.title)"
-              >
-                {{ item.icon }}
-              </v-icon>
-            </v-badge>
-            <v-badge
-              v-else-if="item.name==='Save' && saving"
-              :offset-x=" '12px' "
-              :offset-y=" '10px' "
-              :color=" ''"
-            >
-              <template v-slot:badge>
-                <v-progress-circular
-                  size="18"
-                  width="4"
-                  color="primary"
-                  indeterminate
-                />
-              </template>
-              <v-icon
-                small
-                :title="$gettext(item.title)"
-              >
-                {{ item.icon }}
-              </v-icon>
-            </v-badge>
-            <v-icon
-              v-else
-              small
-              :title="$gettext(item.title)"
-            >
-              {{ item.icon }}
-            </v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title :style="{marginLeft: '20px', color: 'white'}">
+            </template>
+            <v-list-item-title class="app-menu-item-title">
               {{ $gettext(item.title) }}
             </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item
+          </v-list-item>
+        </template>
+        <div
           class="version-number"
           :style="{fontSize:24 - 2*version.length+'px'}"
         >
           <span>{{ version }}</span>
-        </v-list-item>
+        </div>
       </v-list>
     </v-navigation-drawer>
-  </transition>
+  </div>
 </template>
 <style lang="scss" scoped>
-.drawer {
-  background-color: var(--v-secondary-base) !important;
-}
-.drawer-header {
-  width: 100%;
-  height: 50px;
-  border-bottom: 1px solid white;
-  background-color: var(--v-secondary-base);
-  color: white;
-  display: flex;
-  align-items: center;
-  padding-left: 18px;
-  cursor: pointer;
-}
-.drawer-list {
-  height: calc(100% - 50px);
-  display: flex;
-
-  flex-direction: column;
-  padding: 20px 0;
-}
-.drawer-list-item {
-  padding: 0 13px !important;
-  justify-content: flex-start !important;
-  color:white ;
-  flex: 0;
-  transition: 0.3s;
-}
 .version-number {
-  justify-content: flex-start ;
+  justify-content: center ;
+  display: flex;
   color:white !important;
-  margin-bottom:-1rem;
-  flex: 0;
-}
-.drawer-list-item-icon {
-  display: flex !important;
-  flex-flow: row !important;
-  justify-content: center !important;
-  margin: 0 !important;
-  color: white;
-}
-.drawer-list-item-icon-disabled {
-  display: flex !important;
-  flex-flow: row !important;
-  justify-content: center !important;
-  margin: 0 !important;
-  opacity: 0.4;
-}
-.drawer-list-item-selected {
-  background-color: var(--v-secondarydarkfix-base);
-}
-.drawer-list-item:hover {
-  background-color: var(--v-secondary-base);
+  margin-bottom: -0.5rem;
+  margin-top:1rem;
+
 }
 </style>

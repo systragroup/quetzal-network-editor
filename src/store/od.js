@@ -1,43 +1,41 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable no-return-assign */
+import { defineStore } from 'pinia'
+
 import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
-const short = require('short-uuid')
+import { cloneDeep } from 'lodash'
+import short from 'short-uuid'
+import geojson from '@constants/geojson'
 const $gettext = s => s
 
-export default {
-  namespaced: true,
-  state: {
+export const useODStore = defineStore('od', {
+  state: () => ({
     layer: {},
     visibleLayer: {},
-    layerHeader: {}, // empty geojson
     layerAttributes: [], // all the available attributes (columns in pandas)
     filteredCategory: [], // all possible category (to be in selectedCat)
     selectedFilter: '', // ex: highway
     selectedCategory: [], // ex: [motorway, residential] visible one.
 
-  },
+  }),
 
-  mutations: {
-    loadLayer (state, payload) {
-      state.layer = structuredClone(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(state.layer.crs.properties.name)) {
-        const layerHeader = { ...state.layer }
-        layerHeader.features = []
-        state.layerHeader = layerHeader
-        state.visibleLayer = structuredClone(layerHeader)
+  actions: {
+    loadLayer (payload) {
+      this.layer = cloneDeep(payload)
+      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.layer.crs.properties.name)) {
+        this.visibleLayer = cloneDeep(geojson)
         // set all trips visible
-        // this.commit('results/changeSelectedTrips', state.tripId)
-        this.commit('od/getProperties')
+        this.getProperties()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
-    loadODFiles (state, payload) {
+    loadODFiles (payload) {
       // payload = [{path,content},...]
       for (const file of payload) {
-        if (IndexAreDifferent(file.content, state.layer)) {
-          this.commit('od/appendNewOD', serializer(file.content, file.path, 'LineString'))
+        if (IndexAreDifferent(file.content, this.layer)) {
+          this.appendNewOD(serializer(file.content, file.path, 'LineString'))
         } else {
           const err = new Error($gettext(' there is duplicated index, ') + file.path)
           err.name = 'ImportError'
@@ -46,7 +44,7 @@ export default {
       }
     },
 
-    appendNewOD (state, payload) {
+    appendNewOD (payload) {
       // append new links and node to the project (import page)
       function getFirstAndLast (arr) {
         return [arr[0], arr[arr.length - 1]]
@@ -54,77 +52,77 @@ export default {
 
       payload.features.forEach(link => link.geometry.coordinates = getFirstAndLast(link.geometry.coordinates))
 
-      payload.features.forEach(link => state.layer.features.push(link))
-      this.commit('od/getProperties')
-      this.commit('od/getFilteredCategory')
-      this.commit('od/refreshVisibleLayer')
+      payload.features.forEach(link => this.layer.features.push(link))
+      this.getProperties()
+      this.getFilteredCategory()
+      this.refreshVisibleLayer()
     },
 
-    changeSelectedFilter (state, payload) {
-      state.selectedFilter = payload
-      this.commit('od/refreshVisibleLayer')
-      this.commit('od/getFilteredCategory')
+    changeSelectedFilter (payload) {
+      this.selectedFilter = payload
+      this.refreshVisibleLayer()
+      this.getFilteredCategory()
     },
-    changeSelectedCategory (state, payload) {
-      state.selectedCategory = payload
-      this.commit('od/refreshVisibleLayer')
+    changeSelectedCategory (payload) {
+      this.selectedCategory = payload
+      this.refreshVisibleLayer()
     },
 
-    getProperties (state) {
+    getProperties () {
       const header = new Set([])
-      state.layer.features.forEach(element => {
+      this.layer.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       // add all default attributes
       const defaultAttributes = [
         'index', 'name']
       defaultAttributes.forEach(att => header.add(att))
-      state.layerAttributes = Array.from(header)
-      state.selectedFilter = state.layerAttributes[0]
-      state.selectedCategory = Array.from(new Set(state.layer.features.map(
-        item => item.properties[state.selectedFilter])))
+      this.layerAttributes = Array.from(header)
+      this.selectedFilter = this.layerAttributes[0]
+      this.selectedCategory = Array.from(new Set(this.layer.features.map(
+        item => item.properties[this.selectedFilter])))
     },
 
-    refreshVisibleLayer (state) {
-      const group = new Set(state.selectedCategory)
-      const cat = state.selectedFilter
-      state.visibleLayer.features = state.layer.features.filter(link => group.has(link.properties[cat]))
+    refreshVisibleLayer () {
+      const group = new Set(this.selectedCategory)
+      const cat = this.selectedFilter
+      this.visibleLayer.features = this.layer.features.filter(link => group.has(link.properties[cat]))
     },
-    getFilteredCategory (state) {
+    getFilteredCategory () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(state.layer.features.map(
-        item => item.properties[state.selectedFilter])))
-      state.filteredCategory = val
+      const val = Array.from(new Set(this.layer.features.map(
+        item => item.properties[this.selectedFilter])))
+      this.filteredCategory = val
     },
 
     // actions
-    deleteOD (state, payload) {
+    deleteOD (payload) {
       const linkArr = new Set(payload.selectedIndex)
-      state.layer.features = state.layer.features.filter(link => !linkArr.has(link.properties.index))
-      this.commit('od/refreshVisibleLayer')
-      this.commit('od/getFilteredCategory')
+      this.layer.features = this.layer.features.filter(link => !linkArr.has(link.properties.index))
+      this.refreshVisibleLayer()
+      this.getFilteredCategory()
     },
 
-    deleteGroup (state, payload) {
+    deleteGroup (payload) {
       const group = payload
-      const cat = state.selectedFilter
-      state.layer.features = state.layer.features.filter(link => link.properties[cat] !== group)
-      this.commit('od/refreshVisibleLayer')
-      this.commit('od/getFilteredCategory')
+      const cat = this.selectedFilter
+      this.layer.features = this.layer.features.filter(link => link.properties[cat] !== group)
+      this.refreshVisibleLayer()
+      this.getFilteredCategory()
     },
 
-    moveNode (state, payload) {
+    moveNode (payload) {
       const linkIndex = payload.selectedFeature.properties.linkIndex
       const coordinatedIndex = payload.selectedFeature.properties.coordinatedIndex
 
-      const link = state.visibleLayer.features.filter(feature => feature.properties.index === linkIndex)[0]
+      const link = this.visibleLayer.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
     },
 
-    createNewLink (state, payload) {
+    createNewLink (payload) {
       const linkGeometry = {
         coordinates: [payload.lngLat, payload.lngLat],
         type: 'LineString',
@@ -132,27 +130,27 @@ export default {
 
       const linkProperties = {}
       // set default links values
-      state.layerAttributes.forEach((key) => linkProperties[key] = null)
+      this.layerAttributes.forEach((key) => linkProperties[key] = null)
       linkProperties.index = payload.index
-      // linkProperties.route_color = state.rlinksDefaultColor
+      // linkProperties.route_color = this.rlinksDefaultColor
       const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
-      state.layer.features.push(linkFeature)
+      this.layer.features.push(linkFeature)
 
-      this.commit('od/getFilteredCategory')
+      this.getFilteredCategory()
       // add newly create link to the visible
-      const newCat = linkProperties[state.selectedFilter]
-      const selectedCategorySet = new Set(state.selectedCategory)
+      const newCat = linkProperties[this.selectedFilter]
+      const selectedCategorySet = new Set(this.selectedCategory)
       if (!selectedCategorySet.has(newCat)) {
-        state.selectedCategory.push(newCat)
+        this.selectedCategory.push(newCat)
       }
-      this.commit('od/refreshVisibleLayer')
+      this.refreshVisibleLayer()
     },
 
-    editLinkInfo (state, payload) {
+    editLinkInfo (payload) {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedLinkId, info } = payload
       const props = Object.keys(info)
-      state.visibleLayer.features.filter(
+      this.visibleLayer.features.filter(
         // eslint-disable-next-line array-callback-return
         function (link) {
           if (link.properties.index === selectedLinkId) {
@@ -160,48 +158,40 @@ export default {
           }
         },
       )
-      this.commit('od/getFilteredCategory')
+      this.getFilteredCategory()
     },
 
-    editGroupInfo (state, payload) {
+    editGroupInfo (payload) {
       // edit line info on multiple trips at once.
       const groupInfo = payload.info
-      const selectedLinks = payload.selectedLinks // observer of state.links
+      const selectedLinks = payload.selectedLinks // observer of this.links
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(groupInfo).filter(key =>
         ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
-      // this is an oberver. modification will be applied to state.links.
+      // this is an oberver. modification will be applied to this.links.
       selectedLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
 
-      this.commit('od/getFilteredCategory')
-      this.commit('od/refreshVisibleLayer')
+      this.getFilteredCategory()
+      this.refreshVisibleLayer()
     },
-    addPropertie (state, payload) {
+    addPropertie (payload) {
       // payload = name
       // when a new line properties is added (in dataframe page)
-      state.layer.features.map(link => link.properties[payload] = null)
-      state.visibleLayer.features.map(link => link.properties[payload] = null)
-      state.layerAttributes.push(payload)
+      this.layer.features.map(link => link.properties[payload] = null)
+      this.visibleLayer.features.map(link => link.properties[payload] = null)
+      this.layerAttributes.push(payload)
     },
-    deletePropertie (state, payload) {
+    deletePropertie (payload) {
       // when a link property is deleted
-      state.layer.features.filter(link => delete link.properties[payload.name])
-      state.visibleLayer.features.filter(link => delete link.properties[payload.name])
-      state.layerAttributes = state.layerAttributes.filter(item => item !== payload.name)
+      this.layer.features.filter(link => delete link.properties[payload.name])
+      this.visibleLayer.features.filter(link => delete link.properties[payload.name])
+      this.layerAttributes = this.layerAttributes.filter(item => item !== payload.name)
     },
   },
 
   getters: {
-    layer: (state) => state.layer,
-    visibleLayer: (state) => state.visibleLayer,
     layerIsEmpty: (state) => state.layer.features.length === 0,
-    layerHeader: (state) => state.layerHeader,
-    selectedTrips: (state) => state.selectedTrips,
-    layerAttributes: (state) => state.layerAttributes.sort(),
-    selectedFilter: (state) => state.selectedFilter,
-    filteredCategory: (state) => state.filteredCategory,
-    selectedCategory: (state) => state.selectedCategory,
     groupLayer: (state) => (category, group) => {
       return state.layer.features.filter(link => group === link.properties[category])
     },
@@ -222,7 +212,7 @@ export default {
       return form
     },
     nodes: (state) => (layer) => {
-      const nodes = structuredClone(state.layerHeader)
+      const nodes = cloneDeep(geojson)
       layer.features.forEach(
         feature => {
           const Index = feature.properties.index
@@ -241,4 +231,4 @@ export default {
     },
 
   },
-}
+})

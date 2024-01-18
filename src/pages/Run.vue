@@ -1,6 +1,10 @@
 <script>
 
 import ParamForm from '@comp/run/ParamForm.vue'
+import { computed, ref, watch, onMounted } from 'vue'
+import { useIndexStore } from '@src/store/index'
+import { useRunStore } from '@src/store/run'
+import { useUserStore } from '@src/store/user'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -8,69 +12,83 @@ export default {
   components: {
     ParamForm,
   },
-  data () {
-    return {
-      stepFunction: null,
-    }
-  },
-  computed: {
-    steps () { return this.$store.getters['run/steps'] },
-    avalaibleStepFunctions () {
-      const modelsSet = this.$store.getters['run/availableModels']
-      return this.$store.getters['run/avalaibleStepFunctions'].filter(el => modelsSet.has(el))
-    },
-    selectedStepFunction () { return this.$store.getters['run/selectedStepFunction'] },
-    running () { return this.$store.getters['run/running'] },
-    currentStep () { return this.$store.getters['run/currentStep'] },
-    error () { return this.$store.getters['run/error'] },
-    errorMessage () { return this.$store.getters['run/errorMessage'] },
-    synchronized () { return this.$store.getters['run/synchronized'] },
-    isProtected () {
-      return this.$store.getters.protected
-    },
-    modelIsLoaded () { return this.$store.getters.model !== null },
-  },
-  watch: {
-    async stepFunction (newVal, oldVal) {
-      if (newVal < 0) {
-        this.$store.commit('run/setSelectedStepFunction', this.avalaibleStepFunctions[0])
-        this.$store.dispatch('run/getSteps')
-      } else if (oldVal !== null) {
-        // val is an index here
-        this.$store.commit('run/setSelectedStepFunction', this.avalaibleStepFunctions[newVal])
-        this.$store.dispatch('run/getSteps')
+  setup () {
+    const store = useIndexStore()
+    const runStore = useRunStore()
+    const userStore = useUserStore()
+    const stepFunction = ref('')
+    const steps = computed(() => { return runStore.steps })
+    const avalaibleStepFunctions = computed(() => {
+      const modelsSet = runStore.availableModels
+      return runStore.avalaibleStepFunctions.filter(el => modelsSet.has(el))
+    })
+    const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
+    const running = computed(() => { return runStore.running })
+    const currentStep = computed(() => { return runStore.currentStep })
+    const error = computed(() => { return runStore.error })
+    const errorMessage = computed(() => { return runStore.errorMessage })
+    const synchronized = computed(() => { return runStore.synchronized })
+    const isProtected = computed(() => { return userStore.protected })
+    const modelIsLoaded = computed(() => { return userStore.model !== null })
+
+    onMounted(async () => {
+      if (modelIsLoaded.value) {
+        await runStore.getSteps()
+        stepFunction.value = selectedStepFunction.value
       }
-    },
-  },
-  async created () {
-    if (this.modelIsLoaded) {
-      await this.$store.dispatch('run/getSteps')
-      // here stepfuntion is an index v-model. 0,1.
-      this.stepFunction = this.avalaibleStepFunctions.indexOf(this.selectedStepFunction)
-    }
-  },
-  methods: {
-    async run () {
+    })
+
+    watch(stepFunction, async (val) => {
+      if (modelIsLoaded.value) {
+        if (avalaibleStepFunctions.value.includes(val)) {
+          runStore.setSelectedStepFunction(val)
+          runStore.getSteps()
+        } else {
+          stepFunction.value = avalaibleStepFunctions.value[0]
+          runStore.setSelectedStepFunction(avalaibleStepFunctions.value[0])
+          runStore.getSteps()
+        }
+      }
+    })
+
+    async function run () {
       try {
-        this.$store.commit('run/startExecution') // start the stepper at first step
-        await this.$store.dispatch('exportToS3', 'inputs')
-        await this.$store.dispatch('deleteOutputsOnS3')
-        this.$store.dispatch('run/startExecution', { scenario: this.$store.getters.scenario })
+        runStore.initExecution() // start the stepper at first step
+        await store.exportToS3('inputs')
+        await store.deleteOutputsOnS3()
+        store.deleteOutputs()
+        runStore.startExecution({ scenario: userStore.scenario })
       } catch (err) {
-        this.$store.commit('run/terminateExecution')
-        this.$store.commit('changeAlert', err)
+        runStore.terminateExecution()
+        console.log(err)
+        store.changeAlert(err)
       }
-    },
-    stopRun () {
-      this.$store.dispatch('run/stopExecution')
-      //
-    },
+    }
+
+    return {
+      stepFunction,
+      store,
+      runStore,
+      userStore,
+      steps,
+      avalaibleStepFunctions,
+      selectedStepFunction,
+      running,
+      currentStep,
+      error,
+      errorMessage,
+      synchronized,
+      isProtected,
+      modelIsLoaded,
+      run,
+    }
   },
+
 }
 
 </script>
 <template>
-  <v-row class="ma-0 pa-2 background">
+  <v-row class="background">
     <v-col order="1">
       <ParamForm />
     </v-col>
@@ -81,18 +99,20 @@ export default {
         </v-card-title>
         <v-stepper
           v-model="currentStep"
-          vertical
-          style="background-color:var(--v-background-lighten4);"
+          class="stepper"
         >
           <v-tabs
             v-if="avalaibleStepFunctions.length>1"
             v-model="stepFunction"
             show-arrows
+            bg-color="lightgrey"
+            color="success"
             fixed-tabs
           >
             <v-tab
               v-for="tab in avalaibleStepFunctions"
               :key="tab"
+              :value="tab"
               :disabled="running || !modelIsLoaded"
             >
               {{ tab }}
@@ -100,8 +120,8 @@ export default {
           </v-tabs>
           <v-alert
             v-if="!synchronized"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             text
             type="warning"
           >
@@ -110,8 +130,8 @@ export default {
           </v-alert>
           <v-alert
             v-if="error"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             text
             type="error"
           >
@@ -126,8 +146,8 @@ export default {
           </v-alert>
           <v-alert
             v-if="isProtected"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             text
             type="error"
           >
@@ -138,10 +158,11 @@ export default {
             :loading="running"
             :disabled="running || isProtected || !modelIsLoaded"
             color="success"
+            class="ma-2"
             @click="run()"
           >
             <v-icon
-              small
+              size="small"
               style="margin-right: 10px;"
             >
               fa-solid fa-play
@@ -151,28 +172,35 @@ export default {
           <v-btn
             v-show="running && currentStep!==1"
             color="grey"
-            text
-            @click="stopRun()"
+            variant="text"
+            @click="runStore.stopExecution()"
           >
             {{ $gettext("Abort Simulation") }}
           </v-btn>
-          <div v-if="modelIsLoaded">
-            <v-container
+          <div
+            v-if="modelIsLoaded"
+          >
+            <div
               v-for="(step, i) in steps"
-
               :key="i+1"
             >
-              <v-stepper-content
+              <v-stepper-item
+                v-if="!error"
+                :complete="currentStep > i+1"
+                :color="currentStep >= i+1?'primary':'regular'"
+                :title="step.name"
+                :value="i+1"
+                compact
                 :step="i+1"
               />
-              <v-stepper-step
+              <v-stepper-item
+                v-else
                 :complete="currentStep > i+1"
+                :title="step.name"
+                :value="i+1"
                 :step="i+1"
-                :rules="[() => !(i+1 == currentStep) || !error]"
-              >
-                {{ step.name }}
-              </v-stepper-step>
-            </v-container>
+              />
+            </div>
           </div>
         </v-stepper>
       </v-card>
@@ -181,36 +209,25 @@ export default {
 </template>
 <style lang="scss" scoped>
 .container {
-  width: 100%;
+  background-color:rgb(var(--v-theme-background)) !important;
   overflow: hidden;
-  margin-left: 0 auto;
-  margin-right: 0 auto;
   padding: 0 0 0 0;
 }
-.layout {
-  position: absolute;
-  width: calc(100%);
-  height: calc(100% - 50px);
-  display: flex;
-  flex-flow: row;
-  justify-content: center;
-  align-items: center;
-}
-.layout-overlay {
+.background {
+  background-color: rgb(var(--v-theme-background));
   height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
+  padding: 1rem;
+  overflow: hidden;
 }
+
 .card {
-  height: 100%;
-  overflow-y: auto;
-  padding: 40px;
+  height: 90vh;
+  overflow-y: hidden;
+  background-color: rgb(var(--v-theme-lightergrey));
 }
 
 .v-card__text {
   max-height: 80%;
-  overflow-y: auto;
 }
 .row {
   height: calc(100% - 38px)
@@ -229,21 +246,17 @@ export default {
 }
 .subtitle {
   font-size: 2em;
-  color:var(--v-secondary-dark);
+  color:rgb(var(--v-theme-secondary-dark));
   font-weight: bold;
   margin: 10px;
   margin-left: 0px;
 }
-.card button {
-  margin-top: 0px;
+
+.stepper{
+  background-color:rgb(var(--v-theme-mediumgrey)) ;
+  color:rgb(var(--v-theme-black));
+  overflow-y: auto;
+
 }
-.v-stepper__content {
-  border-left: 4px solid rgba(0,0,0,.12);
-}
-.v-sheet.v-stepper:not(.v-sheet--outlined) {
-  box-shadow: none;
-}
-.background {
-  background-color:var(--v-background-base);
-}
+
 </style>

@@ -1,0 +1,27 @@
+.app-toolbar {
+  z-index: 100;
+  height: 50px !important;
+  padding-left: 20px;
+}
+.project-name {
+  font-size: 1.3em;
+}
+.languages-container {
+  display: flex;
+}
+.language {
+  width: 50px;
+  display: flex;
+  color: $grey-light;
+  border-right: 1px solid $grey-light;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  cursor: pointer;
+}
+.language.active, .language:hover {
+  color: $secondary;
+}
+.language:last-child {
+  border-right: 0;
+}

@@ -1,34 +1,53 @@
-import { store } from '@src/store/index.js'
-import AWS from 'aws-sdk'
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+
+import { S3, GetObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { Upload } from '@aws-sdk/lib-storage'
+import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import md5 from 'crypto-js/md5'
 
-const USERPOOL_ID = process.env.VUE_APP_COGNITO_USERPOOL_ID
-const IDENTITY_POOL_ID = process.env.VUE_APP_COGNITO_IDENTITY_POOL_ID
-const REGION = process.env.VUE_APP_COGNITO_REGION
+const USERPOOL_ID = import.meta.env.VITE_COGNITO_USERPOOL_ID
+const IDENTITY_POOL_ID = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
+const REGION = import.meta.env.VITE_COGNITO_REGION
 
-AWS.config.region = REGION
-const s3Client = new AWS.S3({
+const creds = fromCognitoIdentityPool({
+  clientConfig: { region: REGION },
+  identityPoolId: IDENTITY_POOL_ID,
+  logins: {},
+})
+
+let s3Client = new S3({
   apiVersion: '2006-03-01',
   signatureVersion: 'v4',
-  params: { region: REGION },
+  region: REGION,
+  credentials: creds,
+
 })
 
 async function readJson (bucket, key) {
-  const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
-  // const params = { Bucket: bucket, Key: key }
-
-  const response = await s3Client.getObject(params).promise() // await the promise
-  const fileContent = JSON.parse(new TextDecoder('utf-8').decode(response.Body).trim())
-  return fileContent
+  try {
+    const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
+    // const params = { Bucket: bucket, Key: key }
+    const response = await s3Client.getObject(params) // await the promise
+    const str = await response.Body.transformToString('utf-8')
+    const fileContent = JSON.parse(str.trim())
+    return fileContent
+  } catch (err) {
+    const store = useIndexStore()
+    err.name = 'ImportError in ' + key
+    store.changeAlert(err)
+    return {}
+  }
 }
 
 async function readBytes (bucket, key) {
   const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
   // const params = { Bucket: bucket, Key: key }
-  const response = await s3Client.getObject(params).promise() // await the promise
-  const fileContent = response.Body // can also do 'base64' here if desired
+  const response = await s3Client.getObject(params) // await the promise
+  const fileContent = await response.Body.transformToByteArray() // can also do 'base64' here if desired
   return fileContent
 }
 async function downloadFolder (bucket, prefix) {
@@ -36,17 +55,17 @@ async function downloadFolder (bucket, prefix) {
   const zip = new JSZip()
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
-  const response = await s3Client.listObjectsV2(params).promise()
-  if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
+  const response = await s3Client.listObjectsV2(params)
+  if (response.Contents.length === 0) throw new Error('nothing to download')
   for (const file of response.Contents) {
     const fileName = file.Key.split('/').slice(-1)[0]
-    const params = { Bucket: bucket, Key: file.Key, ResponseCacheControl: 'no-cache' }
-    const response = await s3Client.getObject(params).promise()
-    zip.file(fileName, response.Body)
+    const content = await readBytes(bucket, file.Key)
+    const blob = new Blob([content]) // { type: 'text/csv' }
+    zip.file(fileName, blob)
   }
 
   zip.generateAsync({ type: 'blob' }).then(function (content) {
-    saveAs(content, 'example.zip')
+    saveAs(content, 'calibration report.zip')
   })
 }
 
@@ -56,30 +75,31 @@ async function listFiles (bucket, prefix) {
     prefix.forEach(async pref => {
       if (pref.slice(-1) !== '/') { pref = pref + '/' }
       const params = { Bucket: bucket, Prefix: pref }
-      const Content = await s3Client.listObjectsV2(params).promise()
+      const Content = await s3Client.listObjectsV2(params)
       paths.push(...Content.Contents.map(item => item.Key))
     })
     return paths
   } else {
     if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
     const params = { Bucket: bucket, Prefix: prefix }
-    const Content = await s3Client.listObjectsV2(params).promise()
+    const Content = await s3Client.listObjectsV2(params)
     return Content.Contents.map(item => item.Key)
   }
 }
 async function getImagesURL (bucket, key) {
-  const presignedGETURL = s3Client.getSignedUrl('getObject', {
+  const params = {
     Bucket: bucket,
     Key: key, // filename
-    Expires: 86400, // time to expire in seconds
-  })
-  return presignedGETURL
+  }
+  const command = new GetObjectCommand(params)
+  const url = await getSignedUrl(s3Client, command, { expiresIn: 86400 })
+  return url
 }
 
 async function copyFolder (bucket, prefix, newName) {
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
-  const response = await s3Client.listObjectsV2(params).promise()
+  const response = await s3Client.listObjectsV2(params)
   response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
   if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
   for (const file of response.Contents) {
@@ -110,7 +130,7 @@ async function newScenario (bucket, prefix, newName) {
     prefix + 'attributesChoices.json',
   ]
   const params = { Bucket: bucket, Prefix: prefix }
-  const response = await s3Client.listObjectsV2(params).promise()
+  const response = await s3Client.listObjectsV2(params)
   response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
 
   if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
@@ -137,64 +157,55 @@ async function newScenario (bucket, prefix, newName) {
 async function deleteFolder (bucket, prefix) {
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
-  const response = await s3Client.listObjectsV2(params).promise()
+  const response = await s3Client.listObjectsV2(params)
   const arr = []
-  if (response.Contents.length > 0) {
+  if (response.Contents?.length > 0) {
     response.Contents.forEach(file => arr.push({ Key: file.Key }))
     const deleteParams = { Bucket: bucket, Delete: { Objects: arr } }
-    return s3Client.deleteObjects(deleteParams).promise()
+    return s3Client.deleteObjects(deleteParams)
   }
 }
 
-async function createFolder (bucket, key) {
-  // create an empty folder
-  if (key.slice(-1) !== '/') { key = key + '/' }
-  const params = { Bucket: bucket, Key: key, Body: '' }
-
-  s3Client.upload(params, function (err, data) {
-    if (err) {
-      store.commit('changeAlert', err)
-    } else {
-      console.log('Successfully created a folder on S3')
-    }
-  })
-}
 async function putObject (bucket, key, body = '') {
+  const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
-  const newChecksum = md5(JSON.stringify(body)).toString()
+  // if a json. already a string (we pass json.stringify()).
+  // so only apply string to bytesArray. json.stringify crash with large array...
+  const newChecksum = md5(body).toString()
   if (oldChecksum !== newChecksum) {
     const params = {
       Bucket: bucket,
       Key: key,
       Body: body,
-      Metadata: { user_email: store.getters.cognitoInfo.email, checksum: newChecksum },
+      Metadata: { user_email: userStore.cognitoInfo.email, checksum: newChecksum },
       ContentType: ' application/json',
     }
-    const resp = await s3Client.putObject(params).promise()
+    const resp = await s3Client.putObject(params)
     return resp
   } else { return 'no changes' }
 }
 
 function uploadObject (bucket, key, body = '') {
+  const userStore = useUserStore()
   const checksum = md5(JSON.stringify(body)).toString()
   const params = {
     Bucket: bucket,
     Key: key,
     Body: body,
-    Metadata: { user_email: store.getters.cognitoInfo.email, checksum: checksum },
+    Metadata: { user_email: userStore.cognitoInfo.email, checksum },
   }
-  const upload = s3Client.upload(params)
-  return upload
+  const resp = new Upload({ client: s3Client, params })
+  return resp
 }
 
 async function getScenario (bucket) {
   // list all files in bucket
-  const params = { Bucket: bucket }
+  const params = { Bucket: bucket, encodingType: 'url' }
   let moreToLoad = true
   const list = []
   try {
     while (moreToLoad) {
-      const { Contents, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params).promise()
+      const { Contents, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
       list.push(...Contents)
       moreToLoad = IsTruncated
       params.ContinuationToken = NextContinuationToken
@@ -216,42 +227,55 @@ async function getScenario (bucket) {
     const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
     const timestamp = maxDateObj.LastModified.getTime()
-    // get user email metadata on newest object. undefined if empty or error.
-    let userEmail // this = undefined
-    try {
-      const resp = await s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key }).promise()
-      // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
-      userEmail = resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
-    } catch (err) { store.commit('changeAlert', err) }
+
+    // get user email metadata on newest object.
+    // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
+    const response = s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key })
+    const userEmailPromise = response.then((resp) => {
+      return resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
+    }).catch((err) => {
+      console.log(err)
+      return 'idns-canada@systra.com'
+    })
     scenList.push({
       model: bucket,
       scenario: scen,
       lastModified: maxDate,
-      timestamp: timestamp,
-      userEmail: userEmail,
+      timestamp,
+      userEmail: '...',
+      userEmailPromise,
       protected: isLocked,
     })
   }
+
   return scenList
 }
 async function getChecksum (bucket, key) {
   try {
-    const resp = await s3Client.headObject({ Bucket: bucket, Key: key }).promise()
+    const resp = await s3Client.headObject({ Bucket: bucket, Key: key })
     return resp.Metadata.checksum
   } catch (err) { return null }
 }
 
 export default {
   s3: s3Client,
+  creds,
   async login () {
-    AWS.config.region = REGION
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: IDENTITY_POOL_ID,
-      Logins: {
-        [`cognito-idp.${REGION}.amazonaws.com/${USERPOOL_ID}`]: store.getters.idToken,
-      },
+    const userStore = useUserStore()
+    // creds.params.Logins = creds.params.logins || {}
+    const creds = fromCognitoIdentityPool({
+      clientConfig: { region: REGION },
+      identityPoolId: IDENTITY_POOL_ID,
+      logins: { [`cognito-idp.${REGION}.amazonaws.com/${USERPOOL_ID}`]: userStore.idToken },
     })
-    s3Client.config.credentials = AWS.config.credentials
+
+    s3Client = new S3({
+      apiVersion: '2006-03-01',
+      signatureVersion: 'v4',
+      region: REGION,
+      credentials: creds,
+
+    })
   },
 
   getScenario,
@@ -260,7 +284,6 @@ export default {
   listFiles,
   copyFolder,
   deleteFolder,
-  createFolder,
   putObject,
   getImagesURL,
   downloadFolder,

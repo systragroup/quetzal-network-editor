@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import { store } from '../../store/index.js'
+
 const $gettext = s => s
 
 function readFileAsText (file) {
@@ -56,6 +56,7 @@ async function extractZip (file) {
         content = JSON.parse(str)
       } catch (err) {
         err.name = 'ImportError in ' + filesNames[i]
+        if (str.length === 0) { err.message = 'file is empty' }
         throw err
       }
     } else {
@@ -63,7 +64,7 @@ async function extractZip (file) {
     }
     // import with new fileStructure (inputs, outputs folder in zip)
 
-    result.push({ path: filesNames[i], content: content })
+    result.push({ path: filesNames[i], content })
   }
   return result
 }
@@ -99,26 +100,11 @@ function IndexAreDifferent (geojsonA, geojsonB) {
   return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
 }
 
-function createIndex (geojson, type, prefix) {
-  // not done. we should check links and node as there is nodes index in links (a,b)
-  switch (type) {
-    case 'PT':
-      // eslint-disable-next-line no-case-declarations
-      const len = store.getters.links.features.length
-      // eslint-disable-next-line no-return-assign
-      geojson.features.forEach((feat, index) => feat.properties.index = prefix + (index + len))
-      break
-    case 'road':
-      break
-  }
-}
-
 async function unzip (file) {
   // unzip a file and return a json (solo json zipped)
   const ZIP = new JSZip()
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
-  console.log(filesNames)
   const str = await zip.file(filesNames[0]).async('string')
   const content = JSON.parse(str)
   return content
@@ -216,7 +202,6 @@ export {
   extractZip,
   getGroupForm,
   indexAreUnique,
-  createIndex,
   IndexAreDifferent,
   unzip,
   csvJSON,

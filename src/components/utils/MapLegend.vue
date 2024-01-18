@@ -1,5 +1,6 @@
 <script>
-
+import { computed } from 'vue'
+import { useIndexStore } from '@src/store/index'
 export default {
   name: 'MapLegend',
   components: {
@@ -22,17 +23,12 @@ export default {
       default: () => 0,
     },
   },
-  data () {
-    return {
-
-    }
-  },
-
-  computed: {
-    windowHeight () { return this.$store.getters.windowHeight - 70 },
-    leftOffset () {
-      return this.$store.getters.showLeftPanel ? 50 + (180 * this.order) + this.baseOffset : 50 + (180 * this.order)
-    },
+  setup (props) {
+    const store = useIndexStore()
+    const leftOffset = computed(() => {
+      return store.showLeftPanel ? 50 + (180 * props.order) + props.baseOffset : 50 + (180 * props.order)
+    })
+    return { leftOffset }
   },
 
 }
@@ -41,7 +37,7 @@ export default {
   <div
     v-show="!isNaN(displaySettings.minVal) && !isNaN(displaySettings.minVal)"
     class="legend elevation-4"
-    :style="{'top':`${windowHeight}px`,'left':`${leftOffset}px !important`}"
+    :style="{'left':`${leftOffset}px !important`}"
   >
     <div class="gradient">
       <span
@@ -115,8 +111,9 @@ export default {
   justify-content: center;
   transition: 0.3s;
   height: 50px;
-  background-color: var(--v-white-base);
-  border: thin solid var(--v-mediumgrey-base);
+  top:calc(100vh - 120px) !important ;
+  background-color: rgb(var(--v-theme-lightergrey));
+  border: thin solid rgb(var(--v-theme-mediumgrey));
 }
 
 </style>

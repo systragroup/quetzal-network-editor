@@ -1,8 +1,10 @@
 <script>
-import { highwayList } from '@constants/highway.js'
-import linksBase from '@static/links_base.geojson'
-import nodesBase from '@static/nodes_base.geojson'
+import { highwayList as cHighwayList } from '@constants/highway.js'
 import MapSelector from './MapSelector.vue'
+import { useOSMStore } from '@src/store/OSMImporter'
+import { userLinksStore } from '@src/store/rlinks'
+import { useIndexStore } from '@src/store/index'
+import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 
 export default {
   name: 'OSMImporter',
@@ -10,61 +12,75 @@ export default {
     MapSelector,
   },
 
-  data () {
+  setup () {
+    const store = useIndexStore()
+    const runOSM = useOSMStore()
+    const rlinksStore = userLinksStore()
+    const showOverwriteDialog = ref(false)
+    const poly = ref(null)
+    const nodes = ref({})
+    const selectedHighway = ref(null)
+    const selectedExtended = ref(false)
+    const highwayList = ref(cHighwayList)
+
+    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+    const highway = computed(() => { return runOSM.highway })
+    const extendedCycleway = computed(() => { return runOSM.extendedCycleway })
+    const callID = computed(() => { return runOSM.callID })
+    const running = computed(() => { return runOSM.running })
+    const error = computed(() => { return runOSM.error })
+    const errorMessage = computed(() => { return runOSM.errorMessage })
+    function getBBOX (val) {
+      poly.value = val
+    }
+    function importOSM () {
+      if (rlinksIsEmpty.value) {
+        runOSM.saveParams({ highway: selectedHighway.value, extendedCycleway: selectedExtended.value })
+        runOSM.setCallID()
+        runOSM.startExecution({ coords: poly.value.geometry, method: poly.value.style })
+      } else {
+        showOverwriteDialog.value = true
+      }
+    }
+
+    function applyOverwriteDialog () {
+      store.initrLinks()
+      showOverwriteDialog.value = false
+      importOSM()
+    }
+
+    onMounted(() => {
+      selectedHighway.value = highway.value
+      selectedExtended.value = extendedCycleway.value
+    })
+
+    onBeforeUnmount(() => {
+      runOSM.saveParams({ highway: selectedHighway.value, extendedCycleway: selectedExtended.value })
+    })
+
     return {
-      showOverwriteDialog: false,
-      poly: null,
-      nodes: {},
-      selectedHighway: null,
-      selectedExtended: false,
-      highwayList: highwayList,
+      showOverwriteDialog,
+      poly,
+      nodes,
+      selectedHighway,
+      selectedExtended,
+      highwayList,
+      rlinksIsEmpty,
+      highway,
+      extendedCycleway,
+      callID,
+      running,
+      error,
+      errorMessage,
+      getBBOX,
+      importOSM,
+      applyOverwriteDialog,
     }
   },
-  computed: {
-    rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
-    highway () { return this.$store.getters['runOSM/highway'] },
-    extendedCycleway () { return this.$store.getters['runOSM/extendedCycleway'] },
-    callID () { return this.$store.getters['runOSM/callID'] },
-    running () { return this.$store.getters['runOSM/running'] },
-    error () { return this.$store.getters['runOSM/error'] },
-    errorMessage () { return this.$store.getters['runOSM/errorMessage'] },
-  },
-
-  created () {
-    this.selectedHighway = this.highway
-    this.selectedExtended = this.extendedCycleway
-  },
-  beforeDestroy () {
-    this.$store.commit('runOSM/saveParams',
-      { highway: this.selectedHighway, extendedCycleway: this.selectedExtended })
-  },
-  methods: {
-    getBBOX (val) {
-      this.poly = val
-    },
-    importOSM () {
-      if (this.rlinksIsEmpty) {
-        this.$store.commit('runOSM/saveParams',
-          { highway: this.selectedHighway, extendedCycleway: this.selectedExtended })
-        this.$store.commit('runOSM/setCallID')
-        this.$store.dispatch('runOSM/startExecution', { coords: this.poly.geometry, method: this.poly.style })
-      } else {
-        this.showOverwriteDialog = true
-      }
-    },
-
-    applyOverwriteDialog () {
-      this.$store.commit('loadrLinks', linksBase)
-      this.$store.commit('loadrNodes', nodesBase)
-      this.showOverwriteDialog = false
-      this.importOSM()
-    },
-  },
-
 }
 </script>
 <template>
-  <section>
+  <section class="background">
     <v-card
       class="card"
     >
@@ -75,9 +91,9 @@ export default {
       <v-card-subtitle>
         <v-alert
           v-if="error"
-          dense
+          density="compact"
           width="50rem"
-          outlined
+          variant="outlined"
           text
           type="error"
         >
@@ -91,44 +107,39 @@ export default {
           </p>
         </v-alert>
       </v-card-subtitle>
-      <v-card-actions>
-        <MapSelector @change="getBBOX" />
-      </v-card-actions>
+      <MapSelector @change="getBBOX" />
       <v-divider />
 
       <v-card-actions>
         <v-spacer />
         <v-select
           v-model="selectedHighway"
+          class="select"
           :items="highwayList"
-          attach
-          chips
-          :menu-props="{ top: true, offsetY: true,maxHeight:'30rem'}"
-          label="Highways to import"
+          label="Select Item"
+          variant="underlined"
           multiple
         >
           <template v-slot:selection="{ item, index }">
-            <v-chip v-if="index <= 0">
-              <span>{{ item }}</span>
+            <v-chip v-if="index < 2">
+              <span>{{ item.title }}</span>
             </v-chip>
             <span
-              v-if="index === 1"
-              class="grey--text text-caption"
+              v-if="index === 2"
+              class="text-grey text-caption align-self-center"
             >
-              (+{{ selectedHighway.length - 1 + ' ' + $gettext('more') }} )
+              (+{{ selectedHighway.length - 2 }} others)
             </span>
           </template>
         </v-select>
         <v-spacer />
         <v-checkbox
-          v-if="$store.getters.model === 'quetzal-cyclops-dev'"
           v-model="selectedExtended"
           label="Extended cycleway"
         />
         <v-spacer />
         <v-btn
-          text
-          outlined
+          variant="outlined"
           color="success"
           :loading="running"
           :disabled="running"
@@ -171,7 +182,12 @@ export default {
 </template>
 <style lang="scss" scoped>
 
+.select{
+  width:20rem;
+}
 .card {
+  background-color: rgb(var(--v-theme-lightergrey));
+  margin:1rem;
   height: 100%;
   overflow-y: auto;
   padding: 2.5rem;
@@ -181,9 +197,7 @@ export default {
   width:50rem;
   height: 35rem;
 }
-.v-card__text {
-    padding: 0px 24px 0px;
-}
+
 .freeform-button {
   position: absolute;
   top: 5px;

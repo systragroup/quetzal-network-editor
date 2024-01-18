@@ -2,35 +2,60 @@
 <script>
 import { serializer } from '@comp/utils/serializer.js'
 import { readFileAsText } from '@comp/utils/utils.js'
-
+import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+import { useODStore } from '@src/store/od'
+import { useRunStore } from '@src/store/run'
+import { computed, ref } from 'vue'
 // const $gettext = s => s
 
 export default {
   name: 'FileLoader',
-  events: ['FilesLoaded'],
+  emits: ['FilesLoaded'],
+  setup () {
+    const store = useIndexStore()
+    const userStore = useUserStore()
+    const linksStore = useLinksStore()
+    const rlinksStore = userLinksStore()
+    const ODStore = useODStore()
+    const runStore = useRunStore()
 
-  data () {
+    const loadedLinks = ref({})
+    const loadedNodes = ref({})
+    const loadedType = ref('')
+    const choice = ref('')
+    const projectIsEmpty = computed(() => store.projectIsEmpty)
+
+    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+    const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
+    const ODIsEmpty = computed(() => { return ODStore.layerIsEmpty })
+    const paramsIsEmpty = computed(() => { return runStore.parametersIsEmpty })
+    const stylesIsEmpty = computed(() => { return store.styles.length === 0 })
+    const localLinksLoaded = computed(() => { return Object.keys(loadedLinks.value).length !== 0 })
+    const localNodesLoaded = computed(() => { return Object.keys(loadedNodes.value).length !== 0 })
+    const localFilesAreLoaded = computed(() => { return (localLinksLoaded.value && localNodesLoaded.value) })
+
     return {
-      loadedLinks: {},
-      loadedNodes: {},
-      loadedType: '',
-      choice: '',
+      store,
+      userStore,
+      loadedLinks,
+      loadedNodes,
+      loadedType,
+      choice,
+      projectIsEmpty,
+      rlinksIsEmpty,
+      linksIsEmpty,
+      ODIsEmpty,
+      paramsIsEmpty,
+      stylesIsEmpty,
+      localLinksLoaded,
+      localNodesLoaded,
+      localFilesAreLoaded,
     }
   },
 
-  computed: {
-    rlinksIsEmpty () { return this.$store.getters.rlinksIsEmpty },
-    linksIsEmpty () { return this.$store.getters.linksIsEmpty },
-    ODIsEmpty () { return this.$store.getters['od/layerIsEmpty'] },
-    paramsIsEmpty () { return this.$store.getters['run/parametersIsEmpty'] },
-    stylesIsEmpty () { return this.$store.getters.styles.length === 0 },
-    localLinksLoaded () { return Object.keys(this.loadedLinks).length !== 0 },
-    localNodesLoaded () { return Object.keys(this.loadedNodes).length !== 0 },
-    localFilesAreLoaded () {
-      return (this.localLinksLoaded && this.localNodesLoaded)
-    },
-
-  },
   watch: {
 
     localFilesAreLoaded (val) {
@@ -72,38 +97,38 @@ export default {
     },
 
     async readParams (event) {
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const files = event.target.files
       try {
         let data = await readFileAsText(files[0])
         data = JSON.parse(data)
         this.$emit('FilesLoaded', [{ path: 'inputs/params.json', content: data }])
-        this.$store.commit('changeLoading', false)
+        this.store.changeLoading(false)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
     async readStyles (event) {
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const files = event.target.files
       try {
         let data = await readFileAsText(files[0])
         data = JSON.parse(data)
         this.$emit('FilesLoaded', [{ path: 'styles.json', content: data }])
-        this.$store.commit('changeLoading', false)
+        this.store.changeLoading(false)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
     async readFile (event) {
-      this.$store.commit('changeLoading', true)
+      this.store.changeLoading(true)
       const files = event.target.files
       // it is a geojson
       if (files[0].name.slice(-7) !== 'geojson') {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', { name: 'ImportError', message: 'File must be a geojson' })
+        this.store.changeLoading(false)
+        this.store.changeAlert({ name: 'ImportError', message: 'File must be a geojson' })
         return
       }
       const name = files[0].name
@@ -134,10 +159,10 @@ export default {
           default:
             console.log('autre')
         }
-        this.$store.commit('changeLoading', false)
+        this.store.changeLoading(false)
       } catch (err) {
-        this.$store.commit('changeLoading', false)
-        this.$store.commit('changeAlert', err)
+        this.store.changeLoading(false)
+        this.store.changeAlert(err)
       }
     },
   },
@@ -193,21 +218,17 @@ export default {
 
         <div class="element">
           <v-menu
-            offset-y
             close-delay="100"
             transition="slide-y-transition"
           >
-            <template v-slot:activator="{ on: on,attrs:attrs }">
+            <template v-slot:activator="{ props }">
               <v-btn
-                icon
-                outlined
-                v-bind="attrs"
-                v-on="on"
-              >
-                <v-icon small>
-                  fa-solid fa-upload
-                </v-icon>
-              </v-btn>
+                icon="fa-solid fa-upload"
+                size="small"
+                color="regular"
+                variant="outlined"
+                v-bind="props"
+              />
             </template>
             <v-list>
               <v-list-item
@@ -247,6 +268,7 @@ export default {
           <v-icon
             v-if="!rlinksIsEmpty"
             class="check-icon"
+            size="small"
             color="success"
           >
             fas fa-check
@@ -255,23 +277,16 @@ export default {
 
         <div class="element">
           <v-menu
-            offset-y
             close-delay="100"
             transition="slide-y-transition"
           >
-            <template v-slot:activator="{ on: on,attrs:attrs }">
+            <template v-slot:activator="{ props }">
               <v-btn
-                icon
-                outlined
-                v-bind="attrs"
-                v-on="on"
-              >
-                <v-icon
-                  small
-                >
-                  fa-solid fa-upload
-                </v-icon>
-              </v-btn>
+                icon="fa-solid fa-upload"
+                variant="outlined"
+                size="small"
+                v-bind="props"
+              />
             </template>
             <v-list>
               <v-list-item
@@ -312,6 +327,7 @@ export default {
             v-if="!ODIsEmpty"
             class="check-icon"
             color="success"
+            size="small"
           >
             fas fa-check
           </v-icon>
@@ -319,14 +335,11 @@ export default {
 
         <div class="element">
           <v-btn
-            icon
-            outlined
+            icon="fa-solid fa-upload"
+            size="small"
+            variant="outlined"
             @click="()=>buttonHandle('od')"
-          >
-            <v-icon small>
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
+          />
         </div>
       </div>
     </div>
@@ -348,6 +361,7 @@ export default {
             v-if="!paramsIsEmpty"
             class="check-icon"
             color="success"
+            size="small"
           >
             fas fa-check
           </v-icon>
@@ -355,14 +369,11 @@ export default {
 
         <div class="element">
           <v-btn
-            icon
-            outlined
+            icon="fa-solid fa-upload"
+            variant="outlined"
+            size="small"
             @click="()=>buttonHandle('parameters')"
-          >
-            <v-icon small>
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
+          />
         </div>
       </div>
       <div class="container">
@@ -381,6 +392,7 @@ export default {
             v-if="!stylesIsEmpty"
             class="check-icon"
             color="success"
+            size="small"
           >
             fas fa-check
           </v-icon>
@@ -388,14 +400,11 @@ export default {
 
         <div class="element">
           <v-btn
-            icon
-            outlined
+            icon="fa-solid fa-upload"
+            size="small"
+            variant="outlined"
             @click="()=>buttonHandle('styles')"
-          >
-            <v-icon small>
-              fa-solid fa-upload
-            </v-icon>
-          </v-btn>
+          />
         </div>
       </div>
     </div>
@@ -414,21 +423,22 @@ export default {
 }
 .container{
   display: flex;
+  width:100%;
+  padding: 0rem 1rem 0rem 1rem;
+  margin: 0.3rem 0rem 0.3rem 0rem;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: flex-start;
   align-items: center;
-  padding-left: 2em;
-  padding-right: 2em;
 
 }
 .type-icon{
-  padding-right: 0.2em;
+  padding-right: 3rem;
 }
 .element{
   margin-left: auto;
 }
 .check-icon{
-  padding-left: 1em;
+  padding-left: 1rem;
 }
 .subtitle {
   flex:2;

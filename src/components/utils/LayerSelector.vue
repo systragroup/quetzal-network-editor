@@ -1,124 +1,129 @@
-<script>
+<script setup>
+import { useIndexStore } from '@src/store/index'
+import { ref, onMounted, watch, toRefs } from 'vue'
+import DragList from './DragList.vue'
 
-export default {
-  name: 'LayerSelector',
-  components: {
+const props = defineProps({
+  choices: {
+    type: Array,
+    default: () => [],
   },
-  props: {
-    choices: {
-      type: Array,
-      default: () => [],
-    },
-    availableLayers: {
-      type: Array,
-      default: () => [],
-    },
+  availableLayers: {
+    type: Array,
+    default: () => [],
   },
-  data () {
-    return {
-      show: false,
-      selectedLayers: [],
-      selectedOpacity: 0,
+  map: {
+    type: Object,
+    default: () => {},
+  },
+})
+const { choices, map } = toRefs(props)
+const store = useIndexStore()
+const show = ref(false)
+const selectedLayers = ref([])
+onMounted(() => { selectedLayers.value = store.visibleRasters })
+watch(selectedLayers, (val) => {
+  const order = choices.value.map(l => l.name)
+  const orderedSelected = order.filter(el => val.includes(el))
+  store.setVisibleRasters(orderedSelected)
+})
+watch(choices, (vals) => {
+  const names = vals.map(el => el.name)
+  selectedLayers.value = selectedLayers.value.filter(layer => names.includes(layer))
+}, { deep: true })
 
+function moveLayer (name) {
+  if (selectedLayers.value.includes(name)) {
+    const order = choices.value.map(l => l.name)
+    const orderedSelected = order.filter(el => selectedLayers.value.includes(el))
+    store.setVisibleRasters(orderedSelected)
+    // order all active layers
+    for (let i = 0; i < orderedSelected.length - 1; i++) {
+      const topLayer = orderedSelected[i]
+      const bottomLayer = orderedSelected[i + 1]
+      map.value.moveLayer(bottomLayer + '-layer', topLayer + '-layer')
     }
-  },
-  watch: {
-    selectedLayers (val) {
-      const resp = []
-      val.forEach(item => resp.push(item))
-      this.$store.commit('setVisibleRasters', resp)
-    },
-    choices (vals) {
-      const choices = vals.map(el => el.name)
-      this.selectedLayers = this.selectedLayers.filter(layer => choices.includes(layer))
-    },
-
-  },
-  mounted () {
-    this.selectedLayers = this.$store.getters.visibleRasters
-  },
-
+  }
 }
+
+// const selectedOpacity = ref(0)
+
 </script>
 <template>
   <v-menu
     v-model="show"
     :close-on-content-click="false"
-    :close-on-click="true"
-    :origin="'top right'"
+    :persistent="!(true)"
+    no-click-animation
+    location="bottom"
+    offset="5"
     transition="scale-transition"
-    :position-y="30"
-    :nudge-width="200"
-    offset-x
-    offset-y
   >
-    <template v-slot:activator="{ on, attrs }">
+    <template v-slot:activator="{ props:menuProps }">
       <div class="layer-button">
         <v-btn
-          fab
-          small
-          v-bind="attrs"
-          v-on="on"
-        >
-          <v-icon
-            :color="(selectedLayers.length > 0)? 'success' : 'regular'"
-          >
-            fas fa-layer-group
-          </v-icon>
-        </v-btn>
+          v-bind="menuProps"
+          :color="(selectedLayers.length > 0)? 'success' : 'regular'"
+          icon="fas fa-layer-group"
+        />
       </div>
     </template>
-    <v-card
-      :max-width="300"
-    >
+    <v-card :max-width="300">
       <v-card-title class="subtitle">
         {{ $gettext('Static Layers') }}
       </v-card-title>
-      <v-list-item
-        v-for="(item,key) in choices"
-        :key="key"
+      <DragList
+        v-slot="item"
+        :items="choices"
+        @move="moveLayer"
       >
-        <v-list-item-action>
-          <v-checkbox
-            v-model="selectedLayers"
-            :value="item.name"
-            :off-icon="!availableLayers.includes(item.layer)? 'fas fa-exclamation-triangle':'fa-eye-slash fa'"
-            :on-icon="'fa-eye fa'"
-            :disabled="!availableLayers.includes(item.layer)"
-          />
-        </v-list-item-action>
-
-        <v-tooltip
-          top
-          open-delay="300"
-          content-class="custom-tooltip"
-        >
-          <template v-slot:activator="{ on }">
-            <v-list-item-title
-              :style="{'cursor': 'default'}"
-              v-on="on"
-            >
-              {{ item.name }}
-            </v-list-item-title>
+        <v-list-item>
+          <template v-slot:prepend>
+            <v-checkbox-btn
+              v-model="selectedLayers"
+              :value="item.name"
+              :false-icon="!availableLayers.includes(item.layer)? 'fas fa-exclamation-triangle':'fa-eye-slash fa'"
+              :true-icon="'fa-eye fa'"
+              :color="'primary'"
+              :disabled="!availableLayers.includes(item.layer)"
+            />
           </template>
-          <span v-if="!availableLayers.includes(item.layer)">{{ $gettext('Data not found: ') + item.layer }}</span>
-          <span v-else>{{ item.displaySettings.selectedFeature + ' ' + $gettext('from') + ' ' + item.layer }}</span>
-        </v-tooltip>
-      </v-list-item>
+          <v-tooltip
+            location="top"
+            open-delay="300"
+            content-class="custom-tooltip"
+          >
+            <template v-slot:activator="{ props:ttprops }">
+              <v-list-item-title
+                :style="{'cursor': 'default','padding-left':'1rem'}"
+                v-bind="ttprops"
+              >
+                {{ item.name }}
+              </v-list-item-title>
+            </template>
+            <span v-if="!availableLayers.includes(item.layer)">{{ $gettext('Data not found: ') + item.layer }}</span>
+            <span v-else>{{ item.displaySettings.selectedFeature + ' ' + $gettext('from') + ' ' + item.layer }}</span>
+          </v-tooltip>
+          <template v-slot:append>
+            <v-icon
+              :style="{'cursor':'grab'}"
+              icon="fas fa-bars"
+            />
+          </template>
+        </v-list-item>
+      </DragList>
     </v-card>
   </v-menu>
 </template>
 <style lang="scss" scoped>
 .layer-button {
-  left: 98%;
-  top:3rem;
-  width: 0px;
+  left: calc(96% - 3.5rem);
+  top:1rem;
   z-index: 2;
-  display: flex;
   position: relative;
   align-items: center;
   justify-content: center;
-  height: 50px;
+
 }
 .card {
   width: 500px;
