@@ -31,7 +31,7 @@ export default {
     >
       <div>
         <v-alert
-          type="error"
+          :type="err.type || 'error'"
           closable
           :title="`ERROR: ${err.name}`"
           :text="err.message"

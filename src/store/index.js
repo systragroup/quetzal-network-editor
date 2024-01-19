@@ -373,7 +373,6 @@ export const useIndexStore = defineStore('store', {
       const ODStore = useODStore()
       const runStore = useRunStore()
       const userStore = useUserStore()
-      userStore.isTokenExpired()
       linksStore.applyPropertiesTypes(linksStore.links)
       const scen = userStore.scenario + '/'
       const bucket = userStore.model

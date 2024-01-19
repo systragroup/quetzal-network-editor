@@ -101,14 +101,14 @@ export default {
         <v-text-field
           v-if="!newPasswordUI"
           v-model="username"
-          label="username"
+          :label="$gettext('username')"
           required
           :rules="[rules.required]"
         />
         <v-text-field
           v-if="!newPasswordUI"
           v-model="password"
-          label="password"
+          :label="$gettext('password')"
           required
           :rules="[rules.required]"
           type="password"
@@ -116,7 +116,7 @@ export default {
         <v-text-field
           v-if="newPasswordUI"
           v-model="newPassword"
-          label="new password"
+          :label="$gettext('new password')"
           required
           :rules="[rules.required,rules.password]"
           type="password"
@@ -124,7 +124,7 @@ export default {
         <v-text-field
           v-if="newPasswordUI"
           v-model="newPasswordConfirm"
-          label="confirm new password"
+          :label="$gettext('confirm new password')"
           required
           :rules="[rules.required,rules.match]"
           type="password"

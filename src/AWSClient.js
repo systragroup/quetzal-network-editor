@@ -274,8 +274,14 @@ export default {
       signatureVersion: 'v4',
       region: REGION,
       credentials: creds,
-
     })
+    s3Client.middlewareStack.add(
+      (next, context) => async (args) => {
+        const result = await next(args)
+        userStore.isTokenExpired()
+        return result
+      },
+    )
   },
 
   getScenario,

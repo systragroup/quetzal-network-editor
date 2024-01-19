@@ -1,3 +1,7 @@
+## [5.0.1] (2024-01-19)
+
+# What's Changed
+add middleware on both axios and aws-client to check if token is expired (logout and prompt user to login).
 
 ## [5.0.0] (2024-01-12)
 

@@ -1,4 +1,7 @@
 import axios from 'axios'
+import { useUserStore } from '@src/store/user'
+
+// Add a request interceptor
 
 const quetzalClient = {
   client: null,
@@ -11,6 +14,15 @@ const quetzalClient = {
         'Content-Type': 'application/json',
         'Authorization': idToken,
       },
+    })
+    this.client.interceptors.request.use(function (config) {
+      // Do something before request is sent
+      const userStore = useUserStore()
+      userStore.isTokenExpired()
+      return config
+    }, function (error) {
+      // Do something with request error
+      return Promise.reject(error)
     })
   },
 }

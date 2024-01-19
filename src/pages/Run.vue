@@ -53,6 +53,7 @@ export default {
 
     async function run () {
       try {
+        const userStore = useUserStore()
         runStore.initExecution() // start the stepper at first step
         await store.exportToS3('inputs')
         await store.deleteOutputsOnS3()

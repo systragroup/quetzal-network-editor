@@ -146,7 +146,7 @@ msgstr ""
 msgid "An error occur fetching example on github"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:176
+#: src/components/import/ScenariosExplorer.vue:174
 msgid "An error occured"
 msgstr ""
 
@@ -245,6 +245,10 @@ msgstr ""
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:447
 msgid "Confirm"
+msgstr ""
+
+#: src/components/layout/Signin.vue:74
+msgid "confirm new password"
 msgstr ""
 
 #: src/components/microservices/GTFSZipImporter.vue:199
@@ -735,6 +739,10 @@ msgstr ""
 msgid "New name"
 msgstr ""
 
+#: src/components/layout/Signin.vue:63
+msgid "new password"
+msgstr ""
+
 #: src/components/layout/Signin.vue:19
 msgid "New password"
 msgstr ""
@@ -830,6 +838,10 @@ msgstr ""
 #: src/components/utils/serializer.js:37
 #: src/components/utils/serializer.js:46
 msgid "params.json should be an array of object [{category: , params: }, ...]"
+msgstr ""
+
+#: src/components/layout/Signin.vue:52
+msgid "password"
 msgstr ""
 
 #: src/components/layout/Signin.vue:27
@@ -999,11 +1011,11 @@ msgstr ""
 msgid "scale min"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:138
+#: src/components/import/ScenariosExplorer.vue:136
 msgid "Scenario created"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:171
+#: src/components/import/ScenariosExplorer.vue:169
 msgid "Scenario deleted"
 msgstr ""
 
@@ -1019,7 +1031,7 @@ msgstr ""
 msgid "Scenario Simulation"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:129
+#: src/components/import/ScenariosExplorer.vue:127
 msgid "Scenario successfully copied"
 msgstr ""
 
@@ -1096,7 +1108,7 @@ msgstr ""
 msgid "Sign in with username or email address."
 msgstr ""
 
-#: src/store/user.js:103
+#: src/store/user.js:104
 msgid "sign out"
 msgstr ""
 
@@ -1215,6 +1227,7 @@ msgid "Uploaded"
 msgstr ""
 
 #: src/components/layout/Profile.vue:321
+#: src/components/layout/Signin.vue:42
 msgid "username"
 msgstr ""
 
@@ -1244,6 +1257,6 @@ msgstr ""
 msgid "you need parameters to enter this page"
 msgstr ""
 
-#: src/store/user.js:104
+#: src/store/user.js:105
 msgid "your session has expired. Please sign in again"
 msgstr ""

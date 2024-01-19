@@ -27,7 +27,6 @@ export default {
     const localModel = ref(model.value)
 
     watch(localModel, async (val) => {
-      userStore.isTokenExpired()
       // when we click on a tab (model), fetch the scenario list.
       userStore.setScenariosList([])
       loading.value = true
@@ -71,7 +70,6 @@ export default {
       locked.value = val.protected
       if (val.scenario) {
         if (projectIsEmpty.value && !scenario.value) {
-          userStore.isTokenExpired()
           loadProject()
         } else {
           showDialog.value = true

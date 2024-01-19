@@ -160,7 +160,7 @@ msgid "An error occur fetching example on github"
 msgstr ""
 "Une erreur s'est produite lors de la récupération de l'exemple sur github"
 
-#: src/components/import/ScenariosExplorer.vue:176
+#: src/components/import/ScenariosExplorer.vue:174
 msgid "An error occured"
 msgstr "Une erreur s'est produite"
 
@@ -257,6 +257,10 @@ msgstr "couleur à afficher sur la carte (ex: FFFFFF)"
 #: src/components/map/sidePanel/LinksSidePanel.vue:447
 msgid "Confirm"
 msgstr "Valider"
+
+#: src/components/layout/Signin.vue:74
+msgid "confirm new password"
+msgstr "confirmer mot de passe"
 
 #: src/components/microservices/GTFSZipImporter.vue:199
 msgid "convert"
@@ -674,7 +678,7 @@ msgstr "fichier Zip"
 
 #: src/pages/Import.vue:43
 msgid "Login to access projects"
-msgstr ""
+msgstr "Se connecter pour les projets"
 
 #: src/components/layout/Profile.vue:186
 msgid "logout"
@@ -764,6 +768,10 @@ msgstr "nouveau champ"
 #: src/pages/Home.vue:102
 msgid "New name"
 msgstr "Nouveau nom"
+
+#: src/components/layout/Signin.vue:63
+msgid "new password"
+msgstr "Nouveau mot de passe"
 
 #: src/components/layout/Signin.vue:19
 msgid "New password"
@@ -858,6 +866,10 @@ msgstr "Parametres et execution"
 msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 "params.json devrait être un array d'object [{category: , params: }, ...]"
+
+#: src/components/layout/Signin.vue:52
+msgid "password"
+msgstr "mot de passe"
 
 #: src/components/layout/Signin.vue:27
 msgid "password must match"
@@ -1027,11 +1039,11 @@ msgstr "Échelle"
 msgid "scale min"
 msgstr "Échelle"
 
-#: src/components/import/ScenariosExplorer.vue:138
+#: src/components/import/ScenariosExplorer.vue:136
 msgid "Scenario created"
 msgstr "Scénario créé"
 
-#: src/components/import/ScenariosExplorer.vue:171
+#: src/components/import/ScenariosExplorer.vue:169
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
@@ -1047,7 +1059,7 @@ msgstr "Paramètres de simulation"
 msgid "Scenario Simulation"
 msgstr "Simulation du scénario"
 
-#: src/components/import/ScenariosExplorer.vue:129
+#: src/components/import/ScenariosExplorer.vue:127
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
@@ -1121,17 +1133,17 @@ msgstr "montrer les NaN"
 
 #: src/components/layout/Signin.vue:92
 msgid "Sign in"
-msgstr ""
+msgstr "Se connecter"
 
 #: src/components/layout/Signin.vue:19
 msgid "Sign In"
-msgstr ""
+msgstr "Se connecter"
 
 #: src/components/layout/Signin.vue:28
 msgid "Sign in with username or email address."
-msgstr ""
+msgstr "connection avec nom d'utilisateur ou adresse courriel"
 
-#: src/store/user.js:103
+#: src/store/user.js:104
 msgid "sign out"
 msgstr "déconnection"
 
@@ -1274,7 +1286,7 @@ msgstr "téléverser des GTFS"
 msgid "Uploaded"
 msgstr "Téléversé"
 
-#: src/components/layout/Profile.vue:321
+#: src/components/layout/Profile.vue:321 src/components/layout/Signin.vue:42
 msgid "username"
 msgstr "nom d'utilisateur"
 
@@ -1301,12 +1313,11 @@ msgstr "Oui"
 
 #: src/router/index.js:67
 msgid "you need parameters to enter this page"
-msgstr ""
+msgstr "besoins de paramètres pour entrer"
 
-#: src/store/user.js:104
+#: src/store/user.js:105
 msgid "your session has expired. Please sign in again"
-msgstr ""
-"Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
+msgstr "Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
 
 #~ msgid "cannot add empty field"
 #~ msgstr "impossible d'ajouter un champ vide"
