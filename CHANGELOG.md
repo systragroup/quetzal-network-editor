@@ -13,12 +13,63 @@ date picker invisible in light mode
 # Security patch
 vitejs => 5.0.21
 
+## [5.1.e] (2024-01-22)
+ On links import. 
+ - get links length with geometry length
+ - if speed. compute time
+ - else if time. compute speed
+ - else speed = 20 and compute time
+
+This is coherent with the new automatic speed feature. changing speed change time, changing time change speed.
+
+### Features
+
+* **Computed Speed on import:** When PT Links are imported. Length, speed and time are computed[#466](https://github.com/systragroup/quetzal-network-editor/issues/466)
+
+## [5.1.d] (2024-01-22)
+
+### Bug fixes
+
+* **New (and copy) scenario user email** Changed MetaData of copied scenario on S3 for the userEmail (the one who click copy or new). [#449](https://github.com/systragroup/quetzal-network-editor/issues/449)
+
+
+## [5.1.c] (2024-01-19)
+
+### Features
+
+* **duplicate without reverse trip** add a checkbox for reverse when clicking duplicate and reverse on a PT Trip.. [#472](https://github.com/systragroup/quetzal-network-editor/issues/472)
+
+## [5.1.b] (2024-01-17)
+
+### Features
+
+* **Map style selector** select a map style (sattelite and more). [#468](https://github.com/systragroup/quetzal-network-editor/issues/468)
+
+### Bug fixes
+
+* **Edit Link when road mode**: bug when a double click would start editing PT links while on road mode. It would be impossible to quit this edition mode as tabs are disabled .
+
+* **cannot duplicate and revserse when editing**: The non edited version were clone. as it is not what we want, the button is simply disabled when we edit a line. (save then duplicate) [#469](https://github.com/systragroup/quetzal-network-editor/issues/469)
+
+
+
+## [5.1.a] (2024-01-16)
+
+PT Links speed, length and time are correlated.
+Changing speed will change the time, while changing length or time will change the speed.
+As usual. length is computed with the Linestring geometric length, so moving a node, adding an anchor
+or drawing will change the length and time.
+
+### Features
+
+* **Computed Speed:** speed on each link. change speed on a group to change every Links time. [#466](https://github.com/systragroup/quetzal-network-editor/issues/466)
+
 ## [5.0.1] (2024-01-19)
 
-# What's Changed
+### Bug fixes
 add middleware on both axios and aws-client to check if token is expired (logout and prompt user to login).
 
-## [5.0.0] (2024-01-12)
+## [5.0.0] (2024-01-15)
 
 # What's Changed
 This version is almost a complete rewrite as we upgraded to Vue3 and th composition api. [#193](https://github.com/systragroup/quetzal-network-editor/issues/193)<br>
