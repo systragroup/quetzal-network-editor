@@ -56,10 +56,8 @@ export default {
     const cloneDialog = ref(false)
     const deleteDialog = ref(false)
     const tripToDelete = ref(null)
-    const tripToClone = ref(null)
     const message = ref('')
-    const cloneName = ref(null)
-    const cloneNodes = ref(false)
+    const cloneObj = ref({ trip: null, name: null, reverse: true, nodes: false })
     const errorMessage = ref(null)
     const lingering = ref(true)
     const groupTripIds = ref([])
@@ -284,20 +282,25 @@ export default {
     }
 
     function duplicate () {
-      if (linksStore.tripId.includes(cloneName.value)) {
+      if (linksStore.tripId.includes(cloneObj.value.name)) {
         errorMessage.value = 'already exist'
       } else {
-        linksStore.cloneTrip({ tripId: tripToClone.value, name: cloneName.value, cloneNodes: cloneNodes.value })
+        linksStore.cloneTrip({
+          tripId: cloneObj.value.trip,
+          name: cloneObj.value.name,
+          cloneNodes: cloneObj.value.nodes,
+          reverse: cloneObj.value.reverse,
+        })
         errorMessage.value = ''
         cloneDialog.value = false
       }
     }
 
     function cloneButton (selection) {
-      tripToClone.value = selection.trip
+      cloneObj.value.trip = selection.trip
       message.value = selection.message
       // this.action = 'cloneTrip'
-      cloneName.value = selection.trip + ' copy'
+      cloneObj.value.name = selection.trip + ' copy'
       cloneDialog.value = true
     }
 
@@ -323,10 +326,8 @@ export default {
       cloneDialog,
       deleteDialog,
       tripToDelete,
-      tripToClone,
+      cloneObj,
       message,
-      cloneName,
-      cloneNodes,
       errorMessage,
       lingering,
       groupTripIds,
@@ -396,15 +397,19 @@ export default {
       <v-card>
         <v-card-text>
           <span class="text-h6">
-            {{ $gettext('Duplicate and reverse') + ' ' + message + ' ?' }}</span>
+            {{ $gettext('Duplicate') + ' ' + message + ' ?' }}</span>
         </v-card-text>
         <v-card-text>
           <v-text-field
-            v-model="cloneName"
+            v-model="cloneObj.name"
             :label="$gettext('New name')"
           />
           <v-checkbox-btn
-            v-model="cloneNodes"
+            v-model="cloneObj.reverse"
+            :label="$gettext('reverse')"
+          />
+          <v-checkbox-btn
+            v-model="cloneObj.nodes"
             :label="$gettext('duplicate nodes')"
           />
         </v-card-text>

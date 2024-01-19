@@ -2,7 +2,11 @@
   "name": "Quetzal-network-editor",
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
+<<<<<<< HEAD
   "version": "5.1.e",
+=======
+  "version": "5.1.b",
+>>>>>>> a646526 (issue-472. clone without reverse a trip)
   "private": true,
   "scripts": {
     "start": "vite",
