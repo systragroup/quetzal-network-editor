@@ -497,6 +497,7 @@ export const useLinksStore = defineStore('links', {
         link1.properties.b = link2.properties.b
         link1.properties.length = Number(link1.properties.length) + Number(link2.properties.length)
         link1.properties.time = Number(link1.properties.time) + Number(link2.properties.time)
+        link1.properties.speed = Number(link1.properties.length / link1.properties.time * 3.6)
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = this.editorLinks.features.findIndex(
           link => link.properties.index === link2.properties.index)
