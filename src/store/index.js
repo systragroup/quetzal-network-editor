@@ -436,7 +436,7 @@ export const useIndexStore = defineStore('store', {
         otherFiles = otherFiles.filter(file => !file.path.startsWith('outputs/'))
       }
       for (const file of otherFiles) {
-        // if others file loaded from S3 (they are not loaded yet. need to download them.)
+        // if others file loaded from S3 )
         if (file.content == null) {
           // pass
         } else if (file.content instanceof Uint8Array) {
