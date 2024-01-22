@@ -124,7 +124,7 @@ export default {
         try {
           if (selectedScenario.value) {
             // this is a copy
-            await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value)
+            await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value, false)
             store.changeNotification(
               { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
           } else {
@@ -133,7 +133,7 @@ export default {
             // take first Scen. should be base or any locked scen
             const protectedList = userStore.scenariosList.filter(scen => scen.protected)
             const base = protectedList[0].scenario
-            await s3.newScenario(localModel.value, base, input.value)
+            await s3.copyFolder(localModel.value, base, input.value, true)
             store.changeNotification(
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
           }

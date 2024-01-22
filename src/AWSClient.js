@@ -96,13 +96,25 @@ async function getImagesURL (bucket, key) {
   return url
 }
 
-async function copyFolder (bucket, prefix, newName) {
+async function copyFolder (bucket, prefix, newName, newScenario = false) {
+  const userStore = useUserStore()
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params)
-  response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
-  if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
-  for (const file of response.Contents) {
+  if (newScenario) {
+    const filesToCopy = [
+      prefix + 'inputs/params.json',
+      prefix + 'styles.json',
+      prefix + 'attributesChoices.json',
+    ]
+    response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
+  } else {
+    response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
+  }
+  if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
+  // get all metaData [{key,metadata}]. dont need response.Contents after that.
+  const metaDataList = await getMetaData(bucket, response.Contents.map(el => el.Key))
+  for (const file of metaDataList) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
     newFile = newFile.join('/')
@@ -110,11 +122,17 @@ async function copyFolder (bucket, prefix, newName) {
     let oldPath = file.Key.split('/')
     oldPath[0] = encodeURIComponent(oldPath[0])
     oldPath = oldPath.join('/')
+    // get old metadata and change the user email.
+    const metadata = file.Metadata
+    metadata.user_email = userStore.cognitoInfo.email
 
     const copyParams = {
       Bucket: bucket,
       CopySource: bucket + '/' + oldPath,
       Key: newFile,
+      MetadataDirective: 'REPLACE',
+      Metadata: metadata,
+
     }
     s3Client.copyObject(copyParams, function (err, data) {
       if (err) return err // an error occurred
@@ -122,36 +140,15 @@ async function copyFolder (bucket, prefix, newName) {
   }
 }
 
-async function newScenario (bucket, prefix, newName) {
-  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
-  const filesToCopy = [
-    prefix + 'inputs/params.json',
-    prefix + 'styles.json',
-    prefix + 'attributesChoices.json',
-  ]
-  const params = { Bucket: bucket, Prefix: prefix }
-  const response = await s3Client.listObjectsV2(params)
-  response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
-
-  if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
-  for (const file of response.Contents) {
-    let newFile = file.Key.split('/')
-    newFile[0] = newName
-    newFile = newFile.join('/')
-    // need to encore special character (é for example).
-    let oldPath = file.Key.split('/')
-    oldPath[0] = encodeURIComponent(oldPath[0])
-    oldPath = oldPath.join('/')
-
-    const copyParams = {
-      Bucket: bucket,
-      CopySource: bucket + '/' + oldPath,
-      Key: newFile,
-    }
-    s3Client.copyObject(copyParams, function (err, data) {
-      if (err) return err // an error occurred
-    })
+async function getMetaData (bucket, keys) {
+  // keys: list of keys. return a list [{key,metadata}]
+  // fetch all heads at once. which is faster than looping each head.
+  const promises = []
+  for (const key of keys) {
+    const response = s3Client.headObject({ Bucket: bucket, Key: key })
+    promises.push(response.then(resp => { return { Key: key, Metadata: resp.Metadata } }))
   }
+  return Promise.all(promises).then(resp => resp)
 }
 
 async function deleteFolder (bucket, prefix) {
@@ -293,7 +290,6 @@ export default {
   putObject,
   getImagesURL,
   downloadFolder,
-  newScenario,
   uploadObject,
   getChecksum,
 }
