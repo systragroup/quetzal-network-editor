@@ -33,10 +33,14 @@ Properties are typed. you should not use string in a Number properties (ex: dire
 
 - ***trip_id*** (String): Line (or trip) identifier (i.e. 100 Est).
 - ***time*** (Number): Travel time along the link in seconds. set as Lenght/20kmh when a link is created or edited.
-- ***length*** (Number): links geometry linestring length (meters)
 - ***pickup_type*** (Number): pickup method at node *a*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
 - ***drop_off_type*** (Number): drop off method at node *b*. As per [gtfs reference](https://developers.google.com/transit/gtfs/reference) (by default 0).
 - ***headway*** (Number): Line headway in seconds.
+
+**computed** are
+- ***length*** (Number): links geometry linestring length (meters)
+- ***speed*** (Number): speed on link length/time (km/h)
+- ***time*** (Number): time on link length/speed (secs)
 
 **optional** are:
 
@@ -103,7 +107,7 @@ yarn run i18n-compile
 yarn run start
 
 # build for for dev deployment (https://github.com/systragroup/quetzal-network-editor-dev)
-yarn run build-test
+yarn run build-staging
 
 # build for production with minification
 yarn run build
@@ -119,7 +123,7 @@ You can also use `npm` instead of `yarn`
 
 Then go to [http://localhost:8081/].
 
-You can log in by typing anything you want in credentials inputs.
+
 
 ### Internationalization
 
@@ -147,16 +151,27 @@ yarn run i18n-compile
 
 ### Deployement and releases
 
-After merging developements on master, create a new release with a release name and information about the changes. Make sure that the release is set as the latest release.
-
-Creating a release will automatically launch the application build using GitHub Actions.
-
-After build is done, you need to push the dist as a subtree:
-
+After merging developements on master create a tag matching the value in package.json.<br>
+Dont forget to add your changes on the CHANGELOG.
+```bash
+git tag -a v5.1.1 -m 'tag message'
+git push origin v5.1.1
 ```
+
+a github action will create a realease with your tag (must start with v). <br>
+
+you can build and push on subtree to deploy
+
+```bash
+yarn run build
+git add dist/
+git commit -m 'build v5.1.1'
+git push
 git subtree push --prefix dist origin dist
 ```
 
-NOTE: first delete all dist (except 404.html) and  push. then build, commit and push to subtree
+NOTE: if build create new files. first delete all  and  push. then build, commit and push to subtree.
+
+Also. duplicate index.html as 404.html
 
 The *github-pages* should update automatically for *dist* branch.
