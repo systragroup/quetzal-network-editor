@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
   console.log(mode)
   if (mode === 'development') {
     defineOption = { global: 'window' }
-  } else if (mode === 'stating') {
+  } else if (mode === 'staging') {
     basePath = '/quetzal-network-editor-dev/'
   } else if (mode === 'production') {
     basePath = '/quetzal-network-editor/'
