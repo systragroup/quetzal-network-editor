@@ -73,6 +73,7 @@ export const useLinksStore = defineStore('links', {
         this.changeSelectedTrips(this.tripId)
 
         this.getLinksProperties()
+        this.calcSpeed()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
@@ -132,8 +133,8 @@ export const useLinksStore = defineStore('links', {
       this.applyPropertiesTypes(this.links)
       this.getLinksProperties()
       this.getTripId()
-
       this.changeSelectedTrips(this.tripId)
+      this.calcSpeed()
     },
     appendNewNodes (payload) {
       // append new nodes to the project. payload = nodes geojson file
@@ -170,6 +171,29 @@ export const useLinksStore = defineStore('links', {
       defaultAttributes.forEach(att => header.add(att))
       header = Array.from(header)
       this.nodeAttributes = header
+    },
+    calcSpeed () {
+      // calc length, time, speed.
+      this.links.features.forEach(link => {
+        // calc length from geometry length
+        const distance = length(link)
+        link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+        // if speed is provided. calc time with it
+        if (link.properties.speed) {
+          const time = distance / link.properties.speed * 3600
+          link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+          // if no speed but time is provided. calc speed with it.
+        } else if (link.properties.time) {
+          const speed = link.properties.length / link.properties.time * 3.6
+          link.properties.speed = Number((speed).toFixed(0))
+          // no time or speed. fix speed to 20kmh and calc time with this.
+        } else {
+          const speed = 20 // kmh
+          link.properties.speed = speed
+          const time = distance / speed * 3600 // secs
+          link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        }
+      })
     },
     loadLinksAttributesChoices (payload) {
       // eslint-disable-next-line no-return-assign
