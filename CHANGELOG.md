@@ -1,3 +1,8 @@
+## [5.0.2] (2024-01-22)
+
+# Security patch
+vitejs => 5.0.21
+
 ## [5.0.1] (2024-01-19)
 
 # What's Changed
