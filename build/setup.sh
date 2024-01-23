@@ -15,6 +15,9 @@ fi
 echo -n "(MAPBOX_TOKEN) Mapbox public access token: "
 read -r MAPBOX_TOKEN
 
+echo -n "(BACK_URL) API url (ex: https://test.execute-api.ca-central-1.amazonaws.com/test) "
+read -r BACK_URL
+
 
 DEFAULT_REDIRECT_URL='http://localhost:8081/callback'
 echo -n "(REDIRECT_URL) Cognito redirect URL: [$DEFAULT_REDIRECT_URL] "
@@ -65,6 +68,7 @@ fi
 sed -r \
   -e "s|###BASE_PATH###|$BASE_PATH|;" \
   -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
+  -e "s|###BACK_URL###|$BACK_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
   -e "s|###APP_URL###|$APP_URL|;" \
@@ -77,6 +81,7 @@ sed -r \
 sed -r \
   -e "s|###BASE_PATH###|$BASE_PATH|;" \
   -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
+  -e "s|###BACK_URL###|$BACK_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
   -e "s|###APP_URL###|$APP_URL|;" \
@@ -86,9 +91,10 @@ sed -r \
   -e "s|###COGNITO_IDENTITY_POOL_ID###|$COGNITO_IDENTITY_POOL_ID|;" \
   -e "s|###COGNITO_REGION###|$COGNITO_REGION|;" \
   config.env.dist > .env.production
-  sed -r \
+sed -r \
   -e "s|###BASE_PATH###|$BASE_PATH|;" \
   -e "s|###MAPBOX_PUBLIC_KEY###|$MAPBOX_TOKEN|;" \
+  -e "s|###BACK_URL###|$BACK_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI###|$REDIRECT_URL|;" \
   -e "s|###COGNITO_REDIRECT_URI_SIGNOUT###|$SIGNOUT_URL|;" \
   -e "s|###APP_URL###|$APP_URL|;" \
@@ -97,4 +103,4 @@ sed -r \
   -e "s|###COGNITO_CLIENT_ID###|$COGNITO_CLIENT_ID|;" \
   -e "s|###COGNITO_IDENTITY_POOL_ID###|$COGNITO_IDENTITY_POOL_ID|;" \
   -e "s|###COGNITO_REGION###|$COGNITO_REGION|;" \
-  config.env.dist > .env.test
+  config.env.dist > .env.staging
