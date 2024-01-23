@@ -1,3 +1,8 @@
+## [5.0.3] (2024-01-23)
+
+# Bug fixes
+date picker invisible in light mode
+
 ## [5.0.2] (2024-01-22)
 
 # Security patch

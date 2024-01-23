@@ -80,3 +80,10 @@ export default {
     />
   </v-menu>
 </template>
+<style lang="scss" scoped>
+.v-sheet
+{
+  color: rgb(var(--v-theme-grey));
+}
+
+</style>
