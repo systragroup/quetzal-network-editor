@@ -29,8 +29,8 @@ msgstr ""
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr ""
 
-#: src/store/links.js:109
-#: src/store/links.js:117
+#: src/store/links.js:110
+#: src/store/links.js:118
 #: src/store/od.js:40
 #: src/store/rlinks.js:102
 #: src/store/rlinks.js:110
@@ -820,6 +820,9 @@ msgstr ""
 
 #: src/components/microservices/GTFSWebImporter.vue:199
 #: src/components/microservices/GTFSZipImporter.vue:222
+msgid "Overwrite current PT network ?"
+msgstr ""
+
 #: src/components/microservices/OSMImporter.vue:130
 msgid "Overwrite current road network ?"
 msgstr ""

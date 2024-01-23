@@ -287,7 +287,7 @@ export default {
     >
       <v-card>
         <v-card-title class="text-h5">
-          {{ $gettext("Overwrite current road network ?") }}
+          {{ $gettext("Overwrite current PT network ?") }}
         </v-card-title>
         <v-card-actions>
           <v-spacer />

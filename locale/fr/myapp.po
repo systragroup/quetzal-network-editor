@@ -37,7 +37,7 @@ msgstr " minutes restantes"
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr " Les dossiers à la racines devraient être inputs/ et outputs/. non: "
 
-#: src/store/links.js:109 src/store/links.js:117 src/store/od.js:40
+#: src/store/links.js:110 src/store/links.js:118 src/store/od.js:40
 #: src/store/rlinks.js:102 src/store/rlinks.js:110
 msgid " there is duplicated index, "
 msgstr " il y a des index en double, "
@@ -849,9 +849,13 @@ msgstr "Extrants"
 
 #: src/components/microservices/GTFSWebImporter.vue:199
 #: src/components/microservices/GTFSZipImporter.vue:222
+#, fuzzy
+msgid "Overwrite current PT network ?"
+msgstr "Écraser le réseau TC ?"
+
 #: src/components/microservices/OSMImporter.vue:130
 msgid "Overwrite current road network ?"
-msgstr "Écraser le projet en cours ?"
+msgstr "Écraser le réseau routier ?"
 
 #: src/components/results/ResultsSettings.vue:107
 msgid "padding"
