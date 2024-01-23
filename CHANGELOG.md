@@ -26,6 +26,21 @@ This is coherent with the new automatic speed feature. changing speed change tim
 
 * **Computed Speed on import:** When PT Links are imported. Length, speed and time are computed[#466](https://github.com/systragroup/quetzal-network-editor/issues/466)
 
+### Bug fix
+* **MD5 checksum changed to a sha-256 checksum** with sha256-uint8array librairy. I suspect that the MD5 from cryptoJS was not working on large string and on uint8array
+
+
+## [5.0.3] (2024-01-23)
+
+### Bug fixes
+date picker invisible in light mode
+
+## [5.0.2] (2024-01-22)
+
+### Security patch
+vitejs => 5.0.21
+
+
 ## [5.1.d] (2024-01-22)
 
 ### Bug fixes
