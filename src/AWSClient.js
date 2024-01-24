@@ -163,6 +163,11 @@ async function deleteFolder (bucket, prefix) {
   }
 }
 
+async function deleteObject (bucket, key) {
+  const deleteParams = { Bucket: bucket, Key: key }
+  return s3Client.deleteObject(deleteParams)
+}
+
 async function putObject (bucket, key, body = '') {
   const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
@@ -287,6 +292,7 @@ export default {
   listFiles,
   copyFolder,
   deleteFolder,
+  deleteObject,
   putObject,
   getImagesURL,
   downloadFolder,
