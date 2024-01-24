@@ -1,3 +1,8 @@
+## [5.0.4] (2024-01-24)
+
+# Bug fixes
+random tripId were selected when editing a trip and confirming. [#474](https://github.com/systragroup/quetzal-network-editor/issues/474)
+
 ## [5.0.3] (2024-01-23)
 
 # Bug fixes

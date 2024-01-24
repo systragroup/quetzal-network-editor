@@ -724,9 +724,20 @@ export const useLinksStore = defineStore('links', {
     },
 
     confirmChanges () { // apply change to Links
-      this.links.features = this.links.features.filter(link => link.properties.trip_id !== this.editorTrip)
       this.applyPropertiesTypes(this.editorLinks)
-      this.links.features.push(...this.editorLinks.features)
+
+      // find index of soon to be deleted links
+      let index = 0 // if new Trip, index will be 0.
+      if (this.tripId.includes(this.editorTrip)) {
+        index = this.links.features.findIndex(link => link.properties.trip_id === this.editorTrip)
+      }
+      // delete links that were edited.
+      this.links.features = this.links.features.filter(link => link.properties.trip_id !== this.editorTrip)
+      // add edited links to links.
+      this.links.features.splice(index, 0, ...this.editorLinks.features)
+      // if we delete and append, this will change the order of the geojson and create problem as
+      // the order of TripID is important.
+
       // all new nodes.
       for (const eNode of this.editorNodes.features) {
         const filteredNode = this.nodes.features.filter((node) => node.properties.index === eNode.properties.index)
