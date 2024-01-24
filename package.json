@@ -2,7 +2,7 @@
   "name": "Quetzal-network-editor",
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
-  "version": "5.1.e",
+  "version": "5.1.f",
   "private": true,
   "scripts": {
     "start": "vite",
@@ -21,10 +21,10 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.496.0",
-    "@aws-sdk/credential-providers": "^3.496.0",
-    "@aws-sdk/lib-storage": "^3.496.0",
-    "@aws-sdk/s3-request-presigner": "^3.496.0",
+    "@aws-sdk/client-s3": "^3.498.0",
+    "@aws-sdk/credential-providers": "^3.498.0",
+    "@aws-sdk/lib-storage": "^3.498.0",
+    "@aws-sdk/s3-request-presigner": "^3.498.0",
     "@fortawesome/fontawesome-free": "^6.4.0",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",

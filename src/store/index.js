@@ -428,8 +428,22 @@ export const useIndexStore = defineStore('store', {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, odFolder)
       }
-      // save outputs Layers
-      // save others layers
+
+      // delete otherFiles (if a otherFiles is on S3 but not in memory (was deleted locally))
+      // delete it on s3 when we save.
+      let filesOnCloud = await s3.listFiles(bucket, scen)
+      const filesToExcludes = Object.values(paths) // list of all files (that are not others.)
+      filesOnCloud = filesOnCloud.filter(path => !filesToExcludes.includes(path))
+      filesOnCloud = filesOnCloud.map(file => file.slice(scen.length)) // remove scen name from file)
+
+      const localOtherFiles = this.otherFiles.map(el => el.path)
+      for (const file of filesOnCloud) {
+        if (!localOtherFiles.includes(file)) {
+          await s3.deleteObject(bucket, scen + file)
+        }
+      }
+
+      // save others files
       // if payload === inputs. only export inputs/ files.
       let otherFiles = this.otherFiles
       if (payload === 'inputs') {

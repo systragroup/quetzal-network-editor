@@ -1,3 +1,9 @@
+## [5.1.f] (2024-01-24)
+
+# Bug fixes
+* **delete files on s3** when deleting a otherFiles (inputs/outpurs) delete them on s3 when saved. [#473](https://github.com/systragroup/quetzal-network-editor/issues/473)
+
+
 ## [5.0.4] (2024-01-24)
 
 # Bug fixes
