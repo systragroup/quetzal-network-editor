@@ -10,7 +10,6 @@ import vuetify from 'vite-plugin-vuetify'
 export default defineConfig(({ mode }) => {
   let basePath = '/quetzal-network-editor-dev/'
   let defineOption = {}
-  console.log(mode)
   if (mode === 'development') {
     defineOption = { global: 'window' }
   } else if (mode === 'staging') {
@@ -29,7 +28,16 @@ export default defineConfig(({ mode }) => {
 
     define: defineOption, // only for dev
     optimizeDeps: {
-      include: ['map-promisified'],
+      include: ['map-promisified', // need all those vuetify for dev server not reloading every new page click
+        'vuetify/lib/components/VRangeSlider/index.mjs',
+        'vuetify/lib/components/VSlider/index.mjs',
+        'vuetify/lib/components/VBottomNavigation/index.mjs',
+        'vuetify/lib/components/VDataTable/index.mjs',
+        'vuetify/lib/components/VWindow/index.mjs',
+        'vuetify/lib/components/VChip/index.mjs',
+        'vuetify/lib/components/VDatePicker/index.mjs',
+        'vuetify/lib/components/VStepper/index.mjs',
+        'vuetify/lib/components/VExpansionPanel/index.mjs'],
     },
     base: basePath,
     plugins: [
