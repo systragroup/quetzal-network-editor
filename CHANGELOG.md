@@ -3,17 +3,8 @@
 # Bug fixes
 random tripId were selected when editing a trip and confirming. [#474](https://github.com/systragroup/quetzal-network-editor/issues/474)
 
-## [5.0.3] (2024-01-23)
 
-# Bug fixes
-date picker invisible in light mode
-
-## [5.0.2] (2024-01-22)
-
-# Security patch
-vitejs => 5.0.21
-
-## [5.1.e] (2024-01-22)
+## [5.1.e] (2024-01-23)
  On links import. 
  - get links length with geometry length
  - if speed. compute time
