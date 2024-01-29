@@ -435,7 +435,7 @@ export const useIndexStore = defineStore('store', {
       const filesToExcludes = Object.values(paths) // list of all files (that are not others.)
       filesOnCloud = filesOnCloud.filter(path => !filesToExcludes.includes(path))
       filesOnCloud = filesOnCloud.map(file => file.slice(scen.length)) // remove scen name from file)
-
+      filesOnCloud = filesOnCloud.filter(path => path.startsWith('outputs/') || path.startsWith('inputs/'))
       const localOtherFiles = this.otherFiles.map(el => el.path)
       for (const file of filesOnCloud) {
         if (!localOtherFiles.includes(file)) {
