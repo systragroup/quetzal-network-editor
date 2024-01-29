@@ -1,7 +1,12 @@
+## [5.1.g] (2024-01-29)
+
+# Bug fixes
+* **delete files on s3** : bug where we had random files on s3 (ex: ./styles.json). Now only inputs/ and outputs/ are checked.
+
 ## [5.1.f] (2024-01-24)
 
 # Bug fixes
-* **delete files on s3** when deleting a otherFiles (inputs/outpurs) delete them on s3 when saved. [#473](https://github.com/systragroup/quetzal-network-editor/issues/473)
+* **delete files on s3** when deleting a otherFiles (inputs/outputs) delete them on s3 when saved. [#473](https://github.com/systragroup/quetzal-network-editor/issues/473)
 
 
 ## [5.0.4] (2024-01-24)
