@@ -1,4 +1,4 @@
-## [5.1.h] (draft)
+## [5.1.h] (2024-01-31)
 
 # Bug fixes
 * **remove legend** when the range is NaN NaN (ex: using a attributes that is a color). [#477](https://github.com/systragroup/quetzal-network-editor/issues/477)

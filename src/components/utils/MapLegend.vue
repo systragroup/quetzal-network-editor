@@ -1,5 +1,5 @@
 <script setup>
-import { computed, toRefs, watch } from 'vue'
+import { computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 
 const props = defineProps({
