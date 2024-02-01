@@ -74,13 +74,10 @@ export default {
         map.value.addImage('arrow', image, { sdf: true })
       })
 
-      if (!extrusion.value) {
-        map.value.dragRotate.disable()
-      } else {
+      if (extrusion.value) {
         store.changeNotification(
           { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
       }
-
       mapIsLoaded.value = true
     }
     function fitBounds () {
@@ -210,7 +207,10 @@ export default {
     @load="onMapLoaded"
   >
     <MglScaleControl position="bottom-right" />
-    <MglNavigationControl position="bottom-right" />
+    <MglNavigationControl
+      position="bottom-right"
+      :visualize-pitch="true"
+    />
     <slot
       :map="map"
       :map-is-loaded="mapIsLoaded"

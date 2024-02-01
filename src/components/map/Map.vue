@@ -206,7 +206,7 @@ export default {
       })
 
       map.value = event.map
-      event.map.dragRotate.disable()
+      // event.map.dragRotate.disable()
       mapIsLoaded.value = true
     }
 
@@ -424,7 +424,10 @@ export default {
       />
     </div>
     <MglScaleControl position="bottom-right" />
-    <MglNavigationControl position="bottom-right" />
+    <MglNavigationControl
+      position="bottom-right"
+      :visualize-pitch="true"
+    />
     <div
       v-for="file in rasterFiles"
       :key="file.name"

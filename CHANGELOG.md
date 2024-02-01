@@ -1,22 +1,31 @@
+## [5.1.i] (2024-02-01)
+
+### Features
+* **3D mode on all map**: right click to pan. not only with extrusion result maps.
+
+### Bug fixes
+* **Static layer order** was not maintained when the map was changed or dark mode toggle. it is now fixed.
+
+
 ## [5.1.h] (2024-01-31)
 
-# Bug fixes
+### Bug fixes
 * **remove legend** when the range is NaN NaN (ex: using a attributes that is a color). [#477](https://github.com/systragroup/quetzal-network-editor/issues/477)
 
 ## [5.1.g] (2024-01-29)
 
-# Bug fixes
+### Bug fixes
 * **delete files on s3** : bug where we had random files on s3 (ex: ./styles.json). Now only inputs/ and outputs/ are checked.
 
 ## [5.1.f] (2024-01-24)
 
-# Bug fixes
+### Bug fixes
 * **delete files on s3** when deleting a otherFiles (inputs/outputs) delete them on s3 when saved. [#473](https://github.com/systragroup/quetzal-network-editor/issues/473)
 
 
 ## [5.0.4] (2024-01-24)
 
-# Bug fixes
+### Bug fixes
 random tripId were selected when editing a trip and confirming. [#474](https://github.com/systragroup/quetzal-network-editor/issues/474)
 
 
