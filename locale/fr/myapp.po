@@ -130,7 +130,7 @@ msgid ""
 "time using an iterative algorithm"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:428
+#: src/components/map/sidePanel/LinksSidePanel.vue:469
 #: src/components/microservices/MatrixRoadCaster.vue:108
 msgid "Abort"
 msgstr "Annuler"
@@ -198,7 +198,7 @@ msgstr "Annuler"
 #: src/components/import/ScenariosExplorer.vue:320
 #: src/components/import/ScenariosExplorer.vue:399
 #: src/components/map/EditDialog.vue:184 src/components/map/Settings.vue:134
-#: src/components/map/sidePanel/LinksSidePanel.vue:501
+#: src/components/map/sidePanel/LinksSidePanel.vue:542
 #: src/components/results/ResultsSettings.vue:311 src/pages/Home.vue:59
 #: src/pages/Home.vue:132 src/pages/ResultMap.vue:223
 #: src/pages/ResultMap.vue:277
@@ -213,9 +213,12 @@ msgstr "Nombre de point minimum. Impossible de supprimer d'avantage"
 msgid "cannot delete first point of polygon"
 msgstr "Le premier point du polygone ne peut pas être supprimé"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:65
-msgid "Cannot filter by this field. There is more than 500 groups"
-msgstr "Impossible de filtrer par ce champ. Il y a plus de 500 groupes"
+#: src/components/map/sidePanel/LinksSidePanel.vue:179
+msgid ""
+"Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
+msgstr ""
+"Impossible de filtrer par ce champ puisqu'il crée {res} groupes sur un "
+"maximum de %{maxSize}"
 
 #: src/components/import/ScenariosExplorer.vue:245
 msgid "Change Scenario?"
@@ -253,7 +256,7 @@ msgstr "palette de couleur"
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr "couleur à afficher sur la carte (ex: FFFFFF)"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:447
+#: src/components/map/sidePanel/LinksSidePanel.vue:488
 msgid "Confirm"
 msgstr "Valider"
 
@@ -282,7 +285,7 @@ msgstr ""
 "de passe temporaire puisque le couriel d'invitation pourrait être bloqué par "
 "l'organisation."
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:466
+#: src/components/map/sidePanel/LinksSidePanel.vue:507
 msgid "Create new Line"
 msgstr "Créer une nouvelle ligne"
 
@@ -332,13 +335,13 @@ msgstr "Supprimer "
 msgid "Delete"
 msgstr "Supprimer "
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:221
+#: src/components/map/sidePanel/LinksSidePanel.vue:262
 msgid "Delete Group"
 msgstr "Supprimer le groupe"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:361
-#: src/components/map/sidePanel/ODSidePanel.vue:206
-#: src/components/map/sidePanel/RoadSidePanel.vue:195
+#: src/components/map/sidePanel/LinksSidePanel.vue:402
+#: src/components/map/sidePanel/ODSidePanel.vue:211
+#: src/components/map/sidePanel/RoadSidePanel.vue:200
 msgid "Delete Line"
 msgstr "Supprimer"
 
@@ -374,7 +377,7 @@ msgstr ""
 msgid "do not add .zip to the end"
 msgstr "n'ajouté pas de .zip à la fin"
 
-#: src/components/results/ResultsSidePanel.vue:135
+#: src/components/results/ResultsSidePanel.vue:136
 msgid "Dowload presets"
 msgstr "Télécharger les Préréglages"
 
@@ -388,7 +391,7 @@ msgstr "Télécharger"
 msgid "Duplicate"
 msgstr "Dupliquer"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:341
+#: src/components/map/sidePanel/LinksSidePanel.vue:382
 msgid "Duplicate and reverse"
 msgstr "Dupliquer et inverser"
 
@@ -396,22 +399,22 @@ msgstr "Dupliquer et inverser"
 msgid "duplicate nodes"
 msgstr "Dupliquer les noeuds"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:202
+#: src/components/map/sidePanel/LinksSidePanel.vue:243
 msgid "Edit Group Properties"
 msgstr "Modifier les propriétés du groupe"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:299
+#: src/components/map/sidePanel/LinksSidePanel.vue:340
 msgid "Edit Line"
 msgstr "Modifier la ligne"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:409
-#: src/components/map/sidePanel/RoadSidePanel.vue:233
+#: src/components/map/sidePanel/LinksSidePanel.vue:450
+#: src/components/map/sidePanel/RoadSidePanel.vue:238
 msgid "Edit Line geometry"
 msgstr "Modifier La géométrie de la ligne"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:320
-#: src/components/map/sidePanel/ODSidePanel.vue:185
-#: src/components/map/sidePanel/RoadSidePanel.vue:175
+#: src/components/map/sidePanel/LinksSidePanel.vue:361
+#: src/components/map/sidePanel/ODSidePanel.vue:190
+#: src/components/map/sidePanel/RoadSidePanel.vue:180
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
@@ -429,9 +432,9 @@ msgstr "Modifier"
 msgid "Edit rLink Info"
 msgstr "Modifier les infos"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:70
-#: src/components/map/sidePanel/ODSidePanel.vue:57
-#: src/components/map/sidePanel/RoadSidePanel.vue:60
+#: src/components/map/sidePanel/LinksSidePanel.vue:75
+#: src/components/map/sidePanel/ODSidePanel.vue:58
+#: src/components/map/sidePanel/RoadSidePanel.vue:61
 msgid "Edit Visibles Properties"
 msgstr "Modifier les propriétés des visibles"
 
@@ -451,9 +454,9 @@ msgstr "Vider tout et partir de zéro"
 msgid "Expand all"
 msgstr "Étendre tout"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:101
-#: src/components/map/sidePanel/ODSidePanel.vue:88
-#: src/components/map/sidePanel/RoadSidePanel.vue:91
+#: src/components/map/sidePanel/LinksSidePanel.vue:106
+#: src/components/map/sidePanel/ODSidePanel.vue:89
+#: src/components/map/sidePanel/RoadSidePanel.vue:92
 msgid "Export All"
 msgstr "Exporter tout"
 
@@ -461,9 +464,9 @@ msgstr "Exporter tout"
 msgid "Export name"
 msgstr "Nom du fichier"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:115
-#: src/components/map/sidePanel/ODSidePanel.vue:102
-#: src/components/map/sidePanel/RoadSidePanel.vue:105
+#: src/components/map/sidePanel/LinksSidePanel.vue:120
+#: src/components/map/sidePanel/ODSidePanel.vue:103
+#: src/components/map/sidePanel/RoadSidePanel.vue:106
 msgid "Export Only Visible"
 msgstr "Exporter les visibles"
 
@@ -483,14 +486,14 @@ msgstr "Fichier(s) ajouté(s)"
 msgid "Files unloaded"
 msgstr "Fichiers déchargés"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:143
-#: src/components/map/sidePanel/ODSidePanel.vue:131
-#: src/components/map/sidePanel/RoadSidePanel.vue:133
-#: src/components/results/ResultsSidePanel.vue:228
+#: src/components/map/sidePanel/LinksSidePanel.vue:150
+#: src/components/map/sidePanel/ODSidePanel.vue:132
+#: src/components/map/sidePanel/RoadSidePanel.vue:135
+#: src/components/results/ResultsSidePanel.vue:229
 msgid "filter"
 msgstr "filtre"
 
-#: src/components/utils/StaticLayer.vue:77 src/pages/ResultMap.vue:119
+#: src/pages/ResultMap.vue:119
 msgid "filter does not exist. use default one"
 msgstr "Le filtre n'existe pas. valeur par défaut utilisé"
 
@@ -525,11 +528,11 @@ msgstr "GTFS importés avec succès"
 msgid "GTFS importer"
 msgstr "GTFS importer"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:50
-#: src/components/map/sidePanel/LinksSidePanel.vue:179
-#: src/components/map/sidePanel/ODSidePanel.vue:37
-#: src/components/map/sidePanel/RoadSidePanel.vue:40
-#: src/components/results/ResultsSidePanel.vue:156
+#: src/components/map/sidePanel/LinksSidePanel.vue:55
+#: src/components/map/sidePanel/LinksSidePanel.vue:220
+#: src/components/map/sidePanel/ODSidePanel.vue:38
+#: src/components/map/sidePanel/RoadSidePanel.vue:41
+#: src/components/results/ResultsSidePanel.vue:157
 msgid "Hide All"
 msgstr "Cacher Tout"
 
@@ -614,7 +617,7 @@ msgstr "item"
 msgid "last name"
 msgstr "nom"
 
-#: src/components/results/ResultsSidePanel.vue:170
+#: src/components/results/ResultsSidePanel.vue:171
 msgid "Layer"
 msgstr "Couche"
 
@@ -642,7 +645,7 @@ msgstr ""
 " Ligne (ou trip) (i.e. 100 est). \n"
 "         Les liens sont groupé par trip_id dans Quetzal-network_editor"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:75
+#: src/components/map/sidePanel/LinksSidePanel.vue:80
 msgid "Lines"
 msgstr "Lignes"
 
@@ -794,7 +797,7 @@ msgstr "Nouveau Scénario"
 
 #: src/components/import/ScenariosExplorer.vue:264
 #: src/components/layout/Profile.vue:363
-#: src/components/map/sidePanel/LinksSidePanel.vue:511
+#: src/components/map/sidePanel/LinksSidePanel.vue:552
 #: src/components/microservices/GTFSWebImporter.vue:211
 #: src/components/microservices/GTFSZipImporter.vue:234
 #: src/components/microservices/OSMImporter.vue:142 src/pages/Import.vue:194
@@ -811,12 +814,16 @@ msgstr "Noeuds"
 msgid "Nothing to display"
 msgstr "Rien à afficher"
 
+#: src/components/map/sidePanel/LinksSidePanel.vue:188
+msgid "Nothing to display."
+msgstr "Rien à afficher"
+
 #: src/components/results/ResultsSettings.vue:38
 #: src/components/results/ResultsSettings.vue:42
 msgid "numStep"
 msgstr "nombre de pas "
 
-#: src/components/map/sidePanel/ODSidePanel.vue:62
+#: src/components/map/sidePanel/ODSidePanel.vue:63
 #: src/components/map/sidePanel/SidePanel.vue:71
 msgid "OD"
 msgstr ""
@@ -849,7 +856,6 @@ msgstr "Extrants"
 
 #: src/components/microservices/GTFSWebImporter.vue:199
 #: src/components/microservices/GTFSZipImporter.vue:222
-#, fuzzy
 msgid "Overwrite current PT network ?"
 msgstr "Écraser le réseau TC ?"
 
@@ -898,7 +904,7 @@ msgstr "La couche du préréglage n'existe pas"
 msgid "Preset Saved"
 msgstr "Préréglage sauvegardé"
 
-#: src/components/results/ResultsSidePanel.vue:72
+#: src/components/results/ResultsSidePanel.vue:73
 msgid "Presets"
 msgstr "Préréglages"
 
@@ -971,7 +977,7 @@ msgstr "inverser les couleurs"
 msgid "reverse color scale"
 msgstr "inverse la palette de couleur"
 
-#: src/components/results/MapResults.vue:78
+#: src/components/results/MapResults.vue:76
 msgid "Right click and drag to tilt the map"
 msgstr "Clique droit et glisser pour incliner la carte"
 
@@ -1007,7 +1013,7 @@ msgstr "Contenu du Popup routier"
 msgid "Road speed"
 msgstr "Vitesse route"
 
-#: src/components/map/sidePanel/RoadSidePanel.vue:65
+#: src/components/map/sidePanel/RoadSidePanel.vue:66
 msgid "Roads"
 msgstr "Routes"
 
@@ -1028,7 +1034,7 @@ msgstr "Sauv..."
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:489
+#: src/components/map/sidePanel/LinksSidePanel.vue:530
 msgid "Save Changes?"
 msgstr "Sauvegarder ?"
 
@@ -1064,6 +1070,11 @@ msgstr "Simulation du scénario"
 #: src/components/import/ScenariosExplorer.vue:127
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
+
+#: src/components/import/ScenariosExplorer.vue:76
+#: src/components/map/sidePanel/LinksSidePanel.vue:164
+msgid "search"
+msgstr "recherche"
 
 #: src/pages/Import.vue:43
 msgid "Select a Project"
@@ -1117,15 +1128,15 @@ msgstr "devrait être plus grand que 0"
 msgid "should be larger than 0"
 msgstr "devrait être plus grand que 0"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:50
-#: src/components/map/sidePanel/LinksSidePanel.vue:180
-#: src/components/map/sidePanel/ODSidePanel.vue:37
-#: src/components/map/sidePanel/RoadSidePanel.vue:40
-#: src/components/results/ResultsSidePanel.vue:156
+#: src/components/map/sidePanel/LinksSidePanel.vue:55
+#: src/components/map/sidePanel/LinksSidePanel.vue:221
+#: src/components/map/sidePanel/ODSidePanel.vue:38
+#: src/components/map/sidePanel/RoadSidePanel.vue:41
+#: src/components/results/ResultsSidePanel.vue:157
 msgid "Show All"
 msgstr "Montrer Tout"
 
-#: src/components/map/sidePanel/RoadSidePanel.vue:263
+#: src/components/map/sidePanel/RoadSidePanel.vue:268
 msgid "Show Cycleway direction instead of road"
 msgstr "Montrer la direction des pistes cyclables au lieu des routes"
 
@@ -1260,10 +1271,6 @@ msgstr ""
 "Temps de parcours sur le lien. Défini comme distance / vitesse quand un lien "
 "est créé ou modifier (secondes)"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:96
-msgid "undefined"
-msgstr "indéfini"
-
 #: src/pages/Import.vue:182
 msgid "Unload all files ?"
 msgstr "Décharger tous les fichiers ?"
@@ -1284,7 +1291,7 @@ msgstr "Téléversé"
 msgid "username"
 msgstr "nom d'utilisateur"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:185
+#: src/components/map/sidePanel/LinksSidePanel.vue:226
 msgid "value"
 msgstr "valeur"
 
@@ -1298,7 +1305,7 @@ msgstr "Largeur à afficher sur la carte"
 
 #: src/components/import/ScenariosExplorer.vue:273
 #: src/components/layout/Profile.vue:372
-#: src/components/map/sidePanel/LinksSidePanel.vue:520
+#: src/components/map/sidePanel/LinksSidePanel.vue:561
 #: src/components/microservices/GTFSWebImporter.vue:220
 #: src/components/microservices/GTFSZipImporter.vue:243
 #: src/components/microservices/OSMImporter.vue:151 src/pages/Import.vue:203
@@ -1313,6 +1320,12 @@ msgstr "besoins de paramètres pour entrer"
 msgid "your session has expired. Please sign in again"
 msgstr ""
 "Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
+
+#~ msgid "Noting to display."
+#~ msgstr "Rien à afficher"
+
+#~ msgid "undefined"
+#~ msgstr "indéfini"
 
 #~ msgid "Export"
 #~ msgstr "Exporter"

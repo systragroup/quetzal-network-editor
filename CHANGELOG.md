@@ -1,3 +1,9 @@
+## [5.1.j] (2024-02-01)
+
+### Features
+* **Search bar for Trips**:added a seach bar for TripId. change behaviour when there is too much to filter. now the filter is applied and it display that there is nothing to display instead of not applying the filter and pushing a notif. This is simpler with the new search string. [#476](https://github.com/systragroup/quetzal-network-editor/issues/476)
+
+
 ## [5.1.i] (2024-02-01)
 
 ### Features
