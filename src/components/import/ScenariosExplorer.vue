@@ -251,7 +251,7 @@ export default {
         clear-icon="fas fa-times-circle"
         clearable
         class="item"
-        label="search"
+        :label="$gettext('search')"
         hide-details
         prepend-inner-icon="fas fa-search"
         @click:clear="searchString=null"

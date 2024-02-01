@@ -1,7 +1,7 @@
 <script>
 
 import short from 'short-uuid'
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
@@ -10,6 +10,7 @@ export default {
   name: 'LinksSidePanel',
   emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
   setup (_, context) {
+    const maxSize = 200
     const store = useIndexStore()
     const linksStore = useLinksStore()
     const editorTrip = computed(() => { return linksStore.editorTrip })
@@ -55,30 +56,14 @@ export default {
     // filters (route_type)
     const filterChoices = computed(() => { return linksStore.lineAttributes })
     const selectedFilter = ref('route_type')
+    watch(selectedFilter, () => { ShowGroupList.value = new Set([]) })
 
-    watch(selectedFilter, (newVal, oldVal) => {
-      selectedFilter.value = newVal
-      // prevent group larger than 500.
-      if (filteredCat.value.length > 500) {
-        // if it is larger, return to oldValue
-        // selectedFilter.value = oldVal
-        // display error message
-        store.changeNotification({
-          text: $gettext('Cannot filter by this field. There is more than 500 groups'),
-          autoClose: true,
-          color: 'red darken-2',
-        })
-        // return the value in the v-select as the old Value
-        nextTick(() => { selectedFilter.value = oldVal })
-      }
-      // reste showed Groups
-      ShowGroupList.value = new Set([])
-    })
-
+    const searchString = ref('')
     const arrayUniqueTripId = computed(() => {
       // drop duplicates links trips. each line is a trip here.
       const arrayUniqueByKey = [...new Map(linksStore.links.features.map(item =>
-        [item.properties.trip_id, item.properties])).values()]
+        [item.properties.trip_id, item.properties])).values()].filter(
+        (item) => item.trip_id.toLowerCase().startsWith(searchString.value.toLowerCase()))
       return arrayUniqueByKey
     })
     const filteredCat = computed(() => {
@@ -93,7 +78,8 @@ export default {
       // return this list of object, {cat_name, tripId list}
       // if >500. we do not change and we will rerun this with the old value
       // see watch(selectedFilter)
-      if (filteredCat.value.length > 500) { return [] }
+
+      if (filteredCat.value.length > maxSize) { return [] }
       const classifiedTripId = []
       const undefinedCat = { name: $gettext('undefined'), tripId: [] }
       filteredCat.value.forEach(c => {
@@ -178,6 +164,7 @@ export default {
 
     return {
       store,
+      maxSize,
       linksStore,
       selectedTrips,
       localSelectedTrip,
@@ -197,6 +184,7 @@ export default {
       deleteButton,
       ShowGroupList,
       toggleGroup,
+      searchString,
     }
   },
 
@@ -291,16 +279,44 @@ export default {
       class=" mx-auto scrollable"
     >
       <v-list-item>
-        <v-select
-          v-model="selectedFilter"
-          :items="filterChoices"
-          prepend-icon="fas fa-filter"
-          :label="$gettext('filter')"
-          variant="underlined"
-          color="secondarydark"
-        />
+        <div
+          class="container"
+          :style="{'padding-top': '0.5rem'}"
+        >
+          <v-select
+            v-model="selectedFilter"
+            :items="filterChoices"
+            :style="{'flex':1.3}"
+            prepend-inner-icon="fas fa-filter"
+            :label="$gettext('filter')"
+            variant="outlined"
+            hide-details
+            density="compact"
+            color="secondarydark"
+          />
+          <v-text-field
+            v-model="searchString"
+            :style="{'padding-right': '0.5rem','flex':1}"
+            density="compact"
+            variant="outlined"
+            clear-icon="fas fa-times-circle"
+            clearable
+            :label="$gettext('search')"
+            hide-details
+            persistent-clear
+            prepend-inner-icon="fas fa-search"
+            @click:clear="searchString=''"
+          />
+        </div>
       </v-list-item>
       <v-list>
+        <v-list-item v-if=" filteredCat.length>maxSize">
+          <span>{{ $gettext('Cannot filter by this field as it result in %{res} groups. max is %{maxSize} ',
+                            { res: filteredCat.length ,maxSize:maxSize}) }}</span>
+        </v-list-item>
+        <v-list-item v-if="(filteredCat.length===0) && (searchString!=='')">
+          <span>{{ $gettext('Noting to display.') }}</span>
+        </v-list-item>
         <v-list-group
           v-for="(value, key) in classifiedTripId"
           :key="String(value.name) + String(key)"

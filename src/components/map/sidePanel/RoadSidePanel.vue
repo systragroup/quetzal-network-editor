@@ -215,14 +215,18 @@ export default {
       class="mx-auto scrollable"
     >
       <v-list-item>
-        <v-select
-          v-model="vmodelSelectedFilter"
-          :items="filterChoices"
-          prepend-icon="fas fa-filter"
-          :label="$gettext('filter')"
-          variant="underlined"
-          color="secondarydark"
-        />
+        <div :style="{'padding-top': '0.5rem'}">
+          <v-select
+            v-model="vmodelSelectedFilter"
+            :items="filterChoices"
+            prepend-inner-icon="fas fa-filter"
+            :label="$gettext('filter')"
+            variant="outlined"
+            hide-details
+            density="compact"
+            color="secondarydark"
+          />
+        </div>
       </v-list-item>
 
       <v-virtual-scroll
