@@ -202,23 +202,9 @@ export default {
           class="params"
         >
           <v-text-field
-            v-if="typeof item.items === 'undefined'"
             v-model="item.value"
             :type="item.type"
             variant="underlined"
-            :label="$gettext(item.text)"
-            :suffix="item.units"
-            :hint="showHint? $gettext(item.hint): ''"
-            :persistent-hint="showHint"
-            :rules="item.rules.map((rule) => rules[rule])"
-            required
-            @wheel="()=>{}"
-          />
-          <v-select
-            v-else
-            v-model="item.value"
-            :type="item.type"
-            :items="item.items"
             :label="$gettext(item.text)"
             :suffix="item.units"
             :hint="showHint? $gettext(item.hint): ''"

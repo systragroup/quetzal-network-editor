@@ -218,7 +218,7 @@ export default {
         <div :style="{'padding-top': '0.5rem'}">
           <v-select
             v-model="vmodelSelectedFilter"
-            :items="filterChoices"
+            :items="filterChoices.sort()"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"
             variant="outlined"

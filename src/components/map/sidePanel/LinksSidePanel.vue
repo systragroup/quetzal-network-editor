@@ -259,7 +259,7 @@ function deleteButton (obj) {
         >
           <v-select
             v-model="selectedFilter"
-            :items="filterChoices"
+            :items="filterChoices.sort()"
             :style="{'flex':1.3}"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"

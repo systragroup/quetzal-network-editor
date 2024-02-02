@@ -165,7 +165,7 @@ export default {
             <v-select
               v-model="linksPopupContent.value"
               variant="underlined"
-              :items="linksPopupContent.choices"
+              :items="linksPopupContent.choices.sort()"
               :label="$gettext(linksPopupContent.name)"
               :hint="showHint? $gettext(linksPopupContent.hint): ''"
               :persistent-hint="showHint"
@@ -176,7 +176,7 @@ export default {
             <v-select
               v-model="roadsPopupContent.value"
               variant="underlined"
-              :items="roadsPopupContent.choices"
+              :items="roadsPopupContent.choices.sort()"
               :label="$gettext(roadsPopupContent.name)"
               :hint="showHint? $gettext(roadsPopupContent.hint): ''"
               :persistent-hint="showHint"

@@ -257,7 +257,7 @@ export default {
             <v-select
               v-model="parameters[0].value"
               variant="underlined"
-              :items="featureChoices"
+              :items="featureChoices.sort()"
               :label="$gettext(parameters[0].name)"
               :hint="showHint? $gettext(parameters[0].hint): ''"
               :persistent-hint="showHint"

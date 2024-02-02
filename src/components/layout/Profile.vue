@@ -196,7 +196,7 @@ function deleteUserButton (user) {
             v-model="selectedGroup"
             :label="$gettext('Team')"
             :disabled="groups.length <= 1"
-            :items="groups"
+            :items="groups.sort()"
           />
         </v-list-item>
 

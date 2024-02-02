@@ -1,6 +1,9 @@
 
 ## [5.1.k] (draft)
 
+### changes
+* **sorting v-select** most select field (ex: side panel filter choices) are now sorted.
+
 ### Bug fixes
 * **Fix traduction** in script setup components, gettext in script was not working.
 
