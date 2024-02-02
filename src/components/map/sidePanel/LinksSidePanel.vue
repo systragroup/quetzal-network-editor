@@ -8,7 +8,8 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
-
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 const emit = defineEmits(['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'])
 const maxSize = 200
 const store = useIndexStore()
@@ -56,7 +57,18 @@ watch(tripId, (newVal, oldVal) => {
 // filters (route_type)
 const filterChoices = computed(() => { return linksStore.lineAttributes })
 const selectedFilter = ref('route_type')
+const ShowGroupList = ref(new Set([]))
 watch(selectedFilter, () => { ShowGroupList.value = new Set([]) })
+
+function toggleGroup (e) {
+  if (e.isOpen) {
+    ShowGroupList.value.add(e.key)
+  } else {
+    // dont remove them. its not a bottleeck to have unused one.
+    // it can be tricky with the animation and bouble click...
+    // nextTick(() => { ShowGroupList.value.delete(e.key) })
+  }
+}
 
 const searchString = ref('')
 const arrayUniqueTripId = computed(() => {
@@ -81,7 +93,7 @@ const classifiedTripId = computed(() => {
 
   if (filteredCat.value.length > maxSize) { return [] }
   const classifiedTripId = []
-  const undefinedCat = { name: 'undefined', tripId: [] }
+  const undefinedCat = { name: $gettext('undefined'), tripId: [] }
   filteredCat.value.forEach(c => {
     const arr = arrayUniqueTripId.value.filter(
       item => item[selectedFilter.value] === c,
@@ -149,17 +161,6 @@ function cloneButton (obj) {
 function deleteButton (obj) {
   // obj contain trip and message.
   emit('deleteButton', obj)
-}
-
-const ShowGroupList = ref(new Set([]))
-function toggleGroup (e) {
-  if (e.isOpen) {
-    ShowGroupList.value.add(e.key)
-  } else {
-    // dont remove them. its not a bottleeck to have unused one.
-    // it can be tricky with the animation and bouble click...
-    // nextTick(() => { ShowGroupList.value.delete(e.key) })
-  }
 }
 
 </script>
@@ -283,11 +284,11 @@ function toggleGroup (e) {
         </div>
       </v-list-item>
       <v-list>
-        <v-list-item v-show=" filteredCat.length>maxSize">
+        <v-list-item v-if=" filteredCat.length>maxSize">
           <span>{{ $gettext('Cannot filter by this field as it result in %{res} groups. max is %{maxSize} ',
                             { res: filteredCat.length ,maxSize:maxSize}) }}</span>
         </v-list-item>
-        <v-list-item v-sjow="(filteredCat.length===0) && (searchString!=='')">
+        <v-list-item v-if="(filteredCat.length===0) && (searchString!=='')">
           <span>{{ $gettext('Nothing to display.') }}</span>
         </v-list-item>
         <v-list-group

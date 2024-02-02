@@ -7,8 +7,8 @@ import { useResult } from '@comp/results/results.js'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
-const $gettext = s => s
-
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 // set visibility. to render or not by fetching the data.
 // we need to create all the statics link (even without the data)
 // for the correct z-order. if not, they are drawn over the links.

@@ -3,7 +3,8 @@ import router from '@src/router/index'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { computed, ref, onMounted, watch } from 'vue'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 const version = import.meta.env.VITE_APP_VERSION
 
 const store = useIndexStore()

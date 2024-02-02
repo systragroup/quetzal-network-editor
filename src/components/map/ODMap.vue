@@ -5,8 +5,8 @@ import short from 'short-uuid'
 import { computed, watch, toRefs, ref, onUnmounted } from 'vue'
 import { useODStore } from '@src/store/od'
 import geojson from '@constants/geojson'
-
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
 const props = defineProps(['map', 'isODMode', 'isEditorMode'])
 const emit = defineEmits(['[clickFeature]'])

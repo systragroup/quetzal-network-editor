@@ -9,10 +9,10 @@ import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { computed, ref, watch, onMounted, defineAsyncComponent } from 'vue'
+import { useGettext } from 'vue3-gettext'
+
 const Signin = defineAsyncComponent(() => import('./Signin.vue'))
-
-const $gettext = s => s
-
+const { $gettext } = useGettext()
 const store = useIndexStore()
 const userStore = useUserStore()
 const projectIsEmpty = computed(() => store.projectIsEmpty)
@@ -289,10 +289,9 @@ function deleteUserButton (user) {
       @keydown.enter="applyDialog"
       @keydown.esc="()=>showDialog=false"
     >
-      <v-card>
+      <v-card class="pa-2">
         <v-card-title
           v-if="action === 'logout'"
-          class="text-h4"
         >
           {{ $gettext("Sign out") }}
         </v-card-title>
@@ -369,14 +368,14 @@ function deleteUserButton (user) {
               color="regular"
               @click="()=>showDialog = !showDialog"
             >
-              {{ $gettext("No") }}
+              {{ $gettext("cancel") }}
             </v-btn>
 
             <v-btn
               color="primary"
               type="submit"
             >
-              {{ $gettext("Yes") }}
+              {{ $gettext("create") }}
             </v-btn>
           </v-card-actions>
         </v-form>

@@ -1,3 +1,9 @@
+
+## [5.1.k] (draft)
+
+### Bug fixes
+* **Fix traduction** in script setup components, gettext in script was not working.
+
 ## [5.1.j] (2024-02-01)
 
 ### Features

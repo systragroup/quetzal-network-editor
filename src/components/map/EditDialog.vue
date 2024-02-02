@@ -10,7 +10,8 @@ import { computed, ref, watch, defineModel, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
 const showDialog = defineModel('showDialog')
 const editorForm = defineModel('editorForm')
