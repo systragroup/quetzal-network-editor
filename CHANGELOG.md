@@ -1,8 +1,9 @@
 
-## [5.1.k] (draft)
+## [5.1.k] (2024-02-02)
 
 ### changes
 * **sorting v-select** most select field (ex: side panel filter choices) are now sorted.
+* **OD name set to index** while create. name is populated with index. it is also now the default filter. 
 
 ### Bug fixes
 * **Fix traduction** in script setup components, gettext in script was not working.
