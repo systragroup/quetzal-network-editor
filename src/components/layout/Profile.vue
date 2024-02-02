@@ -173,7 +173,7 @@ function deleteUserButton (user) {
       </template>
       <v-card
         width="20rem"
-        max-height="80vh"
+        class="pa-1"
       >
         <v-list>
           <v-list-item>
@@ -200,26 +200,27 @@ function deleteUserButton (user) {
           />
         </v-list-item>
 
-        <v-divider />
-        <v-list-item
-          v-for="user in users"
-          :key="user.Username"
-        >
-          <template v-slot:prepend>
-            <v-btn
-              v-if="showMore"
-              variant="text"
-              icon="fas fa-trash"
-              size="small"
-              color="error"
-              @click="deleteUserButton(user)"
-            />
-          </template>
-          <v-list-item-title>{{ user.Username }}</v-list-item-title>
-          <v-list-item-subtitle>
-            {{ user.email }}
-          </v-list-item-subtitle>
-        </v-list-item>
+        <div class="v-card-content">
+          <v-list-item
+            v-for="user in users"
+            :key="user.Username"
+          >
+            <template v-slot:prepend>
+              <v-btn
+                v-if="showMore"
+                variant="text"
+                icon="fas fa-trash"
+                size="small"
+                color="error"
+                @click="deleteUserButton(user)"
+              />
+            </template>
+            <v-list-item-title>{{ user.Username }}</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ user.email }}
+            </v-list-item-subtitle>
+          </v-list-item>
+        </div>
         <v-card-actions>
           <v-btn
             color="success"
@@ -392,6 +393,14 @@ function deleteUserButton (user) {
 }
 .signin {
   padding:1rem 2rem 2rem 2rem
+}
+
+.v-card-content {
+  //max-height:400px; /* Set a max height for the middle content */
+  overflow: auto; /* Enable scrolling if the content overflows */
+  max-height:calc(100vh - 25rem);
+  min-height:5rem;
+
 }
 
 </style>
