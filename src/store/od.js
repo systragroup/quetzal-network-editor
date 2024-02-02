@@ -78,7 +78,7 @@ export const useODStore = defineStore('od', {
         'index', 'name']
       defaultAttributes.forEach(att => header.add(att))
       this.layerAttributes = Array.from(header)
-      this.selectedFilter = this.layerAttributes[0]
+      this.selectedFilter = 'name'
       this.selectedCategory = Array.from(new Set(this.layer.features.map(
         item => item.properties[this.selectedFilter])))
     },
@@ -132,6 +132,7 @@ export const useODStore = defineStore('od', {
       // set default links values
       this.layerAttributes.forEach((key) => linkProperties[key] = null)
       linkProperties.index = payload.index
+      linkProperties.name = payload.index
       // linkProperties.route_color = this.rlinksDefaultColor
       const linkFeature = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       this.layer.features.push(linkFeature)

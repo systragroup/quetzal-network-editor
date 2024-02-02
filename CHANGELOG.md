@@ -6,6 +6,7 @@
 
 ### Bug fixes
 * **Fix traduction** in script setup components, gettext in script was not working.
+* **OD creation** fix left click drag stopping the drawing process. fix a bug where the OD drawing was still active when changing mode (ex: going to road while a OD was beeing drawn.)
 
 ## [5.1.j] (2024-02-01)
 

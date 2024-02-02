@@ -20,6 +20,14 @@ watch(isODMode, (val) => {
     map.value.on('click', addPoint)
   } else {
     map.value.off('click', addPoint)
+    // remove all. as you could change mode as you're moving a node or creating one.
+    // this will juste create the OD and stop its edition.
+    map.value.off('mousemove', onMove)
+    map.value.off('mouseup', stopMovingNode)
+    keepHovering.value = false
+    dragNode.value = false
+    hoveredStateId.value = null
+    drawMode.value = false
   }
 })
 onUnmounted(() => { map.value.off('click', addPoint) })
@@ -46,10 +54,11 @@ function addPoint (event) {
       // get position
       drawMode.value = true
       map.value.on('mousemove', onMove)
-      map.value.on('mouseup', stopMovingNode)
+      // map.value.on('mouseup', stopMovingNode)
     } else {
       // here. we dont want the second click to do anything except act like a stop moving node.
       drawMode.value = false
+      stopMovingNode(event)
     }
   }
 }
@@ -142,6 +151,7 @@ function stopMovingNode (event) {
       )
     }
     hoveredStateId.value = null
+    drawMode.value = false
     map.value.off('mouseup', stopMovingNode)
   }
 }
