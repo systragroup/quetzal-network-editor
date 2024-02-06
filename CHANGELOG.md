@@ -1,4 +1,10 @@
 
+
+## [5.1.l] (2024-02-06)
+
+### Bug fixes
+* **Copy project** : bug where we had random files on s3 (ex: ./styles.json). now. files starting with ./ are ignore in the copy. This is also fixed in the back. no more ./styles.json
+
 ## [5.1.k] (2024-02-02)
 
 ### changes

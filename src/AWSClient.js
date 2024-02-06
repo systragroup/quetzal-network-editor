@@ -110,6 +110,7 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
     response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
   } else {
     response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
+    response.Contents = response.Contents.filter(el => !el.Key.startsWith(prefix + './'))
   }
   if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
   // get all metaData [{key,metadata}]. dont need response.Contents after that.
