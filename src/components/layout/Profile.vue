@@ -376,7 +376,7 @@ function deleteUserButton (user) {
               color="primary"
               type="submit"
             >
-              {{ $gettext("create") }}
+              {{ action === 'createUser' ? $gettext("create"): $gettext("ok") }}
             </v-btn>
           </v-card-actions>
         </v-form>

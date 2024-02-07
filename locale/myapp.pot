@@ -136,7 +136,7 @@ msgstr ""
 msgid "add field"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:61
+#: src/components/microservices/GTFSZipImporter.vue:60
 msgid "Add GTFS files. When its done uploading press Convert"
 msgstr ""
 
@@ -176,6 +176,7 @@ msgstr ""
 msgid "Calibration Results"
 msgstr ""
 
+#: src/components/layout/Profile.vue:362
 #: src/components/utils/ColorPicker.vue:45
 msgid "cancel"
 msgstr ""
@@ -249,7 +250,7 @@ msgstr ""
 msgid "confirm new password"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:199
+#: src/components/microservices/GTFSZipImporter.vue:182
 msgid "convert"
 msgstr ""
 
@@ -261,7 +262,11 @@ msgstr ""
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
-#: src/components/layout/Profile.vue:295
+#: src/components/layout/Profile.vue:371
+msgid "create"
+msgstr ""
+
+#: src/components/layout/Profile.vue:294
 msgid "create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization"
 msgstr ""
 
@@ -273,11 +278,11 @@ msgstr ""
 msgid "Create or modify preset"
 msgstr ""
 
-#: src/components/layout/Profile.vue:147
+#: src/components/layout/Profile.vue:149
 msgid "create user"
 msgstr ""
 
-#: src/components/layout/Profile.vue:264
+#: src/components/layout/Profile.vue:263
 msgid "Create User"
 msgstr ""
 
@@ -336,7 +341,7 @@ msgstr ""
 msgid "Delete Stop"
 msgstr ""
 
-#: src/components/layout/Profile.vue:274
+#: src/components/layout/Profile.vue:273
 msgid "delete User"
 msgstr ""
 
@@ -415,7 +420,7 @@ msgstr ""
 msgid "Edit Visibles Properties"
 msgstr ""
 
-#: src/components/layout/Profile.vue:343
+#: src/components/layout/Profile.vue:342
 msgid "email address"
 msgstr ""
 
@@ -474,11 +479,11 @@ msgstr ""
 msgid "filter does not exist. use default one"
 msgstr ""
 
-#: src/components/layout/Profile.vue:328
+#: src/components/layout/Profile.vue:327
 msgid "first name"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:149
+#: src/components/microservices/GTFSZipImporter.vue:132
 #: src/components/utils/LayerSelector.vue:90
 msgid "from"
 msgstr ""
@@ -496,7 +501,7 @@ msgid "gtfs imported successfully!"
 msgstr ""
 
 #: src/components/microservices/GTFSWebImporter.vue:40
-#: src/components/microservices/GTFSZipImporter.vue:49
+#: src/components/microservices/GTFSZipImporter.vue:48
 msgid "GTFS importer"
 msgstr ""
 
@@ -532,7 +537,7 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:55
+#: src/components/microservices/GTFSZipImporter.vue:54
 msgid "import GTFS from local computer"
 msgstr ""
 
@@ -557,10 +562,8 @@ msgstr ""
 #: src/components/microservices/GTFSWebImporter.vue:125
 #: src/components/microservices/GTFSWebImporter.vue:138
 #: src/components/microservices/GTFSWebImporter.vue:140
-#: src/components/microservices/GTFSZipImporter.vue:120
-#: src/components/microservices/GTFSZipImporter.vue:122
-#: src/components/microservices/GTFSZipImporter.vue:134
-#: src/components/microservices/GTFSZipImporter.vue:136
+#: src/components/microservices/GTFSZipImporter.vue:117
+#: src/components/microservices/GTFSZipImporter.vue:119
 #: src/components/microservices/MatrixRoadCaster.vue:49
 #: src/components/microservices/MatrixRoadCaster.vue:51
 #: src/components/microservices/MatrixRoadCaster.vue:63
@@ -582,7 +585,7 @@ msgstr ""
 msgid "item"
 msgstr ""
 
-#: src/components/layout/Profile.vue:336
+#: src/components/layout/Profile.vue:335
 msgid "last name"
 msgstr ""
 
@@ -649,7 +652,7 @@ msgstr ""
 msgid "Login to access projects"
 msgstr ""
 
-#: src/components/layout/Profile.vue:186
+#: src/components/layout/Profile.vue:188
 msgid "logout"
 msgstr ""
 
@@ -714,12 +717,12 @@ msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:94
 #: src/components/import/ScenariosExplorer.vue:373
-#: src/components/microservices/GTFSZipImporter.vue:148
+#: src/components/microservices/GTFSZipImporter.vue:131
 #: src/pages/ResultMap.vue:203
 msgid "name"
 msgstr ""
 
-#: src/components/layout/Signin.vue:26
+#: src/components/layout/Signin.vue:22
 msgid "need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol"
 msgstr ""
 
@@ -760,10 +763,9 @@ msgid "New Scenario"
 msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:264
-#: src/components/layout/Profile.vue:363
 #: src/components/map/sidePanel/LinksSidePanel.vue:552
 #: src/components/microservices/GTFSWebImporter.vue:211
-#: src/components/microservices/GTFSZipImporter.vue:234
+#: src/components/microservices/GTFSZipImporter.vue:217
 #: src/components/microservices/OSMImporter.vue:142
 #: src/pages/Import.vue:194
 msgid "No"
@@ -795,6 +797,7 @@ msgid "OD"
 msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:409
+#: src/components/layout/Profile.vue:371
 #: src/pages/ResultMap.vue:158
 #: src/pages/ResultMap.vue:233
 msgid "ok"
@@ -822,7 +825,7 @@ msgid "Outputs"
 msgstr ""
 
 #: src/components/microservices/GTFSWebImporter.vue:199
-#: src/components/microservices/GTFSZipImporter.vue:222
+#: src/components/microservices/GTFSZipImporter.vue:205
 msgid "Overwrite current PT network ?"
 msgstr ""
 
@@ -851,7 +854,7 @@ msgstr ""
 msgid "password"
 msgstr ""
 
-#: src/components/layout/Signin.vue:27
+#: src/components/layout/Signin.vue:23
 msgid "password must match"
 msgstr ""
 
@@ -903,7 +906,7 @@ msgstr ""
 msgid "Replace file inplace"
 msgstr ""
 
-#: src/components/layout/Signin.vue:25
+#: src/components/layout/Signin.vue:21
 #: src/components/map/Settings.vue:52
 #: src/components/microservices/GTFSWebImporter.vue:86
 #: src/components/microservices/GTFSZipImporter.vue:39
@@ -1050,7 +1053,7 @@ msgstr ""
 msgid "Select which side of the road the links are display"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:151
+#: src/components/microservices/GTFSZipImporter.vue:134
 msgid "selected date"
 msgstr ""
 
@@ -1103,7 +1106,7 @@ msgstr ""
 msgid "show NaN"
 msgstr ""
 
-#: src/components/layout/Signin.vue:92
+#: src/components/layout/Signin.vue:93
 msgid "Sign in"
 msgstr ""
 
@@ -1119,7 +1122,7 @@ msgstr ""
 msgid "sign out"
 msgstr ""
 
-#: src/components/layout/Profile.vue:254
+#: src/components/layout/Profile.vue:253
 msgid "Sign out"
 msgstr ""
 
@@ -1152,11 +1155,11 @@ msgstr ""
 msgid "styles.json should be an array of object with at least [{name:,layer:}]"
 msgstr ""
 
-#: src/components/layout/Profile.vue:98
+#: src/components/layout/Profile.vue:99
 msgid "Team"
 msgstr ""
 
-#: src/components/layout/Profile.vue:349
+#: src/components/layout/Profile.vue:348
 msgid "temporary password"
 msgstr ""
 
@@ -1168,7 +1171,7 @@ msgstr ""
 msgid "The scenario will be permanently deleted"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:92
+#: src/components/microservices/GTFSZipImporter.vue:91
 msgid "There as been an error while converting your GTFS.             Please try again. If the problem persist, contact us."
 msgstr ""
 
@@ -1181,7 +1184,7 @@ msgstr ""
 msgid "there is no index in the File. you need unique index. Import aborted in "
 msgstr ""
 
-#: src/components/layout/Profile.vue:285
+#: src/components/layout/Profile.vue:284
 msgid "This action will sign you out"
 msgstr ""
 
@@ -1189,7 +1192,7 @@ msgstr ""
 msgid "This scenario is protected. You can not run simulation."
 msgstr ""
 
-#: src/components/layout/Profile.vue:305
+#: src/components/layout/Profile.vue:304
 msgid "This will permanently delete the user account."
 msgstr ""
 
@@ -1197,7 +1200,7 @@ msgstr ""
 msgid "Time between departures in seconds"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:150
+#: src/components/microservices/GTFSZipImporter.vue:133
 msgid "to"
 msgstr ""
 
@@ -1217,15 +1220,15 @@ msgstr ""
 msgid "Unload Scenario?"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:74
+#: src/components/microservices/GTFSZipImporter.vue:73
 msgid "upload GTFS"
 msgstr ""
 
-#: src/components/microservices/GTFSZipImporter.vue:152
+#: src/components/microservices/GTFSZipImporter.vue:135
 msgid "Uploaded"
 msgstr ""
 
-#: src/components/layout/Profile.vue:321
+#: src/components/layout/Profile.vue:320
 #: src/components/layout/Signin.vue:42
 msgid "username"
 msgstr ""
@@ -1243,10 +1246,9 @@ msgid "width to display on the map"
 msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:273
-#: src/components/layout/Profile.vue:372
 #: src/components/map/sidePanel/LinksSidePanel.vue:561
 #: src/components/microservices/GTFSWebImporter.vue:220
-#: src/components/microservices/GTFSZipImporter.vue:243
+#: src/components/microservices/GTFSZipImporter.vue:226
 #: src/components/microservices/OSMImporter.vue:151
 #: src/pages/Import.vue:203
 msgid "Yes"
