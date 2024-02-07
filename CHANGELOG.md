@@ -1,3 +1,10 @@
+## [5.1.m] (2024-02-07)
+
+### Features
+* **Parallel step function**: handle in the front. It will be display as a single Step (ex: (2) step 1 | step 2) [#475](https://github.com/systragroup/quetzal-network-editor/issues/475)
+
+### Bug fixes
+signin Dialog not shaking more than one time. add loading to button when waiting auth api response (aws-sdk).
 
 
 ## [5.1.l] (2024-02-06)
