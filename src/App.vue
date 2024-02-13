@@ -22,7 +22,11 @@ export default {
     const loading = computed(() => store.loading)
     const snackbar = ref(false)
     watch(notification, () => { snackbar.value = !!notification.value.text })
-    watch(snackbar, (val) => { if (val === false) { store.changeNotification({ text: '', autoClose: true }) } })
+    watch(snackbar, (val) => {
+      if (val === false) {
+        store.changeNotification({ text: '', autoClose: true })
+      }
+    })
     onMounted(() => { store.initNetworks() })
 
     return { notification, loading, snackbar, store }

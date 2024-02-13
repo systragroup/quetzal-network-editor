@@ -135,7 +135,7 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
       Metadata: metadata,
 
     }
-    s3Client.copyObject(copyParams, function (err, data) {
+    s3Client.copyObject(copyParams, function (err, _) {
       if (err) return err // an error occurred
     })
   }
@@ -279,7 +279,7 @@ export default {
       credentials: creds,
     })
     s3Client.middlewareStack.add(
-      (next, context) => async (args) => {
+      (next, _) => async (args) => {
         const result = await next(args)
         userStore.isTokenExpired()
         return result

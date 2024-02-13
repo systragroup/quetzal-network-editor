@@ -6,7 +6,7 @@ const $gettext = s => s
 
 export default {
   name: 'FilesList',
-  emits: ['FilesLoaded'],
+  emits: ['filesLoaded'],
   setup (_, context) {
     const store = useIndexStore()
     const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })
@@ -55,7 +55,7 @@ export default {
         }
       }
       store.changeLoading(false)
-      context.emit('FilesLoaded', fileList)
+      context.emit('filesLoaded', fileList)
     }
     async function readOtherOutputs (event) {
       // load outputs as Layer Module and as other files (ex: png)
@@ -81,7 +81,7 @@ export default {
         }
       }
       store.changeLoading(false)
-      context.emit('FilesLoaded', fileList)
+      context.emit('filesLoaded', fileList)
     }
     function deleteFile (file) {
       store.deleteotherFiles([file])

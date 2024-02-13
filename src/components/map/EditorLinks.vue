@@ -132,25 +132,25 @@ export default {
         const selectedNode = contextMenu.value.feature.properties.index
 
         if (selectedNode === linksStore.firstNodeId) {
-          contextMenu.value.actions =
-          [
-            $gettext('Edit Node Info'),
-            $gettext('Delete Stop'),
-          ]
+          contextMenu.value.actions
+          = [
+              $gettext('Edit Node Info'),
+              $gettext('Delete Stop'),
+            ]
         } else if (selectedNode === linksStore.lastNodeId) {
-          contextMenu.value.actions =
-          [
-            $gettext('Edit Node Info'),
-            $gettext('Delete Stop'),
-          ]
+          contextMenu.value.actions
+          = [
+              $gettext('Edit Node Info'),
+              $gettext('Delete Stop'),
+            ]
         } else {
-          contextMenu.value.actions =
-           [
-             $gettext('Edit Node Info'),
-             $gettext('Cut Before Node'),
-             $gettext('Cut After Node'),
-             $gettext('Delete Stop'),
-           ]
+          contextMenu.value.actions
+           = [
+              $gettext('Edit Node Info'),
+              $gettext('Cut Before Node'),
+              $gettext('Cut After Node'),
+              $gettext('Delete Stop'),
+            ]
         }
       } else if (hoveredStateId.value?.layerId === 'anchorNodes') {
         const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
@@ -196,8 +196,8 @@ export default {
     }
 
     function moveNode (event) {
-      if (event.mapboxEvent.originalEvent.button === 0 &
-      ['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId)) {
+      if (event.mapboxEvent.originalEvent.button === 0
+        & ['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId)) {
         event.mapboxEvent.preventDefault() // prevent map control
         map.value.getCanvas().style.cursor = 'grab'
         // disable mouseLeave so we stay in hover state.
@@ -225,7 +225,7 @@ export default {
         }
       }
     }
-    function stopMovingNode (event) {
+    function stopMovingNode () {
       // stop tracking position (moving node.)
       map.value.getCanvas().style.cursor = 'pointer'
       map.value.off('mousemove', onMove)

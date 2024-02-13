@@ -100,22 +100,22 @@ onMounted(async () => {
 
 function addLayer () {
   map.value.addSource(sourceId, {
-    'type': 'geojson',
+    type: 'geojson',
     data: visibleLayer.value
     ,
   })
 
   if (type.value === 'LineString') {
     map.value.addLayer({
-      'id': layerId,
-      'type': 'line',
-      'minzoom': 5,
-      'source': sourceId,
-      'layout': {
+      id: layerId,
+      type: 'line',
+      minzoom: 5,
+      source: sourceId,
+      layout: {
         'line-sort-key': ['to-number', ['get', 'display_width']],
         'line-cap': 'round',
       },
-      'paint': {
+      paint: {
         'line-color': ['get', 'display_color'],
         'line-opacity': opacity / 100,
         'line-offset': ['*', offsetValue * 0.5, ['to-number', ['get', 'display_width']]],
@@ -124,14 +124,14 @@ function addLayer () {
     })
   } else if (type.value === 'Point') {
     map.value.addLayer({
-      'id': layerId,
-      'type': 'circle',
-      'minzoom': 5,
-      'source': sourceId,
-      'layout': {
+      id: layerId,
+      type: 'circle',
+      minzoom: 5,
+      source: sourceId,
+      layout: {
         'circle-sort-key': ['to-number', ['get', 'display_width']],
       },
-      'paint': {
+      paint: {
         'circle-color': ['get', 'display_color'],
         'circle-radius': ['get', 'display_width'],
         'circle-opacity': opacity / 100,
@@ -139,22 +139,22 @@ function addLayer () {
     })
   } else if (['MultiPolygon', 'Polygon'].includes(type.value) && !displaySettings.value.extrusion) {
     map.value.addLayer({
-      'id': layerId,
-      'type': 'fill',
-      'minzoom': 5,
-      'source': sourceId,
-      'paint': {
+      id: layerId,
+      type: 'fill',
+      minzoom: 5,
+      source: sourceId,
+      paint: {
         'fill-color': ['get', 'display_color'],
         'fill-opacity': opacity / 100,
       },
     })
   } else if (['MultiPolygon', 'Polygon'].includes(type.value) && displaySettings.value.extrusion) {
     map.value.addLayer({
-      'id': layerId,
-      'type': 'fill-extrusion',
-      'minzoom': 5,
-      'source': sourceId,
-      'paint': {
+      id: layerId,
+      type: 'fill-extrusion',
+      minzoom: 5,
+      source: sourceId,
+      paint: {
         'fill-extrusion-color': ['get', 'display_color'],
         'fill-extrusion-opacity': opacity / 100,
         'fill-extrusion-height': ['*', 1000, ['to-number', ['get', 'display_width']]],

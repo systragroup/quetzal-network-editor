@@ -212,7 +212,7 @@ export const useODStore = defineStore('od', {
       })
       return form
     },
-    nodes: (state) => (layer) => {
+    nodes: () => (layer) => {
       const nodes = cloneDeep(geojson)
       layer.features.forEach(
         feature => {

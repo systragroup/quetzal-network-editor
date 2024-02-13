@@ -181,8 +181,8 @@ export default {
           break
         case 'Edit Line Info':
           // check if trip_id was changed and if it already exist.
-          if ((editorForm.value.trip_id.value !== linksStore.editorTrip) &&
-          linksStore.tripId.includes(editorForm.value.trip_id.value)) {
+          if ((editorForm.value.trip_id.value !== linksStore.editorTrip)
+            && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
             // reset all. just like abortChanges but without the abort changes notification
             lingering.value = true // if not, applyAction is call after and the notification is overwrite.
             linksStore.setEditorTrip({ tripId: null, changeBounds: false })

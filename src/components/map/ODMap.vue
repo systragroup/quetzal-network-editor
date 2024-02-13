@@ -78,7 +78,7 @@ function onCursor (event) {
   }
 }
 
-function offCursor (event) {
+function offCursor () {
   if (isODMode.value) {
     if (hoveredStateId.value !== null) {
       // eslint-disable-next-line max-len
@@ -160,11 +160,11 @@ function linkRightClick (event) {
     contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
     contextMenu.value.showed = true
     contextMenu.value.feature = hoveredStateId.value.id
-    contextMenu.value.actions =
-          [
-            $gettext('Edit OD Info'),
-            $gettext('Delete OD'),
-          ]
+    contextMenu.value.actions
+          = [
+        $gettext('Edit OD Info'),
+        $gettext('Delete OD'),
+      ]
   }
 }
 function actionClick (event) {

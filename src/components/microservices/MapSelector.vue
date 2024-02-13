@@ -102,7 +102,7 @@ export default {
       const geom = [mapbbox._sw.lat, mapbbox._sw.lng, mapbbox._ne.lat, mapbbox._ne.lng]
       this.$emit('change', { style: 'bbox', geometry: geom })
     },
-    toggleFreeForm (val) {
+    toggleFreeForm () {
       this.freeForm = !this.freeForm
       if (this.freeForm) {
         this.map.off('dragend', this.getBounds)

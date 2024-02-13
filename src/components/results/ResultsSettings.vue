@@ -125,7 +125,7 @@ export default {
     }
   },
   watch: {
-    showDialog (val) {
+    showDialog () {
       this.refresh()
       this.showFixScale = this.parameters[11].value
     },

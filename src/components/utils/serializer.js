@@ -17,8 +17,8 @@ function serializer (geojson, name, type = null, ignoreIndex = false) {
   // check Type (is links a linestring)
   const currentType = geojson.features[0].geometry.type
   if (currentType !== type && type !== null) {
-    const err = new Error(currentType + $gettext(' imported, Expected ') +
-    type + $gettext('. Import aborted in ') + name)
+    const err = new Error(currentType + $gettext(' imported, Expected ')
+      + type + $gettext('. Import aborted in ') + name)
     err.name = 'ImportError'
     throw err
   }
@@ -49,7 +49,10 @@ function paramsSerializer (json) {
     }
   })
   // if model key is not present. put default everywhere.
-  json.forEach(item => { if (!Object.keys(item).includes('model')) { item.model = 'default' } })
+  json.forEach(item => {
+    if (!Object.keys(item).includes('model')) {
+      item.model = 'default' }
+  })
   return json
 }
 

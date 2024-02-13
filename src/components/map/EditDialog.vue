@@ -55,7 +55,7 @@ function orderedForm (index) {
 }
 
 // computed speed, time, length. for individual links only.
-function change (key, val) {
+function change (key) {
   // for now. only for PT
   if (mode.value === 'pt') {
     switch (key) {
@@ -133,8 +133,8 @@ function addField () {
   }
   // do not append if its null, empty or already exist.
 
-  if ((Object.keys(form).includes(newFieldName.value)) || (newFieldName.value === '') |
-       (!newFieldName.value) || (newFieldName.value?.endsWith('_r'))) {
+  if ((Object.keys(form).includes(newFieldName.value)) || (newFieldName.value === '')
+    | (!newFieldName.value) || (newFieldName.value?.endsWith('_r'))) {
     // put ' ' so the rule error is diplayed.
     newFieldName.value = ''
   } else {
@@ -252,7 +252,7 @@ function deleteField (field) {
                 :suffix="units[key]"
                 :prepend-inner-icon="['length','speed','time'].includes(key) && mode === 'pt' ? 'fas fa-calculator':''"
                 @wheel="$event.target.blur()"
-                @change="change(key, value['value'])"
+                @change="change(key)"
               >
                 <template
                   v-if="key==='route_color'"

@@ -164,7 +164,7 @@ export default {
     }
     function deleteScenario () {
       deleteDialog.value = false
-      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(resp => {
+      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(() => {
         deleteDialog.value = false
         userStore.getScenario({ model: localModel.value })
         store.changeNotification(

@@ -77,7 +77,7 @@ export const useIndexStore = defineStore('store', {
     changeAnchorMode () {
       this.anchorMode = !this.anchorMode
     },
-    changeCyclewayMode (payload) {
+    changeCyclewayMode () {
       this.cyclewayMode = !this.cyclewayMode
     },
 
@@ -461,12 +461,12 @@ export const useIndexStore = defineStore('store', {
       const rlinks = userLinksStore()
       const od = useODStore()
       const runStore = useRunStore()
-      return (links.links.features.length === 0 &&
-             rlinks.rlinks.features.length === 0 &&
-              od.layer.features.length === 0 &&
-              state.otherFiles.length === 0 &&
-              runStore.parameters.length === 0 &&
-              state.styles.length === 0)
+      return (links.links.features.length === 0
+        && rlinks.rlinks.features.length === 0
+        && od.layer.features.length === 0
+        && state.otherFiles.length === 0
+        && runStore.parameters.length === 0
+        && state.styles.length === 0)
     },
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.

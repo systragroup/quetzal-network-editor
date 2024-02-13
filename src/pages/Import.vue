@@ -83,6 +83,7 @@ function loadNetwork (files) {
   store.loadFiles(files)
   filesAdded.value = true
   store.changeLoading(false)
+
 }
 
 async function readZip (event) {
@@ -273,7 +274,7 @@ async function loadExample (filesToLoads) {
           <v-divider vertical />
           <v-col class="center-col">
             <FileLoader
-              @FilesLoaded="(files) => loadNetwork(files)"
+              @filesLoaded="(files) => loadNetwork(files)"
             />
             <div class="button-row">
               <v-tooltip
@@ -304,7 +305,7 @@ async function loadExample (filesToLoads) {
 
           <v-col class="left-col">
             <FilesList
-              @FilesLoaded="(files) => loadNetwork(files)"
+              @filesLoaded="(files) => loadNetwork(files)"
             />
           </v-col>
         </v-row>

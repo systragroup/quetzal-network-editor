@@ -59,9 +59,9 @@ export default {
         // this.selectedCat = this.selectedCategory
       }
     })
-    watch(vmodelSelectedFilter, (newVal, oldVal) => {
-      if ((newVal !== selectedFilter.value)) { // when created, we dont want to emit
-        context.emit('update-selectedFilter', newVal)
+    watch(vmodelSelectedFilter, (val) => {
+      if ((val !== selectedFilter.value)) { // when created, we dont want to emit
+        context.emit('update-selectedFilter', val)
         selectedCat.value = selectedCategory.value // show all. when we change layer
       }
     })

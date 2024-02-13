@@ -136,7 +136,7 @@ export default {
         drawMode.value = false
       }
     })
-    watch(mapStyle, (val) => {
+    watch(mapStyle, () => {
       saveMapPosition()
     })
 
@@ -266,7 +266,7 @@ export default {
         }
       }
     }
-    function resetDraw (event) {
+    function resetDraw () {
       // reset draw line when we leave the map.
       // there is no mouseIn event, so we track it with mouseout = true, and reapply visible on mousemove.
       if (drawMode.value) {
@@ -323,7 +323,7 @@ export default {
         hoverId.value = event.selectedId
       }
     }
-    function offHover (event) {
+    function offHover () {
       // put back visible draw line
       hoverId.value = null
       hoverLayer.value = null

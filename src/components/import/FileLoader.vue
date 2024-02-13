@@ -9,7 +9,7 @@ import { useODStore } from '@src/store/od'
 import { useRunStore } from '@src/store/run'
 import { computed, ref, watch } from 'vue'
 // const $gettext = s => s
-const emits = defineEmits(['FilesLoaded'])
+const emits = defineEmits(['filesLoaded'])
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
@@ -43,7 +43,7 @@ watch(localFilesAreLoaded, (val) => {
         { path: 'inputs/road/nodes.geojson', content: loadedNodes.value },
       ]
     }
-    emits('FilesLoaded', files)
+    emits('filesLoaded', files)
     loadedLinks.value = {}
     loadedNodes.value = {}
     loadedType.value = ''
@@ -100,7 +100,7 @@ async function readFile (event) {
         loadedType.value = 'road'
         break
       case 'od':
-        emits('FilesLoaded', [{ path: 'inputs/od/od.geojson', content: data }])
+        emits('filesLoaded', [{ path: 'inputs/od/od.geojson', content: data }])
         break
       default:
         console.log('autre')
@@ -120,7 +120,7 @@ async function readParams (event) {
   try {
     let data = await readFileAsText(files[0])
     data = JSON.parse(data)
-    emits('FilesLoaded', [{ path: 'inputs/params.json', content: data }])
+    emits('filesLoaded', [{ path: 'inputs/params.json', content: data }])
     store.changeLoading(false)
   } catch (err) {
     store.changeLoading(false)
@@ -136,7 +136,7 @@ async function readStyles (event) {
   try {
     let data = await readFileAsText(files[0])
     data = JSON.parse(data)
-    emits('FilesLoaded', [{ path: 'styles.json', content: data }])
+    emits('filesLoaded', [{ path: 'styles.json', content: data }])
     store.changeLoading(false)
   } catch (err) {
     store.changeLoading(false)

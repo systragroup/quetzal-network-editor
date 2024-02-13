@@ -41,7 +41,7 @@ export default {
         }
       }
     },
-    offCursor (event) {
+    offCursor () {
       if (this.active) {
         if (this.hoveredStateId !== null) {
           // eslint-disable-next-line max-len
@@ -61,7 +61,7 @@ export default {
         }
       }
     },
-    rightClick (event) {
+    rightClick () {
       if (!this.dragNode && this.hoveredStateId?.layerId === 'nodes') {
         const features = this.map.querySourceFeatures(this.hoveredStateId.layerId)
         const selectedFeature = features.filter(item => item.id === this.hoveredStateId.id[0])[0]

@@ -83,9 +83,9 @@ export default {
     this.vmodelSelectedFilter = this.selectedFilter
     this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
 
-    if (this.linksStore.links.features.length === 0 &&
-    !this.store.projectIsEmpty &&
-    this.selectedrGoup.length === 0) {
+    if (this.linksStore.links.features.length === 0
+      && !this.store.projectIsEmpty
+      && this.selectedrGoup.length === 0) {
       this.showAll()
     }
   },
