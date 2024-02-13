@@ -1,172 +1,149 @@
 <!-- eslint-disable no-case-declarations -->
-<script>
+<script setup>
 import { serializer } from '@comp/utils/serializer.js'
 import { readFileAsText } from '@comp/utils/utils.js'
 import { useIndexStore } from '@src/store/index'
-import { useUserStore } from '@src/store/user'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 import { useRunStore } from '@src/store/run'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 // const $gettext = s => s
+const emits = defineEmits(['FilesLoaded'])
 
-export default {
-  name: 'FileLoader',
-  emits: ['FilesLoaded'],
-  setup () {
-    const store = useIndexStore()
-    const userStore = useUserStore()
-    const linksStore = useLinksStore()
-    const rlinksStore = userLinksStore()
-    const ODStore = useODStore()
-    const runStore = useRunStore()
+const store = useIndexStore()
+const linksStore = useLinksStore()
+const rlinksStore = userLinksStore()
+const ODStore = useODStore()
+const runStore = useRunStore()
 
-    const loadedLinks = ref({})
-    const loadedNodes = ref({})
-    const loadedType = ref('')
-    const choice = ref('')
-    const projectIsEmpty = computed(() => store.projectIsEmpty)
+const loadedLinks = ref({})
+const loadedNodes = ref({})
+const loadedType = ref('')
+const choice = ref('')
 
-    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-    const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
-    const ODIsEmpty = computed(() => { return ODStore.layerIsEmpty })
-    const paramsIsEmpty = computed(() => { return runStore.parametersIsEmpty })
-    const stylesIsEmpty = computed(() => { return store.styles.length === 0 })
-    const localLinksLoaded = computed(() => { return Object.keys(loadedLinks.value).length !== 0 })
-    const localNodesLoaded = computed(() => { return Object.keys(loadedNodes.value).length !== 0 })
-    const localFilesAreLoaded = computed(() => { return (localLinksLoaded.value && localNodesLoaded.value) })
+const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
+const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+const ODIsEmpty = computed(() => { return ODStore.layerIsEmpty })
 
-    return {
-      store,
-      userStore,
-      loadedLinks,
-      loadedNodes,
-      loadedType,
-      choice,
-      projectIsEmpty,
-      rlinksIsEmpty,
-      linksIsEmpty,
-      ODIsEmpty,
-      paramsIsEmpty,
-      stylesIsEmpty,
-      localLinksLoaded,
-      localNodesLoaded,
-      localFilesAreLoaded,
+const localLinksLoaded = computed(() => { return Object.keys(loadedLinks.value).length !== 0 })
+const localNodesLoaded = computed(() => { return Object.keys(loadedNodes.value).length !== 0 })
+const localFilesAreLoaded = computed(() => { return (localLinksLoaded.value && localNodesLoaded.value) })
+watch(localFilesAreLoaded, (val) => {
+  if (val) {
+    let files = []
+    if (loadedType.value === 'PT') {
+      files = [
+        { path: 'inputs/pt/links.geojson', content: loadedLinks.value },
+        { path: 'inputs/pt/nodes.geojson', content: loadedNodes.value },
+      ]
+    } else {
+      files = [
+        { path: 'inputs/road/links.geojson', content: loadedLinks.value },
+        { path: 'inputs/road/nodes.geojson', content: loadedNodes.value },
+      ]
     }
-  },
+    emits('FilesLoaded', files)
+    loadedLinks.value = {}
+    loadedNodes.value = {}
+    loadedType.value = ''
+  }
+})
 
-  watch: {
+const paramsInput = ref()
+const stylesInput = ref()
+const fileInput = ref()
 
-    localFilesAreLoaded (val) {
-      if (val) {
-        let files = []
-        if (this.loadedType === 'PT') {
-          files = [
-            { path: 'inputs/pt/links.geojson', content: this.loadedLinks },
-            { path: 'inputs/pt/nodes.geojson', content: this.loadedNodes },
-          ]
-        } else {
-          files = [
-            { path: 'inputs/road/links.geojson', content: this.loadedLinks },
-            { path: 'inputs/road/nodes.geojson', content: this.loadedNodes },
-          ]
-        }
-        this.$emit('FilesLoaded', files)
-        this.loadedLinks = {}
-        this.loadedNodes = {}
-        this.loadedType = ''
-      }
-    },
-
-  },
-
-  methods: {
-    buttonHandle (choice) {
-      this.choice = choice
-      if (this.choice === 'parameters') {
-        this.$refs.paramsInput.click()
-        document.getElementById('params-input').value = '' // clean it for next file
-      } else if (this.choice === 'styles') {
-        this.$refs.stylesInput.click()
-        document.getElementById('styles-input').value = '' // clean it for next file
-      } else if (['PT links', 'PT nodes', 'road links', 'road nodes', 'od'].includes(this.choice)) {
-        this.$refs.fileInput.click()
-        document.getElementById('file-input').value = '' // clean it for next file
-      }
-    },
-
-    async readParams (event) {
-      this.store.changeLoading(true)
-      const files = event.target.files
-      try {
-        let data = await readFileAsText(files[0])
-        data = JSON.parse(data)
-        this.$emit('FilesLoaded', [{ path: 'inputs/params.json', content: data }])
-        this.store.changeLoading(false)
-      } catch (err) {
-        this.store.changeLoading(false)
-        this.store.changeAlert(err)
-      }
-    },
-    async readStyles (event) {
-      this.store.changeLoading(true)
-      const files = event.target.files
-      try {
-        let data = await readFileAsText(files[0])
-        data = JSON.parse(data)
-        this.$emit('FilesLoaded', [{ path: 'styles.json', content: data }])
-        this.store.changeLoading(false)
-      } catch (err) {
-        this.store.changeLoading(false)
-        this.store.changeAlert(err)
-      }
-    },
-    async readFile (event) {
-      this.store.changeLoading(true)
-      const files = event.target.files
-      // it is a geojson
-      if (files[0].name.slice(-7) !== 'geojson') {
-        this.store.changeLoading(false)
-        this.store.changeAlert({ name: 'ImportError', message: 'File must be a geojson' })
-        return
-      }
-      const name = files[0].name
-
-      try {
-        let data = await readFileAsText(files[0])
-        data = JSON.parse(data)
-        switch (this.choice) {
-          case 'PT links':
-            this.loadedLinks = serializer(data, name, 'LineString')
-            this.loadedType = 'PT'
-            break
-          case 'PT nodes':
-            this.loadedNodes = serializer(data, name, 'Point')
-            this.loadedType = 'PT'
-            break
-          case 'road links':
-            this.loadedLinks = serializer(data, name, 'LineString')
-            this.loadedType = 'road'
-            break
-          case 'road nodes':
-            this.loadedNodes = serializer(data, name, 'Point')
-            this.loadedType = 'road'
-            break
-          case 'od':
-            this.$emit('FilesLoaded', [{ path: 'inputs/od/od.geojson', content: data }])
-            break
-          default:
-            console.log('autre')
-        }
-        this.store.changeLoading(false)
-      } catch (err) {
-        this.store.changeLoading(false)
-        this.store.changeAlert(err)
-      }
-    },
-  },
+function buttonHandle (event) {
+  choice.value = event
+  if (choice.value === 'parameters') {
+    paramsInput.value.click()
+    document.getElementById('params-input').value = '' // clean it for next file
+  } else if (choice.value === 'styles') {
+    stylesInput.value.click()
+    document.getElementById('styles-input').value = '' // clean it for next file
+  } else if (['PT links', 'PT nodes', 'road links', 'road nodes', 'od'].includes(choice.value)) {
+    fileInput.value.click()
+    document.getElementById('file-input').value = '' // clean it for next file
+  }
 }
+
+async function readFile (event) {
+  store.changeLoading(true)
+  const files = event.target.files
+  // it is a geojson
+  if (files[0].name.slice(-7) !== 'geojson') {
+    store.changeLoading(false)
+    store.changeAlert({ name: 'ImportError', message: 'File must be a geojson' })
+    return
+  }
+  const name = files[0].name
+
+  try {
+    let data = await readFileAsText(files[0])
+    data = JSON.parse(data)
+    switch (choice.value) {
+      case 'PT links':
+        loadedLinks.value = serializer(data, name, 'LineString')
+        loadedType.value = 'PT'
+        break
+      case 'PT nodes':
+        loadedNodes.value = serializer(data, name, 'Point')
+        loadedType.value = 'PT'
+        break
+      case 'road links':
+        loadedLinks.value = serializer(data, name, 'LineString')
+        loadedType.value = 'road'
+        break
+      case 'road nodes':
+        loadedNodes.value = serializer(data, name, 'Point')
+        loadedType.value = 'road'
+        break
+      case 'od':
+        emits('FilesLoaded', [{ path: 'inputs/od/od.geojson', content: data }])
+        break
+      default:
+        console.log('autre')
+    }
+    store.changeLoading(false)
+  } catch (err) {
+    store.changeLoading(false)
+    store.changeAlert(err)
+  }
+}
+
+const paramsIsEmpty = computed(() => { return runStore.parametersIsEmpty })
+
+async function readParams (event) {
+  store.changeLoading(true)
+  const files = event.target.files
+  try {
+    let data = await readFileAsText(files[0])
+    data = JSON.parse(data)
+    emits('FilesLoaded', [{ path: 'inputs/params.json', content: data }])
+    store.changeLoading(false)
+  } catch (err) {
+    store.changeLoading(false)
+    store.changeAlert(err)
+  }
+}
+
+const stylesIsEmpty = computed(() => { return store.styles.length === 0 })
+
+async function readStyles (event) {
+  store.changeLoading(true)
+  const files = event.target.files
+  try {
+    let data = await readFileAsText(files[0])
+    data = JSON.parse(data)
+    emits('FilesLoaded', [{ path: 'styles.json', content: data }])
+    store.changeLoading(false)
+  } catch (err) {
+    store.changeLoading(false)
+    store.changeAlert(err)
+  }
+}
+
 </script>
 <template>
   <div>

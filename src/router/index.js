@@ -19,7 +19,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: Import.name,
+      name: 'Import',
       component: Import,
       icon: 'fa-solid fa-upload',
       title: $gettext('Import'),

@@ -8,7 +8,7 @@ import { userLinksStore } from './rlinks'
 import { useODStore } from './od'
 import { useRunStore } from './run'
 
-import { serializer, stylesSerializer } from '../components/utils/serializer.js'
+import { stylesSerializer } from '../components/utils/serializer.js'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
@@ -195,21 +195,6 @@ export const useIndexStore = defineStore('store', {
       // payload.forEach(el => arr.push({ item: el }))
       // this.visibleRasters = new Set(payload)
       this.visibleRasters = payload
-    },
-
-    loadLayers (payload) {
-      payload.forEach(
-        file => {
-          const fileName = file.path.slice(0, -8) // remove .geojson
-          // let matData = payload.files.filter(json => json?.fileName.slice(0, -5) === fileName)[0]?.data
-          // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
-          file.content = serializer(file.content, file.path, null, false)
-
-          this.createLayer({
-            fileName,
-            data: file.content,
-          })
-        })
     },
 
     initLinks () {
