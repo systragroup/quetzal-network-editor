@@ -3,6 +3,7 @@
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
   "version": "5.0.4",
+  "type": "module",
   "private": true,
   "scripts": {
     "start": "vite",
@@ -12,8 +13,9 @@
     "preview-staging": "vite preview --mode staging",
     "clean": "rm -rf dist src/config.js src/translations.json",
     "setup": "sh build/setup.sh",
-    "lint": "eslint --ext .js,.vue,.jsx,.cjs,.mjs src test",
-    "lint:styles": "stylelint \"src/scss/app.scss\"",
+    "lint": "ko=0; yarn run -s jslint || ko=1; yarn run -s csslint || ko=1; [ ! $ko -eq 1 ]",
+    "jslint": "eslint src",
+    "csslint": "stylelint 'src/**/*.{scss,css,vue}'",
     "i18n-extract": "./gettext-extract",
     "i18n-compile": "./gettext-compile",
     "gettext:extract": "vue-gettext-extract",
@@ -69,6 +71,7 @@
   "devDependencies": {
     "@babel/core": "^7.23.7",
     "@babel/eslint-parser": "^7.22.10",
+    "@stylistic/eslint-plugin": "^1.5.1",
     "@babel/preset-env": "^7.23.8",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vitest/coverage-v8": "^0.34.5",
@@ -76,19 +79,20 @@
     "@vue/test-utils": "^2.4.1",
     "babel-plugin-root-import": "^6.6.0",
     "easygettext": "^2.17.0",
-    "eslint": "^8.47.0",
+    "eslint": "^8.54.0",
     "eslint-config-standard": "^17.1.0",
-    "eslint-loader": "^4.0.2",
     "eslint-plugin-import": "^2.28.1",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-n": "^16.3.1",
     "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-standard": "^5.0.0",
-    "eslint-plugin-vue": "^9.20.1",
+    "eslint-plugin-vue": "^9.17.0",
+    "eslint-plugin-vuetify": "^2.1.0",
     "jsdom": "^22.1.0",
+    "postcss-html": "^1.6.0",
     "sass": "^1.70.0",
     "sinon": "^16.0.0",
-    "stylelint": "^15.9.0",
+    "stylelint": "^16.2.1",
+    "stylelint-config-recommended-vue": "^1.5.0",
+    "stylelint-config-standard-scss": "^13.0.0",
     "vite": "^5.0.12",
     "vite-plugin-style-import": "^2.0.0",
     "vite-plugin-stylelint": "^4.3.0",
@@ -97,10 +101,7 @@
     "write-file-webpack-plugin": "^4.5.1"
   },
   "resolutions": {
-    "@babel/generator": "<7.17.9",
-    "ansi-regex": "^5.0.1",
-    "nth-check": "^2.0.1",
-    "json5": "^2.2.3"
+    "string-width": "4.2.3"
   },
   "engines": {
     "node": ">= 20.0.0"
