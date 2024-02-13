@@ -70,7 +70,7 @@ export default [
       'vue/no-v-for-template-key': 'off',
       'vue/no-v-model-argument': 'off',
       'vue/experimental-script-setup-vars': 'off',
-      'vue/v-on-event-hyphenation': 'error',
+      'vue/v-on-event-hyphenation': 'warn',
       'vue/v-slot-style': 'off',
       'vue/valid-v-slot': ['error', { allowModifiers: true }],
       'vuetify/no-deprecated-classes': 'off',
