@@ -83,9 +83,9 @@ export default {
     this.vmodelSelectedFilter = this.selectedFilter
     this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
 
-    if (this.linksStore.links.features.length === 0 &&
-    !this.store.projectIsEmpty &&
-    this.selectedrGoup.length === 0) {
+    if (this.linksStore.links.features.length === 0
+      && !this.store.projectIsEmpty
+      && this.selectedrGoup.length === 0) {
       this.showAll()
     }
   },
@@ -215,14 +215,18 @@ export default {
       class="mx-auto scrollable"
     >
       <v-list-item>
-        <v-select
-          v-model="vmodelSelectedFilter"
-          :items="filterChoices"
-          prepend-icon="fas fa-filter"
-          :label="$gettext('filter')"
-          variant="underlined"
-          color="secondarydark"
-        />
+        <div :style="{'padding-top': '0.5rem'}">
+          <v-select
+            v-model="vmodelSelectedFilter"
+            :items="filterChoices.sort()"
+            prepend-inner-icon="fas fa-filter"
+            :label="$gettext('filter')"
+            variant="outlined"
+            hide-details
+            density="compact"
+            color="secondarydark"
+          />
+        </div>
       </v-list-item>
 
       <v-virtual-scroll

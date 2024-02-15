@@ -26,14 +26,14 @@ export const useUserStore = defineStore('userStore', {
   }),
 
   actions: {
-    unloadProject (state) {
+    unloadProject () {
       this.model = null
       this.scenario = null
     },
-    setLoggedIn (state) {
+    setLoggedIn () {
       this.loggedIn = true
     },
-    setLoggedOut (state) {
+    setLoggedOut () {
       this.cognitoInfo = {}
       this.cognitoGroup = ''
       this.bucketListStore = []

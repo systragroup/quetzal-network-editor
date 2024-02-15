@@ -7,7 +7,7 @@ import { Upload } from '@aws-sdk/lib-storage'
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
-import md5 from 'crypto-js/md5'
+import { createHash } from 'sha256-uint8array'
 
 const USERPOOL_ID = import.meta.env.VITE_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
@@ -96,13 +96,26 @@ async function getImagesURL (bucket, key) {
   return url
 }
 
-async function copyFolder (bucket, prefix, newName) {
+async function copyFolder (bucket, prefix, newName, newScenario = false) {
+  const userStore = useUserStore()
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params)
-  response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
-  if (response.Contents.length === 0) throw new Error('no params.json in base scenario')
-  for (const file of response.Contents) {
+  if (newScenario) {
+    const filesToCopy = [
+      prefix + 'inputs/params.json',
+      prefix + 'styles.json',
+      prefix + 'attributesChoices.json',
+    ]
+    response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
+  } else {
+    response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
+    response.Contents = response.Contents.filter(el => !el.Key.startsWith(prefix + './'))
+  }
+  if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
+  // get all metaData [{key,metadata}]. dont need response.Contents after that.
+  const metaDataList = await getMetaData(bucket, response.Contents.map(el => el.Key))
+  for (const file of metaDataList) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
     newFile = newFile.join('/')
@@ -110,48 +123,33 @@ async function copyFolder (bucket, prefix, newName) {
     let oldPath = file.Key.split('/')
     oldPath[0] = encodeURIComponent(oldPath[0])
     oldPath = oldPath.join('/')
+    // get old metadata and change the user email.
+    const metadata = file.Metadata
+    metadata.user_email = userStore.cognitoInfo.email
 
     const copyParams = {
       Bucket: bucket,
       CopySource: bucket + '/' + oldPath,
       Key: newFile,
+      MetadataDirective: 'REPLACE',
+      Metadata: metadata,
+
     }
-    s3Client.copyObject(copyParams, function (err, data) {
+    s3Client.copyObject(copyParams, function (err, _) {
       if (err) return err // an error occurred
     })
   }
 }
 
-async function newScenario (bucket, prefix, newName) {
-  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
-  const filesToCopy = [
-    prefix + 'inputs/params.json',
-    prefix + 'styles.json',
-    prefix + 'attributesChoices.json',
-  ]
-  const params = { Bucket: bucket, Prefix: prefix }
-  const response = await s3Client.listObjectsV2(params)
-  response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
-
-  if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
-  for (const file of response.Contents) {
-    let newFile = file.Key.split('/')
-    newFile[0] = newName
-    newFile = newFile.join('/')
-    // need to encore special character (é for example).
-    let oldPath = file.Key.split('/')
-    oldPath[0] = encodeURIComponent(oldPath[0])
-    oldPath = oldPath.join('/')
-
-    const copyParams = {
-      Bucket: bucket,
-      CopySource: bucket + '/' + oldPath,
-      Key: newFile,
-    }
-    s3Client.copyObject(copyParams, function (err, data) {
-      if (err) return err // an error occurred
-    })
+async function getMetaData (bucket, keys) {
+  // keys: list of keys. return a list [{key,metadata}]
+  // fetch all heads at once. which is faster than looping each head.
+  const promises = []
+  for (const key of keys) {
+    const response = s3Client.headObject({ Bucket: bucket, Key: key })
+    promises.push(response.then(resp => { return { Key: key, Metadata: resp.Metadata } }))
   }
+  return Promise.all(promises).then(resp => resp)
 }
 
 async function deleteFolder (bucket, prefix) {
@@ -166,12 +164,17 @@ async function deleteFolder (bucket, prefix) {
   }
 }
 
+async function deleteObject (bucket, key) {
+  const deleteParams = { Bucket: bucket, Key: key }
+  return s3Client.deleteObject(deleteParams)
+}
+
 async function putObject (bucket, key, body = '') {
   const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
   // if a json. already a string (we pass json.stringify()).
   // so only apply string to bytesArray. json.stringify crash with large array...
-  const newChecksum = md5(body).toString()
+  const newChecksum = createHash().update(body).digest('hex')
   if (oldChecksum !== newChecksum) {
     const params = {
       Bucket: bucket,
@@ -187,7 +190,7 @@ async function putObject (bucket, key, body = '') {
 
 function uploadObject (bucket, key, body = '') {
   const userStore = useUserStore()
-  const checksum = md5(JSON.stringify(body)).toString()
+  const checksum = createHash().update(body).digest('hex')
   const params = {
     Bucket: bucket,
     Key: key,
@@ -276,7 +279,7 @@ export default {
       credentials: creds,
     })
     s3Client.middlewareStack.add(
-      (next, context) => async (args) => {
+      (next, _) => async (args) => {
         const result = await next(args)
         userStore.isTokenExpired()
         return result
@@ -290,10 +293,10 @@ export default {
   listFiles,
   copyFolder,
   deleteFolder,
+  deleteObject,
   putObject,
   getImagesURL,
   downloadFolder,
-  newScenario,
   uploadObject,
   getChecksum,
 }

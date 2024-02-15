@@ -1,41 +1,38 @@
-<script>
+<script setup>
 import { computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
-export default {
-  name: 'MapLegend',
-  components: {
-  },
-  props: {
-    colorScale: {
-      type: Array,
-      default: () => [],
-    },
-    displaySettings: {
-      type: Object,
-      default: () => {},
-    },
-    baseOffset: {
-      type: Number,
-      default: () => 300,
-    },
-    order: {
-      type: Number,
-      default: () => 0,
-    },
-  },
-  setup (props) {
-    const store = useIndexStore()
-    const leftOffset = computed(() => {
-      return store.showLeftPanel ? 50 + (180 * props.order) + props.baseOffset : 50 + (180 * props.order)
-    })
-    return { leftOffset }
-  },
 
-}
+const props = defineProps({
+  colorScale: {
+    type: Array,
+    default: () => [],
+  },
+  displaySettings: {
+    type: Object,
+    default: () => {},
+  },
+  baseOffset: {
+    type: Number,
+    default: () => 300,
+  },
+  order: {
+    type: Number,
+    default: () => 0,
+  },
+})
+// const { displaySettings } = toRefs(props)
+
+const store = useIndexStore()
+const leftOffset = computed(() => {
+  return store.showLeftPanel ? 50 + (180 * props.order) + props.baseOffset : 50 + (180 * props.order)
+})
+// only show if not all nan.
+const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(props.displaySettings.minVal)))
+
 </script>
 <template>
   <div
-    v-show="!isNaN(displaySettings.minVal) && !isNaN(displaySettings.minVal)"
+    v-if="show"
     class="legend elevation-4"
     :style="{'left':`${leftOffset}px !important`}"
   >

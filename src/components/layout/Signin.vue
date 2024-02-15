@@ -5,11 +5,6 @@ const $gettext = s => s
 
 export default {
   name: 'Signin',
-  components: {
-
-  },
-
-  props: [],
   emits: ['signin'],
   data () {
     return {
@@ -21,6 +16,7 @@ export default {
       newPasswordConfirm: '',
       error: '',
       shake: false,
+      loading: false,
       re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/,
 
       rules: {
@@ -43,6 +39,7 @@ export default {
   methods: {
     async signin () {
       if (this.$refs.form.validate()) {
+        this.loading = true
         try {
           // sign in.
           if (!this.newPasswordUI) {
@@ -63,14 +60,15 @@ export default {
           }
         } catch (err) {
           this.shake = true
+          this.loading = false
           this.error = err
         }
       } else {
         this.shake = true
-        setTimeout(() => {
-          this.shake = false
-        }, 500)
+        this.loading = false
       }
+      // set shake back to false. leave time for animation.
+      setTimeout(() => { this.shake = false }, 500)
     },
 
   },
@@ -135,6 +133,7 @@ export default {
         <v-btn
           block
           color="success"
+          :loading="loading"
           @click="signin()"
         >
           {{ $gettext('Sign in') }}

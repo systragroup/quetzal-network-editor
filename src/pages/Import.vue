@@ -1,11 +1,12 @@
 <!-- eslint-disable no-case-declarations -->
-<script>
-import s3 from '../AWSClient'
-import { extractZip, unzip } from '../components/utils/utils.js'
+<script setup>
+import router from '@src/router/index'
+import s3 from '@src/AWSClient'
+import { extractZip, unzip } from '@comp/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
@@ -14,213 +15,196 @@ import { useOSMStore } from '@src/store/OSMImporter'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import axios from 'axios'
 
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
+const store = useIndexStore()
+const userStore = useUserStore()
+const runStore = useRunStore()
+const runOSMStore = useOSMStore()
+const runGTFSStore = useGTFSStore()
+const projectIsEmpty = computed(() => store.projectIsEmpty)
 
-export default {
-  // eslint-disable-next-line vue/multi-word-component-names
-  name: 'Import',
-  components: {
-    ScenariosExplorer,
-    FileLoader,
-    FilesList,
-  },
-  setup () {
-    const store = useIndexStore()
-    const userStore = useUserStore()
-    const runStore = useRunStore()
-    const runOSMStore = useOSMStore()
-    const runGTFSStore = useGTFSStore()
-    const projectIsEmpty = computed(() => store.projectIsEmpty)
+const choice = ref(null)
+const showDialog = ref(false)
+const filesAdded = ref(false)
+const zipInput = ref()
 
-    return { store, userStore, runStore, projectIsEmpty, runOSMStore, runGTFSStore }
-  },
+onMounted(() => { store.changeNotification('') })
 
-  data () {
-    return {
-      choice: null,
-      showDialog: false,
-      filesAdded: false,
-    }
-  },
-
-  mounted () {
-    this.store.changeNotification('')
-  },
-  methods: {
-    login () {
-      // Leave time for animation to end (.animate-login and .animate-layer css rules)
-      setTimeout(() => {
-        this.$router.push('/Home').catch(() => {})
-      }, 300)
-    },
-
-    buttonHandle (choice) {
-      this.choice = choice
-      switch (this.choice) {
-        case 'zip':
-          this.$refs.zipInput.click()
-          document.getElementById('zip-input').value = '' // clean it for next file
-          break
-        case 'example1':
-          this.projectIsEmpty ? this.loadExample(['PT', 'road']) : this.showDialog = true
-          break
-        case 'example2':
-          this.projectIsEmpty ? this.loadExample(['PT', 'road', 'loaded', 'zones']) : this.showDialog = true
-          break
-        case 'newProject':
-          this.projectIsEmpty ? this.newProject() : this.showDialog = true
-          break
-      }
-    },
-
-    applyDialog () {
-      // this only happen when both files are loaded.
-      // remove links and nodes from store. (and filesAreLoaded)
-      if (this.choice === 'example1') {
-        this.loadExample(['PT', 'road'])
-      } else if (this.choice === 'example2') {
-        this.loadExample(['PT', 'road', 'loaded', 'zones'])
-      } else if (this.choice === 'newProject') {
-        this.newProject()
-      }
-      this.showDialog = !this.showDialog
-    },
-
-    newProject () {
-      this.store.initNetworks()
-      this.runStore.cleanRun()
-      this.runOSMStore.cleanRun()
-      this.runGTFSStore.cleanRun()
-      this.store.changeNotification({ text: $gettext('Files unloaded'), autoClose: true, color: 'success' })
-    },
-
-    loadNetwork (files) {
-      this.store.loadFiles(files)
-      this.filesAdded = true
-      this.store.changeLoading(false)
-    },
-
-    async readZip (event) {
-      try {
-        this.store.changeLoading(true)
-        const zfiles = event.target.files
-        // there is a file
-        if (!zfiles.length) {
-          this.store.changeLoading(false)
-          return
-        }
-        // it is a zip
-        if (zfiles[0].name.slice(-3) !== 'zip') {
-          this.store.changeLoading(false)
-          this.store.changeAlert({ name: 'ImportError', message: $gettext('file is not a zip') })
-          return
-        }
-        const files = await extractZip(zfiles[0])
-        this.loadNetwork(files)
-      } catch (err) {
-        this.store.changeLoading(false)
-        this.store.changeAlert(err)
-      }
-    },
-
-    async loadFilesFromS3 () {
-      if (!this.projectIsEmpty) {
-        this.store.initNetworks()
-        this.runStore.cleanRun()
-        this.runOSMStore.cleanRun()
-        this.runGTFSStore.cleanRun()
-      }
-      this.store.changeLoading(true)
-
-      const model = this.userStore.model
-      const scen = this.userStore.scenario + '/'
-
-      const res = []
-      try {
-        let filesList = await s3.listFiles(model, scen)
-        filesList = filesList.filter(name => !name.endsWith('/'))
-        for (const file of filesList) {
-          const name = file.slice(scen.length) // remove scen name from file
-          // take knowned files outside of outputs and inputs (styles and attrivutesChoides)
-          if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
-            if (name === 'styles.json') {
-              const content = await s3.readJson(model, file)
-              res.push({ path: name, content })
-            }
-            if (name === 'attributesChoices.json') {
-              const content = await s3.readJson(model, file)
-              res.push({ path: name, content })
-            }
-            // take PT and road network and param.json.
-          } else if (name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/') || name === 'inputs/params.json') {
-            const content = await s3.readJson(model, file)
-            res.push({ path: name, content })
-            // else. we do not load the file. (outputs or inputs.) we will fetch them when needed.
-          } else {
-            res.push({ path: name, content: null })
-          }
-        }
-        this.loadNetwork(res)
-      } catch (err) {
-        this.store.changeAlert(err)
-        this.store.changeLoading(false)
-      }
-    },
-
-    async loadExample (filesToLoads) {
-      this.store.initNetworks()
-      this.userStore.unloadProject()
-      this.runStore.cleanRun()
-      this.runOSMStore.cleanRun()
-      this.runGTFSStore.cleanRun()
-
-      this.store.changeLoading(true)
-      const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
-      const res = []
-      let content = {}
-
-      try {
-        if (filesToLoads.includes('PT')) {
-          content = await axios.get(url + 'links_exemple.geojson')
-          res.push({ path: 'inputs/pt/links.geojson', content: content.data })
-          content = await axios.get(url + 'nodes_exemple.geojson')
-          res.push({ path: 'inputs/pt/nodes.geojson', content: content.data })
-        }
-
-        if (filesToLoads.includes('road')) {
-          content = await axios.get(url + 'road_links_exemple.geojson')
-          res.push({ path: 'inputs/road/links.geojson', content: content.data })
-          content = await axios.get(url + 'road_nodes_exemple.geojson')
-          res.push({ path: 'inputs/road/nodes.geojson', content: content.data })
-        }
-
-        if (filesToLoads.includes('loaded')) {
-          content = await axios.get(url + 'loaded_links.geojson')
-          res.push({ path: 'outputs/loaded_links.geojson', content: content.data })
-          content = await axios.get(url + 'loaded_nodes.geojson')
-          res.push({ path: 'outputs/loaded_nodes.geojson', content: content.data })
-        }
-
-        if (filesToLoads.includes('zones')) {
-          content = await axios.get(url + 'zones.geojson')
-          res.push({ path: 'outputs/zones.geojson', content: content.data })
-          content = await axios.request({ url: url + 'zones.zip', method: 'GET', responseType: 'blob' })
-          content = await unzip(content.data)
-          res.push({ path: 'outputs/zones.json', content })
-        }
-
-        this.loadNetwork(res)
-      } catch {
-        this.store.changeLoading(false)
-        this.store.changeAlert({
-          name: 'ImportError',
-          message: $gettext($gettext('An error occur fetching example on github')),
-        })
-      }
-    },
-
-  },
+function login () {
+  // Leave time for animation to end (.animate-login and .animate-layer css rules)
+  setTimeout(() => {
+    router.push('/Home').catch(() => {})
+  }, 300)
 }
+
+function buttonHandle (event) {
+  choice.value = event
+  switch (choice.value) {
+    case 'zip':
+      zipInput.value.click()
+      document.getElementById('zip-input').value = '' // clean it for next file
+      break
+    case 'example1':
+      projectIsEmpty.value ? loadExample(['PT', 'road']) : showDialog.value = true
+      break
+    case 'example2':
+      projectIsEmpty.value ? loadExample(['PT', 'road', 'loaded', 'zones']) : showDialog.value = true
+      break
+    case 'newProject':
+      projectIsEmpty.value ? newProject() : showDialog.value = true
+      break
+  }
+}
+
+function applyDialog () {
+  // this only happen when both files are loaded.
+  // remove links and nodes from store. (and filesAreLoaded)
+  if (choice.value === 'example1') {
+    loadExample(['PT', 'road'])
+  } else if (choice.value === 'example2') {
+    loadExample(['PT', 'road', 'loaded', 'zones'])
+  } else if (choice.value === 'newProject') {
+    newProject()
+  }
+  showDialog.value = !showDialog.value
+}
+
+function newProject () {
+  store.initNetworks()
+  runStore.cleanRun()
+  runOSMStore.cleanRun()
+  runGTFSStore.cleanRun()
+  store.changeNotification({ text: $gettext('Files unloaded'), autoClose: true, color: 'success' })
+}
+
+function loadNetwork (files) {
+  // HERE: check if duplicated index.
+  store.loadFiles(files)
+  filesAdded.value = true
+  store.changeLoading(false)
+
+}
+
+async function readZip (event) {
+  try {
+    store.changeLoading(true)
+    const zfiles = event.target.files
+    // there is a file
+    if (!zfiles.length) {
+      store.changeLoading(false)
+      return
+    }
+    // it is a zip
+    if (zfiles[0].name.slice(-3) !== 'zip') {
+      store.changeLoading(false)
+      store.changeAlert({ name: 'ImportError', message: $gettext('file is not a zip') })
+      return
+    }
+    const files = await extractZip(zfiles[0])
+    loadNetwork(files)
+  } catch (err) {
+    store.changeLoading(false)
+    store.changeAlert(err)
+  }
+}
+
+async function loadFilesFromS3 () {
+  if (!projectIsEmpty.value) {
+    store.initNetworks()
+    runStore.cleanRun()
+    runOSMStore.cleanRun()
+    runGTFSStore.cleanRun()
+  }
+  store.changeLoading(true)
+
+  const model = userStore.model
+  const scen = userStore.scenario + '/'
+
+  const res = []
+  try {
+    let filesList = await s3.listFiles(model, scen)
+    filesList = filesList.filter(name => !name.endsWith('/'))
+    for (const file of filesList) {
+      const name = file.slice(scen.length) // remove scen name from file
+      // take knowned files outside of outputs and inputs (styles and attrivutesChoides)
+      if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
+        if (name === 'styles.json') {
+          const content = await s3.readJson(model, file)
+          res.push({ path: name, content })
+        }
+        if (name === 'attributesChoices.json') {
+          const content = await s3.readJson(model, file)
+          res.push({ path: name, content })
+        }
+        // take PT and road network and param.json.
+      } else if (name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/') || name === 'inputs/params.json') {
+        const content = await s3.readJson(model, file)
+        res.push({ path: name, content })
+        // else. we do not load the file. (outputs or inputs.) we will fetch them when needed.
+      } else {
+        res.push({ path: name, content: null })
+      }
+    }
+    loadNetwork(res)
+  } catch (err) {
+    store.changeAlert(err)
+    store.changeLoading(false)
+  }
+}
+
+async function loadExample (filesToLoads) {
+  store.initNetworks()
+  userStore.unloadProject()
+  runStore.cleanRun()
+  runOSMStore.cleanRun()
+  runGTFSStore.cleanRun()
+
+  store.changeLoading(true)
+  const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
+  const res = []
+  let content = {}
+
+  try {
+    if (filesToLoads.includes('PT')) {
+      content = await axios.get(url + 'links_exemple.geojson')
+      res.push({ path: 'inputs/pt/links.geojson', content: content.data })
+      content = await axios.get(url + 'nodes_exemple.geojson')
+      res.push({ path: 'inputs/pt/nodes.geojson', content: content.data })
+    }
+
+    if (filesToLoads.includes('road')) {
+      content = await axios.get(url + 'road_links_exemple.geojson')
+      res.push({ path: 'inputs/road/links.geojson', content: content.data })
+      content = await axios.get(url + 'road_nodes_exemple.geojson')
+      res.push({ path: 'inputs/road/nodes.geojson', content: content.data })
+    }
+
+    if (filesToLoads.includes('loaded')) {
+      content = await axios.get(url + 'loaded_links.geojson')
+      res.push({ path: 'outputs/loaded_links.geojson', content: content.data })
+      content = await axios.get(url + 'loaded_nodes.geojson')
+      res.push({ path: 'outputs/loaded_nodes.geojson', content: content.data })
+    }
+
+    if (filesToLoads.includes('zones')) {
+      content = await axios.get(url + 'zones.geojson')
+      res.push({ path: 'outputs/zones.geojson', content: content.data })
+      content = await axios.request({ url: url + 'zones.zip', method: 'GET', responseType: 'blob' })
+      content = await unzip(content.data)
+      res.push({ path: 'outputs/zones.json', content })
+    }
+
+    loadNetwork(res)
+  } catch {
+    store.changeLoading(false)
+    store.changeAlert({
+      name: 'ImportError',
+      message: $gettext($gettext('An error occur fetching example on github')),
+    })
+  }
+}
+
 </script>
 <template>
   <section>
@@ -290,7 +274,7 @@ export default {
           <v-divider vertical />
           <v-col class="center-col">
             <FileLoader
-              @FilesLoaded="(files) => loadNetwork(files)"
+              @filesLoaded="(files) => loadNetwork(files)"
             />
             <div class="button-row">
               <v-tooltip
@@ -321,7 +305,7 @@ export default {
 
           <v-col class="left-col">
             <FilesList
-              @FilesLoaded="(files) => loadNetwork(files)"
+              @filesLoaded="(files) => loadNetwork(files)"
             />
           </v-col>
         </v-row>

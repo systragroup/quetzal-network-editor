@@ -59,9 +59,9 @@ export default {
         // this.selectedCat = this.selectedCategory
       }
     })
-    watch(vmodelSelectedFilter, (newVal, oldVal) => {
-      if ((newVal !== selectedFilter.value)) { // when created, we dont want to emit
-        context.emit('update-selectedFilter', newVal)
+    watch(vmodelSelectedFilter, (val) => {
+      if ((val !== selectedFilter.value)) { // when created, we dont want to emit
+        context.emit('update-selectedFilter', val)
         selectedCat.value = selectedCategory.value // show all. when we change layer
       }
     })
@@ -261,14 +261,18 @@ export default {
               class="mx-auto scrollable"
             >
               <v-list-item>
-                <v-select
-                  v-model="vmodelSelectedFilter"
-                  :items="filterChoices"
-                  variant="underlined"
-                  prepend-icon="fas fa-filter"
-                  :label="$gettext('filter')"
-                  color="secondarydark"
-                />
+                <div :style="{'padding-top': '0.5rem'}">
+                  <v-select
+                    v-model="vmodelSelectedFilter"
+                    :items="filterChoices.sort()"
+                    prepend-inner-icon="fas fa-filter"
+                    :label="$gettext('filter')"
+                    variant="outlined"
+                    hide-details
+                    density="compact"
+                    color="secondarydark"
+                  />
+                </div>
               </v-list-item>
 
               <v-virtual-scroll

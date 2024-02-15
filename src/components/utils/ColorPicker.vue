@@ -42,7 +42,7 @@ export default {
   },
   watch: {
     // this only happen when we type a value.
-    pcolor (val) {
+    pcolor () {
       if (this.pcolor[0] !== '#') {
         this.color = '#'.concat(this.pcolor)
         this.$emit('update:pcolor', this.pcolor.slice(0, 6))

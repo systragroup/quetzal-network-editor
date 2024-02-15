@@ -61,7 +61,7 @@ export default {
         // event.target.style.cursor = 'col-resize'
       }
     }
-    function stopResize (event) {
+    function stopResize () {
       isResizing.value = false
       document.removeEventListener('mousemove', resize)
       document.removeEventListener('mouseup', stopResize)

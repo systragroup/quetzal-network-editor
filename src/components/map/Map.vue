@@ -16,6 +16,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
+import StyleSelector from '../utils/StyleSelector.vue'
 const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 const $gettext = s => s
@@ -34,6 +35,7 @@ export default {
     LayerSelector: defineAsyncComponent(() => import('../utils/LayerSelector.vue')),
     StaticLayer: defineAsyncComponent(() => import('../utils/StaticLayer.vue')),
     RoadLinks: defineAsyncComponent(() => import('./RoadLinks.vue')),
+    StyleSelector,
   },
   props: {
     mode: {
@@ -134,7 +136,7 @@ export default {
         drawMode.value = false
       }
     })
-    watch(mapStyle, (val) => {
+    watch(mapStyle, () => {
       saveMapPosition()
     })
 
@@ -204,7 +206,7 @@ export default {
       })
 
       map.value = event.map
-      event.map.dragRotate.disable()
+      // event.map.dragRotate.disable()
       mapIsLoaded.value = true
     }
 
@@ -264,7 +266,7 @@ export default {
         }
       }
     }
-    function resetDraw (event) {
+    function resetDraw () {
       // reset draw line when we leave the map.
       // there is no mouseIn event, so we track it with mouseout = true, and reapply visible on mousemove.
       if (drawMode.value) {
@@ -321,7 +323,7 @@ export default {
         hoverId.value = event.selectedId
       }
     }
-    function offHover (event) {
+    function offHover () {
       // put back visible draw line
       hoverId.value = null
       hoverLayer.value = null
@@ -413,7 +415,7 @@ export default {
       :style="{'display':'flex'}"
     >
       <Settings />
-
+      <StyleSelector />
       <LayerSelector
         v-if="rasterFiles.length>0"
         :choices="rasterFiles"
@@ -422,7 +424,10 @@ export default {
       />
     </div>
     <MglScaleControl position="bottom-right" />
-    <MglNavigationControl position="bottom-right" />
+    <MglNavigationControl
+      position="bottom-right"
+      :visualize-pitch="true"
+    />
     <div
       v-for="file in rasterFiles"
       :key="file.name"

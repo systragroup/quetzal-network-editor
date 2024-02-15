@@ -64,7 +64,7 @@ export default {
       feature: null,
     })
 
-    watch(selectedrGroup, (val) => {
+    watch(selectedrGroup, () => {
       lastZoom.value = 100 // this will force the rerender on visiblerLinks in getbounds()
       getBounds()
     })
@@ -82,7 +82,7 @@ export default {
       }
     })
 
-    function getBounds (e) {
+    function getBounds () {
       // get map bounds and return only the features inside of it.
       // this way, only the visible links and node are rendered and updating is fast
       // (i.e. moving a node in real time)
@@ -206,11 +206,11 @@ export default {
           contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
           contextMenu.value.showed = true
           contextMenu.value.feature = hoveredStateId.value.id
-          contextMenu.value.actions =
-          [
-            $gettext('Edit rLink Info'),
-            $gettext('Delete rLink'),
-          ]
+          contextMenu.value.actions
+          = [
+              $gettext('Edit rLink Info'),
+              $gettext('Delete rLink'),
+            ]
         }
       }
     }
@@ -252,8 +252,8 @@ export default {
 
     function moveNode (event) {
       if (isRoadMode.value) {
-        if (event.mapboxEvent.originalEvent.button === 0 &
-      ['rnodes', 'anchorrNodes'].includes(hoveredStateId.value.layerId)) {
+        if (event.mapboxEvent.originalEvent.button === 0
+          & ['rnodes', 'anchorrNodes'].includes(hoveredStateId.value.layerId)) {
           event.mapboxEvent.preventDefault() // prevent map control
           map.value.getCanvas().style.cursor = 'grab'
           // disable mouseLeave so we stay in hover state.
@@ -285,7 +285,7 @@ export default {
         }
       }
     }
-    function stopMovingNode (event) {
+    function stopMovingNode () {
       if (isRoadMode.value) {
         // stop tracking position (moving node.)
         map.value.getCanvas().style.cursor = 'pointer'

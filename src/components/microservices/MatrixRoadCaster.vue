@@ -250,7 +250,7 @@ export default {
               v-else
               v-model="item.value"
               :type="item.type"
-              :items="item.items"
+              :items="item.items.sort()"
               :label="$gettext(item.text)"
               :suffix="item.units"
               :hint="showHint? $gettext(item.hint): ''"

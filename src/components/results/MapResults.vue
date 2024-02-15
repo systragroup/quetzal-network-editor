@@ -37,7 +37,7 @@ export default {
 
     const mapStyle = computed(() => { return store.mapStyle })
 
-    watch(mapStyle, (val) => {
+    watch(mapStyle, () => {
       if (map.value) {
         if (map.value.getLayer('arrow')) map.value.removeLayer('arrow')
         if (map.value.getLayer('links')) map.value.removeLayer('links')
@@ -74,13 +74,10 @@ export default {
         map.value.addImage('arrow', image, { sdf: true })
       })
 
-      if (!extrusion.value) {
-        map.value.dragRotate.disable()
-      } else {
+      if (extrusion.value) {
         store.changeNotification(
           { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
       }
-
       mapIsLoaded.value = true
     }
     function fitBounds () {
@@ -126,7 +123,7 @@ export default {
     }
     // as the component is reRender when a layer changes type (ex point to line.) this is only
     // trigger when we changes layer of the same time. doing this. the map is not reloaded and we need to FitBounds.
-    watch(selectedLayer, (val) => fitBounds())
+    watch(selectedLayer, () => fitBounds())
 
     const offsetValue = computed(() => { return offset.value ? -1 : 1 })
 
@@ -210,7 +207,10 @@ export default {
     @load="onMapLoaded"
   >
     <MglScaleControl position="bottom-right" />
-    <MglNavigationControl position="bottom-right" />
+    <MglNavigationControl
+      position="bottom-right"
+      :visualize-pitch="true"
+    />
     <slot
       :map="map"
       :map-is-loaded="mapIsLoaded"

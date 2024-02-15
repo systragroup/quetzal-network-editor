@@ -8,7 +8,7 @@ import { userLinksStore } from './rlinks'
 import { useODStore } from './od'
 import { useRunStore } from './run'
 
-import { serializer, stylesSerializer } from '../components/utils/serializer.js'
+import { stylesSerializer } from '../components/utils/serializer.js'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
@@ -32,6 +32,7 @@ export const useIndexStore = defineStore('store', {
     cyclewayMode: false,
     outputName: 'output',
     mapCenter: [-73.570337, 45.498310],
+    mapStyle: 'mapbox://styles/mapbox/light-v11',
     mapZoom: 11,
     importPoly: null,
     visibleRasters: [], // list of rasterFiles path.
@@ -54,6 +55,10 @@ export const useIndexStore = defineStore('store', {
       this.darkMode = payload
       rlinks.rlinksDefaultColor = this.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
       links.linksDefaultColor = this.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
+      this.mapStyle = this.darkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11'
+    },
+    changeMapStyle (payload) {
+      this.mapStyle = payload
     },
     changeLoading (payload) {
       this.loading = payload
@@ -72,7 +77,7 @@ export const useIndexStore = defineStore('store', {
     changeAnchorMode () {
       this.anchorMode = !this.anchorMode
     },
-    changeCyclewayMode (payload) {
+    changeCyclewayMode () {
       this.cyclewayMode = !this.cyclewayMode
     },
 
@@ -192,21 +197,6 @@ export const useIndexStore = defineStore('store', {
       this.visibleRasters = payload
     },
 
-    loadLayers (payload) {
-      payload.forEach(
-        file => {
-          const fileName = file.path.slice(0, -8) // remove .geojson
-          // let matData = payload.files.filter(json => json?.fileName.slice(0, -5) === fileName)[0]?.data
-          // if matDataExist does not exist, we want to ignore index as they are only needed for a OD mat.
-          file.content = serializer(file.content, file.path, null, false)
-
-          this.createLayer({
-            fileName,
-            data: file.content,
-          })
-        })
-    },
-
     initLinks () {
       const links = useLinksStore()
       links.initLinks()
@@ -234,9 +224,7 @@ export const useIndexStore = defineStore('store', {
     },
 
     applySettings (payload) {
-      const linksStore = useLinksStore()
       const rlinksStore = userLinksStore()
-      linksStore.linkSpeed = Number(payload.linkSpeed)
       rlinksStore.roadSpeed = Number(payload.roadSpeed)
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent
@@ -425,15 +413,29 @@ export const useIndexStore = defineStore('store', {
         // if its deleted in quenedi. delete it on s3. function works with nothing to delete too.
         s3.deleteFolder(bucket, odFolder)
       }
-      // save outputs Layers
-      // save others layers
+
+      // delete otherFiles (if a otherFiles is on S3 but not in memory (was deleted locally))
+      // delete it on s3 when we save.
+      let filesOnCloud = await s3.listFiles(bucket, scen)
+      const filesToExcludes = Object.values(paths) // list of all files (that are not others.)
+      filesOnCloud = filesOnCloud.filter(path => !filesToExcludes.includes(path))
+      filesOnCloud = filesOnCloud.map(file => file.slice(scen.length)) // remove scen name from file)
+      filesOnCloud = filesOnCloud.filter(path => path.startsWith('outputs/') || path.startsWith('inputs/'))
+      const localOtherFiles = this.otherFiles.map(el => el.path)
+      for (const file of filesOnCloud) {
+        if (!localOtherFiles.includes(file)) {
+          await s3.deleteObject(bucket, scen + file)
+        }
+      }
+
+      // save others files
       // if payload === inputs. only export inputs/ files.
       let otherFiles = this.otherFiles
       if (payload === 'inputs') {
         otherFiles = otherFiles.filter(file => !file.path.startsWith('outputs/'))
       }
       for (const file of otherFiles) {
-        // if others file loaded from S3 (they are not loaded yet. need to download them.)
+        // if others file loaded from S3 )
         if (file.content == null) {
           // pass
         } else if (file.content instanceof Uint8Array) {
@@ -459,12 +461,12 @@ export const useIndexStore = defineStore('store', {
       const rlinks = userLinksStore()
       const od = useODStore()
       const runStore = useRunStore()
-      return (links.links.features.length === 0 &&
-             rlinks.rlinks.features.length === 0 &&
-              od.layer.features.length === 0 &&
-              state.otherFiles.length === 0 &&
-              runStore.parameters.length === 0 &&
-              state.styles.length === 0)
+      return (links.links.features.length === 0
+        && rlinks.rlinks.features.length === 0
+        && od.layer.features.length === 0
+        && state.otherFiles.length === 0
+        && runStore.parameters.length === 0
+        && state.styles.length === 0)
     },
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
@@ -487,13 +489,6 @@ export const useIndexStore = defineStore('store', {
 
       // for now. remove inputs as they are not read. (need to fetch them.)
       return availableLayers.filter(name => !name.startsWith('inputs/'))
-    },
-    mapStyle: (state) => {
-      if (state.darkMode) {
-        return 'mapbox://styles/mapbox/dark-v11'
-      } else {
-        return 'mapbox://styles/mapbox/light-v11'
-      }
     },
 
   },

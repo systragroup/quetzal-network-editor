@@ -22,6 +22,7 @@ export default {
     watch(isEditorMode, (val) => {
       val ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
     }, { immediate: true })
+
     watch(mode, (val) => {
       val !== 'pt' ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
     })
@@ -98,25 +99,27 @@ export default {
       // const endTime = performance.now()
     }
     function selectLine (e) {
-      e.preventDefault() // prevent map control
-      // if we are not hovering. select closest link (within 5 pixels)
-      if (selectedFeatures.value.length === 0) {
+      if (mode.value === 'pt') {
+        e.preventDefault() // prevent map control
+        // if we are not hovering. select closest link (within 5 pixels)
+        if (selectedFeatures.value.length === 0) {
         // Set `bbox` as 5px reactangle area around clicked point.
-        const bbox = [
-          [e.point.x - 5, e.point.y - 5],
-          [e.point.x + 5, e.point.y + 5],
-        ]
-        // Find features intersecting the bounding box.
-        selectedFeatures.value = map.value.queryRenderedFeatures(bbox, {
-          layers: ['links'],
-        })
-      }
-      // do nothing if nothing is clicked (clicking on map, not on a link)
-      if (selectedFeatures.value.length > 0) {
+          const bbox = [
+            [e.point.x - 5, e.point.y - 5],
+            [e.point.x + 5, e.point.y + 5],
+          ]
+          // Find features intersecting the bounding box.
+          selectedFeatures.value = map.value.queryRenderedFeatures(bbox, {
+            layers: ['links'],
+          })
+        }
+        // do nothing if nothing is clicked (clicking on map, not on a link)
+        if (selectedFeatures.value.length > 0) {
         // set. the first one as editor mode
         // eslint-disable-next-line max-len
-        linksStore.setEditorTrip({ tripId: selectedFeatures.value[0].properties.trip_id, changeBounds: false })
-        store.changeNotification({ text: '', autoClose: true })
+          linksStore.setEditorTrip({ tripId: selectedFeatures.value[0].properties.trip_id, changeBounds: false })
+          store.changeNotification({ text: '', autoClose: true })
+        }
       }
     }
     function editLineProperties (event) {

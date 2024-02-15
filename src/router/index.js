@@ -19,7 +19,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: Import.name,
+      name: 'Import',
       component: Import,
       icon: 'fa-solid fa-upload',
       title: $gettext('Import'),
@@ -77,6 +77,7 @@ const router = createRouter({
       path: '/ResultMap',
       name: ResultMap.name,
       component: ResultMap,
+      margin: '5rem',
       icon: 'fa-solid fa-layer-group',
       title: $gettext('Results Map'),
     },

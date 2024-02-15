@@ -124,7 +124,7 @@ export default {
         try {
           if (selectedScenario.value) {
             // this is a copy
-            await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value)
+            await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value, false)
             store.changeNotification(
               { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
           } else {
@@ -133,7 +133,7 @@ export default {
             // take first Scen. should be base or any locked scen
             const protectedList = userStore.scenariosList.filter(scen => scen.protected)
             const base = protectedList[0].scenario
-            await s3.newScenario(localModel.value, base, input.value)
+            await s3.copyFolder(localModel.value, base, input.value, true)
             store.changeNotification(
               { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
           }
@@ -164,7 +164,7 @@ export default {
     }
     function deleteScenario () {
       deleteDialog.value = false
-      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(resp => {
+      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(() => {
         deleteDialog.value = false
         userStore.getScenario({ model: localModel.value })
         store.changeNotification(
@@ -251,7 +251,7 @@ export default {
         clear-icon="fas fa-times-circle"
         clearable
         class="item"
-        label="search"
+        :label="$gettext('search')"
         hide-details
         prepend-inner-icon="fas fa-search"
         @click:clear="searchString=null"

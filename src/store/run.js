@@ -23,7 +23,7 @@ export const useRunStore = defineStore('run', {
   }),
   actions: {
     cleanRun () {
-      this.steps = [{ name: 'Loading Steps...' }]
+      this.steps = [{ name: 'Loading Steps...', tasks: ['Loading Steps...'] }]
       this.selectedStepFunction = 'default'
       this.avalaibleStepFunctions = ['default']
       this.running = false
@@ -35,8 +35,8 @@ export const useRunStore = defineStore('run', {
     },
     setSteps (payload) {
       this.steps = payload
-      this.steps.splice(0, 0, { name: 'Saving Networks' })
-      this.steps.push({ name: 'Loading Results' })
+      this.steps.splice(0, 0, { name: 'Saving Networks', tasks: ['Saving Networks'] })
+      this.steps.push({ name: 'Loading Results', tasks: ['Loading Results'] })
     },
     initExecution () {
       this.error = false
@@ -68,8 +68,11 @@ export const useRunStore = defineStore('run', {
         { text: $gettext('simulation executed successfully!'), autoClose: false, color: 'success' })
     },
     updateCurrentStep (payload) {
-      const stepNames = this.steps.map(a => a.name)
-      this.currentStep = stepNames.indexOf(payload.name) + 1
+      // payload contain an order list of all step. first one current. all other one are done (or parallel)
+      const currentStep = payload[0]
+      const stepNames = this.steps.map(a => a.tasks) // for parallel tasks. we have a list for a step.
+      const index = stepNames.map(task => task.includes(currentStep)).indexOf(true)
+      this.currentStep = index + 1
     },
     getLocalParameters (payload) {
       payload = paramsSerializer(payload)
@@ -116,7 +119,6 @@ export const useRunStore = defineStore('run', {
         const response = await quetzalClient.client.post('/describe/model',
           data = JSON.stringify(data))
         const def = JSON.parse(response.data.definition)
-        const firstStep = def.StartAt
 
         // check if there is a choice in the definition.
         // if So. Get all choices in this.availableStepFunctions
@@ -136,15 +138,22 @@ export const useRunStore = defineStore('run', {
         })
         // if there is a choice
 
-        // let next = def.States[firstStep].Next
         const steps = []
-        let next = firstStep
+        let next = def.StartAt
         while (true) {
         // if there is a choice
           if (def.States[next].Type === 'Choice') {
             next = def.States[next].Next
           }
-          steps.push({ name: next })
+          if (def.States[next].Type === 'Parallel') {
+            let branches = def.States[next].Branches.map(el => el.States).map(el => Object.keys(el))
+            branches = branches[0].map((col, i) => branches.map(row => row[i]))
+            for (const ptasks of branches) {
+              steps.push({ name: ptasks.join(' | '), tasks: ptasks })
+            }
+          } else {
+            steps.push({ name: next, tasks: [next] })
+          }
           if (def.States[next].Next === undefined) break
           next = def.States[next].Next
         }
@@ -193,7 +202,7 @@ export const useRunStore = defineStore('run', {
         })
     },
     pollExecution () {
-      const intervalId = setInterval(() => {
+      const intervalId = setInterval(async () => {
         let data = { executionArn: this.executionArn }
         quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
@@ -219,24 +228,24 @@ export const useRunStore = defineStore('run', {
             store.changeAlert(err)
             this.running = false
           })
-        data = { executionArn: this.executionArn, includeExecutionData: false, reverseOrder: true }
-        quetzalClient.client.post('/history',
-          data = JSON.stringify(data),
-        ).then(
-          response => {
-            for (const e in response.data.events) {
-              const event = response.data.events[e]
-              if (event.type === 'TaskStateEntered') {
-                this.updateCurrentStep(event.stateEnteredEventDetails)
-                break
-              }
-            }
-          }).catch(
-          err => {
-            console.log(err)
-          })
+        this.getHistory()
       }, 5000)
     },
+
+    async getHistory () {
+      try {
+        let data = { executionArn: this.executionArn, includeExecutionData: false, reverseOrder: true }
+        const response = await quetzalClient.client.post('/history', data = JSON.stringify(data))
+        const arr = []
+        for (const event of response.data.events) {
+          if (['TaskStateEntered'].includes(event.type)) {
+            arr.push(event.stateEnteredEventDetails.name)
+          }
+        }
+        this.updateCurrentStep(arr)
+      } catch (err) { console.log(err) }
+    },
+
     stopExecution () {
       let data = { executionArn: this.executionArn }
       quetzalClient.client.post('/abort',

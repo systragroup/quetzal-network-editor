@@ -38,6 +38,7 @@ export default [
       },
     },
     rules: {
+      '@stylistic/max-statements-per-line': ['error', { max: 2 }],
       '@stylistic/semi': 'error',
       '@stylistic/indent': ['error', 2],
       '@stylistic/space-before-function-paren': 'off',
@@ -69,7 +70,7 @@ export default [
       'vue/no-v-for-template-key': 'off',
       'vue/no-v-model-argument': 'off',
       'vue/experimental-script-setup-vars': 'off',
-      'vue/v-on-event-hyphenation': 'error',
+      'vue/v-on-event-hyphenation': 'warn',
       'vue/v-slot-style': 'off',
       'vue/valid-v-slot': ['error', { allowModifiers: true }],
       'vuetify/no-deprecated-classes': 'off',

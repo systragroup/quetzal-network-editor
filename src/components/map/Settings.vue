@@ -15,13 +15,6 @@ export default {
     const linksStore = useLinksStore()
     const rlinksStore = userLinksStore()
     const showHint = ref(false)
-    const linkSpeed = ref({
-      name: $gettext('PT speed'),
-      type: 'Number',
-      value: 0,
-      units: 'km/h',
-      hint: $gettext('Speed used to calculate travel time when a link is drawn, extend or a node is moved'),
-    })
     const roadSpeed = ref({
       name: $gettext('Road speed'),
       type: 'Number',
@@ -66,7 +59,6 @@ export default {
       // value are init with this function.
       // we want to get the value each time we show the settings.
       // if not, Cancel will not work as the state here and in the store will differ.
-      linkSpeed.value.value = linksStore.linkSpeed
       roadSpeed.value.value = rlinksStore.roadSpeed
       linksPopupContent.value.choices = linksStore.lineAttributes
       linksPopupContent.value.value = store.linksPopupContent
@@ -85,7 +77,6 @@ export default {
       const resp = await event
       if (resp.valid) {
         const payload = {
-          linkSpeed: linkSpeed.value.value,
           roadSpeed: roadSpeed.value.value,
           linksPopupContent: linksPopupContent.value.value,
           roadsPopupContent: roadsPopupContent.value.value,
@@ -109,7 +100,6 @@ export default {
 
     return {
       showHint,
-      linkSpeed,
       roadSpeed,
       linksPopupContent,
       roadsPopupContent,
@@ -161,18 +151,6 @@ export default {
         <v-container>
           <v-col>
             <v-text-field
-              v-model="linkSpeed.value"
-              variant="underlined"
-              :type="linkSpeed.type"
-              :label="$gettext(linkSpeed.name)"
-              :suffix="linkSpeed.units"
-              :hint="showHint? $gettext(linkSpeed.hint): ''"
-              :persistent-hint="showHint"
-              :rules="rules"
-              required
-              @wheel="()=>{}"
-            />
-            <v-text-field
               v-model="roadSpeed.value"
               variant="underlined"
               :type="roadSpeed.type"
@@ -187,7 +165,7 @@ export default {
             <v-select
               v-model="linksPopupContent.value"
               variant="underlined"
-              :items="linksPopupContent.choices"
+              :items="linksPopupContent.choices.sort()"
               :label="$gettext(linksPopupContent.name)"
               :hint="showHint? $gettext(linksPopupContent.hint): ''"
               :persistent-hint="showHint"
@@ -198,7 +176,7 @@ export default {
             <v-select
               v-model="roadsPopupContent.value"
               variant="underlined"
-              :items="roadsPopupContent.choices"
+              :items="roadsPopupContent.choices.sort()"
               :label="$gettext(roadsPopupContent.name)"
               :hint="showHint? $gettext(roadsPopupContent.hint): ''"
               :persistent-hint="showHint"

@@ -5,8 +5,8 @@ import short from 'short-uuid'
 import { computed, watch, toRefs, ref, onUnmounted } from 'vue'
 import { useODStore } from '@src/store/od'
 import geojson from '@constants/geojson'
-
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
 const props = defineProps(['map', 'isODMode', 'isEditorMode'])
 const emit = defineEmits(['[clickFeature]'])
@@ -20,6 +20,14 @@ watch(isODMode, (val) => {
     map.value.on('click', addPoint)
   } else {
     map.value.off('click', addPoint)
+    // remove all. as you could change mode as you're moving a node or creating one.
+    // this will juste create the OD and stop its edition.
+    map.value.off('mousemove', onMove)
+    map.value.off('mouseup', stopMovingNode)
+    keepHovering.value = false
+    dragNode.value = false
+    hoveredStateId.value = null
+    drawMode.value = false
   }
 })
 onUnmounted(() => { map.value.off('click', addPoint) })
@@ -46,10 +54,11 @@ function addPoint (event) {
       // get position
       drawMode.value = true
       map.value.on('mousemove', onMove)
-      map.value.on('mouseup', stopMovingNode)
+      // map.value.on('mouseup', stopMovingNode)
     } else {
       // here. we dont want the second click to do anything except act like a stop moving node.
       drawMode.value = false
+      stopMovingNode(event)
     }
   }
 }
@@ -69,7 +78,7 @@ function onCursor (event) {
   }
 }
 
-function offCursor (event) {
+function offCursor () {
   if (isODMode.value) {
     if (hoveredStateId.value !== null) {
       // eslint-disable-next-line max-len
@@ -142,6 +151,7 @@ function stopMovingNode (event) {
       )
     }
     hoveredStateId.value = null
+    drawMode.value = false
     map.value.off('mouseup', stopMovingNode)
   }
 }
@@ -150,11 +160,11 @@ function linkRightClick (event) {
     contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
     contextMenu.value.showed = true
     contextMenu.value.feature = hoveredStateId.value.id
-    contextMenu.value.actions =
-          [
-            $gettext('Edit OD Info'),
-            $gettext('Delete OD'),
-          ]
+    contextMenu.value.actions
+          = [
+        $gettext('Edit OD Info'),
+        $gettext('Delete OD'),
+      ]
   }
 }
 function actionClick (event) {

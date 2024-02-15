@@ -1,206 +1,168 @@
 <script>
+</script>
+
+<script setup>
 
 import short from 'short-uuid'
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
-const $gettext = s => s
-export default {
-  name: 'LinksSidePanel',
-  emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'],
-  setup (_, context) {
-    const store = useIndexStore()
-    const linksStore = useLinksStore()
-    const editorTrip = computed(() => { return linksStore.editorTrip })
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
+const emit = defineEmits(['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'])
+const maxSize = 200
+const store = useIndexStore()
+const linksStore = useLinksStore()
+const editorTrip = computed(() => { return linksStore.editorTrip })
 
-    const selectedTrips = computed(() => { return linksStore.selectedTrips })
-    const localSelectedTrip = ref([])
-    onMounted(() => {
-      localSelectedTrip.value = cloneDeep(selectedTrips.value)
-    })
+const selectedTrips = computed(() => { return linksStore.selectedTrips })
+const localSelectedTrip = ref([])
+onMounted(() => {
+  localSelectedTrip.value = cloneDeep(selectedTrips.value)
+})
 
-    watch(localSelectedTrip, (val) => {
-      linksStore.changeSelectedTrips(val)
-    })
+watch(localSelectedTrip, (val) => {
+  linksStore.changeSelectedTrips(val)
+})
 
-    function showAll () {
-      if (localSelectedTrip.value.length === tripId.value.length) {
-        localSelectedTrip.value = []
-      } else {
-        localSelectedTrip.value = tripId.value
-      }
-    }
-
-    const tripId = computed(() => { return linksStore.tripId })
-    watch(tripId, (newVal, oldVal) => {
-      if (newVal.length < oldVal.length) {
-        // if a trip is deleted. we remove it, no remapping.
-        localSelectedTrip.value = localSelectedTrip.value.filter((trip) => newVal.includes(trip))
-      } else if (newVal.length > oldVal.length) {
-        // if a trip is added, we add it!
-        const newTrip = newVal.filter(item => !oldVal.includes(item))[0]
-        localSelectedTrip.value = [...localSelectedTrip.value, newTrip]
-      } else {
-        // if a trip name changes.
-        // update localSelectedTrip v-model when a trip_id is changed.
-        const dict = {}
-        oldVal.forEach(
-          function (key, i) {
-            dict[key] = newVal[i]
-          })
-        localSelectedTrip.value = localSelectedTrip.value.map((trip) => dict[trip])
-      }
-    })
-    // filters (route_type)
-    const filterChoices = computed(() => { return linksStore.lineAttributes })
-    const selectedFilter = ref('route_type')
-
-    watch(selectedFilter, (newVal, oldVal) => {
-      selectedFilter.value = newVal
-      // prevent group larger than 500.
-      if (filteredCat.value.length > 500) {
-        // if it is larger, return to oldValue
-        // selectedFilter.value = oldVal
-        // display error message
-        store.changeNotification({
-          text: $gettext('Cannot filter by this field. There is more than 500 groups'),
-          autoClose: true,
-          color: 'red darken-2',
-        })
-        // return the value in the v-select as the old Value
-        nextTick(() => { selectedFilter.value = oldVal })
-      }
-      // reste showed Groups
-      ShowGroupList.value = new Set([])
-    })
-
-    const arrayUniqueTripId = computed(() => {
-      // drop duplicates links trips. each line is a trip here.
-      const arrayUniqueByKey = [...new Map(linksStore.links.features.map(item =>
-        [item.properties.trip_id, item.properties])).values()]
-      return arrayUniqueByKey
-    })
-    const filteredCat = computed(() => {
-      // for a given filter (key) get array of unique value
-      // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(arrayUniqueTripId.value.map(
-        item => item[selectedFilter.value])))
-      return val
-    })
-
-    const classifiedTripId = computed(() => {
-      // return this list of object, {cat_name, tripId list}
-      // if >500. we do not change and we will rerun this with the old value
-      // see watch(selectedFilter)
-      if (filteredCat.value.length > 500) { return [] }
-      const classifiedTripId = []
-      const undefinedCat = { name: $gettext('undefined'), tripId: [] }
-      filteredCat.value.forEach(c => {
-        const arr = arrayUniqueTripId.value.filter(
-          item => item[selectedFilter.value] === c,
-        ).map((item) => item.trip_id).sort()
-
-        // regroup all null values into a single list 'undefined'
-        if (c === null || c === '' || c === undefined) {
-          undefinedCat.tripId.push(...arr)
-        } else {
-          classifiedTripId.push({ name: c, tripId: arr })
-        }
-      })
-      // if there was undefined Categories, append it at the end.
-      if (undefinedCat.tripId.length > 0) {
-        classifiedTripId.push(undefinedCat)
-      }
-      return classifiedTripId
-    })
-
-    function showGroup (val) {
-      // at least one value is selected in the group : uncheck all
-      if (val.some(value => localSelectedTrip.value.includes(value))) {
-        localSelectedTrip.value = localSelectedTrip.value.filter(trip => !val.includes(trip))
-      // none are selected : select All.
-      } else {
-        localSelectedTrip.value = Array.from(new Set([...localSelectedTrip.value, ...val]))
-      }
-    }
-
-    // ui, dialog, button
-    const showDialog = ref(false)
-    function editButton (value) {
-      if (editorTrip.value === value) {
-        showDialog.value = true
-      } else {
-        linksStore.setEditorTrip({ tripId: value, changeBounds: true })
-        store.changeNotification({ text: '', autoClose: true })
-      }
-    }
-
-    function propertiesButton (value) {
-      // select the TripId and open dialog
-      if (typeof value === 'object') {
-        context.emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
-      } else if (!editorTrip.value) {
-        linksStore.setEditorTrip({ tripId: value, changeBounds: false })
-        context.emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
-        // just open dialog
-      } else {
-        context.emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
-        store.changeNotification({ text: '', autoClose: true })
-      }
-    }
-
-    function createNewLine () {
-      const name = 'trip_' + short.generate()
-      linksStore.setEditorTrip({ tripId: name, changeBounds: false })
-      context.emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
-    }
-
-    function cloneButton (obj) {
-      context.emit('cloneButton', obj)
-    }
-
-    function deleteButton (obj) {
-      // obj contain trip and message.
-      context.emit('deleteButton', obj)
-    }
-
-    const ShowGroupList = ref(new Set([]))
-    function toggleGroup (e) {
-      if (e.isOpen) {
-        ShowGroupList.value.add(e.key)
-      } else {
-        // dont remove them. its not a bottleeck to have unused one.
-        // it can be tricky with the animation and bouble click...
-        // nextTick(() => { ShowGroupList.value.delete(e.key) })
-      }
-    }
-
-    return {
-      store,
-      linksStore,
-      selectedTrips,
-      localSelectedTrip,
-      tripId,
-      showAll,
-      selectedFilter,
-      filterChoices,
-      editorTrip,
-      filteredCat,
-      classifiedTripId,
-      showGroup,
-      showDialog,
-      editButton,
-      propertiesButton,
-      createNewLine,
-      cloneButton,
-      deleteButton,
-      ShowGroupList,
-      toggleGroup,
-    }
-  },
-
+function showAll () {
+  if (localSelectedTrip.value.length === tripId.value.length) {
+    localSelectedTrip.value = []
+  } else {
+    localSelectedTrip.value = tripId.value
+  }
 }
+
+const tripId = computed(() => { return linksStore.tripId })
+watch(tripId, (newVal, oldVal) => {
+  if (newVal.length < oldVal.length) {
+    // if a trip is deleted. we remove it, no remapping.
+    localSelectedTrip.value = localSelectedTrip.value.filter((trip) => newVal.includes(trip))
+  } else if (newVal.length > oldVal.length) {
+    // if a trip is added, we add it!
+    const newTrip = newVal.filter(item => !oldVal.includes(item))[0]
+    localSelectedTrip.value = [...localSelectedTrip.value, newTrip]
+  } else {
+    // if a trip name changes.
+    // update localSelectedTrip v-model when a trip_id is changed.
+    const dict = {}
+    oldVal.forEach(
+      function (key, i) {
+        dict[key] = newVal[i]
+      })
+    localSelectedTrip.value = localSelectedTrip.value.map((trip) => dict[trip])
+  }
+})
+// filters (route_type)
+const filterChoices = computed(() => { return linksStore.lineAttributes })
+const selectedFilter = ref('route_type')
+const ShowGroupList = ref(new Set([]))
+watch(selectedFilter, () => { ShowGroupList.value = new Set([]) })
+
+function toggleGroup (e) {
+  if (e.isOpen) {
+    ShowGroupList.value.add(e.key)
+  } else {
+    // dont remove them. its not a bottleeck to have unused one.
+    // it can be tricky with the animation and bouble click...
+    // nextTick(() => { ShowGroupList.value.delete(e.key) })
+  }
+}
+
+const searchString = ref('')
+const arrayUniqueTripId = computed(() => {
+  // drop duplicates links trips. each line is a trip here.
+  const arrayUniqueByKey = [...new Map(linksStore.links.features.map(item =>
+    [item.properties.trip_id, item.properties])).values()].filter(
+    (item) => item.trip_id.toLowerCase().startsWith(searchString.value.toLowerCase()))
+  return arrayUniqueByKey
+})
+const filteredCat = computed(() => {
+  // for a given filter (key) get array of unique value
+  // e.g. get ['bus','subway'] for route_type
+  const val = Array.from(new Set(arrayUniqueTripId.value.map(
+    item => item[selectedFilter.value])))
+  return val
+})
+
+const classifiedTripId = computed(() => {
+  // return this list of object, {cat_name, tripId list}
+  // if >500. we do not change and we will rerun this with the old value
+  // see watch(selectedFilter)
+
+  if (filteredCat.value.length > maxSize) { return [] }
+  const classifiedTripId = []
+  const undefinedCat = { name: $gettext('undefined'), tripId: [] }
+  filteredCat.value.forEach(c => {
+    const arr = arrayUniqueTripId.value.filter(
+      item => item[selectedFilter.value] === c,
+    ).map((item) => item.trip_id).sort()
+
+    // regroup all null values into a single list 'undefined'
+    if (c === null || c === '' || c === undefined) {
+      undefinedCat.tripId.push(...arr)
+    } else {
+      classifiedTripId.push({ name: c, tripId: arr })
+    }
+  })
+  // if there was undefined Categories, append it at the end.
+  if (undefinedCat.tripId.length > 0) {
+    classifiedTripId.push(undefinedCat)
+  }
+  return classifiedTripId
+})
+
+function showGroup (val) {
+  // at least one value is selected in the group : uncheck all
+  if (val.some(value => localSelectedTrip.value.includes(value))) {
+    localSelectedTrip.value = localSelectedTrip.value.filter(trip => !val.includes(trip))
+    // none are selected : select All.
+  } else {
+    localSelectedTrip.value = Array.from(new Set([...localSelectedTrip.value, ...val]))
+  }
+}
+
+// ui, dialog, button
+const showDialog = ref(false)
+function editButton (value) {
+  if (editorTrip.value === value) {
+    showDialog.value = true
+  } else {
+    linksStore.setEditorTrip({ tripId: value, changeBounds: true })
+    store.changeNotification({ text: '', autoClose: true })
+  }
+}
+
+function propertiesButton (value) {
+  // select the TripId and open dialog
+  if (typeof value === 'object') {
+    emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
+  } else if (!editorTrip.value) {
+    linksStore.setEditorTrip({ tripId: value, changeBounds: false })
+    emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
+    // just open dialog
+  } else {
+    emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
+    store.changeNotification({ text: '', autoClose: true })
+  }
+}
+
+function createNewLine () {
+  const name = 'trip_' + short.generate()
+  linksStore.setEditorTrip({ tripId: name, changeBounds: false })
+  emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
+}
+
+function cloneButton (obj) {
+  emit('cloneButton', obj)
+}
+
+function deleteButton (obj) {
+  // obj contain trip and message.
+  emit('deleteButton', obj)
+}
+
 </script>
 <template>
   <section>
@@ -291,16 +253,44 @@ export default {
       class=" mx-auto scrollable"
     >
       <v-list-item>
-        <v-select
-          v-model="selectedFilter"
-          :items="filterChoices"
-          prepend-icon="fas fa-filter"
-          :label="$gettext('filter')"
-          variant="underlined"
-          color="secondarydark"
-        />
+        <div
+          class="container"
+          :style="{'padding-top': '0.5rem'}"
+        >
+          <v-select
+            v-model="selectedFilter"
+            :items="filterChoices.sort()"
+            :style="{'flex':1.3}"
+            prepend-inner-icon="fas fa-filter"
+            :label="$gettext('filter')"
+            variant="outlined"
+            hide-details
+            density="compact"
+            color="secondarydark"
+          />
+          <v-text-field
+            v-model="searchString"
+            :style="{'padding-right': '0.5rem','flex':1}"
+            density="compact"
+            variant="outlined"
+            clear-icon="fas fa-times-circle"
+            clearable
+            :label="$gettext('search')"
+            hide-details
+            persistent-clear
+            prepend-inner-icon="fas fa-search"
+            @click:clear="searchString=''"
+          />
+        </div>
       </v-list-item>
       <v-list>
+        <v-list-item v-if=" filteredCat.length>maxSize">
+          <span>{{ $gettext('Cannot filter by this field as it result in %{res} groups. max is %{maxSize} ',
+                            { res: filteredCat.length ,maxSize:maxSize}) }}</span>
+        </v-list-item>
+        <v-list-item v-if="(filteredCat.length===0) && (searchString!=='')">
+          <span>{{ $gettext('Nothing to display.') }}</span>
+        </v-list-item>
         <v-list-group
           v-for="(value, key) in classifiedTripId"
           :key="String(value.name) + String(key)"
@@ -469,7 +459,7 @@ export default {
                       class="ma-1"
                       size="small"
                       color="regular"
-                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
+                      :disabled="editorTrip ? true: false"
                       v-bind="props"
                       @click="cloneButton({trip:item,message:item})"
                     />

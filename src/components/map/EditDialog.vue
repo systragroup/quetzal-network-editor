@@ -1,3 +1,4 @@
+<!-- eslint-disable no-case-declarations -->
 <script setup>
 import ColorPicker from '@comp/utils/ColorPicker.vue'
 import MenuSelector from '@comp/utils/MenuSelector.vue'
@@ -8,10 +9,14 @@ import { useODStore } from '@src/store/od'
 import { computed, ref, watch, defineModel, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
-const $gettext = s => s
+import attributesUnits from '@constants/units.js'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
+
 const showDialog = defineModel('showDialog')
 const editorForm = defineModel('editorForm')
 const props = defineProps(['mode', 'action', 'linkDir'])
+
 const { mode, action } = toRefs(props)
 const emit = defineEmits(['applyAction', 'cancelAction'])
 
@@ -49,6 +54,33 @@ function orderedForm (index) {
   return ordered
 }
 
+// computed speed, time, length. for individual links only.
+function change (key) {
+  // for now. only for PT
+  if (mode.value === 'pt') {
+    switch (key) {
+      case 'speed':
+        const time = editorForm.value.length.value / editorForm.value.speed.value * 3.6
+        if (!editorForm.value.time.placeholder) {
+          editorForm.value.time.value = Number((time).toFixed(0))
+        }
+        break
+      case 'time':
+        const speed = editorForm.value.length.value / editorForm.value.time.value * 3.6
+        if (!editorForm.value.speed.placeholder) {
+          editorForm.value.speed.value = Number((speed).toFixed(0))
+        }
+        break
+      case 'length':
+        const time2 = editorForm.value.length.value / editorForm.value.speed.value * 3.6
+        if (!editorForm.value.placeholder) {
+          editorForm.value.time.value = Number((time2).toFixed(0))
+        }
+        break
+    }
+  }
+}
+
 const showDeleteOption = ref(false)
 
 function ToggleDeleteOption () {
@@ -81,6 +113,7 @@ function attributeNonDeletable (field) {
 
 const showHint = ref(false)
 const hints = attributesHints
+const units = attributesUnits
 const rules = ({
   newField: [
     val => !Object.keys(editorForm.value).includes(val) || $gettext('field already exist'),
@@ -100,8 +133,8 @@ function addField () {
   }
   // do not append if its null, empty or already exist.
 
-  if ((Object.keys(form).includes(newFieldName.value)) || (newFieldName.value === '') |
-       (!newFieldName.value) || (newFieldName.value?.endsWith('_r'))) {
+  if ((Object.keys(form).includes(newFieldName.value)) || (newFieldName.value === '')
+    | (!newFieldName.value) || (newFieldName.value?.endsWith('_r'))) {
     // put ' ' so the rule error is diplayed.
     newFieldName.value = ''
   } else {
@@ -216,7 +249,10 @@ function deleteField (field) {
                 :placeholder="value['placeholder']? $gettext('multiple Values'):''"
                 :persistent-placeholder=" value['placeholder']? true:false "
                 :disabled="value['disabled']"
+                :suffix="units[key]"
+                :prepend-inner-icon="['length','speed','time'].includes(key) && mode === 'pt' ? 'fas fa-calculator':''"
                 @wheel="$event.target.blur()"
+                @change="change(key)"
               >
                 <template
                   v-if="key==='route_color'"
@@ -266,7 +302,6 @@ function deleteField (field) {
               <v-btn
                 color="primary"
                 icon="fas fa-plus"
-                class="text--primary"
                 size="x-small"
                 @click="addField"
               />
@@ -278,24 +313,17 @@ function deleteField (field) {
 
       <v-card-actions>
         <v-btn
-          icon
+          icon="far fa-question-circle small"
+          variant="text"
           size="x-small"
           @click="()=>showHint = !showHint"
-        >
-          <v-icon>far fa-question-circle small</v-icon>
-        </v-btn>
+        />
         <v-btn
-          icon
+          :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
           size="x-small"
+          variant="text"
           @click="ToggleDeleteOption"
-        >
-          <v-icon v-if="showDeleteOption">
-            fas fa-minus-circle fa-rotate-90
-          </v-icon>
-          <v-icon v-else>
-            fas fa-minus-circle
-          </v-icon>
-        </v-btn>
+        />
         <v-spacer />
 
         <v-btn

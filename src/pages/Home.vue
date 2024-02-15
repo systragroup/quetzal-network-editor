@@ -36,7 +36,7 @@ export default {
 
     onMounted(() => {
       window.addEventListener('keydown', (e) => {
-        if ((e.key === 'Control') && (!showDialog.value) && (!cloneDialog.value)) {
+        if ((e.key === 'Control') && (!showDialog.value) && (!cloneDialog.value) && (!deleteDialog.value)) {
           store.changeAnchorMode()
         }
       })
@@ -56,10 +56,8 @@ export default {
     const cloneDialog = ref(false)
     const deleteDialog = ref(false)
     const tripToDelete = ref(null)
-    const tripToClone = ref(null)
     const message = ref('')
-    const cloneName = ref(null)
-    const cloneNodes = ref(false)
+    const cloneObj = ref({ trip: null, name: null, reverse: true, nodes: false })
     const errorMessage = ref(null)
     const lingering = ref(true)
     const groupTripIds = ref([])
@@ -73,7 +71,7 @@ export default {
         showDialog.value = true
       } else if (action.value === 'Edit Group Info') {
         groupTripIds.value = new Set(event.tripIds)
-        const uneditable = ['index', 'length', 'a', 'b', 'link_sequence', 'trip_id']
+        const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.links.features.filter(
           link => groupTripIds.value.has(link.properties.trip_id))
@@ -111,7 +109,7 @@ export default {
         const features = rlinksStore.grouprLinks(event.category, event.group)
         selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = rlinksStore.rlineAttributes
-        const uneditable = ['index', 'length', 'a', 'b']
+        const uneditable = ['index', 'length', 'time', 'a', 'b']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         lingering.value = event.lingering
         showDialog.value = true
@@ -119,7 +117,7 @@ export default {
         const features = rlinksStore.visiblerLinks.features
         selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = rlinksStore.rlineAttributes
-        const uneditable = ['index', 'length', 'a', 'b']
+        const uneditable = ['index', 'length', 'time', 'a', 'b']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         lingering.value = event.lingering
         showDialog.value = true
@@ -183,8 +181,8 @@ export default {
           break
         case 'Edit Line Info':
           // check if trip_id was changed and if it already exist.
-          if ((editorForm.value.trip_id.value !== linksStore.editorTrip) &&
-          linksStore.tripId.includes(editorForm.value.trip_id.value)) {
+          if ((editorForm.value.trip_id.value !== linksStore.editorTrip)
+            && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
             // reset all. just like abortChanges but without the abort changes notification
             lingering.value = true // if not, applyAction is call after and the notification is overwrite.
             linksStore.setEditorTrip({ tripId: null, changeBounds: false })
@@ -284,20 +282,25 @@ export default {
     }
 
     function duplicate () {
-      if (linksStore.tripId.includes(cloneName.value)) {
+      if (linksStore.tripId.includes(cloneObj.value.name)) {
         errorMessage.value = 'already exist'
       } else {
-        linksStore.cloneTrip({ tripId: tripToClone.value, name: cloneName.value, cloneNodes: cloneNodes.value })
+        linksStore.cloneTrip({
+          tripId: cloneObj.value.trip,
+          name: cloneObj.value.name,
+          cloneNodes: cloneObj.value.nodes,
+          reverse: cloneObj.value.reverse,
+        })
         errorMessage.value = ''
         cloneDialog.value = false
       }
     }
 
     function cloneButton (selection) {
-      tripToClone.value = selection.trip
+      cloneObj.value.trip = selection.trip
       message.value = selection.message
       // this.action = 'cloneTrip'
-      cloneName.value = selection.trip + ' copy'
+      cloneObj.value.name = selection.trip + ' copy'
       cloneDialog.value = true
     }
 
@@ -323,10 +326,8 @@ export default {
       cloneDialog,
       deleteDialog,
       tripToDelete,
-      tripToClone,
+      cloneObj,
       message,
-      cloneName,
-      cloneNodes,
       errorMessage,
       lingering,
       groupTripIds,
@@ -396,15 +397,19 @@ export default {
       <v-card>
         <v-card-text>
           <span class="text-h6">
-            {{ $gettext('Duplicate and reverse') + ' ' + message + ' ?' }}</span>
+            {{ $gettext('Duplicate') + ' ' + message + ' ?' }}</span>
         </v-card-text>
         <v-card-text>
           <v-text-field
-            v-model="cloneName"
+            v-model="cloneObj.name"
             :label="$gettext('New name')"
           />
           <v-checkbox-btn
-            v-model="cloneNodes"
+            v-model="cloneObj.reverse"
+            :label="$gettext('reverse')"
+          />
+          <v-checkbox-btn
+            v-model="cloneObj.nodes"
             :label="$gettext('duplicate nodes')"
           />
         </v-card-text>

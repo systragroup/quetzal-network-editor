@@ -14,6 +14,7 @@ import ResultsSidePanel from '@comp/results/ResultsSidePanel.vue'
 import ResultsSettings from '@comp/results/ResultsSettings.vue'
 import MapLegend from '@comp/utils/MapLegend.vue'
 import LayerSelector from '@comp/utils/LayerSelector.vue'
+import StyleSelector from '@comp/utils/StyleSelector.vue'
 import StaticLayer from '@comp/utils/StaticLayer.vue'
 
 const $gettext = s => s
@@ -26,6 +27,7 @@ export default {
     ResultsSettings,
     MapLegend,
     LayerSelector,
+    StyleSelector,
     StaticLayer,
 
   },
@@ -265,8 +267,8 @@ export default {
       :filtered-cat="filteredCategory"
       :preset-choices="availableStyles"
       :selected-preset="selectedPreset"
-      @update-selectedCategory="updateSelectedCategory"
-      @update-selectedFilter="updateSelectedFilter"
+      @update-selected-category="updateSelectedCategory"
+      @update-selected-filter="updateSelectedFilter"
       @select-layer="changeLayer"
       @select-preset="changePreset"
       @delete-preset="clickDeletePreset"
@@ -304,6 +306,8 @@ export default {
           @submit="updateSettings"
           @save-preset="clickSavePreset"
         />
+        <StyleSelector />
+
         <LayerSelector
           v-if="availableStyles.length>0"
           :choices="availableStyles"
