@@ -113,12 +113,16 @@ function getPerfectMatches(geojsonA, geojsonB, indexes) {
   const filterA = geojsonA.features.filter(item => indexSet.has(item.properties.index))
   const filterB = geojsonB.features.filter(item => indexSet.has(item.properties.index))
 
-  const arrA = filterA.map(el => JSON.stringify(el.properties))
-  const setB = new Set(filterB.map(el => JSON.stringify(el.properties)))
+  const arrA = filterA.map(el => JSON.stringify(el))
+  const setB = new Set(filterB.map(el => JSON.stringify(el)))
   const intersect = arrA.filter(i => setB.has(i))
-  const matches = intersect.map(el => JSON.parse(el).index)
+  const matches = intersect.map(el => JSON.parse(el).properties.index)
 
   return matches
+}
+
+function remap(value, dict) {
+  return value in dict ? dict[value] : value
 }
 
 async function unzip (file) {
@@ -226,6 +230,7 @@ export {
   IndexAreDifferent,
   getMatchingIndex,
   getPerfectMatches,
+  remap,
   unzip,
   csvJSON,
   unzipCalendar,
