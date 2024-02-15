@@ -149,7 +149,7 @@ Then compile the `po` files to a single `json` file using:
 yarn run i18n-compile
 ```
 
-### Deployement and releases
+### releases
 
 After merging developements on master create a tag matching the value in package.json.<br>
 Dont forget to add your changes on the CHANGELOG.
@@ -160,18 +160,20 @@ git push origin v5.1.1
 
 a github action will create a realease with your tag (must start with v). <br>
 
-you can build and push on subtree to deploy
+### Deployement
+
+you can build and push on subtree to deploy. <br>
+1) duplicate index.html as 404.html
+2) remove dist from the .gitignore
+3) build and push to subtree
 
 ```bash
 yarn run build
 git add dist/
-git commit -m 'build v5.1.1'
-git push
+git commit -m 'build 5.1.1 for subtree'
 git subtree push --prefix dist origin dist
 ```
+4) add dist/ back to gitignore.
 
-NOTE: if build create new files. first delete all  and  push. then build, commit and push to subtree.
-
-Also. duplicate index.html as 404.html
 
 The *github-pages* should update automatically for *dist* branch.
