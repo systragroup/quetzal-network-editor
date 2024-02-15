@@ -118,14 +118,13 @@ export const useIndexStore = defineStore('store', {
         // at this point. nothing is used in otherFiles.
 
         // PT files should be in pair of 2 (links and nodes)
-        // TODO remove pair of 2. only one (or 2)
-        if (ptFiles.length % 2 !== 0) {
+        if (ptFiles.length !== 2 && ptFiles.length !== 0) {
           const err = new Error($gettext('Need the same number of links and nodes files.'))
           err.name = 'ImportError'
           throw err
         }
         // road files should be in pair of 2 (links and nodes)
-        if (roadFiles.length % 2 !== 0) {
+        if (roadFiles.length !== 2 && roadFiles.length !== 0) {
           const err = new Error($gettext('Need the same number of road_links and road_nodes files.'))
           err.name = 'ImportError'
           throw err

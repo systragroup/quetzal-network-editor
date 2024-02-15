@@ -2,7 +2,7 @@
 <script setup>
 import router from '@src/router/index'
 import s3 from '@src/AWSClient'
-import { extractZip, unzip, getMatchingIndex, getPerfectMatches } from '@comp/utils/utils.js'
+import { extractZip, unzip, getMatchingIndex, getPerfectMatches, remap } from '@comp/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
@@ -226,7 +226,6 @@ function handleNodesConflict(nodes, links) {
   nodes.features = nodes.features.filter(el => !perfectMatchs.has(el.properties.index))
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
-    // console.log('conflict', conflicts)
     const newNodesDict = conflicts.reduce((acc, key) => {
       acc[key] = 'node_' + short.generate()
       return acc
@@ -234,9 +233,10 @@ function handleNodesConflict(nodes, links) {
     // TODO: check for distance
 
     // rename nodes
-    nodes.features.forEach(el => el.properties.index = newNodesDict[el.properties.index] | el.properties.index)
-    links.features.forEach(el => el.properties.a = newNodesDict[el.properties.a] | el.properties.a)
-    links.features.forEach(el => el.properties.a = newNodesDict[el.properties.b] | el.properties.b)
+    nodes.features.forEach(el => el.properties.index = remap(el.properties.index, newNodesDict))
+
+    links.features.forEach(el => el.properties.a = remap(el.properties.a, newNodesDict))
+    links.features.forEach(el => el.properties.b = remap(el.properties.b, newNodesDict))
   }
   // perfect match : hash == hash of node
   /*
@@ -270,7 +270,6 @@ function handleLinksConflict(links) {
   links.features = links.features.filter(el => !perfectMatchs.has(el.properties.index))
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
-    // console.log('conflict', conflicts)
     const newLinksDict = conflicts.reduce((acc, key) => {
       acc[key] = 'link_' + short.generate()
       return acc
@@ -278,7 +277,7 @@ function handleLinksConflict(links) {
 
     // TODO check a,b pair.
     // rename links
-    links.features.forEach(el => el.properties.index = newLinksDict[el.properties.index] | el.properties.index)
+    links.features.forEach(el => el.properties.index = remap(el.properties.index, newLinksDict))
   }
 }
 
