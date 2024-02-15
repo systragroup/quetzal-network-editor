@@ -14,6 +14,7 @@
 ## [5.1.3] (2024-02-23)
 No changes. Test for the deploy github Action
 
+
 ## [5.1.2] (2024-02-21)
 
 ### Changes
@@ -23,6 +24,11 @@ No changes. Test for the deploy github Action
 
 ### Bug fixes
 * **new password:** was not possible to set as the button was always loading.
+## [5.2.a] (2024-02-15)
+
+### Features
+* **Fix PT conflict on import (index)**: drop matching links and nodes. rename indexes for non matching (but same index) [#127](https://github.com/systragroup/quetzal-network-editor/issues/127)
+
 
 ## [5.1.0] (2024-02-15)
 
