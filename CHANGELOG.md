@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## [5.1.2] (2024-02-21)
 
 ### Changes
@@ -7,6 +8,13 @@
 
 ### Bug fixes
 * **new password:** was not possible to set as the button was always loading.
+=======
+## [5.2.a] (2024-02-15)
+
+### Features
+* **Fix PT conflict on import (index)**: drop matching links and nodes. rename indexes for non matching (but same index) [#127](https://github.com/systragroup/quetzal-network-editor/issues/127)
+
+>>>>>>> 2eac15c (can now load empty files. and cleanup)
 
 ## [5.1.0] (2024-02-15)
 

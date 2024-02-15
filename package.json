@@ -2,7 +2,11 @@
   "name": "Quetzal-network-editor",
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
+<<<<<<< HEAD
   "version": "5.1.2",
+=======
+  "version": "5.2.a",
+>>>>>>> 2eac15c (can now load empty files. and cleanup)
   "type": "module",
   "private": true,
   "scripts": {
