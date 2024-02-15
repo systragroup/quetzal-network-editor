@@ -100,6 +100,27 @@ function IndexAreDifferent (geojsonA, geojsonB) {
   return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
 }
 
+function getMatchingIndex(geojsonA, geojsonB) {
+  // return a list of matching index in 2 geojson
+  const a = new Set(geojsonA.features.map(item => item.properties.index))
+  const b = new Set(geojsonB.features.map(item => item.properties.index))
+  return Array.from(a).filter(i => b.has(i))
+}
+
+function getPerfectMatches(geojsonA, geojsonB, indexes) {
+  // return a list of index with perfect matches
+  const indexSet = new Set(indexes)
+  const filterA = geojsonA.features.filter(item => indexSet.has(item.properties.index))
+  const filterB = geojsonB.features.filter(item => indexSet.has(item.properties.index))
+
+  const arrA = filterA.map(el => JSON.stringify(el.properties))
+  const setB = new Set(filterB.map(el => JSON.stringify(el.properties)))
+  const intersect = arrA.filter(i => setB.has(i))
+  const matches = intersect.map(el => JSON.parse(el).index)
+
+  return matches
+}
+
 async function unzip (file) {
   // unzip a file and return a json (solo json zipped)
   const ZIP = new JSZip()
@@ -203,6 +224,8 @@ export {
   getGroupForm,
   indexAreUnique,
   IndexAreDifferent,
+  getMatchingIndex,
+  getPerfectMatches,
   unzip,
   csvJSON,
   unzipCalendar,

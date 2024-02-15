@@ -2,27 +2,27 @@
 <script setup>
 import router from '@src/router/index'
 import s3 from '@src/AWSClient'
-import { extractZip, unzip } from '@comp/utils/utils.js'
+import { extractZip, unzip, getMatchingIndex, getPerfectMatches } from '@comp/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
 import { ref, computed, onMounted } from 'vue'
+import { cloneDeep } from 'lodash'
 
 import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
 import { useUserStore } from '@src/store/user'
-import { useRunStore } from '@src/store/run'
-import { useOSMStore } from '@src/store/OSMImporter'
-import { useGTFSStore } from '@src/store/GTFSImporter'
 import axios from 'axios'
+import short from 'short-uuid'
 
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
+
 const store = useIndexStore()
 const userStore = useUserStore()
-const runStore = useRunStore()
-const runOSMStore = useOSMStore()
-const runGTFSStore = useGTFSStore()
+const linksStore = useLinksStore()
 const projectIsEmpty = computed(() => store.projectIsEmpty)
+const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 
 const choice = ref(null)
 const showDialog = ref(false)
@@ -72,18 +72,7 @@ function applyDialog () {
 
 function newProject () {
   store.initNetworks()
-  runStore.cleanRun()
-  runOSMStore.cleanRun()
-  runGTFSStore.cleanRun()
   store.changeNotification({ text: $gettext('Files unloaded'), autoClose: true, color: 'success' })
-}
-
-function loadNetwork (files) {
-  // HERE: check if duplicated index.
-  store.loadFiles(files)
-  filesAdded.value = true
-  store.changeLoading(false)
-
 }
 
 async function readZip (event) {
@@ -112,9 +101,6 @@ async function readZip (event) {
 async function loadFilesFromS3 () {
   if (!projectIsEmpty.value) {
     store.initNetworks()
-    runStore.cleanRun()
-    runOSMStore.cleanRun()
-    runGTFSStore.cleanRun()
   }
   store.changeLoading(true)
 
@@ -156,9 +142,6 @@ async function loadFilesFromS3 () {
 async function loadExample (filesToLoads) {
   store.initNetworks()
   userStore.unloadProject()
-  runStore.cleanRun()
-  runOSMStore.cleanRun()
-  runGTFSStore.cleanRun()
 
   store.changeLoading(true)
   const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
@@ -202,6 +185,95 @@ async function loadExample (filesToLoads) {
       name: 'ImportError',
       message: $gettext($gettext('An error occur fetching example on github')),
     })
+  }
+}
+
+function loadNetwork (files) {
+  // HERE: check if duplicated index.
+  const ptFiles = files.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
+  if (ptFiles.length > 0 && !linksIsEmpty.value) {
+    handleConflict(ptFiles)
+  }
+  store.loadFiles(files)
+
+  filesAdded.value = true
+  store.changeLoading(false)
+}
+
+function handleConflict(files) {
+  // [{path,content}]
+  const nodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
+  const links = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
+  handleNodesConflict(nodes, links)
+  console.log(links)
+  handleLinksConflict(links)
+}
+
+function handleNodesConflict(nodes, links) {
+  const storeNodes = cloneDeep(linksStore.nodes)
+  const dupIndexes = getMatchingIndex(nodes, storeNodes)
+  const perfectMatchs = new Set(getPerfectMatches(nodes, storeNodes, dupIndexes))
+  console.log('dup', dupIndexes)
+  console.log('match', perfectMatchs)
+  const conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
+  console.log('conflict', conflicts)
+  // remove perfect matches nodes.
+  nodes.features = nodes.features.filter(el => !perfectMatchs.has(el.properties.index))
+  // we have conflicts. do something.
+  if (conflicts.length !== 0) {
+    const newNodesDict = conflicts.reduce((acc, key) => {
+      acc[key] = 'node_' + short.generate()
+      return acc
+    }, {})
+    // TODO: check for distance
+
+    // rename nodes
+    nodes.features.forEach(el => el.properties.index = newNodesDict[el.properties.index] | el.properties.index)
+    links.features.forEach(el => el.properties.a = newNodesDict[el.properties.a] | el.properties.a)
+    links.features.forEach(el => el.properties.a = newNodesDict[el.properties.b] | el.properties.b)
+  }
+  // perfect match : hash == hash of node
+  /*
+  links or road.
+  if store.links not empty
+      check new nodes:
+        if no conflict OR perfect match break
+        else open Dialog with choices:
+          1) distance <1m (keep new or existing)
+            => rename other node uuid index (nodes distance > criteria)
+            => keep either new or existing (nodes distance < criteria)
+            => update links nodes names (a, b)
+          2) uuid index name
+            => update links nodes names (a, b)
+
+      check new links:
+        if no conflict OR perfect match break
+        if same index and not same pair a, b (comme distance)
+          => rename new link uuid index.
+        if same index and SAME paire a,b (comme distance)
+          => (keep new or existing)
+  */
+}
+
+function handleLinksConflict(links) {
+  const storeLinks = cloneDeep(linksStore.links)
+  const dupIndexes = getMatchingIndex(links, storeLinks)
+  const perfectMatchs = new Set(getPerfectMatches(links, storeLinks, dupIndexes))
+  console.log('dup', dupIndexes)
+  console.log('match', perfectMatchs)
+  const conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
+  console.log('conflict', conflicts)
+  // remove perfect matches nodes.
+  links.features = links.features.filter(el => !perfectMatchs.has(el.properties.index))
+  // we have conflicts. do something.
+  if (conflicts.length !== 0) {
+    const newLinksDict = conflicts.reduce((acc, key) => {
+      acc[key] = 'link_' + short.generate()
+      return acc
+    }, {})
+
+    // rename links
+    links.features.forEach(el => el.properties.index = newLinksDict[el.properties.index] | el.properties.index)
   }
 }
 
