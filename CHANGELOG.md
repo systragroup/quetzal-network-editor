@@ -1,3 +1,9 @@
+## [5.2.a] (2024-02-15)
+
+### Features
+* **Fix PT conflict on import (index)**: drop matching links and nodes. rename indexes for non matching (but same index) [#127](https://github.com/systragroup/quetzal-network-editor/issues/127)
+
+
 ## [5.1.0] (2024-02-15)
 
 PT Links speed, length and time are correlated.

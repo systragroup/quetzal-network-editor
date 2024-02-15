@@ -195,7 +195,6 @@ function loadNetwork (files) {
     handleConflict(ptFiles)
   }
   store.loadFiles(files)
-
   filesAdded.value = true
   store.changeLoading(false)
 }
@@ -205,7 +204,6 @@ function handleConflict(files) {
   const nodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
   const links = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
   handleNodesConflict(nodes, links)
-  console.log(links)
   handleLinksConflict(links)
 }
 
@@ -213,14 +211,12 @@ function handleNodesConflict(nodes, links) {
   const storeNodes = cloneDeep(linksStore.nodes)
   const dupIndexes = getMatchingIndex(nodes, storeNodes)
   const perfectMatchs = new Set(getPerfectMatches(nodes, storeNodes, dupIndexes))
-  console.log('dup', dupIndexes)
-  console.log('match', perfectMatchs)
   const conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
-  console.log('conflict', conflicts)
   // remove perfect matches nodes.
   nodes.features = nodes.features.filter(el => !perfectMatchs.has(el.properties.index))
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
+    // console.log('conflict', conflicts)
     const newNodesDict = conflicts.reduce((acc, key) => {
       acc[key] = 'node_' + short.generate()
       return acc
@@ -259,19 +255,18 @@ function handleLinksConflict(links) {
   const storeLinks = cloneDeep(linksStore.links)
   const dupIndexes = getMatchingIndex(links, storeLinks)
   const perfectMatchs = new Set(getPerfectMatches(links, storeLinks, dupIndexes))
-  console.log('dup', dupIndexes)
-  console.log('match', perfectMatchs)
   const conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
-  console.log('conflict', conflicts)
   // remove perfect matches nodes.
   links.features = links.features.filter(el => !perfectMatchs.has(el.properties.index))
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
+    // console.log('conflict', conflicts)
     const newLinksDict = conflicts.reduce((acc, key) => {
       acc[key] = 'link_' + short.generate()
       return acc
     }, {})
 
+    // TODO check a,b pair.
     // rename links
     links.features.forEach(el => el.properties.index = newLinksDict[el.properties.index] | el.properties.index)
   }
