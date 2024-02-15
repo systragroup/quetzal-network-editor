@@ -2,6 +2,7 @@
 *~
 node_modules/
 reports/
+dist/
 .npmrc
 /src/config.js
 /src/translations.json
