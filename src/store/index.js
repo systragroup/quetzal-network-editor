@@ -7,6 +7,8 @@ import { useLinksStore } from './links'
 import { userLinksStore } from './rlinks'
 import { useODStore } from './od'
 import { useRunStore } from './run'
+import { useOSMStore } from './OSMImporter'
+import { useGTFSStore } from './GTFSImporter'
 
 import { stylesSerializer } from '../components/utils/serializer.js'
 import { useUserStore } from './user.js'
@@ -116,6 +118,7 @@ export const useIndexStore = defineStore('store', {
         // at this point. nothing is used in otherFiles.
 
         // PT files should be in pair of 2 (links and nodes)
+        // TODO remove pair of 2. only one (or 2)
         if (ptFiles.length % 2 !== 0) {
           const err = new Error($gettext('Need the same number of links and nodes files.'))
           err.name = 'ImportError'
@@ -132,10 +135,7 @@ export const useIndexStore = defineStore('store', {
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.getLocalParameters(paramFile.content)
         if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
-        if (stylesFile) {
-          const json = stylesSerializer(stylesFile.content)
-          this.styles = json
-        }
+        if (stylesFile) { this.loadStyles(stylesFile.content) }
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
@@ -221,6 +221,17 @@ export const useIndexStore = defineStore('store', {
       this.loadAttributesChoices(defaultAttributesChoices)
       this.otherFiles = []
       this.cyclewayMode = false
+
+      this.initOtherStores()
+    },
+
+    initOtherStores() {
+      const runStore = useRunStore()
+      const runOSMStore = useOSMStore()
+      const runGTFSStore = useGTFSStore()
+      runStore.cleanRun()
+      runOSMStore.cleanRun()
+      runGTFSStore.cleanRun()
     },
 
     applySettings (payload) {
@@ -232,6 +243,12 @@ export const useIndexStore = defineStore('store', {
       this.outputName = payload.outputName
     },
     changeOutputName (payload) { this.outputName = payload },
+
+    loadStyles (payload) {
+      const json = stylesSerializer(payload)
+      this.styles = json
+    },
+
     addStyle (payload) {
       // payload: styling for results {name,layer, displaySettings:{...}}
       const names = this.styles.map(el => el.name)
