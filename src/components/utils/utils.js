@@ -100,10 +100,10 @@ function IndexAreDifferent (geojsonA, geojsonB) {
   return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
 }
 
-function getMatchingIndex(geojsonA, geojsonB) {
+function getMatchingAttr(geojsonA, geojsonB, attr = 'index') {
   // return a list of matching index in 2 geojson
-  const a = new Set(geojsonA.features.map(item => item.properties.index))
-  const b = new Set(geojsonB.features.map(item => item.properties.index))
+  const a = new Set(geojsonA.features.map(item => item.properties[attr]))
+  const b = new Set(geojsonB.features.map(item => item.properties[attr]))
   return Array.from(a).filter(i => b.has(i))
 }
 
@@ -228,7 +228,7 @@ export {
   getGroupForm,
   indexAreUnique,
   IndexAreDifferent,
-  getMatchingIndex,
+  getMatchingAttr,
   getPerfectMatches,
   remap,
   unzip,
