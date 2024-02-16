@@ -138,9 +138,6 @@ export const useIndexStore = defineStore('store', {
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
-
-        this.changeNotification(
-          { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
       } catch (err) {
         this.changeAlert(err)
       }

@@ -94,6 +94,7 @@ export const userLinksStore = defineStore('rlinks', {
       // get rnodes. check that index are not duplicated, serialize them and then append to project
 
       for (const file of payload) {
+        if (file.content.features.length === 0) { break } // empty file. do nothing
         const currentType = file.content.features[0].geometry.type
         if (currentType === 'LineString') {
           if (IndexAreDifferent(file.content, this.rlinks)) {
