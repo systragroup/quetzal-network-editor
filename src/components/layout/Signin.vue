@@ -44,7 +44,6 @@ export default {
           // sign in.
           if (!this.newPasswordUI) {
             const resp = await auth.signin({ username: this.username, password: this.password })
-            console.log(resp)
             if (resp.challengeName === 'NEW_PASSWORD_REQUIRED') {
               // if new user. force change password.
               this.user = resp
