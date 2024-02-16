@@ -1,3 +1,9 @@
+## [5.2.b] (2024-02-16)
+
+### Features
+* **Fix road conflict on import (index)**: same for road (except the trip_id drop) 
+* **Fix PT conflict on import (index)**: drop matching trip_id [#127](https://github.com/systragroup/quetzal-network-editor/issues/127)
+
 ## [5.2.a] (2024-02-15)
 
 ### Features
