@@ -58,6 +58,10 @@ export default {
       // when logout. this will happen. we want to reset localModel for its watcher to work on login.
       if (val.length === 0) { localModel.value = null }
     })
+    function formatTab(tab) {
+      return tab.startsWith('quetzal-') ? tab.slice(8) : tab
+    }
+
     watch(scenario, (val) => {
       if (val !== localScen.value) {
         localScen.value = ''
@@ -193,6 +197,7 @@ export default {
       projectIsEmpty,
       loggedIn,
       modelsList,
+      formatTab,
       model,
       localModel,
       scenario,
@@ -236,7 +241,7 @@ export default {
         :value="tab"
         :disabled="loading"
       >
-        {{ tab.slice(8) }}
+        {{ formatTab(tab) }}
       </v-tab>
     </v-tabs>
     <v-divider />
