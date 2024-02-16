@@ -2,7 +2,7 @@
 <script setup>
 import router from '@src/router/index'
 import s3 from '@src/AWSClient'
-import { extractZip, unzip, getMatchingIndex, getPerfectMatches, remap } from '@comp/utils/utils.js'
+import { extractZip, unzip, getMatchingAttr, getPerfectMatches, remap } from '@comp/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
@@ -11,6 +11,8 @@ import { cloneDeep } from 'lodash'
 
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+
 import { useUserStore } from '@src/store/user'
 import axios from 'axios'
 import short from 'short-uuid'
@@ -21,8 +23,10 @@ const { $gettext } = useGettext()
 const store = useIndexStore()
 const userStore = useUserStore()
 const linksStore = useLinksStore()
+const rlinksStore = userLinksStore()
 const projectIsEmpty = computed(() => store.projectIsEmpty)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
+const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 
 const choice = ref(null)
 const showDialog = ref(false)
@@ -192,81 +196,88 @@ function loadNetwork (files) {
   // HERE: check if duplicated index.
   const ptFiles = files.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
   if (ptFiles.length > 0 && !linksIsEmpty.value) {
-    handleConflict(ptFiles)
+    handleConflict(ptFiles, 'pt')
+  }
+  const roadFiles = files.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
+  if (roadFiles.length > 0 && !rlinksIsEmpty.value) {
+    handleConflict(roadFiles, 'road')
+    store.changeNotification(
+      { text: $gettext('test'), autoClose: true, color: 'success' })
   }
   store.loadFiles(files)
   filesAdded.value = true
   store.changeLoading(false)
+  store.changeNotification(
+    { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
 }
 
-function handleConflict(files) {
+function handleConflict(files, type = 'pt') {
   // [{path,content}]
-  const nodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
-  const links = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
-  handleNodesConflict(nodes, links)
-  handleLinksConflict(links)
+  if (type === 'pt') {
+    const nodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
+    const links = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
+    const storeNodes = cloneDeep(linksStore.nodes)
+    const storeLinks = cloneDeep(linksStore.links)
+    handleNodesConflict(nodes, storeNodes, links, 'node_')
+    handleTripsConflict(links, storeLinks)
+    handleLinksConflict(links, storeLinks, 'link_')
+  } else if (type === 'road') {
+    const rnodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
+    const rlinks = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
+    const storerNodes = cloneDeep(rlinksStore.rnodes)
+    const storerLinks = cloneDeep(rlinksStore.rlinks)
+    handleNodesConflict(rnodes, storerNodes, rlinks, 'rnode_')
+    handleLinksConflict(rlinks, storerLinks, 'rlink_')
+  }
 }
 
-function handleNodesConflict(nodes, links) {
-  const storeNodes = cloneDeep(linksStore.nodes)
-  const dupIndexes = getMatchingIndex(nodes, storeNodes)
+function handleNodesConflict(nodes, storeNodes, links, prefix = 'node_') {
+  const dupIndexes = getMatchingAttr(nodes, storeNodes, 'index')
   const perfectMatchs = new Set(getPerfectMatches(nodes, storeNodes, dupIndexes))
   const conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
   // remove perfect matches nodes.
   nodes.features = nodes.features.filter(el => !perfectMatchs.has(el.properties.index))
+
+  // MAYBE: check for distance
+  // if distance <1m : keep existing one (became a perfect math)
+
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
     const newNodesDict = conflicts.reduce((acc, key) => {
-      acc[key] = 'node_' + short.generate()
+      acc[key] = prefix + short.generate()
       return acc
     }, {})
-    // TODO: check for distance
 
     // rename nodes
     nodes.features.forEach(el => el.properties.index = remap(el.properties.index, newNodesDict))
-
     links.features.forEach(el => el.properties.a = remap(el.properties.a, newNodesDict))
     links.features.forEach(el => el.properties.b = remap(el.properties.b, newNodesDict))
   }
-  // perfect match : hash == hash of node
-  /*
-  links or road.
-  if store.links not empty
-      check new nodes:
-        if no conflict OR perfect match break
-        else open Dialog with choices:
-          1) distance <1m (keep new or existing)
-            => rename other node uuid index (nodes distance > criteria)
-            => keep either new or existing (nodes distance < criteria)
-            => update links nodes names (a, b)
-          2) uuid index name
-            => update links nodes names (a, b)
-
-      check new links:
-        if no conflict OR perfect match break
-        if same index and not same pair a, b (comme distance)
-          => rename new link uuid index.
-        if same index and SAME paire a,b (comme distance)
-          => (keep new or existing)
-  */
 }
 
-function handleLinksConflict(links) {
-  const storeLinks = cloneDeep(linksStore.links)
-  const dupIndexes = getMatchingIndex(links, storeLinks)
+function handleTripsConflict(links, storeLinks) {
+  // 1) remove all links with with existing Trip_ID
+  const dupTrips = new Set(getMatchingAttr(links, storeLinks, 'trip_id'))
+  links.features = links.features.filter(el => !dupTrips.has(el.properties.trip_id))
+}
+
+function handleLinksConflict(links, storeLinks, prefix = 'link_') {
+  const dupIndexes = getMatchingAttr(links, storeLinks, 'index')
   const perfectMatchs = new Set(getPerfectMatches(links, storeLinks, dupIndexes))
   const conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
-  // remove perfect matches nodes.
+  // 1) remove perfect matches links.
   links.features = links.features.filter(el => !perfectMatchs.has(el.properties.index))
+
+  // MAYBE: check a,b index.
+  // if Same (idx,a,b) : perfect match. drop
+
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
     const newLinksDict = conflicts.reduce((acc, key) => {
-      acc[key] = 'link_' + short.generate()
+      acc[key] = prefix + short.generate()
       return acc
     }, {})
-
-    // TODO check a,b pair.
-    // rename links
+    // 3) rename links that used the same index but are different
     links.features.forEach(el => el.properties.index = remap(el.properties.index, newLinksDict))
   }
 }
