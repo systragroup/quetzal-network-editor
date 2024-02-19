@@ -1,3 +1,8 @@
+## [5.1.1] (2024-02-19)
+
+### Bug fixes
+* **new password:** was not possible to set as the button was always loading.
+
 ## [5.1.0] (2024-02-15)
 
 PT Links speed, length and time are correlated.

@@ -48,6 +48,7 @@ export default {
               // if new user. force change password.
               this.user = resp
               this.newPasswordUI = true
+              this.loading = false
               this.$refs.form.resetValidation()
               // else signin (default case.)
             } else {
