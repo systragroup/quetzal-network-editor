@@ -82,6 +82,14 @@ function getGroupForm (features, lineAttributes, uneditable) {
   return form
 }
 
+function deleteUnusedNodes (nodes, links) {
+  // delete every every nodes not in links. return nodes.feautures
+  const a = links.features.map(item => item.properties.a)
+  const b = links.features.map(item => item.properties.b)
+  const ab = new Set([...a, ...b])
+  return nodes.features.filter(node => ab.has(node.properties.index))
+}
+
 function indexAreUnique (geojson) {
   // check if all index are unique in a geojson (links or nodes)
   // return true if they are unique
@@ -226,6 +234,7 @@ export {
   readFileAsBytes,
   extractZip,
   getGroupForm,
+  deleteUnusedNodes,
   indexAreUnique,
   IndexAreDifferent,
   getMatchingAttr,

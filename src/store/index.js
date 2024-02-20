@@ -15,6 +15,7 @@ import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import geojson from '@constants/geojson'
+import { deleteUnusedNodes } from '../components/utils/utils.js'
 
 const $gettext = s => s
 
@@ -291,11 +292,8 @@ export const useIndexStore = defineStore('store', {
           link => linksStore.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
         // delete every every nodes not in links
-        const a = tempLinks.features.map(item => item.properties.a)
-        const b = tempLinks.features.map(item => item.properties.b)
-        const nodesInLinks = Array.from(new Set([...a, ...b]))
         const tempNodes = cloneDeep(linksStore.nodes)
-        tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+        tempNodes.features = deleteUnusedNodes(tempNodes, tempLinks)
         nodes = JSON.stringify(tempNodes)
 
         rlinks = JSON.stringify(rlinksStore.visiblerLinks)

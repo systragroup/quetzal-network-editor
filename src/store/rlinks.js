@@ -11,7 +11,7 @@ import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import bearing from '@turf/bearing'
 import { serializer } from '@comp/utils/serializer.js'
-import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import { toRaw } from 'vue'
 import geojson from '@constants/geojson'
@@ -302,9 +302,6 @@ export const userLinksStore = defineStore('rlinks', {
     getVisiblerNodes (payload) {
       // payload contain nodes. this.nodes or this.editorNodes
       // find the nodes in the editor links
-      let a = []
-      let b = []
-      let rNodesList = []
       switch (payload.method) {
         case 'showAll':
           this.visiblerNodes.features = this.rnodes.features
@@ -314,21 +311,13 @@ export const userLinksStore = defineStore('rlinks', {
           break
         case 'add':
           // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
-          a = this.visiblerLinks.features.map(item => item.properties.a)
-          b = this.visiblerLinks.features.map(item => item.properties.b)
-          rNodesList = new Set([...a, ...b])
           // use rnodes as they are new to visiblerNodes
-          this.visiblerNodes.features = this.rnodes.features.filter(
-            node => rNodesList.has(node.properties.index))
+          this.visiblerNodes.features = deleteUnusedNodes(this.rnodes, this.visiblerLinks)
           break
         case 'remove' :
           // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
-          a = this.visiblerLinks.features.map(item => item.properties.a)
-          b = this.visiblerLinks.features.map(item => item.properties.b)
-          rNodesList = new Set([...a, ...b])
           // use visibleRnodes, as they are already inside of it.
-          this.visiblerNodes.features = this.visiblerNodes.features.filter(
-            node => rNodesList.has(node.properties.index))
+          this.visiblerNodes.features = deleteUnusedNodes(this.visiblerNodes, this.visiblerLinks)
           break
         // case 'refresh'
       }
@@ -640,10 +629,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
     deleteUnusedrNodes () {
       // delete every every nodes not in links
-      const a = this.rlinks.features.map(item => item.properties.a)
-      const b = this.rlinks.features.map(item => item.properties.b)
-      const nodesInLinks = new Set([...a, ...b])
-      this.rnodes.features = this.rnodes.features.filter(node => nodesInLinks.has(node.properties.index))
+      this.rnodes.feautures = deleteUnusedNodes(this.rnodes, this.rlinks)
     },
 
     editrGroupInfo (payload) {
