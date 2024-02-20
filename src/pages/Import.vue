@@ -2,7 +2,7 @@
 <script setup>
 import router from '@src/router/index'
 import s3 from '@src/AWSClient'
-import { extractZip, unzip, getMatchingAttr, getPerfectMatches, remap } from '@comp/utils/utils.js'
+import { extractZip, unzip, getMatchingAttr, getPerfectMatches, remap, deleteUnusedNodes } from '@comp/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
@@ -238,6 +238,8 @@ function handleConflict(files, type = 'pt') {
     handleNodesConflict(nodes, storerNodes, links, 'rnode_')
     handleLinksConflict(links, storerLinks, 'rlink_')
   }
+
+  nodes.features = deleteUnusedNodes(nodes, links)
   // return the number of added links and nodes
   return {
     nodes: nodesLength, nodesAdded: nodes.features.length,
@@ -254,6 +256,8 @@ function handleNodesConflict(nodes, storeNodes, links, prefix = 'node_') {
 
   // MAYBE: check for distance
   // if distance <1m : keep existing one (became a perfect math)
+  // for index of conflict: check dist old and new nodes
+  // This is pretty slow.
 
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
@@ -284,6 +288,9 @@ function handleLinksConflict(links, storeLinks, prefix = 'link_') {
 
   // MAYBE: check a,b index.
   // if Same (idx,a,b) : perfect match. drop
+  // not sure its a good idea. you could have same idx,a,b but not same trip
+  // we want to create new links. not drop them
+  // (ex: MTL orange line have a trip with 1 extra links. this would drop every links except last one.
 
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
@@ -318,7 +325,8 @@ function filesAddedNotification(infoPT, infoRoad) {
   } else {
     store.changeNotification(
       { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
-  } }
+  }
+}
 
 </script>
 <template>

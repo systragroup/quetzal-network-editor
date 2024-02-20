@@ -3,6 +3,7 @@
 import { MglGeojsonLayer } from 'vue-mapbox3'
 import mapboxgl from 'mapbox-gl'
 import { cloneDeep } from 'lodash'
+import { deleteUnusedNodes } from '@comp/utils/utils.js'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
@@ -65,10 +66,7 @@ export default {
       // get visible links and nodes.
       const showedTripsSet = new Set(showedTrips.value)
       visibleLinks.value.features = links.value.features.filter(link => showedTripsSet.has(link.properties.trip_id))
-      const a = visibleLinks.value.features.map(item => item.properties.a)
-      const b = visibleLinks.value.features.map(item => item.properties.b)
-      const ab = new Set([...a, ...b])
-      visibleNodes.value.features = visibleNodes.value.features.filter(node => ab.has(node.properties.index))
+      visibleNodes.value.features = deleteUnusedNodes(visibleNodes.value, visibleLinks.value)
 
       // get all unique width
       const widthArr = [...new Set(visibleLinks.value.features.map(item => Number(item.properties.route_width)))]
