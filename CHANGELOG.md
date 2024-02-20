@@ -25,6 +25,11 @@ No changes. Test for the deploy github Action
 ### Bug fixes
 * **new password:** was not possible to set as the button was always loading.
 
+## [5.2.c] (2024-02-20)
+
+### Features
+* **Fix conflict on import (index)**: add notifications (10/100 nodes added) ect. [#127](https://github.com/systragroup/quetzal-network-editor/issues/127)
+
 ## [5.2.b] (2024-02-16)
 
 ### Features
