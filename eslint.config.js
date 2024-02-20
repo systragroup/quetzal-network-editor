@@ -45,6 +45,7 @@ export default [
       '@stylistic/brace-style': 'off',
       '@stylistic/arrow-parens': 'off',
       'no-prototype-builtins': 'off',
+      'no-undef': 'error',
       'comma-dangle': ['warn', 'always-multiline'],
       'no-irregular-whitespace': 'off',
       'quote-props': ['warn', 'as-needed', { unnecessary: false }],
