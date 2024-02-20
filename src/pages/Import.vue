@@ -204,40 +204,44 @@ async function loadExample (filesToLoads) {
 
 function loadNetwork (files) {
   // HERE: check if duplicated index.
+  let infoPT
+  let infoRoad
   const ptFiles = files.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
   if (ptFiles.length > 0 && !linksIsEmpty.value) {
-    handleConflict(ptFiles, 'pt')
+    infoPT = handleConflict(ptFiles, 'pt')
   }
   const roadFiles = files.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
   if (roadFiles.length > 0 && !rlinksIsEmpty.value) {
-    handleConflict(roadFiles, 'road')
-    store.changeNotification(
-      { text: $gettext('test'), autoClose: true, color: 'success' })
+    infoRoad = handleConflict(roadFiles, 'road')
   }
   store.loadFiles(files)
   filesAdded.value = true
   store.changeLoading(false)
-  store.changeNotification(
-    { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
+  filesAddedNotification(infoPT, infoRoad)
 }
 
 function handleConflict(files, type = 'pt') {
   // [{path,content}]
+  const nodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
+  const links = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
+  const nodesLength = nodes.features.length
+  const linksLength = links.features.length
   if (type === 'pt') {
-    const nodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
-    const links = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
     const storeNodes = cloneDeep(linksStore.nodes)
     const storeLinks = cloneDeep(linksStore.links)
     handleNodesConflict(nodes, storeNodes, links, 'node_')
     handleTripsConflict(links, storeLinks)
     handleLinksConflict(links, storeLinks, 'link_')
   } else if (type === 'road') {
-    const rnodes = files.filter(file => file.content.features[0].geometry.type == 'Point')[0].content
-    const rlinks = files.filter(file => file.content.features[0].geometry.type == 'LineString')[0].content
     const storerNodes = cloneDeep(rlinksStore.rnodes)
     const storerLinks = cloneDeep(rlinksStore.rlinks)
-    handleNodesConflict(rnodes, storerNodes, rlinks, 'rnode_')
-    handleLinksConflict(rlinks, storerLinks, 'rlink_')
+    handleNodesConflict(nodes, storerNodes, links, 'rnode_')
+    handleLinksConflict(links, storerLinks, 'rlink_')
+  }
+  // return the number of added links and nodes
+  return {
+    nodes: nodesLength, nodesAdded: nodes.features.length,
+    links: linksLength, linksAdded: links.features.length,
   }
 }
 
@@ -291,6 +295,30 @@ function handleLinksConflict(links, storeLinks, prefix = 'link_') {
     links.features.forEach(el => el.properties.index = remap(el.properties.index, newLinksDict))
   }
 }
+
+function filesAddedNotification(infoPT, infoRoad) {
+  // norification when files are added. infoPT and road contain conflict info
+  if (infoPT && infoRoad) {
+    store.changeNotification(
+      { text: $gettext('%{a}/%{b} PT nodes added and %{c}/%{d} PT links added. \
+                        %{e}/%{f} road nodes added and %{g}/%{h} road links added ',
+      { a: infoPT.nodesAdded, b: infoPT.nodes, c: infoPT.linksAdded, d: infoPT.links,
+        e: infoRoad.nodesAdded, f: infoRoad.nodes, g: infoRoad.linksAdded, h: infoRoad.links }),
+      autoClose: false, color: 'success' })
+  } else if (infoPT) {
+    store.changeNotification(
+      { text: $gettext('%{a}/%{b} PT nodes added and %{c}/%{d} PT links added',
+        { a: infoPT.nodesAdded, b: infoPT.nodes, c: infoPT.linksAdded, d: infoPT.links }),
+      autoClose: false, color: 'success' })
+  } else if (infoRoad) {
+    store.changeNotification(
+      { text: $gettext('%{a}/%{b} road nodes added and %{c}/%{d} road links added',
+        { a: infoRoad.nodesAdded, b: infoRoad.nodes, c: infoRoad.linksAdded, d: infoRoad.links }),
+      autoClose: false, color: 'success' })
+  } else {
+    store.changeNotification(
+      { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
+  } }
 
 </script>
 <template>
