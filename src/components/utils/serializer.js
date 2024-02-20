@@ -1,5 +1,6 @@
 // import JSZip from 'jszip'
 const $gettext = s => s
+import { indexAreUnique } from './utils'
 
 function serializer (geojson, name, type = null, ignoreIndex = false) {
   // check that file is not empty
@@ -28,6 +29,12 @@ function serializer (geojson, name, type = null, ignoreIndex = false) {
     err.name = 'ImportError'
     throw err
   }
+  if (!indexAreUnique(geojson)) {
+    const err = new Error($gettext('there is duplicates index. you need unique index. Import aborted in ') + name)
+    err.name = 'ImportError'
+    throw err
+  }
+
   // all good. return geojson.
   return geojson
 }
