@@ -7,7 +7,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import { serializer } from '@comp/utils/serializer.js'
-import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import { ref } from 'vue'
 import short from 'short-uuid'
@@ -278,16 +278,11 @@ export const useLinksStore = defineStore('links', {
       cloned.features.reverse()
       if (payload.cloneNodes) {
       // duplicate nodes and rename them
-        const a = cloned.features.map(item => item.properties.a)
-        const b = cloned.features.map(item => item.properties.b)
-        const ab = new Set([...a, ...b])
-
-        const clonedNodes = cloneDeep(geojson)
-        const features = this.nodes.features.filter(node => ab.has(node.properties.index))
-        clonedNodes.features = cloneDeep(features)
-
+        const clonedNodes = cloneDeep(this.nodes)
+        clonedNodes.features = deleteUnusedNodes(clonedNodes, cloned)
+        const indexList = clonedNodes.features.map(node => node.properties.index)
         const newName = {}
-        ab.forEach(node => newName[node] = 'node_' + short.generate())
+        indexList.forEach(node => newName[node] = 'node_' + short.generate())
         clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
 
         cloned.features.forEach(link => link.properties.a = newName[link.properties.a])
@@ -302,13 +297,7 @@ export const useLinksStore = defineStore('links', {
     },
     getEditorNodes (payload) {
       // payload contain nodes. this.nodes or this.editorNodes
-      // find the nodes in the editor links
-      const a = this.editorLinks.features.map(item => item.properties.a)
-      const b = this.editorLinks.features.map(item => item.properties.b)
-      const editorNodesList = new Set([...a, ...b])
-      // set nodes corresponding to trip id
-
-      const features = payload.nodes.features.filter(node => editorNodesList.has(node.properties.index))
+      const features = deleteUnusedNodes(payload.nodes, this.editorLinks) // return nodes in links
       this.editorNodes.features = cloneDeep(features)
     },
 
@@ -767,10 +756,7 @@ export const useLinksStore = defineStore('links', {
     },
     deleteUnusedNodes () {
       // delete every every nodes not in links
-      const a = this.links.features.map(item => item.properties.a)
-      const b = this.links.features.map(item => item.properties.b)
-      const nodesInLinks = new Set([...a, ...b])
-      this.nodes.features = this.nodes.features.filter(node => nodesInLinks.has(node.properties.index))
+      this.nodes.features = deleteUnusedNodes(this.nodes, this.links)
     },
 
     confirmChanges () { // apply change to Links

@@ -103,7 +103,14 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if ((!['Import'].includes(to.name)) && !from.name) {
     next({ name: 'Import' })
-  } else next()
+  } else {
+    next() }
+})
+
+router.afterEach(() => {
+  // remove notification when we enter a page
+  const store = useIndexStore()
+  store.changeNotification({ text: '', autoClose: true })
 })
 
 export default router
