@@ -83,7 +83,6 @@ function loadNetwork (files) {
   store.loadFiles(files)
   filesAdded.value = true
   store.changeLoading(false)
-
 }
 
 async function readZip (event) {
