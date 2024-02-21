@@ -79,16 +79,6 @@ function newProject () {
   store.changeNotification({ text: $gettext('Files unloaded'), autoClose: true, color: 'success' })
 }
 
-<<<<<<< HEAD
-function loadNetwork (files) {
-  // HERE: check if duplicated index.
-  store.loadFiles(files)
-  filesAdded.value = true
-  store.changeLoading(false)
-}
-
-=======
->>>>>>> 30e94a7 (clean import and index. start function to handle conflict in PT. work for now)
 async function readZip (event) {
   try {
     store.changeLoading(true)
