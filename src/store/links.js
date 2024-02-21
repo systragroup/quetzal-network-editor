@@ -185,7 +185,7 @@ export const useLinksStore = defineStore('links', {
           // if no speed but time is provided. calc speed with it.
         } else if (link.properties.time) {
           const speed = link.properties.length / link.properties.time * 3.6
-          link.properties.speed = Number((speed).toFixed(0))
+          link.properties.speed = Number((speed).toFixed(6))
           // no time or speed. fix speed to 20kmh and calc time with this.
         } else {
           const speed = 20 // kmh

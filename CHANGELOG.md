@@ -1,3 +1,8 @@
+## [5.1.2] (2024-02-21)
+
+### Changes
+* **Speed rounded to 6 decimals:** Importing a quenedi network changed time on some links some time because of the poor speed precision.
+
 ## [5.1.1] (2024-02-19)
 
 ### Bug fixes

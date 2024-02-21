@@ -60,21 +60,24 @@ function change (key) {
   if (mode.value === 'pt') {
     switch (key) {
       case 'speed':
+        editorForm.value.speed.value = Number(editorForm.value.speed.value).toFixed(6)
         const time = editorForm.value.length.value / editorForm.value.speed.value * 3.6
         if (!editorForm.value.time.placeholder) {
-          editorForm.value.time.value = Number((time).toFixed(0))
+          editorForm.value.time.value = Number(time.toFixed(0))
         }
         break
       case 'time':
+        editorForm.value.time.value = Number(editorForm.value.time.value).toFixed(0)
         const speed = editorForm.value.length.value / editorForm.value.time.value * 3.6
         if (!editorForm.value.speed.placeholder) {
-          editorForm.value.speed.value = Number((speed).toFixed(0))
+          editorForm.value.speed.value = Number(speed.toFixed(6))
         }
         break
       case 'length':
+        editorForm.value.length.value = Number(editorForm.value.length.value).toFixed(0)
         const time2 = editorForm.value.length.value / editorForm.value.speed.value * 3.6
         if (!editorForm.value.placeholder) {
-          editorForm.value.time.value = Number((time2).toFixed(0))
+          editorForm.value.time.value = Number(time2.toFixed(0))
         }
         break
     }
