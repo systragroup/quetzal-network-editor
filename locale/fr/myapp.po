@@ -76,24 +76,23 @@ msgstr ""
 msgid ". Import aborted in "
 msgstr ". Importation interrompue dans "
 
-#: src/components/import/conflicts.js:127
+#: src/components/import/conflicts.js:128
 msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added"
 msgstr "%{a}/%{b} noeuds TC ajoutés et %{c}/%{d} liens TC ajoutés"
 
-#: src/components/import/conflicts.js:120
+#: src/components/import/conflicts.js:121
 msgid ""
 "%{a}/%{b} PT nodes added and %{c}/%{d} PT links "
 "added.                           %{e}/%{f} road nodes added and %{g}/%{h} "
 "road links added "
 msgstr ""
-"%{a}/%{b} noeuds TC ajoutés et  %{c}/%{d} liens TC ajoutés. "
-"                          %{e}/%{f} noeuds routier ajoutés %{g}/%{h} "
-"liens routier ajoutés "
+"%{a}/%{b} noeuds TC ajoutés et  %{c}/%{d} liens TC "
+"ajoutés.                           %{e}/%{f} noeuds routier ajoutés %{g}/"
+"%{h} liens routier ajoutés "
 
-#: src/components/import/conflicts.js:132
+#: src/components/import/conflicts.js:133
 msgid "%{a}/%{b} road nodes added and %{c}/%{d} road links added"
-msgstr "%{a}/%{b} noeuds routier ajoutés  %{c}/%{d} liens routier ajoutés 
-
+msgstr "%{a}/%{b} noeuds routier ajoutés  %{c}/%{d} liens routier ajoutés "
 
 #: src/constants/hints.js:9
 msgid ""
@@ -150,7 +149,7 @@ msgstr ""
 msgid "Abort"
 msgstr "Annuler"
 
-#: src/pages/Run.vue:147
+#: src/pages/Run.vue:149
 msgid "Abort Simulation"
 msgstr "Abandonner la simulation"
 
@@ -465,6 +464,10 @@ msgstr "Tout vider"
 msgid "Empty all loaded files and start from scratch"
 msgstr "Vider tout et partir de zéro"
 
+#: src/pages/Run.vue:167
+msgid "End signal"
+msgstr "Signal de fin"
+
 #: src/components/run/ParamForm.vue:153
 msgid "Expand all"
 msgstr "Étendre tout"
@@ -489,7 +492,7 @@ msgstr "Exporter les visibles"
 msgid "fetch available GTFS"
 msgstr "rafraîchir la liste"
 
-#: src/components/import/conflicts.js:137
+#: src/components/import/conflicts.js:138
 msgid "File(s) added"
 msgstr "Fichier(s) ajouté(s)"
 
@@ -954,7 +957,7 @@ msgstr "Requis"
 msgid "Result Table"
 msgstr "Table des Résultats"
 
-#: src/pages/Run.vue:79
+#: src/pages/Run.vue:81
 msgid ""
 "Results are not synchronized with latest modifications.             Please "
 "relauch simulation to update results."
@@ -1026,7 +1029,7 @@ msgstr "Routes"
 msgid "Run"
 msgstr "Exécuter"
 
-#: src/pages/Run.vue:137
+#: src/pages/Run.vue:139
 msgid "Run Simulation"
 msgstr "Executer la simulation"
 
@@ -1068,7 +1071,7 @@ msgstr "Scénario supprimé"
 msgid "Scenario Settings"
 msgstr "Paramètres de simulation"
 
-#: src/pages/Run.vue:33
+#: src/pages/Run.vue:35
 msgid "Scenario Simulation"
 msgstr "Simulation du scénario"
 
@@ -1169,7 +1172,7 @@ msgstr "déconnection"
 msgid "Sign out"
 msgstr "déconnection"
 
-#: src/pages/Run.vue:94
+#: src/pages/Run.vue:96
 msgid ""
 "Simulation ended with an execution error or have been aborted.             "
 "Please relauch simulation. If the problem persist, contact us."
@@ -1178,7 +1181,7 @@ msgstr ""
 "SVP, executer la simulation de nouveau. Si le problème persiste, veuillez "
 "nous contacter."
 
-#: src/store/run.js:68
+#: src/store/run.js:65
 msgid "simulation executed successfully!"
 msgstr "simulation exécutée avec succès!"
 
@@ -1251,7 +1254,7 @@ msgstr "il y a pas d'index dans le fichier. Importation interrompue"
 msgid "This action will sign you out"
 msgstr "vous allez être déconnecté"
 
-#: src/pages/Run.vue:115
+#: src/pages/Run.vue:117
 msgid "This scenario is protected. You can not run simulation."
 msgstr "Ce scénario est protégé. L'execution de la simulation est bloquée."
 

@@ -1,3 +1,11 @@
+## [5.2.e] (2024-02-22)
+
+### Features
+* **End of simulation music**: toggle added
+
+### Bug fixes
+* **notification:** translation was returning an error sometime when changing page quickly.
+
 ## [5.2.d] (2024-02-22)
 
 ### Features
