@@ -20,8 +20,9 @@ export default {
 
     const notification = computed(() => store.notification)
     const loading = computed(() => store.loading)
+
     const snackbar = ref(false)
-    watch(notification, () => { snackbar.value = !!notification.value.text })
+    watch(notification, () => snackbar.value = !!notification.value.text)
     watch(snackbar, (val) => {
       if (val === false) {
         store.changeNotification({ text: '', autoClose: true })
@@ -62,7 +63,7 @@ export default {
       :class="`snackbar-${notification.type}`"
     >
       <span class="snackbar-text">
-        {{ $gettext(notification.text) }}
+        {{ notification.text? $gettext(notification.text): "" }}
       </span>
       <template #actions>
         <v-btn
