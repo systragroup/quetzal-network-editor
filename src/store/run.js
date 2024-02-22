@@ -20,8 +20,10 @@ export const useRunStore = defineStore('run', {
     errorMessage: '',
     synchronized: true,
     parameters: [],
+    endSignal: true,
   }),
   actions: {
+
     cleanRun () {
       this.steps = [{ name: 'Loading Steps...', tasks: ['Loading Steps...'] }]
       this.selectedStepFunction = 'default'
@@ -57,13 +59,8 @@ export const useRunStore = defineStore('run', {
       this.running = false
       this.currentStep = this.steps.length + 1
       this.executionArn = ''
-      const audio = new Audio(audioFile)
-      audio.play()
-      // Stop the audio after 2 seconds
-      setTimeout(function () {
-        audio.pause()
-        audio.currentTime = 0
-      }, 5000)
+      this.playAudio()
+
       store.changeNotification(
         { text: $gettext('simulation executed successfully!'), autoClose: false, color: 'success' })
     },
@@ -258,6 +255,21 @@ export const useRunStore = defineStore('run', {
         err => {
           console.log(err)
         })
+    },
+
+    changeEndSignal(payload) {
+      this.endSignal = payload
+    },
+    playAudio() {
+      if (this.endSignal) {
+        const audio = new Audio(audioFile)
+        audio.play()
+        // Stop the audio after 2 seconds
+        setTimeout(function () {
+          audio.pause()
+          audio.currentTime = 0
+        }, 5000)
+      }
     },
   },
   getters: {

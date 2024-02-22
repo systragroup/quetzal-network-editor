@@ -77,15 +77,15 @@ msgstr ""
 msgid ". Import aborted in "
 msgstr ""
 
-#: src/components/import/conflicts.js:127
+#: src/components/import/conflicts.js:128
 msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added"
 msgstr ""
 
-#: src/components/import/conflicts.js:120
+#: src/components/import/conflicts.js:121
 msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added.                           %{e}/%{f} road nodes added and %{g}/%{h} road links added "
 msgstr ""
 
-#: src/components/import/conflicts.js:132
+#: src/components/import/conflicts.js:133
 msgid "%{a}/%{b} road nodes added and %{c}/%{d} road links added"
 msgstr ""
 
@@ -130,7 +130,7 @@ msgstr ""
 msgid "Abort"
 msgstr ""
 
-#: src/pages/Run.vue:147
+#: src/pages/Run.vue:149
 msgid "Abort Simulation"
 msgstr ""
 
@@ -436,6 +436,10 @@ msgstr ""
 msgid "Empty all loaded files and start from scratch"
 msgstr ""
 
+#: src/pages/Run.vue:167
+msgid "End signal"
+msgstr ""
+
 #: src/components/run/ParamForm.vue:153
 msgid "Expand all"
 msgstr ""
@@ -460,7 +464,7 @@ msgstr ""
 msgid "fetch available GTFS"
 msgstr ""
 
-#: src/components/import/conflicts.js:137
+#: src/components/import/conflicts.js:138
 msgid "File(s) added"
 msgstr ""
 
@@ -916,7 +920,7 @@ msgstr ""
 msgid "Result Table"
 msgstr ""
 
-#: src/pages/Run.vue:79
+#: src/pages/Run.vue:81
 msgid "Results are not synchronized with latest modifications.             Please relauch simulation to update results."
 msgstr ""
 
@@ -984,7 +988,7 @@ msgstr ""
 msgid "Run"
 msgstr ""
 
-#: src/pages/Run.vue:137
+#: src/pages/Run.vue:139
 msgid "Run Simulation"
 msgstr ""
 
@@ -1028,7 +1032,7 @@ msgstr ""
 msgid "Scenario Settings"
 msgstr ""
 
-#: src/pages/Run.vue:33
+#: src/pages/Run.vue:35
 msgid "Scenario Simulation"
 msgstr ""
 
@@ -1122,11 +1126,11 @@ msgstr ""
 msgid "Sign out"
 msgstr ""
 
-#: src/pages/Run.vue:94
+#: src/pages/Run.vue:96
 msgid "Simulation ended with an execution error or have been aborted.             Please relauch simulation. If the problem persist, contact us."
 msgstr ""
 
-#: src/store/run.js:68
+#: src/store/run.js:65
 msgid "simulation executed successfully!"
 msgstr ""
 
@@ -1188,7 +1192,7 @@ msgstr ""
 msgid "This action will sign you out"
 msgstr ""
 
-#: src/pages/Run.vue:115
+#: src/pages/Run.vue:117
 msgid "This scenario is protected. You can not run simulation."
 msgstr ""
 
