@@ -16,6 +16,7 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useUserStore } from '@src/store/user'
 import axios from 'axios'
 import short from 'short-uuid'
+import distance from '@turf/distance'
 
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -237,20 +238,37 @@ function handleConflict(files, type = 'pt') {
   }
 }
 
+function getIndexInDist(nodes, storeNodes, conflicts, maxDist = 10) {
+  // drop by distance maxDist in meters. return list of index that are < maxdist appart.
+  // filter both geojson on matching conflicting indexes
+  const idxSet = new Set(conflicts)
+  const storeFeatures = storeNodes.features.filter(el => idxSet.has(el.properties.index))
+  const features = nodes.features.filter(el => idxSet.has(el.properties.index))
+  // dict index:geometry
+  const geomDict = storeFeatures.reduce((dict, node) => {
+    dict[node.properties.index] = node.geometry
+    return dict
+  }, {})
+  // keep dup index over 10meters.
+  const ls = features.filter(
+    node => distance(node.geometry, geomDict[node.properties.index]) * 1000 < maxDist).map(
+    node => node.properties.index)
+
+  return ls
+}
+
 function handleNodesConflict(nodes, storeNodes, links, prefix = 'node_') {
   const dupIndexes = getMatchingAttr(nodes, storeNodes, 'index')
   const perfectMatchs = new Set(getPerfectMatches(nodes, storeNodes, dupIndexes))
-  const conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
   // remove perfect matches nodes.
   nodes.features = nodes.features.filter(el => !perfectMatchs.has(el.properties.index))
-
-  // MAYBE: check for distance
-  // if distance <1m : keep existing one (became a perfect math)
-  // for index of conflict: check dist old and new nodes
-  // This is pretty slow.
+  let conflicts = dupIndexes.filter(idx => !perfectMatchs.has(idx))
 
   // we have conflicts. do something.
   if (conflicts.length !== 0) {
+    const indexInDist = new Set(getIndexInDist(nodes, storeNodes, conflicts, 10))
+    nodes.features = nodes.features.filter(el => !indexInDist.has(el.properties.index))
+    conflicts = conflicts.filter(el => !indexInDist.has(el))
     const newNodesDict = conflicts.reduce((acc, key) => {
       acc[key] = prefix + short.generate()
       return acc

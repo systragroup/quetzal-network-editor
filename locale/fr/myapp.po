@@ -17,15 +17,15 @@ msgstr ""
 msgid " deleted"
 msgstr " supprimé "
 
-#: src/components/utils/serializer.js:20
+#: src/components/utils/serializer.js:21
 msgid " imported, Expected "
 msgstr " importé. Attendue: "
 
-#: src/components/utils/serializer.js:13
+#: src/components/utils/serializer.js:14
 msgid " invalid CRS. Import aborted. use CRS84 / EPSG:4326 in "
 msgstr "CRS invalide, utiliser CRS84 / EPSG:4326"
 
-#: src/components/utils/serializer.js:7
+#: src/components/utils/serializer.js:8
 msgid " is empty"
 msgstr " est vide"
 
@@ -37,8 +37,8 @@ msgstr " minutes restantes"
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr " Les dossiers à la racines devraient être inputs/ et outputs/. non: "
 
-#: src/store/links.js:110 src/store/links.js:118 src/store/od.js:40
-#: src/store/rlinks.js:102 src/store/rlinks.js:110
+#: src/store/links.js:111 src/store/links.js:119 src/store/od.js:40
+#: src/store/rlinks.js:103 src/store/rlinks.js:111
 msgid " there is duplicated index, "
 msgstr " il y a des index en double, "
 
@@ -72,13 +72,9 @@ msgstr " il y a des index en double, "
 msgid "_ctx"
 msgstr ""
 
-#: src/components/utils/serializer.js:21
+#: src/components/utils/serializer.js:22
 msgid ". Import aborted in "
 msgstr ". Importation interrompue dans "
-
-#: src/pages/Import.vue:215
-msgid "$gettext"
-msgstr ""
 
 #: src/constants/hints.js:9
 msgid ""
@@ -154,12 +150,7 @@ msgstr ""
 "Ajouter des fichiers GTFS. Lorsque le téléversement est terminé, cliquer "
 "Convertir."
 
-#: src/pages/Import.vue:215
-msgid "An error occur fetching example on github"
-msgstr ""
-"Une erreur s'est produite lors de la récupération de l'exemple sur github"
-
-#: src/components/import/ScenariosExplorer.vue:174
+#: src/components/import/ScenariosExplorer.vue:178
 msgid "An error occured"
 msgstr "Une erreur s'est produite"
 
@@ -479,18 +470,6 @@ msgstr "Exporter les visibles"
 msgid "fetch available GTFS"
 msgstr "rafraîchir la liste"
 
-#: src/pages/Import.vue:113
-msgid "file is not a zip"
-msgstr "le fichier n'est pas un zip"
-
-#: src/store/index.js:144
-msgid "File(s) added"
-msgstr "Fichier(s) ajouté(s)"
-
-#: src/pages/Import.vue:92
-msgid "Files unloaded"
-msgstr "Fichiers déchargés"
-
 #: src/components/map/sidePanel/LinksSidePanel.vue:150
 #: src/components/map/sidePanel/ODSidePanel.vue:132
 #: src/components/map/sidePanel/RoadSidePanel.vue:135
@@ -762,11 +741,11 @@ msgstr "nom"
 msgid "need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol"
 msgstr "besoin d'au moins : 1 minuscule, 1 majuscule, 1 chiffre et 1 symbole"
 
-#: src/store/index.js:120
+#: src/store/index.js:123
 msgid "Need the same number of links and nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds"
 
-#: src/store/index.js:126
+#: src/store/index.js:129
 msgid "Need the same number of road_links and road_nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds routiers"
 
@@ -878,7 +857,7 @@ msgstr "Paramètres"
 msgid "Parameters and Run"
 msgstr "Parametres et execution"
 
-#: src/components/utils/serializer.js:37 src/components/utils/serializer.js:46
+#: src/components/utils/serializer.js:44 src/components/utils/serializer.js:53
 msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 "params.json devrait être un array d'object [{category: , params: }, ...]"
@@ -1054,11 +1033,11 @@ msgstr "Échelle"
 msgid "scale min"
 msgstr "Échelle"
 
-#: src/components/import/ScenariosExplorer.vue:136
+#: src/components/import/ScenariosExplorer.vue:140
 msgid "Scenario created"
 msgstr "Scénario créé"
 
-#: src/components/import/ScenariosExplorer.vue:169
+#: src/components/import/ScenariosExplorer.vue:173
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
@@ -1070,7 +1049,7 @@ msgstr "Paramètres de simulation"
 msgid "Scenario Simulation"
 msgstr "Simulation du scénario"
 
-#: src/components/import/ScenariosExplorer.vue:127
+#: src/components/import/ScenariosExplorer.vue:131
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
@@ -1198,7 +1177,7 @@ msgstr "Couches Statiques"
 msgid "Style presets"
 msgstr "Préréglages de style"
 
-#: src/components/utils/serializer.js:59 src/components/utils/serializer.js:66
+#: src/components/utils/serializer.js:69 src/components/utils/serializer.js:76
 msgid "styles.json should be an array of object with at least [{name:,layer:}]"
 msgstr ""
 "styles.json devrait être un array d'object avec au moins [{name:,layer:}]"
@@ -1236,11 +1215,16 @@ msgstr ""
 "Erreur lors de l'import du réseau OSMSi le problème persiste, veuillez nous "
 "contacter."
 
-#: src/components/utils/serializer.js:27
+#: src/components/utils/serializer.js:33
+msgid "there is duplicates index. you need unique index. Import aborted in "
+msgstr ""
+"il y a des index dupliqués. Importation interrompue"
+
+#: src/components/utils/serializer.js:28
 msgid ""
 "there is no index in the File. you need unique index. Import aborted in "
 msgstr ""
-"il y a des index de liens ou de noeds en double. Importation interrompue"
+"il y a pas d'index dans le fichier. Importation interrompue"
 
 #: src/components/layout/Profile.vue:284
 msgid "This action will sign you out"
@@ -1322,6 +1306,19 @@ msgstr "besoins de paramètres pour entrer"
 msgid "your session has expired. Please sign in again"
 msgstr ""
 "Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
+
+#~ msgid "An error occur fetching example on github"
+#~ msgstr ""
+#~ "Une erreur s'est produite lors de la récupération de l'exemple sur github"
+
+#~ msgid "file is not a zip"
+#~ msgstr "le fichier n'est pas un zip"
+
+#~ msgid "File(s) added"
+#~ msgstr "Fichier(s) ajouté(s)"
+
+#~ msgid "Files unloaded"
+#~ msgstr "Fichiers déchargés"
 
 #~ msgid "Noting to display."
 #~ msgstr "Rien à afficher"

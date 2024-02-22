@@ -9,15 +9,15 @@ msgstr ""
 msgid " deleted"
 msgstr ""
 
-#: src/components/utils/serializer.js:20
+#: src/components/utils/serializer.js:21
 msgid " imported, Expected "
 msgstr ""
 
-#: src/components/utils/serializer.js:13
+#: src/components/utils/serializer.js:14
 msgid " invalid CRS. Import aborted. use CRS84 / EPSG:4326 in "
 msgstr ""
 
-#: src/components/utils/serializer.js:7
+#: src/components/utils/serializer.js:8
 msgid " is empty"
 msgstr ""
 
@@ -29,11 +29,11 @@ msgstr ""
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr ""
 
-#: src/store/links.js:110
-#: src/store/links.js:118
+#: src/store/links.js:111
+#: src/store/links.js:119
 #: src/store/od.js:40
-#: src/store/rlinks.js:102
-#: src/store/rlinks.js:110
+#: src/store/rlinks.js:103
+#: src/store/rlinks.js:111
 msgid " there is duplicated index, "
 msgstr ""
 
@@ -73,12 +73,8 @@ msgstr ""
 msgid "_ctx"
 msgstr ""
 
-#: src/components/utils/serializer.js:21
+#: src/components/utils/serializer.js:22
 msgid ". Import aborted in "
-msgstr ""
-
-#: src/pages/Import.vue:215
-msgid "$gettext"
 msgstr ""
 
 #: src/constants/hints.js:9
@@ -140,11 +136,7 @@ msgstr ""
 msgid "Add GTFS files. When its done uploading press Convert"
 msgstr ""
 
-#: src/pages/Import.vue:215
-msgid "An error occur fetching example on github"
-msgstr ""
-
-#: src/components/import/ScenariosExplorer.vue:174
+#: src/components/import/ScenariosExplorer.vue:178
 msgid "An error occured"
 msgstr ""
 
@@ -456,18 +448,6 @@ msgstr ""
 msgid "fetch available GTFS"
 msgstr ""
 
-#: src/pages/Import.vue:113
-msgid "file is not a zip"
-msgstr ""
-
-#: src/store/index.js:144
-msgid "File(s) added"
-msgstr ""
-
-#: src/pages/Import.vue:92
-msgid "Files unloaded"
-msgstr ""
-
 #: src/components/map/sidePanel/LinksSidePanel.vue:150
 #: src/components/map/sidePanel/ODSidePanel.vue:132
 #: src/components/map/sidePanel/RoadSidePanel.vue:135
@@ -726,11 +706,11 @@ msgstr ""
 msgid "need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol"
 msgstr ""
 
-#: src/store/index.js:120
+#: src/store/index.js:123
 msgid "Need the same number of links and nodes files."
 msgstr ""
 
-#: src/store/index.js:126
+#: src/store/index.js:129
 msgid "Need the same number of road_links and road_nodes files."
 msgstr ""
 
@@ -845,8 +825,8 @@ msgstr ""
 msgid "Parameters and Run"
 msgstr ""
 
-#: src/components/utils/serializer.js:37
-#: src/components/utils/serializer.js:46
+#: src/components/utils/serializer.js:44
+#: src/components/utils/serializer.js:53
 msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 
@@ -1020,11 +1000,11 @@ msgstr ""
 msgid "scale min"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:136
+#: src/components/import/ScenariosExplorer.vue:140
 msgid "Scenario created"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:169
+#: src/components/import/ScenariosExplorer.vue:173
 msgid "Scenario deleted"
 msgstr ""
 
@@ -1036,7 +1016,7 @@ msgstr ""
 msgid "Scenario Simulation"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:127
+#: src/components/import/ScenariosExplorer.vue:131
 msgid "Scenario successfully copied"
 msgstr ""
 
@@ -1150,8 +1130,8 @@ msgstr ""
 msgid "Style presets"
 msgstr ""
 
-#: src/components/utils/serializer.js:59
-#: src/components/utils/serializer.js:66
+#: src/components/utils/serializer.js:69
+#: src/components/utils/serializer.js:76
 msgid "styles.json should be an array of object with at least [{name:,layer:}]"
 msgstr ""
 
@@ -1180,7 +1160,11 @@ msgstr ""
 msgid "There as been an error while importing OSM network.             Please try again. If the problem persist, contact us."
 msgstr ""
 
-#: src/components/utils/serializer.js:27
+#: src/components/utils/serializer.js:33
+msgid "there is duplicates index. you need unique index. Import aborted in "
+msgstr ""
+
+#: src/components/utils/serializer.js:28
 msgid "there is no index in the File. you need unique index. Import aborted in "
 msgstr ""
 

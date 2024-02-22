@@ -1,3 +1,8 @@
+## [5.2.d] (2024-02-22)
+
+### Features
+* **Fix conflict on import (index)**: Drop duplicate nodeIndex if their distance is <10m [#127](https://github.com/systragroup/quetzal-network-editor/issues/127)
+
 
 ## [5.1.2] (2024-02-21)
 
