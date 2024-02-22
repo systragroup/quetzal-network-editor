@@ -77,6 +77,18 @@ msgstr ""
 msgid ". Import aborted in "
 msgstr ""
 
+#: src/components/import/conflicts.js:127
+msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added"
+msgstr ""
+
+#: src/components/import/conflicts.js:120
+msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added.                           %{e}/%{f} road nodes added and %{g}/%{h} road links added "
+msgstr ""
+
+#: src/components/import/conflicts.js:132
+msgid "%{a}/%{b} road nodes added and %{c}/%{d} road links added"
+msgstr ""
+
 #: src/constants/hints.js:9
 msgid ""
 "0 - Regularly scheduled drop off.\n"
@@ -446,6 +458,10 @@ msgstr ""
 
 #: src/components/microservices/GTFSWebImporter.vue:68
 msgid "fetch available GTFS"
+msgstr ""
+
+#: src/components/import/conflicts.js:137
+msgid "File(s) added"
 msgstr ""
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:150

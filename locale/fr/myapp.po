@@ -76,6 +76,25 @@ msgstr ""
 msgid ". Import aborted in "
 msgstr ". Importation interrompue dans "
 
+#: src/components/import/conflicts.js:127
+msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added"
+msgstr "%{a}/%{b} noeuds TC ajoutés et %{c}/%{d} liens TC ajoutés"
+
+#: src/components/import/conflicts.js:120
+msgid ""
+"%{a}/%{b} PT nodes added and %{c}/%{d} PT links "
+"added.                           %{e}/%{f} road nodes added and %{g}/%{h} "
+"road links added "
+msgstr ""
+"%{a}/%{b} noeuds TC ajoutés et  %{c}/%{d} liens TC ajoutés. "
+"                          %{e}/%{f} noeuds routier ajoutés %{g}/%{h} "
+"liens routier ajoutés "
+
+#: src/components/import/conflicts.js:132
+msgid "%{a}/%{b} road nodes added and %{c}/%{d} road links added"
+msgstr "%{a}/%{b} noeuds routier ajoutés  %{c}/%{d} liens routier ajoutés 
+
+
 #: src/constants/hints.js:9
 msgid ""
 "0 - Regularly scheduled drop off.\n"
@@ -469,6 +488,10 @@ msgstr "Exporter les visibles"
 #: src/components/microservices/GTFSWebImporter.vue:68
 msgid "fetch available GTFS"
 msgstr "rafraîchir la liste"
+
+#: src/components/import/conflicts.js:137
+msgid "File(s) added"
+msgstr "Fichier(s) ajouté(s)"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:150
 #: src/components/map/sidePanel/ODSidePanel.vue:132
@@ -1217,14 +1240,12 @@ msgstr ""
 
 #: src/components/utils/serializer.js:33
 msgid "there is duplicates index. you need unique index. Import aborted in "
-msgstr ""
-"il y a des index dupliqués. Importation interrompue"
+msgstr "il y a des index dupliqués. Importation interrompue"
 
 #: src/components/utils/serializer.js:28
 msgid ""
 "there is no index in the File. you need unique index. Import aborted in "
-msgstr ""
-"il y a pas d'index dans le fichier. Importation interrompue"
+msgstr "il y a pas d'index dans le fichier. Importation interrompue"
 
 #: src/components/layout/Profile.vue:284
 msgid "This action will sign you out"
@@ -1313,9 +1334,6 @@ msgstr ""
 
 #~ msgid "file is not a zip"
 #~ msgstr "le fichier n'est pas un zip"
-
-#~ msgid "File(s) added"
-#~ msgstr "Fichier(s) ajouté(s)"
 
 #~ msgid "Files unloaded"
 #~ msgstr "Fichiers déchargés"
