@@ -301,7 +301,7 @@ export default {
   height: 75vh;
   width: 80vw;
   margin: 1rem;
-  padding: 2.5rem 2rem 2.5rem 2rem;
+  padding: 2.5rem 2rem;
   justify-content: center;
   background-color: rgb(var(--v-theme-lightergrey));
 }
@@ -312,9 +312,6 @@ export default {
 .col {
   max-height: 100%;
   align-items: center;
-}
-.card button {
-  margin-top: 0px;
 }
 .title {
   display: flex;
@@ -330,12 +327,8 @@ export default {
   color:rgb(var(--v-theme-secondary-dark));
   font-weight: bold;
   margin: 10px;
-  margin-left: 0px;
+  margin-left: 0;
 }
-.card button {
-  margin-top: 0px;
-}
-
 .params-row {
   /* Add individual list item styles here */
   display: flex; /* Use flexbox layout for each list item */
@@ -348,15 +341,12 @@ export default {
 .params{
   width: 10rem;
 }
-
 .list {
   height:70%;
   margin-top:1rem;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   border-top: 1px solid rgb(var(--v-theme-mediumgrey));
   border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
-
 }
 .list-row {
   /* Add individual list item styles here */
@@ -367,39 +357,32 @@ export default {
   justify-content:flex-start;
   border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
 }
-
 .list ul {
   height: 3rem;
   transition: background-color 0.3s; /* Add a smooth transition effect */
 }
-
 .list ul:hover {
   background-color: rgb(var(--v-theme-mediumgrey)); /* Change the background color on hover */
 }
-
 .list-item-small {
   /* Add individual list item styles here */
   flex: 0 0 8%;
   margin:4px;
 }
-
 .list-item-medium {
   /* Add individual list item styles here */
   flex: 0 0 18%;
   margin-right:2px;
 }
-
 .list-item-large {
   /* Add individual list item styles here */
   flex: 0 0 22%;
   margin:4px;
 }
-
 .bottom-button{
   padding:2rem;
   position: relative;
   right: 0;
   align-items: right;
-
 }
 </style>

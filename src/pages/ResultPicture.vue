@@ -124,7 +124,8 @@ export default {
   padding-top: 15px;
   padding-bottom: 60px;
 }
-//.v-img {
+
+// .v-img {
 //   -webkit-filter: invert(1);
 //   filter: invert(1);
 //   }
@@ -135,16 +136,13 @@ div.gallery {
   float: left;
 
 }
-
 div.gallery:hover {
   border: 1px solid rgb(var(--v-theme-darkgrey));
 }
-
 div.gallery img {
   width: 100%;
   height: auto;
 }
-
 div.desc {
   padding: 15px;
   text-align: center;

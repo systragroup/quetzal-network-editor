@@ -139,7 +139,6 @@ export default {
   margin: 10px;
   background-color:rgb(var(--v-theme-lightergrey));
 }
-
 .custom-title {
   height:3rem;
   align-content: center  !important;

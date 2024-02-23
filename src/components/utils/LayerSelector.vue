@@ -94,7 +94,6 @@ function moveLayer (name) {
           <v-tooltip
             location="top"
             open-delay="300"
-            content-class="custom-tooltip"
           >
             <template v-slot:activator="{ props:ttprops }">
               <v-list-item-title
@@ -127,7 +126,6 @@ function moveLayer (name) {
   position: relative;
   align-items: center;
   justify-content: center;
-
 }
 .card {
   width: 500px;
@@ -139,7 +137,6 @@ function moveLayer (name) {
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding:1rem
-
 }
 .title {
   display: flex;
@@ -149,9 +146,5 @@ function moveLayer (name) {
   font-size: 3.5em;
   color: $primary !important;
   font-weight: bold;
-}
-.custom-tooltip {
-    opacity: 1!important;
-    background: var(--v-tooltip-bg, rgba(97, 97, 97, 1)) !important;
 }
 </style>

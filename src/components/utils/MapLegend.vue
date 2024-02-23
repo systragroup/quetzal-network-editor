@@ -61,7 +61,6 @@ const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(prop
     padding-bottom: 15px;
 
 }
-
 .gradient .domain-title {
     position: absolute;
     right: 25%;
@@ -71,7 +70,6 @@ const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(prop
     top: 6px;
 
 }
-
 .gradient .domain-min {
     position: absolute;
     left: 0;
@@ -92,13 +90,11 @@ const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(prop
     font-size: 11px;
     bottom: 5px;
 }
-
 .grad-step {
     display: inline-block;
     height: 20px;
     width: 1%;
 }
-
 .legend {
   width: 160px;
   z-index: 3;

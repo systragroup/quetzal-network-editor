@@ -454,21 +454,10 @@ export default {
   height: calc(100% - 50px);
   width: 100%;
   display: flex;
-
 }
 .left-panel {
   height: 100%;
   position: absolute;
-}
-
-.hist {
-  position: relative;
-  bottom: -10px;
-  flex-grow: 1;
-  height: 20px;
-  background-color: rgba(231, 17, 17);
-  text-align: center;
-  width:10px;
 }
 
 </style>
