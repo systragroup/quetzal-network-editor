@@ -226,20 +226,16 @@ export default {
   height: calc(50% - 35px );
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
-
   display: flex;
-  margin: 10px 0px 0px 00px;
+  margin: 10px 0 0;
   flex-direction: column;
-
 }
 .title-box {
   display: flex;
   flex-direction: row;
   background:rgb(var(--v-theme-lightgrey));
-
-  border-radius: 5px 5px 0px 0px;
+  border-radius: 5px 5px 0 0;
   padding: 0.5rem 0.5rem 0.5rem 1rem;
-
 }
 .custom-title{
   font-size: 2em !important;
@@ -261,7 +257,6 @@ export default {
 .list {
   font-size: 1em;
   font-weight: bold;
-  //border: 1px solid red;
   overflow-y: auto;
   padding-left: 1rem;
   padding-top:0.5rem

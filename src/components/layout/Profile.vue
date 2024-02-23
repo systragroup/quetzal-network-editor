@@ -392,11 +392,9 @@ function deleteUserButton (user) {
   cursor: pointer;
 }
 .signin {
-  padding:1rem 2rem 2rem 2rem
+  padding:1rem 2rem 2rem
 }
-
 .v-card-content {
-  //max-height:400px; /* Set a max height for the middle content */
   overflow: auto; /* Enable scrolling if the content overflows */
   max-height:calc(100vh - 25rem);
   min-height:5rem;

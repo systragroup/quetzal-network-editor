@@ -88,7 +88,6 @@ export default {
   height: 100%;
   width: 100%;
   background-color: rgb(var(--v-theme-background));
-
   position: absolute;
 }
 .tabs{

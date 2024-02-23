@@ -391,18 +391,11 @@ function deleteButton (obj) {
                 <v-tooltip
                   location="right"
                   open-delay="300"
-                  content-class="custom-tooltip"
                 >
                   <template v-slot:activator="{ props }">
                     <v-list-item-title
-                      v-if="item==editorTrip"
-                      style="{'flex':'2'}"
-                    >
-                      <strong>{{ item }}</strong>
-                    </v-list-item-title>
-                    <v-list-item-title
-                      v-else
                       v-bind="props"
+                      :style="{'font-weight' : item===editorTrip? 'bold':'normal'}"
                     >
                       {{ item }}
                     </v-list-item-title>
@@ -620,7 +613,6 @@ function deleteButton (obj) {
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
 }
-
 .left-panel {
   height: 100%;
   background-color: $primary-dark;
@@ -628,7 +620,6 @@ function deleteButton (obj) {
   position: absolute;
   display:flex;
   z-index: 20;
-
 }
 .left-panel-close {
 transition:0.3s
@@ -639,9 +630,7 @@ transition:0.3s
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  //resize: horizontal;
   overflow: auto;
-
 }
 .v-list__tile {
   padding: 0
@@ -670,33 +659,24 @@ transition:0.3s
   height: calc(100vh - 250px);
   padding-left:20px
 }
-
 .scrollable {
   overflow-y:scroll;
-
 }
 .virtual-scroll{
   margin-right: 3px;
-
 }
-
 .drawer-list-item {
   padding: 0 13px !important;
   justify-content: flex-start !important;
   flex: 0;
   transition: 0.3s;
 }
-
 .list-item-icon {
   display: flex !important;
   flex-flow: row !important;
   justify-content: center !important;
   margin: 0 !important;
   color: white;
-}
-.custom-tooltip {
-    opacity: 1!important;
-    background: var(--v-tooltip-bg, rgba(97, 97, 97, 1)) !important;
 }
 
 </style>

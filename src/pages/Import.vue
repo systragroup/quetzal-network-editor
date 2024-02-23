@@ -351,7 +351,7 @@ function loadNetwork (files) {
 <style lang="scss" scoped>
 .layout {
   position: relative;
-  padding: 4rem 2rem 4rem 2rem;
+  padding: 4rem 2rem;
   height:100%;
   display: flex;
   flex-flow: row;
@@ -359,7 +359,6 @@ function loadNetwork (files) {
   align-items: center;
   overflow-y: auto;
 }
-
 .center-col{
   display: flex;
   flex-direction: column;
@@ -374,7 +373,6 @@ function loadNetwork (files) {
   width:28rem;
   padding:0.5rem;
 }
-
 .card {
   overflow-y:hidden;
   padding: 20px;
@@ -409,7 +407,7 @@ function loadNetwork (files) {
   margin: 20px;
 }
 .card button {
-  margin: 0.5rem 0.5rem 0rem 0.5rem;
+  margin: 0.5rem 0.5rem 0;
 }
 .animate-login {
   transform: translateY(-185%);

@@ -401,12 +401,11 @@ async function readStyles (event) {
 .container{
   display: flex;
   width:100%;
-  padding: 0rem 1rem 0rem 1rem;
-  margin: 0.3rem 0rem 0.3rem 0rem;
+  padding: 0 1rem;
+  margin: 0.3rem 0 ;
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-
 }
 .type-icon{
   padding-right: 3rem;

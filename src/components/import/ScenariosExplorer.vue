@@ -513,7 +513,6 @@ export default {
 .item{
   flex:1;
 }
-
 .custom-title {
   font-size: 1.2em;
   padding-left: 1.2rem;
@@ -532,11 +531,8 @@ export default {
 .text-right {
   justify-content: end;
 }
-
 .v-card-content {
-  //max-height:400px; /* Set a max height for the middle content */
   overflow: auto; /* Enable scrolling if the content overflows */
   max-height:calc(100% - 10rem);
-
 }
 </style>

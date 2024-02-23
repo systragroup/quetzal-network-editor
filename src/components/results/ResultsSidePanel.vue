@@ -362,13 +362,12 @@ export default {
   justify-content: space-between;
 }
 .layer {
-  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  padding: 0.5rem;
   background-color: rgb(var(--v-theme-secondary));
   display:flex;
   align-items: center;
   justify-content: space-between;
 }
-
 .left-panel-close {
 transition:0.3s
 }
@@ -378,9 +377,7 @@ transition:0.3s
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  //resize: horizontal;
   overflow: auto;
-
 }
 .v-list__tile {
   padding: 0
@@ -405,19 +402,16 @@ transition:0.3s
   font-size: 1.1em;
   margin-bottom: 10px;
 }
-
 .scrollable {
    overflow-y:scroll;
 
 }
-
 .drawer-list-item {
   padding: 0 13px !important;
   justify-content: flex-start !important;
   flex: 0;
   transition: 0.3s;
 }
-
 .list-item-icon {
   display: flex !important;
   flex-flow: row !important;
