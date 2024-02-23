@@ -13,6 +13,10 @@
 
 ## [5.1.3] (2024-02-23)
 No changes. Test for the deploy github Action
+## [5.2.f] ()
+styleLinted
+
+
 ## [5.2.e] (2024-02-22)
 
 ### Features
