@@ -45,6 +45,9 @@ jobs:
       - name: Config Secret
         run: |
           echo -e "${SALT}\n${PASSKEY}\ny" | sh config-secret
+      - name: Translation
+        run: |
+          yarn run i18n-compile
       - name: Build
         run: |
           yarn run build
