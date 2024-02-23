@@ -1,0 +1,21 @@
+name: Run Linter
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  linter:
+    name: Run linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'  # Specify the Node.js version you want to use
+      - name: Install dependencies
+        run: yarn install
+      - name: Run linter
+        run: yarn run lint
