@@ -1,12 +1,12 @@
 # Sample workflow for building and deploying a VitePress site to GitHub Pages
 #
-name: Deploy app to Pages
+name: Build and Deploy to Pages
 
 on:
-  # Runs on pushes targeting the `main` branch. Change this to `master` if you're
-  # using the `master` branch as the default branch.
-  push:
-    branches: [master]
+  # Runs on new release
+  release:
+    types:
+      - created
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -42,13 +42,13 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Install dependencies
         run: yarn install # or pnpm install / yarn install / bun install
-      - name: Config Secret
+      - name: Config Secret # decript .env files.
         run: |
           echo -e "${SALT}\n${PASSKEY}\ny" | sh config-secret
-      - name: Translation
+      - name: Translation # build translation json.
         run: |
           yarn run i18n-compile
-      - name: Build
+      - name: Build #build app.
         run: |
           yarn run build
       - name: Upload artifact
