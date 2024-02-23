@@ -28,8 +28,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      SECRET_INPUT_1: ${{ secrets.SALT }}
-      SECRET_INPUT_2: ${{ secrets.PASSKEY }}
+      SALT: ${{ secrets.SALT }}
+      PASSKEY: ${{ secrets.PASSKEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -44,7 +44,7 @@ jobs:
         run: yarn install # or pnpm install / yarn install / bun install
       - name: Config Secret
         run: |
-          echo -e "y\n${SECRET_INPUT_1}\n${SECRET_INPUT_2}" | sh config-secret
+          echo -e "${SALT}\n${PASSKEY}\ny" | sh config-secret
       - name: Build
         run: |
           yarn run build
