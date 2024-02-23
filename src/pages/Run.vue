@@ -203,7 +203,7 @@ async function run () {
 .container {
   background-color:rgb(var(--v-theme-background)) !important;
   overflow: hidden;
-  padding: 0 0 0 0;
+  padding: 0;
 }
 .background {
   background-color: rgb(var(--v-theme-background));
@@ -211,13 +211,11 @@ async function run () {
   padding: 1rem;
   overflow: hidden;
 }
-
 .card {
   height: 90vh;
   overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
 }
-
 .v-card__text {
   max-height: 80%;
 }
@@ -241,9 +239,8 @@ async function run () {
   color:rgb(var(--v-theme-secondary-dark));
   font-weight: bold;
   margin: 10px;
-  margin-left: 0px;
+  margin-left: 0;
 }
-
 .stepper{
   background-color:rgb(var(--v-theme-mediumgrey)) ;
   color:rgb(var(--v-theme-black));

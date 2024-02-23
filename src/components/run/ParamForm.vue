@@ -207,7 +207,7 @@ export default {
   color:rgb(var(--v-theme-secondary-dark));
   font-weight: bold;
   margin: 10px;
-  margin-left: 0px;
+  margin-left: 0;
 }
 .title {
   display: flex;

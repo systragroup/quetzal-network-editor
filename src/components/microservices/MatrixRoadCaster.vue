@@ -395,16 +395,15 @@ export default {
   color:var(--v-secondary-dark);
   font-weight: bold;
   margin: 10px;
-  margin-left: 0px;
+  margin-left: 0;
 }
 .card button {
-  margin-top: 0px;
+  margin-top: 0;
 }
 .background {
   background-color:var(--v-background-base);
   overflow-y: auto;
 }
-
 div.gallery {
   margin: 5px;
   background-color: var(--v-white-base);
@@ -412,11 +411,9 @@ div.gallery {
   float: left;
   width: 50rem;
 }
-
 div.gallery:hover {
   border: 1px solid var(--v-darkgrey-base);
 }
-
 div.gallery img {
   width: 100%;
   height: auto;

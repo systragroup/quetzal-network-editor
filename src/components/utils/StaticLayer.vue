@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .map-legend {
   height: 100%;
-  bottom:0px;
+  bottom: 0;
   position: absolute;
 }
 </style>
