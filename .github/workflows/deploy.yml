@@ -27,8 +27,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      SALT: ${{ secrets.SALT }}
-      PASSKEY: ${{ secrets.PASSKEY }}
+      VITE_APP_VERSION: $npm_package_version
+      VITE_BASE_PATH: $${{ secrets.VITE_BASE_PATH }}
+      VITE_MAPBOX_PUBLIC_KEY: ${{ secrets.VITE_MAPBOX_PUBLIC_KEY }}
+      VITE_BACK_URL: ${{ secrets.VITE_BACK_URL }}
+      VITE_COGNITO_REDIRECT_URI: ${{ secrets.VITE_COGNITO_REDIRECT_URI }}
+      VITE_COGNITO_REDIRECT_URI_SIGNOUT: ${{ secrets.VITE_COGNITO_REDIRECT_URI_SIGNOUT }}
+      VITE_APP_URL: ${{ secrets.VITE_APP_URL }}
+      VITE_COGNITO_USERPOOL_ID: ${{ secrets.VITE_COGNITO_USERPOOL_ID }}
+      VITE_COGNITO_APP_DOMAIN: ${{ secrets.VITE_COGNITO_APP_DOMAIN }}
+      VITE_COGNITO_CLIENT_ID: ${{ secrets.VITE_COGNITO_CLIENT_ID }}
+      VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.VITE_COGNITO_IDENTITY_POOL_ID }}
+      VITE_COGNITO_REGION: ${{ secrets.VITE_COGNITO_REGION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,15 +51,6 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Install dependencies
         run: yarn install # or pnpm install / yarn install / bun install
-      - name: Config Secret # decript .env files.
-        run: |
-          echo -e "${SALT}\n${PASSKEY}\ny" | sh config-secret
-      - name: Unlock Secret # decript .env files.
-        run: |
-          echo -e "y" | sh config-secret
-      - name: print secret
-        run: |
-          cat .env.production
       - name: Translation # build translation json.
         run: |
           yarn run i18n-compile
