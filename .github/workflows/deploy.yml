@@ -44,6 +44,9 @@ jobs:
       - name: Config Secret # decript .env files.
         run: |
           echo -e "${SALT}\n${PASSKEY}\ny" | sh config-secret
+      - name: print secret
+        run: |
+          sh cat .env.production
       - name: Translation # build translation json.
         run: |
           yarn run i18n-compile
@@ -54,6 +57,9 @@ jobs:
         uses: actions/upload-pages-artifact@v2
         with:
           path: './dist'
+      - name: stop
+        run: |
+          sh stop
 
   # Deployment job
   deploy:
