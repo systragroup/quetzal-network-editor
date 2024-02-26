@@ -149,7 +149,7 @@ Then compile the `po` files to a single `json` file using:
 yarn run i18n-compile
 ```
 
-### releases
+### Deployement and Releases
 
 After merging developements on master create a tag matching the value in package.json.<br>
 Dont forget to add your changes on the CHANGELOG.
@@ -158,10 +158,7 @@ git tag -a v5.1.1 -m 'tag message'
 git push origin v5.1.1
 ```
 
-a github action will create a realease with your tag (must start with v). <br>
+github actions will:
+  - Create a realease with your tag (must start with v).
+  - Build translate and deploy.
 
-### Deployement
-
-pushing on master will build and deploy automaticly.
-
-if env.production are changes Please change them in this repo secrets as those are the one used.
