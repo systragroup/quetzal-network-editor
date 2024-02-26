@@ -5,7 +5,7 @@ import { useUserStore } from '@src/store/user'
 import { computed, ref, onMounted, watch } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-const version = import.meta.env.VITE_APP_VERSION
+import { version } from '../../../package.json'
 
 const store = useIndexStore()
 const userStore = useUserStore()
