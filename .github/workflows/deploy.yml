@@ -46,7 +46,7 @@ jobs:
           echo -e "${SALT}\n${PASSKEY}\ny" | sh config-secret
       - name: print secret
         run: |
-          sh cat .env.production
+          cat .env.production
       - name: Translation # build translation json.
         run: |
           yarn run i18n-compile
