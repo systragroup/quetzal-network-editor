@@ -1,3 +1,7 @@
+## [5.1.5] (2024-02-26)
+
+### Changes
+* **Build and deploy** From tag and not merge on master.
 ## [5.1.4] (2024-02-26)
 
 ### Changes
