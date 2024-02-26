@@ -27,7 +27,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VITE_APP_VERSION: $npm_package_version
+      VITE_APP_VERSION: $${{ secrets.VITE_APP_VERSION }}
       VITE_BASE_PATH: $${{ secrets.VITE_BASE_PATH }}
       VITE_MAPBOX_PUBLIC_KEY: ${{ secrets.VITE_MAPBOX_PUBLIC_KEY }}
       VITE_BACK_URL: ${{ secrets.VITE_BACK_URL }}
