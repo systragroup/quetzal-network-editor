@@ -1,3 +1,6 @@
+## [5.1.4] (2024-02-26)
+Change amplify to v6 for the build and deploy github action
+
 ## [5.1.3] (2024-02-23)
 No changes. Test for the deploy github Action
 

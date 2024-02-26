@@ -1,86 +1,75 @@
-<!-- eslint-disable vue/multi-word-component-names -->
-<script>
+<script setup>
+import { ref, onBeforeMount } from 'vue'
 import auth from '@src/auth'
 const $gettext = s => s
+const emits = defineEmits(['signin'])
+const newPasswordUI = ref(false)
+const username = ref('')
+const password = ref('')
+const newPassword = ref('')
+const newPasswordConfirm = ref('')
+const error = ref('')
+const shake = ref(false)
+const loading = ref(false)
+const re = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/
+const form = ref()
 
-export default {
-  name: 'Signin',
-  emits: ['signin'],
-  data () {
-    return {
-      newPasswordUI: false,
-      user: null,
-      username: '',
-      password: '',
-      newPassword: '',
-      newPasswordConfirm: '',
-      error: '',
-      shake: false,
-      loading: false,
-      re: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/,
+const rules = ref({
+  required: v => !!v || $gettext('Required'),
+  password: v => re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
+  match: v => v === newPassword.value || $gettext('password must match'),
+})
 
-      rules: {
-        required: v => !!v || $gettext('Required'),
-        password: v => this.re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
-        match: v => v === this.newPassword || $gettext('password must match'),
+onBeforeMount(() => {
+  newPasswordUI.value = ''
+  username.value = ''
+  password.value = ''
+  newPassword.value = ''
+  newPasswordConfirm.value = ''
+  error.value = ''
+})
 
-      },
-    }
-  },
-  beforeDestroy () {
-    this.newPasswordUI = ''
-    this.username = ''
-    this.password = ''
-    this.newPassword = ''
-    this.newPasswordConfirm = ''
-    this.error = ''
-  },
-
-  methods: {
-    async signin () {
-      if (this.$refs.form.validate()) {
-        this.loading = true
-        try {
-          // sign in.
-          if (!this.newPasswordUI) {
-            const resp = await auth.signin({ username: this.username, password: this.password })
-            if (resp.challengeName === 'NEW_PASSWORD_REQUIRED') {
-              // if new user. force change password.
-              this.user = resp
-              this.newPasswordUI = true
-              this.loading = false
-              this.$refs.form.resetValidation()
-              // else signin (default case.)
-            } else {
-              this.$emit('signin', resp)
-            }
-            // if we are changing the password of a new user.
-          } else {
-            const resp = await auth.completeNewPassword(this.user, this.newPassword)
-            this.$emit('signin', resp)
-          }
-        } catch (err) {
-          this.shake = true
-          this.loading = false
-          this.error = err
+async function signin (event) {
+  const resp = await event
+  if (resp.valid) {
+    loading.value = true
+    try {
+      // sign in.
+      if (!newPasswordUI.value) {
+        const resp = await auth.signin({ username: username.value, password: password.value })
+        if (resp.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+          // if new user. force change password.
+          newPasswordUI.value = true
+          loading.value = false
+          form.value.resetValidation()
+          // else signin (default case.)
+        } else {
+          emits('signin', resp)
         }
+        // if we are changing the password of a new user.
       } else {
-        this.shake = true
-        this.loading = false
+        const resp = await auth.completeNewPassword(newPassword.value)
+        emits('signin', resp)
       }
-      // set shake back to false. leave time for animation.
-      setTimeout(() => { this.shake = false }, 500)
-    },
-
-  },
+    } catch (err) {
+      shake.value = true
+      loading.value = false
+      error.value = err
+    }
+  } else {
+    shake.value = true
+    loading.value = false
+  }
+  // set shake back to false. leave time for animation.
+  setTimeout(() => { shake.value = false }, 500)
 }
+
 </script>
 <template>
   <section>
     <v-card
       class="signin"
       :class="{'shake':shake}"
-      @keydown.enter="signin()"
     >
       <v-card-title
         class="text-h4"
@@ -95,7 +84,8 @@ export default {
       </v-card-text>
       <v-form
         ref="form"
-        lazy-validation
+        class="form"
+        @submit.prevent="signin"
       >
         <v-text-field
           v-if="!newPasswordUI"
@@ -133,9 +123,9 @@ export default {
         </v-card-text>
         <v-btn
           block
+          type="submit"
           color="success"
           :loading="loading"
-          @click="signin()"
         >
           {{ $gettext('Sign in') }}
         </v-btn>

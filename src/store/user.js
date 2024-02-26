@@ -12,7 +12,6 @@ export const useUserStore = defineStore('userStore', {
     cognitoInfo: {},
     cognitoGroup: '',
     bucketListStore: [],
-    accesToken: '',
     idToken: '',
     refreshExpTime: 30 * 24 * 60 * 60,
     expData: 0,
@@ -37,7 +36,6 @@ export const useUserStore = defineStore('userStore', {
       this.cognitoInfo = {}
       this.cognitoGroup = ''
       this.bucketListStore = []
-      this.accesToken = ''
       this.idToken = ''
       this.expData = 0
       this.loggedIn = false
@@ -57,9 +55,6 @@ export const useUserStore = defineStore('userStore', {
     },
     setBucketList (payload) {
       this.bucketListStore = payload
-    },
-    setAccessToken (payload) {
-      this.accesToken = payload.jwtToken
     },
     setIdToken (payload) {
       this.idToken = payload
