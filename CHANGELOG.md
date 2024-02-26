@@ -1,5 +1,11 @@
 ## [5.1.4] (2024-02-26)
-Change amplify to v6 for the build and deploy github action
+
+### Changes
+* **Amplify:** changed to v6 for the build and deploy github action (that was not the bug, but fine.)
+* **Add PR template:** 
+* **Build and deploy** with github action. secrets (.env.production) are in the repon secrets now. (config-secret.sh not working.)
+* **version number** removed from .env  ($npm_package_version not working on github action). read package.json version number directly.
+
 
 ## [5.1.3] (2024-02-23)
 No changes. Test for the deploy github Action

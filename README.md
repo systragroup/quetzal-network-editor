@@ -162,18 +162,6 @@ a github action will create a realease with your tag (must start with v). <br>
 
 ### Deployement
 
-you can build and push on subtree to deploy. <br>
-1) duplicate index.html as 404.html
-2) remove dist from the .gitignore
-3) build and push to subtree
+pushing on master will build and deploy automaticly.
 
-```bash
-yarn run build
-git add dist/
-git commit -m 'build 5.1.1 for subtree'
-git subtree push --prefix dist origin dist
-```
-4) add dist/ back to gitignore.
-
-
-The *github-pages* should update automatically for *dist* branch.
+if env.production are changes Please change them in this repo secrets as those are the one used.
