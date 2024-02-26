@@ -55,6 +55,9 @@ jobs:
       - name: Build #build app.
         run: |
           yarn run build
+      - name: create 404.html
+        run: |
+          cp dist/index.html dist/404.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
