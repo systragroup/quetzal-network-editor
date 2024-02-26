@@ -44,6 +44,9 @@ jobs:
       - name: Config Secret # decript .env files.
         run: |
           echo -e "${SALT}\n${PASSKEY}\ny" | sh config-secret
+      - name: Unlock Secret # decript .env files.
+        run: |
+          echo -e "y" | sh config-secret
       - name: print secret
         run: |
           cat .env.production
