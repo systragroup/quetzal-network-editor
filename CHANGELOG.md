@@ -1,7 +1,19 @@
+
+## [5.2.f] (2024-02-27)
+
+### Changes
+styleLinted
+
+### Bug fixes
+* **link_sequence:** was problematic when links not sorted. Sort editorLinks [#492](https://github.com/systragroup/quetzal-network-editor/issues/492)
+* **Clone trips:** fix. sort links with link_sequence first [#493](https://github.com/systragroup/quetzal-network-editor/issues/493)
+
+
 ## [5.1.5] (2024-02-26)
 
 ### Changes
 * **Build and deploy** From tag and not merge on master.
+
 ## [5.1.4] (2024-02-26)
 
 ### Changes
@@ -12,9 +24,8 @@
 
 
 ## [5.1.3] (2024-02-23)
+
 No changes. Test for the deploy github Action
-## [5.2.f] ()
-styleLinted
 
 
 ## [5.2.e] (2024-02-22)

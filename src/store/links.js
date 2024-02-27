@@ -236,9 +236,11 @@ export const useLinksStore = defineStore('links', {
       this.editorTrip = payload.tripId
       this.changeBounds = payload.changeBounds
       // set editor links corresponding to trip id
-      // var filtered = {...this.links}
       const features = this.links.features.filter(link => link.properties.trip_id === this.editorTrip)
       this.editorLinks.features = cloneDeep(features)
+
+      // sort with sequence. we assume it is sort and action will place links in the correct order
+      this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
 
       // get the corresponding nodes
       this.getEditorNodes({ nodes: this.nodes })
@@ -252,16 +254,25 @@ export const useLinksStore = defineStore('links', {
       const features = this.links.features.filter(link => link.properties.trip_id === payload.tripId)
       cloned.features = cloneDeep(features)
 
-      let linkSequence = cloned.features.length
-      for (const link of cloned.features) {
-        if (payload.reverse) {
+      // change tripId.
+      cloned.features.forEach(link => link.properties.trip_id = payload.name)
+      // change index name
+      cloned.features.forEach(link => link.properties.index = 'link_' + short.generate())
+
+      if (payload.reverse) {
+        // sort links by sequence by inverse link_sequece
+        cloned.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+        cloned.features.reverse()
+        let linkSequence = 1
+        // inverser l'ordre des features
+        for (const link of cloned.features) {
           // mettre dans l'autre sens » inverser 0 et 1 et leur coordonées
           link.geometry.coordinates.reverse()
           // inverser node a et b (propriétés)
           link.properties.a = [link.properties.b, link.properties.b = link.properties.a][0]
           // changer le link-sequence de tous les objets
           link.properties.link_sequence = linkSequence
-          linkSequence -= 1
+          linkSequence += 1
           // changer la direction
           if (link.properties.direction_id === 0) {
             link.properties.direction_id = 1
@@ -269,13 +280,8 @@ export const useLinksStore = defineStore('links', {
             link.properties.direction_id = 0
           }
         }
-        // change tripId.
-        link.properties.trip_id = payload.name
-        // change index name
-        link.properties.index = 'link_' + short.generate()
       }
-      // inverser l'ordre des features
-      cloned.features.reverse()
+
       if (payload.cloneNodes) {
       // duplicate nodes and rename them
         const clonedNodes = cloneDeep(this.nodes)
