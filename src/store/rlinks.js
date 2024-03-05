@@ -10,7 +10,7 @@ import booleanCrosses from '@turf/boolean-crosses'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import bearing from '@turf/bearing'
-import { serializer } from '@comp/utils/serializer.js'
+import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import { toRaw } from 'vue'
@@ -61,7 +61,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     loadrLinks (payload) {
       this.rlinks = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.rlinks.crs.properties.name)) {
+      if (CRSis4326(this.rlinks)) {
         this.visiblerLinks = cloneDeep(geojson)
         this.renderedrLinks = cloneDeep(geojson)
         // limit geometry precision to 6 digit
@@ -77,7 +77,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     loadrNodes (payload) {
       this.rnodes = JSON.parse(JSON.stringify(payload))
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.rnodes.crs.properties.name)) {
+      if (CRSis4326(this.rnodes)) {
         this.visiblerNodes = cloneDeep(geojson)
         this.renderedrNodes = cloneDeep(geojson)
         // limit geometry precision to 6 digit

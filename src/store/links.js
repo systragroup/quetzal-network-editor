@@ -6,7 +6,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
-import { serializer } from '@comp/utils/serializer.js'
+import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import { ref } from 'vue'
@@ -61,7 +61,8 @@ export const useLinksStore = defineStore('links', {
     },
     loadLinks (payload) {
       this.links = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.links.crs.properties.name)) {
+
+      if (CRSis4326(this.links)) {
         this.editorLinks = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
@@ -79,7 +80,7 @@ export const useLinksStore = defineStore('links', {
 
     loadNodes (payload) {
       this.nodes = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.nodes.crs.properties.name)) {
+      if (CRSis4326(this.nodes)) {
         this.editorNodes = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(

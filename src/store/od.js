@@ -3,7 +3,7 @@
 import { defineStore } from 'pinia'
 
 import Point from 'turf-point'
-import { serializer } from '@comp/utils/serializer.js'
+import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
@@ -24,7 +24,7 @@ export const useODStore = defineStore('od', {
   actions: {
     loadLayer (payload) {
       this.layer = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.layer.crs.properties.name)) {
+      if (CRSis4326(this.layer)) {
         this.visibleLayer = cloneDeep(geojson)
         // set all trips visible
         this.getProperties()
