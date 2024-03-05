@@ -36,25 +36,32 @@ function getDisplayedRoutes () {
 }
 
 const saving = ref(false)
+const exporting = ref(false)
 
-function handleClickMenuItem (route) {
+async function handleClickMenuItem (route) {
   switch (route.name) {
     case 'Export':
-      store.exportFiles()
+      try {
+        exporting.value = true
+        await store.exportFiles()
+        exporting.value = false
+      } catch (err) {
+        exporting.value = false
+        store.changeAlert(err) }
       break
+
     case 'Save':
-      saving.value = true
-      store.exportToS3().then(
-        () => {
-          saving.value = false
-          store.changeNotification(
-            { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
-        }).catch(
-        err => {
-          saving.value = false
-          store.changeAlert(err)
-        })
+      try {
+        saving.value = true
+        await store.exportToS3()
+        saving.value = false
+        store.changeNotification(
+          { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
+      } catch (err) {
+        saving.value = false
+        store.changeAlert(err) }
       break
+
     default:
       router.push(route.path)
       rail.value = true
@@ -102,7 +109,7 @@ function handleClickMenuItem (route) {
           >
             <template v-slot:prepend>
               <v-badge
-                v-if="item.name === 'Save' && saving"
+                v-if="(item.name === 'Save' && saving) || (item.name === 'Export' && exporting)"
                 color="rgba(0, 0, 0, 0)"
               >
                 <template v-slot:badge>

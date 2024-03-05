@@ -1,5 +1,8 @@
 ## [5.2.g] (2024-03-25)
 
+### Features
+* **exporting**: Loading badge added (like saving) on the navigation drawer.
+
 ### Changes
 - added urn:ogc:def:crs:EPSG:4326 to CRS list.
 - only read Geojson in road, pt and od folder when imported from s3 (other files will be other inputs ex: road/speed.csv)
