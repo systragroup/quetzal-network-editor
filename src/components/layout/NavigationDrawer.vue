@@ -2,6 +2,7 @@
 import router from '@src/router/index'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
+import { useRunStore } from '@src/store/run'
 import { computed, ref, onMounted, watch } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -9,6 +10,20 @@ import { version } from '../../../package.json'
 
 const store = useIndexStore()
 const userStore = useUserStore()
+const runStore = useRunStore()
+
+const running = computed(() => { return runStore.running })
+watch(running, (val) => {
+  const item = menuItems.value.filter(item => item.name == 'Run')[0]
+  item.loading = val
+})
+
+const error = computed(() => { return runStore.error })
+watch(error, (val) => {
+  const item = menuItems.value.filter(item => item.name == 'Run')[0]
+  item.error = val
+})
+
 const isProtected = computed(() => userStore.protected)
 const scenario = computed(() => userStore.scenario)
 const rail = ref(true)
@@ -23,11 +38,13 @@ onMounted(() => {
     icon: 'fa-solid fa-save',
     margin: 'auto',
     title: $gettext('Save'),
+    loading: false,
   })
   menuItems.value = menuItems.value.concat({
     name: 'Export',
     icon: 'fa-solid fa-download',
     title: $gettext('Export'),
+    loading: false,
   })
 })
 
@@ -35,30 +52,27 @@ function getDisplayedRoutes () {
   return menuItems.value.filter(o => o.icon)
 }
 
-const saving = ref(false)
-const exporting = ref(false)
-
 async function handleClickMenuItem (route) {
   switch (route.name) {
     case 'Export':
       try {
-        exporting.value = true
+        route.loading = true
         await store.exportFiles()
-        exporting.value = false
+        route.loading = false
       } catch (err) {
-        exporting.value = false
+        route.loading = false
         store.changeAlert(err) }
       break
 
     case 'Save':
       try {
-        saving.value = true
+        route.loading = true
         await store.exportToS3()
-        saving.value = false
+        route.loading = false
         store.changeNotification(
           { text: $gettext('Scenario saved'), autoClose: true, color: 'success' })
       } catch (err) {
-        saving.value = false
+        route.loading = false
         store.changeAlert(err) }
       break
 
@@ -109,7 +123,7 @@ async function handleClickMenuItem (route) {
           >
             <template v-slot:prepend>
               <v-badge
-                v-if="(item.name === 'Save' && saving) || (item.name === 'Export' && exporting)"
+                v-if="(item.loading)"
                 color="rgba(0, 0, 0, 0)"
               >
                 <template v-slot:badge>
@@ -120,6 +134,18 @@ async function handleClickMenuItem (route) {
                     indeterminate
                   />
                 </template>
+                <v-icon
+                  class="icon"
+                  size="small"
+                >
+                  {{ item.icon }}
+                </v-icon>
+              </v-badge>
+              <v-badge
+                v-else-if="(item.error)"
+                color="error"
+                icon="fa-solid fa-exclamation"
+              >
                 <v-icon
                   class="icon"
                   size="small"

@@ -1,4 +1,9 @@
-## [5.2.g] (2024-03-25)
+## [5.2.h] (2024-03-05)
+
+### Features
+* **Run**: Loading badge added and error badge on bavigation drawer.
+
+## [5.2.g] (2024-03-05)
 
 ### Features
 * **exporting**: Loading badge added (like saving) on the navigation drawer.
