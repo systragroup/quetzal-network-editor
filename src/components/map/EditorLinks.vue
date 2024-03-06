@@ -1,269 +1,238 @@
-<script>
+<script setup>
 import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox3'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, toRefs, ref } from 'vue'
+import { useGettext } from 'vue3-gettext'
+
 import geojson from '@constants/geojson'
 
-const $gettext = s => s
+const { $gettext } = useGettext()
 
-export default {
-  name: 'EditorLinks',
-  components: {
-    MglPopup,
-    MglImageLayer,
-    MglGeojsonLayer,
-  },
-  props: ['map'],
-  emits: ['clickFeature', 'onHover', 'offHover'],
-  setup (props, context) {
-    const store = useIndexStore()
+const props = defineProps(['map'])
+const emits = defineEmits(['clickFeature', 'onHover', 'offHover'])
 
-    const linksStore = useLinksStore()
-    const editorLinks = computed(() => { return linksStore.editorLinks })
-    const editorNodes = computed(() => { return linksStore.editorNodes })
+const store = useIndexStore()
 
-    const anchorMode = computed(() => { return store.anchorMode })
-    const anchorNodes = computed(() => { return anchorMode.value ? linksStore.anchorNodes : geojson })
-    const { map } = toRefs(props)
+const linksStore = useLinksStore()
+const editorLinks = computed(() => { return linksStore.editorLinks })
+const editorNodes = computed(() => { return linksStore.editorNodes })
 
-    const selectedFeature = ref(null)
-    const hoveredStateId = ref(null)
-    const disablePopup = ref(false)
-    const keepHovering = ref(false)
-    const dragNode = ref(false)
-    const popupEditor = ref({
-      coordinates: [0, 0],
-      showed: false,
-      content: null,
-    })
-    const contextMenu = ref({
-      coordinates: [0, 0],
-      showed: false,
-      actions: [],
-      feature: null,
-      type: null, // link of node
-    })
+const anchorMode = computed(() => { return store.anchorMode })
+const anchorNodes = computed(() => { return anchorMode.value ? linksStore.anchorNodes : geojson })
+const { map } = toRefs(props)
 
-    function selectClick (event) {
-      if (hoveredStateId.value !== null) {
-        // Get the highlighted feature
-        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
-        // Emit a click base on layer type (node or link)
+const selectedFeature = ref(null)
+const hoveredStateId = ref(null)
+const disablePopup = ref(false)
+const keepHovering = ref(false)
+const dragNode = ref(false)
+const popupEditor = ref({
+  coordinates: [0, 0],
+  showed: false,
+  content: null,
+})
+const contextMenu = ref({
+  coordinates: [0, 0],
+  showed: false,
+  actions: [],
+  feature: null,
+  type: null, // link of node
+})
 
-        if (selectedFeature.value !== null) {
-          if (hoveredStateId.value.layerId === 'editorLinks') {
-            if (anchorMode.value) {
-              linksStore.addNodeInline({
-                selectedLink: selectedFeature.value.properties,
-                lngLat: event.mapboxEvent.lngLat,
-                nodes: 'anchorNodes',
-              })
-            } else {
-              linksStore.addNodeInline({
-                selectedLink: selectedFeature.value.properties,
-                lngLat: event.mapboxEvent.lngLat,
-                nodes: 'editorNodes',
-              })
-            }
-          }
+function selectClick (event) {
+  if (hoveredStateId.value !== null) {
+    // Get the highlighted feature
+    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+    selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
+    // Emit a click base on layer type (node or link)
+
+    if (selectedFeature.value !== null) {
+      if (hoveredStateId.value.layerId === 'editorLinks') {
+        if (anchorMode.value) {
+          linksStore.addNodeInline({
+            selectedLink: selectedFeature.value.properties,
+            lngLat: event.mapboxEvent.lngLat,
+            nodes: 'anchorNodes',
+          })
+        } else {
+          linksStore.addNodeInline({
+            selectedLink: selectedFeature.value.properties,
+            lngLat: event.mapboxEvent.lngLat,
+            nodes: 'editorNodes',
+          })
         }
       }
     }
-    function onCursor (event) {
-      if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'editorLinks') {
-        map.value.getCanvas().style.cursor = 'pointer'
-        if (hoveredStateId.value !== null) {
-          map.value.setFeatureState(
-            { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
-            { hover: false },
-          )
-        }
-        hoveredStateId.value = { layerId: event.layerId, id: event.mapboxEvent.features[0].id }
+  }
+}
+function onCursor (event) {
+  if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'editorLinks') {
+    map.value.getCanvas().style.cursor = 'pointer'
+    if (hoveredStateId.value !== null) {
+      map.value.setFeatureState(
+        { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
+        { hover: false },
+      )
+    }
+    hoveredStateId.value = { layerId: event.layerId, id: event.mapboxEvent.features[0].id }
+    map.value.setFeatureState(
+      { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
+      { hover: true },
+    )
+    if (!disablePopup.value && !anchorMode.value) {
+      popupEditor.value.coordinates = [event.mapboxEvent.lngLat.lng,
+        event.mapboxEvent.lngLat.lat,
+      ]
+      popupEditor.value.content = hoveredStateId.value.id
+      popupEditor.value.showed = true
+    }
+  }
+  emits('onHover', { selectedId: hoveredStateId.value.id })
+}
+function offCursor (event) {
+  if (hoveredStateId.value !== null) {
+    // eslint-disable-next-line max-len
+    if (!(['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId) && event?.layerId === 'editorLinks')) {
+      // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
+      if (keepHovering.value) {
+        dragNode.value = true
+        contextMenu.value.showed = false
+        // normal behaviours, hovering is false
+      } else {
+        map.value.getCanvas().style.cursor = ''
+        popupEditor.value.showed = false
         map.value.setFeatureState(
           { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
-          { hover: true },
+          { hover: false },
         )
-        if (!disablePopup.value && !anchorMode.value) {
-          popupEditor.value.coordinates = [event.mapboxEvent.lngLat.lng,
-            event.mapboxEvent.lngLat.lat,
-          ]
-          popupEditor.value.content = hoveredStateId.value.id
-          popupEditor.value.showed = true
-        }
-      }
-      context.emit('onHover', { selectedId: hoveredStateId.value.id })
-    }
-    function offCursor (event) {
-      if (hoveredStateId.value !== null) {
-        // eslint-disable-next-line max-len
-        if (!(['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId) && event?.layerId === 'editorLinks')) {
-          // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
-          if (keepHovering.value) {
-            dragNode.value = true
-            contextMenu.value.showed = false
-            // normal behaviours, hovering is false
-          } else {
-            map.value.getCanvas().style.cursor = ''
-            popupEditor.value.showed = false
-            map.value.setFeatureState(
-              { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id },
-              { hover: false },
-            )
-            hoveredStateId.value = null
-            context.emit('offHover', event)
-          }
-        }
+        hoveredStateId.value = null
+        emits('offHover', event)
       }
     }
+  }
+}
 
-    function contextMenuNode (event) {
-      if (popupEditor.value.showed && hoveredStateId.value?.layerId === 'editorNodes') {
-        contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng,
-          event.mapboxEvent.lngLat.lat,
+function contextMenuNode (event) {
+  if (popupEditor.value.showed && hoveredStateId.value?.layerId === 'editorNodes') {
+    contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng,
+      event.mapboxEvent.lngLat.lat,
+    ]
+    contextMenu.value.showed = true
+
+    contextMenu.value.type = 'node'
+    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+    contextMenu.value.feature = features.filter(item => item.id === hoveredStateId.value.id)[0]
+
+    const selectedNode = contextMenu.value.feature.properties.index
+
+    if (selectedNode === linksStore.firstNodeId) {
+      contextMenu.value.actions
+          = [
+          $gettext('Edit Node Info'),
+          $gettext('Delete Stop'),
         ]
-        contextMenu.value.showed = true
-
-        contextMenu.value.type = 'node'
-        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-        contextMenu.value.feature = features.filter(item => item.id === hoveredStateId.value.id)[0]
-
-        const selectedNode = contextMenu.value.feature.properties.index
-
-        if (selectedNode === linksStore.firstNodeId) {
-          contextMenu.value.actions
+    } else if (selectedNode === linksStore.lastNodeId) {
+      contextMenu.value.actions
           = [
-              $gettext('Edit Node Info'),
-              $gettext('Delete Stop'),
-            ]
-        } else if (selectedNode === linksStore.lastNodeId) {
-          contextMenu.value.actions
-          = [
-              $gettext('Edit Node Info'),
-              $gettext('Delete Stop'),
-            ]
-        } else {
-          contextMenu.value.actions
+          $gettext('Edit Node Info'),
+          $gettext('Delete Stop'),
+        ]
+    } else {
+      contextMenu.value.actions
            = [
-              $gettext('Edit Node Info'),
-              $gettext('Cut Before Node'),
-              $gettext('Cut After Node'),
-              $gettext('Delete Stop'),
-            ]
-        }
-      } else if (hoveredStateId.value?.layerId === 'anchorNodes') {
-        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)
-        linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value[0].properties })
-      }
+          $gettext('Edit Node Info'),
+          $gettext('Cut Before Node'),
+          $gettext('Cut After Node'),
+          $gettext('Delete Stop'),
+        ]
     }
-    function linkRightClick (event) {
-      if (hoveredStateId.value.layerId === 'editorLinks') {
-        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
-        const click = {
-          selectedFeature: selectedFeature.value,
-          action: 'Edit Link Info',
-          lngLat: event.mapboxEvent.lngLat,
-          lingering: true,
-        }
-        context.emit('clickFeature', click)
-      }
+  } else if (hoveredStateId.value?.layerId === 'anchorNodes') {
+    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+    selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)
+    linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value[0].properties })
+  }
+}
+function linkRightClick (event) {
+  if (hoveredStateId.value.layerId === 'editorLinks') {
+    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+    selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
+    const click = {
+      selectedFeature: selectedFeature.value,
+      action: 'Edit Link Info',
+      lngLat: event.mapboxEvent.lngLat,
+      lingering: true,
     }
-    function actionClick (event) {
-      switch (event.action) {
-        case 'Cut Before Node':
-          linksStore.cutLineAtNode({ selectedNode: event.feature.properties })
-          break
-        case 'Cut After Node':
-          linksStore.cutLineFromNode({ selectedNode: event.feature.properties })
-          break
-        case 'Delete Stop':
-          linksStore.deleteNode({ selectedNode: event.feature.properties })
-          break
-        default:
-          // edit node info
-          context.emit('clickFeature', {
-            selectedFeature: event.feature,
-            action: event.action,
-            lngLat: event.coordinates,
-          })
-          break
-      }
-      contextMenu.value.showed = false
-      contextMenu.value.type = null
-    }
+    emits('clickFeature', click)
+  }
+}
+function actionClick (event) {
+  switch (event.action) {
+    case 'Cut Before Node':
+      linksStore.cutLineAtNode({ selectedNode: event.feature.properties })
+      break
+    case 'Cut After Node':
+      linksStore.cutLineFromNode({ selectedNode: event.feature.properties })
+      break
+    case 'Delete Stop':
+      linksStore.deleteNode({ selectedNode: event.feature.properties })
+      break
+    default:
+      // edit node info
+      emits('clickFeature', {
+        selectedFeature: event.feature,
+        action: event.action,
+        lngLat: event.coordinates,
+      })
+      break
+  }
+  contextMenu.value.showed = false
+  contextMenu.value.type = null
+}
 
-    function moveNode (event) {
-      if (event.mapboxEvent.originalEvent.button === 0
-        & ['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId)) {
-        event.mapboxEvent.preventDefault() // prevent map control
-        map.value.getCanvas().style.cursor = 'grab'
-        // disable mouseLeave so we stay in hover state.
-        keepHovering.value = true
-        // get selected node
-        const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-        selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
+function moveNode (event) {
+  if (event.mapboxEvent.originalEvent.button === 0
+    & ['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId)) {
+    event.mapboxEvent.preventDefault() // prevent map control
+    map.value.getCanvas().style.cursor = 'grab'
+    // disable mouseLeave so we stay in hover state.
+    keepHovering.value = true
+    // get selected node
+    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
+    selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
 
-        // disable popup
-        disablePopup.value = true
-        popupEditor.value.showed = false
-        // get position
-        map.value.on('mousemove', onMove)
-        map.value.on('mouseup', stopMovingNode)
-      }
+    // disable popup
+    disablePopup.value = true
+    popupEditor.value.showed = false
+    // get position
+    map.value.on('mousemove', onMove)
+    map.value.on('mouseup', stopMovingNode)
+  }
+}
+function onMove (event) {
+  // get position and update node position
+  // only if dragmode is activated (we just leave the node hovering state.)
+  if (dragNode.value && selectedFeature.value) {
+    if (hoveredStateId.value.layerId === 'anchorNodes') {
+      linksStore.moveAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
+    } else {
+      linksStore.moveNode({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
     }
-    function onMove (event) {
-      // get position and update node position
-      // only if dragmode is activated (we just leave the node hovering state.)
-      if (dragNode.value && selectedFeature.value) {
-        if (hoveredStateId.value.layerId === 'anchorNodes') {
-          linksStore.moveAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
-        } else {
-          linksStore.moveNode({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
-        }
-      }
-    }
-    function stopMovingNode () {
-      // stop tracking position (moving node.)
-      map.value.getCanvas().style.cursor = 'pointer'
-      map.value.off('mousemove', onMove)
-      // enable popup and hovering off back. disable Dragmode
-      keepHovering.value = false
-      dragNode.value = false
-      disablePopup.value = false
-      // call offCursor event, if we drag too quickly, it will not be call and the node will stay in hovering mode.
-      offCursor()
-      map.value.off('mouseup', stopMovingNode)
-      // emit a clickNode with the selected node.
-      // this will work with lag as it is the selectedFeature and not the highlighted one.
-    }
-
-    return {
-      editorLinks,
-      editorNodes,
-      anchorMode,
-      anchorNodes,
-      // eslint-disable-next-line vue/no-dupe-keys
-      map,
-      selectedFeature,
-      hoveredStateId,
-      disablePopup,
-      keepHovering,
-      dragNode,
-      popupEditor,
-      contextMenu,
-      selectClick,
-      onCursor,
-      offCursor,
-      contextMenuNode,
-      linkRightClick,
-      actionClick,
-      moveNode,
-    }
-  },
-
+  }
+}
+function stopMovingNode () {
+  // stop tracking position (moving node.)
+  map.value.getCanvas().style.cursor = 'pointer'
+  map.value.off('mousemove', onMove)
+  // enable popup and hovering off back. disable Dragmode
+  keepHovering.value = false
+  dragNode.value = false
+  disablePopup.value = false
+  // call offCursor event, if we drag too quickly, it will not be call and the node will stay in hovering mode.
+  offCursor()
+  map.value.off('mouseup', stopMovingNode)
+  // emit a clickNode with the selected node.
+  // this will work with lag as it is the selectedFeature and not the highlighted one.
 }
 </script>
 <template>

@@ -292,8 +292,7 @@ export default {
         selectedNode.value.id = hoverId.value
         selectedNode.value.layerId = event.layerId
         drawMode.value = true
-      }
-      if (hoverId.value === linksStore.lastNodeId) {
+      } else if (hoverId.value === linksStore.lastNodeId) {
         drawLink.value.geometry.coordinates = [lastNode.value.geometry.coordinates, lastNode.value.geometry.coordinates]
         selectedNode.value.id = hoverId.value
         selectedNode.value.layerId = event.layerId
@@ -455,6 +454,7 @@ export default {
       :is-editor-mode="isEditorMode"
       :mode="mode"
       @rightClick="(e) => $emit('clickFeature',e)"
+      @onHover="(e)=>console.log(e)"
     />
 
     <EditorLinks

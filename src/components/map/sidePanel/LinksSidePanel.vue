@@ -494,17 +494,31 @@ function deleteButton (obj) {
         >
           <template v-slot:activator="{ props }">
             <v-btn
-              class="mx-2"
+
               :color="store.anchorMode? 'grey':'regular'"
               v-bind="props"
+              size="small"
+              icon="fas fa-anchor"
               @click="store.changeAnchorMode()"
-            >
-              <v-icon size="small">
-                fas fa-anchor
-              </v-icon>
-            </v-btn>
+            />
           </template>
           <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
+        </v-tooltip>
+        <v-tooltip
+          location="right"
+          open-delay="500"
+        >
+          <template v-slot:activator="{ props }">
+            <v-btn
+              class="mx-2"
+              size="small"
+              :color="store.stickyMode? 'green':'regular'"
+              v-bind="props"
+              icon="fa-solid fa-magnet"
+              @click="store.changeStickyMode()"
+            />
+          </template>
+          <span> {{ $gettext("stick nodes on existing nodes") }}</span>
         </v-tooltip>
 
         <v-btn

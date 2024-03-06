@@ -15,7 +15,7 @@ export default {
     MglGeojsonLayer,
   },
   props: ['map', 'isEditorMode', 'mode'],
-  emits: ['rightClick'],
+  emits: ['rightClick', 'onHover'],
   setup (props, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()
@@ -125,6 +125,9 @@ export default {
       linksStore.setEditorTrip({ tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
       context.emit('rightClick', { action: 'Edit Line Info', lingering: false })
     }
+    function onCursor(event) {
+      context.emit('onHover', { selectedId: event.mapboxEvent.features[0].id })
+    }
 
     return {
       store,
@@ -139,6 +142,7 @@ export default {
       enterLink,
       leaveLink,
       editLineProperties,
+      onCursor,
     }
   },
 
@@ -203,6 +207,7 @@ export default {
                              3], 3],
         },
       }"
+      @mouseover="onCursor"
     />
   </section>
 </template>

@@ -30,6 +30,7 @@ export const useIndexStore = defineStore('store', {
     loading: false,
     showLeftPanel: true,
     anchorMode: false,
+    stickyMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
     cyclewayMode: false,
@@ -79,6 +80,9 @@ export const useIndexStore = defineStore('store', {
     },
     changeAnchorMode () {
       this.anchorMode = !this.anchorMode
+    },
+    changeStickyMode () {
+      this.stickyMode = !this.stickyMode
     },
     changeCyclewayMode () {
       this.cyclewayMode = !this.cyclewayMode
