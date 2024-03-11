@@ -5,8 +5,6 @@ import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
-import buffer from '@turf/buffer'
-import bboxPolygon from '@turf/bbox-polygon'
 import geojson from '@constants/geojson'
 
 const $gettext = s => s
@@ -96,8 +94,7 @@ export default {
       if (currentZoom > minZoom.value.rendered) {
         // create a BBOX with a 200m buffer. get links in or intersecting with bbox
         const bounds = map.value.getBounds()
-        const bbox = buffer(bboxPolygon([bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]), 0.2)
-        rlinksStore.getRenderedrLinks({ bbox })
+        rlinksStore.getRenderedrLinks({ bbox: [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat] })
         map.value.getSource('staticrLinks').setData(header)
 
         // check lastzoom so we only setData when it changed, not at every zoom and move.

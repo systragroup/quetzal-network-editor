@@ -5,8 +5,6 @@ import { defineStore } from 'pinia'
 
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import booleanContains from '@turf/boolean-contains'
-import booleanCrosses from '@turf/boolean-crosses'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import bearing from '@turf/bearing'
@@ -322,12 +320,23 @@ export const userLinksStore = defineStore('rlinks', {
         // case 'refresh'
       }
     },
+
     getRenderedrLinks (payload) {
       const bbox = toRaw(payload.bbox)
+      function inBBox(pt, bbox) {
+        // pt point [x,y]
+        // {BBox} bbox BBox [west, south, east, north]
+        return (
+          bbox[0] <= pt[0] && bbox[1] <= pt[1] && bbox[2] >= pt[0] && bbox[3] >= pt[1]
+        )
+      }
+      this.renderedrNodes.features = this.visiblerNodes.features.filter(node => inBBox(node.geometry.coordinates, bbox))
+
+      const rNodesSet = new Set(this.renderedrNodes.features.map(node => node.properties.index))
       this.renderedrLinks.features = this.visiblerLinks.features.filter(
-        link => (booleanContains(bbox, link) || booleanCrosses(bbox, link)))
-      this.getRenderedrNodes()
+        link => (rNodesSet.has(link.properties.a) || rNodesSet.has(link.properties.b)))
     },
+
     getRenderedrNodes () { // get rendered nodes
       const a = this.renderedrLinks.features.map(item => item.properties.a)
       const b = this.renderedrLinks.features.map(item => item.properties.b)

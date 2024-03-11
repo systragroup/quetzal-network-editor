@@ -1,3 +1,8 @@
+## [5.2.i] (2024-03-11)
+
+### Optimization
+* **Road edition**: is up to 25X faster to render the editor Links (wheen zoomed and moving). Changed turf function to a custom and faster one. 
+
 ## [5.2.h] (2024-03-05)
 
 ### Features
