@@ -81,6 +81,9 @@ export const useIndexStore = defineStore('store', {
     changeAnchorMode () {
       this.anchorMode = !this.anchorMode
     },
+    setStickyMode(payload) {
+      this.stickyMode = payload
+    },
     changeStickyMode () {
       this.stickyMode = !this.stickyMode
     },
