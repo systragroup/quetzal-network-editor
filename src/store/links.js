@@ -9,19 +9,20 @@ import Point from 'turf-point'
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
-import { ref } from 'vue'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
   state: () => ({
-    links: ref({}),
-    editorTrip: null,
+    links: {},
+    nodes: {},
+    visibleLinks: {},
+    visibleNodes: {},
     editorNodes: {},
     editorLinks: {},
+    editorTrip: null,
     editorLineInfo: {},
-    nodes: ref({}),
     tripId: [],
     selectedTrips: [],
     newLink: {},
