@@ -656,6 +656,17 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
+    applyStickyNode(payload) {
+      // rename node with stiky node.
+      const nodeIndex = payload.selectedNodeId
+      const stickyIndex = payload.stickyNodeId
+      this.editorLinks.features.filter(link => link.properties.a === nodeIndex).forEach(
+        (link) => { link.properties.a = stickyIndex })
+      this.editorLinks.features.filter(link => link.properties.b === nodeIndex).forEach(
+        (link) => { link.properties.b = stickyIndex })
+      this.getEditorNodes({ nodes: this.nodes })
+    },
+
     cutLineFromNode (payload) {
       // Filter links from selected line
       const nodeId = payload.selectedNode.index
