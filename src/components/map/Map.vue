@@ -67,10 +67,10 @@ const selectedNode = ref({ id: null, layerId: null })
 
 watch(editorTrip, (val) => {
   store.setStickyMode(false)
+  connectedDrawLink.value = false
   if (val) {
     store.setAnchorMode(false)
     isEditorMode.value = true
-    connectedDrawLink.value = false
     if (linksStore.changeBounds) {
       const bounds = new Mapbox.LngLatBounds()
       editorNodes.value.features.forEach(node => {
@@ -82,7 +82,6 @@ watch(editorTrip, (val) => {
     }
   } else {
     isEditorMode.value = false
-    connectedDrawLink.value = false
     drawMode.value = false
     // for some reason. isEditorMode watcher not working when creating a
     // a new line. so need to apply the values that were supposed to be applied.
@@ -223,35 +222,15 @@ function draw (event) {
     }
   }
 }
+
 function addPoint (event) {
   if (Object.keys(event).includes('mapboxEvent')) {
     event.mapboxEvent.originalEvent.stopPropagation()
     if (drawMode.value) {
       if (selectedNode.value.layerId === 'rnodes') {
-        const pointGeom = Object.values(event.mapboxEvent.lngLat)
-        const payload = {
-          nodeIdA: selectedNode.value.id,
-          nodeIdB: hoverId.value, // could be null, a node or a link.
-          geom: pointGeom,
-          layerId: hoverLayer.value,
-        }
-        // this action overwrite payload.nodeIdB to the actual newLink nodeB.
-        rlinksStore.createrLink(payload)
-        drawMode.value = false
-        // then, create a hover (and off hover) to the new node b to continue drawing
-        onHoverRoad({ layerId: 'rnodes', selectedId: [payload.nodeIdB] })
-        offHover()
-
-        // onHoverRoad (event)
+        addPointRoad(event)
       } else { // PT nodes
-        if (drawMode.value && !anchorMode.value && !hoverId.value) {
-          const action = (selectedNode.value.id === linksStore.lastNodeId)
-            ? 'Extend Line Upward'
-            : 'Extend Line Downward'
-          const pointGeom = Object.values(event.mapboxEvent.lngLat)
-
-          linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action })
-        }
+        addPointPT(event)
       }
     } else {
       // for a new Line
@@ -262,6 +241,39 @@ function addPoint (event) {
     }
   }
 }
+
+function addPointPT(event) {
+  const action = (selectedNode.value.id === linksStore.lastNodeId)
+    ? 'Extend Line Upward'
+    : 'Extend Line Downward'
+  const pointGeom = Object.values(event.mapboxEvent.lngLat)
+
+  if (drawMode.value && !anchorMode.value && !hoverId.value) {
+    linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
+  } else if (connectedDrawLink.value && hoverLayer.value === 'stickyNodes' && hoverId.value) {
+    // reuse a existing node. create the link and simulate a move event with useStickyNode()
+    linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
+    const newNode = linksStore.newNode.features[0].properties.index
+    useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
+  }
+}
+
+function addPointRoad(event) {
+  const pointGeom = Object.values(event.mapboxEvent.lngLat)
+  const payload = {
+    nodeIdA: selectedNode.value.id,
+    nodeIdB: hoverId.value, // could be null, a node or a link.
+    geom: pointGeom,
+    layerId: hoverLayer.value,
+  }
+  // this action overwrite payload.nodeIdB to the actual newLink nodeB.
+  rlinksStore.createrLink(payload)
+  drawMode.value = false
+  // then, create a hover (and off hover) to the new node b to continue drawing
+  onHoverRoad({ layerId: 'rnodes', selectedId: [payload.nodeIdB] })
+  offHover()
+}
+
 function resetDraw () {
   // reset draw line when we leave the map.
   // there is no mouseIn event, so we track it with mouseout = true, and reapply visible on mousemove.
@@ -317,6 +329,12 @@ function onHoverRoad (event) {
     hoverLayer.value = event.layerId
     hoverId.value = event.selectedId
   }
+}
+
+function onHoverSticky(event) {
+  hoverId.value = event.selectedId
+  hoverLayer.value = event.layerId
+  connectedDrawLink.value = true
 }
 
 function offHover () {
@@ -431,11 +449,12 @@ function applyStickyNode() {
       :mode="mode"
       @rightClick="(e) => emits('clickFeature',e)"
     />
-    <EditorLinks
-      :map="map"
-      v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover, offHover:offHover,clickFeature: clickFeature, useStickyNode:useStickyNode}"
-    />
-
+    <template v-if="mapIsLoaded">
+      <EditorLinks
+        :map="map"
+        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover,onHoverSticky:onHoverSticky, offHover:offHover,clickFeature: clickFeature, useStickyNode:useStickyNode}"
+      />
+    </template>
     <ODMap
       :map="map"
       :is-editor-mode="isEditorMode"

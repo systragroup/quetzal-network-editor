@@ -10,7 +10,7 @@ import geojson from '@constants/geojson'
 const { $gettext } = useGettext()
 
 const props = defineProps(['map'])
-const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'useStickyNode'])
+const emits = defineEmits(['clickFeature', 'onHover', 'onHoverSticky', 'offHover', 'useStickyNode'])
 
 const store = useIndexStore()
 
@@ -190,7 +190,7 @@ function offCursor (event) {
         // eslint-disable-next-line max-len
         map.value.setFeatureState({ source: hoveredStateId.value.layerId, id: hoveredStateId.value.id }, { hover: false })
         hoveredStateId.value = null
-        emits('offHover', event)
+        if (event) { emits('offHover', event) }
       }
     }
   }
@@ -205,12 +205,14 @@ function onCursorSticky(event) {
     dragNode.value = false
     linksStore.moveNode({ selectedNode: selectedFeature.value, lngLat: node.geometry.coordinates })
   }
+  emits('onHoverSticky', { selectedId: stickyStateId.value.id, layerId: stickyStateId.value.layerId })
 }
 
-function offCursorSticky () {
+function offCursorSticky (event) {
   if (stickyStateId.value) {
     map.value.setFeatureState({ source: stickyStateId.value.layerId, id: stickyStateId.value.id }, { hover: false })
     stickyStateId.value = null
+    emits('offHover', event)
   }
 }
 
