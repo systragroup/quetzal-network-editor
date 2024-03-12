@@ -658,14 +658,18 @@ export const useLinksStore = defineStore('links', {
     },
 
     applyStickyNode(payload) {
-      // rename node with stiky node.
+      // this function assume that stickyindex !== nodeIndex (should always be a new node)
+      // this function assume that sticky index is not in editorNodes (cannot reuse a node for a trip)
       const nodeIndex = payload.selectedNodeId
       const stickyIndex = payload.stickyNodeId
+      this.editorNodes.features = this.editorNodes.features.filter(node => node.properties.index !== nodeIndex)
+      const newNode = cloneDeep(this.nodes.features.filter(node => node.properties.index === stickyIndex)[0])
+      this.editorNodes.features.push(newNode)
+
       this.editorLinks.features.filter(link => link.properties.a === nodeIndex).forEach(
         (link) => { link.properties.a = stickyIndex })
       this.editorLinks.features.filter(link => link.properties.b === nodeIndex).forEach(
         (link) => { link.properties.b = stickyIndex })
-      this.getEditorNodes({ nodes: this.nodes })
     },
 
     cutLineFromNode (payload) {

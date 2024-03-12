@@ -348,11 +348,20 @@ const selectedNodeId = ref('')
 function useStickyNode(event) {
   stickyNodeId.value = event.stickyNode
   selectedNodeId.value = event.selectedNode
-  showDialog.value = true
+  // only show dialog if we do not stick on itself (moving a node eand removing it to its original place => no changes)
+  if (stickyNodeId.value !== selectedNodeId.value) {
+    showDialog.value = true
+  }
 }
 
 function applyStickyNode() {
-  linksStore.applyStickyNode({ selectedNodeId: selectedNodeId.value, stickyNodeId: stickyNodeId.value })
+  const nodesList = editorNodes.value.features.map(node => node.properties.index)
+  if (!nodesList.includes(stickyNodeId.value)) {
+    linksStore.applyStickyNode({ selectedNodeId: selectedNodeId.value, stickyNodeId: stickyNodeId.value })
+  } else {
+    store.changeNotification(
+      { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
+  }
 }
 
 </script>
