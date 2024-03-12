@@ -17,7 +17,6 @@ export const useLinksStore = defineStore('links', {
   state: () => ({
     links: {},
     nodes: {},
-    visibleLinks: {},
     visibleNodes: {},
     editorNodes: {},
     editorLinks: {},
@@ -248,6 +247,10 @@ export const useLinksStore = defineStore('links', {
       this.getEditorNodes({ nodes: this.nodes })
 
       this.getEditorLineInfo()
+    },
+
+    setVisibleNodes(payload) {
+      this.visibleNodes = payload
     },
 
     cloneTrip (payload) {

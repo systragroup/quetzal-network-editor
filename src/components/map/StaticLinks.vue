@@ -84,6 +84,7 @@ function setHiddenFeatures () {
     newNodes.map(node => node.properties.route_width = key)
     visibleNodes.value.features.push(...newNodes)
   })
+  linksStore.setVisibleNodes(visibleNodes.value)
 
   map.value.getSource('links').setData(visibleLinks.value)
   map.value.getSource('nodes').setData(visibleNodes.value)

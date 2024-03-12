@@ -19,8 +19,10 @@ const editorLinks = computed(() => { return linksStore.editorLinks })
 const editorNodes = computed(() => { return linksStore.editorNodes })
 
 const stickyMode = computed(() => { return store.stickyMode })
-const visibleNodes = computed(() => { return stickyMode.value ? linksStore.nodes : geojson })
+const showedTrips = computed(() => { return linksStore.selectedTrips })
+const visibleNodes = computed(() => { return stickyMode.value ? linksStore.visibleNodes : geojson })
 watch(stickyMode, () => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
+watch(showedTrips, () => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
 
 const anchorMode = computed(() => { return store.anchorMode })
 
