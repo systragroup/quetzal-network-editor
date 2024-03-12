@@ -2,7 +2,7 @@
 import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox3'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
-import { computed, toRefs, ref, watch } from 'vue'
+import { computed, toRefs, ref, watch, onMounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
 
 import geojson from '@constants/geojson'
@@ -20,7 +20,9 @@ const editorNodes = computed(() => { return linksStore.editorNodes })
 
 const stickyMode = computed(() => { return store.stickyMode })
 const showedTrips = computed(() => { return linksStore.selectedTrips })
+
 const visibleNodes = computed(() => { return stickyMode.value ? linksStore.visibleNodes : geojson })
+onMounted(() => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
 watch(stickyMode, () => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
 watch(showedTrips, () => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
 
