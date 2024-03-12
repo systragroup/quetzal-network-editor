@@ -673,6 +673,8 @@ export const useLinksStore = defineStore('links', {
         (link) => { link.properties.a = stickyIndex })
       this.editorLinks.features.filter(link => link.properties.b === nodeIndex).forEach(
         (link) => { link.properties.b = stickyIndex })
+
+      this.moveNode({ selectedNode: newNode, lngLat: newNode.geometry.coordinates })
     },
 
     cutLineFromNode (payload) {
