@@ -1,3 +1,8 @@
+## [5.2.j] (2024-03-12)
+
+### Feature
+* **sticky nodes**: when magnet mode activated (next to anchor). moving and drawing nodes will reuse existing nodes. [#494](https://github.com/systragroup/quetzal-network-editor/issues/494)
+
 ## [5.2.i] (2024-03-11)
 
 ### Optimization
