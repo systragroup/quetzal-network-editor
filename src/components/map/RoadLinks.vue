@@ -49,8 +49,17 @@ export default {
     const popup = ref(null)
     const hoveredStateId = ref(null)
     const disablePopup = ref(false)
-    const width = { static: 1, rendered: 2 }
     const lastZoom = ref(100)
+    const currentZoom = ref(10)
+    // width go to x2 when zoomed. go progressively
+    const width = computed(() => {
+      if (currentZoom.value > minZoom.value.rendered + 1) {
+        return 2
+      } else if (currentZoom.value > minZoom.value.rendered) {
+        return 1 + (currentZoom.value - minZoom.value.rendered)
+      } else { return 1 }
+    })
+
     const minZoom = ref({
       links: 4,
       rendered: 14,
@@ -76,39 +85,35 @@ export default {
         map.value.off('zoomend', getBounds)
         // remove rendered and refresh visible (not editable but all visible)
         rlinksStore.setRenderedrLinks({ method: 'None' })
+        map.value.setLayoutProperty('staticrLinks', 'visibility', 'visible')
         map.value.getSource('staticrLinks').setData(visiblerLinks.value)
       }
     })
 
-    function getBounds () {
+    async function getBounds() {
       // get map bounds and return only the features inside of it.
       // this way, only the visible links and node are rendered and updating is fast
       // (i.e. moving a node in real time)
-
       // Note there is rendered and visible links. only one at the time is visible.
-
-      // only get the geojson if the zoom level is bigger than the min.
-      // if not, getting all anchorpoint would be very intensive!!
-      // this way, only a small number of anchor points are computed
-      const currentZoom = map.value.getZoom()
-      if (currentZoom > minZoom.value.rendered) {
-        // create a BBOX with a 200m buffer. get links in or intersecting with bbox
+      currentZoom.value = map.value.getZoom()
+      if (currentZoom.value > minZoom.value.rendered) { // when zoomed
+        // get windows BBOX
         const bounds = map.value.getBounds()
         rlinksStore.getRenderedrLinks({ bbox: [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat] })
-        map.value.getSource('staticrLinks').setData(header)
+        map.value.setLayoutProperty('staticrLinks', 'visibility', 'none')
 
         // check lastzoom so we only setData when it changed, not at every zoom and move.
-      } else if (currentZoom > minZoom.value.links && lastZoom.value > minZoom.value.rendered) {
+      } else if (currentZoom.value > minZoom.value.links && lastZoom.value > minZoom.value.rendered) {
         // evrey links are rendered (not editable). no nodes
-        rlinksStore.setRenderedrLinks({ method: 'None' })
-        // set Data for static links as the map in not reactive (to same RAM)
+        // set Data for static links as the map is not reactive
+        await map.value.setLayoutProperty('staticrLinks', 'visibility', 'visible')
         map.value.getSource('staticrLinks').setData(visiblerLinks.value)
+        rlinksStore.setRenderedrLinks({ method: 'None' })
       } else {
         // Nothing is is rendered.
-        rlinksStore.setRenderedrLinks({ method: 'None' })
       }
       // save lastZoom value
-      lastZoom.value = currentZoom
+      lastZoom.value = currentZoom.value
     }
 
     const keepHovering = ref(false)
@@ -432,7 +437,7 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width.static, width.static],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width, width],
                          ['case', ['has', 'route_width'],
                           ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
                            ['to-number', ['get', 'route_width']],
@@ -466,7 +471,7 @@ export default {
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width.rendered, width.rendered],
+          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width, width],
                          ['case', ['has', 'route_width'],
                           ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
                            ['to-number', ['get', 'route_width']],
