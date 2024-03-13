@@ -9,19 +9,19 @@ import Point from 'turf-point'
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
-import { ref } from 'vue'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
   state: () => ({
-    links: ref({}),
-    editorTrip: null,
+    links: {},
+    nodes: {},
+    visibleNodes: {},
     editorNodes: {},
     editorLinks: {},
+    editorTrip: null,
     editorLineInfo: {},
-    nodes: ref({}),
     tripId: [],
     selectedTrips: [],
     newLink: {},
@@ -247,6 +247,10 @@ export const useLinksStore = defineStore('links', {
       this.getEditorNodes({ nodes: this.nodes })
 
       this.getEditorLineInfo()
+    },
+
+    setVisibleNodes(payload) {
+      this.visibleNodes = payload
     },
 
     cloneTrip (payload) {
@@ -654,6 +658,23 @@ export const useLinksStore = defineStore('links', {
         const time = distance / link2.properties.time * 3600 // 20kmh hard code speed. time in secs
         link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
       }
+    },
+
+    applyStickyNode(payload) {
+      // this function assume that stickyindex !== nodeIndex (should always be a new node)
+      // this function assume that sticky index is not in editorNodes (cannot reuse a node for a trip)
+      const nodeIndex = payload.selectedNodeId
+      const stickyIndex = payload.stickyNodeId
+      this.editorNodes.features = this.editorNodes.features.filter(node => node.properties.index !== nodeIndex)
+      const newNode = cloneDeep(this.nodes.features.filter(node => node.properties.index === stickyIndex)[0])
+      this.editorNodes.features.push(newNode)
+
+      this.editorLinks.features.filter(link => link.properties.a === nodeIndex).forEach(
+        (link) => { link.properties.a = stickyIndex })
+      this.editorLinks.features.filter(link => link.properties.b === nodeIndex).forEach(
+        (link) => { link.properties.b = stickyIndex })
+
+      this.moveNode({ selectedNode: newNode, lngLat: newNode.geometry.coordinates })
     },
 
     cutLineFromNode (payload) {

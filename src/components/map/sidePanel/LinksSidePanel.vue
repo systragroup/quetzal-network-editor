@@ -123,12 +123,8 @@ function showGroup (val) {
   }
 }
 
-// ui, dialog, button
-const showDialog = ref(false)
 function editButton (value) {
-  if (editorTrip.value === value) {
-    showDialog.value = true
-  } else {
+  if (editorTrip.value !== value) {
     linksStore.setEditorTrip({ tripId: value, changeBounds: true })
     store.changeNotification({ text: '', autoClose: true })
   }
@@ -356,7 +352,6 @@ function deleteButton (obj) {
                       variant="text"
                       icon="fas fa-trash"
                       class="ma-1"
-
                       :disabled="editorTrip ? true: false"
                       v-bind="hover"
                       @click.stop="deleteButton({trip:value.tripId, message:value.name,action:'deleteTrip'})"
@@ -414,7 +409,7 @@ function deleteButton (obj) {
                       class="ma-1"
                       size="small"
                       :color="'regular'"
-                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
+                      :disabled="editorTrip ? true: false"
                       v-bind="props"
                       @click="editButton(item)"
                     />
@@ -494,17 +489,31 @@ function deleteButton (obj) {
         >
           <template v-slot:activator="{ props }">
             <v-btn
-              class="mx-2"
+              class="mx-1"
               :color="store.anchorMode? 'grey':'regular'"
               v-bind="props"
+              size="small"
+              icon="fas fa-anchor"
               @click="store.changeAnchorMode()"
-            >
-              <v-icon size="small">
-                fas fa-anchor
-              </v-icon>
-            </v-btn>
+            />
           </template>
           <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
+        </v-tooltip>
+        <v-tooltip
+          location="right"
+          open-delay="500"
+        >
+          <template v-slot:activator="{ props }">
+            <v-btn
+              class="mx-1"
+              size="small"
+              :color="store.stickyMode? 'green':'regular'"
+              v-bind="props"
+              icon="fa-solid fa-magnet"
+              @click="store.changeStickyMode()"
+            />
+          </template>
+          <span> {{ $gettext("stick nodes on existing nodes") }}</span>
         </v-tooltip>
 
         <v-btn
@@ -555,43 +564,6 @@ function deleteButton (obj) {
         </v-tooltip>
       </div>
     </v-card>
-    <v-dialog
-      v-model="showDialog"
-      persistent
-      max-width="290"
-      @keydown.enter="$emit('confirmChanges'); showDialog = !showDialog"
-      @keydown.esc="showDialog=false"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Save Changes?") }}
-        </v-card-title>
-        <v-card-actions>
-          <v-btn
-            color="regular"
-            location="left"
-            @click="showDialog = false"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="$emit('abortChanges'); showDialog = !showDialog"
-          >
-            {{ $gettext("No") }}
-          </v-btn>
-
-          <v-btn
-            color="primary"
-
-            @click="$emit('confirmChanges'); showDialog = !showDialog"
-          >
-            {{ $gettext("Yes") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </section>
 </template>
 <style lang="scss" scoped>
