@@ -1,4 +1,4 @@
-## [FUTURE] (2024-03-13)
+## [5.2.k] (2024-03-14)
 
 ### Changes
 * Road links width change progressively when going from static to edition.
