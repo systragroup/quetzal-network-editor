@@ -18,7 +18,7 @@ import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
-const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
+const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -37,138 +37,10 @@ const emits = defineEmits(['clickFeature'])
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
-const mapStyle = computed(() => { return store.mapStyle })
-const showLeftPanel = computed(() => { return store.showLeftPanel })
-const editorTrip = computed(() => { return linksStore.editorTrip })
-const editorNodes = computed(() => { return linksStore.editorNodes })
-const firstNode = computed(() => { return linksStore.firstNode })
-const lastNode = computed(() => { return linksStore.lastNode })
-const anchorMode = computed(() => { return store.anchorMode })
 
-const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-
-const visibleRasters = computed(() => { return store.visibleRasters })
-const rasterFiles = computed(() => { return store.styles })
-const availableLayers = computed(() => { return store.availableLayers })
-const { mode } = toRefs(props)
-
+// map stuff
 const map = shallowRef(null)
-const isEditorMode = ref(false)
-const connectedDrawLink = ref(false)
-const drawMode = ref(false)
-
-const mapboxPublicKey = key
 const mapIsLoaded = ref(false)
-const hoverId = ref(null)
-const hoverLayer = ref(null)
-const drawLink = ref(Linestring([]))
-const mouseout = ref(false)
-const selectedNode = ref({ id: null, layerId: null })
-
-watch(editorTrip, (val) => {
-  store.setStickyMode(false)
-  connectedDrawLink.value = false
-  if (val) {
-    store.setAnchorMode(false)
-    isEditorMode.value = true
-    if (linksStore.changeBounds) {
-      const bounds = new Mapbox.LngLatBounds()
-      editorNodes.value.features.forEach(node => {
-        bounds.extend(node.geometry.coordinates)
-      })
-      map.value.fitBounds(bounds, {
-        padding: 200,
-      })
-    }
-  } else {
-    isEditorMode.value = false
-    drawMode.value = false
-    // for some reason. isEditorMode watcher not working when creating a
-    // a new line. so need to apply the values that were supposed to be applied.
-    drawLink.value.geometry.coordinates = []
-  }
-})
-
-watch(isEditorMode, (val) => {
-  // check if map is loaded too, there is a bug if not, when component is laoded in edition mode (changing page).
-  if (val && editorNodes.value.features.length > 0 && !anchorMode.value && mapIsLoaded.value) {
-    drawMode.value = true
-  } else {
-    drawMode.value = false
-    drawLink.value.geometry.coordinates = []
-  }// remove drawmode if we quit edition mode.
-
-  if (!val && drawMode.value) {
-    drawMode.value = false
-    drawLink.value.geometry.coordinates = []
-  }
-})
-
-watch(showLeftPanel, () => {
-  setTimeout(() => map.value.resize(), 250)
-})
-
-watch(anchorMode, (val) => {
-  if (val) {
-    drawMode.value = false
-    store.changeNotification(
-      { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
-  } else {
-    store.changeNotification({ text: '', autoClose: true })
-  }
-})
-
-watch(mode, (val) => {
-  if (val === 'pt') {
-    drawMode.value = false
-  }
-})
-
-function saveMapPosition () {
-  const center = map.value.getCenter()
-  store.saveMapPosition({
-    mapCenter: [center.lng, center.lat],
-    mapZoom: map.value.getZoom(),
-  })
-}
-
-watch(mapStyle, () => {
-  saveMapPosition()
-})
-
-onBeforeUnmount(() => {
-  try {
-    saveMapPosition()
-  } catch (err) {}
-})
-
-watch(drawMode, (val) => {
-  // set layer visible if drawMode is true
-  // check if layer exist. will bug if it is check befere rendering the layer
-  if (map.value?.getStyle().layers.filter(layer => layer.id === 'drawLink').length > 0) {
-    if (val) {
-      map.value.setLayoutProperty('drawLink', 'visibility', 'visible')
-    } else {
-      map.value.setLayoutProperty('drawLink', 'visibility', 'none')
-    }
-  }
-})
-
-// when the first or last node change (delete or new) change the value of those nodes.
-watch(firstNode, (val) => {
-  if (editorTrip.value && val) {
-    drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
-    selectedNode.value.layerId = 'nodes'
-    selectedNode.value.id = firstNode.value?.properties.index
-  }
-}, { deep: true })
-watch(lastNode, (val) => {
-  if (editorTrip.value && val) {
-    drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
-    selectedNode.value.layerId = 'nodes'
-    selectedNode.value.id = lastNode.value?.properties.index
-  }
-}, { deep: true })
 
 function onMapLoaded (event) {
   if (map.value) mapIsLoaded.value = false
@@ -205,15 +77,45 @@ function onMapLoaded (event) {
   mapIsLoaded.value = true
 }
 
+const showLeftPanel = computed(() => { return store.showLeftPanel })
+watch(showLeftPanel, () => { setTimeout(() => map.value.resize(), 250) })
+
+const mapStyle = computed(() => { return store.mapStyle })
+watch(mapStyle, () => { saveMapPosition() })
+onBeforeUnmount(() => { saveMapPosition() })
+
+function saveMapPosition () {
+  try {
+    const center = map.value.getCenter()
+    store.saveMapPosition({
+      mapCenter: [center.lng, center.lat],
+      mapZoom: map.value.getZoom(),
+    })
+  } catch (err) {}
+}
+
+// All of the rasters
+const visibleRasters = computed(() => { return store.visibleRasters })
+const rasterFiles = computed(() => { return store.styles })
+const availableLayers = computed(() => { return store.availableLayers })
+
+// modes
+const { mode } = toRefs(props)
+const editorNodes = computed(() => { return linksStore.editorNodes })
+const anchorMode = computed(() => { return store.anchorMode })
+const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+const editorTrip = computed(() => { return linksStore.editorTrip })
+const isEditorMode = computed(() => editorTrip.value !== null)
+
+// DrakLink
+const drawLink = ref(Linestring([]))
+const drawMode = ref(false)
+const connectedDrawLink = ref(false)
+
 function draw (event) {
   // do not update position on connected link, this makes the node sticky
   if (Object.keys(event).includes('mapboxEvent')) {
     if (!connectedDrawLink.value) {
-      // there is no mousein event, so if drawlink was put nonvisible by mouseout, we cancel here.
-      if (drawMode.value && mouseout.value) {
-        map.value.setLayoutProperty('drawLink', 'visibility', 'visible')
-        mouseout.value = false
-      }
       if (drawMode.value && !anchorMode.value) {
         // update draw line with new geometry.
         const geometry = [drawLink.value.geometry.coordinates[0], Object.values(event.mapboxEvent.lngLat)]
@@ -222,6 +124,103 @@ function draw (event) {
     }
   }
 }
+
+function resetDraw (event) {
+  // reset draw line when we leave the map. put it back when enter
+  if (drawMode.value && event === 'out') {
+    map.value.setLayoutProperty('drawLink', 'visibility', 'none')
+  }
+  if (drawMode.value && event === 'in') {
+    map.value.setLayoutProperty('drawLink', 'visibility', 'visible')
+  }
+}
+function clickStopDraw (event) {
+  // remove drawmode when we right click on map
+  if (event.mapboxEvent?.originalEvent.button === 2 && !hoverId.value) {
+    drawMode.value = false
+  }
+}
+
+watch(editorTrip, (val) => {
+  store.setStickyMode(false)
+  connectedDrawLink.value = false
+  if (val) {
+    store.setAnchorMode(false)
+    if (linksStore.changeBounds) {
+      const bounds = new Mapbox.LngLatBounds()
+      editorNodes.value.features.forEach(node => {
+        bounds.extend(node.geometry.coordinates)
+      })
+      map.value.fitBounds(bounds, {
+        padding: 200,
+      })
+    }
+  } else {
+    drawMode.value = false
+  }
+})
+
+watch(isEditorMode, (val) => {
+  // check if map is loaded too, there is a bug if not, when component is laoded in edition mode (changing page).
+  if (val && editorNodes.value.features.length > 0 && !anchorMode.value && mapIsLoaded.value) {
+    drawMode.value = true
+  } else {
+    drawMode.value = false
+    drawLink.value.geometry.coordinates = []
+  }// remove drawmode if we quit edition mode.
+
+  if (!val && drawMode.value) {
+    drawMode.value = false
+    drawLink.value.geometry.coordinates = []
+  }
+})
+
+watch(anchorMode, (val) => {
+  if (val) {
+    drawMode.value = false
+    store.changeNotification(
+      { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
+  } else {
+    store.changeNotification({ text: '', autoClose: true })
+  }
+})
+
+watch(mode, (val) => {
+  if (val === 'pt') {
+    drawMode.value = false
+  }
+})
+
+watch(drawMode, (val) => {
+  if (val) {
+    map.value.setLayoutProperty('drawLink', 'visibility', 'visible')
+  } else {
+    map.value.setLayoutProperty('drawLink', 'visibility', 'none')
+  }
+})
+
+// Hovering and stuff.
+const selectedNode = ref({ id: null, layerId: null })
+const hoverId = ref(null)
+const hoverLayer = ref(null)
+
+const firstNode = computed(() => { return linksStore.firstNode })
+const lastNode = computed(() => { return linksStore.lastNode })
+// when the first or last node change (delete or new) change the value of those nodes.
+watch(firstNode, (val) => {
+  if (editorTrip.value && val) {
+    drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
+    selectedNode.value.layerId = 'nodes'
+    selectedNode.value.id = firstNode.value?.properties.index
+  }
+}, { deep: true })
+watch(lastNode, (val) => {
+  if (editorTrip.value && val) {
+    drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
+    selectedNode.value.layerId = 'nodes'
+    selectedNode.value.id = lastNode.value?.properties.index
+  }
+}, { deep: true })
 
 function addPoint (event) {
   if (Object.keys(event).includes('mapboxEvent')) {
@@ -274,19 +273,16 @@ function addPointRoad(event) {
   offHover()
 }
 
-function resetDraw () {
-  // reset draw line when we leave the map.
-  // there is no mouseIn event, so we track it with mouseout = true, and reapply visible on mousemove.
-  if (drawMode.value) {
-    mouseout.value = true
-    map.value.setLayoutProperty('drawLink', 'visibility', 'none')
-  }
-}
-
-function rightClickMap (event) {
-  // remove drawmode when we right click on map
-  if (event.mapboxEvent?.originalEvent.button === 2 && !hoverId.value) {
+function clickFeature (event) {
+  // when we move a rNode, we need to update drawlink as it is link to this moved node.
+  if (['Move rNode', 'Delete rLink'].includes(event.action)) {
     drawMode.value = false
+    connectedDrawLink.value = false
+  }
+  // prevent emitting add road node inline when drawmode is on.
+  // we will add the node inlne and create the new link in this component.
+  if (!(event.action === 'Add Road Node Inline' && drawMode.value)) {
+    emits('clickFeature', event)
   }
 }
 
@@ -296,7 +292,6 @@ function onHover (event) {
   if (drawMode.value) { map.value.setLayoutProperty('drawLink', 'visibility', 'none') }
   // change hook when we hover first or last node.
   if (hoverId.value === linksStore.firstNodeId) {
-    // eslint-disable-next-line max-len
     drawLink.value.geometry.coordinates = [firstNode.value.geometry.coordinates, firstNode.value.geometry.coordinates]
     selectedNode.value.id = hoverId.value
     selectedNode.value.layerId = event.layerId
@@ -347,19 +342,6 @@ function offHover () {
   }
 }
 
-function clickFeature (event) {
-  // when we move a rNode, we need to update drawlink as it is link to this moved node.
-  if (['Move rNode', 'Delete rLink'].includes(event.action)) {
-    drawMode.value = false
-    connectedDrawLink.value = false
-  }
-  // prevent emitting add road node inline when drawmode is on.
-  // we will add the node inlne and create the new link in this component.
-  if (!(event.action === 'Add Road Node Inline' && drawMode.value)) {
-    emits('clickFeature', event)
-  }
-}
-
 const showDialog = ref(false)
 const stickyNodeId = ref('')
 const selectedNodeId = ref('')
@@ -399,9 +381,10 @@ function applyStickyNode() {
     :zoom="store.mapZoom"
     @load="onMapLoaded"
     @mousemove="draw"
-    @mouseout="resetDraw()"
+    @mouseout="resetDraw('out')"
+    @mouseenter="resetDraw('in')"
     @click="addPoint"
-    @mouseup="rightClickMap"
+    @mouseup="clickStopDraw"
   >
     <div
       v-if="mapIsLoaded"
@@ -463,7 +446,7 @@ function applyStickyNode() {
     />
 
     <MglGeojsonLayer
-      v-if="drawMode"
+      v-show="drawMode"
       source-id="drawLink"
       :source="{
         type: 'geojson',
