@@ -8,8 +8,10 @@ const props = defineProps(['map'])
 const emits = defineEmits(['mousedown', 'mouseup', 'mousemove'])
 const { map } = toRefs(props)
 const poly = ref(null)
-const p1 = ref(null)
-const p2 = ref(null)
+const bbox = ref(null)
+const p1 = ref({ lnglat: null, point: null })
+const p2 = ref({ lnglat: null, point: null })
+const selectedId = ref(new Set())
 
 onMounted(() => {
   map.value.on('mousedown', startSelect)
@@ -21,26 +23,55 @@ onUnmounted(() => {
 
 function startSelect (event) {
   // 0,1,2 left, wheel right
+  setHover(false)
   if (event.originalEvent.button === 1) {
     event.preventDefault() // prevent map control
-    p1.value = Object.values(event.lngLat)
+    p1.value.lnglat = event.lngLat
+    p1.value.point = event.point
     map.value.on('mousemove', onMove)
     map.value.on('mouseup', stopSelect)
     emits('mousedown', { mapboxEvent: event })
   }
 }
 function onMove (event) {
-  p2.value = Object.values(event.lngLat)
-  poly.value = bboxPolygon([p1.value[0], p1.value[1], p2.value[0], p2.value[1]])
+  p2.value.lnglat = event.lngLat
+  p2.value.point = event.point
+  poly.value = bboxPolygon([p1.value.lnglat.lng, p1.value.lnglat.lat, p2.value.lnglat.lng, p2.value.lnglat.lat])
   map.value.getSource('selectPolygon').setData(poly.value)
-  emits('mousemove', { mapboxEvent: event, polygon: poly.value })
+  bbox.value = [Object.values(p1.value.point), Object.values(p2.value.point)]
+  emits('mousemove', { mapboxEvent: event, polygon: poly.value, bbox: bbox.value })
 }
 function stopSelect (event) {
   // stop tracking position (moving node.)
   map.value.getSource('selectPolygon').setData(geojson)
   map.value.getCanvas().style.cursor = 'pointer'
   map.value.off('mousemove', onMove)
+  map.value.off('mouseup', stopSelect)
   emits('mouseup', { mapboxEvent: event })
+  query()
+  setHover(true)
+  bbox.value = null
+  poly.value = null
+}
+
+function query() {
+  if (bbox.value) {
+    const query = map.value.queryRenderedFeatures(bbox.value, {
+      layers: ['rlinks'],
+    })
+    selectedId.value = new Set(query.map(el => el.id))
+  } else {
+    selectedId.value = new Set()
+  }
+}
+
+function setHover(val) {
+  selectedId.value.forEach(id => {
+    map.value.setFeatureState(
+      { source: 'rlinks', id: id },
+      { hover: val },
+    )
+  })
 }
 
 </script>

@@ -326,15 +326,34 @@ export const userLinksStore = defineStore('rlinks', {
       function inBBox(pt, bbox) {
         // pt point [x,y]
         // {BBox} bbox BBox [west, south, east, north]
-        return (
-          bbox[0] <= pt[0] && bbox[1] <= pt[1] && bbox[2] >= pt[0] && bbox[3] >= pt[1]
-        )
+        return (bbox[0] <= pt[0] && bbox[1] <= pt[1] && bbox[2] >= pt[0] && bbox[3] >= pt[1])
       }
-      this.renderedrNodes.features = this.visiblerNodes.features.filter(node => inBBox(node.geometry.coordinates, bbox))
+      function getMidPoint(line) {
+        const p1 = line[0]
+        const p2 = line[line.length - 1]
+        return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
+      }
 
-      const rNodesSet = new Set(this.renderedrNodes.features.map(node => node.properties.index))
-      this.renderedrLinks.features = this.visiblerLinks.features.filter(
-        link => (rNodesSet.has(link.properties.a) || rNodesSet.has(link.properties.b)))
+      function lineInBBox(line, bbox) {
+        // get check if line in BBOX with nodes.
+        // keep 5 anchors. if less than 5, add midpoint.
+        const len = line.length
+        const inc = len > 10 ? (len - 1) / 10 : 1
+        for (let i = 0; i < len; i += inc) {
+          const pt = line[Math.floor(i)]
+          if (inBBox(pt, bbox))
+            return true
+        }
+        // get midpoint for 2 points linestring.
+        if (len < 3) {
+          if (inBBox(getMidPoint(line), bbox)) { return true }
+        }
+        return false
+      }
+
+      // eslint-disable-next-line max-len
+      this.renderedrLinks.features = this.visiblerLinks.features.filter(link => lineInBBox(link.geometry.coordinates, bbox))
+      this.getRenderedrNodes()
     },
 
     getRenderedrNodes () { // get rendered nodes

@@ -1,3 +1,8 @@
+## [5.2.l] (2024-03-15)
+
+### Changes
+* **Road edition**: is max 2 times slower. changed it for linestring intections. as linestring can be in the bbox but not its node (long one.) uses up to 10 of its anchor (no more). if only 2 pts. add a midpoint.
+
 ## [5.2.k] (2024-03-14)
 
 ### Changes
