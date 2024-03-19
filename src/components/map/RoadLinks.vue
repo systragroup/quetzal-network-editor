@@ -2,6 +2,7 @@
 
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
 import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount } from 'vue'
+import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
@@ -92,6 +93,7 @@ async function getBounds() {
     // get windows BBOX
     const bounds = map.value.getBounds()
     rlinksStore.getRenderedrLinks({ bbox: [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat] })
+
     map.value.setLayoutProperty('staticrLinks', 'visibility', 'none')
 
     // check lastzoom so we only setData when it changed, not at every zoom and move.
@@ -206,7 +208,7 @@ function linkRightClick (event) {
   }
 }
 function actionClick (event) {
-  if (event.action === 'Delete rLink') {
+  if (['Delete rLink', 'Delete Selected'].includes(event.action)) {
     rlinksStore.deleterLink({ selectedIndex: event.feature })
     // emit this click to remove the drawlink.
     emits('clickFeature', { action: 'Delete rLink' })
@@ -238,6 +240,21 @@ function contextMenuNode (event) {
         rlinksStore.deleteAnchorrNode({ selectedNode: selectedFeature.value[0].properties })
       }
     }
+  }
+}
+
+function contextMenuSelection (event) {
+  const selectedIds = event.selectedId
+  if (selectedIds.size > 0) {
+    contextMenu.value.showed = true
+    const poly = event.polygon.geometry.coordinates[0]
+    contextMenu.value.coordinates = [(poly[0][0] + poly[2][0]) / 2, Math.max(poly[0][1], poly[2][1])]
+    contextMenu.value.feature = selectedIds
+    contextMenu.value.actions
+          = [
+        $gettext('Edit selected Info'),
+        $gettext('Delete Selected'),
+      ]
   }
 }
 
@@ -376,6 +393,10 @@ const ArrowDirCondition = computed(() => {
 </script>
 <template>
   <section>
+    <MapClickSelector
+      :map="map"
+      @mouseup="contextMenuSelection"
+    />
     <MglGeojsonLayer
       source-id="staticrLinks"
       :reactive="false"

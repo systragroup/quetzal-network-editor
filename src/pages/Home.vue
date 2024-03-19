@@ -113,7 +113,16 @@ export default {
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         lingering.value = event.lingering
         showDialog.value = true
-      } else if (action.value === 'Edit Visible Road Info') {
+      } else if (action.value === 'Edit selected Info') {
+        selectedLink.value = rlinksStore.rlinks.features.filter(link => event.selectedIndex.has(link.properties.index))
+        const lineAttributes = rlinksStore.rlineAttributes
+        const uneditable = ['index', 'length', 'time', 'a', 'b']
+        editorForm.value = getGroupForm(selectedLink.value, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      }
+
+      else if (action.value === 'Edit Visible Road Info') {
         const features = rlinksStore.visiblerLinks.features
         selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = rlinksStore.rlineAttributes
@@ -206,6 +215,9 @@ export default {
           rlinksStore.editrLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
           break
         case 'Edit Road Group Info':
+          rlinksStore.editrGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
+          break
+        case 'Edit selected Info':
           rlinksStore.editrGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
           break
         case 'Edit Visible Road Info':
