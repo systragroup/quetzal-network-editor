@@ -1,3 +1,30 @@
+## [5.2.0] (2024-03-21)
+
+Can now reuse nodes on import. and reuse nodes when drawing a line of moving a node (sticky nodes)
+
+### Features
+* **Sticky nodes**: when magnet mode activated (next to anchor). moving and drawing nodes will reuse existing nodes. [#494](https://github.com/systragroup/quetzal-network-editor/issues/494)
+
+* **Fix conflict on import (index)**: drop matching links and nodes. rename indexes for non matching (but same index). Drop matching trip_id. Drop duplicate nodeIndex if their distance is <10m  [#127](https://github.com/systragroup/quetzal-network-editor/issues/127)
+
+* **End of simulation music**: toggle added
+
+* **Loading badge**: added (like saving) on the navigation drawer for Run and exporting.
+
+### Changes
+* added urn:ogc:def:crs:EPSG:4326 to CRS list.
+* Road links width change progressively when going from static to edition.
+
+### Bug fixes
+* **notification:** translation was returning an error sometime when changing page quickly.
+* **link_sequence:** was problematic when links not sorted. Sort editorLinks [#492](https://github.com/systragroup/quetzal-network-editor/issues/492)
+* **Clone trips:** fix. sort links with link_sequence first [#493](https://github.com/systragroup/quetzal-network-editor/issues/493)
+* **length time speed:** fixes. length and time was not calc on delete anchor and when moving a node on other trips when applying modification. Also when merging links (delete node) speed was sometime altered
+
+### Optimization
+* **Road edition**: is up to 10X faster to render the editor Links (wheen zoomed and moving). Changed turf function to a custom and faster one. 
+
+
 ## [5.2.m] (2024-03-21)
 
 ### Bug fixes
