@@ -6,23 +6,26 @@ import { extractZip, unzip } from '@comp/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
-import { ref, computed, onMounted } from 'vue'
+import { useConflicts } from '@comp/import/conflicts.js'
 
+import { ref, computed, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
+import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
+
 import { useUserStore } from '@src/store/user'
-import { useRunStore } from '@src/store/run'
-import { useOSMStore } from '@src/store/OSMImporter'
-import { useGTFSStore } from '@src/store/GTFSImporter'
 import axios from 'axios'
 
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
+
 const store = useIndexStore()
 const userStore = useUserStore()
-const runStore = useRunStore()
-const runOSMStore = useOSMStore()
-const runGTFSStore = useGTFSStore()
+const linksStore = useLinksStore()
+const rlinksStore = userLinksStore()
 const projectIsEmpty = computed(() => store.projectIsEmpty)
+const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
+const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 
 const choice = ref(null)
 const showDialog = ref(false)
@@ -72,17 +75,7 @@ function applyDialog () {
 
 function newProject () {
   store.initNetworks()
-  runStore.cleanRun()
-  runOSMStore.cleanRun()
-  runGTFSStore.cleanRun()
   store.changeNotification({ text: $gettext('Files unloaded'), autoClose: true, color: 'success' })
-}
-
-function loadNetwork (files) {
-  // HERE: check if duplicated index.
-  store.loadFiles(files)
-  filesAdded.value = true
-  store.changeLoading(false)
 }
 
 async function readZip (event) {
@@ -111,9 +104,6 @@ async function readZip (event) {
 async function loadFilesFromS3 () {
   if (!projectIsEmpty.value) {
     store.initNetworks()
-    runStore.cleanRun()
-    runOSMStore.cleanRun()
-    runGTFSStore.cleanRun()
   }
   store.changeLoading(true)
 
@@ -126,18 +116,19 @@ async function loadFilesFromS3 () {
     filesList = filesList.filter(name => !name.endsWith('/'))
     for (const file of filesList) {
       const name = file.slice(scen.length) // remove scen name from file
-      // take knowned files outside of outputs and inputs (styles and attrivutesChoides)
-      if (!name.startsWith('outputs/') && !name.startsWith('inputs/')) {
-        if (name === 'styles.json') {
-          const content = await s3.readJson(model, file)
-          res.push({ path: name, content })
-        }
-        if (name === 'attributesChoices.json') {
-          const content = await s3.readJson(model, file)
-          res.push({ path: name, content })
-        }
-        // take PT and road network and param.json.
-      } else if (name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/') || name === 'inputs/params.json') {
+      // take knowned files (styles and attributesChoices, params.json)
+      if (name === 'inputs/params.json') {
+        const content = await s3.readJson(model, file)
+        res.push({ path: name, content })
+      } else if (name === 'styles.json') {
+        const content = await s3.readJson(model, file)
+        res.push({ path: name, content })
+      } else if (name === 'attributesChoices.json') {
+        const content = await s3.readJson(model, file)
+        res.push({ path: name, content })
+        // take PT and road network and od (ending en geojson)
+      } else if ((name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/'))
+      && (name.endsWith('.geojson'))) {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
         // else. we do not load the file. (outputs or inputs.) we will fetch them when needed.
@@ -155,9 +146,6 @@ async function loadFilesFromS3 () {
 async function loadExample (filesToLoads) {
   store.initNetworks()
   userStore.unloadProject()
-  runStore.cleanRun()
-  runOSMStore.cleanRun()
-  runGTFSStore.cleanRun()
 
   store.changeLoading(true)
   const url = 'https://raw.githubusercontent.com/systragroup/quetzal-network-editor/master/example/'
@@ -202,6 +190,26 @@ async function loadExample (filesToLoads) {
       message: $gettext($gettext('An error occur fetching example on github')),
     })
   }
+}
+
+const { handleConflict, filesAddedNotification } = useConflicts()
+
+function loadNetwork (files) {
+  // HERE: check if duplicated index.
+  let infoPT
+  let infoRoad
+  const ptFiles = files.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
+  if (ptFiles.length > 0 && !linksIsEmpty.value) {
+    infoPT = handleConflict(ptFiles, 'pt')
+  }
+  const roadFiles = files.filter(el => el.path.startsWith('inputs/road/') && el.path.endsWith('.geojson'))
+  if (roadFiles.length > 0 && !rlinksIsEmpty.value) {
+    infoRoad = handleConflict(roadFiles, 'road')
+  }
+  store.loadFiles(files)
+  filesAdded.value = true
+  store.changeLoading(false)
+  filesAddedNotification(infoPT, infoRoad)
 }
 
 </script>
@@ -344,7 +352,7 @@ async function loadExample (filesToLoads) {
 <style lang="scss" scoped>
 .layout {
   position: relative;
-  padding: 4rem 2rem 4rem 2rem;
+  padding: 4rem 2rem;
   height:100%;
   display: flex;
   flex-flow: row;
@@ -352,7 +360,6 @@ async function loadExample (filesToLoads) {
   align-items: center;
   overflow-y: auto;
 }
-
 .center-col{
   display: flex;
   flex-direction: column;
@@ -367,7 +374,6 @@ async function loadExample (filesToLoads) {
   width:28rem;
   padding:0.5rem;
 }
-
 .card {
   overflow-y:hidden;
   padding: 20px;
@@ -402,7 +408,7 @@ async function loadExample (filesToLoads) {
   margin: 20px;
 }
 .card button {
-  margin: 0.5rem 0.5rem 0rem 0.5rem;
+  margin: 0.5rem 0.5rem 0;
 }
 .animate-login {
   transform: translateY(-185%);

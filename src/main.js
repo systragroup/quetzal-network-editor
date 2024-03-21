@@ -24,41 +24,34 @@ import '@scss/main.scss'
 
 // config
 
-const languageMixin = {
-  methods: {
-    $selectBestLanguage (browserLangs, supportedLangs) {
-      if (browserLangs.length) {
-        for (const lang of browserLangs) {
-          const parts = lang.toLowerCase().split('-')
-          if (parts.length > 1) {
-            parts[1] = parts[1].toUpperCase()
-          }
-          const normLang = parts.join('-')
-          if (supportedLangs.includes(normLang)) {
-            return normLang
-          } else if (parts.length > 1 && supportedLangs.includes(parts[0])) {
-            return parts[0]
-          }
-        }
-        return supportedLangs[0]
-      } else {
-        return supportedLangs[0]
+function selectBestLanguage (browserLangs, supportedLangs) {
+  if (browserLangs.length) {
+    for (const lang of browserLangs) {
+      const parts = lang.toLowerCase().split('-')
+      if (parts.length > 1) {
+        parts[1] = parts[1].toUpperCase()
       }
-    },
-  },
+      const normLang = parts.join('-')
+      if (supportedLangs.includes(normLang)) {
+        return normLang
+      } else if (parts.length > 1 && supportedLangs.includes(parts[0])) {
+        return parts[0]
+      }
+    }
+    return supportedLangs[0]
+  } else {
+    return supportedLangs[0]
+  }
 }
 
 const app = createApp(App)
-app.mixin(languageMixin)
 app.use(createPinia())
 app.use(router)
 // app.component('VueDatePicker', VueDatePicker)
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 library.add(fas)
 app.config.devtools = true
-// const bestLanguage = languageMixin.methods.$selectBestLanguage(navigator.languages, ['en', 'fr'])
-const bestLanguage = 'en'
-// const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+const bestLanguage = selectBestLanguage(navigator.languages, ['en', 'fr'])
 const vuetify = createVuetify({
   // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
   components: {

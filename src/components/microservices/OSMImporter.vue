@@ -197,7 +197,6 @@ export default {
   width:50rem;
   height: 35rem;
 }
-
 .freeform-button {
   position: absolute;
   top: 5px;

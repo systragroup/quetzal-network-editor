@@ -170,7 +170,6 @@ export default {
 .language:last-child {
   border-right: 0;
 }
-
 .custom-title {
   font-size: 1.2em;
   padding-left: 1.2rem;

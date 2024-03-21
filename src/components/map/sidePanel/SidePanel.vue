@@ -165,7 +165,7 @@ export default {
 }
 .left-panel-close {
 transition:0.3s;
-width:0px;
+width:0;
 }
 .left-panel .resizable-handle {
   width: 5px;
@@ -176,7 +176,6 @@ width:0px;
   top: 0;
   cursor: col-resize; /* Use the col-resize cursor for horizontal resizing */
 }
-
 .left-panel-content {
   display:inline-block;
   width : 100%;
@@ -186,9 +185,6 @@ width:0px;
   resize: horizontal;
   overflow: auto;
 
-}
-.v-list__tile {
-  padding: 0
 }
 .left-panel-toggle-btn {
   left: 100%;
@@ -214,19 +210,16 @@ width:0px;
   height: height;
   padding-left:20px
 }
-
 .scrollable {
    overflow-y:scroll;
 
 }
-
 .drawer-list-item {
   padding: 0 13px !important;
   justify-content: flex-start !important;
   flex: 0;
   transition: 0.3s;
 }
-
 .list-item-icon {
   display: flex !important;
   flex-flow: row !important;

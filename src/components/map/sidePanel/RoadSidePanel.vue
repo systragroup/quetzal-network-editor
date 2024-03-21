@@ -353,7 +353,6 @@ export default {
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
 }
-
 .v-selection-control{
   flex:0 !important;
 }
@@ -364,10 +363,9 @@ export default {
   position: absolute;
   display:flex;
   z-index: 20;
-
 }
 .left-panel-close {
-transition:0.3s
+  transition:0.3s
 }
 .left-panel-content {
   display:inline-block;
@@ -375,9 +373,7 @@ transition:0.3s
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  //resize: horizontal;
   overflow: auto;
-
 }
 .v-list__tile {
   padding: 0
@@ -406,19 +402,16 @@ transition:0.3s
   height: calc(100vh - 250px);
   padding-left:20px
 }
-
 .scrollable {
    overflow-y:scroll;
 
 }
-
 .drawer-list-item {
   padding: 0 13px !important;
   justify-content: flex-start !important;
   flex: 0;
   transition: 0.3s;
 }
-
 .list-item-icon {
   display: flex !important;
   flex-flow: row !important;

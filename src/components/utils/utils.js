@@ -82,6 +82,14 @@ function getGroupForm (features, lineAttributes, uneditable) {
   return form
 }
 
+function deleteUnusedNodes (nodes, links) {
+  // delete every every nodes not in links. return nodes.feautures
+  const a = links.features.map(item => item.properties.a)
+  const b = links.features.map(item => item.properties.b)
+  const ab = new Set([...a, ...b])
+  return nodes.features.filter(node => ab.has(node.properties.index))
+}
+
 function indexAreUnique (geojson) {
   // check if all index are unique in a geojson (links or nodes)
   // return true if they are unique
@@ -98,6 +106,31 @@ function IndexAreDifferent (geojsonA, geojsonB) {
   const linksIndex = new Set(geojsonA.features.map(item => item.properties.index))
   const newLinksIndex = new Set(geojsonB.features.map(item => item.properties.index))
   return (new Set([...linksIndex, ...newLinksIndex]).size === (linksIndex.size + newLinksIndex.size))
+}
+
+function getMatchingAttr(geojsonA, geojsonB, attr = 'index') {
+  // return a list of matching index in 2 geojson
+  const a = new Set(geojsonA.features.map(item => item.properties[attr]))
+  const b = new Set(geojsonB.features.map(item => item.properties[attr]))
+  return Array.from(a).filter(i => b.has(i))
+}
+
+function getPerfectMatches(geojsonA, geojsonB, indexes) {
+  // return a list of index with perfect matches
+  const indexSet = new Set(indexes)
+  const filterA = geojsonA.features.filter(item => indexSet.has(item.properties.index))
+  const filterB = geojsonB.features.filter(item => indexSet.has(item.properties.index))
+
+  const arrA = filterA.map(el => JSON.stringify(el))
+  const setB = new Set(filterB.map(el => JSON.stringify(el)))
+  const intersect = arrA.filter(i => setB.has(i))
+  const matches = intersect.map(el => JSON.parse(el).properties.index)
+
+  return matches
+}
+
+function remap(value, dict) {
+  return value in dict ? dict[value] : value
 }
 
 async function unzip (file) {
@@ -201,8 +234,12 @@ export {
   readFileAsBytes,
   extractZip,
   getGroupForm,
+  deleteUnusedNodes,
   indexAreUnique,
   IndexAreDifferent,
+  getMatchingAttr,
+  getPerfectMatches,
+  remap,
   unzip,
   csvJSON,
   unzipCalendar,

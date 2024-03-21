@@ -367,14 +367,13 @@ export default {
   height: 90%;
   flex:1;
   margin:1rem;
-  padding: 2.5rem 0rem 2.5rem 2.0rem;
+  padding: 2.5rem 0 2.5rem 2.0rem;
   margin-right: 3rem;
   overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
-
 }
 .card button {
-  margin-top: 0px;
+  margin-top: 0;
 }
 .title {
   display: flex;
@@ -390,12 +389,8 @@ export default {
   color:var(--v-secondary-dark);
   font-weight: bold;
   margin: 10px;
-  margin-left: 0px;
+  margin-left: 0;
 }
-.card button {
-  margin-top: 0px;
-}
-
 .params-row {
   /* Add individual list item styles here */
   display: flex; /* Use flexbox layout for each list item */
@@ -409,17 +404,13 @@ export default {
 .params{
   width: 10rem;
 }
-
 .list {
   height:70%;
-  //border: 1px solid red;
   margin-top:1rem;
   margin-right:1rem;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   border-top: 1px solid rgb(var(--v-theme-mediumgrey));
   border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
-
 }
 .list-row {
   /* Add individual list item styles here */
@@ -429,19 +420,16 @@ export default {
   justify-content:flex-start;
   border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
 }
-
 .list-item-small {
   /* Add individual list item styles here */
   flex: 0 0 8%;
   margin:4px;
 }
-
 .list-item-medium {
   /* Add individual list item styles here */
   flex: 0 0 18%;
   margin-right:2px;
 }
-
 .list-item-large {
   /* Add individual list item styles here */
   flex: 0 0 26%;

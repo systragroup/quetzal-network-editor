@@ -1,5 +1,11 @@
 // import JSZip from 'jszip'
 const $gettext = s => s
+import { indexAreUnique } from './utils'
+
+function CRSis4326(geojson) {
+  const arr = ['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326', 'urn:ogc:def:crs:EPSG:4326']
+  return arr.includes(geojson.crs?.properties.name)
+}
 
 function serializer (geojson, name, type = null, ignoreIndex = false) {
   // check that file is not empty
@@ -9,7 +15,7 @@ function serializer (geojson, name, type = null, ignoreIndex = false) {
     throw err
   }
   // check CRS. no CRS or invalid
-  if (!['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(geojson.crs?.properties.name)) {
+  if (!CRSis4326) {
     const err = new Error($gettext(' invalid CRS. Import aborted. use CRS84 / EPSG:4326 in ') + name)
     err.name = 'ImportError'
     throw err
@@ -28,6 +34,12 @@ function serializer (geojson, name, type = null, ignoreIndex = false) {
     err.name = 'ImportError'
     throw err
   }
+  if (!indexAreUnique(geojson)) {
+    const err = new Error($gettext('there is duplicates index. you need unique index. Import aborted in ') + name)
+    err.name = 'ImportError'
+    throw err
+  }
+
   // all good. return geojson.
   return geojson
 }
@@ -74,4 +86,4 @@ function stylesSerializer (json) {
   return json
 }
 
-export { serializer, paramsSerializer, stylesSerializer }
+export { serializer, paramsSerializer, stylesSerializer, CRSis4326 }

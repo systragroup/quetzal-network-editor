@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash'
 import { ref, computed, toRaw } from 'vue'
 import { useIndexStore } from '@src/store/index'
+import { CRSis4326 } from '@comp/utils/serializer.js'
 import chroma from 'chroma-js'
 import seedrandom from 'seedrandom'
 import geojson from '@constants/geojson'
@@ -165,7 +166,7 @@ export function useResult () {
     hasOD.value = (typeof matData === 'object' && matData !== null)
     if (hasOD.value) { addMatrix(matData) }
 
-    if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(layer.value.crs.properties.name)) {
+    if (CRSis4326(layer.value)) {
       // apply settings
       getLinksProperties()
       if (attributes.value.includes(settings?.selectedFeature)) {

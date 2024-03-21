@@ -4,6 +4,7 @@ import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
+import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
 import { computed, ref, watch, onMounted } from 'vue'
 
@@ -11,6 +12,7 @@ const $gettext = s => s
 
 export default {
   name: 'ScenariosExplorer',
+  components: { SimpleDialog },
   emits: ['load', 'unload'],
 
   setup (_, context) {
@@ -58,6 +60,10 @@ export default {
       // when logout. this will happen. we want to reset localModel for its watcher to work on login.
       if (val.length === 0) { localModel.value = null }
     })
+    function formatTab(tab) {
+      return tab.startsWith('quetzal-') ? tab.slice(8) : tab
+    }
+
     watch(scenario, (val) => {
       if (val !== localScen.value) {
         localScen.value = ''
@@ -193,6 +199,7 @@ export default {
       projectIsEmpty,
       loggedIn,
       modelsList,
+      formatTab,
       model,
       localModel,
       scenario,
@@ -236,7 +243,7 @@ export default {
         :value="tab"
         :disabled="loading"
       >
-        {{ tab.slice(8) }}
+        {{ formatTab(tab) }}
       </v-tab>
     </v-tabs>
     <v-divider />
@@ -364,79 +371,25 @@ export default {
     </div>
   </div>
 
-  <v-dialog
-    v-if="showDialog"
+  <SimpleDialog
     v-model="showDialog"
-    persistent
-    max-width="350"
-  >
-    <v-card>
-      <v-card-text>
-        <span class="text-h5">
-          <strong v-if="modelScen === localModel + localScen">
-            {{ $gettext("Unload Scenario?") }}
-          </strong>
-          <strong v-else>
-            {{ $gettext("Change Scenario?") }}
-          </strong>
-        </span>
-      </v-card-text>
-      <v-card-text class="text-h6">
-        {{ $gettext("Any unsaved changes will be lost") }}
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          color="regular"
-          @click="cancelDialog"
-        >
-          {{ $gettext("No") }}
-        </v-btn>
+    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Change Scenario')"
+    :body="$gettext('Any unsaved changes will be lost')"
+    confirm-color="primary"
+    :confirm-button="$gettext('Yes')"
+    :cancel-button="$gettext('No')"
+    @confirm="applyDialog"
+    @cancel="cancelDialog"
+  />
 
-        <v-btn
-          color="primary"
-          @click="applyDialog"
-        >
-          {{ $gettext("Yes") }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <v-dialog
-    v-if="deleteDialog"
+  <SimpleDialog
     v-model="deleteDialog"
-    persistent
-    max-width="350"
-  >
-    <v-card>
-      <v-card-text>
-        <span class="text-h5">
-          <strong>
-            {{ $gettext("Delete") + ' '+ scenarioToDelete+' ?' }}
-          </strong>
-        </span>
-      </v-card-text>
-      <v-card-text class="text-h6">
-        {{ $gettext("The scenario will be permanently deleted") }}
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          color="regular"
-          @click="()=>deleteDialog=false"
-        >
-          {{ $gettext("Cancel") }}
-        </v-btn>
-
-        <v-btn
-          color="error"
-          @click="deleteScenario"
-        >
-          {{ $gettext("Delete") }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    :title=" $gettext('Delete %{scen}?', { scen: scenarioToDelete }) "
+    :body="$gettext('The scenario will be permanently deleted')"
+    :confirm-button="$gettext('Delete')"
+    confirm-color="error"
+    @confirm="deleteScenario"
+  />
   <v-dialog
     v-if="copyDialog"
     v-model="copyDialog"
@@ -508,7 +461,6 @@ export default {
 .item{
   flex:1;
 }
-
 .custom-title {
   font-size: 1.2em;
   padding-left: 1.2rem;
@@ -527,11 +479,8 @@ export default {
 .text-right {
   justify-content: end;
 }
-
 .v-card-content {
-  //max-height:400px; /* Set a max height for the middle content */
   overflow: auto; /* Enable scrolling if the content overflows */
   max-height:calc(100% - 10rem);
-
 }
 </style>

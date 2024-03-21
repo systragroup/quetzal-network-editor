@@ -7,12 +7,15 @@ import { useLinksStore } from './links'
 import { userLinksStore } from './rlinks'
 import { useODStore } from './od'
 import { useRunStore } from './run'
+import { useOSMStore } from './OSMImporter'
+import { useGTFSStore } from './GTFSImporter'
 
 import { stylesSerializer } from '../components/utils/serializer.js'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import geojson from '@constants/geojson'
+import { deleteUnusedNodes } from '../components/utils/utils.js'
 
 const $gettext = s => s
 
@@ -27,6 +30,7 @@ export const useIndexStore = defineStore('store', {
     loading: false,
     showLeftPanel: true,
     anchorMode: false,
+    stickyMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
     cyclewayMode: false,
@@ -77,6 +81,12 @@ export const useIndexStore = defineStore('store', {
     changeAnchorMode () {
       this.anchorMode = !this.anchorMode
     },
+    setStickyMode(payload) {
+      this.stickyMode = payload
+    },
+    changeStickyMode () {
+      this.stickyMode = !this.stickyMode
+    },
     changeCyclewayMode () {
       this.cyclewayMode = !this.cyclewayMode
     },
@@ -116,13 +126,13 @@ export const useIndexStore = defineStore('store', {
         // at this point. nothing is used in otherFiles.
 
         // PT files should be in pair of 2 (links and nodes)
-        if (ptFiles.length % 2 !== 0) {
+        if (ptFiles.length !== 2 && ptFiles.length !== 0) {
           const err = new Error($gettext('Need the same number of links and nodes files.'))
           err.name = 'ImportError'
           throw err
         }
         // road files should be in pair of 2 (links and nodes)
-        if (roadFiles.length % 2 !== 0) {
+        if (roadFiles.length !== 2 && roadFiles.length !== 0) {
           const err = new Error($gettext('Need the same number of road_links and road_nodes files.'))
           err.name = 'ImportError'
           throw err
@@ -132,16 +142,10 @@ export const useIndexStore = defineStore('store', {
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.getLocalParameters(paramFile.content)
         if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
-        if (stylesFile) {
-          const json = stylesSerializer(stylesFile.content)
-          this.styles = json
-        }
+        if (stylesFile) { this.loadStyles(stylesFile.content) }
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
-
-        this.changeNotification(
-          { text: $gettext('File(s) added'), autoClose: true, color: 'success' })
       } catch (err) {
         this.changeAlert(err)
       }
@@ -221,6 +225,17 @@ export const useIndexStore = defineStore('store', {
       this.loadAttributesChoices(defaultAttributesChoices)
       this.otherFiles = []
       this.cyclewayMode = false
+
+      this.initOtherStores()
+    },
+
+    initOtherStores() {
+      const runStore = useRunStore()
+      const runOSMStore = useOSMStore()
+      const runGTFSStore = useGTFSStore()
+      runStore.cleanRun()
+      runOSMStore.cleanRun()
+      runGTFSStore.cleanRun()
     },
 
     applySettings (payload) {
@@ -232,6 +247,12 @@ export const useIndexStore = defineStore('store', {
       this.outputName = payload.outputName
     },
     changeOutputName (payload) { this.outputName = payload },
+
+    loadStyles (payload) {
+      const json = stylesSerializer(payload)
+      this.styles = json
+    },
+
     addStyle (payload) {
       // payload: styling for results {name,layer, displaySettings:{...}}
       const names = this.styles.map(el => el.name)
@@ -278,11 +299,8 @@ export const useIndexStore = defineStore('store', {
           link => linksStore.selectedTrips.includes(link.properties.trip_id))
         links = JSON.stringify(tempLinks)
         // delete every every nodes not in links
-        const a = tempLinks.features.map(item => item.properties.a)
-        const b = tempLinks.features.map(item => item.properties.b)
-        const nodesInLinks = Array.from(new Set([...a, ...b]))
         const tempNodes = cloneDeep(linksStore.nodes)
-        tempNodes.features = tempNodes.features.filter(node => nodesInLinks.includes(node.properties.index))
+        tempNodes.features = deleteUnusedNodes(tempNodes, tempLinks)
         nodes = JSON.stringify(tempNodes)
 
         rlinks = JSON.stringify(rlinksStore.visiblerLinks)

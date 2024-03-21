@@ -17,15 +17,15 @@ msgstr ""
 msgid " deleted"
 msgstr " supprimé "
 
-#: src/components/utils/serializer.js:20
+#: src/components/utils/serializer.js:21
 msgid " imported, Expected "
 msgstr " importé. Attendue: "
 
-#: src/components/utils/serializer.js:13
+#: src/components/utils/serializer.js:14
 msgid " invalid CRS. Import aborted. use CRS84 / EPSG:4326 in "
 msgstr "CRS invalide, utiliser CRS84 / EPSG:4326"
 
-#: src/components/utils/serializer.js:7
+#: src/components/utils/serializer.js:8
 msgid " is empty"
 msgstr " est vide"
 
@@ -37,8 +37,8 @@ msgstr " minutes restantes"
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr " Les dossiers à la racines devraient être inputs/ et outputs/. non: "
 
-#: src/store/links.js:110 src/store/links.js:118 src/store/od.js:40
-#: src/store/rlinks.js:102 src/store/rlinks.js:110
+#: src/store/links.js:111 src/store/links.js:119 src/store/od.js:40
+#: src/store/rlinks.js:103 src/store/rlinks.js:111
 msgid " there is duplicated index, "
 msgstr " il y a des index en double, "
 
@@ -72,13 +72,27 @@ msgstr " il y a des index en double, "
 msgid "_ctx"
 msgstr ""
 
-#: src/components/utils/serializer.js:21
+#: src/components/utils/serializer.js:22
 msgid ". Import aborted in "
 msgstr ". Importation interrompue dans "
 
-#: src/pages/Import.vue:215
-msgid "$gettext"
+#: src/components/import/conflicts.js:128
+msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added"
+msgstr "%{a}/%{b} noeuds TC ajoutés et %{c}/%{d} liens TC ajoutés"
+
+#: src/components/import/conflicts.js:121
+msgid ""
+"%{a}/%{b} PT nodes added and %{c}/%{d} PT links "
+"added.                           %{e}/%{f} road nodes added and %{g}/%{h} "
+"road links added "
 msgstr ""
+"%{a}/%{b} noeuds TC ajoutés et  %{c}/%{d} liens TC "
+"ajoutés.                           %{e}/%{f} noeuds routier ajoutés %{g}/"
+"%{h} liens routier ajoutés "
+
+#: src/components/import/conflicts.js:133
+msgid "%{a}/%{b} road nodes added and %{c}/%{d} road links added"
+msgstr "%{a}/%{b} noeuds routier ajoutés  %{c}/%{d} liens routier ajoutés "
 
 #: src/constants/hints.js:9
 msgid ""
@@ -135,7 +149,7 @@ msgstr ""
 msgid "Abort"
 msgstr "Annuler"
 
-#: src/pages/Run.vue:147
+#: src/pages/Run.vue:149
 msgid "Abort Simulation"
 msgstr "Abandonner la simulation"
 
@@ -154,12 +168,7 @@ msgstr ""
 "Ajouter des fichiers GTFS. Lorsque le téléversement est terminé, cliquer "
 "Convertir."
 
-#: src/pages/Import.vue:215
-msgid "An error occur fetching example on github"
-msgstr ""
-"Une erreur s'est produite lors de la récupération de l'exemple sur github"
-
-#: src/components/import/ScenariosExplorer.vue:174
+#: src/components/import/ScenariosExplorer.vue:178
 msgid "An error occured"
 msgstr "Une erreur s'est produite"
 
@@ -455,6 +464,10 @@ msgstr "Tout vider"
 msgid "Empty all loaded files and start from scratch"
 msgstr "Vider tout et partir de zéro"
 
+#: src/pages/Run.vue:167
+msgid "End signal"
+msgstr "Signal de fin"
+
 #: src/components/run/ParamForm.vue:153
 msgid "Expand all"
 msgstr "Étendre tout"
@@ -479,17 +492,9 @@ msgstr "Exporter les visibles"
 msgid "fetch available GTFS"
 msgstr "rafraîchir la liste"
 
-#: src/pages/Import.vue:113
-msgid "file is not a zip"
-msgstr "le fichier n'est pas un zip"
-
-#: src/store/index.js:144
+#: src/components/import/conflicts.js:138
 msgid "File(s) added"
 msgstr "Fichier(s) ajouté(s)"
-
-#: src/pages/Import.vue:92
-msgid "Files unloaded"
-msgstr "Fichiers déchargés"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:150
 #: src/components/map/sidePanel/ODSidePanel.vue:132
@@ -762,11 +767,11 @@ msgstr "nom"
 msgid "need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol"
 msgstr "besoin d'au moins : 1 minuscule, 1 majuscule, 1 chiffre et 1 symbole"
 
-#: src/store/index.js:120
+#: src/store/index.js:123
 msgid "Need the same number of links and nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds"
 
-#: src/store/index.js:126
+#: src/store/index.js:129
 msgid "Need the same number of road_links and road_nodes files."
 msgstr "Besoin du même nombre de fichiers de liens et de noeuds routiers"
 
@@ -878,7 +883,7 @@ msgstr "Paramètres"
 msgid "Parameters and Run"
 msgstr "Parametres et execution"
 
-#: src/components/utils/serializer.js:37 src/components/utils/serializer.js:46
+#: src/components/utils/serializer.js:44 src/components/utils/serializer.js:53
 msgid "params.json should be an array of object [{category: , params: }, ...]"
 msgstr ""
 "params.json devrait être un array d'object [{category: , params: }, ...]"
@@ -952,7 +957,7 @@ msgstr "Requis"
 msgid "Result Table"
 msgstr "Table des Résultats"
 
-#: src/pages/Run.vue:79
+#: src/pages/Run.vue:81
 msgid ""
 "Results are not synchronized with latest modifications.             Please "
 "relauch simulation to update results."
@@ -1024,7 +1029,7 @@ msgstr "Routes"
 msgid "Run"
 msgstr "Exécuter"
 
-#: src/pages/Run.vue:137
+#: src/pages/Run.vue:139
 msgid "Run Simulation"
 msgstr "Executer la simulation"
 
@@ -1054,11 +1059,11 @@ msgstr "Échelle"
 msgid "scale min"
 msgstr "Échelle"
 
-#: src/components/import/ScenariosExplorer.vue:136
+#: src/components/import/ScenariosExplorer.vue:140
 msgid "Scenario created"
 msgstr "Scénario créé"
 
-#: src/components/import/ScenariosExplorer.vue:169
+#: src/components/import/ScenariosExplorer.vue:173
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
@@ -1066,11 +1071,11 @@ msgstr "Scénario supprimé"
 msgid "Scenario Settings"
 msgstr "Paramètres de simulation"
 
-#: src/pages/Run.vue:33
+#: src/pages/Run.vue:35
 msgid "Scenario Simulation"
 msgstr "Simulation du scénario"
 
-#: src/components/import/ScenariosExplorer.vue:127
+#: src/components/import/ScenariosExplorer.vue:131
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
@@ -1167,7 +1172,7 @@ msgstr "déconnection"
 msgid "Sign out"
 msgstr "déconnection"
 
-#: src/pages/Run.vue:94
+#: src/pages/Run.vue:96
 msgid ""
 "Simulation ended with an execution error or have been aborted.             "
 "Please relauch simulation. If the problem persist, contact us."
@@ -1176,7 +1181,7 @@ msgstr ""
 "SVP, executer la simulation de nouveau. Si le problème persiste, veuillez "
 "nous contacter."
 
-#: src/store/run.js:68
+#: src/store/run.js:65
 msgid "simulation executed successfully!"
 msgstr "simulation exécutée avec succès!"
 
@@ -1198,7 +1203,7 @@ msgstr "Couches Statiques"
 msgid "Style presets"
 msgstr "Préréglages de style"
 
-#: src/components/utils/serializer.js:59 src/components/utils/serializer.js:66
+#: src/components/utils/serializer.js:69 src/components/utils/serializer.js:76
 msgid "styles.json should be an array of object with at least [{name:,layer:}]"
 msgstr ""
 "styles.json devrait être un array d'object avec au moins [{name:,layer:}]"
@@ -1236,17 +1241,20 @@ msgstr ""
 "Erreur lors de l'import du réseau OSMSi le problème persiste, veuillez nous "
 "contacter."
 
-#: src/components/utils/serializer.js:27
+#: src/components/utils/serializer.js:33
+msgid "there is duplicates index. you need unique index. Import aborted in "
+msgstr "il y a des index dupliqués. Importation interrompue"
+
+#: src/components/utils/serializer.js:28
 msgid ""
 "there is no index in the File. you need unique index. Import aborted in "
-msgstr ""
-"il y a des index de liens ou de noeds en double. Importation interrompue"
+msgstr "il y a pas d'index dans le fichier. Importation interrompue"
 
 #: src/components/layout/Profile.vue:284
 msgid "This action will sign you out"
 msgstr "vous allez être déconnecté"
 
-#: src/pages/Run.vue:115
+#: src/pages/Run.vue:117
 msgid "This scenario is protected. You can not run simulation."
 msgstr "Ce scénario est protégé. L'execution de la simulation est bloquée."
 
@@ -1322,6 +1330,16 @@ msgstr "besoins de paramètres pour entrer"
 msgid "your session has expired. Please sign in again"
 msgstr ""
 "Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
+
+#~ msgid "An error occur fetching example on github"
+#~ msgstr ""
+#~ "Une erreur s'est produite lors de la récupération de l'exemple sur github"
+
+#~ msgid "file is not a zip"
+#~ msgstr "le fichier n'est pas un zip"
+
+#~ msgid "Files unloaded"
+#~ msgstr "Fichiers déchargés"
 
 #~ msgid "Noting to display."
 #~ msgstr "Rien à afficher"

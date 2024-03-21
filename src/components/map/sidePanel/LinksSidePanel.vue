@@ -123,12 +123,8 @@ function showGroup (val) {
   }
 }
 
-// ui, dialog, button
-const showDialog = ref(false)
 function editButton (value) {
-  if (editorTrip.value === value) {
-    showDialog.value = true
-  } else {
+  if (editorTrip.value !== value) {
     linksStore.setEditorTrip({ tripId: value, changeBounds: true })
     store.changeNotification({ text: '', autoClose: true })
   }
@@ -356,7 +352,6 @@ function deleteButton (obj) {
                       variant="text"
                       icon="fas fa-trash"
                       class="ma-1"
-
                       :disabled="editorTrip ? true: false"
                       v-bind="hover"
                       @click.stop="deleteButton({trip:value.tripId, message:value.name,action:'deleteTrip'})"
@@ -391,18 +386,11 @@ function deleteButton (obj) {
                 <v-tooltip
                   location="right"
                   open-delay="300"
-                  content-class="custom-tooltip"
                 >
                   <template v-slot:activator="{ props }">
                     <v-list-item-title
-                      v-if="item==editorTrip"
-                      style="{'flex':'2'}"
-                    >
-                      <strong>{{ item }}</strong>
-                    </v-list-item-title>
-                    <v-list-item-title
-                      v-else
                       v-bind="props"
+                      :style="{'font-weight' : item===editorTrip? 'bold':'normal'}"
                     >
                       {{ item }}
                     </v-list-item-title>
@@ -421,7 +409,7 @@ function deleteButton (obj) {
                       class="ma-1"
                       size="small"
                       :color="'regular'"
-                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
+                      :disabled="editorTrip ? true: false"
                       v-bind="props"
                       @click="editButton(item)"
                     />
@@ -501,17 +489,31 @@ function deleteButton (obj) {
         >
           <template v-slot:activator="{ props }">
             <v-btn
-              class="mx-2"
+              class="mx-1"
               :color="store.anchorMode? 'grey':'regular'"
               v-bind="props"
+              size="small"
+              icon="fas fa-anchor"
               @click="store.changeAnchorMode()"
-            >
-              <v-icon size="small">
-                fas fa-anchor
-              </v-icon>
-            </v-btn>
+            />
           </template>
           <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
+        </v-tooltip>
+        <v-tooltip
+          location="right"
+          open-delay="500"
+        >
+          <template v-slot:activator="{ props }">
+            <v-btn
+              class="mx-1"
+              size="small"
+              :color="store.stickyMode? 'green':'regular'"
+              v-bind="props"
+              icon="fa-solid fa-magnet"
+              @click="store.changeStickyMode()"
+            />
+          </template>
+          <span> {{ $gettext("stick nodes on existing nodes") }}</span>
         </v-tooltip>
 
         <v-btn
@@ -562,43 +564,6 @@ function deleteButton (obj) {
         </v-tooltip>
       </div>
     </v-card>
-    <v-dialog
-      v-model="showDialog"
-      persistent
-      max-width="290"
-      @keydown.enter="$emit('confirmChanges'); showDialog = !showDialog"
-      @keydown.esc="showDialog=false"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Save Changes?") }}
-        </v-card-title>
-        <v-card-actions>
-          <v-btn
-            color="regular"
-            location="left"
-            @click="showDialog = false"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="$emit('abortChanges'); showDialog = !showDialog"
-          >
-            {{ $gettext("No") }}
-          </v-btn>
-
-          <v-btn
-            color="primary"
-
-            @click="$emit('confirmChanges'); showDialog = !showDialog"
-          >
-            {{ $gettext("Yes") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </section>
 </template>
 <style lang="scss" scoped>
@@ -620,7 +585,6 @@ function deleteButton (obj) {
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
 }
-
 .left-panel {
   height: 100%;
   background-color: $primary-dark;
@@ -628,7 +592,6 @@ function deleteButton (obj) {
   position: absolute;
   display:flex;
   z-index: 20;
-
 }
 .left-panel-close {
 transition:0.3s
@@ -639,9 +602,7 @@ transition:0.3s
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  //resize: horizontal;
   overflow: auto;
-
 }
 .v-list__tile {
   padding: 0
@@ -670,33 +631,24 @@ transition:0.3s
   height: calc(100vh - 250px);
   padding-left:20px
 }
-
 .scrollable {
   overflow-y:scroll;
-
 }
 .virtual-scroll{
   margin-right: 3px;
-
 }
-
 .drawer-list-item {
   padding: 0 13px !important;
   justify-content: flex-start !important;
   flex: 0;
   transition: 0.3s;
 }
-
 .list-item-icon {
   display: flex !important;
   flex-flow: row !important;
   justify-content: center !important;
   margin: 0 !important;
   color: white;
-}
-.custom-tooltip {
-    opacity: 1!important;
-    background: var(--v-tooltip-bg, rgba(97, 97, 97, 1)) !important;
 }
 
 </style>

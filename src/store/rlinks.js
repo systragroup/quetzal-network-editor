@@ -5,13 +5,11 @@ import { defineStore } from 'pinia'
 
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import booleanContains from '@turf/boolean-contains'
-import booleanCrosses from '@turf/boolean-crosses'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import bearing from '@turf/bearing'
-import { serializer } from '@comp/utils/serializer.js'
-import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
+import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import { toRaw } from 'vue'
 import geojson from '@constants/geojson'
@@ -61,7 +59,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     loadrLinks (payload) {
       this.rlinks = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.rlinks.crs.properties.name)) {
+      if (CRSis4326(this.rlinks)) {
         this.visiblerLinks = cloneDeep(geojson)
         this.renderedrLinks = cloneDeep(geojson)
         // limit geometry precision to 6 digit
@@ -77,7 +75,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     loadrNodes (payload) {
       this.rnodes = JSON.parse(JSON.stringify(payload))
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.rnodes.crs.properties.name)) {
+      if (CRSis4326(this.rnodes)) {
         this.visiblerNodes = cloneDeep(geojson)
         this.renderedrNodes = cloneDeep(geojson)
         // limit geometry precision to 6 digit
@@ -94,6 +92,7 @@ export const userLinksStore = defineStore('rlinks', {
       // get rnodes. check that index are not duplicated, serialize them and then append to project
 
       for (const file of payload) {
+        if (file.content.features.length === 0) { break } // empty file. do nothing
         const currentType = file.content.features[0].geometry.type
         if (currentType === 'LineString') {
           if (IndexAreDifferent(file.content, this.rlinks)) {
@@ -301,9 +300,6 @@ export const userLinksStore = defineStore('rlinks', {
     getVisiblerNodes (payload) {
       // payload contain nodes. this.nodes or this.editorNodes
       // find the nodes in the editor links
-      let a = []
-      let b = []
-      let rNodesList = []
       switch (payload.method) {
         case 'showAll':
           this.visiblerNodes.features = this.rnodes.features
@@ -313,31 +309,53 @@ export const userLinksStore = defineStore('rlinks', {
           break
         case 'add':
           // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
-          a = this.visiblerLinks.features.map(item => item.properties.a)
-          b = this.visiblerLinks.features.map(item => item.properties.b)
-          rNodesList = new Set([...a, ...b])
           // use rnodes as they are new to visiblerNodes
-          this.visiblerNodes.features = this.rnodes.features.filter(
-            node => rNodesList.has(node.properties.index))
+          this.visiblerNodes.features = deleteUnusedNodes(this.rnodes, this.visiblerLinks)
           break
         case 'remove' :
           // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
-          a = this.visiblerLinks.features.map(item => item.properties.a)
-          b = this.visiblerLinks.features.map(item => item.properties.b)
-          rNodesList = new Set([...a, ...b])
           // use visibleRnodes, as they are already inside of it.
-          this.visiblerNodes.features = this.visiblerNodes.features.filter(
-            node => rNodesList.has(node.properties.index))
+          this.visiblerNodes.features = deleteUnusedNodes(this.visiblerNodes, this.visiblerLinks)
           break
         // case 'refresh'
       }
     },
+
     getRenderedrLinks (payload) {
       const bbox = toRaw(payload.bbox)
-      this.renderedrLinks.features = this.visiblerLinks.features.filter(
-        link => (booleanContains(bbox, link) || booleanCrosses(bbox, link)))
+      function inBBox(pt, bbox) {
+        // pt point [x,y]
+        // {BBox} bbox BBox [west, south, east, north]
+        return (bbox[0] <= pt[0] && bbox[1] <= pt[1] && bbox[2] >= pt[0] && bbox[3] >= pt[1])
+      }
+      function getMidPoint(line) {
+        const p1 = line[0]
+        const p2 = line[line.length - 1]
+        return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
+      }
+
+      function lineInBBox(line, bbox) {
+        // get check if line in BBOX with nodes.
+        // keep 5 anchors. if less than 5, add midpoint.
+        const len = line.length
+        const inc = len > 10 ? (len - 1) / 10 : 1
+        for (let i = 0; i < len; i += inc) {
+          const pt = line[Math.floor(i)]
+          if (inBBox(pt, bbox))
+            return true
+        }
+        // get midpoint for 2 points linestring.
+        if (len < 3) {
+          if (inBBox(getMidPoint(line), bbox)) { return true }
+        }
+        return false
+      }
+
+      // eslint-disable-next-line max-len
+      this.renderedrLinks.features = this.visiblerLinks.features.filter(link => lineInBBox(link.geometry.coordinates, bbox))
       this.getRenderedrNodes()
     },
+
     getRenderedrNodes () { // get rendered nodes
       const a = this.renderedrLinks.features.map(item => item.properties.a)
       const b = this.renderedrLinks.features.map(item => item.properties.b)
@@ -639,10 +657,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
     deleteUnusedrNodes () {
       // delete every every nodes not in links
-      const a = this.rlinks.features.map(item => item.properties.a)
-      const b = this.rlinks.features.map(item => item.properties.b)
-      const nodesInLinks = new Set([...a, ...b])
-      this.rnodes.features = this.rnodes.features.filter(node => nodesInLinks.has(node.properties.index))
+      this.rnodes.feautures = deleteUnusedNodes(this.rnodes, this.rlinks)
     },
 
     editrGroupInfo (payload) {

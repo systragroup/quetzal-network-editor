@@ -489,7 +489,6 @@ export default {
     padding-top: 10px;
     padding-bottom: 10px;
 }
-
 .gradient .domain-title {
     position: absolute;
     padding-left:0.5rem;
@@ -497,15 +496,13 @@ export default {
     text-align: center;
     font-size: 16px;
 }
-
 .gradient .domain-title-small {
     position: absolute;
     padding-left:0.5rem;
-    padding-top:0rem;
+    padding-top:0;
     text-align: center;
     font-size: 16px;
 }
-
 .grad-step {
     display: inline-block;
     height: 40px;
@@ -516,15 +513,12 @@ export default {
     height: 20px;
     width: 1%;
 }
-
 .subtitle {
   font-size: 2em;
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
-  padding:0.5rem 1rem 0 1rem;
-
+  padding: 0.5rem 1rem 0;
 }
-
 .setting {
   left: 96%;
   z-index: 2;
@@ -532,7 +526,6 @@ export default {
   position: absolute;
   align-items: center;
   justify-content: center;
-
 }
 .setting-card {
 overflow-y:auto;

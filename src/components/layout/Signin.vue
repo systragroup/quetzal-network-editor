@@ -78,7 +78,7 @@ async function signin (event) {
       </v-card-title>
       <v-card-text
         class="text-h8"
-        style="{'padding-bottom':'0.5rem'}"
+        :style="{'padding-bottom':'0.5rem'}"
       >
         {{ $gettext('Sign in with username or email address.') }}
       </v-card-text>
@@ -137,15 +137,15 @@ async function signin (event) {
 .form{
   margin: 1rem;
 }
-
 .signin {
   width:20rem;
-  padding:1rem 2rem 2rem 2rem
+  padding:1rem 2rem 2rem
 }
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
   transform: translate3d(0, 0, 0);
 }
+
 @keyframes shake {
   10%, 90% {
     transform: translate3d(-1px, 0, 0);

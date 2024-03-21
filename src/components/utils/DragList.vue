@@ -54,26 +54,21 @@ function onDragOver (item, pos, e) {
     display: flex;
     flex-direction: column;
 }
-
 .item {
-  margin:0rem 0.3rem 0.3rem 0.3rem;
-  border:1px solid rgb(var(--v-theme-lightgrey));
+  margin: 0 0.3rem 0.3rem;
+  border: 1px solid rgb(var(--v-theme-lightgrey));
   display: inline-block;
   border-radius: 5px;
-/*   transition: opacity .3s ease-in-out; */
 }
-
 .flip-list-move {
   transition: transform .2s;
 }
-
 .over {
   opacity: 0.2;
 }
 .down {
  transform: translateY(-20px);
 }
-
 .up {
  transform: translateY(20px);
 }

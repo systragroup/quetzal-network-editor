@@ -6,22 +6,22 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
-import { serializer } from '@comp/utils/serializer.js'
-import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
+import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
-import { ref } from 'vue'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
   state: () => ({
-    links: ref({}),
-    editorTrip: null,
+    links: {},
+    nodes: {},
+    visibleNodes: {},
     editorNodes: {},
     editorLinks: {},
+    editorTrip: null,
     editorLineInfo: {},
-    nodes: ref({}),
     tripId: [],
     selectedTrips: [],
     newLink: {},
@@ -61,7 +61,8 @@ export const useLinksStore = defineStore('links', {
     },
     loadLinks (payload) {
       this.links = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.links.crs.properties.name)) {
+
+      if (CRSis4326(this.links)) {
         this.editorLinks = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
@@ -79,7 +80,7 @@ export const useLinksStore = defineStore('links', {
 
     loadNodes (payload) {
       this.nodes = cloneDeep(payload)
-      if (['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326'].includes(this.nodes.crs.properties.name)) {
+      if (CRSis4326(this.nodes)) {
         this.editorNodes = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
@@ -102,6 +103,7 @@ export const useLinksStore = defineStore('links', {
       // get nodes. check that index are not duplicated, serialize them and then append to project
 
       for (const file of payload) {
+        if (file.content.features.length === 0) { break } // empty file. do nothing
         const currentType = file.content.features[0].geometry.type
         if (currentType === 'LineString') {
           if (IndexAreDifferent(file.content, this.links)) {
@@ -195,6 +197,14 @@ export const useLinksStore = defineStore('links', {
         }
       })
     },
+
+    calcLengthTime(link) {
+      const distance = length(link)
+      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+      const time = distance / link.properties.speed * 3600 // 20kmh hard code speed. time in secs
+      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+    },
+
     loadLinksAttributesChoices (payload) {
       // eslint-disable-next-line no-return-assign
       Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
@@ -235,14 +245,20 @@ export const useLinksStore = defineStore('links', {
       this.editorTrip = payload.tripId
       this.changeBounds = payload.changeBounds
       // set editor links corresponding to trip id
-      // var filtered = {...this.links}
       const features = this.links.features.filter(link => link.properties.trip_id === this.editorTrip)
       this.editorLinks.features = cloneDeep(features)
+
+      // sort with sequence. we assume it is sort and action will place links in the correct order
+      this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
 
       // get the corresponding nodes
       this.getEditorNodes({ nodes: this.nodes })
 
       this.getEditorLineInfo()
+    },
+
+    setVisibleNodes(payload) {
+      this.visibleNodes = payload
     },
 
     cloneTrip (payload) {
@@ -251,16 +267,25 @@ export const useLinksStore = defineStore('links', {
       const features = this.links.features.filter(link => link.properties.trip_id === payload.tripId)
       cloned.features = cloneDeep(features)
 
-      let linkSequence = cloned.features.length
-      for (const link of cloned.features) {
-        if (payload.reverse) {
+      // change tripId.
+      cloned.features.forEach(link => link.properties.trip_id = payload.name)
+      // change index name
+      cloned.features.forEach(link => link.properties.index = 'link_' + short.generate())
+
+      if (payload.reverse) {
+        // sort links by sequence by inverse link_sequece
+        cloned.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+        cloned.features.reverse()
+        let linkSequence = 1
+        // inverser l'ordre des features
+        for (const link of cloned.features) {
           // mettre dans l'autre sens » inverser 0 et 1 et leur coordonées
           link.geometry.coordinates.reverse()
           // inverser node a et b (propriétés)
           link.properties.a = [link.properties.b, link.properties.b = link.properties.a][0]
           // changer le link-sequence de tous les objets
           link.properties.link_sequence = linkSequence
-          linkSequence -= 1
+          linkSequence += 1
           // changer la direction
           if (link.properties.direction_id === 0) {
             link.properties.direction_id = 1
@@ -268,25 +293,15 @@ export const useLinksStore = defineStore('links', {
             link.properties.direction_id = 0
           }
         }
-        // change tripId.
-        link.properties.trip_id = payload.name
-        // change index name
-        link.properties.index = 'link_' + short.generate()
       }
-      // inverser l'ordre des features
-      cloned.features.reverse()
+
       if (payload.cloneNodes) {
       // duplicate nodes and rename them
-        const a = cloned.features.map(item => item.properties.a)
-        const b = cloned.features.map(item => item.properties.b)
-        const ab = new Set([...a, ...b])
-
-        const clonedNodes = cloneDeep(geojson)
-        const features = this.nodes.features.filter(node => ab.has(node.properties.index))
-        clonedNodes.features = cloneDeep(features)
-
+        const clonedNodes = cloneDeep(this.nodes)
+        clonedNodes.features = deleteUnusedNodes(clonedNodes, cloned)
+        const indexList = clonedNodes.features.map(node => node.properties.index)
         const newName = {}
-        ab.forEach(node => newName[node] = 'node_' + short.generate())
+        indexList.forEach(node => newName[node] = 'node_' + short.generate())
         clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
 
         cloned.features.forEach(link => link.properties.a = newName[link.properties.a])
@@ -301,13 +316,7 @@ export const useLinksStore = defineStore('links', {
     },
     getEditorNodes (payload) {
       // payload contain nodes. this.nodes or this.editorNodes
-      // find the nodes in the editor links
-      const a = this.editorLinks.features.map(item => item.properties.a)
-      const b = this.editorLinks.features.map(item => item.properties.b)
-      const editorNodesList = new Set([...a, ...b])
-      // set nodes corresponding to trip id
-
-      const features = payload.nodes.features.filter(node => editorNodesList.has(node.properties.index))
+      const features = deleteUnusedNodes(payload.nodes, this.editorLinks) // return nodes in links
       this.editorNodes.features = cloneDeep(features)
     },
 
@@ -482,12 +491,7 @@ export const useLinksStore = defineStore('links', {
       // get linestring length in km
       this.setNewLink({ action: payload.action })
       this.editNewLink(payload.geom)
-
-      const distance = length(this.newLink)
-      this.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / this.newLink.features[0].properties.speed * 3600 // 20kmh hard code speed. time in secs
-
-      this.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      this.calcLengthTime(this.newLink.features[0])
 
       const action = this.newLink.action
       if (action === 'Extend Line Upward') {
@@ -522,9 +526,13 @@ export const useLinksStore = defineStore('links', {
           ...link1.geometry.coordinates.slice(0, -1),
           ...link2.geometry.coordinates.slice(1)]
         link1.properties.b = link2.properties.b
-        link1.properties.length = Number(link1.properties.length) + Number(link2.properties.length)
-        link1.properties.time = Number(link1.properties.time) + Number(link2.properties.time)
-        link1.properties.speed = Number(link1.properties.length / link1.properties.time * 3.6)
+        // weighed average for speed. this help to have round value of speed (ex both 20kmh, at the end 20kmh)
+        const len1 = Number(link1.properties.length)
+        const len2 = Number(link2.properties.length)
+        const speed1 = Number(link1.properties.speed)
+        const speed2 = Number(link2.properties.speed)
+        link1.properties.speed = Number((speed1 * len1 + speed2 * len2) / (len1 + len2)).toFixed(6)
+        this.calcLengthTime(link1)
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = this.editorLinks.features.findIndex(
           link => link.properties.index === link2.properties.index)
@@ -614,6 +622,7 @@ export const useLinksStore = defineStore('links', {
       const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+      this.calcLengthTime(link)
     },
     moveAnchor (payload) {
       const linkIndex = payload.selectedNode.properties.linkIndex
@@ -624,10 +633,7 @@ export const useLinksStore = defineStore('links', {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
       // update time and distance
-      const distance = length(link)
-      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / link.properties.speed * 3600 // 20kmh hard code speed. time in secs
-      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      this.calcLengthTime(link)
     },
 
     moveNode (payload) {
@@ -644,19 +650,30 @@ export const useLinksStore = defineStore('links', {
         // note: props are unchanged. even tho the length change, the time and length are unchanged.
         link1.geometry.coordinates[link1.geometry.coordinates.length - 1] = payload.lngLat
         // update time and distance
-        const distance = length(link1)
-        link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / link1.properties.time * 3600 // 20kmh hard code speed. time in secs
-        link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        this.calcLengthTime(link1)
       }
       if (link2) {
         link2.geometry.coordinates[0] = payload.lngLat
         // update time and distance
-        const distance = length(link2)
-        link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / link2.properties.time * 3600 // 20kmh hard code speed. time in secs
-        link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        this.calcLengthTime(link2)
       }
+    },
+
+    applyStickyNode(payload) {
+      // this function assume that stickyindex !== nodeIndex (should always be a new node)
+      // this function assume that sticky index is not in editorNodes (cannot reuse a node for a trip)
+      const nodeIndex = payload.selectedNodeId
+      const stickyIndex = payload.stickyNodeId
+      this.editorNodes.features = this.editorNodes.features.filter(node => node.properties.index !== nodeIndex)
+      const newNode = cloneDeep(this.nodes.features.filter(node => node.properties.index === stickyIndex)[0])
+      this.editorNodes.features.push(newNode)
+
+      this.editorLinks.features.filter(link => link.properties.a === nodeIndex).forEach(
+        (link) => { link.properties.a = stickyIndex })
+      this.editorLinks.features.filter(link => link.properties.b === nodeIndex).forEach(
+        (link) => { link.properties.b = stickyIndex })
+
+      this.moveNode({ selectedNode: newNode, lngLat: newNode.geometry.coordinates })
     },
 
     cutLineFromNode (payload) {
@@ -766,10 +783,7 @@ export const useLinksStore = defineStore('links', {
     },
     deleteUnusedNodes () {
       // delete every every nodes not in links
-      const a = this.links.features.map(item => item.properties.a)
-      const b = this.links.features.map(item => item.properties.b)
-      const nodesInLinks = new Set([...a, ...b])
-      this.nodes.features = this.nodes.features.filter(node => nodesInLinks.has(node.properties.index))
+      this.nodes.features = deleteUnusedNodes(this.nodes, this.links)
     },
 
     confirmChanges () { // apply change to Links
@@ -809,18 +823,25 @@ export const useLinksStore = defineStore('links', {
         link => link.properties.trip_id !== this.editorTrip).filter(
         item => editorNodesList.has(item.properties.a))
       // apply new node geometry
-      linksA.forEach(link => link.geometry.coordinates = [
-        this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
-        ...link.geometry.coordinates.slice(1),
-      ])
+      for (const link of linksA) {
+        link.geometry.coordinates = [
+          this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
+          ...link.geometry.coordinates.slice(1),
+        ]
+        this.calcLengthTime(link)
+      }
       // same for nodes b
       const linksB = this.links.features.filter(
         link => link.properties.trip_id !== this.editorTrip).filter(
         item => editorNodesList.has(item.properties.b))
-      linksB.forEach(link => link.geometry.coordinates = [
-        ...link.geometry.coordinates.slice(0, -1),
-        this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
-      ])
+      for (const link of linksB) {
+        link.geometry.coordinates = [
+          ...link.geometry.coordinates.slice(0, -1),
+          this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
+        ]
+        this.calcLengthTime(link)
+      }
+
       this.newLink = {}
       this.newNode = {}
       // get tripId list
