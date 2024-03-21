@@ -1,3 +1,12 @@
+## [5.2.m] (2024-03-21)
+
+### Bug fixes
+
+* **links speed**: Calc as a weighted average (on geom length) between 2 links when node is deleted. This help to maintain speed when 2 links with same speed are merge.
+* **Delete Anchor**: Calc length and time on links. [#497](https://github.com/systragroup/quetzal-network-editor/issues/497)
+* **Move node**: Calc length and time on other links when apply changes. when a node is move, it may change links in other trip_id. if it does, the Geom, Length and Time are updated.[#497](https://github.com/systragroup/quetzal-network-editor/issues/497)
+
+
 ## [5.2.l] (2024-03-15)
 
 ### Changes

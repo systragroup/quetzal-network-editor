@@ -214,7 +214,12 @@ export const useRunStore = defineStore('run', {
                 },
               ).catch(err => alert(err))
             } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(this.status)) {
-              this.terminateExecution(JSON.parse(response.data.cause))
+              try {
+                this.terminateExecution(JSON.parse(response.data.cause))
+              } catch (err) {
+                this.terminateExecution({ error: response.data.cause })
+              }
+
               clearInterval(intervalId)
             } else if (this.status === undefined) {
               clearInterval(intervalId)

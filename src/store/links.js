@@ -197,6 +197,14 @@ export const useLinksStore = defineStore('links', {
         }
       })
     },
+
+    calcLengthTime(link) {
+      const distance = length(link)
+      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+      const time = distance / link.properties.speed * 3600 // 20kmh hard code speed. time in secs
+      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+    },
+
     loadLinksAttributesChoices (payload) {
       // eslint-disable-next-line no-return-assign
       Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
@@ -483,12 +491,7 @@ export const useLinksStore = defineStore('links', {
       // get linestring length in km
       this.setNewLink({ action: payload.action })
       this.editNewLink(payload.geom)
-
-      const distance = length(this.newLink)
-      this.newLink.features[0].properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / this.newLink.features[0].properties.speed * 3600 // 20kmh hard code speed. time in secs
-
-      this.newLink.features[0].properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      this.calcLengthTime(this.newLink.features[0])
 
       const action = this.newLink.action
       if (action === 'Extend Line Upward') {
@@ -523,9 +526,13 @@ export const useLinksStore = defineStore('links', {
           ...link1.geometry.coordinates.slice(0, -1),
           ...link2.geometry.coordinates.slice(1)]
         link1.properties.b = link2.properties.b
-        link1.properties.length = Number(link1.properties.length) + Number(link2.properties.length)
-        link1.properties.time = Number(link1.properties.time) + Number(link2.properties.time)
-        link1.properties.speed = Number(link1.properties.length / link1.properties.time * 3.6)
+        // weighed average for speed. this help to have round value of speed (ex both 20kmh, at the end 20kmh)
+        const len1 = Number(link1.properties.length)
+        const len2 = Number(link2.properties.length)
+        const speed1 = Number(link1.properties.speed)
+        const speed2 = Number(link2.properties.speed)
+        link1.properties.speed = Number((speed1 * len1 + speed2 * len2) / (len1 + len2)).toFixed(6)
+        this.calcLengthTime(link1)
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = this.editorLinks.features.findIndex(
           link => link.properties.index === link2.properties.index)
@@ -615,6 +622,7 @@ export const useLinksStore = defineStore('links', {
       const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+      this.calcLengthTime(link)
     },
     moveAnchor (payload) {
       const linkIndex = payload.selectedNode.properties.linkIndex
@@ -625,10 +633,7 @@ export const useLinksStore = defineStore('links', {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
       // update time and distance
-      const distance = length(link)
-      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / link.properties.speed * 3600 // 20kmh hard code speed. time in secs
-      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      this.calcLengthTime(link)
     },
 
     moveNode (payload) {
@@ -645,18 +650,12 @@ export const useLinksStore = defineStore('links', {
         // note: props are unchanged. even tho the length change, the time and length are unchanged.
         link1.geometry.coordinates[link1.geometry.coordinates.length - 1] = payload.lngLat
         // update time and distance
-        const distance = length(link1)
-        link1.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / link1.properties.time * 3600 // 20kmh hard code speed. time in secs
-        link1.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        this.calcLengthTime(link1)
       }
       if (link2) {
         link2.geometry.coordinates[0] = payload.lngLat
         // update time and distance
-        const distance = length(link2)
-        link2.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        const time = distance / link2.properties.time * 3600 // 20kmh hard code speed. time in secs
-        link2.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        this.calcLengthTime(link2)
       }
     },
 
@@ -824,18 +823,25 @@ export const useLinksStore = defineStore('links', {
         link => link.properties.trip_id !== this.editorTrip).filter(
         item => editorNodesList.has(item.properties.a))
       // apply new node geometry
-      linksA.forEach(link => link.geometry.coordinates = [
-        this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
-        ...link.geometry.coordinates.slice(1),
-      ])
+      for (const link of linksA) {
+        link.geometry.coordinates = [
+          this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
+          ...link.geometry.coordinates.slice(1),
+        ]
+        this.calcLengthTime(link)
+      }
       // same for nodes b
       const linksB = this.links.features.filter(
         link => link.properties.trip_id !== this.editorTrip).filter(
         item => editorNodesList.has(item.properties.b))
-      linksB.forEach(link => link.geometry.coordinates = [
-        ...link.geometry.coordinates.slice(0, -1),
-        this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
-      ])
+      for (const link of linksB) {
+        link.geometry.coordinates = [
+          ...link.geometry.coordinates.slice(0, -1),
+          this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
+        ]
+        this.calcLengthTime(link)
+      }
+
       this.newLink = {}
       this.newNode = {}
       // get tripId list
