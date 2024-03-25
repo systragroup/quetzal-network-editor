@@ -14,6 +14,8 @@ const emits = defineEmits(['rightClick', 'onHover', 'offHover'])
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const { map, isEditorMode, mode } = toRefs(props)
+
+// immediate necessary to trigger this (add doubleClick) when component is remounted (changing there for example)
 watch(isEditorMode, (val) => {
   val ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
 }, { immediate: true })
@@ -153,7 +155,8 @@ function editLineProperties (event) {
           'line-cap': 'round',
         }
       }"
-      v-on="isEditorMode ? { } : { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:editLineProperties }"
+      v-on="isEditorMode ? {mouseenter:()=>{},mouseleave:()=>{},contextmenu:()=>{} } :
+        { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:editLineProperties }"
     />
 
     <MglGeojsonLayer

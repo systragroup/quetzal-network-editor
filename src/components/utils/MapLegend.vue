@@ -28,6 +28,10 @@ const leftOffset = computed(() => {
 })
 // only show if not all nan.
 const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(props.displaySettings.minVal)))
+const midValue = computed(() => {
+  const value = (props.displaySettings.maxVal + props.displaySettings.minVal) / 2
+  return value.toFixed(value >= 10 ? 0 : 1)
+})
 
 </script>
 <template>
@@ -45,7 +49,7 @@ const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(prop
       />
       <span class="domain-title">{{ displaySettings.selectedFeature }}</span>
       <span class="domain-min">{{ Math.round(displaySettings.minVal) }}</span>
-      <span class="domain-med">{{ Math.round((displaySettings.maxVal+displaySettings.minVal)/2) }}</span>
+      <span class="domain-med">{{ midValue }}</span>
       <span class="domain-max">{{ Math.round(displaySettings.maxVal) }}</span>
     </div>
   </div>
@@ -57,7 +61,7 @@ const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(prop
     white-space: nowrap;
     position: relative;
     display: inline-block;
-    padding-top: 20px;
+    padding-top: 21px;
     padding-bottom: 15px;
 
 }

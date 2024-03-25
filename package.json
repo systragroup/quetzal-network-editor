@@ -2,7 +2,7 @@
   "name": "Quetzal-network-editor",
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "type": "module",
   "private": true,
   "scripts": {
@@ -23,10 +23,10 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.525.0",
-    "@aws-sdk/credential-providers": "^3.525.0",
-    "@aws-sdk/lib-storage": "^3.525.0",
-    "@aws-sdk/s3-request-presigner": "^3.525.0",
+    "@aws-sdk/client-s3": "^3.540.0",
+    "@aws-sdk/credential-providers": "^3.540.0",
+    "@aws-sdk/lib-storage": "^3.540.0",
+    "@aws-sdk/s3-request-presigner": "^3.540.0",
     "@fortawesome/fontawesome-free": "^6.4.0",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",
@@ -42,8 +42,8 @@
     "@turf/length": "^6.5.0",
     "@turf/nearest-point-on-line": "^6.5.0",
     "@vueuse/core": "^10.9.0",
-    "aws-amplify": "^6.0.19",
-    "axios": "^1.6.7",
+    "aws-amplify": "^6.0.21",
+    "axios": "^1.6.8",
     "chroma-js": "^2.4.2",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
@@ -64,7 +64,7 @@
     "vue-router": "^4.3.0",
     "vue3-gettext": "^3.0.0-beta.1",
     "vue3-json-viewer": "^2.2.2",
-    "vuetify": "3.5.3"
+    "vuetify": "3.5.11"
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",
@@ -91,10 +91,10 @@
     "stylelint": "^16.2.1",
     "stylelint-config-recommended-vue": "^1.5.0",
     "stylelint-config-standard-scss": "^13.0.0",
-    "vite": "^5.1.5",
+    "vite": "^5.2.6",
     "vite-plugin-style-import": "^2.0.0",
     "vite-plugin-stylelint": "^4.3.0",
-    "vite-plugin-vue-devtools": "^7.0.16",
+    "vite-plugin-vue-devtools": "^7.0.20",
     "vite-plugin-vuetify": "^1.0.2",
     "vitest": "^0.34.5",
     "write-file-webpack-plugin": "^4.5.1"

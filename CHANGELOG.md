@@ -1,3 +1,11 @@
+## [5.2.1] (2024-03-25)
+
+### Changes
+* **MapLegend**:mid vale with decimal if smaller than 10. [#502](https://github.com/systragroup/quetzal-network-editor/issues/502)
+* aws-sdk, amplify, axios, vite and vuetify updated
+### Bug fixes
+* **StaticLinks**: event binding fixed when changing theme. [#498](https://github.com/systragroup/quetzal-network-editor/issues/498)
+
 ## [5.2.0] (2024-03-21)
 
 Can now reuse nodes on import. and reuse nodes when drawing a line of moving a node (sticky nodes)
