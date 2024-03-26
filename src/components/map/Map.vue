@@ -73,7 +73,7 @@ function onMapLoaded (event) {
   })
 
   map.value = event.map
-  // event.map.dragRotate.disable()
+  event.map.dragRotate.disable()
   mapIsLoaded.value = true
 }
 

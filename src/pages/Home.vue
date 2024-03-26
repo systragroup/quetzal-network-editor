@@ -12,7 +12,7 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 
-import { computed, ref, onUnmounted, onMounted } from 'vue'
+import { computed, ref, onUnmounted } from 'vue'
 const $gettext = s => s
 
 export default {
@@ -33,14 +33,6 @@ export default {
     const mode = ref('pt')
     const action = ref(null)
     const editorTrip = computed(() => linksStore.editorTrip)
-
-    onMounted(() => {
-      window.addEventListener('keydown', (e) => {
-        if ((e.key === 'Control') && (!showDialog.value) && (!cloneDialog.value) && (!deleteDialog.value)) {
-          store.changeAnchorMode()
-        }
-      })
-    })
 
     onUnmounted(() => {
       linksStore.setEditorTrip({ tripId: null, changeBounds: false })
