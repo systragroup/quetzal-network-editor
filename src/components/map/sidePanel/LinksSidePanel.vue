@@ -497,7 +497,7 @@ function deleteButton (obj) {
               @click="store.changeAnchorMode()"
             />
           </template>
-          <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
+          <span> {{ $gettext("Edit Line geometry") }} </span>
         </v-tooltip>
         <v-tooltip
           location="right"

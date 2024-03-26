@@ -310,7 +310,7 @@ export default {
             </v-icon>
           </v-btn>
         </template>
-        <span> {{ $gettext("Edit Line geometry") }} <b>(CTRL)</b></span>
+        <span> {{ $gettext("Edit Line geometry") }} </span>
       </v-tooltip>
       <v-tooltip
         location="right"
