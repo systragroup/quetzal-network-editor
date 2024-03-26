@@ -1,3 +1,13 @@
+## [5.2.2] (2024-03-26)
+
+### Features
+* **Drop duplicated**: indexes on import. check for matching ibndex, if every features are equal. drop them
+
+### Bug fixes
+* **road nodes were duplicated**: when drawing. this caused error as we cannot load duplicated nodes
+
+
+
 ## [5.2.1] (2024-03-25)
 
 ### Changes

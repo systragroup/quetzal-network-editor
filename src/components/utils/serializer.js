@@ -1,6 +1,6 @@
 // import JSZip from 'jszip'
 const $gettext = s => s
-import { indexAreUnique } from './utils'
+import { indexAreUnique, dropDuplicatesIndex } from './utils'
 
 function CRSis4326(geojson) {
   const arr = ['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326', 'urn:ogc:def:crs:EPSG:4326']
@@ -35,9 +35,12 @@ function serializer (geojson, name, type = null, ignoreIndex = false) {
     throw err
   }
   if (!indexAreUnique(geojson)) {
-    const err = new Error($gettext('there is duplicates index. you need unique index. Import aborted in ') + name)
-    err.name = 'ImportError'
-    throw err
+    // drop duplicated and test again.
+    geojson.features = dropDuplicatesIndex(geojson.features)
+    if (!indexAreUnique(geojson)) {
+      const err = new Error($gettext('there is duplicates index. you need unique index. Import aborted in ') + name)
+      err.name = 'ImportError'
+      throw err }
   }
 
   // all good. return geojson.

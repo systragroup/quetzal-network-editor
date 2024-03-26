@@ -99,6 +99,33 @@ function indexAreUnique (geojson) {
     return (new Set(indexArr).size === indexArr.length)
   } else { return true } // if its empty, return true
 }
+function getDuplicates(arr) {
+  // from arr return a set of duplicates values.
+  const sorted_arr = arr.slice().sort()
+  const results = []
+  for (let i = 0; i < sorted_arr.length - 1; i++) {
+    if (sorted_arr[i + 1] == sorted_arr[i]) {
+      results.push(sorted_arr[i])
+    }
+  }
+  return new Set(results)
+}
+
+function dropDuplicatesIndex(features) {
+  // from a list of features (geojson.features) find duplicated index and drop them
+  // if everything else is equal. (will not drop nodes with same index but diff geometry)
+  const set = getDuplicates(features.map(item => item.properties.index))
+  set.forEach(index => {
+    const filtered = features.filter(item => item.properties.index == index)
+    const dup = new Set(filtered.map(el => JSON.stringify(el)))
+    // all equals. drop them
+    if (dup.size === 1) {
+      const toDelete = filtered.slice(1)
+      features = features.filter(item => !toDelete.includes(item))
+    }
+  })
+  return features
+}
 
 function IndexAreDifferent (geojsonA, geojsonB) {
   // check if index are duplicated between geojsons (to append new links or nodes) (links or nodes)
@@ -237,6 +264,7 @@ export {
   deleteUnusedNodes,
   indexAreUnique,
   IndexAreDifferent,
+  dropDuplicatesIndex,
   getMatchingAttr,
   getPerfectMatches,
   remap,

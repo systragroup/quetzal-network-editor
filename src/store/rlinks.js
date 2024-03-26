@@ -421,6 +421,8 @@ export const userLinksStore = defineStore('rlinks', {
       const nodeFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
       newNode.features = [nodeFeatures]
       this.newrNode = newNode
+      this.visiblerNodes.features.push(this.newrNode.features[0])
+      this.renderedrNodes.features.push(this.newrNode.features[0])
     },
     splitrLink (payload) {
       // changing link1 change editorLinks as it is an observer.
@@ -478,9 +480,6 @@ export const userLinksStore = defineStore('rlinks', {
           // only add one node, takes the first one.
           if (i === 0) {
             this.createNewrNode(snapped.geometry.coordinates)
-            this.rnodes.features.push(this.newrNode.features[0])
-            this.visiblerNodes.features.push(this.newrNode.features[0])
-            this.renderedrNodes.features.push(this.newrNode.features[0])
           }
           this.splitrLink({ selectedFeature: selectedFeatures[i], offset, sliceIndex })
 
@@ -510,9 +509,7 @@ export const userLinksStore = defineStore('rlinks', {
       // create a node if we click on the map (case 1)
       if (!payload.nodeIdB) {
         this.createNewrNode(payload.geom)
-        this.visiblerNodes.features.push(this.newrNode.features[0])
-        this.renderedrNodes.features.push(this.newrNode.features[0])
-        this.rnodes.features.push(this.newrNode.features[0])
+
         payload.nodeIdB = this.newrNode.features[0].properties.index
       } else if (payload.layerId === 'rlinks') {
         // create a node inline and then the new link
