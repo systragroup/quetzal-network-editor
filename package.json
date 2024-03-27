@@ -2,7 +2,7 @@
   "name": "Quetzal-network-editor",
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "type": "module",
   "private": true,
   "scripts": {
@@ -16,10 +16,8 @@
     "lint": "ko=0; yarn run -s jslint || ko=1; yarn run -s csslint || ko=1; [ ! $ko -eq 1 ]",
     "jslint": "eslint src",
     "csslint": "stylelint 'src/**/*.{scss,css,vue}'",
-    "i18n-extract": "./gettext-extract",
-    "i18n-compile": "./gettext-compile",
-    "gettext:extract": "vue-gettext-extract",
-    "gettext:compile": "vue-gettext-compile",
+    "i18n-extract": "vue-gettext-extract",
+    "i18n-compile": "vue-gettext-compile",
     "test": "vitest"
   },
   "dependencies": {
@@ -62,7 +60,7 @@
     "vue-i18n": "^9.10.1",
     "vue-mapbox3": "^0.7.0",
     "vue-router": "^4.3.0",
-    "vue3-gettext": "^3.0.0-beta.1",
+    "vue3-gettext": "^3.0.0-beta.4",
     "vue3-json-viewer": "^2.2.2",
     "vuetify": "3.5.11"
   },

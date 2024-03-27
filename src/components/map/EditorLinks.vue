@@ -93,25 +93,19 @@ function contextMenuNode (event) {
 
     const selectedNode = contextMenu.value.feature.properties.index
 
-    if (selectedNode === linksStore.firstNodeId) {
+    if ((selectedNode === linksStore.firstNodeId) || (selectedNode === linksStore.lastNodeId)) {
       contextMenu.value.actions
           = [
-          $gettext('Edit Node Info'),
-          $gettext('Delete Stop'),
-        ]
-    } else if (selectedNode === linksStore.lastNodeId) {
-      contextMenu.value.actions
-          = [
-          $gettext('Edit Node Info'),
-          $gettext('Delete Stop'),
+          { name: 'Edit Node Info', text: $gettext('Edit Node Info') },
+          { name: 'Delete Stop', text: $gettext('Delete Stop') },
         ]
     } else {
       contextMenu.value.actions
            = [
-          $gettext('Edit Node Info'),
-          $gettext('Cut Before Node'),
-          $gettext('Cut After Node'),
-          $gettext('Delete Stop'),
+          { name: 'Edit Node Info', text: $gettext('Edit Node Info') },
+          { name: 'Cut Before Node', text: $gettext('Cut Before Node') },
+          { name: 'Cut After Node', text: $gettext('Cut After Node') },
+          { name: 'Delete Stop', text: $gettext('Delete Stop') },
         ]
     }
   }
@@ -437,11 +431,11 @@ function stopMovingNode () {
               variant="outlined"
               size="small"
               block
-              @click="actionClick({action: action,
+              @click="actionClick({action: action.name,
                                    feature: contextMenu.feature,
                                    coordinates: contextMenu.coordinates})"
             >
-              {{ $gettext(action) }}
+              {{ $gettext(action.text) }}
             </v-btn>
 
           </v-list-item>

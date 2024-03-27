@@ -1,0 +1,1275 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#: src/components/import/FilesList.vue:89
+msgid " deleted"
+msgstr ""
+
+#: src/components/utils/serializer.js:26
+msgid " imported, Expected "
+msgstr ""
+
+#: src/components/utils/serializer.js:19
+msgid " invalid CRS. Import aborted. use CRS84 / EPSG:4326 in "
+msgstr ""
+
+#: src/components/utils/serializer.js:13
+msgid " is empty"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:283
+msgid " minutes remaining"
+msgstr ""
+
+#: src/components/utils/utils.js:36
+msgid " root folders should be inputs/ and outputs/. not: "
+msgstr ""
+
+#: src/store/links.js:112
+#: src/store/links.js:120
+#: src/store/od.js:40
+#: src/store/rlinks.js:101
+#: src/store/rlinks.js:109
+msgid " there is duplicated index, "
+msgstr ""
+
+#: src/components/utils/serializer.js:27
+msgid ". Import aborted in "
+msgstr ""
+
+#: src/components/import/conflicts.js:128
+msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added"
+msgstr ""
+
+#: src/components/import/conflicts.js:121
+msgid "%{a}/%{b} PT nodes added and %{c}/%{d} PT links added.                           %{e}/%{f} road nodes added and %{g}/%{h} road links added "
+msgstr ""
+
+#: src/components/import/conflicts.js:133
+msgid "%{a}/%{b} road nodes added and %{c}/%{d} road links added"
+msgstr ""
+
+#: src/constants/hints.js:9
+msgid ""
+"0 - Regularly scheduled drop off.\n"
+"    1 - No drop off available.\n"
+"    2 - Must phone agency to arrange drop off.\n"
+"    3 - Must coordinate with driver to arrange drop off."
+msgstr ""
+
+#: src/constants/hints.js:14
+msgid ""
+"0 - Regularly scheduled pickup.\n"
+"    1 - No pickup available.\n"
+"    2 - Must phone agency to arrange pickup.\n"
+"    3 - Must coordinate with driver to arrange pickup"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:211
+msgid "1) Find n zones centroids using a Kmean clustering on the nodes"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:212
+msgid "2) Call the Here Matrix API on random OD ( around 1% is sufficient )"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:213
+msgid "3) Interpolate every other OD time with an hybrid Machine learning model"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:103
+msgid "3D"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:214
+msgid "4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:528
+#: src/components/microservices/MatrixRoadCaster.vue:280
+msgid "Abort"
+msgstr ""
+
+#: src/pages/Run.vue:153
+msgid "Abort Simulation"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:297
+msgid "add field"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:167
+msgid "Add GTFS files. When its done uploading press Convert"
+msgstr ""
+
+#: src/pages/Import.vue:190
+msgid "An error occur fetching example on github"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:182
+msgid "An error occured"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:377
+msgid "Any unsaved changes will be lost"
+msgstr ""
+
+#: src/components/utils/ColorPicker.vue:134
+msgid "apply"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:461
+msgid "Apply"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:314
+msgid "Apply Road links to project"
+msgstr ""
+
+#: src/components/layout/Profile.vue:101
+msgid "at least 8 character long"
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:216
+msgid "Available GTFS"
+msgstr ""
+
+#: src/components/run/ParamForm.vue:176
+msgid "back to default"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:300
+msgid "Calibration Results"
+msgstr ""
+
+#: src/components/layout/Profile.vue:372
+#: src/components/utils/ColorPicker.vue:127
+msgid "cancel"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:431
+#: src/components/map/EditDialog.vue:337
+#: src/components/map/Settings.vue:217
+#: src/components/results/ResultsSettings.vue:453
+#: src/pages/Home.vue:378
+#: src/pages/Home.vue:426
+#: src/pages/ResultMap.vue:405
+#: src/pages/ResultMap.vue:438
+msgid "Cancel"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:123
+msgid "cannot add empty field"
+msgstr ""
+
+#: src/components/microservices/MapSelector.vue:157
+msgid "Cannot delete anymore"
+msgstr ""
+
+#: src/components/microservices/MapSelector.vue:160
+msgid "cannot delete first point of polygon"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:284
+msgid "Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:376
+msgid "Change Scenario"
+msgstr ""
+
+#: src/pages/Home.vue:199
+msgid "Click on the map to start drawing"
+msgstr ""
+
+#: src/components/microservices/MapSelector.vue:112
+msgid "Click to add points. Right click de remove"
+msgstr ""
+
+#: src/components/results/results.js:324
+msgid "Clickable element in green"
+msgstr ""
+
+#: src/App.vue:75
+msgid "Close"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:66
+msgid "cmap to use"
+msgstr ""
+
+#: src/components/run/ParamForm.vue:184
+msgid "Collapse all"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:61
+msgid "color map"
+msgstr ""
+
+#: src/constants/hints.js:18
+msgid "color to display on the map (i.e. FFFFFF)"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:542
+msgid "Confirm"
+msgstr ""
+
+#: src/components/layout/Signin.vue:116
+msgid "confirm new password"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:263
+msgid "convert"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:403
+msgid "copy"
+msgstr ""
+
+#: src/pages/Home.vue:191
+msgid "Could not apply modification. Trip_id already exist"
+msgstr ""
+
+#: src/components/layout/Profile.vue:379
+msgid "create"
+msgstr ""
+
+#: src/components/layout/Profile.vue:321
+msgid "create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:563
+msgid "Create new Line"
+msgstr ""
+
+#: src/pages/ResultMap.vue:379
+msgid "Create or modify preset"
+msgstr ""
+
+#: src/components/layout/Profile.vue:230
+msgid "create user"
+msgstr ""
+
+#: src/components/layout/Profile.vue:303
+msgid "Create User"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:93
+msgid "custom scale"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:95
+msgid "customize to inputs values"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:107
+msgid "Cut After Node"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:106
+msgid "Cut Before Node"
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:219
+msgid "Data fetch from"
+msgstr ""
+
+#: src/components/utils/LayerSelector.vue:106
+msgid "Data not found: "
+msgstr ""
+
+#: src/pages/ResultMap.vue:445
+msgid "delete"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:389
+#: src/pages/Home.vue:368
+#: src/pages/ResultMap.vue:428
+msgid "Delete"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:387
+msgid "Delete %{scen}?"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:360
+msgid "Delete Group"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:474
+#: src/components/map/sidePanel/ODSidePanel.vue:264
+#: src/components/map/sidePanel/RoadSidePanel.vue:287
+msgid "Delete Line"
+msgstr ""
+
+#: src/components/map/ODMap.vue:166
+msgid "Delete OD"
+msgstr ""
+
+#: src/components/map/RoadLinks.vue:203
+msgid "Delete rLink"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:100
+#: src/components/map/EditorLinks.vue:108
+msgid "Delete Stop"
+msgstr ""
+
+#: src/components/layout/Profile.vue:309
+msgid "delete User"
+msgstr ""
+
+#: src/constants/hints.js:7
+msgid ""
+"direction of travel for a trip. used to separate trips by directions.\n"
+"     ex: 0 - Travel in one direction. 1 - Travel in the opposite direction."
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:105
+msgid "display zones as 3D extrusion"
+msgstr ""
+
+#: src/components/map/Settings.vue:56
+msgid "do not add .zip to the end"
+msgstr ""
+
+#: src/components/results/ResultsSidePanel.vue:188
+msgid "Dowload presets"
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:236
+#: src/components/microservices/MatrixRoadCaster.vue:328
+#: src/components/microservices/OSMImporter.vue:148
+msgid "Download"
+msgstr ""
+
+#: src/pages/Home.vue:400
+msgid "Duplicate"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:455
+msgid "Duplicate and reverse"
+msgstr ""
+
+#: src/pages/Home.vue:413
+msgid "duplicate nodes"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:344
+msgid "Edit Group Properties"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:417
+msgid "Edit Line"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:500
+#: src/components/map/sidePanel/RoadSidePanel.vue:313
+msgid "Edit Line geometry"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:436
+#: src/components/map/sidePanel/ODSidePanel.vue:244
+#: src/components/map/sidePanel/RoadSidePanel.vue:269
+msgid "Edit Line Properties"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:105
+#: src/components/map/EditorLinks.vue:99
+msgid "Edit Node Info"
+msgstr ""
+
+#: src/components/map/ODMap.vue:165
+msgid "Edit OD Info"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:224
+msgid "Edit Properties"
+msgstr ""
+
+#: src/components/map/RoadLinks.vue:202
+msgid "Edit rLink Info"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:199
+#: src/components/map/sidePanel/ODSidePanel.vue:127
+#: src/components/map/sidePanel/RoadSidePanel.vue:165
+msgid "Edit Visibles Properties"
+msgstr ""
+
+#: src/components/layout/Profile.vue:356
+msgid "email address"
+msgstr ""
+
+#: src/pages/Import.vue:297
+msgid "Empty all"
+msgstr ""
+
+#: src/pages/Import.vue:300
+msgid "Empty all loaded files and start from scratch"
+msgstr ""
+
+#: src/pages/Run.vue:168
+msgid "End signal"
+msgstr ""
+
+#: src/components/run/ParamForm.vue:184
+msgid "Expand all"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:46
+msgid "Export"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:231
+#: src/components/map/sidePanel/ODSidePanel.vue:159
+#: src/components/map/sidePanel/RoadSidePanel.vue:197
+msgid "Export All"
+msgstr ""
+
+#: src/components/map/Settings.vue:46
+msgid "Export name"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:239
+#: src/components/map/sidePanel/ODSidePanel.vue:167
+#: src/components/map/sidePanel/RoadSidePanel.vue:205
+msgid "Export Only Visible"
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:227
+msgid "fetch available GTFS"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:178
+msgid "Field added"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:122
+msgid "field already exist"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:124
+msgid "field cannot end with _r"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:209
+msgid "Field deleted"
+msgstr ""
+
+#: src/pages/Import.vue:93
+msgid "file is not a zip"
+msgstr ""
+
+#: src/components/import/conflicts.js:138
+msgid "File(s) added"
+msgstr ""
+
+#: src/pages/Import.vue:78
+msgid "Files unloaded"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:261
+#: src/components/map/sidePanel/ODSidePanel.vue:185
+#: src/components/map/sidePanel/RoadSidePanel.vue:223
+#: src/components/results/ResultsSidePanel.vue:269
+msgid "filter"
+msgstr ""
+
+#: src/components/utils/StaticLayer.vue:74
+#: src/pages/ResultMap.vue:122
+msgid "filter does not exist. use default one"
+msgstr ""
+
+#: src/components/layout/Profile.vue:343
+msgid "first name"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:222
+#: src/components/utils/LayerSelector.vue:107
+msgid "from"
+msgstr ""
+
+#: src/constants/hints.js:20
+msgid "Full name of a route.This name is generally more descriptive than the route_short_name and often includes the roudefaultAttributeste's destination or stop"
+msgstr ""
+
+#: src/pages/Import.vue:307
+msgid "Go!"
+msgstr ""
+
+#: src/store/GTFSImporter.js:78
+msgid "gtfs imported successfully!"
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:210
+#: src/components/microservices/GTFSZipImporter.vue:161
+msgid "GTFS importer"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:181
+#: src/components/map/sidePanel/LinksSidePanel.vue:318
+#: src/components/map/sidePanel/ODSidePanel.vue:109
+#: src/components/map/sidePanel/RoadSidePanel.vue:147
+#: src/components/results/ResultsSidePanel.vue:206
+msgid "Hide All"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:71
+msgid "Hide NaN on map and color map"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:404
+msgid "Hold left click to drag"
+msgstr ""
+
+#: src/constants/hints.js:19
+msgid "Identifies a route. Often a string"
+msgstr ""
+
+#: src/constants/hints.js:33
+msgid "if the road contain a bike path in the opposite direction. either yes, no or shared. a road can be a oneway and have cycleway on both side."
+msgstr ""
+
+#: src/constants/hints.js:32
+msgid "if the road contain a bike path. either yes, no or shared"
+msgstr ""
+
+#: src/router/index.js:25
+msgid "Import"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:164
+msgid "import GTFS from local computer"
+msgstr ""
+
+#: src/components/microservices/OSMImporter.vue:88
+msgid "Import OSM network in bounding box"
+msgstr ""
+
+#: src/constants/hints.js:23
+msgid ""
+"Indicates the type of transportation used on a route.\n"
+"     subway, metro, rail, bus, ferry, tram, etc"
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:88
+#: src/components/microservices/GTFSZipImporter.vue:41
+#: src/components/microservices/MatrixRoadCaster.vue:179
+msgid "invalid date time"
+msgstr ""
+
+#: src/components/layout/Profile.vue:100
+msgid "invalid email address"
+msgstr ""
+
+#: src/components/layout/Profile.vue:350
+msgid "last name"
+msgstr ""
+
+#: src/components/results/ResultsSidePanel.vue:227
+msgid "Layer"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:403
+msgid "Left click to add a stop"
+msgstr ""
+
+#: src/components/map/Map.vue:182
+msgid "Left click to add an anchor point, right click to delete"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:98
+msgid "Left side driving"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:283
+msgid "less than 1"
+msgstr ""
+
+#: src/constants/hints.js:27
+msgid ""
+"Line (or trip) identifier (i.e. 100 Est).\n"
+"     Links are group by trip_id in Quetzal-network-editor."
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:204
+msgid "Lines"
+msgstr ""
+
+#: src/components/map/Settings.vue:30
+msgid "Link field to display when hovering a trip on the map"
+msgstr ""
+
+#: src/components/map/Settings.vue:37
+msgid "Link field to display when hovering road link on the map"
+msgstr ""
+
+#: src/pages/ResultMap.vue:343
+msgid "link Properties"
+msgstr ""
+
+#: src/components/import/FileLoader.vue:217
+#: src/components/import/FileLoader.vue:275
+msgid "Links"
+msgstr ""
+
+#: src/constants/hints.js:29
+msgid "links geometry linestring length (meters)"
+msgstr ""
+
+#: src/pages/Import.vue:257
+msgid "Load Example"
+msgstr ""
+
+#: src/pages/Import.vue:247
+msgid "Load Zip File"
+msgstr ""
+
+#: src/pages/Import.vue:236
+msgid "Login to access projects"
+msgstr ""
+
+#: src/components/layout/Profile.vue:255
+msgid "logout"
+msgstr ""
+
+#: src/constants/hints.js:30
+msgid "Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)"
+msgstr ""
+
+#: src/router/index.js:53
+msgid "Map"
+msgstr ""
+
+#: src/components/utils/StyleSelector.vue:47
+msgid "Map Style"
+msgstr ""
+
+#: src/store/MatrixRoadCaster.js:67
+msgid "Matrix Road Caster executed successfully!"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:90
+msgid "maximum value on the color Map"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:32
+#: src/components/results/ResultsSettings.vue:36
+msgid "maxWidth"
+msgstr ""
+
+#: src/router/index.js:32
+msgid "Microservices"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:83
+msgid "mininum value on the color Map"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:25
+#: src/components/results/ResultsSettings.vue:29
+msgid "minWidth"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:209
+msgid "ML Matrix Road Caster"
+msgstr ""
+
+#: src/pages/Home.vue:274
+msgid "modification aborted"
+msgstr ""
+
+#: src/components/map/Settings.vue:90
+#: src/pages/Home.vue:266
+msgid "modification applied"
+msgstr ""
+
+#: src/components/map/EditDialog.vue:252
+msgid "multiple Values"
+msgstr ""
+
+#: src/router/index.js:39
+msgid "Must be logged in"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:276
+#: src/components/import/ScenariosExplorer.vue:414
+#: src/components/microservices/GTFSZipImporter.vue:221
+#: src/pages/ResultMap.vue:392
+msgid "name"
+msgstr ""
+
+#: src/components/layout/Profile.vue:102
+#: src/components/layout/Signin.vue:19
+msgid "need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol"
+msgstr ""
+
+#: src/store/index.js:130
+msgid "Need the same number of links and nodes files."
+msgstr ""
+
+#: src/store/index.js:136
+msgid "Need the same number of road_links and road_nodes files."
+msgstr ""
+
+#: src/components/map/EditDialog.vue:298
+msgid "new field name"
+msgstr ""
+
+#: src/pages/Home.vue:405
+msgid "New name"
+msgstr ""
+
+#: src/components/layout/Signin.vue:108
+msgid "new password"
+msgstr ""
+
+#: src/components/layout/Signin.vue:77
+msgid "New password"
+msgstr ""
+
+#: src/components/map/Settings.vue:43
+msgid "New road links Highway property name"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:364
+msgid "new scenario"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:403
+msgid "New Scenario"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:380
+#: src/components/microservices/GTFSWebImporter.vue:335
+#: src/components/microservices/GTFSZipImporter.vue:284
+#: src/components/microservices/OSMImporter.vue:169
+#: src/pages/Import.vue:338
+msgid "No"
+msgstr ""
+
+#: src/components/map/Map.vue:363
+msgid "Node already in use by the trip. Cannot replace"
+msgstr ""
+
+#: src/components/import/FileLoader.vue:226
+#: src/components/import/FileLoader.vue:284
+msgid "Nodes"
+msgstr ""
+
+#: src/pages/ResultPicture.vue:48
+#: src/pages/ResultTable.vue:54
+#: src/pages/ResultTable.vue:60
+msgid "Nothing to display"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:288
+msgid "Nothing to display."
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:39
+#: src/components/results/ResultsSettings.vue:43
+msgid "numStep"
+msgstr ""
+
+#: src/components/map/sidePanel/ODSidePanel.vue:132
+#: src/components/map/sidePanel/SidePanel.vue:130
+msgid "OD"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:439
+#: src/components/layout/Profile.vue:379
+#: src/pages/ResultMap.vue:366
+#: src/pages/ResultMap.vue:413
+msgid "ok"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:46
+#: src/components/results/ResultsSettings.vue:50
+msgid "opacity"
+msgstr ""
+
+#: src/components/import/FileLoader.vue:302
+msgid "Origin - Destination"
+msgstr ""
+
+#: src/store/OSMImporter.js:66
+msgid "OSM network imported successfully!"
+msgstr ""
+
+#: src/components/import/FilesList.vue:128
+msgid "Other Inputs"
+msgstr ""
+
+#: src/components/import/FilesList.vue:177
+msgid "Outputs"
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:327
+#: src/components/microservices/GTFSZipImporter.vue:276
+msgid "Overwrite current PT network ?"
+msgstr ""
+
+#: src/components/microservices/OSMImporter.vue:161
+msgid "Overwrite current road network ?"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:108
+msgid "padding"
+msgstr ""
+
+#: src/components/import/FileLoader.vue:336
+msgid "Parameters"
+msgstr ""
+
+#: src/router/index.js:60
+msgid "Parameters and Run"
+msgstr ""
+
+#: src/components/utils/serializer.js:52
+#: src/components/utils/serializer.js:61
+msgid "params.json should be an array of object [{category: , params: }, ...]"
+msgstr ""
+
+#: src/components/layout/Signin.vue:100
+msgid "password"
+msgstr ""
+
+#: src/components/layout/Signin.vue:20
+msgid "password must match"
+msgstr ""
+
+#: src/pages/ResultMap.vue:180
+msgid "Preset changed. Please reload the active layer on the map"
+msgstr ""
+
+#: src/pages/ResultMap.vue:201
+msgid "Preset deleted"
+msgstr ""
+
+#: src/pages/ResultMap.vue:130
+msgid "Preset Layer does not exist"
+msgstr ""
+
+#: src/pages/ResultMap.vue:186
+msgid "Preset Saved"
+msgstr ""
+
+#: src/components/results/ResultsSidePanel.vue:137
+msgid "Presets"
+msgstr ""
+
+#: src/components/map/sidePanel/SidePanel.vue:124
+msgid "PT"
+msgstr ""
+
+#: src/pages/Import.vue:266
+msgid "PT & Road"
+msgstr ""
+
+#: src/components/import/FileLoader.vue:186
+msgid "PT Network"
+msgstr ""
+
+#: src/components/map/Settings.vue:26
+msgid "PT Popup Content"
+msgstr ""
+
+#: src/pages/Import.vue:274
+msgid "PT, Road, Zones, OD & Results"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:112
+msgid "range of colors"
+msgstr ""
+
+#: src/components/map/Map.vue:371
+msgid "Replace %{index}"
+msgstr ""
+
+#: src/components/import/FilesList.vue:162
+msgid "Replace file inplace"
+msgstr ""
+
+#: src/components/layout/Profile.vue:99
+#: src/components/layout/Signin.vue:18
+#: src/components/map/Settings.vue:53
+#: src/components/microservices/GTFSWebImporter.vue:87
+#: src/components/microservices/GTFSZipImporter.vue:40
+#: src/components/microservices/MatrixRoadCaster.vue:176
+#: src/components/results/ResultsSettings.vue:121
+#: src/components/run/ParamForm.vue:51
+msgid "Required"
+msgstr ""
+
+#: src/router/index.js:96
+msgid "Result Table"
+msgstr ""
+
+#: src/pages/Run.vue:104
+msgid "Results are not synchronized with latest modifications.             Please relauch simulation to update results."
+msgstr ""
+
+#: src/router/index.js:82
+msgid "Results Map"
+msgstr ""
+
+#: src/router/index.js:89
+msgid "Results Pictures"
+msgstr ""
+
+#: src/pages/Home.vue:409
+msgid "reverse"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:74
+msgid "reverse color"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:76
+msgid "reverse color scale"
+msgstr ""
+
+#: src/components/results/MapResults.vue:79
+msgid "Right click and drag to tilt the map"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:408
+msgid "Right click for context menu"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:407
+msgid "Right click to edit properties"
+msgstr ""
+
+#: src/components/map/sidePanel/SidePanel.vue:127
+msgid "Road"
+msgstr ""
+
+#: src/components/map/Settings.vue:40
+msgid "Road Highway name"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:154
+msgid "Road links applied!"
+msgstr ""
+
+#: src/components/import/FileLoader.vue:244
+msgid "Road Network"
+msgstr ""
+
+#: src/components/map/Settings.vue:33
+msgid "Road Popup Content"
+msgstr ""
+
+#: src/components/map/Settings.vue:19
+msgid "Road speed"
+msgstr ""
+
+#: src/components/map/sidePanel/RoadSidePanel.vue:170
+msgid "Roads"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:272
+msgid "Run"
+msgstr ""
+
+#: src/pages/Run.vue:145
+msgid "Run Simulation"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:476
+msgid "save"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:40
+#: src/components/map/EditDialog.vue:345
+#: src/components/map/Settings.vue:225
+#: src/pages/Home.vue:386
+#: src/pages/Home.vue:434
+msgid "Save"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:53
+#: src/components/results/ResultsSettings.vue:58
+msgid "scale"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:86
+msgid "scale max"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:79
+msgid "scale min"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:144
+msgid "Scenario created"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:177
+msgid "Scenario deleted"
+msgstr ""
+
+#: src/components/layout/NavigationDrawer.vue:73
+msgid "Scenario saved"
+msgstr ""
+
+#: src/components/run/ParamForm.vue:87
+msgid "Scenario Settings"
+msgstr ""
+
+#: src/pages/Run.vue:74
+msgid "Scenario Simulation"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:135
+msgid "Scenario successfully copied"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:261
+#: src/components/map/sidePanel/LinksSidePanel.vue:274
+msgid "search"
+msgstr ""
+
+#: src/pages/Import.vue:236
+msgid "Select a Project"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:100
+msgid "Select which side of the road the links are display"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:224
+msgid "selected date"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:18
+#: src/components/results/ResultsSettings.vue:22
+msgid "selectedFeature"
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:337
+msgid "Service ended with an execution error or have been aborted.             Please retry. If the problem persist, contact us."
+msgstr ""
+
+#: src/components/map/Settings.vue:145
+#: src/components/results/ResultsSettings.vue:240
+msgid "Settings"
+msgstr ""
+
+#: src/constants/hints.js:21
+msgid ""
+"Short name of a route. This will often be a short,\n"
+"     abstract identifier like \"32\", \"100X\", or \"Green\""
+msgstr ""
+
+#: src/components/microservices/MatrixRoadCaster.vue:178
+#: src/components/results/ResultsSettings.vue:123
+#: src/components/run/ParamForm.vue:53
+msgid "should be larger or equal to 0"
+msgstr ""
+
+#: src/components/map/Settings.vue:54
+#: src/components/microservices/MatrixRoadCaster.vue:177
+#: src/components/results/ResultsSettings.vue:122
+#: src/components/run/ParamForm.vue:52
+msgid "should be larger than 0"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:181
+#: src/components/map/sidePanel/LinksSidePanel.vue:319
+#: src/components/map/sidePanel/ODSidePanel.vue:109
+#: src/components/map/sidePanel/RoadSidePanel.vue:147
+#: src/components/results/ResultsSidePanel.vue:206
+msgid "Show All"
+msgstr ""
+
+#: src/components/map/sidePanel/RoadSidePanel.vue:332
+msgid "Show Cycleway direction instead of road"
+msgstr ""
+
+#: src/components/results/ResultsSettings.vue:69
+msgid "show NaN"
+msgstr ""
+
+#: src/components/layout/Signin.vue:130
+msgid "Sign in"
+msgstr ""
+
+#: src/components/layout/Signin.vue:77
+msgid "Sign In"
+msgstr ""
+
+#: src/components/layout/Signin.vue:83
+msgid "Sign in with username or email address."
+msgstr ""
+
+#: src/store/user.js:99
+msgid "sign out"
+msgstr ""
+
+#: src/components/layout/Profile.vue:297
+msgid "Sign out"
+msgstr ""
+
+#: src/pages/Run.vue:114
+msgid "Simulation ended with an execution error or have been aborted.             Please relauch simulation. If the problem persist, contact us."
+msgstr ""
+
+#: src/store/run.js:65
+msgid "simulation executed successfully!"
+msgstr ""
+
+#: src/constants/hints.js:31
+msgid "speed on the link (Km/h)"
+msgstr ""
+
+#: src/components/map/Settings.vue:23
+msgid "Speed used to calculate road travel time when a link is drawn"
+msgstr ""
+
+#: src/components/utils/LayerSelector.vue:76
+msgid "Static Layers"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:516
+msgid "stick nodes on existing nodes"
+msgstr ""
+
+#: src/components/import/FileLoader.vue:367
+msgid "Style presets"
+msgstr ""
+
+#: src/components/utils/serializer.js:77
+#: src/components/utils/serializer.js:84
+msgid "styles.json should be an array of object with at least [{name:,layer:}]"
+msgstr ""
+
+#: src/components/layout/Profile.vue:197
+msgid "Team"
+msgstr ""
+
+#: src/components/layout/Profile.vue:361
+msgid "temporary password"
+msgstr ""
+
+#: src/components/map/Settings.vue:50
+msgid "the name of the exported zip file"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:388
+msgid "The scenario will be permanently deleted"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:188
+msgid "There as been an error while converting your GTFS.             Please try again. If the problem persist, contact us."
+msgstr ""
+
+#: src/components/microservices/GTFSWebImporter.vue:246
+#: src/components/microservices/OSMImporter.vue:100
+msgid "There as been an error while importing OSM network.             Please try again. If the problem persist, contact us."
+msgstr ""
+
+#: src/components/utils/serializer.js:41
+msgid "there is duplicates index. you need unique index. Import aborted in "
+msgstr ""
+
+#: src/components/utils/serializer.js:33
+msgid "there is no index in the File. you need unique index. Import aborted in "
+msgstr ""
+
+#: src/components/map/EditDialog.vue:94
+msgid "This action will delete properties on every links (and reversed one for two-way roads)"
+msgstr ""
+
+#: src/components/layout/Profile.vue:315
+msgid "This action will sign you out"
+msgstr ""
+
+#: src/pages/Run.vue:130
+msgid "This scenario is protected. You can not run simulation."
+msgstr ""
+
+#: src/components/layout/Profile.vue:327
+msgid "This will permanently delete the user account."
+msgstr ""
+
+#: src/constants/hints.js:13
+msgid "Time between departures in seconds"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:223
+msgid "to"
+msgstr ""
+
+#: src/constants/hints.js:6
+msgid "transit brand or transit agency"
+msgstr ""
+
+#: src/constants/hints.js:26
+msgid "Travel time on the link. set as length / speed when a link is created or edited (seconds)"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:96
+msgid "undefined"
+msgstr ""
+
+#: src/pages/Import.vue:330
+msgid "Unload all files ?"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:376
+msgid "Unload Scenario?"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:176
+msgid "upload GTFS"
+msgstr ""
+
+#: src/components/microservices/GTFSZipImporter.vue:225
+msgid "Uploaded"
+msgstr ""
+
+#: src/components/layout/Profile.vue:108
+msgid "User created! please share the temporary password"
+msgstr ""
+
+#: src/components/layout/Profile.vue:118
+msgid "User permanently delete"
+msgstr ""
+
+#: src/components/layout/Profile.vue:337
+#: src/components/layout/Signin.vue:93
+msgid "username"
+msgstr ""
+
+#: src/components/import/FilesList.vue:211
+msgid "Viewable in results"
+msgstr ""
+
+#: src/constants/hints.js:25
+msgid "width to display on the map"
+msgstr ""
+
+#: src/components/map/Map.vue:372
+msgid "with %{index}?"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:379
+#: src/components/microservices/GTFSWebImporter.vue:342
+#: src/components/microservices/GTFSZipImporter.vue:291
+#: src/components/microservices/OSMImporter.vue:176
+#: src/pages/Import.vue:345
+msgid "Yes"
+msgstr ""
+
+#: src/router/index.js:67
+msgid "you need parameters to enter this page"
+msgstr ""
+
+#: src/store/user.js:100
+msgid "your session has expired. Please sign in again"
+msgstr ""
