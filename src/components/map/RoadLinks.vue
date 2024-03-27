@@ -199,8 +199,8 @@ function linkRightClick (event) {
       contextMenu.value.feature = hoveredStateId.value.id
       contextMenu.value.actions
           = [
-          $gettext('Edit rLink Info'),
-          $gettext('Delete rLink'),
+          { name: 'Edit rLink Info', text: $gettext('Edit rLink Info') },
+          { name: 'Delete rLink', text: $gettext('Delete rLink') },
         ]
     }
   }
@@ -545,11 +545,11 @@ const ArrowDirCondition = computed(() => {
             <v-btn
               variant="outlined"
               size="small"
-              @click="actionClick({action: action,
+              @click="actionClick({action: action.name,
                                    feature: contextMenu.feature,
                                    coordinates: contextMenu.coordinates})"
             >
-              {{ $gettext(action) }}
+              {{ $gettext(action.text) }}
             </v-btn>
 
           </v-list-item>

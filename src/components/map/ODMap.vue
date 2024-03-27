@@ -162,8 +162,8 @@ function linkRightClick (event) {
     contextMenu.value.feature = hoveredStateId.value.id
     contextMenu.value.actions
           = [
-        $gettext('Edit OD Info'),
-        $gettext('Delete OD'),
+        { name: 'Edit OD Info', text: $gettext('Edit OD Info') },
+        { name: 'Delete OD', text: $gettext('Delete OD') },
       ]
   }
 }
@@ -287,11 +287,11 @@ function actionClick (event) {
             <v-btn
               variant="outlined"
               size="small"
-              @click="actionClick({action: action,
+              @click="actionClick({action: action.name,
                                    feature: contextMenu.feature,
                                    coordinates: contextMenu.coordinates})"
             >
-              {{ $gettext(action) }}
+              {{ $gettext(action.text) }}
             </v-btn>
 
           </v-list-item>

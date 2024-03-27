@@ -156,11 +156,11 @@ msgstr "appliquer"
 
 #: src/components/microservices/MatrixRoadCaster.vue:314
 msgid "Apply Road links to project"
-msgstr ""
+msgstr "Ajouter aux Liens routiers du projet"
 
 #: src/components/layout/Profile.vue:101
 msgid "at least 8 character long"
-msgstr ""
+msgstr "Au moins 8 caractères de long"
 
 #: src/components/microservices/GTFSWebImporter.vue:216
 msgid "Available GTFS"
@@ -300,11 +300,11 @@ msgstr "échelle personnalisée"
 msgid "customize to inputs values"
 msgstr "personnaliser l'échelle"
 
-#: src/components/map/EditorLinks.vue:113
+#: src/components/map/EditorLinks.vue:107
 msgid "Cut After Node"
 msgstr "Couper après l'arrêt"
 
-#: src/components/map/EditorLinks.vue:112
+#: src/components/map/EditorLinks.vue:106
 msgid "Cut Before Node"
 msgstr "Couper avant l'arrêt"
 
@@ -349,8 +349,7 @@ msgid "Delete rLink"
 msgstr "Supprimer"
 
 #: src/components/map/EditorLinks.vue:100
-#: src/components/map/EditorLinks.vue:106
-#: src/components/map/EditorLinks.vue:114
+#: src/components/map/EditorLinks.vue:108
 msgid "Delete Stop"
 msgstr "Supprimer l'arrêt"
 
@@ -370,7 +369,7 @@ msgstr ""
 
 #: src/components/results/ResultsSettings.vue:105
 msgid "display zones as 3D extrusion"
-msgstr ""
+msgstr "afficher les zones en extrusion 3D"
 
 #: src/components/map/Settings.vue:56
 msgid "do not add .zip to the end"
@@ -417,8 +416,7 @@ msgstr "Modifier La géométrie de la ligne"
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
-#: src/components/map/EditorLinks.vue:105
-#: src/components/map/EditorLinks.vue:111 src/components/map/EditorLinks.vue:99
+#: src/components/map/EditorLinks.vue:105 src/components/map/EditorLinks.vue:99
 msgid "Edit Node Info"
 msgstr "Modifier les infos"
 
@@ -494,7 +492,7 @@ msgstr "Le champ existe déjà"
 
 #: src/components/map/EditDialog.vue:124
 msgid "field cannot end with _r"
-msgstr ""
+msgstr "le champs ne peut terminer en _r"
 
 #: src/components/map/EditDialog.vue:209
 msgid "Field deleted"
@@ -566,7 +564,7 @@ msgstr "Cacher Tout"
 msgid "Hide NaN on map and color map"
 msgstr "Masquer les NaN sur la carte et la légende"
 
-#: src/components/map/EditorLinks.vue:410
+#: src/components/map/EditorLinks.vue:404
 msgid "Hold left click to drag"
 msgstr "Click gauche pour glisser"
 
@@ -625,7 +623,7 @@ msgstr "nom"
 msgid "Layer"
 msgstr "Couche"
 
-#: src/components/map/EditorLinks.vue:409
+#: src/components/map/EditorLinks.vue:403
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
@@ -750,7 +748,7 @@ msgstr "Valeurs multiples"
 
 #: src/router/index.js:39
 msgid "Must be logged in"
-msgstr ""
+msgstr "Doit être connecté"
 
 #: src/components/import/ScenariosExplorer.vue:276
 #: src/components/import/ScenariosExplorer.vue:414
@@ -808,7 +806,7 @@ msgstr "Non"
 
 #: src/components/map/Map.vue:363
 msgid "Node already in use by the trip. Cannot replace"
-msgstr ""
+msgstr "Noeud déjà utilisé par le Trip. Imposible de remplacer"
 
 #: src/components/import/FileLoader.vue:226
 #: src/components/import/FileLoader.vue:284
@@ -832,7 +830,7 @@ msgstr "nombre de pas "
 #: src/components/map/sidePanel/ODSidePanel.vue:132
 #: src/components/map/sidePanel/SidePanel.vue:130
 msgid "OD"
-msgstr ""
+msgstr "OD"
 
 #: src/components/import/ScenariosExplorer.vue:439
 #: src/components/layout/Profile.vue:379 src/pages/ResultMap.vue:366
@@ -994,11 +992,11 @@ msgstr "inverse la palette de couleur"
 msgid "Right click and drag to tilt the map"
 msgstr "Clique droit et glisser pour incliner la carte"
 
-#: src/components/map/EditorLinks.vue:414
+#: src/components/map/EditorLinks.vue:408
 msgid "Right click for context menu"
 msgstr "Clique droit pour modifier"
 
-#: src/components/map/EditorLinks.vue:413
+#: src/components/map/EditorLinks.vue:407
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
@@ -1207,7 +1205,7 @@ msgstr "Couches Statiques"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:516
 msgid "stick nodes on existing nodes"
-msgstr ""
+msgstr "coller les noeds aux noeds existant"
 
 #: src/components/import/FileLoader.vue:367
 msgid "Style presets"
@@ -1342,7 +1340,7 @@ msgstr "Largeur à afficher sur la carte"
 
 #: src/components/map/Map.vue:372
 msgid "with %{index}?"
-msgstr ""
+msgstr "avec %{index}?"
 
 #: src/components/import/ScenariosExplorer.vue:379
 #: src/components/microservices/GTFSWebImporter.vue:342

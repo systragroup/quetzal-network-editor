@@ -263,11 +263,11 @@ msgstr ""
 msgid "customize to inputs values"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:113
+#: src/components/map/EditorLinks.vue:107
 msgid "Cut After Node"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:112
+#: src/components/map/EditorLinks.vue:106
 msgid "Cut Before Node"
 msgstr ""
 
@@ -312,8 +312,7 @@ msgid "Delete rLink"
 msgstr ""
 
 #: src/components/map/EditorLinks.vue:100
-#: src/components/map/EditorLinks.vue:106
-#: src/components/map/EditorLinks.vue:114
+#: src/components/map/EditorLinks.vue:108
 msgid "Delete Stop"
 msgstr ""
 
@@ -377,7 +376,6 @@ msgid "Edit Line Properties"
 msgstr ""
 
 #: src/components/map/EditorLinks.vue:105
-#: src/components/map/EditorLinks.vue:111
 #: src/components/map/EditorLinks.vue:99
 msgid "Edit Node Info"
 msgstr ""
@@ -522,7 +520,7 @@ msgstr ""
 msgid "Hide NaN on map and color map"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:410
+#: src/components/map/EditorLinks.vue:404
 msgid "Hold left click to drag"
 msgstr ""
 
@@ -574,7 +572,7 @@ msgstr ""
 msgid "Layer"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:409
+#: src/components/map/EditorLinks.vue:403
 msgid "Left click to add a stop"
 msgstr ""
 
@@ -938,11 +936,11 @@ msgstr ""
 msgid "Right click and drag to tilt the map"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:414
+#: src/components/map/EditorLinks.vue:408
 msgid "Right click for context menu"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:413
+#: src/components/map/EditorLinks.vue:407
 msgid "Right click to edit properties"
 msgstr ""
 
