@@ -1,3 +1,11 @@
+## [5.2.3] (2024-03-27)
+Change gettext for new vue3 scripts to extract and compile.
+
+### Bug fixes
+* **Cannot edit in french**: delete nodes and other popup action were not working in french. 
+
+
+
 ## [5.2.2] (2024-03-26)
 
 ### Features
