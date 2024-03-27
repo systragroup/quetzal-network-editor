@@ -152,8 +152,8 @@ msgstr ""
 #: src/components/map/EditDialog.vue:337
 #: src/components/map/Settings.vue:217
 #: src/components/results/ResultsSettings.vue:453
-#: src/pages/Home.vue:378
-#: src/pages/Home.vue:426
+#: src/pages/Home.vue:382
+#: src/pages/Home.vue:430
 #: src/pages/ResultMap.vue:405
 #: src/pages/ResultMap.vue:438
 msgid "Cancel"
@@ -179,7 +179,7 @@ msgstr ""
 msgid "Change Scenario"
 msgstr ""
 
-#: src/pages/Home.vue:199
+#: src/pages/Home.vue:200
 msgid "Click on the map to start drawing"
 msgstr ""
 
@@ -191,7 +191,7 @@ msgstr ""
 msgid "Clickable element in green"
 msgstr ""
 
-#: src/App.vue:75
+#: src/App.vue:63
 msgid "Close"
 msgstr ""
 
@@ -227,7 +227,7 @@ msgstr ""
 msgid "copy"
 msgstr ""
 
-#: src/pages/Home.vue:191
+#: src/pages/Home.vue:192
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
@@ -284,7 +284,7 @@ msgid "delete"
 msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:389
-#: src/pages/Home.vue:368
+#: src/pages/Home.vue:372
 #: src/pages/ResultMap.vue:428
 msgid "Delete"
 msgstr ""
@@ -307,8 +307,12 @@ msgstr ""
 msgid "Delete OD"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:203
+#: src/components/map/RoadLinks.vue:260
 msgid "Delete rLink"
+msgstr ""
+
+#: src/components/map/RoadLinks.vue:284
+msgid "Delete Selected"
 msgstr ""
 
 #: src/components/map/EditorLinks.vue:100
@@ -344,7 +348,7 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
-#: src/pages/Home.vue:400
+#: src/pages/Home.vue:404
 msgid "Duplicate"
 msgstr ""
 
@@ -352,7 +356,7 @@ msgstr ""
 msgid "Duplicate and reverse"
 msgstr ""
 
-#: src/pages/Home.vue:413
+#: src/pages/Home.vue:417
 msgid "duplicate nodes"
 msgstr ""
 
@@ -388,8 +392,12 @@ msgstr ""
 msgid "Edit Properties"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:202
+#: src/components/map/RoadLinks.vue:259
 msgid "Edit rLink Info"
+msgstr ""
+
+#: src/components/map/RoadLinks.vue:283
+msgid "Edit selected Info"
 msgstr ""
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:199
@@ -520,7 +528,7 @@ msgstr ""
 msgid "Hide NaN on map and color map"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:404
+#: src/components/map/EditorLinks.vue:405
 msgid "Hold left click to drag"
 msgstr ""
 
@@ -572,7 +580,7 @@ msgstr ""
 msgid "Layer"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:403
+#: src/components/map/EditorLinks.vue:404
 msgid "Left click to add a stop"
 msgstr ""
 
@@ -677,12 +685,12 @@ msgstr ""
 msgid "ML Matrix Road Caster"
 msgstr ""
 
-#: src/pages/Home.vue:274
+#: src/pages/Home.vue:278
 msgid "modification aborted"
 msgstr ""
 
 #: src/components/map/Settings.vue:90
-#: src/pages/Home.vue:266
+#: src/pages/Home.vue:270
 msgid "modification applied"
 msgstr ""
 
@@ -718,7 +726,7 @@ msgstr ""
 msgid "new field name"
 msgstr ""
 
-#: src/pages/Home.vue:405
+#: src/pages/Home.vue:409
 msgid "New name"
 msgstr ""
 
@@ -920,7 +928,7 @@ msgstr ""
 msgid "Results Pictures"
 msgstr ""
 
-#: src/pages/Home.vue:409
+#: src/pages/Home.vue:413
 msgid "reverse"
 msgstr ""
 
@@ -936,11 +944,11 @@ msgstr ""
 msgid "Right click and drag to tilt the map"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:408
+#: src/components/map/EditorLinks.vue:409
 msgid "Right click for context menu"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:407
+#: src/components/map/EditorLinks.vue:408
 msgid "Right click to edit properties"
 msgstr ""
 
@@ -987,8 +995,8 @@ msgstr ""
 #: src/components/layout/NavigationDrawer.vue:40
 #: src/components/map/EditDialog.vue:345
 #: src/components/map/Settings.vue:225
-#: src/pages/Home.vue:386
-#: src/pages/Home.vue:434
+#: src/pages/Home.vue:390
+#: src/pages/Home.vue:438
 msgid "Save"
 msgstr ""
 
