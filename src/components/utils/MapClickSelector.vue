@@ -7,7 +7,7 @@ import { onMounted, onUnmounted, toRefs, ref } from 'vue'
 const props = defineProps(['map'])
 const emits = defineEmits(['mousedown', 'mouseup', 'mousemove'])
 const { map } = toRefs(props)
-const poly = ref(geojson)
+const poly = ref(null)
 const bbox = ref(null)
 const p1 = ref({ lnglat: null, point: null })
 const p2 = ref({ lnglat: null, point: null })
@@ -23,9 +23,7 @@ onUnmounted(() => {
 
 function startSelect (event) {
   // 0,1,2 left, wheel right
-  setHover(false)
-  if (event.originalEvent.button === 1) {
-    event.preventDefault() // prevent map control
+  if (event.originalEvent.button === 2) {
     p1.value.lnglat = event.lngLat
     p1.value.point = event.point
     map.value.on('mousemove', onMove)
@@ -58,8 +56,10 @@ function stopSelect (event) {
   map.value.off('mousemove', onMove)
   map.value.off('mouseup', stopSelect)
   query()
-  setHover(true)
-  emits('mouseup', { mapboxEvent: event, polygon: poly.value, selectedId: selectedId.value })
+  // only emit event if we draged (else it emit for a single click no drag.)
+  if (poly.value) {
+    emits('mouseup', { mapboxEvent: event, polygon: poly.value, selectedId: selectedId.value })
+  }
 
   bbox.value = null
   poly.value = null
@@ -74,15 +74,6 @@ function query() {
   } else {
     selectedId.value = new Set()
   }
-}
-
-function setHover(val) {
-  selectedId.value.forEach(id => {
-    map.value.setFeatureState(
-      { source: 'rlinks', id: id },
-      { hover: val },
-    )
-  })
 }
 
 </script>
