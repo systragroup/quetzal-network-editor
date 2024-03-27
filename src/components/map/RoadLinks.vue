@@ -280,8 +280,8 @@ function contextMenuSelection (event) {
     contextMenu.value.feature = cloneDeep(selectedIds)
     contextMenu.value.actions
           = [
-        'Edit selected Info',
-        'Delete Selected',
+        { name: 'Edit selected Info', text: $gettext('Edit selected Info') },
+        { name: 'Delete Selected', text: $gettext('Delete Selected') },
       ]
   }
 }
