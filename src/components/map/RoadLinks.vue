@@ -8,6 +8,7 @@ import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
 import geojson from '@constants/geojson'
 import { useGettext } from 'vue3-gettext'
+import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
 
 const props = defineProps(['map', 'isEditorMode', 'isRoadMode'])
@@ -193,21 +194,8 @@ function selectClick (event) {
   }
 }
 
-function linkRightClick (event) {
-  if (isRoadMode.value) {
-    if (hoveredStateId.value.layerId === 'rlinks') {
-      contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
-      contextMenu.value.showed = true
-      contextMenu.value.feature = hoveredStateId.value.id
-      contextMenu.value.actions
-          = [
-          { name: 'Edit rLink Info', text: $gettext('Edit rLink Info') },
-          { name: 'Delete rLink', text: $gettext('Delete rLink') },
-        ]
-    }
-  }
-}
 function actionClick (event) {
+  console.log(event)
   if (['Delete rLink', 'Delete Selected'].includes(event.action)) {
     rlinksStore.deleterLink({ selectedIndex: event.feature })
     // emit this click to remove the drawlink.
@@ -243,17 +231,57 @@ function contextMenuNode (event) {
   }
 }
 
+const selectedIds = ref(new Set([]))
+watch(selectedIds, (val) => console.log(val), { deep: true })
+function toggleSelected(val) {
+  selectedIds.value.forEach(id => {
+    map.value.setFeatureState(
+      { source: 'rlinks', id: id },
+      { select: val },
+    )
+  })
+}
+
+function linkRightClick (event) {
+  if (isRoadMode.value && hoveredStateId.value.layerId === 'rlinks') {
+    const ctrl = event.mapboxEvent.originalEvent.ctrlKey
+    if (ctrl) {
+      selectedIds.value = new Set([...selectedIds.value, ...hoveredStateId.value.id])
+      toggleSelected(true)
+    }
+    else {
+      toggleSelected(false)
+      contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+      contextMenu.value.showed = true
+      contextMenu.value.feature = cloneDeep(hoveredStateId.value.id)
+      contextMenu.value.actions
+          = [
+          { name: 'Edit rLink Info', text: $gettext('Edit rLink Info') },
+          { name: 'Delete rLink', text: $gettext('Delete rLink') },
+        ]
+    }
+  }
+}
+
 function contextMenuSelection (event) {
-  const selectedIds = event.selectedId
-  if (selectedIds.size > 0) {
+  const ctrl = event.mapboxEvent.originalEvent.ctrlKey
+  if (ctrl) {
+    selectedIds.value = new Set([...selectedIds.value, ...event.selectedId])
+  } else {
+    toggleSelected(false)
+    selectedIds.value = event.selectedId
+  }
+  toggleSelected(true)
+
+  if (selectedIds.value.size > 0) {
     contextMenu.value.showed = true
     const poly = event.polygon.geometry.coordinates[0]
     contextMenu.value.coordinates = [(poly[0][0] + poly[2][0]) / 2, Math.max(poly[0][1], poly[2][1])]
-    contextMenu.value.feature = selectedIds
+    contextMenu.value.feature = cloneDeep(selectedIds)
     contextMenu.value.actions
           = [
-        $gettext('Edit selected Info'),
-        $gettext('Delete Selected'),
+        'Edit selected Info',
+        'Delete Selected',
       ]
   }
 }
@@ -446,7 +474,7 @@ const ArrowDirCondition = computed(() => {
         type: 'line',
         minzoom: minZoom.links,
         paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
+          'line-color': ['case', ['boolean', ['feature-state', 'select'], false], '#87FFF3', ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary]],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
           'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width, width],
                          ['case', ['has', 'route_width'],
@@ -486,7 +514,7 @@ const ArrowDirCondition = computed(() => {
           'icon-rotate': ArrowDirCondition,
         },
         paint: {
-          'icon-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
+          'icon-color': ['case', ['boolean', ['feature-state', 'select'], false], '#87FFF3', ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary]],
         }
       }"
     />
