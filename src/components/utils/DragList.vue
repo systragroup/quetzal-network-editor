@@ -18,6 +18,7 @@ function finishDrag (item, pos) {
   items.value.splice(over.value.pos, 0, item)
   over.value = {}
   emit('move', item.name)
+  dragFrom.value = {}
 }
 
 function onDragOver (item, pos, e) {
@@ -36,8 +37,10 @@ function onDragOver (item, pos, e) {
         <li
           v-for="(item, i) in items"
           :key="item"
+
           class="item"
-          :class="{over: (item === over.item && item !== dragFrom), [over.dir]: (item === over.item && item !== dragFrom) }"
+          :class="{over: (item === over.item || item === dragFrom),
+                   [over.dir]: (item === over.item && item !== dragFrom) }"
           draggable="true"
           @dragover="(e) => onDragOver(item, i, e)"
           @dragend="(e) => finishDrag(item, i, e)"

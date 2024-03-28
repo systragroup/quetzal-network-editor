@@ -12,7 +12,7 @@ import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
 
 const props = defineProps(['map', 'isEditorMode', 'isRoadMode'])
-const emits = defineEmits(['clickFeature', 'onHover', 'offHover'])
+const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'select'])
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 
@@ -23,6 +23,8 @@ onMounted(() => {
   if (map.value.getLayer('links')) {
     map.value.moveLayer('rlinks', 'links')
     map.value.moveLayer('staticrLinks', 'links')
+    map.value.moveLayer('anchorrNodes', 'links')
+    map.value.moveLayer('rnodes', 'links')
   }
 })
 onBeforeUnmount(() => {
@@ -57,12 +59,6 @@ const width = computed(() => {
 const minZoom = ref({
   links: 4,
   rendered: 14,
-})
-const contextMenu = ref({
-  coordinates: [0, 0],
-  showed: false,
-  actions: [],
-  feature: null,
 })
 
 watch(selectedrGroup, () => {
@@ -104,6 +100,7 @@ async function getBounds() {
     await map.value.setLayoutProperty('staticrLinks', 'visibility', 'visible')
     map.value.getSource('staticrLinks').setData(visiblerLinks.value)
     rlinksStore.setRenderedrLinks({ method: 'None' })
+    deselectAll() // when zoom out. deselect all selected and remove popup
   } else {
     // Nothing is is rendered.
   }
@@ -145,7 +142,8 @@ function onCursor (event) {
         { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
         { hover: true },
       )
-      emits('onHover', { layerId: hoveredStateId.value.layerId, selectedId: hoveredStateId.value.id })
+      if (!selected.value) {
+        emits('onHover', { layerId: hoveredStateId.value.layerId, selectedId: hoveredStateId.value.id }) }
     }
   }
 }
@@ -194,8 +192,14 @@ function selectClick (event) {
   }
 }
 
+const contextMenu = ref({
+  coordinates: [0, 0],
+  showed: false,
+  actions: [],
+  feature: null,
+})
+
 function actionClick (event) {
-  console.log(event)
   if (['Delete rLink', 'Delete Selected'].includes(event.action)) {
     rlinksStore.deleterLink({ selectedIndex: event.feature })
     // emit this click to remove the drawlink.
@@ -209,11 +213,13 @@ function actionClick (event) {
     })
   }
   contextMenu.value.showed = false
-  contextMenu.value.type = null
+  deselectAll()
 }
 
 function contextMenuNode (event) {
-  if (isRoadMode.value) {
+  // only  if roadMode or CTRL is not press
+  const ctrl = event.mapboxEvent.originalEvent.ctrlKey
+  if (isRoadMode.value && !ctrl) {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     selectedFeature.value = features.filter(item => hoveredStateId.value.id.includes(item.id))
 
@@ -230,9 +236,9 @@ function contextMenuNode (event) {
     }
   }
 }
-
+// list (set) of selected RoadLinks when selecting multiple with righ click.
 const selectedIds = ref(new Set([]))
-watch(selectedIds, (val) => console.log(val), { deep: true })
+
 function toggleSelected(val) {
   selectedIds.value.forEach(id => {
     map.value.setFeatureState(
@@ -242,23 +248,57 @@ function toggleSelected(val) {
   })
 }
 
+function deselectAll() {
+  toggleSelected(false)
+  selectedIds.value = new Set([])
+  contextMenu.value.showed = false
+}
+
+function rightClickOnMap(event) {
+  if (!event.originalEvent.ctrlKey && event.originalEvent.button === 2) {
+    deselectAll()
+  }
+}
+// when we click or right click on the map. deselect all.
+onMounted(() => {
+  map.value.on('mousedown', rightClickOnMap)
+  map.value.on('click', deselectAll)
+})
+onBeforeUnmount(() => {
+  map.value.off('mousedown', rightClickOnMap)
+  map.value.off('click', deselectAll)
+})
+
+// if someting is selected.
+const selected = computed(() => selectedIds.value.size > 0)
+watch(selected, (val) => emits('select', val))
+
 function linkRightClick (event) {
-  if (isRoadMode.value && hoveredStateId.value.layerId === 'rlinks') {
+  if (isRoadMode.value && hoveredStateId.value?.layerId === 'rlinks') {
+    if (!contextMenu.value.showed) {
+      contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+    }
+    contextMenu.value.showed = true
+
     const ctrl = event.mapboxEvent.originalEvent.ctrlKey
     if (ctrl) {
       selectedIds.value = new Set([...selectedIds.value, ...hoveredStateId.value.id])
       toggleSelected(true)
+      contextMenu.value.feature = cloneDeep(selectedIds)
+      contextMenu.value.actions
+          = [
+          { name: 'Edit selected Info', text: $gettext('Edit selected Info') },
+          { name: 'Delete Selected', text: $gettext('Delete Selected') },
+        ]
     }
     else {
       toggleSelected(false)
-      contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
-      contextMenu.value.showed = true
+      selectedIds.value = new Set([])
       contextMenu.value.feature = cloneDeep(hoveredStateId.value.id)
-      contextMenu.value.actions
-          = [
-          { name: 'Edit rLink Info', text: $gettext('Edit rLink Info') },
-          { name: 'Delete rLink', text: $gettext('Delete rLink') },
-        ]
+      contextMenu.value.actions = [
+        { name: 'Edit rLink Info', text: $gettext('Edit rLink Info') },
+        { name: 'Delete rLink', text: $gettext('Delete rLink') },
+      ]
     }
   }
 }
@@ -283,6 +323,8 @@ function contextMenuSelection (event) {
         { name: 'Edit selected Info', text: $gettext('Edit selected Info') },
         { name: 'Delete Selected', text: $gettext('Delete Selected') },
       ]
+  } else {
+    contextMenu.value.showed = false
   }
 }
 
@@ -422,6 +464,7 @@ const ArrowDirCondition = computed(() => {
 <template>
   <section>
     <MapClickSelector
+      v-if="isRoadMode"
       :map="map"
       @mouseup="contextMenuSelection"
     />
@@ -578,10 +621,11 @@ const ArrowDirCondition = computed(() => {
       :close-button="false"
       :showed="contextMenu.showed"
       :coordinates="contextMenu.coordinates"
+      :close-on-click="false"
       @close="contextMenu.showed=false"
     >
       <span
-        @mouseleave="contextMenu.showed=false"
+        @mouseleave="()=>{if (!selected) contextMenu.showed=false}"
       >
         <v-list
           density="compact"
