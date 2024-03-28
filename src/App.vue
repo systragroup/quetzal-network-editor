@@ -1,4 +1,4 @@
-<script>
+<script setup>
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
@@ -6,34 +6,22 @@ import { useIndexStore } from '@src/store/index'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useTheme } from 'vuetify'
 
-export default {
-  name: 'App',
-  components: {
-    Toolbar,
-    Alert,
-    NavigationDrawer,
-  },
-  setup () {
-    const theme = useTheme()
-    const store = useIndexStore()
-    onMounted(() => { store.changeDarkMode(theme.global.current.value.dark) })
+const theme = useTheme()
+const store = useIndexStore()
+onMounted(() => { store.changeDarkMode(theme.global.current.value.dark) })
 
-    const notification = computed(() => store.notification)
-    const loading = computed(() => store.loading)
+const loading = computed(() => store.loading)
 
-    const snackbar = ref(false)
-    watch(notification, () => snackbar.value = !!notification.value.text)
-    watch(snackbar, (val) => {
-      if (val === false) {
-        store.changeNotification({ text: '', autoClose: true })
-      }
-    })
-    onMounted(() => { store.initNetworks() })
+const snackbar = ref(false)
+const notification = computed(() => store.notification)
+watch(notification, () => snackbar.value = !!notification.value.text)
+watch(snackbar, (val) => {
+  if (val === false) {
+    store.changeNotification({ text: '', autoClose: true })
+  }
+})
+onMounted(() => { store.initNetworks() })
 
-    return { notification, loading, snackbar, store }
-  },
-
-}
 </script>
 <template>
   <v-app class="app">
@@ -84,7 +72,7 @@ export default {
 .app {
   background-color: $grey-ultralight!important;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   overflow: hidden;
 
 }

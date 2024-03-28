@@ -1,3 +1,9 @@
+## [5.3.a] (2024-03-28)
+
+### Features
+* **Road right click selection**: can select multiple roads to edit with CTRL + right click and select in polygon with a right click drag. a click without ctrl will unselect all. [#504](https://github.com/systragroup/quetzal-network-editor/issues/504)
+
+
 ## [5.2.3] (2024-03-27)
 Change gettext for new vue3 scripts to extract and compile.
 
@@ -13,7 +19,6 @@ Change gettext for new vue3 scripts to extract and compile.
 
 ### Bug fixes
 * **road nodes were duplicated**: when drawing. this caused error as we cannot load duplicated nodes
-
 
 
 ## [5.2.1] (2024-03-25)

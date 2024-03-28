@@ -181,8 +181,8 @@ msgstr "Annuler"
 
 #: src/components/import/ScenariosExplorer.vue:431
 #: src/components/map/EditDialog.vue:337 src/components/map/Settings.vue:217
-#: src/components/results/ResultsSettings.vue:453 src/pages/Home.vue:378
-#: src/pages/Home.vue:426 src/pages/ResultMap.vue:405
+#: src/components/results/ResultsSettings.vue:453 src/pages/Home.vue:382
+#: src/pages/Home.vue:430 src/pages/ResultMap.vue:405
 #: src/pages/ResultMap.vue:438
 msgid "Cancel"
 msgstr "Annuler"
@@ -211,7 +211,7 @@ msgstr ""
 msgid "Change Scenario"
 msgstr "Changer le scénario?"
 
-#: src/pages/Home.vue:199
+#: src/pages/Home.vue:200
 msgid "Click on the map to start drawing"
 msgstr "Cliquer sur la carte pour commencer"
 
@@ -223,7 +223,7 @@ msgstr "Clique pour ajouter un point, clique droit pour supprimer"
 msgid "Clickable element in green"
 msgstr "Éléments cliquables en vert"
 
-#: src/App.vue:75
+#: src/App.vue:63
 msgid "Close"
 msgstr "Fermer"
 
@@ -259,7 +259,7 @@ msgstr "convertir"
 msgid "copy"
 msgstr "copier"
 
-#: src/pages/Home.vue:191
+#: src/pages/Home.vue:192
 msgid "Could not apply modification. Trip_id already exist"
 msgstr "Les modifications n'ont pas pu être appliquées. Le trip_id existe déjà"
 
@@ -320,7 +320,7 @@ msgstr "Données introuvables: "
 msgid "delete"
 msgstr "Supprimer "
 
-#: src/components/import/ScenariosExplorer.vue:389 src/pages/Home.vue:368
+#: src/components/import/ScenariosExplorer.vue:389 src/pages/Home.vue:372
 #: src/pages/ResultMap.vue:428
 msgid "Delete"
 msgstr "Supprimer "
@@ -344,9 +344,13 @@ msgstr "Supprimer"
 msgid "Delete OD"
 msgstr "Supprimer "
 
-#: src/components/map/RoadLinks.vue:203
+#: src/components/map/RoadLinks.vue:260
 msgid "Delete rLink"
 msgstr "Supprimer"
+
+#: src/components/map/RoadLinks.vue:284
+msgid "Delete Selected"
+msgstr "Supprimer la selection"
 
 #: src/components/map/EditorLinks.vue:100
 #: src/components/map/EditorLinks.vue:108
@@ -385,7 +389,7 @@ msgstr "Télécharger les Préréglages"
 msgid "Download"
 msgstr "Télécharger"
 
-#: src/pages/Home.vue:400
+#: src/pages/Home.vue:404
 msgid "Duplicate"
 msgstr "Dupliquer"
 
@@ -393,7 +397,7 @@ msgstr "Dupliquer"
 msgid "Duplicate and reverse"
 msgstr "Dupliquer et inverser"
 
-#: src/pages/Home.vue:413
+#: src/pages/Home.vue:417
 msgid "duplicate nodes"
 msgstr "Dupliquer les noeuds"
 
@@ -428,9 +432,13 @@ msgstr "Modifier les infos"
 msgid "Edit Properties"
 msgstr "Modifier"
 
-#: src/components/map/RoadLinks.vue:202
+#: src/components/map/RoadLinks.vue:259
 msgid "Edit rLink Info"
 msgstr "Modifier les infos"
+
+#: src/components/map/RoadLinks.vue:283
+msgid "Edit selected Info"
+msgstr "Modifier la selection"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:199
 #: src/components/map/sidePanel/ODSidePanel.vue:127
@@ -564,7 +572,7 @@ msgstr "Cacher Tout"
 msgid "Hide NaN on map and color map"
 msgstr "Masquer les NaN sur la carte et la légende"
 
-#: src/components/map/EditorLinks.vue:404
+#: src/components/map/EditorLinks.vue:405
 msgid "Hold left click to drag"
 msgstr "Click gauche pour glisser"
 
@@ -623,7 +631,7 @@ msgstr "nom"
 msgid "Layer"
 msgstr "Couche"
 
-#: src/components/map/EditorLinks.vue:403
+#: src/components/map/EditorLinks.vue:404
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
@@ -734,11 +742,11 @@ msgstr "Largeur min"
 msgid "ML Matrix Road Caster"
 msgstr "ML Matrix Road Caster"
 
-#: src/pages/Home.vue:274
+#: src/pages/Home.vue:278
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/components/map/Settings.vue:90 src/pages/Home.vue:266
+#: src/components/map/Settings.vue:90 src/pages/Home.vue:270
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
@@ -773,7 +781,7 @@ msgstr "Besoin du même nombre de fichiers de liens et de noeuds routiers"
 msgid "new field name"
 msgstr "nouveau champ"
 
-#: src/pages/Home.vue:405
+#: src/pages/Home.vue:409
 msgid "New name"
 msgstr "Nouveau nom"
 
@@ -976,7 +984,7 @@ msgstr "Carte des Résultats"
 msgid "Results Pictures"
 msgstr "images des Résultats"
 
-#: src/pages/Home.vue:409
+#: src/pages/Home.vue:413
 msgid "reverse"
 msgstr "inverser"
 
@@ -992,11 +1000,11 @@ msgstr "inverse la palette de couleur"
 msgid "Right click and drag to tilt the map"
 msgstr "Clique droit et glisser pour incliner la carte"
 
-#: src/components/map/EditorLinks.vue:408
+#: src/components/map/EditorLinks.vue:409
 msgid "Right click for context menu"
 msgstr "Clique droit pour modifier"
 
-#: src/components/map/EditorLinks.vue:407
+#: src/components/map/EditorLinks.vue:408
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
@@ -1042,7 +1050,7 @@ msgstr "Sauv..."
 
 #: src/components/layout/NavigationDrawer.vue:40
 #: src/components/map/EditDialog.vue:345 src/components/map/Settings.vue:225
-#: src/pages/Home.vue:386 src/pages/Home.vue:434
+#: src/pages/Home.vue:390 src/pages/Home.vue:438
 msgid "Save"
 msgstr "Sauvegarder"
 

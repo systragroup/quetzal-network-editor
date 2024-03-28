@@ -1,6 +1,6 @@
 <script setup>
 import { MglGeojsonLayer } from 'vue-mapbox3'
-import bboxPolygon from '@turf/bbox-polygon'
+import Polygon from 'turf-polygon'
 import geojson from '@constants/geojson'
 import { onMounted, onUnmounted, toRefs, ref } from 'vue'
 
@@ -23,9 +23,7 @@ onUnmounted(() => {
 
 function startSelect (event) {
   // 0,1,2 left, wheel right
-  setHover(false)
-  if (event.originalEvent.button === 1) {
-    event.preventDefault() // prevent map control
+  if (event.originalEvent.button === 2) {
     p1.value.lnglat = event.lngLat
     p1.value.point = event.point
     map.value.on('mousemove', onMove)
@@ -33,10 +31,20 @@ function startSelect (event) {
     emits('mousedown', { mapboxEvent: event })
   }
 }
+
 function onMove (event) {
   p2.value.lnglat = event.lngLat
   p2.value.point = event.point
-  poly.value = bboxPolygon([p1.value.lnglat.lng, p1.value.lnglat.lat, p2.value.lnglat.lng, p2.value.lnglat.lat])
+  // poly.value = bboxPolygon([p1.value.lnglat.lng, p1.value.lnglat.lat, p2.value.lnglat.lng, p2.value.lnglat.lat])
+  const p3 = map.value.unproject([p2.value.point.x, p1.value.point.y])
+  const p4 = map.value.unproject([p1.value.point.x, p2.value.point.y])
+  poly.value = Polygon([[
+    [p1.value.lnglat.lng, p1.value.lnglat.lat],
+    [p3.lng, p3.lat],
+    [p2.value.lnglat.lng, p2.value.lnglat.lat],
+    [p4.lng, p4.lat],
+    [p1.value.lnglat.lng, p1.value.lnglat.lat]]])
+  // poly.value.bbox = [p1.value.lnglat.lng, p1.value.lnglat.lat, p2.value.lnglat.lng, p2.value.lnglat.lat]
   map.value.getSource('selectPolygon').setData(poly.value)
   bbox.value = [Object.values(p1.value.point), Object.values(p2.value.point)]
   emits('mousemove', { mapboxEvent: event, polygon: poly.value, bbox: bbox.value })
@@ -47,9 +55,12 @@ function stopSelect (event) {
   map.value.getCanvas().style.cursor = 'pointer'
   map.value.off('mousemove', onMove)
   map.value.off('mouseup', stopSelect)
-  emits('mouseup', { mapboxEvent: event })
   query()
-  setHover(true)
+  // only emit event if we draged (else it emit for a single click no drag.)
+  if (poly.value) {
+    emits('mouseup', { mapboxEvent: event, polygon: poly.value, selectedId: selectedId.value })
+  }
+
   bbox.value = null
   poly.value = null
 }
@@ -63,15 +74,6 @@ function query() {
   } else {
     selectedId.value = new Set()
   }
-}
-
-function setHover(val) {
-  selectedId.value.forEach(id => {
-    map.value.setFeatureState(
-      { source: 'rlinks', id: id },
-      { hover: val },
-    )
-  })
 }
 
 </script>
