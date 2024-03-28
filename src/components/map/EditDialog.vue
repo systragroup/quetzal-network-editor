@@ -10,6 +10,7 @@ import { computed, ref, watch, defineModel, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
+import BarChart from '@src/components/map/scheduleChart.vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -127,6 +128,9 @@ const rules = ({
 
 const newFieldName = ref(null)
 
+// Schedulling
+const showSchedule = ref(false)
+
 function addField () {
   let form = {}
   if (Array.isArray(editorForm.value)) {
@@ -215,7 +219,10 @@ function deleteField (field) {
     v-model="showDialog"
     scrollable
     persistent
-    :max-width="numLinks>1? '40rem':'20rem'"
+    :max-width="
+      showSchedule ? '60rem':
+      numLinks > 1 ? '40rem': '30rem'
+    "
   >
     <v-card
       max-height="55rem"
@@ -224,7 +231,10 @@ function deleteField (field) {
         {{ $gettext("Edit Properties") }}
       </v-card-title>
       <v-divider />
-      <v-card-text>
+      <v-card-text v-if="showSchedule">
+        <BarChart />
+      </v-card-text>
+      <v-card-text v-else>
         <v-row>
           <v-col
             v-for="(n,idx) in numLinks"
@@ -320,6 +330,12 @@ function deleteField (field) {
           variant="text"
           size="x-small"
           @click="()=>showHint = !showHint"
+        />
+        <v-btn
+          icon="far fa-clock small"
+          variant="text"
+          size="x-small"
+          @click="()=>showSchedule = !showSchedule"
         />
         <v-btn
           :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
