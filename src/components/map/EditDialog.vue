@@ -10,7 +10,7 @@ import { computed, ref, watch, defineModel, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
-import BarChart from '@src/components/map/scheduleChart.vue'
+import ScheduleChart from '@src/components/map/scheduleChart.vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -232,7 +232,7 @@ function deleteField (field) {
       </v-card-title>
       <v-divider />
       <v-card-text v-if="showSchedule">
-        <BarChart />
+        <ScheduleChart />
       </v-card-text>
       <v-card-text v-else>
         <v-row>
