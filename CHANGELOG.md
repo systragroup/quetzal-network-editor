@@ -2,6 +2,7 @@
 
 ### Changes
 * add "Login" to the login button on the top right
+
 ## [5.3.a] (2024-03-28)
 
 ### Features
