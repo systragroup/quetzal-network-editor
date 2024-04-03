@@ -143,7 +143,7 @@ msgstr ""
 msgid "Calibration Results"
 msgstr ""
 
-#: src/components/layout/Profile.vue:372
+#: src/components/layout/Profile.vue:370
 #: src/components/utils/ColorPicker.vue:127
 msgid "cancel"
 msgstr ""
@@ -231,11 +231,11 @@ msgstr ""
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
-#: src/components/layout/Profile.vue:379
+#: src/components/layout/Profile.vue:377
 msgid "create"
 msgstr ""
 
-#: src/components/layout/Profile.vue:321
+#: src/components/layout/Profile.vue:319
 msgid "create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization"
 msgstr ""
 
@@ -251,7 +251,7 @@ msgstr ""
 msgid "create user"
 msgstr ""
 
-#: src/components/layout/Profile.vue:303
+#: src/components/layout/Profile.vue:301
 msgid "Create User"
 msgstr ""
 
@@ -307,11 +307,12 @@ msgstr ""
 msgid "Delete OD"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:260
+#: src/components/map/RoadLinks.vue:300
 msgid "Delete rLink"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:284
+#: src/components/map/RoadLinks.vue:291
+#: src/components/map/RoadLinks.vue:324
 msgid "Delete Selected"
 msgstr ""
 
@@ -320,7 +321,7 @@ msgstr ""
 msgid "Delete Stop"
 msgstr ""
 
-#: src/components/layout/Profile.vue:309
+#: src/components/layout/Profile.vue:307
 msgid "delete User"
 msgstr ""
 
@@ -392,11 +393,12 @@ msgstr ""
 msgid "Edit Properties"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:259
+#: src/components/map/RoadLinks.vue:299
 msgid "Edit rLink Info"
 msgstr ""
 
-#: src/components/map/RoadLinks.vue:283
+#: src/components/map/RoadLinks.vue:290
+#: src/components/map/RoadLinks.vue:323
 msgid "Edit selected Info"
 msgstr ""
 
@@ -406,7 +408,7 @@ msgstr ""
 msgid "Edit Visibles Properties"
 msgstr ""
 
-#: src/components/layout/Profile.vue:356
+#: src/components/layout/Profile.vue:354
 msgid "email address"
 msgstr ""
 
@@ -490,7 +492,7 @@ msgstr ""
 msgid "filter does not exist. use default one"
 msgstr ""
 
-#: src/components/layout/Profile.vue:343
+#: src/components/layout/Profile.vue:341
 msgid "first name"
 msgstr ""
 
@@ -572,7 +574,7 @@ msgstr ""
 msgid "invalid email address"
 msgstr ""
 
-#: src/components/layout/Profile.vue:350
+#: src/components/layout/Profile.vue:348
 msgid "last name"
 msgstr ""
 
@@ -633,6 +635,10 @@ msgstr ""
 
 #: src/pages/Import.vue:247
 msgid "Load Zip File"
+msgstr ""
+
+#: src/components/layout/Profile.vue:275
+msgid "login"
 msgstr ""
 
 #: src/pages/Import.vue:236
@@ -788,7 +794,7 @@ msgid "OD"
 msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:439
-#: src/components/layout/Profile.vue:379
+#: src/components/layout/Profile.vue:377
 #: src/pages/ResultMap.vue:366
 #: src/pages/ResultMap.vue:413
 msgid "ok"
@@ -1119,7 +1125,7 @@ msgstr ""
 msgid "sign out"
 msgstr ""
 
-#: src/components/layout/Profile.vue:297
+#: src/components/layout/Profile.vue:295
 msgid "Sign out"
 msgstr ""
 
@@ -1160,7 +1166,7 @@ msgstr ""
 msgid "Team"
 msgstr ""
 
-#: src/components/layout/Profile.vue:361
+#: src/components/layout/Profile.vue:359
 msgid "temporary password"
 msgstr ""
 
@@ -1193,7 +1199,7 @@ msgstr ""
 msgid "This action will delete properties on every links (and reversed one for two-way roads)"
 msgstr ""
 
-#: src/components/layout/Profile.vue:315
+#: src/components/layout/Profile.vue:313
 msgid "This action will sign you out"
 msgstr ""
 
@@ -1201,7 +1207,7 @@ msgstr ""
 msgid "This scenario is protected. You can not run simulation."
 msgstr ""
 
-#: src/components/layout/Profile.vue:327
+#: src/components/layout/Profile.vue:325
 msgid "This will permanently delete the user account."
 msgstr ""
 
@@ -1249,7 +1255,7 @@ msgstr ""
 msgid "User permanently delete"
 msgstr ""
 
-#: src/components/layout/Profile.vue:337
+#: src/components/layout/Profile.vue:335
 #: src/components/layout/Signin.vue:93
 msgid "username"
 msgstr ""

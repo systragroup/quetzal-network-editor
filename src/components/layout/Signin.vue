@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue'
 import auth from '@src/auth'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+
+const { $gettext } = useGettext()
 const emits = defineEmits(['signin'])
 const newPasswordUI = ref(false)
 const username = ref('')
