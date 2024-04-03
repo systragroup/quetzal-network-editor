@@ -1,10 +1,17 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## [5.2.4] (2024-04-17)
 
 ### Bug fixes
 
 * **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
 =======
+=======
+## [5.3.b] (FUTURE)
+
+### Changes
+* add "Login" to the login button on the top right
+>>>>>>> 573ceb8 (add login text to logon button)
 ## [5.3.a] (2024-03-28)
 
 ### Features
