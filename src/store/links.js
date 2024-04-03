@@ -7,7 +7,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
-import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
+import { IndexAreDifferent, deleteUnusedNodes, getGroupForm } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
@@ -321,7 +321,6 @@ export const useLinksStore = defineStore('links', {
     },
 
     getEditorLineInfo () {
-      const form = {}
       const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence']
       // empty trip, when its a newLine
       if (this.editorLinks.features.length === 0) {
@@ -339,28 +338,20 @@ export const useLinksStore = defineStore('links', {
           speed: 20,
         }
 
-        this.lineAttributes.forEach(key => {
-          form[key] = {
+        const form = this.lineAttributes.reduce((dict, key) => {
+          dict[key] = {
             value: defaultValue[key],
             disabled: uneditable.includes(key),
             placeholder: false,
           }
-        })
+          return dict
+        }, {})
 
         form.trip_id = { value: this.editorTrip, disabled: false, placeholder: false }
+        this.editorLineInfo = form
       } else {
-        const features = this.editorLinks.features
-
-        this.lineAttributes.forEach(key => {
-          const val = new Set(features.map(link => link.properties[key]))
-          form[key] = {
-            value: val.size > 1 ? '' : [...val][0],
-            disabled: uneditable.includes(key),
-            placeholder: val.size > 1,
-          }
-        })
+        this.editorLineInfo = getGroupForm(this.editorLinks.features, this.lineAttributes, uneditable)
       }
-      this.editorLineInfo = form
     },
 
     getTripId () {
@@ -741,7 +732,6 @@ export const useLinksStore = defineStore('links', {
           }
         },
       )
-      this.getEditorLineInfo()
     },
 
     editNodeInfo (payload) {
