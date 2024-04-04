@@ -78,11 +78,14 @@ export const useRunStore = defineStore('run', {
     setSelectedStepFunction (payload) {
       this.selectedStepFunction = payload
     },
-    async getParameters (payload) {
+    async getParameters () {
       // only for the reset button.
       const store = useIndexStore()
+      const userStore = useUserStore()
       try {
-        const params = await s3.readJson(payload.model, payload.path)
+        const model = userStore.model
+        const path = userStore.scenario + '/inputs/params.json'
+        const params = await s3.readJson(model, path)
         this.parameters = params
       } catch (err) {
         store.changeAlert(err)
