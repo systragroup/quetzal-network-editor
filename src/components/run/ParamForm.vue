@@ -1,83 +1,60 @@
 <!-- eslint-disable vue/multi-word-component-names -->
-<script>
+<script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
-const $gettext = s => s
-export default {
-  name: 'Settings',
-  setup () {
-    const runStore = useRunStore()
-    const userStore = useUserStore()
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
+const runStore = useRunStore()
+const userStore = useUserStore()
 
-    const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
-    const paramsBrute = computed(() => { return runStore.parameters })
-    const parameters = computed(() => {
-      return paramsBrute.value.filter(
-        param => (Object.keys(param).includes('category') && param.model === selectedStepFunction.value))
-    })
+const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
+const paramsBrute = computed(() => { return runStore.parameters })
+const parameters = computed(() => {
+  return paramsBrute.value.filter(
+    param => (Object.keys(param).includes('category') && param.model === selectedStepFunction.value))
+})
 
-    const info = computed(() => {
-      return paramsBrute.value.filter(param => (param?.info && param?.model) === selectedStepFunction.value)[0]?.info
-    })
+const info = computed(() => {
+  return paramsBrute.value.filter(param => (param?.info && param?.model) === selectedStepFunction.value)[0]?.info
+})
 
-    const panel = ref([])
+const panel = ref([])
 
-    onMounted(() => {
-      panel.value = [...Array(parameters.value.length).keys()].map((k, i) => i)
-    })
+onMounted(() => {
+  panel.value = [...Array(parameters.value.length).keys()].map((k, i) => i)
+})
 
-    const scenariosList = computed(() => { return userStore.scenariosList })
-    const activeScenario = computed(() => { return userStore.scenario })
+const scenariosList = computed(() => { return userStore.scenariosList })
+const activeScenario = computed(() => { return userStore.scenario })
 
-    function reset () {
-      runStore.getParameters({
-        model: userStore.model,
-        path: userStore.scenario + '/inputs/params.json',
-      })
-    }
-
-    function expandAll () {
-      if (panel.value.length < parameters.value.length) {
-        panel.value = [...Array(parameters.value.length).keys()].map((k, i) => i)
-      } else {
-        panel.value = []
-      }
-    }
-
-    const errorMessage = ref(null)
-    const showHint = ref(false)
-    const rules = {
-      required: v => v != null || $gettext('Required'),
-      largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
-      nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
-    }
-
-    function removeDeletedScenarios (item) {
-      // when selecting a value. make sure it exist in the scen list.
-      // if a scen selected was deleted. it will be remove from the v-model here.
-      // this is not perfect, but a user who toggle a scen will fix the problem...
-      const scenarios = scenariosList.value.map(el => el.scenario)
-      item.value = item.value.filter(name => scenarios.includes(name))
-    }
-
-    return {
-      selectedStepFunction,
-      paramsBrute,
-      errorMessage,
-      showHint,
-      panel,
-      parameters,
-      info,
-      rules,
-      scenariosList,
-      activeScenario,
-      reset,
-      expandAll,
-      removeDeletedScenarios,
-    }
-  },
+function reset () {
+  runStore.getParameters()
 }
+
+function expandAll () {
+  if (panel.value.length < parameters.value.length) {
+    panel.value = [...Array(parameters.value.length).keys()].map((k, i) => i)
+  } else {
+    panel.value = []
+  }
+}
+
+const showHint = ref(false)
+const rules = {
+  required: v => v != null || $gettext('Required'),
+  largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
+  nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
+}
+
+function removeDeletedScenarios (item) {
+  // when selecting a value. make sure it exist in the scen list.
+  // if a scen selected was deleted. it will be remove from the v-model here.
+  // this is not perfect, but a user who toggle a scen will fix the problem...
+  const scenarios = scenariosList.value.map(el => el.scenario)
+  item.value = item.value.filter(name => scenarios.includes(name))
+}
+
 </script>
 <template>
   <v-card

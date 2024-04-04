@@ -58,6 +58,7 @@ export default {
     function actionClick (event) {
       action.value = event.action
       if (action.value === 'Edit Line Info') {
+        // this use getGroupForm. its needed as we need to store info somewhere when we create new line.
         editorForm.value = cloneDeep(linksStore.editorLineInfo)
         lingering.value = event.lingering
         showDialog.value = true
