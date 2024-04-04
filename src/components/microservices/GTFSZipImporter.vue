@@ -35,32 +35,30 @@ export default {
       runGTFS.saveParams(parameters.value)
     })
 
-    const re = /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/
     const rules = {
       required: v => !!v || $gettext('Required'),
-      timeRule: v => re.test(v) || $gettext('invalid date time'),
     }
 
     const parameters = ref([{
       name: 'start_time',
       text: 'start time',
       value: runGTFS.parameters.start_time,
-      type: 'String',
+      type: 'time',
       units: '',
       hint: 'Start Time to restrict the GTFS in a period',
       rules: [
-        'required', 'timeRule',
+        'required',
       ],
     },
     {
       name: 'end_time',
       text: 'end time',
       value: runGTFS.parameters.end_time,
-      type: 'String',
+      type: 'time',
       units: '',
       hint: 'End Time to restrict the GTFS in a period',
       rules: [
-        'required', 'timeRule',
+        'required',
       ],
     },
     ])
@@ -204,6 +202,7 @@ export default {
           <v-text-field
             v-model="item.value"
             :type="item.type"
+            step="1"
             variant="underlined"
             :label="$gettext(item.text)"
             :suffix="item.units"

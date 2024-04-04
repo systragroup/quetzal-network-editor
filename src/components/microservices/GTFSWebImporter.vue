@@ -45,22 +45,22 @@ export default {
       name: 'start_time',
       text: 'start time',
       value: runGTFS.parameters.start_time,
-      type: 'String',
+      type: 'time',
       units: '',
       hint: 'Start Time to restrict the GTFS in a period',
       rules: [
-        'required', 'timeRule',
+        'required',
       ],
     },
     {
       name: 'end_time',
       text: 'end time',
       value: runGTFS.parameters.end_time,
-      type: 'String',
+      type: 'time',
       units: '',
       hint: 'End Time to restrict the GTFS in a period',
       rules: [
-        'required', 'timeRule',
+        'required',
       ],
     },
     {
@@ -82,10 +82,8 @@ export default {
       ],
     },
     ])
-    const re = /^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/
     const rules = {
       required: v => !!v || $gettext('Required'),
-      timeRule: v => re.test(v) || $gettext('invalid date time'),
     }
 
     return {
@@ -262,6 +260,7 @@ export default {
           <v-text-field
             v-if="typeof item.items === 'undefined'"
             v-model="item.value"
+            step="1"
             :type="item.type"
             :label="$gettext(item.text)"
             :suffix="item.units"
@@ -272,6 +271,7 @@ export default {
             required
             @wheel="()=>{}"
           />
+
           <v-select
             v-else
             v-model="item.value"

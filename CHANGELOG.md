@@ -9,6 +9,7 @@
 
 ### Changes
 * add "Login" to the login button on the top right
+* Change time inputs in GTFS importers for actual HTML time inputs
 
 ## [5.3.a] (2024-03-28)
 

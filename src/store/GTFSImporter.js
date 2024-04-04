@@ -22,8 +22,8 @@ export const useGTFSStore = defineStore('runGTFS', {
     UploadedGTFS: [], // list of upploded gtfs (zip local)
     selectedGTFS: [], // list of index for web Importer
     parameters: {
-      start_time: '6:00:00',
-      end_time: '8:59:00',
+      start_time: '06:00:00',
+      end_time: '08:59:00',
       day: 'tuesday',
     },
     widthDict: {
