@@ -165,7 +165,7 @@ export default {
 
     async function download () {
       exporting.value = true
-      await s3.downloadFolder(bucket.value, callID.value.concat('/'))
+      await s3.downloadFolder(bucket.value, callID.value.concat('/'), 'calibration report.zip')
       exporting.value = false
     }
 
