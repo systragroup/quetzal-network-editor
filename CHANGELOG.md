@@ -5,7 +5,11 @@
 
 * **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
 
-## [5.3.b] (FUTURE)
+## [5.3.b] (2024-04-05)
+
+### Features
+* **Run logs**: can now display and download logs in the Run page. (quetzal main.py was updated to write log files into /logs/ on S3. need to redockerize a model for this new feature) [#299](https://github.com/systragroup/quetzal-network-editor/issues/299)
+
 
 ### Changes
 * add "Login" to the login button on the top right
