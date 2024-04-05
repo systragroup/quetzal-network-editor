@@ -4,6 +4,11 @@
 ### Bug fixes
 
 * **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
+## [5.3.c] (2024-04-05)
+
+### Changes
+* add timeStamp to log. sort by time and delete them when simlation start (like outputs are deleted) [#509](https://github.com/systragroup/quetzal-network-editor/issues/509)
+
 
 ## [5.3.b] (2024-04-05)
 
