@@ -47,7 +47,7 @@ watch(stepFunction, async (val) => {
   }
 })
 
-async function run () {
+async function run() {
   try {
     const userStore = useUserStore()
     runStore.initExecution() // start the stepper at first step
@@ -61,18 +61,85 @@ async function run () {
     store.changeAlert(err)
   }
 }
+const showDialog = ref(false)
+const hasLogs = computed(() => runStore.hasLogs)
+const logs = ref([])
+
+async function showLogs() {
+  await runStore.getLogs()
+  logs.value = runStore.logs
+  showDialog.value = true
+}
+
+async function downloadLogs() {
+  await runStore.downloadLogs()
+}
 
 </script>
 <template>
+  <v-dialog
+    v-model="showDialog"
+    width="90%"
+  >
+    <v-card style="overflow-y: auto">
+      <div
+        v-for="(log,key) in logs"
+        :key="key"
+        class="log-container"
+      >
+        <h1>{{ log.name }}</h1>
+        <span style="white-space: pre-line">{{ log.text }}</span>
+      </div>
+    </v-card>
+  </v-dialog>
   <v-row class="background">
     <v-col order="1">
       <ParamForm />
     </v-col>
     <v-col order="2">
       <v-card class="card">
-        <v-card-title class="subtitle">
-          {{ $gettext('Scenario Simulation') }}
-        </v-card-title>
+        <div class="title-container">
+          <v-card-title class="subtitle">
+            {{ $gettext('Scenario Simulation') }}
+          </v-card-title>
+          <v-menu
+            close-delay="100"
+            transition="slide-y-transition"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-show="hasLogs"
+                class="log-button"
+                color="regular"
+                variant="outlined"
+                prepend-icon="fas fa-file-lines"
+                append-icon="fas fa-caret-down"
+                v-bind="props"
+              >
+                logs
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item
+                @click="showLogs"
+              >
+                {{ $gettext('show') }}
+                <template v-slot:prepend>
+                  <v-icon icon="fas fa-eye" />
+                </template>
+              </v-list-item>
+              <v-list-item
+                @click="downloadLogs"
+              >
+                {{ $gettext('download') }}
+                <template v-slot:prepend>
+                  <v-icon icon="fas fa-download" />
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </div>
+
         <v-stepper
           v-model="currentStep"
           class="stepper"
@@ -134,14 +201,9 @@ async function run () {
               :loading="running"
               :disabled="running || isProtected || !modelIsLoaded"
               color="success"
+              prepend-icon="fa-solid fa-play"
               @click="run()"
             >
-              <v-icon
-                size="small"
-                style="margin-right: 10px;"
-              >
-                fa-solid fa-play
-              </v-icon>
               {{ $gettext("Run Simulation") }}
             </v-btn>
             <v-btn
@@ -150,8 +212,9 @@ async function run () {
               variant="text"
               @click="runStore.stopExecution()"
             >
-              {{ $gettext("Abort Simulation") }}
+              {{ $gettext("Abort") }}
             </v-btn>
+
             <v-switch
               v-model="endSignal"
               class="switch"
@@ -159,7 +222,7 @@ async function run () {
               false-icon="fas fa-volume-xmark"
               true-icon="fas fa-volume-high"
               inset
-              color="primary"
+              color="success"
               hide-details
             >
               <template
@@ -254,6 +317,25 @@ async function run () {
 .switch{
   margin-left:auto;
   padding-right:0.5rem;
+}
+.title-container{
+  display: flex;
+  gap:1rem;
+  align-items: center;
+  flex-direction: row;
+}
+.log-button{
+  margin-left:auto;
+}
+.log-container{
+  background-color:rgb(var(--v-theme-mediumgrey)) !important;
+  border-radius: 10px;
+  max-height:20rem;
+
+  overflow-y: auto;
+  margin: 1rem 2rem 1rem 2rem;
+  border:1px solid black;
+  padding: 1rem;
 }
 
 </style>
