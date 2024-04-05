@@ -1,6 +1,7 @@
 <script setup>
 
 import ParamForm from '@comp/run/ParamForm.vue'
+import Logs from '@comp/run/Logs.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useRunStore } from '@src/store/run'
@@ -61,37 +62,9 @@ async function run() {
     store.changeAlert(err)
   }
 }
-const showDialog = ref(false)
-const hasLogs = computed(() => runStore.hasLogs)
-const logs = ref([])
-
-async function showLogs() {
-  await runStore.getLogs()
-  logs.value = runStore.logs
-  showDialog.value = true
-}
-
-async function downloadLogs() {
-  await runStore.downloadLogs()
-}
 
 </script>
 <template>
-  <v-dialog
-    v-model="showDialog"
-    width="90%"
-  >
-    <v-card style="overflow-y: auto">
-      <div
-        v-for="(log,key) in logs"
-        :key="key"
-        class="log-container"
-      >
-        <h1>{{ log.name }}</h1>
-        <span style="white-space: pre-line">{{ log.text }}</span>
-      </div>
-    </v-card>
-  </v-dialog>
   <v-row class="background">
     <v-col order="1">
       <ParamForm />
@@ -102,42 +75,7 @@ async function downloadLogs() {
           <v-card-title class="subtitle">
             {{ $gettext('Scenario Simulation') }}
           </v-card-title>
-          <v-menu
-            close-delay="100"
-            transition="slide-y-transition"
-          >
-            <template v-slot:activator="{ props }">
-              <v-btn
-                v-show="hasLogs"
-                class="log-button"
-                color="regular"
-                variant="outlined"
-                prepend-icon="fas fa-file-lines"
-                append-icon="fas fa-caret-down"
-                v-bind="props"
-              >
-                logs
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item
-                @click="showLogs"
-              >
-                {{ $gettext('show') }}
-                <template v-slot:prepend>
-                  <v-icon icon="fas fa-eye" />
-                </template>
-              </v-list-item>
-              <v-list-item
-                @click="downloadLogs"
-              >
-                {{ $gettext('download') }}
-                <template v-slot:prepend>
-                  <v-icon icon="fas fa-download" />
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+          <Logs />
         </div>
 
         <v-stepper
@@ -323,19 +261,6 @@ async function downloadLogs() {
   gap:1rem;
   align-items: center;
   flex-direction: row;
-}
-.log-button{
-  margin-left:auto;
-}
-.log-container{
-  background-color:rgb(var(--v-theme-mediumgrey)) !important;
-  border-radius: 10px;
-  max-height:20rem;
-
-  overflow-y: auto;
-  margin: 1rem 2rem 1rem 2rem;
-  border:1px solid black;
-  padding: 1rem;
 }
 
 </style>
