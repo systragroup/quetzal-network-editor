@@ -1,6 +1,7 @@
 <script setup>
 
 import ParamForm from '@comp/run/ParamForm.vue'
+import Logs from '@comp/run/Logs.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useRunStore } from '@src/store/run'
@@ -47,7 +48,7 @@ watch(stepFunction, async (val) => {
   }
 })
 
-async function run () {
+async function run() {
   try {
     const userStore = useUserStore()
     runStore.initExecution() // start the stepper at first step
@@ -70,9 +71,13 @@ async function run () {
     </v-col>
     <v-col order="2">
       <v-card class="card">
-        <v-card-title class="subtitle">
-          {{ $gettext('Scenario Simulation') }}
-        </v-card-title>
+        <div class="title-container">
+          <v-card-title class="subtitle">
+            {{ $gettext('Scenario Simulation') }}
+          </v-card-title>
+          <Logs />
+        </div>
+
         <v-stepper
           v-model="currentStep"
           class="stepper"
@@ -134,14 +139,9 @@ async function run () {
               :loading="running"
               :disabled="running || isProtected || !modelIsLoaded"
               color="success"
+              prepend-icon="fa-solid fa-play"
               @click="run()"
             >
-              <v-icon
-                size="small"
-                style="margin-right: 10px;"
-              >
-                fa-solid fa-play
-              </v-icon>
               {{ $gettext("Run Simulation") }}
             </v-btn>
             <v-btn
@@ -150,8 +150,9 @@ async function run () {
               variant="text"
               @click="runStore.stopExecution()"
             >
-              {{ $gettext("Abort Simulation") }}
+              {{ $gettext("Abort") }}
             </v-btn>
+
             <v-switch
               v-model="endSignal"
               class="switch"
@@ -159,7 +160,7 @@ async function run () {
               false-icon="fas fa-volume-xmark"
               true-icon="fas fa-volume-high"
               inset
-              color="primary"
+              color="success"
               hide-details
             >
               <template
@@ -254,6 +255,12 @@ async function run () {
 .switch{
   margin-left:auto;
   padding-right:0.5rem;
+}
+.title-container{
+  display: flex;
+  gap:1rem;
+  align-items: center;
+  flex-direction: row;
 }
 
 </style>

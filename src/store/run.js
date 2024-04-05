@@ -20,6 +20,8 @@ export const useRunStore = defineStore('run', {
     errorMessage: '',
     synchronized: true,
     parameters: [],
+    hasLogs: false,
+    logs: '',
     endSignal: true,
   }),
   actions: {
@@ -50,6 +52,7 @@ export const useRunStore = defineStore('run', {
       this.error = true
       this.errorMessage = payload
       this.executionArn = ''
+      this.checkLogs()
     },
     changeRunning (payload) {
       this.running = payload
@@ -59,6 +62,7 @@ export const useRunStore = defineStore('run', {
       this.running = false
       this.currentStep = this.steps.length + 1
       this.executionArn = ''
+      this.checkLogs()
       this.playAudio()
 
       store.changeNotification(
@@ -91,6 +95,40 @@ export const useRunStore = defineStore('run', {
         store.changeAlert(err)
       }
     },
+    async checkLogs() {
+      const userStore = useUserStore()
+      const model = userStore.model
+      let logsFiles = await s3.listFiles(model, userStore.scenario + '/logs/')
+      logsFiles = logsFiles.filter(name => name.endsWith('.txt'))
+      this.hasLogs = logsFiles.length > 0
+    },
+
+    async getLogs () {
+      // get logs in log/{logs}.txt
+      // return this.logs = [{name,text},..] where text is the log.
+      const store = useIndexStore()
+      const userStore = useUserStore()
+      try {
+        const model = userStore.model
+        let logsFiles = await s3.listFiles(model, userStore.scenario + '/logs/')
+        logsFiles = logsFiles.filter(name => name.endsWith('.txt'))
+        const logs = []
+        for (const name of logsFiles) {
+          const bytes = await s3.readBytes(model, name)
+          logs.push({ name: name, text: new TextDecoder().decode(bytes) })
+        }
+        this.logs = logs
+      } catch (err) {
+        store.changeAlert(err)
+      }
+    },
+
+    async downloadLogs() {
+      const userStore = useUserStore()
+      const bucket = userStore.model
+      await s3.downloadFolder(bucket, userStore.scenario + '/logs/', 'logs.zip')
+    },
+
     async getOutputs () {
       const userStore = useUserStore()
       const model = userStore.model
@@ -110,6 +148,7 @@ export const useRunStore = defineStore('run', {
         store.loadOtherFiles(res)
       }
     },
+
     async getSteps () {
       const userStore = useUserStore()
       const store = useIndexStore()
@@ -161,7 +200,9 @@ export const useRunStore = defineStore('run', {
       } catch (err) {
         store.changeAlert(err)
       }
+      this.checkLogs()
     },
+
     startExecution (payload) {
       const userStore = useUserStore()
       const store = useIndexStore()
@@ -201,6 +242,7 @@ export const useRunStore = defineStore('run', {
           store.changeAlert(err)
         })
     },
+
     pollExecution () {
       const intervalId = setInterval(async () => {
         let data = { executionArn: this.executionArn }
@@ -268,6 +310,7 @@ export const useRunStore = defineStore('run', {
     changeEndSignal(payload) {
       this.endSignal = payload
     },
+
     playAudio() {
       if (this.endSignal) {
         const audio = new Audio(audioFile)

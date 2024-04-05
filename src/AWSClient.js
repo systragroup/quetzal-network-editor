@@ -50,7 +50,7 @@ async function readBytes (bucket, key) {
   const fileContent = await response.Body.transformToByteArray() // can also do 'base64' here if desired
   return fileContent
 }
-async function downloadFolder (bucket, prefix) {
+async function downloadFolder (bucket, prefix, zipName) {
   // zip everything in a folder. keep filename. Folder structure will not work.
   const zip = new JSZip()
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
@@ -65,7 +65,7 @@ async function downloadFolder (bucket, prefix) {
   }
 
   zip.generateAsync({ type: 'blob' }).then(function (content) {
-    saveAs(content, 'calibration report.zip')
+    saveAs(content, zipName)
   })
 }
 
@@ -75,15 +75,15 @@ async function listFiles (bucket, prefix) {
     prefix.forEach(async pref => {
       if (pref.slice(-1) !== '/') { pref = pref + '/' }
       const params = { Bucket: bucket, Prefix: pref }
-      const Content = await s3Client.listObjectsV2(params)
-      paths.push(...Content.Contents.map(item => item.Key))
+      const response = await s3Client.listObjectsV2(params)
+      paths.push(...response.Contents.map(item => item.Key))
     })
     return paths
   } else {
     if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
     const params = { Bucket: bucket, Prefix: prefix }
-    const Content = await s3Client.listObjectsV2(params)
-    return Content.Contents.map(item => item.Key)
+    const response = await s3Client.listObjectsV2(params)
+    return response.Contents?.map(item => item.Key) || []
   }
 }
 async function getImagesURL (bucket, key) {

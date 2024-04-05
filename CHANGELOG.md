@@ -1,4 +1,8 @@
-## [5.3.b] (FUTURE)
+## [5.3.b] (2024-04-05)
+
+### Features
+* **Run logs**: can now display and download logs in the Run page. (quetzal main.py was updated to write log files into /logs/ on S3. need to redockerize a model for this new feature) [#299](https://github.com/systragroup/quetzal-network-editor/issues/299)
+
 
 ### Changes
 * add "Login" to the login button on the top right
@@ -15,7 +19,6 @@ Change gettext for new vue3 scripts to extract and compile.
 
 ### Bug fixes
 * **Cannot edit in french**: delete nodes and other popup action were not working in french. 
-
 
 
 ## [5.2.2] (2024-03-26)
