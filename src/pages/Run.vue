@@ -54,6 +54,7 @@ async function run() {
     runStore.initExecution() // start the stepper at first step
     await store.exportToS3('inputs')
     await store.deleteOutputsOnS3()
+    await store.deleteLogsOnS3()
     store.deleteOutputs()
     runStore.startExecution({ scenario: userStore.scenario })
   } catch (err) {
@@ -75,7 +76,7 @@ async function run() {
           <v-card-title class="subtitle">
             {{ $gettext('Scenario Simulation') }}
           </v-card-title>
-          <Logs />
+          <Logs :disabled="running || !modelIsLoaded" />
         </div>
 
         <v-stepper

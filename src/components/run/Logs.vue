@@ -1,8 +1,15 @@
 <script setup>
 
-import { computed, ref } from 'vue'
+import { computed, ref, toRefs } from 'vue'
 import { useRunStore } from '@src/store/run'
 
+const props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+})
+const { disabled } = toRefs(props)
 const runStore = useRunStore()
 
 const showLogsDialog = ref(false)
@@ -12,6 +19,11 @@ const logs = ref([])
 async function showLogs() {
   await runStore.getLogs()
   logs.value = runStore.logs
+  logs.value.sort((a, b) => {
+    return String(a.time).localeCompare(String(b.time),
+      undefined, { sensitivity: 'base' })
+  })
+
   showLogsDialog.value = true
 }
 
@@ -28,6 +40,7 @@ async function downloadLogs() {
     <template v-slot:activator="{ props }">
       <v-btn
         v-show="hasLogs"
+        :disabled="disabled"
         class="log-button"
         color="regular"
         variant="outlined"
@@ -68,6 +81,7 @@ async function downloadLogs() {
         class="log-container"
       >
         <h1>{{ log.name }}</h1>
+        <h3><b>{{ log.time }}</b></h3>
         <span style="white-space: pre-line">{{ log.text }}</span>
       </div>
     </v-card>

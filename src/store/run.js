@@ -110,12 +110,12 @@ export const useRunStore = defineStore('run', {
       const userStore = useUserStore()
       try {
         const model = userStore.model
-        let logsFiles = await s3.listFiles(model, userStore.scenario + '/logs/')
-        logsFiles = logsFiles.filter(name => name.endsWith('.txt'))
+        let logsFiles = await s3.listFilesWithTime(model, userStore.scenario + '/logs/')
+        logsFiles = logsFiles.filter(file => file.name.endsWith('.txt'))
         const logs = []
-        for (const name of logsFiles) {
-          const bytes = await s3.readBytes(model, name)
-          logs.push({ name: name, text: new TextDecoder().decode(bytes) })
+        for (const file of logsFiles) {
+          const bytes = await s3.readBytes(model, file.name)
+          logs.push({ name: file.name, text: new TextDecoder().decode(bytes), time: file.time })
         }
         this.logs = logs
       } catch (err) {

@@ -86,6 +86,14 @@ async function listFiles (bucket, prefix) {
     return response.Contents?.map(item => item.Key) || []
   }
 }
+
+async function listFilesWithTime (bucket, prefix) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
+  const params = { Bucket: bucket, Prefix: prefix }
+  const response = await s3Client.listObjectsV2(params)
+  return response.Contents?.map(item => { return { name: item.Key, time: item.LastModified } }) || []
+}
+
 async function getImagesURL (bucket, key) {
   const params = {
     Bucket: bucket,
@@ -291,6 +299,7 @@ export default {
   readJson,
   readBytes,
   listFiles,
+  listFilesWithTime,
   copyFolder,
   deleteFolder,
   deleteObject,
