@@ -82,9 +82,8 @@ async function downloadLogs() {
   background-color:rgb(var(--v-theme-mediumgrey)) !important;
   border-radius: 10px;
   max-height:20rem;
-
   overflow-y: auto;
-  margin: 1rem 2rem 1rem 2rem;
+  margin: 1rem 2rem;
   border:1px solid black;
   padding: 1rem;
 }
