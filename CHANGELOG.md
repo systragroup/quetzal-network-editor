@@ -4,6 +4,12 @@
 ### Bug fixes
 
 * **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
+## [future] ()
+
+### Changes
+* creating Scenario use form (can press Enter). no more # in the name
+
+
 ## [5.3.c] (2024-04-05)
 
 ### Changes
