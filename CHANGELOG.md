@@ -5,10 +5,16 @@
 
 * **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
 ## [future] ()
+## [5.3.d] (2024-04-09)
+
+### Features
+* **Fetch Running executionUID**: when run page is mounted or run button is press. check with quenedi-backend (fastAPI) if this tuple (model/scenario) is running (another user launch it). If So, start polling this executionUID and prevent stating and saving. [#309](https://github.com/systragroup/quetzal-network-editor/issues/309)
 
 ### Changes
 * creating Scenario use form (can press Enter). no more # in the name
 
+### Bug fixes
+* **Running badge**: on run page now visible (loading and error on the Navigation Drawer)
 
 ## [5.3.c] (2024-04-05)
 

@@ -203,6 +203,26 @@ export const useRunStore = defineStore('run', {
       this.checkLogs()
     },
 
+    async GetRunningExecution() {
+      // get Running model (on another pc start polling it if there is one)
+      // return true if there is a model running (usefull to check before running.)
+      try {
+        const userStore = useUserStore()
+        const stateMachineArn = this.stateMachineArnBase + userStore.model
+        const scen = userStore.scenario
+        if (!this.running) {
+          const resp = await quetzalClient.client.post(`model/running/${stateMachineArn}/${scen}/`)
+          if (resp.data !== '') {
+            this.initExecution()
+            this.executionArn = resp.data
+            this.getHistory()
+            this.pollExecution()
+            return true
+          } else { return false }
+        } else { return false }
+      } catch (err) { return false }
+    },
+
     startExecution (payload) {
       const userStore = useUserStore()
       const store = useIndexStore()

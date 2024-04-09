@@ -6,7 +6,9 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
+import { useGettext } from 'vue3-gettext'
 
+const { $gettext } = useGettext()
 const store = useIndexStore()
 const runStore = useRunStore()
 const userStore = useUserStore()
@@ -32,6 +34,7 @@ onMounted(async () => {
   if (modelIsLoaded.value) {
     await runStore.getSteps()
     stepFunction.value = selectedStepFunction.value
+    await runStore.GetRunningExecution()
   }
 })
 
@@ -49,6 +52,13 @@ watch(stepFunction, async (val) => {
 })
 
 async function run() {
+  const wasRunning = await runStore.GetRunningExecution()
+  if (wasRunning) {
+    store.changeNotification(
+      { text: $gettext('could not start and save. This scenario was already launch by another user.'),
+        autoClose: false, color: 'warning' })
+    return
+  }
   try {
     const userStore = useUserStore()
     runStore.initExecution() // start the stepper at first step
