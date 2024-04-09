@@ -2,7 +2,7 @@
   "name": "Quetzal-network-editor",
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
-  "version": "5.3.c",
+  "version": "5.3.d",
   "type": "module",
   "private": true,
   "scripts": {
@@ -94,7 +94,7 @@
     "vite-plugin-stylelint": "^4.3.0",
     "vite-plugin-vue-devtools": "^7.0.20",
     "vite-plugin-vuetify": "^1.0.2",
-    "vitest": "^0.34.5",
+    "vitest": "^1.4.0",
     "write-file-webpack-plugin": "^4.5.1"
   },
   "resolutions": {

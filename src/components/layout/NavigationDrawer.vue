@@ -12,7 +12,7 @@ const store = useIndexStore()
 const userStore = useUserStore()
 const runStore = useRunStore()
 
-const running = computed(() => { return runStore.running })
+const running = computed(() => runStore.running)
 watch(running, (val) => {
   const item = menuItems.value.filter(item => item.name == 'Run')[0]
   item.loading = val
@@ -48,9 +48,7 @@ onMounted(() => {
   })
 })
 
-function getDisplayedRoutes () {
-  return menuItems.value.filter(o => o.icon)
-}
+const getDisplayedRoutes = computed(() => menuItems.value.filter(o => o.icon))
 
 async function handleClickMenuItem (route) {
   switch (route.name) {
@@ -110,7 +108,7 @@ async function handleClickMenuItem (route) {
         class="app-menu"
       >
         <template
-          v-for="item in getDisplayedRoutes()"
+          v-for="item in getDisplayedRoutes"
           :key="item.title"
         >
           <v-list-item
