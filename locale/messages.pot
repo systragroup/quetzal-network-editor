@@ -104,12 +104,12 @@ msgstr ""
 msgid "An error occur fetching example on github"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:189
+#: src/components/import/ScenariosExplorer.vue:193
 msgid "An error occured"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:341
-msgid "Any unsaved changes will be lost"
+#: src/components/import/ScenariosExplorer.vue:345
+msgid "Any unsaved changes to %{scen} will be lost"
 msgstr ""
 
 #: src/components/utils/ColorPicker.vue:134
@@ -145,7 +145,7 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:393
+#: src/components/import/ScenariosExplorer.vue:398
 #: src/components/map/EditDialog.vue:337
 #: src/components/map/Settings.vue:217
 #: src/components/results/ResultsSettings.vue:453
@@ -172,16 +172,12 @@ msgstr ""
 msgid "Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:116
+#: src/components/import/ScenariosExplorer.vue:117
 msgid "cannot have / in name"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:117
+#: src/components/import/ScenariosExplorer.vue:118
 msgid "cannot have # in name"
-msgstr ""
-
-#: src/components/import/ScenariosExplorer.vue:340
-msgid "Change Scenario"
 msgstr ""
 
 #: src/pages/Home.vue:201
@@ -228,7 +224,7 @@ msgstr ""
 msgid "convert"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:372
+#: src/components/import/ScenariosExplorer.vue:376
 msgid "copy"
 msgstr ""
 
@@ -292,13 +288,13 @@ msgstr ""
 msgid "delete"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:353
+#: src/components/import/ScenariosExplorer.vue:357
 #: src/pages/Home.vue:373
 #: src/pages/ResultMap.vue:428
 msgid "Delete"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:351
+#: src/components/import/ScenariosExplorer.vue:355
 msgid "Delete %{scen}?"
 msgstr ""
 
@@ -640,6 +636,10 @@ msgstr ""
 msgid "links geometry linestring length (meters)"
 msgstr ""
 
+#: src/components/import/ScenariosExplorer.vue:344
+msgid "Load %{scen} ?"
+msgstr ""
+
 #: src/pages/Import.vue:257
 msgid "Load Example"
 msgstr ""
@@ -719,8 +719,8 @@ msgstr ""
 msgid "Must be logged in"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:240
-#: src/components/import/ScenariosExplorer.vue:382
+#: src/components/import/ScenariosExplorer.vue:244
+#: src/components/import/ScenariosExplorer.vue:386
 #: src/components/microservices/GTFSZipImporter.vue:220
 #: src/pages/ResultMap.vue:392
 msgid "name"
@@ -759,15 +759,15 @@ msgstr ""
 msgid "New road links Highway property name"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:328
+#: src/components/import/ScenariosExplorer.vue:332
 msgid "new scenario"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:372
+#: src/components/import/ScenariosExplorer.vue:376
 msgid "New Scenario"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:344
+#: src/components/import/ScenariosExplorer.vue:348
 #: src/components/microservices/GTFSWebImporter.vue:335
 #: src/components/microservices/GTFSZipImporter.vue:283
 #: src/components/microservices/OSMImporter.vue:169
@@ -804,7 +804,7 @@ msgstr ""
 msgid "OD"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:401
+#: src/components/import/ScenariosExplorer.vue:407
 #: src/components/layout/Profile.vue:377
 #: src/pages/ResultMap.vue:366
 #: src/pages/ResultMap.vue:413
@@ -849,7 +849,7 @@ msgstr ""
 msgid "Parameters"
 msgstr ""
 
-#: src/router/index.js:60
+#: src/router/index.js:61
 msgid "Parameters and Run"
 msgstr ""
 
@@ -866,7 +866,7 @@ msgstr ""
 msgid "password must match"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:115
+#: src/components/import/ScenariosExplorer.vue:116
 msgid "Please enter a name"
 msgstr ""
 
@@ -890,7 +890,7 @@ msgstr ""
 msgid "Presets"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:118
+#: src/components/import/ScenariosExplorer.vue:119
 msgid "project already exist"
 msgstr ""
 
@@ -937,7 +937,7 @@ msgstr ""
 msgid "Required"
 msgstr ""
 
-#: src/router/index.js:96
+#: src/router/index.js:97
 msgid "Result Table"
 msgstr ""
 
@@ -945,11 +945,11 @@ msgstr ""
 msgid "Results are not synchronized with latest modifications.             Please relauch simulation to update results."
 msgstr ""
 
-#: src/router/index.js:82
+#: src/router/index.js:83
 msgid "Results Map"
 msgstr ""
 
-#: src/router/index.js:89
+#: src/router/index.js:90
 msgid "Results Pictures"
 msgstr ""
 
@@ -1038,15 +1038,15 @@ msgstr ""
 msgid "scale min"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:138
+#: src/components/import/ScenariosExplorer.vue:140
 msgid "Scenario created"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:184
+#: src/components/import/ScenariosExplorer.vue:188
 msgid "Scenario deleted"
 msgstr ""
 
-#: src/components/layout/NavigationDrawer.vue:73
+#: src/components/layout/NavigationDrawer.vue:71
 msgid "Scenario saved"
 msgstr ""
 
@@ -1058,11 +1058,11 @@ msgstr ""
 msgid "Scenario Simulation"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:129
+#: src/components/import/ScenariosExplorer.vue:131
 msgid "Scenario successfully copied"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:225
+#: src/components/import/ScenariosExplorer.vue:229
 #: src/components/map/sidePanel/LinksSidePanel.vue:274
 msgid "search"
 msgstr ""
@@ -1197,7 +1197,7 @@ msgstr ""
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:352
+#: src/components/import/ScenariosExplorer.vue:356
 msgid "The scenario will be permanently deleted"
 msgstr ""
 
@@ -1258,7 +1258,7 @@ msgstr ""
 msgid "Unload all files ?"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:340
+#: src/components/import/ScenariosExplorer.vue:344
 msgid "Unload Scenario?"
 msgstr ""
 
@@ -1295,7 +1295,7 @@ msgstr ""
 msgid "with %{index}?"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:343
+#: src/components/import/ScenariosExplorer.vue:347
 #: src/components/microservices/GTFSWebImporter.vue:342
 #: src/components/microservices/GTFSZipImporter.vue:290
 #: src/components/microservices/OSMImporter.vue:176
@@ -1303,7 +1303,7 @@ msgstr ""
 msgid "Yes"
 msgstr ""
 
-#: src/router/index.js:67
+#: src/router/index.js:68
 msgid "you need parameters to enter this page"
 msgstr ""
 

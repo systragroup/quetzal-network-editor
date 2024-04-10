@@ -123,6 +123,7 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
   if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
   // get all metaData [{key,metadata}]. dont need response.Contents after that.
   const metaDataList = await getMetaData(bucket, response.Contents.map(el => el.Key))
+  const promises = []
   for (const file of metaDataList) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
@@ -143,10 +144,9 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
       Metadata: metadata,
 
     }
-    s3Client.copyObject(copyParams, function (err, _) {
-      if (err) return err // an error occurred
-    })
+    promises.push(s3Client.copyObject(copyParams))
   }
+  await Promise.all(promises).then(resp => resp)
 }
 
 async function getMetaData (bucket, keys) {

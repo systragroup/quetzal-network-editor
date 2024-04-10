@@ -1,3 +1,9 @@
+## [5.3.e] (Future)
+
+### Changes
+* creating and copying a scenario will select it. if a scen already loaded. will ask to change. [#510](https://github.com/systragroup/quetzal-network-editor/issues/510)
+
+
 ## [5.3.d] (2024-04-09)
 
 ### Features
