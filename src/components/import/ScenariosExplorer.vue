@@ -67,7 +67,7 @@ watch(scenario, (val) => {
 })
 
 function selectScenario (e, val) {
-  if (e.type === 'keydown') { return }
+  if (e?.type === 'keydown') { return }
   localScen.value = val.scenario
   locked.value = val.protected
   if (val.scenario) {
@@ -110,6 +110,7 @@ const scenariosList = computed(() => {
 const copyDialog = ref(false)
 const input = ref('')
 const selectedScenario = ref(null)
+const copyLoading = ref(false)
 
 const rules = ref({
   required: v => v !== '' || $gettext('Please enter a name'),
@@ -122,6 +123,7 @@ async function createProject (event) {
   const resp = await event
   if (resp.valid) {
     try {
+      copyLoading.value = true
       if (selectedScenario.value) {
         // this is a copy
         await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value, false)
@@ -137,14 +139,16 @@ async function createProject (event) {
         store.changeNotification(
           { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
       }
-    } catch (err) { store.changeAlert(err); selectedScenario.value = null }
+    } catch (err) {
+      store.changeAlert(err)
+      selectedScenario.value = null
+      copyLoading.value = false }
+    copyLoading.value = false
+    selectScenario(null, { model: localModel.value, scenario: input.value, protected: false })
     closeCopy()
     loading.value = true
-    // wait 500ms to fetch the scenarios to make sure its available on the DB
-    setTimeout(() => {
-      userStore.getScenario({ model: localModel.value }).then(() => { loading.value = false })
-        .catch((err) => { store.changeAlert(err); loading.value = false })
-    }, 500)
+    userStore.getScenario({ model: localModel.value }).then(() => { loading.value = false })
+      .catch((err) => { store.changeAlert(err); loading.value = false })
   }
 }
 
@@ -337,8 +341,8 @@ function deleteScenario () {
 
   <SimpleDialog
     v-model="showDialog"
-    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Change Scenario')"
-    :body="$gettext('Any unsaved changes will be lost')"
+    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{scen} ?',{scen: localScen})"
+    :body="$gettext('Any unsaved changes to %{scen} will be lost',{scen: model})"
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
@@ -388,6 +392,7 @@ function deleteScenario () {
           <v-btn
             color="grey"
             variant="text"
+            :disabled="copyLoading"
             @click="closeCopy"
           >
             {{ $gettext("Cancel") }}
@@ -396,6 +401,7 @@ function deleteScenario () {
           <v-btn
             color="green-darken-1"
             variant="text"
+            :loading="copyLoading"
             type="submit"
           >
             {{ $gettext("ok") }}
