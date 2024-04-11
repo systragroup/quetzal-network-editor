@@ -1,205 +1,194 @@
-<script>
+<script setup>
 import s3 from '@src/AWSClient'
 import { useMRCStore } from '@src/store/MatrixRoadCaster'
 import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
 
 import { ref, computed, onMounted, watch } from 'vue'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-export default {
-  name: 'MatrixRoadCaster',
-  components: {
+const runMRC = useMRCStore()
+const rlinksStore = userLinksStore()
+const store = useIndexStore()
+const imgs = ref([])
+const exporting = ref(false)
+const applying = ref(false)
+const validForm = ref(true)
+const showP = ref(false)
+const otherFiles = computed(() => store.otherFiles.filter(el => el.extension === 'geojson').map(el => el.name))
+const useZone = computed(() => parameters.value[0].value)
+const selectedZoneFile = ref(runMRC.zoneFile)
+
+const parameters = ref([
+  {
+    name: 'use_zone',
+    text: 'Use zone',
+    value: false,
+    type: 'Boolean',
+    units: '',
+    hint: 'use zone',
+    rules: [
+    ],
   },
-
-  setup () {
-    const runMRC = useMRCStore()
-    const rlinksStore = userLinksStore()
-    const store = useIndexStore()
-    const imgs = ref([])
-    const exporting = ref(false)
-    const applying = ref(false)
-    const validForm = ref(true)
-    const showP = ref(false)
-
-    const parameters = ref([{
-      name: 'num_zones',
-      text: 'number of zones',
-      value: null,
-      type: 'Number',
-      units: '',
-      hint: 'number of zones. road nodes will be aggregate to form centroids',
-      rules: [
-        'required', 'largerThanZero',
-      ],
-    },
-    {
-      name: 'train_size',
-      text: 'number of OD (api call)',
-      value: null,
-      type: 'Number',
-      units: '',
-      hint: 'number of OD to get from the API, the rest will be interpolated with ML',
-      rules: [
-        'required', 'largerThanZero',
-      ],
-    },
-    {
-      name: 'date_time',
-      text: 'date Time',
-      value: null,
-      type: 'String',
-      units: '',
-      hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
-      rules: [
-        'required', 'dateTimeRule',
-      ],
-    },
-    {
-      name: 'ff_time_col',
-      text: 'freeflow time on roads',
-      value: null,
-      items: rlinksStore.rlineAttributes,
-      type: 'String',
-      units: '',
-      hint: 'road links time (link length / speed) to use as a first approximation. this is the freeflow speed, or speed limit',
-      rules: [
-        'required',
-      ],
-    },
-    {
-      name: 'max_speed',
-      text: 'max speed on road',
-      value: null,
-      type: 'Number',
-      units: '',
-      hint: 'Maximum allowed speed on a road. applying an OD matrix on the road network could result il unrealistic speed if not used.',
-      rules: [
-        'required', 'largerThanZero',
-      ],
-    },
-    {
-      name: 'num_random_od',
-      text: 'number of OD to plot',
-      value: null,
-      type: 'Number',
-      units: '',
-      hint: 'number of OD calibration plot to produce. those are random OD.',
-      rules: [
-        'required', 'largerThanZero',
-      ],
-    },
-    {
-      name: 'hereApiKey',
-      text: 'HERE api key',
-      value: null,
-      type: 'password',
-      units: '',
-      hint: 'HERE api key to download a set of OD',
-      rules: [
-        'required',
-      ],
-    },
-    ])
-
-    const bucket = computed(() => { return runMRC.bucket })
-    const callID = computed(() => { return runMRC.callID })
-    const timer = computed(() => { return runMRC.timer })
-    const importStatus = computed(() => { return runMRC.status })
-    const running = computed(() => { return runMRC.running })
-    const error = computed(() => { return runMRC.error })
-    const errorMessage = computed(() => { return runMRC.errorMessage })
-
-    onMounted(() => {
-      // init params to the store ones.
-      const storeParams = runMRC.parameters
-      // eslint-disable-next-line no-return-assign
-      parameters.value.forEach(param => param.value = storeParams[param.name])
-      // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
-      // if null, we create a uuid. else we fetch the data on S3
-      if (callID.value) {
-        getImagesURL()
-      }
-    })
-
-    watch(importStatus, (val) => {
-      if (val === 'SUCCEEDED') { getImagesURL() }
-    })
-
-    async function run (event) {
-      const resp = await event
-      if (!resp.valid) { return }
-      runMRC.setCallID()
-      const inputs = { callID: callID.value }
-      parameters.value.forEach(item => {
-        inputs[item.name] = item.value
-      })
-      runMRC.startExecution({
-        rlinks: rlinksStore.rlinks,
-        rnodes: rlinksStore.rnodes,
-        parameters: inputs,
-      })
-    }
-
-    function stopRun () { runMRC.stopExecution() }
-
-    async function ApplyResults () {
-      applying.value = true
-      const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
-      rlinksStore.loadrLinks(rlinks)
-      const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
-      rlinksStore.loadrNodes(rnodes)
-      applying.value = false
-      store.changeNotification(
-        { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
-    }
-
-    async function getImagesURL () {
-      const outputsFiles = await s3.listFiles(bucket.value, callID.value + '/')
-      const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
-      for (const file of filesNames) {
-        const url = await s3.getImagesURL(bucket.value, file)
-        imgs.value.push(url)
-      }
-    }
-
-    async function download () {
-      exporting.value = true
-      await s3.downloadFolder(bucket.value, callID.value.concat('/'), 'calibration report.zip')
-      exporting.value = false
-    }
-
-    const showHint = ref(false)
-    // eslint-disable-next-line max-len, no-useless-escape
-    const re = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/
-    const rules = {
-      required: v => !!v || $gettext('Required'),
-      largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
-      nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
-      dateTimeRule: v => re.test(v) || $gettext('invalid date time'),
-    }
-    return {
-      imgs,
-      exporting,
-      applying,
-      validForm,
-      showP,
-      parameters,
-      showHint,
-      rules,
-      timer,
-      importStatus,
-      running,
-      error,
-      errorMessage,
-      download,
-      run,
-      stopRun,
-      ApplyResults,
-    }
+  {
+    name: 'num_zones',
+    text: 'number of zones',
+    value: null,
+    type: 'Number',
+    units: '',
+    hint: 'number of zones. road nodes will be aggregate to form centroids',
+    rules: [
+      'required', 'largerThanZero',
+    ],
   },
+  {
+    name: 'train_size',
+    text: 'number of OD (api call)',
+    value: null,
+    type: 'Number',
+    units: '',
+    hint: 'number of OD to get from the API, the rest will be interpolated with ML',
+    rules: [
+      'required', 'largerThanZero',
+    ],
+  },
+  {
+    name: 'date_time',
+    text: 'date Time',
+    value: null,
+    type: 'String',
+    units: '',
+    hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
+    rules: [
+      'required', 'dateTimeRule',
+    ],
+  },
+  {
+    name: 'ff_time_col',
+    text: 'freeflow time on roads',
+    value: null,
+    items: rlinksStore.rlineAttributes,
+    type: 'String',
+    units: '',
+    hint: 'road links time (link length / speed) to use as a first approximation. this is the freeflow speed, or speed limit',
+    rules: [
+      'required',
+    ],
+  },
+  {
+    name: 'max_speed',
+    text: 'max speed on road',
+    value: null,
+    type: 'Number',
+    units: '',
+    hint: 'Maximum allowed speed on a road. applying an OD matrix on the road network could result il unrealistic speed if not used.',
+    rules: [
+      'required', 'largerThanZero',
+    ],
+  },
+  {
+    name: 'num_random_od',
+    text: 'number of OD to plot',
+    value: null,
+    type: 'Number',
+    units: '',
+    hint: 'number of OD calibration plot to produce. those are random OD.',
+    rules: [
+      'required', 'largerThanZero',
+    ],
+  },
+  {
+    name: 'hereApiKey',
+    text: 'HERE api key',
+    value: null,
+    type: 'password',
+    units: '',
+    hint: 'HERE api key to download a set of OD',
+    rules: [
+      'required',
+    ],
+  },
+])
 
+const bucket = computed(() => { return runMRC.bucket })
+const callID = computed(() => { return runMRC.callID })
+const timer = computed(() => { return runMRC.timer })
+const importStatus = computed(() => { return runMRC.status })
+const running = computed(() => { return runMRC.running })
+const error = computed(() => { return runMRC.error })
+const errorMessage = computed(() => { return runMRC.errorMessage })
+
+onMounted(() => {
+  // init params to the store ones.
+  const storeParams = runMRC.parameters
+  // eslint-disable-next-line no-return-assign
+  parameters.value.forEach(param => param.value = storeParams[param.name])
+  // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
+  // if null, we create a uuid. else we fetch the data on S3
+  if (callID.value) {
+    getImagesURL()
+  }
+})
+
+watch(importStatus, (val) => {
+  if (val === 'SUCCEEDED') { getImagesURL() }
+})
+
+async function run (event) {
+  const resp = await event
+  if (!resp.valid) { return }
+  runMRC.setCallID()
+  const inputs = { callID: callID.value }
+  parameters.value.forEach(item => {
+    inputs[item.name] = item.value
+  })
+  runMRC.startExecution({
+    rlinks: rlinksStore.rlinks,
+    rnodes: rlinksStore.rnodes,
+    parameters: inputs,
+    selectedZoneFile: selectedZoneFile.value,
+  })
 }
+
+function stopRun () { runMRC.stopExecution() }
+
+async function ApplyResults () {
+  applying.value = true
+  const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
+  rlinksStore.loadrLinks(rlinks)
+  const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
+  rlinksStore.loadrNodes(rnodes)
+  applying.value = false
+  store.changeNotification(
+    { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
+}
+
+async function getImagesURL () {
+  const outputsFiles = await s3.listFiles(bucket.value, callID.value + '/')
+  const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
+  for (const file of filesNames) {
+    const url = await s3.getImagesURL(bucket.value, file)
+    imgs.value.push(url)
+  }
+}
+
+async function download () {
+  exporting.value = true
+  await s3.downloadFolder(bucket.value, callID.value.concat('/'), 'calibration report.zip')
+  exporting.value = false
+}
+
+const showHint = ref(false)
+// eslint-disable-next-line max-len, no-useless-escape
+const re = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/
+const rules = {
+  required: v => !!v || $gettext('Required'),
+  largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
+  nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
+  dateTimeRule: v => re.test(v) || $gettext('invalid date time'),
+}
+
 </script>
 <template>
   <v-row class="ma-0 pa-2 background">
@@ -209,12 +198,12 @@ export default {
           {{ $gettext('ML Matrix Road Caster') }}
         </v-card-title>
         <p> {{ $gettext('1) Find n zones centroids using a Kmean clustering on the nodes') }}</p>
+        <p> {{ $gettext('   or import and use your own zoning.') }}</p>
         <p> {{ $gettext('2) Call the Here Matrix API on random OD ( around 1% is sufficient )') }}</p>
         <p> {{ $gettext('3) Interpolate every other OD time with an hybrid Machine learning model') }}</p>
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
 
         <v-form
-          validate-on="submit lazy"
           @submit.prevent="run"
         >
           <div
@@ -234,9 +223,31 @@ export default {
               required
               @click:append="showP = !showP"
             />
+            <v-row
+              v-else-if="item.type === 'Boolean'"
+              class="zone-row"
+            >
+              <v-switch
+                v-model="item.value"
+                class="pr-2"
+                color="primary"
+                variant="underlined"
+                :label="$gettext(item.text)"
+                :hint="showHint? $gettext(item.hint): ''"
+                :persistent-hint="showHint"
+                :rules="item.rules.map((rule) => rules[rule])"
+              />
+              <v-select
+                v-model="selectedZoneFile"
+                :items="otherFiles"
+                :disabled="!useZone"
+              />
+            </v-row>
+
             <v-text-field
               v-else-if="typeof item.items === 'undefined'"
               v-model="item.value"
+              :disabled="useZone && item.name === 'num_zones'"
               :type="item.type"
               :label="$gettext(item.text)"
               :suffix="item.units"
@@ -374,6 +385,9 @@ export default {
   margin-right: 3rem;
   background-color: rgb(var(--v-theme-lightergrey));
 
+}
+.zone-row {
+  padding:1rem;
 }
 .row {
   height: 100%

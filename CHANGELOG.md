@@ -4,11 +4,13 @@
 ### Bug fixes
 
 * **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
-## [future] ()
-## [5.3.e] (Future)
+
+## [5.3.e] (2024-04-11)
 
 ### Changes
 * creating and copying a scenario will select it. if a scen already loaded. will ask to change. [#510](https://github.com/systragroup/quetzal-network-editor/issues/510)
+
+* Can now chose a file In matrixRoadCaster to be used as Zone.
 
 
 ## [5.3.d] (2024-04-09)

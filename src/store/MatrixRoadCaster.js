@@ -1,6 +1,7 @@
 import { quetzalClient } from '@src/axiosClient.js'
 import { defineStore } from 'pinia'
 import { useIndexStore } from './index'
+import { useUserStore } from './user'
 
 import s3 from '@src/AWSClient'
 import { v4 as uuid } from 'uuid'
@@ -27,9 +28,10 @@ export const useMRCStore = defineStore('runMRC', {
       max_speed: 100,
       num_cores: 1,
       num_random_od: 1,
-      create_zone: true,
+      use_zone: false,
       hereApiKey: '',
     },
+    zoneFile: '',
   }),
 
   actions: {
@@ -66,13 +68,7 @@ export const useMRCStore = defineStore('runMRC', {
       store.changeNotification(
         { text: $gettext('Matrix Road Caster executed successfully!'), autoClose: false, color: 'success' })
     },
-
-    async startExecution (payload) {
-      this.getApproxTimer(payload.rlinks.features.length)
-      this.setParameters(payload.parameters)
-      console.log('exporting roads to s3')
-      this.error = false
-      this.running = true
+    async exportFiles(payload) {
       try {
         await s3.putObject(
           this.bucket,
@@ -82,10 +78,34 @@ export const useMRCStore = defineStore('runMRC', {
           this.bucket,
           this.callID.concat('/road_nodes.geojson'),
           JSON.stringify(payload.rnodes))
+
+        if (this.parameters.use_zone) {
+          const store = useIndexStore()
+          const userStore = useUserStore()
+          const name = payload.selectedZoneFile
+          const file = store.otherFiles.filter(el => el.name === name)[0]
+          if (file.content == null && userStore.model !== null) {
+            file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
+          }
+          await s3.putObject(
+            this.bucket,
+            this.callID.concat('/zones.geojson'),
+            file.content)
+        }
       } catch (err) {
         const store = useIndexStore()
         store.changeAlert(err)
       }
+    },
+
+    async startExecution (payload) {
+      this.getApproxTimer(payload.rlinks.features.length)
+      this.setParameters(payload.parameters)
+      this.zoneFile = payload.selectedZoneFile
+      console.log('exporting roads to s3')
+      this.error = false
+      this.running = true
+      await this.exportFiles(payload)
       let data = {
         input: JSON.stringify(this.parameters),
         name: this.callID,
@@ -107,7 +127,7 @@ export const useMRCStore = defineStore('runMRC', {
     pollExecution () {
       const intervalId = setInterval(() => {
         let data = { executionArn: this.executionArn }
-        this.timer = this.timer - 2
+        this.timer = this.timer - 4
         quetzalClient.client.post('/describe',
           data = JSON.stringify(data),
         ).then(
@@ -125,7 +145,7 @@ export const useMRCStore = defineStore('runMRC', {
           const store = useIndexStore()
           store.changeAlert(err)
         })
-      }, 2000)
+      }, 4000)
     },
     stopExecution () {
       let data = { executionArn: this.executionArn }
