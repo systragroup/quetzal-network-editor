@@ -10,8 +10,8 @@ import { computed, ref, watch, defineModel, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
-import ScheduleChart from '@src/components/map/scheduleChart.vue'
 import { useGettext } from 'vue3-gettext'
+import EditScheduleDialog from './EditScheduleDialog.vue'
 const { $gettext } = useGettext()
 
 const showDialog = defineModel('showDialog')
@@ -31,6 +31,7 @@ watch(showDialog, (val) => {
   if (val) { store.changeNotification({ text: '', autoClose: true }) }
   showHint.value = false
   showDeleteOption.value = false
+  showSchedule.value = false
 })
 
 const numLinks = computed(() => { return Array.isArray(editorForm.value) ? editorForm.value.length : 1 })
@@ -220,7 +221,7 @@ function deleteField (field) {
     scrollable
     persistent
     :max-width="
-      showSchedule ? '60rem':
+      showSchedule ? '80rem':
       numLinks > 1 ? '40rem': '30rem'
     "
   >
@@ -232,7 +233,7 @@ function deleteField (field) {
       </v-card-title>
       <v-divider />
       <v-card-text v-if="showSchedule">
-        <ScheduleChart />
+        <EditScheduleDialog />
       </v-card-text>
       <v-card-text v-else>
         <v-row>
