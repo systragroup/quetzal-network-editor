@@ -139,12 +139,12 @@ async function createProject (event) {
         store.changeNotification(
           { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
       }
+      selectScenario(null, { model: localModel.value, scenario: input.value, protected: false })
     } catch (err) {
       store.changeAlert(err)
       selectedScenario.value = null
       copyLoading.value = false }
     copyLoading.value = false
-    selectScenario(null, { model: localModel.value, scenario: input.value, protected: false })
     closeCopy()
     loading.value = true
     userStore.getScenario({ model: localModel.value }).then(() => { loading.value = false })
