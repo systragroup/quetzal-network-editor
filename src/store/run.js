@@ -155,7 +155,7 @@ export const useRunStore = defineStore('run', {
 
       try {
         let data = { stateMachineArn: this.stateMachineArnBase + userStore.model }
-        const response = await quetzalClient.client.post('/describe/model',
+        const response = await quetzalClient.client.post('/model/describe',
           data = JSON.stringify(data))
         const def = JSON.parse(response.data.definition)
 
@@ -251,7 +251,7 @@ export const useRunStore = defineStore('run', {
         }),
         stateMachineArn: this.stateMachineArnBase + userStore.model,
       }
-      quetzalClient.client.post('',
+      quetzalClient.client.post('/model/start',
         data = JSON.stringify(data),
       ).then(
         response => {
@@ -266,11 +266,12 @@ export const useRunStore = defineStore('run', {
     pollExecution () {
       const intervalId = setInterval(async () => {
         let data = { executionArn: this.executionArn }
-        quetzalClient.client.post('/describe',
+        quetzalClient.client.post('/execution/describe',
           data = JSON.stringify(data),
         ).then(
           response => {
             this.status = response.data.status
+            console.log(this.status)
             if (this.status === 'SUCCEEDED') {
               this.getOutputs().then(
                 () => {
@@ -291,6 +292,8 @@ export const useRunStore = defineStore('run', {
             }
           }).catch(
           err => {
+            console.log(err)
+            clearInterval(intervalId)
             const store = useIndexStore()
             store.changeAlert(err)
             this.running = false
@@ -302,7 +305,7 @@ export const useRunStore = defineStore('run', {
     async getHistory () {
       try {
         let data = { executionArn: this.executionArn, includeExecutionData: false, reverseOrder: true }
-        const response = await quetzalClient.client.post('/history', data = JSON.stringify(data))
+        const response = await quetzalClient.client.post('/execution/history', data = JSON.stringify(data))
         const arr = []
         for (const event of response.data.events) {
           if (['TaskStateEntered'].includes(event.type)) {
@@ -315,7 +318,7 @@ export const useRunStore = defineStore('run', {
 
     stopExecution () {
       let data = { executionArn: this.executionArn }
-      quetzalClient.client.post('/abort',
+      quetzalClient.client.post('/execution/abort',
         data = JSON.stringify(data),
       ).then(
         response => {

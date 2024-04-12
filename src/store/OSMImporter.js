@@ -92,7 +92,7 @@ export const useOSMStore = defineStore('runOSM', {
         name: this.callID,
         stateMachineArn: this.stateMachineArn,
       }
-      quetzalClient.client.post('',
+      quetzalClient.client.post('/model/start',
         data = JSON.stringify(data),
       ).then(
         response => {
@@ -109,7 +109,7 @@ export const useOSMStore = defineStore('runOSM', {
       const intervalId = setInterval(() => {
         let data = { executionArn: this.executionArn }
         this.timer = this.timer - 2
-        quetzalClient.client.post('/describe',
+        quetzalClient.client.post('/execution/describe',
           data = JSON.stringify(data),
         ).then(
           async response => {
@@ -131,7 +131,7 @@ export const useOSMStore = defineStore('runOSM', {
     },
     stopExecution () {
       let data = { executionArn: this.executionArn }
-      quetzalClient.client.post('/abort',
+      quetzalClient.client.post('/execution/abort',
         data = JSON.stringify(data),
       ).then(
         response => {
