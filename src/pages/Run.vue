@@ -12,13 +12,13 @@ const { $gettext } = useGettext()
 const store = useIndexStore()
 const runStore = useRunStore()
 const userStore = useUserStore()
-const stepFunction = ref('')
+
 const steps = computed(() => { return runStore.steps })
 const avalaibleStepFunctions = computed(() => {
   const modelsSet = runStore.availableModels
   return runStore.avalaibleStepFunctions.filter(el => modelsSet.has(el))
 })
-const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
+const stepFunction = ref(runStore.selectedStepFunction)
 const running = computed(() => { return runStore.running })
 const currentStep = computed(() => { return runStore.currentStep })
 const error = computed(() => { return runStore.error })
@@ -33,7 +33,6 @@ watch(endSignal, () => runStore.changeEndSignal(endSignal.value))
 onMounted(async () => {
   if (modelIsLoaded.value) {
     await runStore.getSteps()
-    stepFunction.value = selectedStepFunction.value
     await runStore.GetRunningExecution()
   }
 })
