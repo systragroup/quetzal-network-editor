@@ -43,10 +43,14 @@ async function readJson (bucket, key) {
   }
 }
 
-async function readBytes (bucket, key) {
+async function readBytes (bucket, key, limit = 3000) {
+  // limit in MB. return nothing
   const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
-  // const params = { Bucket: bucket, Key: key }
   const response = await s3Client.getObject(params) // await the promise
+  if (response.ContentLength * 1e-6 > limit) {
+    return null
+  }
+
   const fileContent = await response.Body.transformToByteArray() // can also do 'base64' here if desired
   return fileContent
 }

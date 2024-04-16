@@ -18,6 +18,7 @@ export default {
     const message = ref('')
     const skeletons = ref(0)
     const numItems = ref(10)
+    const limit = 40 // 40mb max to display
 
     async function getCSV () {
       // get the list of CSV from output files.
@@ -29,7 +30,7 @@ export default {
 
       for (const file of csvFiles) {
         if (!(file.content instanceof Uint8Array)) {
-          file.content = await s3.readBytes(userStore.model, scenario + file.path)
+          file.content = await s3.readBytes(userStore.model, scenario + file.path, limit)
         }
       }
       return csvFiles
@@ -43,7 +44,10 @@ export default {
         for (const file of files) {
         // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
           const name = file.path.slice(0, -4)
-          const data = await csvJSONWorker(file.content.buffer)
+          const data = (file.content !== null)
+            ? await csvJSONWorker(file.content.buffer)
+            : [{ too_large: `cannot display, more than ${limit} mb` }]
+
           const headers = []
           Object.keys(data[0]).forEach(val => headers.push({ title: val, key: val, width: '1%' }))
           tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
@@ -78,8 +82,8 @@ export default {
     }
     return { tables, message, numItems, loadItems, skeletons }
   },
-
 }
+
 </script>
 <template>
   <section class="layout">

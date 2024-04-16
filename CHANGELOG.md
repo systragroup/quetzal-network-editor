@@ -3,7 +3,12 @@
 
 ### Bug fixes
 
-* **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
+* **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation.
+ 
+## [5.3.g] (FUTURE)
+### Changes
+* CSV page: will not fetch are display more than 40mb csv file. return empty Table with message "too big" [#501](https://github.com/systragroup/quetzal-network-editor/issues/501)
+
 
 ## [5.3.f] (2024-04-16)
 
