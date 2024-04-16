@@ -5,6 +5,14 @@
 
 * **Calcutation when deleting node**: Speed calculation when deleting node was wrong resulting in a incorrect time calculation. 
 
+## [5.3.f] (2024-04-16)
+
+### Changes
+* librairies updates (vueJS, mapbox)
+
+### Bug fixes
+* Result Table was wrong, unscrolllable.
+
 ## [5.3.e] (2024-04-11)
 
 ### Changes

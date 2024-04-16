@@ -86,7 +86,7 @@ export default {
     <p v-if="tables.length===0">
       {{ $gettext(message) }}
     </p>
-    <v-card
+    <div
       v-for="(table,key) in tables"
       :key="key"
       class="card elevation-3"
@@ -94,7 +94,7 @@ export default {
       <v-data-table-server
         :items-per-page="numItems"
         :headers="table.headers"
-        :height="table.items.length >= 10 ? '35rem':'auto'"
+        :height="table.items.length >= 10 ? '36rem':'auto'"
         :items-length="table.totalItems"
         fixed-header
         fixed-footer
@@ -110,24 +110,23 @@ export default {
           </v-toolbar>
         </template>
       </v-data-table-server>
-    </v-card>
-    <v-card
+    </div>
+    <div
       v-if="skeletons>0"
       class="card elevation-3"
     >
       <v-skeleton-loader
         type="heading,table-thead, table-tbody "
       />
-    </v-card>
+    </div>
   </section>
 </template>
 <style lang="scss" scoped>
 
 .layout {
-  background-color:rgb(var(--v-theme-background));
+  background-color:rgb(var(--v-theme-white));
   display: flex;
   height: 100%;
-  width:100%;
   align-items: center;
   flex-direction: column;
   overflow-y: scroll;
@@ -136,12 +135,15 @@ export default {
 }
 .card {
   width:80%;
+  height:100%;
   margin: 10px;
   background-color:rgb(var(--v-theme-lightergrey));
+
 }
 .custom-title {
   height:3rem;
   align-content: center  !important;
+
 }
 
 </style>
