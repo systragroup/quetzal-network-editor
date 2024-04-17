@@ -582,15 +582,12 @@ function deleteButton (obj) {
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
 }
-
-.clickable:hover {
-  font-weight:bold;
-  //font-size:110% ;
-  text-shadow: 0 0 1px rgb(var(--v-theme-black));
-}
-
 .clickable{
   cursor: pointer;
+}
+.clickable:hover {
+  font-weight:bold;
+  text-shadow: 0 0 1px rgb(var(--v-theme-black));
 }
 .left-panel {
   height: 100%;

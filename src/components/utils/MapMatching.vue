@@ -91,7 +91,8 @@ function RoutingBetweenTwoPoints(nodeA, nodeB) {
   const filtered = rlinks.features.filter(link => nodesSet.has(link.properties.a) || nodesSet.has(link.properties.b))
   console.timeEnd('filter')
   console.time('getGeom')
-  const { geom, indexList } = getGeom(filtered, linksList)
+  // const { geom, indexList } = getGeom(filtered, linksList)
+  const { geom } = getGeom(filtered, linksList)
   console.timeEnd('getGeom')
   console.timeEnd('apply')
 
