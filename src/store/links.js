@@ -527,11 +527,11 @@ export const useLinksStore = defineStore('links', {
           ...link2.geometry.coordinates.slice(1)]
         link1.properties.b = link2.properties.b
         // weighed average for speed. this help to have round value of speed (ex both 20kmh, at the end 20kmh)
-        const len1 = Number(link1.properties.length)
-        const len2 = Number(link2.properties.length)
+        const time1 = Number(link1.properties.time)
+        const time2 = Number(link2.properties.time)
         const speed1 = Number(link1.properties.speed)
         const speed2 = Number(link2.properties.speed)
-        link1.properties.speed = Number((speed1 * len1 + speed2 * len2) / (len1 + len2)).toFixed(6)
+        link1.properties.speed = Number((speed1 * time1 + speed2 * time2) / (time1 + time2)).toFixed(6)
         this.calcLengthTime(link1)
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = this.editorLinks.features.findIndex(
