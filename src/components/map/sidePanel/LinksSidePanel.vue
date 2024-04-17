@@ -9,6 +9,8 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
+import MapMatching from '@src/components/utils/MapMatching.vue'
+
 const { $gettext } = useGettext()
 const emit = defineEmits(['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'])
 const maxSize = 200
@@ -245,7 +247,7 @@ function deleteButton (obj) {
     <v-card
       max-width="100%"
       min-width="100%"
-      :style="{'height':'calc(100vh - 250px)'}"
+      :style="editorTrip? {'height':'calc(100vh - 300px)'}: {'height':'calc(100vh - 260px)'}"
       class=" mx-auto scrollable"
     >
       <v-list-item>
@@ -366,7 +368,7 @@ function deleteButton (obj) {
             v-if="ShowGroupList.has(value.name + key)"
             :items="value.tripId"
             :item-height="45"
-            :max-height="'calc(100vh - 250px - 220px)'"
+            :max-height="editorTrip? 'calc(100vh - 250px - 190px)': 'calc(100vh - 250px - 150px)'"
             class="virtual-scroll"
           >
             <template v-slot="{ item }">
@@ -374,12 +376,13 @@ function deleteButton (obj) {
                 :key="item"
                 class="container"
               >
-                <v-checkbox-btn
+                <v-checkbox
                   v-model="localSelectedTrip"
-                  class="pl-2"
+                  class="ml-4"
                   :true-icon="'fa-eye fa'"
                   :false-icon="'fa-eye-slash fa'"
-                  :color="'primary'"
+                  color="primary"
+                  density="compact"
                   :value="item"
                   hide-details
                 />
@@ -391,6 +394,7 @@ function deleteButton (obj) {
                     <v-list-item-title
                       v-bind="props"
                       :style="{'font-weight' : item===editorTrip? 'bold':'normal'}"
+                      class="item"
                     >
                       {{ item }}
                     </v-list-item-title>
@@ -406,9 +410,10 @@ function deleteButton (obj) {
                     <v-btn
                       variant="text"
                       icon="fas fa-pen"
-                      class="ma-1"
                       size="small"
-                      :color="'regular'"
+                      density="compact"
+                      class="ma-1"
+                      color="regular"
                       :disabled="editorTrip ? true: false"
                       v-bind="props"
                       @click="editButton(item)"
@@ -426,6 +431,7 @@ function deleteButton (obj) {
                       variant="text"
                       icon="fas fa-list"
                       size="small"
+                      density="compact"
                       class="ma-1"
                       color="regular"
                       :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
@@ -444,8 +450,9 @@ function deleteButton (obj) {
                     <v-btn
                       variant="text"
                       icon="fas fa-clone"
-                      class="ma-1"
                       size="small"
+                      density="compact"
+                      class="ma-1"
                       color="regular"
                       :disabled="editorTrip ? true: false"
                       v-bind="props"
@@ -463,9 +470,9 @@ function deleteButton (obj) {
                     <v-btn
                       variant="text"
                       size="small"
+                      density="compact"
+                      class="ml-3 mr-3"
                       icon="fas fa-trash"
-                      class="ma-1"
-
                       :disabled="editorTrip ? true: false"
                       v-bind="props"
                       @click="deleteButton({trip:item,message:item,action:'deleteTrip'})"
@@ -481,66 +488,70 @@ function deleteButton (obj) {
 
       <v-divider />
     </v-card>
-    <v-card class="mx-auto py-2">
+    <div class="mx-auto py-2 card">
       <div v-if="editorTrip">
-        <v-tooltip
-          location="right"
-          open-delay="500"
-        >
-          <template v-slot:activator="{ props }">
-            <v-btn
-              class="mx-1"
-              :color="store.anchorMode? 'grey':'regular'"
-              v-bind="props"
-              size="small"
-              icon="fas fa-anchor"
-              @click="store.changeAnchorMode()"
-            />
-          </template>
-          <span> {{ $gettext("Edit Line geometry") }} </span>
-        </v-tooltip>
-        <v-tooltip
-          location="right"
-          open-delay="500"
-        >
-          <template v-slot:activator="{ props }">
-            <v-btn
-              class="mx-1"
-              size="small"
-              :color="store.stickyMode? 'green':'regular'"
-              v-bind="props"
-              icon="fa-solid fa-magnet"
-              @click="store.changeStickyMode()"
-            />
-          </template>
-          <span> {{ $gettext("stick nodes on existing nodes") }}</span>
-        </v-tooltip>
-
-        <v-btn
-          @click="$emit('abortChanges')"
-        >
-          <v-icon
-            size="small"
-            start
+        <div class="action-row">
+          <v-tooltip
+            location="right"
+            open-delay="500"
           >
-            fas fa-times-circle
-          </v-icon>
-          {{ $gettext("Abort") }}
-        </v-btn>
-        <v-btn
-          color="primary"
-          class="mx-2"
-
-          @click="$emit('confirmChanges')"
-        >
-          <v-icon
-            size="small"
-            start
+            <template v-slot:activator="{ props }">
+              <v-btn
+                class="mx-1"
+                :color="store.anchorMode? 'grey':'regular'"
+                v-bind="props"
+                size="small"
+                icon="fas fa-anchor"
+                @click="store.changeAnchorMode()"
+              />
+            </template>
+            <span> {{ $gettext("Edit Line geometry") }} </span>
+          </v-tooltip>
+          <v-tooltip
+            location="right"
+            open-delay="500"
           >
-            fas fa-save
-          </v-icon>
-          {{ $gettext("Confirm") }}
-        </v-btn>
+            <template v-slot:activator="{ props }">
+              <v-btn
+                class="mx-1"
+                size="small"
+                :color="store.stickyMode? 'green':'regular'"
+                v-bind="props"
+                icon="fa-solid fa-magnet"
+                @click="store.changeStickyMode()"
+              />
+            </template>
+            <span> {{ $gettext("stick nodes on existing nodes") }}</span>
+          </v-tooltip>
+          <MapMatching />
+        </div>
+        <div>
+          <v-btn
+            @click="$emit('abortChanges')"
+          >
+            <v-icon
+              size="small"
+              start
+            >
+              fas fa-times-circle
+            </v-icon>
+            {{ $gettext("Abort") }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            class="mx-2"
+
+            @click="$emit('confirmChanges')"
+          >
+            <v-icon
+              size="small"
+              start
+            >
+              fas fa-save
+            </v-icon>
+            {{ $gettext("Confirm") }}
+          </v-btn>
+        </div>
       </div>
       <div
         v-else
@@ -563,7 +574,7 @@ function deleteButton (obj) {
           <span>{{ $gettext("Create new Line") }}</span>
         </v-tooltip>
       </div>
-    </v-card>
+    </div>
   </section>
 </template>
 <style lang="scss" scoped>
@@ -649,6 +660,16 @@ transition:0.3s
   justify-content: center !important;
   margin: 0 !important;
   color: white;
+}
+.card {
+  display:flex;
+  background-color: rgb(var(--v-theme-lightergrey));
+  margin:0.5rem;
+  padding: 1rem
+}
+.action-row {
+  padding:0.2rem;
+
 }
 
 </style>
