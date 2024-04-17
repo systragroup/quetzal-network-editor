@@ -126,7 +126,7 @@ function showGroup (val) {
 }
 
 function editButton (value) {
-  if (editorTrip.value !== value) {
+  if (!editorTrip.value) {
     linksStore.setEditorTrip({ tripId: value, changeBounds: true })
     store.changeNotification({ text: '', autoClose: true })
   }
@@ -378,7 +378,7 @@ function deleteButton (obj) {
               >
                 <v-checkbox
                   v-model="localSelectedTrip"
-                  class="ml-4"
+                  class="ml-4 mr-2"
                   :true-icon="'fa-eye fa'"
                   :false-icon="'fa-eye-slash fa'"
                   color="primary"
@@ -394,7 +394,8 @@ function deleteButton (obj) {
                     <v-list-item-title
                       v-bind="props"
                       :style="{'font-weight' : item===editorTrip? 'bold':'normal'}"
-                      class="item"
+                      :class="editorTrip?'item': 'item clickable'"
+                      @click="editButton(item)"
                     >
                       {{ item }}
                     </v-list-item-title>
@@ -471,7 +472,7 @@ function deleteButton (obj) {
                       variant="text"
                       size="small"
                       density="compact"
-                      class="ml-3 mr-3"
+                      class="ml-1 mr-3"
                       icon="fas fa-trash"
                       :disabled="editorTrip ? true: false"
                       v-bind="props"
@@ -590,11 +591,21 @@ function deleteButton (obj) {
   align-items: center;
 }
 .item{
-  flex:1;
-  padding-left: 1rem;
+  margin-right: auto;
+  padding-left: 0.5rem;
   white-space: nowrap;     /* Prevents text from wrapping to the next line */
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
+}
+
+.clickable:hover {
+  font-weight:bold;
+  //font-size:110% ;
+  text-shadow: 0 0 1px rgb(var(--v-theme-black));
+}
+
+.clickable{
+  cursor: pointer;
 }
 .left-panel {
   height: 100%;
