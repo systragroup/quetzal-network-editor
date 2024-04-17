@@ -49,6 +49,8 @@
     "lodash": "^4.17.21",
     "map-promisified": "latest",
     "mapbox-gl": "^3.3.0",
+    "ngraph.graph": "^20.0.1",
+    "ngraph.path": "^1.5.0",
     "pinia": "^2.1.7",
     "seedrandom": "^3.0.5",
     "sha256-uint8array": "^0.10.7",
