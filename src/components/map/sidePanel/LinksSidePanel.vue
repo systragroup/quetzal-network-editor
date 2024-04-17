@@ -9,7 +9,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
-import MapMatching from '@src/components/utils/MapMatching.vue'
+// import MapMatching from '@src/components/utils/MapMatching.vue'
 
 const { $gettext } = useGettext()
 const emit = defineEmits(['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'])
@@ -524,32 +524,25 @@ function deleteButton (obj) {
             </template>
             <span> {{ $gettext("stick nodes on existing nodes") }}</span>
           </v-tooltip>
-          <MapMatching />
+          <!---
+              <MapMatching />
+          -->
         </div>
         <div>
           <v-btn
+            prepend-icon="fas fa-times-circle"
+            width="40%"
             @click="$emit('abortChanges')"
           >
-            <v-icon
-              size="small"
-              start
-            >
-              fas fa-times-circle
-            </v-icon>
             {{ $gettext("Abort") }}
           </v-btn>
           <v-btn
             color="primary"
             class="mx-2"
-
+            width="55%"
+            prepend-icon="fas fa-save"
             @click="$emit('confirmChanges')"
           >
-            <v-icon
-              size="small"
-              start
-            >
-              fas fa-save
-            </v-icon>
             {{ $gettext("Confirm") }}
           </v-btn>
         </div>
@@ -558,22 +551,14 @@ function deleteButton (obj) {
         v-else
         :style="{'justify-content':'flex-end'}"
       >
-        <v-tooltip
-          location="bottom"
-          open-delay="500"
+        <v-btn
+          color="primary"
+          block
+          prepend-icon="fas fa-plus"
+          @click="createNewLine"
         >
-          <template v-slot:activator="{ props }">
-            <v-btn
-              color="primary"
-              size="small"
-              class="mx-2"
-              icon="fas fa-plus"
-              v-bind="props"
-              @click="createNewLine"
-            />
-          </template>
-          <span>{{ $gettext("Create new Line") }}</span>
-        </v-tooltip>
+          {{ $gettext("new Line") }}
+        </v-btn>
       </div>
     </div>
   </section>
@@ -679,8 +664,7 @@ transition:0.3s
   padding: 1rem
 }
 .action-row {
-  padding:0.2rem;
-
+  margin-bottom:0.3rem
 }
 
 </style>
