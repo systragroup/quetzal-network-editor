@@ -95,16 +95,16 @@ function saveMapPosition () {
 }
 
 // All of the rasters
-const visibleRasters = computed(() => { return store.visibleRasters })
-const rasterFiles = computed(() => { return store.styles })
-const availableLayers = computed(() => { return store.availableLayers })
+const visibleRasters = computed(() => store.visibleRasters)
+const rasterFiles = computed(() => store.styles)
+const availableLayers = computed(() => store.availableLayers)
 
 // modes
 const { mode } = toRefs(props)
-const editorNodes = computed(() => { return linksStore.editorNodes })
-const anchorMode = computed(() => { return store.anchorMode })
-const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-const editorTrip = computed(() => { return linksStore.editorTrip })
+const editorNodes = computed(() => linksStore.editorNodes)
+const anchorMode = computed(() => store.anchorMode)
+const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
+const editorTrip = computed(() => linksStore.editorTrip)
 const isEditorMode = computed(() => editorTrip.value !== null)
 
 // DrakLink
@@ -143,6 +143,7 @@ function clickStopDraw (event) {
 
 watch(editorTrip, (val) => {
   store.setStickyMode(false)
+  store.setRoutingMode(false)
   connectedDrawLink.value = false
   if (val) {
     store.setAnchorMode(false)
@@ -255,6 +256,7 @@ function addPointPT(event) {
     const newNode = linksStore.newNode.features[0].properties.index
     useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
   }
+  routing()
 }
 
 function addPointRoad(event) {
@@ -363,6 +365,9 @@ function applyStickyNode() {
       { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
   }
 }
+
+import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
+const { routing } = useMapMatching()
 
 </script>
 <template>

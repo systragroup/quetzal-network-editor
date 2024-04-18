@@ -38,6 +38,9 @@ const isSticking = computed(() => { return stickyStateId.value !== null && hover
 const keepHovering = ref(false)
 const dragNode = ref(false)
 
+import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
+const { routing } = useMapMatching()
+
 const disablePopup = ref(false)
 
 const popupEditor = ref({
@@ -116,6 +119,7 @@ function contextMenuAnchor() {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)
     linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value[0].properties })
+    routing()
   }
 }
 
@@ -133,7 +137,6 @@ function linkRightClick (event) {
   }
 }
 function actionClick (event) {
-  console.log(event)
   switch (event.action) {
     case 'Cut Before Node':
       linksStore.cutLineAtNode({ selectedNode: event.feature.properties })
@@ -143,6 +146,7 @@ function actionClick (event) {
       break
     case 'Delete Stop':
       linksStore.deleteNode({ selectedNode: event.feature.properties })
+      routing()
       break
     default:
       // edit node info
@@ -259,6 +263,7 @@ function stopMovingNode () {
   if (stickyStateId.value) {
     emits('useStickyNode', { selectedNode: selectedFeature.value.properties.index, stickyNode: stickyStateId.value.id })
   }
+  routing()
   // emit a clickNode with the selected node.
   // this will work with lag as it is the selectedFeature and not the highlighted one.
 }

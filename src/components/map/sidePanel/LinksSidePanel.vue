@@ -9,7 +9,6 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
-// import MapMatching from '@src/components/utils/MapMatching.vue'
 
 const { $gettext } = useGettext()
 const emit = defineEmits([
@@ -546,9 +545,12 @@ function deleteButton (obj) {
             </template>
             <span> {{ $gettext("stick nodes on existing nodes") }}</span>
           </v-tooltip>
-          <!---
-              <MapMatching />
-          -->
+          <v-btn
+            size="small"
+            :color="store.routingMode? 'green':'regular'"
+            icon="fas fa-road"
+            @click="store.changeRoutingMode()"
+          />
         </div>
         <div>
           <v-btn
