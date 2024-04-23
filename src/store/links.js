@@ -625,28 +625,43 @@ export const useLinksStore = defineStore('links', {
 
     addNodeInline (payload) {
       // payload contain selectedLink and event.lngLat (clicked point)
-      let linkGeom = this.editorLinks.features.filter((link) => link.properties.index === payload.selectedLink.index)
-      const nodeCopyId = linkGeom[0].properties.a
-      linkGeom = Linestring(linkGeom[0].geometry.coordinates)
+      const link = this.editorLinks.features.filter((link) => link.properties.index === payload.selectedLink.index)[0]
+      const linkGeom = Linestring(link.geometry.coordinates)
       const clickedPoint = Point(Object.values(payload.lngLat))
       const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
+      // we snap on the temp geom for the index:
       const dist = length(linkGeom, { units: 'kilometers' }) // dist
       // for multiString, gives the index of the closest one, add +1 for the slice.
       const sliceIndex = snapped.properties.index + 1
       const offset = snapped.properties.location / dist
       if (payload.nodes === 'editorNodes') {
+        const nodeCopyId = link.properties.a
         this.setNewNode({ coordinates: snapped.geometry.coordinates, nodeCopyId })
         this.splitLink({ selectedLink: payload.selectedLink, offset, sliceIndex })
-      // Anchor Nodes
-      } else {
+        // Anchor Nodes
+      } else if (payload.nodes === 'anchorNodes') {
         this.addAnchorNode({
           selectedLink: payload.selectedLink,
           coordinates: snapped.geometry.coordinates,
           sliceIndex,
         })
+      } else {
+        // in the cas of a Routing Anchor, we want the find the slice index on the
+        // virtual geometry created with link.proeperties.anchor. not the actual geom.
+        const inBetween = link.properties.anchors || []
+        const routingGeom = Linestring([
+          link.geometry.coordinates[0],
+          ...inBetween,
+          ...link.geometry.coordinates.slice(-1),
+        ])
+        const snapped2 = nearestPointOnLine(routingGeom, clickedPoint, { units: 'kilometers' })
+        const anchorSliceIndex = snapped2.properties.index
+        this.addRoutingAnchorNode({
+          selectedLink: payload.selectedLink,
+          coordinates: snapped.geometry.coordinates,
+          sliceIndex: anchorSliceIndex,
+        })
       }
-
-      // this.commit('setNewNode', null) // init new node to null
     },
     addAnchorNode (payload) {
       const linkIndex = payload.selectedLink.index
@@ -673,6 +688,33 @@ export const useLinksStore = defineStore('links', {
 
       // update time and distance
       this.calcLengthTime(link)
+    },
+    addRoutingAnchorNode (payload) {
+      const linkIndex = payload.selectedLink.index
+      const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
+      // changing link change editorLinks as it is an observer.
+      const link = this.editorLinks.features[featureIndex]
+      // if anchor properties does not exist: create it. else append at correct index.
+      if (Object.keys(link.properties).includes('anchors')) {
+        link.properties.anchors.splice(payload.sliceIndex, 0, payload.coordinates)
+      } else {
+        link.properties.anchors = [payload.coordinates]
+      }
+    },
+
+    deleteRoutingAnchorNode (payload) {
+      const linkIndex = payload.selectedNode.linkIndex
+      const coordinatedIndex = payload.selectedNode.coordinatedIndex
+      const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
+        ...link.properties.anchors.slice(coordinatedIndex + 1)]
+    },
+
+    moveRoutingAnchor (payload) {
+      const linkIndex = payload.selectedNode.properties.linkIndex
+      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
+      const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      link.properties.anchors[coordinatedIndex] = payload.lngLat
     },
 
     moveNode (payload) {
@@ -941,6 +983,32 @@ export const useLinksStore = defineStore('links', {
         },
       )
       return nodes
+    },
+    routeAnchorNodes: (state) => {
+      const nodes = cloneDeep(geojson)
+      state.editorLinks.features.forEach(
+        feature => {
+          const linkIndex = feature.properties.index
+          feature.properties.anchors?.forEach(
+            (point, idx) => nodes.features.push({
+              properties: { index: short.generate(), linkIndex, coordinatedIndex: idx },
+              geometry: { coordinates: point, type: 'Point' },
+            }),
+          )
+        },
+      )
+      return nodes
+    },
+    routeAnchorLine: (state) => {
+      const geom = []
+      state.editorLinks.features.forEach(link => {
+        const inBetween = link.properties.anchors || []
+        // only first node as last node for an iteration is first for the other.
+        if (geom.length === 0) { geom.push(link.geometry.coordinates[0]) }
+        geom.push(...inBetween)
+        geom.push(...link.geometry.coordinates.slice(-1))
+      })
+      return Linestring(geom)
     },
     // this return the attribute type, of undefined.
     attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,

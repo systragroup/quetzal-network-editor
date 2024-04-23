@@ -142,11 +142,11 @@ function clickStopDraw (event) {
 }
 
 watch(editorTrip, (val) => {
+  store.setAnchorMode(false)
   store.setStickyMode(false)
   store.setRoutingMode(false)
   connectedDrawLink.value = false
   if (val) {
-    store.setAnchorMode(false)
     if (linksStore.changeBounds) {
       const bounds = new Mapbox.LngLatBounds()
       editorNodes.value.features.forEach(node => {
@@ -156,9 +156,7 @@ watch(editorTrip, (val) => {
         padding: 200,
       })
     }
-  } else {
-    drawMode.value = false
-  }
+  } else { drawMode.value = false }
 })
 
 watch(isEditorMode, (val) => {
