@@ -20,7 +20,6 @@ export function useMapMatching () {
     }
   })
   onUnmounted(() => {
-    console.log('unmounted')
     graph.value = createGraph()
     kdTree.value = null
   })
@@ -36,6 +35,7 @@ export function useMapMatching () {
   const nodes = linksStore.editorNodes
 
   function updateGraph() {
+    console.log('updateGraph')
     rlinks.features.forEach(link => {
       graph.value.addLink(link.properties.a, link.properties.b, { weight: link.properties.time })
       if (link.properties.oneway === '0') {
@@ -60,23 +60,31 @@ export function useMapMatching () {
   }
 
   function getGeom(filtered, linksList) {
+    let slice = 0 // we want to skip first geom (first node) every rlink except first one.
     const geom = []
     const indexList = []
     for (const index of linksList) {
       let tlink = filtered.filter(link => link.properties.a === index[0] && link.properties.b === index[1])[0]
       if (tlink) { // not founded check reversed (oneway encode only one time...)
-        geom.push(...cloneDeep(tlink.geometry.coordinates))
+        geom.push(...cloneDeep(tlink.geometry.coordinates).slice(slice))
+        slice = 1 // dont slice first time
       } else {
         tlink = filtered.filter(link => link.properties.a === index[1] && link.properties.b === index[0])[0]
-        geom.push(...cloneDeep(tlink.geometry.coordinates).reverse())
+        geom.push(...cloneDeep(tlink.geometry.coordinates).reverse().slice(slice))
+        slice = 1 // dont slice first time
       }
       indexList.push(tlink.properties.index)
     }
     return { geom, indexList }
   }
 
-  function fastNearest(node) {
-    const geom = node.geometry.coordinates
+  function nearest(node) {
+    // find 30 nearrest. proj on links. find link intersection...
+    // can take a node or geometries.
+    // for links over 100km. add points?
+    // proj on links!
+
+    const geom = Array.isArray(node) ? node : node.geometry.coordinates
     const resp = findNearestPoint(kdTree.value, geom)
     return resp.point[2]
   }
@@ -85,39 +93,81 @@ export function useMapMatching () {
   function RoutingBetweenTwoPoints(nodeA, nodeB) {
   // takes 2 nodes and return the road geometry between them.
 
-    let fromNodeId = fastNearest(nodeA)
-    let toNodeId = fastNearest(nodeB)
+    let fromNodeId = nearest(nodeA)
+    let toNodeId = nearest(nodeB)
     const nodesList = dijkstra(fromNodeId, toNodeId)
     // nodes to links list [1,2,3,4] => [[1,2], [2,3], [3,4]]
     const linksList = nodesList.map((num, index) => [num, nodesList[index + 1]]).slice(0, -1)
     // filter rlinks for faster search.
     const nodesSet = new Set(nodesList)
     const filtered = rlinks.features.filter(link => nodesSet.has(link.properties.a) || nodesSet.has(link.properties.b))
+    return getGeom(filtered, linksList)
+  }
 
-    // const { geom, indexList } = getGeom(filtered, linksList)
-    const { geom } = getGeom(filtered, linksList)
+  function routeLink(link) {
+    const indexA = link.properties.a
+    const indexB = link.properties.b
+    const nodeA = nodes.features.filter(node => node.properties.index === indexA)[0]
+    const nodeB = nodes.features.filter(node => node.properties.index === indexB)[0]
+    const geom = RoutingBetweenTwoPoints(nodeA, nodeB)
+    link.geometry.coordinates = geom
+  }
+  function routeLinkWithAnchor(link) {
+    const indexA = link.properties.a
+    const indexB = link.properties.b
+    const nodeA = nodes.features.filter(node => node.properties.index === indexA)[0]
+    const nodeB = nodes.features.filter(node => node.properties.index === indexB)[0]
+    const anchors = link.properties.anchors || []
+    // [1,2,3,4] => [[1,2], [2,3], [3,4]]
+    const nodesList = [nodeA, ...anchors, nodeB]
+    const linkList = nodesList.map((num, index) => [num, nodesList[index + 1]]).slice(0, -1)
 
-    return geom
+    let geomTot = []
+    let rlinksList = []
+    for (const tempLink of linkList) {
+      const { geom, indexList } = RoutingBetweenTwoPoints(tempLink[0], tempLink[1])
+      geomTot = [...geomTot, ...geom]
+      rlinksList = [...rlinksList, ...indexList]
+    }
+    link.geometry.coordinates = geomTot
+    link.properties.road_link_list = rlinksList
   }
 
   function routing() {
     if (routingMode.value) {
       for (const link of links.features) {
-        routeLink(link)
+        routeLinkWithAnchor(link)
       }
     }
   }
-  function routeLink(link) {
-    const indexA = link.properties.a
-    const nodeA = nodes.features.filter(node => node.properties.index === indexA)[0]
-    const indexB = link.properties.b
-    const nodeB = nodes.features.filter(node => node.properties.index === indexB)[0]
-    const geom = RoutingBetweenTwoPoints(nodeA, nodeB)
-    link.geometry.coordinates = geom
+
+  function unRoute() {
+    for (const link of links.features) {
+      const indexA = link.properties.a
+      const indexB = link.properties.b
+      const nodeA = nodes.features.filter(node => node.properties.index === indexA)[0]
+      const nodeB = nodes.features.filter(node => node.properties.index === indexB)[0]
+      const anchors = link.properties.anchors || []
+      // [1,2,3,4] => [[1,2], [2,3], [3,4]]
+      const geom = [nodeA.geometry.coordinates, ...anchors, nodeB.geometry.coordinates]
+      link.geometry.coordinates = geom
+      delete link.properties.road_link_list
+      // delete link.properties.anchors
+    }
+  }
+  function toggleRouting() {
+    if (Object.keys(links.features[0].properties).includes('road_link_list')) {
+      unRoute()
+    } else {
+      // maybe, add anchor to anchors props
+      routing()
+    }
   }
 
   return {
     routing,
+    toggleRouting,
+    routeLinkWithAnchor,
     routeLink,
   }
 }

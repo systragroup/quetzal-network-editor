@@ -27,8 +27,20 @@ watch(stickyMode, () => { map.value.getSource('stickyNodes').setData(visibleNode
 watch(showedTrips, () => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
 
 const anchorMode = computed(() => { return store.anchorMode })
+const routingMode = computed(() => { return store.routingMode })
 
-const anchorNodes = computed(() => { return anchorMode.value ? linksStore.anchorNodes : geojson })
+const anchorNodes = computed(() => {
+  if (anchorMode.value) {
+    if (routingMode.value) {
+      return linksStore.routeAnchorNodes
+    } else {
+      return linksStore.anchorNodes
+    }
+  } else {
+    return geojson
+  }
+})
+
 const { map } = toRefs(props)
 
 const selectedFeature = ref(null)
@@ -40,6 +52,13 @@ const dragNode = ref(false)
 
 import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
 const { routing } = useMapMatching()
+const routeAnchorLine = computed(() => {
+  if (anchorMode.value && routingMode.value) {
+    return linksStore.routeAnchorLine
+  } else {
+    return geojson
+  }
+})
 
 const disablePopup = ref(false)
 
@@ -65,19 +84,14 @@ function selectClick (event) {
 
     if (selectedFeature.value !== null) {
       if (hoveredStateId.value.layerId === 'editorLinks') {
-        if (anchorMode.value) {
-          linksStore.addNodeInline({
-            selectedLink: selectedFeature.value.properties,
-            lngLat: event.mapboxEvent.lngLat,
-            nodes: 'anchorNodes',
-          })
-        } else {
-          linksStore.addNodeInline({
-            selectedLink: selectedFeature.value.properties,
-            lngLat: event.mapboxEvent.lngLat,
-            nodes: 'editorNodes',
-          })
-        }
+        let mode = 'editorNodes'
+        if (anchorMode.value && routingMode.value) { mode = 'anchorRoutingNodes'
+        } else if (anchorMode.value) { mode = 'anchorNodes' }
+        linksStore.addNodeInline({
+          selectedLink: selectedFeature.value.properties,
+          lngLat: event.mapboxEvent.lngLat,
+          nodes: mode,
+        })
       }
     }
   }
@@ -118,7 +132,11 @@ function contextMenuAnchor() {
   if (hoveredStateId.value?.layerId === 'anchorNodes') {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)
-    linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value[0].properties })
+    if (routingMode.value) {
+      linksStore.deleteRoutingAnchorNode({ selectedNode: selectedFeature.value[0].properties })
+    } else {
+      linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value[0].properties })
+    }
     routing()
   }
 }
@@ -243,7 +261,12 @@ function onMove (event) {
   // only if dragmode is activated (we just leave the node hovering state.)
   if (dragNode.value && selectedFeature.value) {
     if (hoveredStateId.value.layerId === 'anchorNodes') {
-      linksStore.moveAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
+      if (routingMode.value) {
+        linksStore.moveRoutingAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
+      }
+      else {
+        linksStore.moveAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
+      }
     } else {
       linksStore.moveNode({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
     }
@@ -394,6 +417,25 @@ function stopMovingNode () {
       }"
       @mouseover="onCursorSticky"
       @mouseleave="offCursorSticky"
+    />
+    <MglGeojsonLayer
+      source-id="virtualLine"
+      :source="{
+        type: 'geojson',
+        data: routeAnchorLine,
+        buffer: 0,
+        promoteId: 'index',
+      }"
+      layer-id="virtualLine"
+      :layer="{
+        type: 'line',
+        minzoom: 2,
+        paint: {
+          'line-color': $vuetify.theme.current.colors.linkssecondary,
+          'line-width': 3,
+          'line-dasharray':['literal', [0, 2, 4]],
+        }
+      }"
     />
 
     <MglPopup

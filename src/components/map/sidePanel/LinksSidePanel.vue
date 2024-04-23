@@ -1,6 +1,3 @@
-<script>
-</script>
-
 <script setup>
 
 import short from 'short-uuid'
@@ -9,6 +6,9 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
+import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
+
+const { toggleRouting } = useMapMatching()
 
 const { $gettext } = useGettext()
 const emit = defineEmits([
@@ -551,6 +551,9 @@ function deleteButton (obj) {
             icon="fas fa-road"
             @click="store.changeRoutingMode()"
           />
+          <v-btn @click="toggleRouting">
+            test
+          </v-btn>
         </div>
         <div>
           <v-btn
