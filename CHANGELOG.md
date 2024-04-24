@@ -1,6 +1,7 @@
 ## [5.3.h] (2024-04-24)
 ### bug fixes
 * Step function not rendering choices
+* French in copy scenario was causing a signature error.
 
 
 ## [5.3.g] (2024-04-17)

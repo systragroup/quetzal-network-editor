@@ -134,7 +134,7 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
     newFile = newFile.join('/')
     // need to encode special character (é for example).
     let oldPath = file.Key.split('/')
-    oldPath[0] = encodeURIComponent(oldPath[0])
+    oldPath = oldPath.map(str => encodeURIComponent(str))
     oldPath = oldPath.join('/')
     // get old metadata and change the user email.
     const metadata = file.Metadata
