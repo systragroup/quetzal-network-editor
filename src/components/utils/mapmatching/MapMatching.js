@@ -1,4 +1,6 @@
-import { buildKdTree, findNearestPoint } from './nearest.js'
+import { buildKdTree, knn } from './nearest.js'
+import nearestPointOnLine from '@turf/nearest-point-on-line'
+
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
@@ -61,40 +63,68 @@ export function useMapMatching () {
 
   function getGeom(filtered, linksList) {
     let slice = 0 // we want to skip first geom (first node) every rlink except first one.
-    const geom = []
-    const indexList = []
+    let geom = []
+    let indexList = []
     for (const index of linksList) {
       let tlink = filtered.filter(link => link.properties.a === index[0] && link.properties.b === index[1])[0]
       if (tlink) { // not founded check reversed (oneway encode only one time...)
-        geom.push(...cloneDeep(tlink.geometry.coordinates).slice(slice))
+        geom = geom.concat(toRaw(tlink.geometry.coordinates).slice(slice))
         slice = 1 // dont slice first time
       } else {
         tlink = filtered.filter(link => link.properties.a === index[1] && link.properties.b === index[0])[0]
-        geom.push(...cloneDeep(tlink.geometry.coordinates).reverse().slice(slice))
+        geom = geom.concat((tlink.geometry.coordinates).reverse().slice(slice))
         slice = 1 // dont slice first time
       }
-      indexList.push(tlink.properties.index)
+      indexList.concat(tlink.properties.index)
     }
     return { geom, indexList }
   }
 
-  function nearest(node) {
+  function nearest(node, k = 25) {
     // find 30 nearrest. proj on links. find link intersection...
     // can take a node or geometries.
     // for links over 100km. add points?
     // proj on links!
 
     const geom = Array.isArray(node) ? node : node.geometry.coordinates
-    const resp = findNearestPoint(kdTree.value, geom)
-    return resp.point[2]
+    console.time('knn')
+    const resp = knn(kdTree.value, geom, k)
+    console.timeEnd('knn')
+
+    return resp.points.map(p => p[2])
+  }
+  function testNearest() {
+    const indexA = links.features[0].properties.a
+    const node = nodes.features.filter(node => node.properties.index === indexA)[0]
+    const test = knn(kdTree.value, node.geometry.coordinates, 25)
+    const index = test.points.map(el => el[2])
+    const tempNodes = cloneDeep(rnodes)
+    tempNodes.features = rnodes.features.filter(node => index.includes(node.properties.index))
+    return tempNodes
+  }
+
+  function nodesToLinks(node, candidate) {
+    console.time('filter')
+    const nodesSet = new Set(candidate)
+    const filtered = rlinks.features.filter(link => nodesSet.has(link.properties.a))
+    console.timeEnd('filter')
+    console.time('proj')
+    const clickedPoint = Array.isArray(node) ? node : node.geometry.coordinates
+    const test = filtered.map(link => nearestPointOnLine(link, clickedPoint, { units: 'kilometers' }))
+    console.log(test)
+    console.timeEnd('proj')
   }
 
   // graph.addLink('a', 'b', {weight: 10});
   function RoutingBetweenTwoPoints(nodeA, nodeB) {
   // takes 2 nodes and return the road geometry between them.
 
-    let fromNodeId = nearest(nodeA)
-    let toNodeId = nearest(nodeB)
+    let fromNodeCandidate = nearest(nodeA)
+    let toNodeCandidate = nearest(nodeB)
+    nodesToLinks(nodeA, fromNodeCandidate)
+
+    const fromNodeId = fromNodeCandidate[0]
+    const toNodeId = toNodeCandidate[0]
     const nodesList = dijkstra(fromNodeId, toNodeId)
     // nodes to links list [1,2,3,4] => [[1,2], [2,3], [3,4]]
     const linksList = nodesList.map((num, index) => [num, nodesList[index + 1]]).slice(0, -1)
@@ -126,8 +156,8 @@ export function useMapMatching () {
     let rlinksList = []
     for (const tempLink of linkList) {
       const { geom, indexList } = RoutingBetweenTwoPoints(tempLink[0], tempLink[1])
-      geomTot = [...geomTot, ...geom]
-      rlinksList = [...rlinksList, ...indexList]
+      geomTot = geomTot.concat(geom)
+      rlinksList = rlinksList.concat(indexList)
     }
     link.geometry.coordinates = geomTot
     link.properties.road_link_list = rlinksList
@@ -166,6 +196,7 @@ export function useMapMatching () {
 
   return {
     routing,
+    testNearest,
     toggleRouting,
     routeLinkWithAnchor,
     routeLink,
