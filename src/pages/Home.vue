@@ -67,7 +67,7 @@ export default {
         showDialog.value = true
       } else if (action.value === 'Edit Group Info') {
         groupTripIds.value = new Set(event.tripIds)
-        const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id']
+        const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.links.features.filter(
           link => groupTripIds.value.has(link.properties.trip_id))
@@ -77,7 +77,7 @@ export default {
       } else if (action.value === 'Edit Link Info') {
         // link is clicked on the map
         selectedLink.value = event.selectedFeature.properties
-        const uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id']
+        const uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.editorLinks.features.filter(
           (link) => link.properties.index === selectedLink.value.index)

@@ -52,6 +52,7 @@ export const useLinksStore = defineStore('links', {
       { name: 'drop_off_type', type: 'Number' }, // int
       { name: 'link_sequence', type: 'Number' }, // int
       { name: 'direction_id', type: 'Number' }, // int
+      // { name: 'anchors', type: 'Array' }, // list
     ],
   }),
 
@@ -367,7 +368,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     getEditorLineInfo () {
-      const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence']
+      const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors']
       // empty trip, when its a newLine
       if (this.editorLinks.features.length === 0) {
         const defaultValue = {

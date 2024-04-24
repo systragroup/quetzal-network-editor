@@ -22,10 +22,24 @@ function buildKdTree(points, depth = 0) {
   return new Node(median, leftChild, rightChild)
 }
 
-function distanceSquared(p1, p2) {
-  const dx = p1[0] - p2[0]
-  const dy = p1[1] - p2[1]
-  return dx * dx + dy * dy
+function haversine(coord1, coord2) {
+  const [lon1, lat1] = coord1
+  const [lon2, lat2] = coord2
+  const toRad = (deg) => deg * (Math.PI / 180)
+  const R = 6371000 // radius of Earth in meters
+  const phi_1 = toRad(lat1)
+  const phi_2 = toRad(lat2)
+
+  const delta_phi = toRad(lat2 - lat1)
+  const delta_lambda = toRad(lon2 - lon1)
+
+  const a = Math.sin(delta_phi / 2.0) ** 2 + Math.cos(phi_1) * Math.cos(phi_2) * Math.sin(delta_lambda / 2.0) ** 2
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  const meters = R * c // output distance in meters
+
+  return meters
 }
 
 function findNearestPoint(tree, queryPoint, bestPoint = null, bestDist = Infinity, depth = 0) {
@@ -35,7 +49,7 @@ function findNearestPoint(tree, queryPoint, bestPoint = null, bestDist = Infinit
 
   const axis = depth % 2
   const currentPoint = tree.point
-  const currentDist = distanceSquared(queryPoint, currentPoint)
+  const currentDist = haversine(queryPoint, currentPoint)
 
   let nearest = bestPoint
   let nearestDist = bestDist
@@ -52,7 +66,7 @@ function findNearestPoint(tree, queryPoint, bestPoint = null, bestDist = Infinit
   nearest = candidate.point
   nearestDist = candidate.distance
 
-  if (distanceSquared(queryPoint, currentPoint) < nearestDist) {
+  if (haversine(queryPoint, currentPoint) < nearestDist) {
     const otherCandidate = findNearestPoint(otherSide, queryPoint, nearest, nearestDist, depth + 1)
     nearest = otherCandidate.point
     nearestDist = otherCandidate.distance
@@ -61,4 +75,52 @@ function findNearestPoint(tree, queryPoint, bestPoint = null, bestDist = Infinit
   return { point: nearest, distance: nearestDist }
 }
 
-export { buildKdTree, findNearestPoint }
+function findNearestPoints(tree, queryPoint, k, nearestPoints = [], nearestDistances = [], depth = 0) {
+  if (tree === null) {
+    return { points: nearestPoints, distances: nearestDistances }
+  }
+
+  const axis = depth % 2
+  const currentPoint = tree.point
+  const currentDist = haversine(queryPoint, currentPoint)
+
+  // Update nearestPoints and nearestDistances
+  if (nearestPoints.length < k) {
+    nearestPoints.push(currentPoint)
+    nearestDistances.push(currentDist)
+  } else {
+    const maxDistIndex = nearestDistances.indexOf(Math.max(...nearestDistances))
+    if (currentDist < nearestDistances[maxDistIndex]) {
+      nearestPoints[maxDistIndex] = currentPoint
+      nearestDistances[maxDistIndex] = currentDist
+    }
+  }
+
+  const isLeft = queryPoint[axis] < currentPoint[axis]
+
+  if (isLeft) {
+    findNearestPoints(tree.left, queryPoint, k, nearestPoints, nearestDistances, depth + 1)
+    if (tree.right && (nearestPoints.length < k || queryPoint[axis] - currentPoint[axis] < nearestDistances[nearestDistances.length - 1])) {
+      findNearestPoints(tree.right, queryPoint, k, nearestPoints, nearestDistances, depth + 1)
+    }
+  } else {
+    findNearestPoints(tree.right, queryPoint, k, nearestPoints, nearestDistances, depth + 1)
+    if (tree.left && (nearestPoints.length < k || currentPoint[axis] - queryPoint[axis] < nearestDistances[nearestDistances.length - 1])) {
+      findNearestPoints(tree.left, queryPoint, k, nearestPoints, nearestDistances, depth + 1)
+    }
+  }
+
+  return { points: nearestPoints, distances: nearestDistances }
+}
+
+function knn(kdTree, geom, k = 1) {
+  // Sort nearest points based on distances
+  const resp = findNearestPoints(kdTree, geom, k)
+  const sortedIndices = resp.distances.map((_, i) => i).sort((a, b) => resp.distances[a] - resp.distances[b])
+  resp.points = sortedIndices.map(i => resp.points[i])
+  resp.distances = sortedIndices.map(i => resp.distances[i])
+
+  return resp
+}
+
+export { buildKdTree, findNearestPoint, findNearestPoints, knn }
