@@ -36,6 +36,14 @@ onMounted(async () => {
     await runStore.GetRunningExecution()
   }
 })
+watch(avalaibleStepFunctions, (val) => {
+  if (modelIsLoaded.value) {
+    if (!val.includes(stepFunction.value)) {
+      runStore.setSelectedStepFunction(val[0])
+      runStore.getSteps()
+    }
+  }
+})
 
 watch(stepFunction, async (val) => {
   if (modelIsLoaded.value) {

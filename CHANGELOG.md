@@ -1,3 +1,8 @@
+## [5.3.h] (2024-04-24)
+### bug fixes
+* Step function not rendering choices
+
+
 ## [5.3.g] (2024-04-17)
 ### Changes
 * CSV page: will not fetch are display more than 40mb csv file. return empty Table with message "too big" [#501](https://github.com/systragroup/quetzal-network-editor/issues/501)
