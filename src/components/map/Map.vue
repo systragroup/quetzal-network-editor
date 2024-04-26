@@ -251,10 +251,12 @@ function addPointPT(event) {
   } else if (connectedDrawLink.value && hoverLayer.value === 'stickyNodes' && hoverId.value) {
     // reuse a existing node. create the link and simulate a move event with useStickyNode()
     linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
-    const newNode = linksStore.newNode.features[0].properties.index
+    const newNode = linksStore.newNode.properties.index
     useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
   }
-  routing()
+  if (store.routingMode) {
+    routeLink(linksStore.newLink)
+  }
 }
 
 function addPointRoad(event) {
@@ -365,7 +367,7 @@ function applyStickyNode() {
 }
 
 import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
-const { routing } = useMapMatching()
+const { routeLink } = useMapMatching()
 
 </script>
 <template>

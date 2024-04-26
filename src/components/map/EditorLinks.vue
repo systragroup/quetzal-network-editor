@@ -51,7 +51,7 @@ const keepHovering = ref(false)
 const dragNode = ref(false)
 
 import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
-const { routing } = useMapMatching()
+const { routeLink, routing } = useMapMatching()
 const routeAnchorLine = computed(() => {
   if (anchorMode.value && routingMode.value) {
     return linksStore.routeAnchorLine
@@ -84,13 +84,13 @@ function selectClick (event) {
 
     if (selectedFeature.value !== null) {
       if (hoveredStateId.value.layerId === 'editorLinks') {
-        let mode = 'editorNodes'
-        if (anchorMode.value && routingMode.value) { mode = 'anchorRoutingNodes'
-        } else if (anchorMode.value) { mode = 'anchorNodes' }
+        let type = 'editorNodes'
+        if (anchorMode.value && routingMode.value) { type = 'anchorRoutingNodes'
+        } else if (anchorMode.value) { type = 'anchorNodes' }
         linksStore.addNodeInline({
           selectedLink: selectedFeature.value.properties,
           lngLat: event.mapboxEvent.lngLat,
-          nodes: mode,
+          nodes: type,
         })
       }
     }
@@ -247,6 +247,7 @@ function moveNode (event) {
     // get selected node
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
+    linksStore.getConnectedLinks({ selectedNode: selectedFeature.value })
 
     // disable popup
     disablePopup.value = true
@@ -263,8 +264,7 @@ function onMove (event) {
     if (hoveredStateId.value.layerId === 'anchorNodes') {
       if (routingMode.value) {
         linksStore.moveRoutingAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
-      }
-      else {
+      } else {
         linksStore.moveAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
       }
     } else {
@@ -286,7 +286,11 @@ function stopMovingNode () {
   if (stickyStateId.value) {
     emits('useStickyNode', { selectedNode: selectedFeature.value.properties.index, stickyNode: stickyStateId.value.id })
   }
-  routing()
+  if (routingMode.value) {
+    linksStore.connectedLinks.b.forEach(link => routeLink(link))
+    linksStore.connectedLinks.a.forEach(link => routeLink(link))
+    linksStore.connectedLinks.anchor.forEach(link => routeLink(link))
+  }
   // emit a clickNode with the selected node.
   // this will work with lag as it is the selectedFeature and not the highlighted one.
 }
