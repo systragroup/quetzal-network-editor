@@ -1,4 +1,4 @@
-<script>
+<script setup>
 
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
@@ -8,224 +8,192 @@ import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
 import { computed, ref, watch, onMounted } from 'vue'
 
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-export default {
-  name: 'ScenariosExplorer',
-  components: { SimpleDialog },
-  emits: ['load', 'unload'],
+const emits = defineEmits(['load', 'unload'])
+const store = useIndexStore()
+const userStore = useUserStore()
+const runStore = useRunStore()
+const loading = ref(false)
+const loggedIn = computed(() => userStore.loggedIn)
 
-  setup (_, context) {
-    const store = useIndexStore()
-    const userStore = useUserStore()
-    const runStore = useRunStore()
-    const loading = ref(false)
-    const loggedIn = computed(() => userStore.loggedIn)
+const projectIsEmpty = computed(() => store.projectIsEmpty)
 
-    const projectIsEmpty = computed(() => store.projectIsEmpty)
+// logic to show the v-menu
+const model = computed(() => { return userStore.model }) // globaly selected Model
+const localModel = ref(model.value)
 
-    // logic to show the v-menu
-    const model = computed(() => { return userStore.model }) // globaly selected Model
-    const localModel = ref(model.value)
+watch(localModel, async (val) => {
+  // when we click on a tab (model), fetch the scenario list.
+  userStore.setScenariosList([])
+  loading.value = true
+  await userStore.getScenario({ model: val })
+  loading.value = false
+})
 
-    watch(localModel, async (val) => {
-      // when we click on a tab (model), fetch the scenario list.
-      userStore.setScenariosList([])
-      loading.value = true
-      await userStore.getScenario({ model: val })
-      loading.value = false
-    })
-
-    const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
-    const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
-    const modelScen = computed(() => { return userStore.model + userStore.scenario })
-    onMounted(async () => {
-      // a scenario is selected: scroll to it.
-      // note: 0 because null + null = 0
-      if (modelScen.value !== 0) {
-        document.getElementById(modelScen.value).scrollIntoView()
-        // also. go fetch the scenario List if DB changed.
-        loading.value = true
-        await userStore.getScenario({ model: localModel.value })
-        loading.value = false
-      }
-    })
-    const localScen = ref(scenario.value) // locally selected scen. need to cancel selection for example.
-    const locked = ref(false)
-    watch(modelsList, async (val) => {
-      // kind of a onMounted
-      // This component is rendered before we fetch the bucket list on cognito API.
-      // so, when it fetch, set the model to the first one and get the scenario.
-      if (localModel.value === null) { localModel.value = modelsList.value[0] }
-      // when logout. this will happen. we want to reset localModel for its watcher to work on login.
-      if (val.length === 0) { localModel.value = null }
-    })
-    function formatTab(tab) {
-      return tab.startsWith('quetzal-') ? tab.slice(8) : tab
-    }
-
-    watch(scenario, (val) => {
-      if (val !== localScen.value) {
-        localScen.value = ''
-      }
-    })
-
-    function selectScenario (e, val) {
-      if (e.type === 'keydown') { return }
-      localScen.value = val.scenario
-      locked.value = val.protected
-      if (val.scenario) {
-        if (projectIsEmpty.value && !scenario.value) {
-          loadProject()
-        } else {
-          showDialog.value = true
-        }
-      }
-    }
-    async function loadProject () {
-      runStore.cleanRun()
-      userStore.setModel(localModel.value)
-      userStore.setScenario({ scenario: localScen.value, protected: locked.value })
-      context.emit('load', 'emit')
-    }
-
-    const searchString = ref('')
-    const sortModel = ref('scenario')
-    const sortDirection = ref(true)
-    const scenariosList = computed(() => {
-      // sort by alphabetical order, with protectedScens one one top
-      let arr = userStore.scenariosList
-      if (searchString.value) {
-        arr = arr.filter(el => el.scenario.toLowerCase().includes(searchString.value.toLowerCase()))
-      }
-      return arr.sort((a, b) => {
-        if (a.protected === b.protected) { // both true or both false. we go alphabetically
-          const res = String(a[sortModel.value]).localeCompare(String(b[sortModel.value]),
-            undefined, { sensitivity: 'base' })
-          return sortDirection.value ? res : -res
-        } else if (a.protected) {
-          return -1 // `a` comes before `b`
-        } else {
-          return 1 // `b` comes before `a`
-        }
-      })
-    })
-
-    const showDialog = ref(false)
-    const copyDialog = ref(false)
-    const deleteDialog = ref(false)
-    const input = ref('')
-    const errorMessage = ref('')
-    const selectedScenario = ref(null)
-    const scenarioToDelete = ref(null)
-
-    async function createProject () {
-      if (input.value === '') {
-        errorMessage.value = 'Please enter a name'
-      } else if (input.value.includes('/')) {
-        errorMessage.value = 'cannot have / in name'
-      } else if (scenariosList.value.map(p => p.scenario).includes(input.value)) {
-        errorMessage.value = 'project already exist'
-      } else {
-        try {
-          if (selectedScenario.value) {
-            // this is a copy
-            await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value, false)
-            store.changeNotification(
-              { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
-          } else {
-            // this is a new project
-            // copy the parameters file from Base. this will create a new project .
-            // take first Scen. should be base or any locked scen
-            const protectedList = userStore.scenariosList.filter(scen => scen.protected)
-            const base = protectedList[0].scenario
-            await s3.copyFolder(localModel.value, base, input.value, true)
-            store.changeNotification(
-              { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
-          }
-        } catch (err) { store.changeAlert(err); selectedScenario.value = null }
-        closeCopy()
-        loading.value = true
-        // wait 500ms to fetch the scenarios to make sure its available on the DB
-        setTimeout(() => {
-          userStore.getScenario({ model: localModel.value }).then(() => { loading.value = false })
-            .catch((err) => { store.changeAlert(err); loading.value = false })
-        }, 500)
-      }
-    }
-    function applyDialog () {
-      showDialog.value = false
-      if (modelScen.value === localModel.value + localScen.value) {
-        userStore.unloadProject()
-        context.emit('unload')
-      } else {
-        loadProject()
-      }
-    }
-    function cancelDialog () {
-      // reset vmodel back to loaded scenario
-      modelScen.value = model.value + scenario.value
-      localScen.value = scenario.value
-      showDialog.value = false
-    }
-    function deleteScenario () {
-      deleteDialog.value = false
-      s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(() => {
-        deleteDialog.value = false
-        userStore.getScenario({ model: localModel.value })
-        store.changeNotification(
-          { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
-      }).catch((err) => {
-        deleteDialog.value = false
-        console.error(err)
-        store.changeNotification(
-          { text: $gettext('An error occured'), autoClose: true, color: 'error' })
-      })
-    }
-    function closeCopy () {
-      copyDialog.value = false
-      input.value = ''
-      selectedScenario.value = null
-      errorMessage.value = ''
-    }
-
-    return {
-      store,
-      userStore,
-      runStore,
-      searchString,
-      sortModel,
-      sortDirection,
-      projectIsEmpty,
-      loggedIn,
-      modelsList,
-      formatTab,
-      model,
-      localModel,
-      scenario,
-      scenariosList,
-      loading,
-      showDialog,
-      modelScen,
-      localScen,
-      errorMessage,
-      copyDialog,
-      selectedScenario,
-      scenarioToDelete,
-      input,
-      deleteDialog,
-      locked,
-      selectScenario,
-      loadProject,
-      applyDialog,
-      cancelDialog,
-      deleteScenario,
-      createProject,
-      closeCopy,
-    }
-  },
-
+const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
+const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
+const modelScen = computed(() => { return userStore.model + userStore.scenario })
+onMounted(async () => {
+  // a scenario is selected: scroll to it.
+  // note: 0 because null + null = 0
+  if (modelScen.value !== 0) {
+    document.getElementById(modelScen.value).scrollIntoView()
+    // also. go fetch the scenario List if DB changed.
+    loading.value = true
+    await userStore.getScenario({ model: localModel.value })
+    loading.value = false
+  }
+})
+const localScen = ref(scenario.value) // locally selected scen. need to cancel selection for example.
+const locked = ref(false)
+watch(modelsList, async (val) => {
+  // kind of a onMounted
+  // This component is rendered before we fetch the bucket list on cognito API.
+  // so, when it fetch, set the model to the first one and get the scenario.
+  if (localModel.value === null) { localModel.value = modelsList.value[0] }
+  // when logout. this will happen. we want to reset localModel for its watcher to work on login.
+  if (val.length === 0) { localModel.value = null }
+})
+function formatTab(tab) {
+  return tab.startsWith('quetzal-') ? tab.slice(8) : tab
 }
+
+watch(scenario, (val) => {
+  if (val !== localScen.value) {
+    localScen.value = ''
+  }
+})
+
+function selectScenario (e, val) {
+  if (e?.type === 'keydown') { return }
+  localScen.value = val.scenario
+  locked.value = val.protected
+  if (val.scenario) {
+    if (projectIsEmpty.value && !scenario.value) {
+      loadProject()
+    } else {
+      showDialog.value = true
+    }
+  }
+}
+async function loadProject () {
+  runStore.cleanRun()
+  userStore.setModel(localModel.value)
+  userStore.setScenario({ scenario: localScen.value, protected: locked.value })
+  emits('load', 'emit')
+}
+
+const searchString = ref('')
+const sortModel = ref('scenario')
+const sortDirection = ref(true)
+const scenariosList = computed(() => {
+  // sort by alphabetical order, with protectedScens one one top
+  let arr = userStore.scenariosList
+  if (searchString.value) {
+    arr = arr.filter(el => el.scenario.toLowerCase().includes(searchString.value.toLowerCase()))
+  }
+  return arr.sort((a, b) => {
+    if (a.protected === b.protected) { // both true or both false. we go alphabetically
+      const res = String(a[sortModel.value]).localeCompare(String(b[sortModel.value]),
+        undefined, { sensitivity: 'base' })
+      return sortDirection.value ? res : -res
+    } else if (a.protected) {
+      return -1 // `a` comes before `b`
+    } else {
+      return 1 // `b` comes before `a`
+    }
+  })
+})
+
+const copyDialog = ref(false)
+const input = ref('')
+const selectedScenario = ref(null)
+const copyLoading = ref(false)
+
+const rules = ref({
+  required: v => v !== '' || $gettext('Please enter a name'),
+  noSlash: v => !v.includes('/') || $gettext('cannot have / in name'),
+  noHash: v => !v.includes('#') || $gettext('cannot have # in name'),
+  noDuplicated: v => !scenariosList.value.map(p => p.scenario).includes(v) || $gettext('project already exist'),
+})
+
+async function createProject (event) {
+  const resp = await event
+  if (resp.valid) {
+    try {
+      copyLoading.value = true
+      if (selectedScenario.value) {
+        // this is a copy
+        await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value, false)
+        store.changeNotification(
+          { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
+      } else {
+        // this is a new project
+        // copy the parameters file from Base. this will create a new project .
+        // take first Scen. should be base or any locked scen
+        const protectedList = userStore.scenariosList.filter(scen => scen.protected)
+        const base = protectedList[0].scenario
+        await s3.copyFolder(localModel.value, base, input.value, true)
+        store.changeNotification(
+          { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
+      }
+      selectScenario(null, { model: localModel.value, scenario: input.value, protected: false })
+    } catch (err) {
+      store.changeAlert(err)
+      selectedScenario.value = null
+      copyLoading.value = false }
+    copyLoading.value = false
+    closeCopy()
+    loading.value = true
+    userStore.getScenario({ model: localModel.value }).then(() => { loading.value = false })
+      .catch((err) => { store.changeAlert(err); loading.value = false })
+  }
+}
+
+function closeCopy () {
+  copyDialog.value = false
+  input.value = ''
+  selectedScenario.value = null
+}
+
+const showDialog = ref(false)
+
+function applyDialog () {
+  showDialog.value = false
+  if (modelScen.value === localModel.value + localScen.value) {
+    userStore.unloadProject()
+    emits('unload')
+  } else {
+    loadProject()
+  }
+}
+function cancelDialog () {
+  // reset vmodel back to loaded scenario
+  modelScen.value = model.value + scenario.value
+  localScen.value = scenario.value
+  showDialog.value = false
+}
+
+const deleteDialog = ref(false)
+const scenarioToDelete = ref(null)
+
+function deleteScenario () {
+  deleteDialog.value = false
+  s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(() => {
+    deleteDialog.value = false
+    userStore.getScenario({ model: localModel.value })
+    store.changeNotification(
+      { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
+  }).catch((err) => {
+    deleteDialog.value = false
+    console.error(err)
+    store.changeNotification(
+      { text: $gettext('An error occured'), autoClose: true, color: 'error' })
+  })
+}
+
 </script>
 <template>
   <div
@@ -373,8 +341,8 @@ export default {
 
   <SimpleDialog
     v-model="showDialog"
-    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Change Scenario')"
-    :body="$gettext('Any unsaved changes will be lost')"
+    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{scen} ?',{scen: localScen})"
+    :body="$gettext('Any unsaved changes to %{scen} will be lost',{scen: model})"
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
@@ -397,48 +365,49 @@ export default {
     max-width="290"
   >
     <v-card>
-      <v-card-text>
-        <span class="text-h5">
-          <strong>
-            {{ selectedScenario? $gettext("copy") +' '+ selectedScenario : $gettext('New Scenario') }}
-          </strong>
-        </span>
-      </v-card-text>
-      <v-card-text>
-        <v-container>
-          <v-col cols="12">
-            <v-text-field
-              v-model="input"
-              variant="underlined"
-              autofocus
-              :label="$gettext('name')"
-            />
-          </v-col>
-        </v-container>
-      </v-card-text>
-      <v-card-text :style="{textAlign: 'center',color:'red'}">
-        {{ errorMessage }}
-      </v-card-text>
+      <v-form
+        ref="form"
+        class="form"
+        @submit.prevent="createProject"
+      >
+        <v-card-text>
+          <span class="text-h5">
+            <strong>
+              {{ selectedScenario? $gettext("copy") +' '+ selectedScenario : $gettext('New Scenario') }}
+            </strong>
+          </span>
+        </v-card-text>
+        <v-card-text>
+          <v-text-field
+            v-model="input"
+            variant="underlined"
+            autofocus
+            :rules="[rules.required,rules.noSlash,rules.noHash,rules.noDuplicated]"
+            :label="$gettext('name')"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
 
-      <v-card-actions>
-        <v-spacer />
+          <v-btn
+            color="grey"
+            variant="text"
+            :disabled="copyLoading"
+            @click="closeCopy"
+          >
+            {{ $gettext("Cancel") }}
+          </v-btn>
 
-        <v-btn
-          color="grey"
-          variant="text"
-          @click="closeCopy"
-        >
-          {{ $gettext("Cancel") }}
-        </v-btn>
-
-        <v-btn
-          color="green-darken-1"
-          variant="text"
-          @click="createProject"
-        >
-          {{ $gettext("ok") }}
-        </v-btn>
-      </v-card-actions>
+          <v-btn
+            color="green-darken-1"
+            variant="text"
+            :loading="copyLoading"
+            type="submit"
+          >
+            {{ $gettext("ok") }}
+          </v-btn>
+        </v-card-actions>
+      </v-form>
     </v-card>
   </v-dialog>
 </template>

@@ -654,7 +654,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
     deleteUnusedrNodes () {
       // delete every every nodes not in links
-      this.rnodes.feautures = deleteUnusedNodes(this.rnodes, this.rlinks)
+      this.rnodes.features = deleteUnusedNodes(this.rnodes, this.rlinks)
     },
 
     editrGroupInfo (payload) {

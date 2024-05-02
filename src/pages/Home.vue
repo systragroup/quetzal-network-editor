@@ -12,7 +12,7 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 
-import { computed, ref, onUnmounted, onMounted } from 'vue'
+import { computed, ref, onUnmounted } from 'vue'
 const $gettext = s => s
 
 export default {
@@ -33,14 +33,6 @@ export default {
     const mode = ref('pt')
     const action = ref(null)
     const editorTrip = computed(() => linksStore.editorTrip)
-
-    onMounted(() => {
-      window.addEventListener('keydown', (e) => {
-        if ((e.key === 'Control') && (!showDialog.value) && (!cloneDialog.value) && (!deleteDialog.value)) {
-          store.changeAnchorMode()
-        }
-      })
-    })
 
     onUnmounted(() => {
       linksStore.setEditorTrip({ tripId: null, changeBounds: false })
@@ -66,6 +58,7 @@ export default {
     function actionClick (event) {
       action.value = event.action
       if (action.value === 'Edit Line Info') {
+        // this use getGroupForm. its needed as we need to store info somewhere when we create new line.
         editorForm.value = cloneDeep(linksStore.editorLineInfo)
         lingering.value = event.lingering
         showDialog.value = true
@@ -81,7 +74,7 @@ export default {
       } else if (action.value === 'Edit Link Info') {
         // link is clicked on the map
         selectedLink.value = event.selectedFeature.properties
-        const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
+        const uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.editorLinks.features.filter(
           (link) => link.properties.index === selectedLink.value.index)
@@ -113,7 +106,16 @@ export default {
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         lingering.value = event.lingering
         showDialog.value = true
-      } else if (action.value === 'Edit Visible Road Info') {
+      } else if (action.value === 'Edit selected Info') {
+        selectedLink.value = rlinksStore.rlinks.features.filter(link => event.selectedIndex.has(link.properties.index))
+        const lineAttributes = rlinksStore.rlineAttributes
+        const uneditable = ['index', 'length', 'time', 'a', 'b']
+        editorForm.value = getGroupForm(selectedLink.value, lineAttributes, uneditable)
+        lingering.value = event.lingering
+        showDialog.value = true
+      }
+
+      else if (action.value === 'Edit Visible Road Info') {
         const features = rlinksStore.visiblerLinks.features
         selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = rlinksStore.rlineAttributes
@@ -206,6 +208,9 @@ export default {
           rlinksStore.editrLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
           break
         case 'Edit Road Group Info':
+          rlinksStore.editrGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
+          break
+        case 'Edit selected Info':
           rlinksStore.editrGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
           break
         case 'Edit Visible Road Info':

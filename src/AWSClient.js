@@ -43,14 +43,18 @@ async function readJson (bucket, key) {
   }
 }
 
-async function readBytes (bucket, key) {
+async function readBytes (bucket, key, limit = 3000) {
+  // limit in MB. return nothing
   const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
-  // const params = { Bucket: bucket, Key: key }
   const response = await s3Client.getObject(params) // await the promise
+  if (response.ContentLength * 1e-6 > limit) {
+    return null
+  }
+
   const fileContent = await response.Body.transformToByteArray() // can also do 'base64' here if desired
   return fileContent
 }
-async function downloadFolder (bucket, prefix) {
+async function downloadFolder (bucket, prefix, zipName) {
   // zip everything in a folder. keep filename. Folder structure will not work.
   const zip = new JSZip()
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
@@ -65,7 +69,7 @@ async function downloadFolder (bucket, prefix) {
   }
 
   zip.generateAsync({ type: 'blob' }).then(function (content) {
-    saveAs(content, 'calibration report.zip')
+    saveAs(content, zipName)
   })
 }
 
@@ -75,17 +79,25 @@ async function listFiles (bucket, prefix) {
     prefix.forEach(async pref => {
       if (pref.slice(-1) !== '/') { pref = pref + '/' }
       const params = { Bucket: bucket, Prefix: pref }
-      const Content = await s3Client.listObjectsV2(params)
-      paths.push(...Content.Contents.map(item => item.Key))
+      const response = await s3Client.listObjectsV2(params)
+      paths.push(...response.Contents.map(item => item.Key))
     })
     return paths
   } else {
     if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
     const params = { Bucket: bucket, Prefix: prefix }
-    const Content = await s3Client.listObjectsV2(params)
-    return Content.Contents.map(item => item.Key)
+    const response = await s3Client.listObjectsV2(params)
+    return response.Contents?.map(item => item.Key) || []
   }
 }
+
+async function listFilesWithTime (bucket, prefix) {
+  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
+  const params = { Bucket: bucket, Prefix: prefix }
+  const response = await s3Client.listObjectsV2(params)
+  return response.Contents?.map(item => { return { name: item.Key, time: item.LastModified } }) || []
+}
+
 async function getImagesURL (bucket, key) {
   const params = {
     Bucket: bucket,
@@ -115,13 +127,14 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
   if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
   // get all metaData [{key,metadata}]. dont need response.Contents after that.
   const metaDataList = await getMetaData(bucket, response.Contents.map(el => el.Key))
+  const promises = []
   for (const file of metaDataList) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
     newFile = newFile.join('/')
     // need to encode special character (é for example).
     let oldPath = file.Key.split('/')
-    oldPath[0] = encodeURIComponent(oldPath[0])
+    oldPath = oldPath.map(str => encodeURIComponent(str))
     oldPath = oldPath.join('/')
     // get old metadata and change the user email.
     const metadata = file.Metadata
@@ -135,10 +148,9 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
       Metadata: metadata,
 
     }
-    s3Client.copyObject(copyParams, function (err, _) {
-      if (err) return err // an error occurred
-    })
+    promises.push(s3Client.copyObject(copyParams))
   }
+  await Promise.all(promises).then(resp => resp)
 }
 
 async function getMetaData (bucket, keys) {
@@ -291,6 +303,7 @@ export default {
   readJson,
   readBytes,
   listFiles,
+  listFilesWithTime,
   copyFolder,
   deleteFolder,
   deleteObject,

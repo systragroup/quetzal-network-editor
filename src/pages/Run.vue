@@ -1,21 +1,24 @@
 <script setup>
 
 import ParamForm from '@comp/run/ParamForm.vue'
+import Logs from '@comp/run/Logs.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
+import { useGettext } from 'vue3-gettext'
 
+const { $gettext } = useGettext()
 const store = useIndexStore()
 const runStore = useRunStore()
 const userStore = useUserStore()
-const stepFunction = ref('')
+
 const steps = computed(() => { return runStore.steps })
 const avalaibleStepFunctions = computed(() => {
   const modelsSet = runStore.availableModels
   return runStore.avalaibleStepFunctions.filter(el => modelsSet.has(el))
 })
-const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
+const stepFunction = ref(runStore.selectedStepFunction)
 const running = computed(() => { return runStore.running })
 const currentStep = computed(() => { return runStore.currentStep })
 const error = computed(() => { return runStore.error })
@@ -30,7 +33,15 @@ watch(endSignal, () => runStore.changeEndSignal(endSignal.value))
 onMounted(async () => {
   if (modelIsLoaded.value) {
     await runStore.getSteps()
-    stepFunction.value = selectedStepFunction.value
+    await runStore.GetRunningExecution()
+  }
+})
+watch(avalaibleStepFunctions, (val) => {
+  if (modelIsLoaded.value) {
+    if (!val.includes(stepFunction.value)) {
+      runStore.setSelectedStepFunction(val[0])
+      runStore.getSteps()
+    }
   }
 })
 
@@ -47,12 +58,20 @@ watch(stepFunction, async (val) => {
   }
 })
 
-async function run () {
+async function run() {
+  const wasRunning = await runStore.GetRunningExecution()
+  if (wasRunning) {
+    store.changeNotification(
+      { text: $gettext('could not start and save. This scenario was already launch by another user.'),
+        autoClose: false, color: 'warning' })
+    return
+  }
   try {
     const userStore = useUserStore()
     runStore.initExecution() // start the stepper at first step
     await store.exportToS3('inputs')
     await store.deleteOutputsOnS3()
+    await store.deleteLogsOnS3()
     store.deleteOutputs()
     runStore.startExecution({ scenario: userStore.scenario })
   } catch (err) {
@@ -70,9 +89,13 @@ async function run () {
     </v-col>
     <v-col order="2">
       <v-card class="card">
-        <v-card-title class="subtitle">
-          {{ $gettext('Scenario Simulation') }}
-        </v-card-title>
+        <div class="title-container">
+          <v-card-title class="subtitle">
+            {{ $gettext('Scenario Simulation') }}
+          </v-card-title>
+          <Logs :disabled="running || !modelIsLoaded" />
+        </div>
+
         <v-stepper
           v-model="currentStep"
           class="stepper"
@@ -134,14 +157,9 @@ async function run () {
               :loading="running"
               :disabled="running || isProtected || !modelIsLoaded"
               color="success"
+              prepend-icon="fa-solid fa-play"
               @click="run()"
             >
-              <v-icon
-                size="small"
-                style="margin-right: 10px;"
-              >
-                fa-solid fa-play
-              </v-icon>
               {{ $gettext("Run Simulation") }}
             </v-btn>
             <v-btn
@@ -150,8 +168,9 @@ async function run () {
               variant="text"
               @click="runStore.stopExecution()"
             >
-              {{ $gettext("Abort Simulation") }}
+              {{ $gettext("Abort") }}
             </v-btn>
+
             <v-switch
               v-model="endSignal"
               class="switch"
@@ -159,7 +178,7 @@ async function run () {
               false-icon="fas fa-volume-xmark"
               true-icon="fas fa-volume-high"
               inset
-              color="primary"
+              color="success"
               hide-details
             >
               <template
@@ -254,6 +273,12 @@ async function run () {
 .switch{
   margin-left:auto;
   padding-right:0.5rem;
+}
+.title-container{
+  display: flex;
+  gap:1rem;
+  align-items: center;
+  flex-direction: row;
 }
 
 </style>

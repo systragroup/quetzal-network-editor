@@ -1,9 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Import from '@page/Import.vue'
-import Home from '@page/Home.vue'
 import { useRunStore } from '@src/store/run'
 import { useIndexStore } from '../store'
 import { useUserStore } from '../store/user'
+const Home = () => import('@page/Home.vue')
+
 const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')
@@ -26,7 +27,7 @@ const router = createRouter({
     },
     {
       path: '/Microservices',
-      name: Microservices.name,
+      name: 'Microservices',
       component: Microservices,
       icon: 'fas fa-tachometer-alt',
       title: $gettext('Microservices'),
@@ -47,16 +48,17 @@ const router = createRouter({
     },
     {
       path: '/Home',
-      name: Home.name,
+      name: 'Home',
       component: Home,
       icon: 'fa-solid fa-map',
       title: $gettext('Map'),
     },
     {
       path: '/Run',
-      name: Run.name,
+      name: 'Run',
       component: Run,
       icon: 'fa-solid fa-play',
+      loading: false,
       title: $gettext('Parameters and Run'),
       beforeEnter: (to, from, next) => {
         const store = useIndexStore()
@@ -75,7 +77,7 @@ const router = createRouter({
     },
     {
       path: '/ResultMap',
-      name: ResultMap.name,
+      name: 'ResultMap',
       component: ResultMap,
       margin: '5rem',
       icon: 'fa-solid fa-layer-group',
@@ -83,14 +85,14 @@ const router = createRouter({
     },
     {
       path: '/ResultPicture',
-      name: ResultPicture.name,
+      name: 'ResultPicture',
       component: ResultPicture,
       icon: 'fas fa-images',
       title: $gettext('Results Pictures'),
     },
     {
       path: '/ResultTable',
-      name: ResultTable.name,
+      name: 'ResultTable',
       component: ResultTable,
       icon: 'fas fa-table',
       title: $gettext('Result Table'),

@@ -133,6 +133,7 @@ function linkRightClick (event) {
   }
 }
 function actionClick (event) {
+  console.log(event)
   switch (event.action) {
     case 'Cut Before Node':
       linksStore.cutLineAtNode({ selectedNode: event.feature.properties })

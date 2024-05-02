@@ -467,6 +467,10 @@ export const useIndexStore = defineStore('store', {
       const userStore = useUserStore()
       await s3.deleteFolder(userStore.model, userStore.scenario + '/outputs/')
     },
+    async deleteLogsOnS3 () {
+      const userStore = useUserStore()
+      await s3.deleteFolder(userStore.model, userStore.scenario + '/logs/')
+    },
 
   },
   getters: {

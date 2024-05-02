@@ -269,12 +269,10 @@ function deleteUserButton (user) {
       <template v-slot:activator="{ props }">
         <v-btn
           v-show="!loggedIn"
-          icon
+          prepend-icon=" fas fa-sign-in-alt"
           v-bind="props"
         >
-          <v-icon>
-            fas fa-sign-in-alt
-          </v-icon>
+          {{ $gettext('login') }}
         </v-btn>
       </template>
       <component
