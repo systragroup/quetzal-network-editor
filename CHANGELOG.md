@@ -95,3 +95,26 @@ Logs for tje API runs and The synchronisation of model Runs.
 
 ### Features
 * **Road right click selection**: can select multiple roads to edit with CTRL + right click and select in polygon with a right click drag. a click without ctrl will unselect all. [#504](https://github.com/systragroup/quetzal-network-editor/issues/504)
+
+# Previous Changelogs
+
+* [5.2 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-5.2.md) (2024-02-15 - 2024-04-17)
+* [5.1 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-5.1.md) (2024-01-16 - 2024-02-26)
+* [5.0 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-5.0.md) (2024-01-15 - 2024-01-24)
+* [4.11 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/4.11.0) (2023-11-08)
+* [4.10 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/4.10) (2023-10-16)
+* [4.9 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/4.9.0) (2023-08-22)
+* [4.8 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/4.8.0) (2023-07-28)
+* [4.7 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/4.7.0) (2023-06-28)
+* [4.6 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/4.6.0) (2023-06-08)
+* [4.0 - 4.5 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/4.5.0) (2023-06-01)
+* [3.0 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v3.0) (2023-02-28)
+* [2.7 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.7) (2022-11-25)
+* [2.6 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.6) (2022-11-10)
+* [2.5 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.5) (2022-10-31)
+* [2.4 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.4) (2022-10-20)
+* [2.3 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.3) (2022-10-14)
+* [2.2 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.2) (2022-10-06)
+* [2.1 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.1) (2022-09-21)
+* [2.0 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/v2.0) (2022-09-16)
+* [1.0 Release](https://github.com/systragroup/quetzal-network-editor/releases/tag/V1) (2022-09-14)
