@@ -38,12 +38,27 @@ export function useMapMatching () {
 
   function updateGraph() {
     rlinks.features.forEach(link => {
-      graph.value.addLink(link.properties.a, link.properties.b, { weight: link.properties.time })
+      graph.value.addLink(link.properties.a, link.properties.b, { weight: link.properties.length })
       if (link.properties.oneway === '0') {
-        graph.value.addLink(link.properties.b, link.properties.a, { weight: link.properties.time })
+        graph.value.addLink(link.properties.b, link.properties.a, { weight: link.properties.length })
       }
     })
   }
+
+  function addVirtualOrigin(link, offset, vindex = 'origin') {
+    graph.value.addLink(vindex, link.properties.a, { weight: offset })
+    graph.value.addLink(vindex, link.properties.b, { weight: offset })
+  }
+
+  function addVirtualDestination(link, offset, vindex = 'destination') {
+    graph.value.addLink(link.properties.a, vindex, { weight: offset })
+    graph.value.addLink(link.properties.b, vindex, { weight: offset })
+  }
+
+  function removeVirtualNodes(nodes = ['origin', 'destination']) {
+    nodes.forEach(id => graph.value.removeNode(id))
+  }
+
   function updateTree() {
     const dataSet = rnodes.features.map(node => [...toRaw(node.geometry.coordinates), node.properties.index])
     const midpoints = getMidPoints()
@@ -72,6 +87,7 @@ export function useMapMatching () {
     }
     return midPts
   }
+
   function dijkstra(from, to) {
     const pathFinder = path.aStar(graph.value, {
       oriented: true,
@@ -112,47 +128,49 @@ export function useMapMatching () {
     // from clicked points and candidate nodes, find closest rLink
     const nodesSet = new Set(candidate)
     const filtered = rlinks.features.filter(link => nodesSet.has(link.properties.a))
-
     const clickedPoint = Array.isArray(node) ? node : node.geometry.coordinates
     const snapped = filtered.map(link => nearestPointOnLine(link, clickedPoint, { units: 'kilometers' }))
     const distArr = snapped.map(el => el.properties.dist)
     const minIndex = distArr.indexOf(Math.min(...distArr))
-    const link = cloneDeep(filtered[minIndex])
-    return link
+    const link = filtered[minIndex]
+    const offset = (1000 * snapped[minIndex].properties.location / link.properties.length)
+    return { link, offset }
   }
 
   // graph.addLink('a', 'b', {weight: 10});
   function RoutingBetweenTwoPoints(nodeA, nodeB) {
   // takes 2 nodes and return the road geometry between them.
-
     let fromNodeCandidate = nearest(nodeA, 25)
     let toNodeCandidate = nearest(nodeB, 25)
-    const fromSnapped = nodesToLinks(nodeA, fromNodeCandidate)
-    const toSnapped = nodesToLinks(nodeB, toNodeCandidate)
+    const { link: fromLink, offset: fromOffset } = nodesToLinks(nodeA, fromNodeCandidate)
+    const { link: toLink, offset: toOffset } = nodesToLinks(nodeB, toNodeCandidate)
 
-    const fromNodeId = fromSnapped.properties.a
-    const toNodeId = toSnapped.properties.b
-    const nodesList = dijkstra(fromNodeId, toNodeId)
-    // nodes to links list [1,2,3,4] => [[1,2], [2,3], [3,4]]
-    const linksList = nodesList.map((num, index) => [num, nodesList[index + 1]]).slice(0, -1)
+    // add virtual node snap point to a,b, dijkstra then remove them
+    addVirtualOrigin(fromLink, fromOffset, 'origin')
+    addVirtualDestination(toLink, toOffset, 'destination')
+    let nodesList = dijkstra('origin', 'destination')
+    removeVirtualNodes(['origin', 'destination'])
 
-    if (linksList.length == 0) { // CANNOT ROUTE. return simple linestring
+    // replace virtual nodes ('origin' 'destination') with actual first link node. (a or b)
+    const firstNode = (nodesList[1] === fromLink.properties.a) ? fromLink.properties.b : fromLink.properties.a
+    // eslint-disable-next-line max-len
+    const lastNode = (nodesList[nodesList.length - 2] === toLink.properties.a) ? toLink.properties.b : toLink.properties.a
+    nodesList.splice(0, 1, firstNode)
+    nodesList.splice(-1, 1, lastNode)
+
+    // routing on the same link, remove the last point (fait des aller-retour sinon)
+    if (firstNode === lastNode && nodesList.length === 3) {
+      nodesList = nodesList.slice(0, 2)
+    }
+    if (nodesList.length <= 1) { // CANNOT ROUTE. return simple linestring
       const geomA = Array.isArray(nodeA) ? nodeA : nodeA.geometry.coordinates
       const geomB = Array.isArray(nodeB) ? nodeB : nodeB.geometry.coordinates
+      store.changeNotification({ text: 'cannot route', autoClose: true })
       return { geom: [geomA, geomB], indexList: [] }
-    } else {
-      // add first and last link if missing (because of link direction)
-      const lastLink = linksList.slice(-1)[0]
-      if ((lastLink[0] !== toSnapped.properties.a) || (lastLink[1] !== toSnapped.properties.b)) {
-        linksList.push([toSnapped.properties.b, toSnapped.properties.a])
-      }
-      const firstLink = linksList[0]
-      if ((firstLink[0] !== fromSnapped.properties.a) || (firstLink[1] !== fromSnapped.properties.b)) {
-        linksList.splice(0, 0, [fromSnapped.properties.b, fromSnapped.properties.a])
-      }
     }
 
-    // filter rlinks for faster search.
+    // nodes to links list [1,2,3,4] => [[1,2], [2,3], [3,4]]
+    const linksList = nodesList.map((num, index) => [num, nodesList[index + 1]]).slice(0, -1)
     const nodesSet = new Set(nodesList)
     const filtered = rlinks.features.filter(link => nodesSet.has(link.properties.a) || nodesSet.has(link.properties.b))
     const geomObj = getGeom(filtered, linksList)
