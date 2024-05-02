@@ -257,6 +257,17 @@ export const useLinksStore = defineStore('links', {
       this.getEditorLineInfo()
     },
 
+    editEditorLinksInfo (payload) {
+      if (this.editorLinks.features.length === payload.length) {
+        for (let i = 0; i < payload.length; i++) {
+          let keys = Object.keys(payload[i])
+          keys.forEach(key => this.editorLinks.features[i].properties[key] = payload[i][key])
+        }
+      } else {
+        console.error('Payload length should be same length as editorLinks.features')
+      }
+    },
+
     setVisibleNodes(payload) {
       this.visibleNodes = payload
     },

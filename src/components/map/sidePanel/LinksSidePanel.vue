@@ -12,7 +12,16 @@ import { useGettext } from 'vue3-gettext'
 // import MapMatching from '@src/components/utils/MapMatching.vue'
 
 const { $gettext } = useGettext()
-const emit = defineEmits(['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'])
+const emit = defineEmits([
+  'selectEditorTrip',
+  'confirmChanges',
+  'abortChanges',
+  'cloneButton',
+  'deleteButton',
+  'propertiesButton',
+  'scheduleButton',
+  'newLine',
+])
 const maxSize = 200
 const store = useIndexStore()
 const linksStore = useLinksStore()
@@ -130,6 +139,17 @@ function editButton (value) {
     linksStore.setEditorTrip({ tripId: value, changeBounds: true })
     store.changeNotification({ text: '', autoClose: true })
   }
+}
+
+function scheduleButton (value) {
+  if (!editorTrip.value) {
+    linksStore.setEditorTrip({ tripId: value, changeBounds: false })
+    emit('scheduleButton', { action: 'Edit Line Schedule', lingering: false })
+    // just open dialog
+  } else {
+    emit('scheduleButton', { action: 'Edit Line Schedule', lingering: true })
+  }
+  store.changeNotification({ text: '', autoClose: true })
 }
 
 function propertiesButton (value) {
@@ -410,17 +430,17 @@ function deleteButton (obj) {
                   <template v-slot:activator="{ props }">
                     <v-btn
                       variant="text"
-                      icon="fas fa-pen"
+                      icon="fas fa-clock"
                       size="small"
                       density="compact"
                       class="ma-1"
                       color="regular"
-                      :disabled="editorTrip ? true: false"
+                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
                       v-bind="props"
-                      @click="editButton(item)"
+                      @click="scheduleButton(item)"
                     />
                   </template>
-                  <span>{{ $gettext("Edit Line") }}</span>
+                  <span>{{ $gettext("Edit Line Schedule") }}</span>
                 </v-tooltip>
 
                 <v-tooltip

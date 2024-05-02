@@ -11,7 +11,6 @@ import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
 import { useGettext } from 'vue3-gettext'
-import EditScheduleDialog from './EditScheduleDialog.vue'
 const { $gettext } = useGettext()
 
 const showDialog = defineModel('showDialog')
@@ -31,7 +30,6 @@ watch(showDialog, (val) => {
   if (val) { store.changeNotification({ text: '', autoClose: true }) }
   showHint.value = false
   showDeleteOption.value = false
-  showSchedule.value = false
 })
 
 const numLinks = computed(() => { return Array.isArray(editorForm.value) ? editorForm.value.length : 1 })
@@ -129,9 +127,6 @@ const rules = ({
 
 const newFieldName = ref(null)
 
-// Schedulling
-const showSchedule = ref(false)
-
 function addField () {
   let form = {}
   if (Array.isArray(editorForm.value)) {
@@ -220,10 +215,7 @@ function deleteField (field) {
     v-model="showDialog"
     scrollable
     persistent
-    :max-width="
-      showSchedule ? '80rem':
-      numLinks > 1 ? '40rem': '30rem'
-    "
+    :max-width="numLinks > 1 ? '40rem': '30rem'"
   >
     <v-card
       max-height="55rem"
@@ -232,10 +224,7 @@ function deleteField (field) {
         {{ $gettext("Edit Properties") }}
       </v-card-title>
       <v-divider />
-      <v-card-text v-if="showSchedule">
-        <EditScheduleDialog />
-      </v-card-text>
-      <v-card-text v-else>
+      <v-card-text>
         <v-row>
           <v-col
             v-for="(n,idx) in numLinks"
@@ -331,12 +320,6 @@ function deleteField (field) {
           variant="text"
           size="x-small"
           @click="()=>showHint = !showHint"
-        />
-        <v-btn
-          icon="far fa-clock small"
-          variant="text"
-          size="x-small"
-          @click="()=>showSchedule = !showSchedule"
         />
         <v-btn
           :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"

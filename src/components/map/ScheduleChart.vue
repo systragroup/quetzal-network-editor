@@ -31,18 +31,27 @@ ChartJS.register(
   zoomPlugin,
 )
 
+const xScaleOptions = { type: 'time',
+  time: {
+    parser: 'HH:mm:ss',
+    tooltipFormat: 'HH:mm:ss',
+  },
+  min: moment().startOf('day'),
+  max: moment().endOf('day'),
+}
+
 const scales = {
-  x: {
-    type: 'time',
-    time: {
-      parser: 'HH:mm:ss',
-      tooltipFormat: 'HH:mm:ss',
-    },
-    min: moment().startOf('day'),
-    max: moment().endOf('day'),
+  x: { ...xScaleOptions,
+    position: 'top',
+  },
+  x1: { ...xScaleOptions,
+    position: 'bottom',
   },
   y: {
     autoSkip: false,
+    ticks: {
+      padding: 5, // Adjust the padding value as needed
+    },
   },
 }
 
