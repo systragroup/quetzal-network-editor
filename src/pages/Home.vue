@@ -4,6 +4,7 @@
 import SidePanel from '@comp/map/sidePanel/SidePanel.vue'
 import Map from '@comp/map/Map.vue'
 import EditDialog from '@comp/map/EditDialog.vue'
+import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
 import { getGroupForm } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 // only used to force to see translation to vue-gettext
@@ -23,6 +24,7 @@ export default {
     Map,
     SidePanel,
     EditDialog,
+    EditScheduleDialog,
   },
   setup () {
     const store = useIndexStore()
@@ -41,6 +43,7 @@ export default {
     })
 
     const showDialog = ref(false)
+    const scheduleDialog = ref(false)
 
     const selectedNode = ref(null)
     const selectedLink = ref(null)
@@ -173,6 +176,7 @@ export default {
     function applyAction () {
       // click yes on dialog
       showDialog.value = false
+      scheduleDialog.value = false
       deleteDialog.value = false
       switch (action.value) {
         case 'Edit Link Info':
@@ -254,6 +258,7 @@ export default {
     }
     function cancelAction () {
       showDialog.value = false
+      scheduleDialog.value = false
       deleteDialog.value = false
       if (!lingering.value) {
         abortChanges()
@@ -314,6 +319,12 @@ export default {
       cloneDialog.value = false
     }
 
+    function scheduleButton (event) {
+      action.value = event.action
+      lingering.value = event.lingering
+      scheduleDialog.value = true
+    }
+
     return {
       actionClick,
       applyAction,
@@ -324,10 +335,12 @@ export default {
       duplicate,
       cloneButton,
       cancelClone,
+      scheduleButton,
       selectedNode,
       selectedLink,
       selectedIndex,
       showDialog,
+      scheduleDialog,
       cloneDialog,
       deleteDialog,
       tripToDelete,
@@ -361,6 +374,11 @@ export default {
       :link-dir="linkDir"
       @applyAction="applyAction"
       @cancelAction="cancelAction"
+    />
+    <EditScheduleDialog
+      v-model="scheduleDialog"
+      @cancelAction="cancelAction"
+      @applyAction="applyAction"
     />
     <v-dialog
       v-model="deleteDialog"
@@ -448,6 +466,7 @@ export default {
       @deleteButton="deleteButton"
       @cloneButton="cloneButton"
       @propertiesButton="actionClick"
+      @scheduleButton="scheduleButton"
       @change-mode="(e) => mode = e"
     />
     <Map

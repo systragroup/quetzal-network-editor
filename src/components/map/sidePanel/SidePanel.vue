@@ -13,7 +13,15 @@ export default {
     RoadSidePanel,
     ODSidePanel,
   },
-  emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
+  emits: [
+    'selectEditorTrip',
+    'confirmChanges',
+    'abortChanges',
+    'cloneButton',
+    'deleteButton',
+    'propertiesButton',
+    'scheduleButton',
+    'change-mode'],
   setup (_, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()
@@ -137,6 +145,7 @@ export default {
               @cloneButton="(e) => $emit('cloneButton',e)"
               @deleteButton="(e) => $emit('deleteButton',e)"
               @propertiesButton="(e) => $emit('propertiesButton',e)"
+              @scheduleButton="(e) => $emit('scheduleButton',e)"
             />
             <RoadSidePanel
               v-show="tab==='road'"
