@@ -2,6 +2,10 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
+#: src/components/microservices/MatrixRoadCaster.vue:201
+msgid "   or import and use your own zoning."
+msgstr ""
+
 #: src/components/import/FilesList.vue:89
 msgid " deleted"
 msgstr ""
@@ -18,7 +22,7 @@ msgstr ""
 msgid " is empty"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:283
+#: src/components/microservices/MatrixRoadCaster.vue:294
 msgid " minutes remaining"
 msgstr ""
 
@@ -66,15 +70,15 @@ msgid ""
 "    3 - Must coordinate with driver to arrange pickup"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:211
+#: src/components/microservices/MatrixRoadCaster.vue:200
 msgid "1) Find n zones centroids using a Kmean clustering on the nodes"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:212
+#: src/components/microservices/MatrixRoadCaster.vue:202
 msgid "2) Call the Here Matrix API on random OD ( around 1% is sufficient )"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:213
+#: src/components/microservices/MatrixRoadCaster.vue:203
 msgid "3) Interpolate every other OD time with an hybrid Machine learning model"
 msgstr ""
 
@@ -82,13 +86,13 @@ msgstr ""
 msgid "3D"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:214
+#: src/components/microservices/MatrixRoadCaster.vue:204
 msgid "4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:528
-#: src/components/microservices/MatrixRoadCaster.vue:280
-#: src/pages/Run.vue:164
+#: src/components/map/sidePanel/LinksSidePanel.vue:537
+#: src/components/microservices/MatrixRoadCaster.vue:291
+#: src/pages/Run.vue:171
 msgid "Abort"
 msgstr ""
 
@@ -120,7 +124,7 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:314
+#: src/components/microservices/MatrixRoadCaster.vue:325
 msgid "Apply Road links to project"
 msgstr ""
 
@@ -136,7 +140,7 @@ msgstr ""
 msgid "back to default"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:300
+#: src/components/microservices/MatrixRoadCaster.vue:311
 msgid "Calibration Results"
 msgstr ""
 
@@ -168,7 +172,7 @@ msgstr ""
 msgid "cannot delete first point of polygon"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:284
+#: src/components/map/sidePanel/LinksSidePanel.vue:286
 msgid "Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
 msgstr ""
 
@@ -212,7 +216,7 @@ msgstr ""
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:542
+#: src/components/map/sidePanel/LinksSidePanel.vue:546
 msgid "Confirm"
 msgstr ""
 
@@ -232,7 +236,7 @@ msgstr ""
 msgid "Could not apply modification. Trip_id already exist"
 msgstr ""
 
-#: src/pages/Run.vue:58
+#: src/pages/Run.vue:65
 msgid "could not start and save. This scenario was already launch by another user."
 msgstr ""
 
@@ -242,10 +246,6 @@ msgstr ""
 
 #: src/components/layout/Profile.vue:319
 msgid "create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization"
-msgstr ""
-
-#: src/components/map/sidePanel/LinksSidePanel.vue:563
-msgid "Create new Line"
 msgstr ""
 
 #: src/pages/ResultMap.vue:379
@@ -298,11 +298,11 @@ msgstr ""
 msgid "Delete %{scen}?"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:360
+#: src/components/map/sidePanel/LinksSidePanel.vue:362
 msgid "Delete Group"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:474
+#: src/components/map/sidePanel/LinksSidePanel.vue:482
 #: src/components/map/sidePanel/ODSidePanel.vue:264
 #: src/components/map/sidePanel/RoadSidePanel.vue:287
 msgid "Delete Line"
@@ -353,7 +353,7 @@ msgid "download"
 msgstr ""
 
 #: src/components/microservices/GTFSWebImporter.vue:234
-#: src/components/microservices/MatrixRoadCaster.vue:328
+#: src/components/microservices/MatrixRoadCaster.vue:339
 #: src/components/microservices/OSMImporter.vue:148
 msgid "Download"
 msgstr ""
@@ -362,7 +362,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:455
+#: src/components/map/sidePanel/LinksSidePanel.vue:463
 msgid "Duplicate and reverse"
 msgstr ""
 
@@ -370,20 +370,20 @@ msgstr ""
 msgid "duplicate nodes"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:344
+#: src/components/map/sidePanel/LinksSidePanel.vue:346
 msgid "Edit Group Properties"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:417
+#: src/components/map/sidePanel/LinksSidePanel.vue:423
 msgid "Edit Line"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:500
+#: src/components/map/sidePanel/LinksSidePanel.vue:509
 #: src/components/map/sidePanel/RoadSidePanel.vue:313
 msgid "Edit Line geometry"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:436
+#: src/components/map/sidePanel/LinksSidePanel.vue:443
 #: src/components/map/sidePanel/ODSidePanel.vue:244
 #: src/components/map/sidePanel/RoadSidePanel.vue:269
 msgid "Edit Line Properties"
@@ -411,7 +411,7 @@ msgstr ""
 msgid "Edit selected Info"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:199
+#: src/components/map/sidePanel/LinksSidePanel.vue:201
 #: src/components/map/sidePanel/ODSidePanel.vue:127
 #: src/components/map/sidePanel/RoadSidePanel.vue:165
 msgid "Edit Visibles Properties"
@@ -429,7 +429,7 @@ msgstr ""
 msgid "Empty all loaded files and start from scratch"
 msgstr ""
 
-#: src/pages/Run.vue:180
+#: src/pages/Run.vue:187
 msgid "End signal"
 msgstr ""
 
@@ -441,7 +441,7 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:231
+#: src/components/map/sidePanel/LinksSidePanel.vue:233
 #: src/components/map/sidePanel/ODSidePanel.vue:159
 #: src/components/map/sidePanel/RoadSidePanel.vue:197
 msgid "Export All"
@@ -451,7 +451,7 @@ msgstr ""
 msgid "Export name"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:239
+#: src/components/map/sidePanel/LinksSidePanel.vue:241
 #: src/components/map/sidePanel/ODSidePanel.vue:167
 #: src/components/map/sidePanel/RoadSidePanel.vue:205
 msgid "Export Only Visible"
@@ -489,7 +489,7 @@ msgstr ""
 msgid "Files unloaded"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:261
+#: src/components/map/sidePanel/LinksSidePanel.vue:263
 #: src/components/map/sidePanel/ODSidePanel.vue:185
 #: src/components/map/sidePanel/RoadSidePanel.vue:223
 #: src/components/results/ResultsSidePanel.vue:269
@@ -527,8 +527,8 @@ msgstr ""
 msgid "GTFS importer"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:181
-#: src/components/map/sidePanel/LinksSidePanel.vue:318
+#: src/components/map/sidePanel/LinksSidePanel.vue:183
+#: src/components/map/sidePanel/LinksSidePanel.vue:320
 #: src/components/map/sidePanel/ODSidePanel.vue:109
 #: src/components/map/sidePanel/RoadSidePanel.vue:147
 #: src/components/results/ResultsSidePanel.vue:206
@@ -555,7 +555,7 @@ msgstr ""
 msgid "if the road contain a bike path. either yes, no or shared"
 msgstr ""
 
-#: src/router/index.js:25
+#: src/router/index.js:26
 msgid "Import"
 msgstr ""
 
@@ -573,7 +573,7 @@ msgid ""
 "     subway, metro, rail, bus, ferry, tram, etc"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:179
+#: src/components/microservices/MatrixRoadCaster.vue:189
 msgid "invalid date time"
 msgstr ""
 
@@ -601,7 +601,7 @@ msgstr ""
 msgid "Left side driving"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:283
+#: src/components/microservices/MatrixRoadCaster.vue:294
 msgid "less than 1"
 msgstr ""
 
@@ -611,7 +611,7 @@ msgid ""
 "     Links are group by trip_id in Quetzal-network-editor."
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:204
+#: src/components/map/sidePanel/LinksSidePanel.vue:206
 msgid "Lines"
 msgstr ""
 
@@ -664,7 +664,7 @@ msgstr ""
 msgid "Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)"
 msgstr ""
 
-#: src/router/index.js:53
+#: src/router/index.js:54
 msgid "Map"
 msgstr ""
 
@@ -672,7 +672,7 @@ msgstr ""
 msgid "Map Style"
 msgstr ""
 
-#: src/store/MatrixRoadCaster.js:67
+#: src/store/MatrixRoadCaster.js:69
 msgid "Matrix Road Caster executed successfully!"
 msgstr ""
 
@@ -685,7 +685,7 @@ msgstr ""
 msgid "maxWidth"
 msgstr ""
 
-#: src/router/index.js:32
+#: src/router/index.js:33
 msgid "Microservices"
 msgstr ""
 
@@ -698,7 +698,7 @@ msgstr ""
 msgid "minWidth"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:209
+#: src/components/microservices/MatrixRoadCaster.vue:198
 msgid "ML Matrix Road Caster"
 msgstr ""
 
@@ -715,7 +715,7 @@ msgstr ""
 msgid "multiple Values"
 msgstr ""
 
-#: src/router/index.js:39
+#: src/router/index.js:40
 msgid "Must be logged in"
 msgstr ""
 
@@ -741,6 +741,10 @@ msgstr ""
 
 #: src/components/map/EditDialog.vue:298
 msgid "new field name"
+msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:560
+msgid "new Line"
 msgstr ""
 
 #: src/pages/Home.vue:410
@@ -785,12 +789,12 @@ msgid "Nodes"
 msgstr ""
 
 #: src/pages/ResultPicture.vue:48
-#: src/pages/ResultTable.vue:54
-#: src/pages/ResultTable.vue:60
+#: src/pages/ResultTable.vue:58
+#: src/pages/ResultTable.vue:64
 msgid "Nothing to display"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:288
+#: src/components/map/sidePanel/LinksSidePanel.vue:290
 msgid "Nothing to display."
 msgstr ""
 
@@ -849,7 +853,7 @@ msgstr ""
 msgid "Parameters"
 msgstr ""
 
-#: src/router/index.js:61
+#: src/router/index.js:62
 msgid "Parameters and Run"
 msgstr ""
 
@@ -931,25 +935,25 @@ msgstr ""
 #: src/components/map/Settings.vue:53
 #: src/components/microservices/GTFSWebImporter.vue:86
 #: src/components/microservices/GTFSZipImporter.vue:39
-#: src/components/microservices/MatrixRoadCaster.vue:176
+#: src/components/microservices/MatrixRoadCaster.vue:186
 #: src/components/results/ResultsSettings.vue:121
 #: src/components/run/ParamForm.vue:45
 msgid "Required"
 msgstr ""
 
-#: src/router/index.js:97
+#: src/router/index.js:98
 msgid "Result Table"
 msgstr ""
 
-#: src/pages/Run.vue:120
+#: src/pages/Run.vue:127
 msgid "Results are not synchronized with latest modifications.             Please relauch simulation to update results."
 msgstr ""
 
-#: src/router/index.js:83
+#: src/router/index.js:84
 msgid "Results Map"
 msgstr ""
 
-#: src/router/index.js:90
+#: src/router/index.js:91
 msgid "Results Pictures"
 msgstr ""
 
@@ -985,7 +989,7 @@ msgstr ""
 msgid "Road Highway name"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:154
+#: src/components/microservices/MatrixRoadCaster.vue:164
 msgid "Road links applied!"
 msgstr ""
 
@@ -1005,11 +1009,11 @@ msgstr ""
 msgid "Roads"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:272
+#: src/components/microservices/MatrixRoadCaster.vue:283
 msgid "Run"
 msgstr ""
 
-#: src/pages/Run.vue:156
+#: src/pages/Run.vue:163
 msgid "Run Simulation"
 msgstr ""
 
@@ -1054,7 +1058,7 @@ msgstr ""
 msgid "Scenario Settings"
 msgstr ""
 
-#: src/pages/Run.vue:87
+#: src/pages/Run.vue:94
 msgid "Scenario Simulation"
 msgstr ""
 
@@ -1063,7 +1067,7 @@ msgid "Scenario successfully copied"
 msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:229
-#: src/components/map/sidePanel/LinksSidePanel.vue:274
+#: src/components/map/sidePanel/LinksSidePanel.vue:276
 msgid "search"
 msgstr ""
 
@@ -1084,7 +1088,7 @@ msgstr ""
 msgid "selectedFeature"
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:337
+#: src/components/microservices/MatrixRoadCaster.vue:348
 msgid "Service ended with an execution error or have been aborted.             Please retry. If the problem persist, contact us."
 msgstr ""
 
@@ -1099,14 +1103,14 @@ msgid ""
 "     abstract identifier like \"32\", \"100X\", or \"Green\""
 msgstr ""
 
-#: src/components/microservices/MatrixRoadCaster.vue:178
+#: src/components/microservices/MatrixRoadCaster.vue:188
 #: src/components/results/ResultsSettings.vue:123
 #: src/components/run/ParamForm.vue:47
 msgid "should be larger or equal to 0"
 msgstr ""
 
 #: src/components/map/Settings.vue:54
-#: src/components/microservices/MatrixRoadCaster.vue:177
+#: src/components/microservices/MatrixRoadCaster.vue:187
 #: src/components/results/ResultsSettings.vue:122
 #: src/components/run/ParamForm.vue:46
 msgid "should be larger than 0"
@@ -1116,8 +1120,8 @@ msgstr ""
 msgid "show"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:181
-#: src/components/map/sidePanel/LinksSidePanel.vue:319
+#: src/components/map/sidePanel/LinksSidePanel.vue:183
+#: src/components/map/sidePanel/LinksSidePanel.vue:321
 #: src/components/map/sidePanel/ODSidePanel.vue:109
 #: src/components/map/sidePanel/RoadSidePanel.vue:147
 #: src/components/results/ResultsSidePanel.vue:206
@@ -1152,7 +1156,7 @@ msgstr ""
 msgid "Sign out"
 msgstr ""
 
-#: src/pages/Run.vue:130
+#: src/pages/Run.vue:137
 msgid "Simulation ended with an execution error or have been aborted.             Please relauch simulation. If the problem persist, contact us."
 msgstr ""
 
@@ -1172,7 +1176,7 @@ msgstr ""
 msgid "Static Layers"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:516
+#: src/components/map/sidePanel/LinksSidePanel.vue:525
 msgid "stick nodes on existing nodes"
 msgstr ""
 
@@ -1226,7 +1230,7 @@ msgstr ""
 msgid "This action will sign you out"
 msgstr ""
 
-#: src/pages/Run.vue:146
+#: src/pages/Run.vue:153
 msgid "This scenario is protected. You can not run simulation."
 msgstr ""
 
@@ -1250,7 +1254,7 @@ msgstr ""
 msgid "Travel time on the link. set as length / speed when a link is created or edited (seconds)"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:96
+#: src/components/map/sidePanel/LinksSidePanel.vue:98
 msgid "undefined"
 msgstr ""
 
@@ -1303,7 +1307,7 @@ msgstr ""
 msgid "Yes"
 msgstr ""
 
-#: src/router/index.js:68
+#: src/router/index.js:69
 msgid "you need parameters to enter this page"
 msgstr ""
 
