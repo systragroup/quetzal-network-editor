@@ -74,7 +74,7 @@ export default {
       } else if (action.value === 'Edit Link Info') {
         // link is clicked on the map
         selectedLink.value = event.selectedFeature.properties
-        const uneditable = ['a', 'b', 'index', 'link_sequence', 'trip_id']
+        const uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.editorLinks.features.filter(
           (link) => link.properties.index === selectedLink.value.index)
