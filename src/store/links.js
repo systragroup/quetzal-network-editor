@@ -11,6 +11,7 @@ import { IndexAreDifferent, deleteUnusedNodes, getGroupForm } from '@comp/utils/
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
+import moment from 'moment'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
@@ -23,6 +24,7 @@ export const useLinksStore = defineStore('links', {
     editorTrip: null,
     editorLineInfo: {},
     tripId: [],
+    scheduledTrips: new Set([]),
     selectedTrips: [],
     newLink: {},
     newNode: {},
@@ -277,6 +279,7 @@ export const useLinksStore = defineStore('links', {
       const cloned = cloneDeep(geojson)
       const features = this.links.features.filter(link => link.properties.trip_id === payload.tripId)
       cloned.features = cloneDeep(features)
+      console.log(features)
 
       // change tripId.
       cloned.features.forEach(link => link.properties.trip_id = payload.name)
@@ -303,6 +306,38 @@ export const useLinksStore = defineStore('links', {
           } else {
             link.properties.direction_id = 0
           }
+        }
+        // If schedule trip, rebuilt schedule
+        // TODO: refactoring
+        if (cloned.features[0].properties.departures !== undefined) {
+          for (let i = 0; i < cloned.features[0].properties.departures.length; i++) {
+            let dwellTimes = []
+            for (let j = 0; j < features.length - 1; j++) {
+              let t1 = moment(features[j].properties.arrivals[i], 'HH:mm:ss')
+              let t2 = moment(features[j + 1].properties.departures[i], 'HH:mm:ss')
+              dwellTimes.push(moment.duration(t2.diff(t1)).asSeconds())
+            }
+            dwellTimes = dwellTimes.reverse()
+            let t4 = 0
+            for (let j = 0; j < cloned.features.length; j++) {
+              console.log(j)
+              let t1 = moment(cloned.features[j].properties.departures[i], 'HH:mm:ss')
+              let t2 = moment(cloned.features[j].properties.arrivals[i], 'HH:mm:ss')
+              let travelTime = moment.duration(t2.diff(t1)).asSeconds()
+              if (j == 0) {
+                console.log('hello')
+                cloned.features[j].properties.departures[i] = features[0].properties.departures[i]
+              } else {
+                console.log('T4', t4)
+                console.log('Dwell', dwellTimes[j - 1])
+                cloned.features[j].properties.departures[i] = t4.add(dwellTimes[j - 1], 'seconds').format('HH:mm:ss')
+              }
+              let t3 = moment(cloned.features[j].properties.departures[i], 'HH:mm:ss')
+              cloned.features[j].properties.arrivals[i] = t3.add(travelTime, 'seconds').format('HH:mm:ss')
+              t4 = moment(cloned.features[j].properties.arrivals[i], 'HH:mm:ss')
+            }
+          }
+          console.log(cloned.features)
         }
       }
 
@@ -367,6 +402,8 @@ export const useLinksStore = defineStore('links', {
 
     getTripId () {
       this.tripId = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
+      this.scheduledTrips = new Set(this.links.features.filter(l =>
+        Array.isArray(l.properties.arrivals)).map(item => item.properties.trip_id))
     },
 
     setNewLink (payload) {
