@@ -46,6 +46,7 @@ function showAll () {
 }
 
 const tripId = computed(() => { return linksStore.tripId })
+const scheduledTrips = computed(() => { return linksStore.scheduledTrips })
 watch(tripId, (newVal, oldVal) => {
   if (newVal.length < oldVal.length) {
     // if a trip is deleted. we remove it, no remapping.
@@ -430,7 +431,7 @@ function deleteButton (obj) {
                   <template v-slot:activator="{ props }">
                     <v-btn
                       variant="text"
-                      icon="fas fa-clock"
+                      :icon="scheduledTrips.has(item) ? 'fas fa-clock' : 'far fa-clock'"
                       size="small"
                       density="compact"
                       class="ma-1"
@@ -440,7 +441,8 @@ function deleteButton (obj) {
                       @click="scheduleButton(item)"
                     />
                   </template>
-                  <span>{{ $gettext("Edit Line Schedule") }}</span>
+                  <span v-if="scheduledTrips.has(item)">{{ $gettext("Edit Line Schedule") }}</span>
+                  <span v-else>{{ $gettext("Create a Line Schedule") }}</span>
                 </v-tooltip>
 
                 <v-tooltip

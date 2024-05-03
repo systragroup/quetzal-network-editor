@@ -30,8 +30,8 @@ msgstr ""
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr ""
 
-#: src/store/links.js:112
-#: src/store/links.js:120
+#: src/store/links.js:114
+#: src/store/links.js:122
 #: src/store/od.js:40
 #: src/store/rlinks.js:101
 #: src/store/rlinks.js:109
@@ -90,7 +90,7 @@ msgstr ""
 msgid "4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:557
+#: src/components/map/sidePanel/LinksSidePanel.vue:559
 #: src/components/microservices/MatrixRoadCaster.vue:291
 #: src/pages/Run.vue:171
 msgid "Abort"
@@ -178,7 +178,7 @@ msgstr ""
 msgid "cannot delete first point of polygon"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:306
+#: src/components/map/sidePanel/LinksSidePanel.vue:307
 msgid "Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
 msgstr ""
 
@@ -222,7 +222,7 @@ msgstr ""
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:566
+#: src/components/map/sidePanel/LinksSidePanel.vue:568
 msgid "Confirm"
 msgstr ""
 
@@ -249,6 +249,10 @@ msgstr ""
 #: src/components/layout/Profile.vue:377
 msgid "create"
 msgstr ""
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:445
+msgid "Create a Line Schedule"
+msgstr "Créer un horaire pour cette ligne"
 
 #: src/components/layout/Profile.vue:319
 msgid "create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization"
@@ -304,11 +308,11 @@ msgstr ""
 msgid "Delete %{scen}?"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:382
+#: src/components/map/sidePanel/LinksSidePanel.vue:383
 msgid "Delete Group"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:502
+#: src/components/map/sidePanel/LinksSidePanel.vue:504
 #: src/components/map/sidePanel/ODSidePanel.vue:264
 #: src/components/map/sidePanel/RoadSidePanel.vue:287
 msgid "Delete Line"
@@ -372,7 +376,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:483
+#: src/components/map/sidePanel/LinksSidePanel.vue:485
 msgid "Duplicate and reverse"
 msgstr ""
 
@@ -380,22 +384,22 @@ msgstr ""
 msgid "duplicate nodes"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:366
+#: src/components/map/sidePanel/LinksSidePanel.vue:367
 msgid "Edit Group Properties"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:529
+#: src/components/map/sidePanel/LinksSidePanel.vue:531
 #: src/components/map/sidePanel/RoadSidePanel.vue:313
 msgid "Edit Line geometry"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:463
+#: src/components/map/sidePanel/LinksSidePanel.vue:465
 #: src/components/map/sidePanel/ODSidePanel.vue:244
 #: src/components/map/sidePanel/RoadSidePanel.vue:269
 msgid "Edit Line Properties"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:443
+#: src/components/map/sidePanel/LinksSidePanel.vue:444
 msgid "Edit Line Schedule"
 msgstr ""
 
@@ -425,7 +429,7 @@ msgstr ""
 msgid "Edit selected Info"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:221
+#: src/components/map/sidePanel/LinksSidePanel.vue:222
 #: src/components/map/sidePanel/ODSidePanel.vue:127
 #: src/components/map/sidePanel/RoadSidePanel.vue:165
 msgid "Edit Visibles Properties"
@@ -455,7 +459,7 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:253
+#: src/components/map/sidePanel/LinksSidePanel.vue:254
 #: src/components/map/sidePanel/ODSidePanel.vue:159
 #: src/components/map/sidePanel/RoadSidePanel.vue:197
 msgid "Export All"
@@ -465,7 +469,7 @@ msgstr ""
 msgid "Export name"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:261
+#: src/components/map/sidePanel/LinksSidePanel.vue:262
 #: src/components/map/sidePanel/ODSidePanel.vue:167
 #: src/components/map/sidePanel/RoadSidePanel.vue:205
 msgid "Export Only Visible"
@@ -503,7 +507,7 @@ msgstr ""
 msgid "Files unloaded"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:283
+#: src/components/map/sidePanel/LinksSidePanel.vue:284
 #: src/components/map/sidePanel/ODSidePanel.vue:185
 #: src/components/map/sidePanel/RoadSidePanel.vue:223
 #: src/components/results/ResultsSidePanel.vue:269
@@ -541,8 +545,8 @@ msgstr ""
 msgid "GTFS importer"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:203
-#: src/components/map/sidePanel/LinksSidePanel.vue:340
+#: src/components/map/sidePanel/LinksSidePanel.vue:204
+#: src/components/map/sidePanel/LinksSidePanel.vue:341
 #: src/components/map/sidePanel/ODSidePanel.vue:109
 #: src/components/map/sidePanel/RoadSidePanel.vue:147
 #: src/components/results/ResultsSidePanel.vue:206
@@ -630,7 +634,7 @@ msgid ""
 "     Links are group by trip_id in Quetzal-network-editor."
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:226
+#: src/components/map/sidePanel/LinksSidePanel.vue:227
 msgid "Lines"
 msgstr ""
 
@@ -766,7 +770,7 @@ msgstr ""
 msgid "new field name"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:580
+#: src/components/map/sidePanel/LinksSidePanel.vue:582
 msgid "new Line"
 msgstr ""
 
@@ -817,7 +821,7 @@ msgstr ""
 msgid "Nothing to display"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:310
+#: src/components/map/sidePanel/LinksSidePanel.vue:311
 msgid "Nothing to display."
 msgstr ""
 
@@ -1092,7 +1096,7 @@ msgid "Scenario successfully copied"
 msgstr ""
 
 #: src/components/import/ScenariosExplorer.vue:229
-#: src/components/map/sidePanel/LinksSidePanel.vue:296
+#: src/components/map/sidePanel/LinksSidePanel.vue:297
 msgid "search"
 msgstr ""
 
@@ -1145,8 +1149,8 @@ msgstr ""
 msgid "show"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:203
-#: src/components/map/sidePanel/LinksSidePanel.vue:341
+#: src/components/map/sidePanel/LinksSidePanel.vue:204
+#: src/components/map/sidePanel/LinksSidePanel.vue:342
 #: src/components/map/sidePanel/ODSidePanel.vue:109
 #: src/components/map/sidePanel/RoadSidePanel.vue:147
 #: src/components/results/ResultsSidePanel.vue:206
@@ -1209,7 +1213,7 @@ msgstr ""
 msgid "Station Label"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:545
+#: src/components/map/sidePanel/LinksSidePanel.vue:547
 msgid "stick nodes on existing nodes"
 msgstr ""
 
@@ -1287,7 +1291,7 @@ msgstr ""
 msgid "Travel time on the link. set as length / speed when a link is created or edited (seconds)"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:107
+#: src/components/map/sidePanel/LinksSidePanel.vue:108
 msgid "undefined"
 msgstr ""
 
