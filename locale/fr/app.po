@@ -118,11 +118,7 @@ msgid ""
 "time using an iterative algorithm"
 msgstr ""
 
-<<<<<<< HEAD
-#: src/components/map/sidePanel/LinksSidePanel.vue:557
-=======
 #: src/components/map/sidePanel/LinksSidePanel.vue:559
->>>>>>> Schedulling Editor Completed (closes #500)
 #: src/components/microservices/MatrixRoadCaster.vue:291 src/pages/Run.vue:171
 msgid "Abort"
 msgstr "Annuler"
