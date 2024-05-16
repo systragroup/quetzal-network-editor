@@ -548,11 +548,16 @@ function deleteButton (obj) {
           <v-btn
             size="small"
             :color="store.routingMode? 'green':'regular'"
-            icon="fas fa-road"
+            icon="fas fa-route"
             @click="store.changeRoutingMode()"
           />
-          <v-btn @click="toggleRouting">
-            test
+          <v-btn
+            v-if="store.routingMode"
+            class="ml-2"
+            append-icon="fas fa-road"
+            @click="toggleRouting"
+          >
+            all
           </v-btn>
         </div>
         <div>

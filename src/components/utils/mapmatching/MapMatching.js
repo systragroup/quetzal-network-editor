@@ -7,7 +7,7 @@ import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import createGraph from 'ngraph.graph'
 import path from 'ngraph.path'
-import { onMounted, onUnmounted, shallowRef, toRaw, computed } from 'vue'
+import { shallowRef, toRaw, computed, watch } from 'vue'
 
 // Global state. Can reuuse thoses anywhere in the app.
 // onMounted. only init if null (so we do it only once.)
@@ -15,19 +15,20 @@ const graph = shallowRef(createGraph())
 const kdTree = shallowRef(null)
 
 export function useMapMatching () {
-  onMounted(() => {
-    if (!kdTree.value) {
-      updateGraph()
-      updateTree()
-    }
-  })
-  onUnmounted(() => {
-    graph.value = createGraph()
-    kdTree.value = null
-  })
-
   const store = useIndexStore()
   const routingMode = computed(() => store.routingMode)
+  watch(routingMode, (val) => {
+    // update graph and tree when routing mode activated. only once (if !kdTree.value)
+    if (val) {
+      if (!kdTree.value) {
+        updateGraph()
+        updateTree()
+      }
+    } else {
+      graph.value = createGraph()
+      kdTree.value = null
+    }
+  })
 
   const rlinksStore = userLinksStore()
   const linksStore = useLinksStore()
