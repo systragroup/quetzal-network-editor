@@ -49,9 +49,7 @@ export const useMRCStore = defineStore('runMRC', {
       this.errorMessage = payload
       this.executionArn = ''
     },
-    changeRunning (payload) {
-      this.running = payload
-    },
+
     getApproxTimer (payload) {
       // payload is number of road links
       const numZones = this.parameters.num_zones
@@ -108,7 +106,6 @@ export const useMRCStore = defineStore('runMRC', {
       await this.exportFiles(payload)
       let data = {
         input: JSON.stringify(this.parameters),
-        name: this.callID,
         stateMachineArn: this.stateMachineArn,
       }
       quetzalClient.client.post('',

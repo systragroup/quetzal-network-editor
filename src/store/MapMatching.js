@@ -6,6 +6,7 @@ import { useAPI } from './APIComposable'
 export const useMapMatchingStore = defineStore('runMapMatching', () => {
   const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-mapmatching-api')
   const callID = ref('')
+
   const exclusions = ref([])
 
   const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI(stateMachineArn.value)
@@ -14,13 +15,14 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
 
   return {
     stateMachineArn,
-    error,
+    callID,
+    exclusions,
+    status,
     running,
+    error,
     errorMessage,
     setCallID,
-    callID,
     startExecution,
     stopExecution,
-    status,
-    exclusions }
+  }
 })
