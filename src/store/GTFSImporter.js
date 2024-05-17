@@ -54,9 +54,6 @@ export const useGTFSStore = defineStore('runGTFS', {
       this.errorMessage = payload
       this.executionArn = ''
     },
-    changeRunning (payload) {
-      this.running = payload
-    },
 
     saveParams (payload) {
       // eslint-disable-next-line no-return-assign
@@ -105,7 +102,6 @@ export const useGTFSStore = defineStore('runGTFS', {
 
       let data = {
         input,
-        name: uuid(),
         stateMachineArn: this.stateMachineArn,
       }
       quetzalClient.client.post('',

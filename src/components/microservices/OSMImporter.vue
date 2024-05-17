@@ -1,83 +1,95 @@
-<script>
-import { highwayList as cHighwayList } from '@constants/highway.js'
+<script setup>
+import { highwayList } from '@constants/highway.js'
 import MapSelector from './MapSelector.vue'
 import { useOSMStore } from '@src/store/OSMImporter'
 import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
-import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
+import router from '@src/router/index'
+import { highwayColor, highwayWidth } from '@constants/highway.js'
+import { ref, computed, watch } from 'vue'
+import s3 from '@src/AWSClient'
 
-export default {
-  name: 'OSMImporter',
-  components: {
-    MapSelector,
-  },
+const store = useIndexStore()
+const runOSM = useOSMStore()
+const rlinksStore = userLinksStore()
+const showOverwriteDialog = ref(false)
+const poly = ref(null)
 
-  setup () {
-    const store = useIndexStore()
-    const runOSM = useOSMStore()
-    const rlinksStore = userLinksStore()
-    const showOverwriteDialog = ref(false)
-    const poly = ref(null)
-    const nodes = ref({})
-    const selectedHighway = ref(null)
-    const selectedExtended = ref(false)
-    const highwayList = ref(cHighwayList)
+const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+const running = computed(() => { return runOSM.running })
+const error = computed(() => { return runOSM.error })
+const errorMessage = computed(() => { return runOSM.errorMessage })
 
-    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-    const highway = computed(() => { return runOSM.highway })
-    const extendedCycleway = computed(() => { return runOSM.extendedCycleway })
-    const callID = computed(() => { return runOSM.callID })
-    const running = computed(() => { return runOSM.running })
-    const error = computed(() => { return runOSM.error })
-    const errorMessage = computed(() => { return runOSM.errorMessage })
-    function getBBOX (val) {
-      poly.value = val
-    }
-    function importOSM () {
-      if (rlinksIsEmpty.value) {
-        runOSM.saveParams({ highway: selectedHighway.value, extendedCycleway: selectedExtended.value })
-        runOSM.setCallID()
-        runOSM.startExecution({ coords: poly.value.geometry, method: poly.value.style })
-      } else {
-        showOverwriteDialog.value = true
+const status = computed(() => { return runOSM.status })
+watch(status, (val) => {
+  if (val === 'SUCCEEDED') {
+    downloadOSMFromS3()
+  }
+})
+
+function getBBOX (val) {
+  poly.value = val
+}
+
+function importOSM () {
+  if (rlinksIsEmpty.value) {
+    runOSM.setCallID()
+
+    let input = ''
+    if (poly.value.style === 'bbox') {
+      input = {
+        bbox: poly.value.geometry,
+        highway: runOSM.selectedHighway,
+        callID: runOSM.callID,
+        elevation: true,
+        extended_cycleway: runOSM.selectedExtended,
+      }
+    } else {
+      input = {
+        poly: poly.value.geometry,
+        highway: runOSM.selectedHighway,
+        callID: runOSM.callID,
+        elevation: true,
+        extended_cycleway: runOSM.selectedExtended,
       }
     }
 
-    function applyOverwriteDialog () {
-      store.initrLinks()
-      showOverwriteDialog.value = false
-      importOSM()
-    }
-
-    onMounted(() => {
-      selectedHighway.value = highway.value
-      selectedExtended.value = extendedCycleway.value
-    })
-
-    onBeforeUnmount(() => {
-      runOSM.saveParams({ highway: selectedHighway.value, extendedCycleway: selectedExtended.value })
-    })
-
-    return {
-      showOverwriteDialog,
-      poly,
-      nodes,
-      selectedHighway,
-      selectedExtended,
-      highwayList,
-      rlinksIsEmpty,
-      highway,
-      extendedCycleway,
-      callID,
-      running,
-      error,
-      errorMessage,
-      getBBOX,
-      importOSM,
-      applyOverwriteDialog,
-    }
-  },
+    runOSM.startExecution(input)
+  } else {
+    showOverwriteDialog.value = true
+  }
 }
+
+function applyOverwriteDialog () {
+  store.initrLinks()
+  showOverwriteDialog.value = false
+  importOSM()
+}
+
+const bucket = ref('quetzal-api-bucket')
+async function downloadOSMFromS3 () {
+  function applyDict (links, colorDict, widthDict) {
+    // 00BCD4
+    Object.keys(colorDict).forEach(highway => {
+      links.features.filter(link => link.properties.highway === highway).forEach(
+        link => {
+          link.properties.route_width = widthDict[highway]
+          link.properties.route_color = colorDict[highway]
+        })
+    })
+    return links
+  }
+  runOSM.running = true
+  let rlinks = await s3.readJson(bucket.value, runOSM.callID.concat('/links.geojson'))
+  rlinks = applyDict(rlinks, highwayColor, highwayWidth)
+  const rlinksStore = userLinksStore()
+  rlinksStore.appendNewrLinks(rlinks)
+  const rnodes = await s3.readJson(bucket.value, runOSM.callID.concat('/nodes.geojson'))
+  rlinksStore.appendNewrNodes(rnodes)
+  runOSM.running = false
+  router.push('/Home').catch(() => {})
+}
+
 </script>
 <template>
   <section class="background">
@@ -113,7 +125,7 @@ export default {
       <v-card-actions>
         <v-spacer />
         <v-select
-          v-model="selectedHighway"
+          v-model="runOSM.selectedHighway"
           class="select"
           :items="highwayList"
           label="Select Item"
@@ -128,13 +140,13 @@ export default {
               v-if="index === 2"
               class="text-grey text-caption align-self-center"
             >
-              (+{{ selectedHighway.length - 2 }} others)
+              (+{{ runOSM.selectedHighway.length - 2 }} others)
             </span>
           </template>
         </v-select>
         <v-spacer />
         <v-checkbox
-          v-model="selectedExtended"
+          v-model="runOSM.selectedExtended"
           label="Extended cycleway"
         />
         <v-spacer />

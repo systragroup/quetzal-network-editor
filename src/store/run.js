@@ -54,9 +54,6 @@ export const useRunStore = defineStore('run', {
       this.executionArn = ''
       this.checkLogs()
     },
-    changeRunning (payload) {
-      this.running = payload
-    },
     succeedExecution () {
       const store = useIndexStore()
       this.running = false
@@ -235,20 +232,22 @@ export const useRunStore = defineStore('run', {
         }, {})
         return acc
       }, {})
+
+      const input = JSON.stringify({
+        authorization: userStore.idToken,
+        choice: this.selectedStepFunction,
+        scenario_path_S3: payload.scenario + '/',
+        launcher_arg: {
+          training_folder: '/tmp',
+          params: paramsDict,
+        },
+        metadata: {
+          user_email: userStore.cognitoInfo.email,
+        },
+      })
       let data = {
         // eslint-disable-next-line no-useless-escape
-        input: JSON.stringify({
-          authorization: userStore.idToken,
-          choice: this.selectedStepFunction,
-          scenario_path_S3: payload.scenario + '/',
-          launcher_arg: {
-            training_folder: '/tmp',
-            params: paramsDict,
-          },
-          metadata: {
-            user_email: userStore.cognitoInfo.email,
-          },
-        }),
+        input: input,
         stateMachineArn: this.stateMachineArnBase + userStore.model,
       }
       quetzalClient.client.post('',
