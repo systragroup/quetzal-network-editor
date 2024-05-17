@@ -12,6 +12,7 @@ export default {
     MatrixRoadCaster: defineAsyncComponent(() => import('@comp/microservices/MatrixRoadCaster.vue')),
     GTFSWebImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSWebImporter.vue')),
     GTFSZipImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue')),
+    MapMatching: defineAsyncComponent(() => import('@comp/microservices/MapMatching.vue')),
   },
   setup () {
     const runGTFS = useGTFSStore()
@@ -40,6 +41,9 @@ export default {
       </v-tab>
       <v-tab value="Matrix Road Caster">
         Matrix Road Caster
+      </v-tab>
+      <v-tab value="MapMatching">
+        MapMatching
       </v-tab>
     </v-tabs>
     <v-tabs
@@ -70,6 +74,8 @@ export default {
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
 
       <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
+
+      <MapMatching v-else-if="tab==='MapMatching'" />
     </v-window>
   </section>
 </template>
