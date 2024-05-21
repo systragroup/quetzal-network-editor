@@ -3,7 +3,8 @@ import { useMapMatchingStore } from '@src/store/MapMatching'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { ref, computed, watch } from 'vue'
+import router from '@src/router/index'
+import { ref, computed, watch, onMounted } from 'vue'
 import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -22,6 +23,33 @@ const error = computed(() => { return runMapMatching.error })
 const errorMessage = computed(() => { return runMapMatching.errorMessage })
 const callID = computed(() => { return runMapMatching.callID })
 const status = computed(() => { return runMapMatching.status })
+const showHint = ref(false)
+// dont use for now.
+// need to change Step function payload if we add parameters.
+/*
+const parameters = ref([
+  {
+    name: 'SIGMA',
+    text: 'Sigma',
+    value: 4.02,
+    type: 'Number',
+    units: 'meters',
+    hint: 'emission probablity constant. the bigger it is the further away a stops can be from roads.',
+  },
+  {
+    name: 'BETA',
+    text: 'beta',
+    value: 3,
+    type: 'Number',
+    units: 'meters',
+    hint: 'transition probablity constant. the smaller the smaller the difference between the as-the-crow and routing distance can be.',
+  }])
+*/
+
+onMounted(() => {
+  // remove nonExistant routeType from v-model selection (was deleted, or scen changed.)
+  runMapMatching.exclusions = runMapMatching.exclusions.filter(el => routeTypeList.value.has(el))
+})
 
 watch(status, (val) => {
   if (val === 'SUCCEEDED') {
@@ -82,8 +110,9 @@ async function ApplyResults () {
   const nodes = await s3.readJson(bucket.value, callID.value.concat('/nodes_final.geojson'))
   linksStore.loadNodes(nodes)
   store.changeNotification(
-    { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
+    { text: $gettext('Mapmatched!'), autoClose: true, color: 'success' })
   runMapMatching.running = false
+  router.push('/Home').catch(() => {})
 }
 
 const routeTypeList = computed(() => new Set(linksStore.links.features.map(link => link.properties.route_type)))
@@ -97,8 +126,11 @@ const routeTypeList = computed(() => new Set(linksStore.links.features.map(link 
       class="card"
     >
       <v-card-title>
-        {{ $gettext("Mapmatch") }}
+        {{ $gettext("Match PT network on road network") }}
       </v-card-title>
+      <v-card-subtitle v-if="rlinksIsEmpty || linksIsEmpty">
+        {{ $gettext("need a road and a PT network") }}
+      </v-card-subtitle>
       <v-spacer />
       <v-card-subtitle>
         <v-alert
@@ -121,30 +153,46 @@ const routeTypeList = computed(() => new Set(linksStore.links.features.map(link 
       </v-card-subtitle>
       <v-divider />
 
+      <v-spacer />
+      <v-select
+        v-model="runMapMatching.exclusions"
+        :items="routeTypeList"
+        :hint="showHint? $gettext('routes type to not mapmatch (ex subway are not on roads)'): ''"
+        label="route_type exclusion"
+        variant="underlined"
+        multiple
+      >
+        <template v-slot:selection="{ item, index }">
+          <v-chip v-if="index < 2">
+            <span>{{ item.title }}</span>
+          </v-chip>
+          <span
+            v-if="index === 2"
+            class="text-grey text-caption align-self-center"
+          >
+            (+{{ runMapMatching.exclusions.length - 2 }} others)
+          </span>
+        </template>
+      </v-select>
+      <!--
+      <div
+        v-for="(item, key) in parameters"
+        :key="key"
+      >
+        <v-text-field
+          v-model="item.value"
+          :disabled="useZone && item.name === 'num_zones'"
+          :type="item.type"
+          :label="$gettext(item.text)"
+          :suffix="item.units"
+          :hint="showHint? $gettext(item.hint): ''"
+          :persistent-hint="showHint"
+          required
+          @wheel="()=>{}"
+        />
+      </div>
+      -->
       <v-card-actions>
-        <v-spacer />
-        <v-select
-          v-model="runMapMatching.exclusions"
-          class="select"
-          :items="routeTypeList"
-          label="exclusion"
-          variant="underlined"
-          multiple
-        >
-          <template v-slot:selection="{ item, index }">
-            <v-chip v-if="index < 2">
-              <span>{{ item.title }}</span>
-            </v-chip>
-            <span
-              v-if="index === 2"
-              class="text-grey text-caption align-self-center"
-            >
-              (+{{ runMapMatching.exclusions.length - 2 }} others)
-            </span>
-          </template>
-        </v-select>
-
-        <v-spacer />
         <v-btn
           variant="outlined"
           color="success"
@@ -152,7 +200,14 @@ const routeTypeList = computed(() => new Set(linksStore.links.features.map(link 
           :disabled="running || (rlinksIsEmpty || linksIsEmpty)"
           @click="start"
         >
-          {{ $gettext("Download") }}
+          {{ $gettext("Process") }}
+        </v-btn>
+        <v-spacer />
+        <v-btn
+          size="small"
+          @click="showHint = !showHint"
+        >
+          <v-icon>far fa-question-circle small</v-icon>
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -189,9 +244,6 @@ const routeTypeList = computed(() => new Set(linksStore.links.features.map(link 
 </template>
 <style lang="scss" scoped>
 
-.select{
-  width:20rem;
-}
 .card {
   background-color: rgb(var(--v-theme-lightergrey));
   margin:1rem;
