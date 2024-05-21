@@ -244,8 +244,11 @@ export function useMapMatching () {
       // delete link.properties.anchors
     }
   }
+
+  const isRouted = computed(() => Object.keys(links.features[0].properties).includes('road_link_list'))
+
   function toggleRouting() {
-    if (Object.keys(links.features[0].properties).includes('road_link_list')) {
+    if (isRouted.value) {
       unRoute()
     } else {
       // maybe, add anchor to anchors props
@@ -254,8 +257,8 @@ export function useMapMatching () {
   }
 
   return {
-    routing,
     toggleRouting,
     routeLink,
+    isRouted,
   }
 }

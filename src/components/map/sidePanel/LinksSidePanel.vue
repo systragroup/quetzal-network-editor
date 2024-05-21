@@ -8,7 +8,10 @@ import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
 import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
 
-const { toggleRouting } = useMapMatching()
+import { userLinksStore } from '@src/store/rlinks'
+const rlinksStore = userLinksStore()
+const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+const { toggleRouting, isRouted } = useMapMatching()
 
 const { $gettext } = useGettext()
 const emit = defineEmits([
@@ -545,19 +548,30 @@ function deleteButton (obj) {
             </template>
             <span> {{ $gettext("stick nodes on existing nodes") }}</span>
           </v-tooltip>
-          <v-btn
-            size="small"
-            :color="store.routingMode? 'green':'regular'"
-            icon="fas fa-route"
-            @click="store.changeRoutingMode()"
-          />
+          <v-tooltip
+            location="right"
+            open-delay="500"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                size="small"
+                v-bind="props"
+                :disabled="rlinksIsEmpty"
+                :color="store.routingMode? 'green':'regular'"
+                icon="fas fa-route"
+                @click="store.changeRoutingMode()"
+              />
+            </template>
+            <span> {{ $gettext("Follow roads") }}</span>
+          </v-tooltip>
+
           <v-btn
             v-if="store.routingMode"
             class="ml-2"
             append-icon="fas fa-road"
             @click="toggleRouting"
           >
-            all
+            {{ !isRouted? 'all': 'none' }}
           </v-btn>
         </div>
         <div>
