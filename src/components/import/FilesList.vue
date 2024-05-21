@@ -11,13 +11,15 @@ export default {
     const store = useIndexStore()
     const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })
     const outputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('output')) })
-    function isMatrix (file) {
+    function isViz (file, otherFiles) {
       // check to put the little logo if a json has a geojson associated with
-      if (file.extension !== 'json') {
-        return false
-      } else {
-        const filtered = outputFiles.value.filter(el => el.name === file.name).map(el => el.extension)
+      if (file.extension === 'geojson') {
+        return true
+      } else if (file.extension === 'json') {
+        const filtered = otherFiles.filter(el => el.name === file.name).map(el => el.extension)
         return filtered.includes('geojson')
+      } else {
+        return false
       }
     }
     const otherOutputs = ref()
@@ -34,36 +36,18 @@ export default {
         document.getElementById('other-inputs').value = '' // clean it for next file
       }
     }
-    async function readOtherInputs (event) {
-      store.changeLoading(true)
-      const fileList = []
-      const files = event.target.files
 
-      for (const file of files) {
-        let name = 'inputs/' + file.name
-        // if we want to replace an existing input. this.choice contains the existing path name
-        if (choice.value !== 'inputs') {
-          name = choice.value
-        }
-        try {
-          const content = await readFileAsBytes(file)
-          fileList.push({ content, path: name })
-          store.changeLoading(false)
-        } catch (err) {
-          store.changeLoading(false)
-          store.changeAlert(err)
-        }
-      }
-      store.changeLoading(false)
-      context.emit('filesLoaded', fileList)
-    }
-    async function readOtherOutputs (event) {
+    async function readOtherFiles (event) {
       // load outputs as Layer Module and as other files (ex: png)
       store.changeLoading(true)
       const fileList = []
       const files = event.target.files
       for (const file of files) {
-        const name = 'outputs/' + file.name
+        let name = choice.value + '/' + file.name // inputs/ or outputs/
+        // if we want to replace an existing input. this.choice contains the existing path name
+        if (!['inputs', 'outputs'].includes(choice.value)) {
+          name = choice.value
+        }
         try {
           if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
             let content = await readFileAsText(file)
@@ -73,7 +57,6 @@ export default {
             const content = await readFileAsBytes(file)
             fileList.push({ content, path: name })
           }
-
           store.changeLoading(false)
         } catch (err) {
           store.changeLoading(false)
@@ -93,12 +76,11 @@ export default {
       store,
       inputFiles,
       outputFiles,
-      isMatrix,
+      isViz,
       otherInputs,
       otherOutputs,
       buttonHandle,
-      readOtherInputs,
-      readOtherOutputs,
+      readOtherFiles,
       deleteFile,
     }
   },
@@ -112,7 +94,7 @@ export default {
     type="file"
     style="display: none"
     multiple="multiple"
-    @change="readOtherInputs"
+    @change="readOtherFiles"
   >
   <input
     id="other-outputs"
@@ -120,7 +102,7 @@ export default {
     type="file"
     style="display: none"
     multiple="multiple"
-    @change="readOtherOutputs"
+    @change="readOtherFiles"
   >
   <div class="files-container">
     <div class="title-box">
@@ -145,6 +127,22 @@ export default {
         :key="key"
       >
         {{ file.path }}
+        <v-tooltip
+          v-if="isViz(file,inputFiles)"
+          location="top"
+          open-delay="250"
+        >
+          <template v-slot:activator="{ props }">
+            <v-icon
+              size="small"
+              class="list-icon"
+              v-bind="props"
+            >
+              fa-solid fa-layer-group
+            </v-icon>
+          </template>
+          <span>{{ $gettext('Viewable in results') }}</span>
+        </v-tooltip>
         <div class="list-button">
           <v-tooltip
             location="top"
@@ -195,7 +193,7 @@ export default {
       >
         {{ file.path }}
         <v-tooltip
-          v-if="file.extension==='geojson' || isMatrix(file)"
+          v-if="isViz(file,outputFiles)"
           location="top"
           open-delay="250"
         >
