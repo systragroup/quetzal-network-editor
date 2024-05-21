@@ -51,7 +51,7 @@ const keepHovering = ref(false)
 const dragNode = ref(false)
 
 import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
-const { routeLink, routing } = useMapMatching()
+const { routeLink } = useMapMatching()
 const routeAnchorLine = computed(() => {
   if (anchorMode.value && routingMode.value) {
     return linksStore.routeAnchorLine
@@ -131,13 +131,14 @@ function contextMenuNode (event) {
 function contextMenuAnchor() {
   if (hoveredStateId.value?.layerId === 'anchorNodes') {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-    selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)
+    selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
+    let modLink = undefined
     if (routingMode.value) {
-      linksStore.deleteRoutingAnchorNode({ selectedNode: selectedFeature.value[0].properties })
+      modLink = linksStore.deleteRoutingAnchorNode({ selectedNode: selectedFeature.value.properties })
     } else {
-      linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value[0].properties })
+      modLink = linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value.properties })
     }
-    routing()
+    if (store.routingMode && modLink) { routeLink(modLink) }
   }
 }
 
@@ -163,8 +164,8 @@ function actionClick (event) {
       linksStore.cutLineFromNode({ selectedNode: event.feature.properties })
       break
     case 'Delete Stop':
-      linksStore.deleteNode({ selectedNode: event.feature.properties })
-      routing()
+      const modLink = linksStore.deleteNode({ selectedNode: event.feature.properties })
+      if (store.routingMode && modLink) { routeLink(modLink) }
       break
     default:
       // edit node info

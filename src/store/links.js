@@ -577,6 +577,8 @@ export const useLinksStore = defineStore('links', {
         // delete link2
         this.editorLinks.features = this.editorLinks.features.filter(
           link => link.properties.index !== link2.properties.index)
+        // return modified link index (undefined if first or last node is deleted)
+        return link1
       }
     },
 
@@ -689,6 +691,8 @@ export const useLinksStore = defineStore('links', {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
       this.calcLengthTime(link)
+      // return the modified link (used for mapmatching)
+      return link
     },
 
     deleteRoutingAnchorNode (payload) {
@@ -697,6 +701,8 @@ export const useLinksStore = defineStore('links', {
       const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
         ...link.properties.anchors.slice(coordinatedIndex + 1)]
+      // return the modified link (used for mapmatching)
+      return link
     },
 
     getConnectedLinks (payload) {
