@@ -1,109 +1,76 @@
-<script>
+<script setup>
 import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref } from 'vue'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-export default {
-  name: 'FilesList',
-  emits: ['filesLoaded'],
-  setup (_, context) {
-    const store = useIndexStore()
-    const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })
-    const outputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('output')) })
-    function isMatrix (file) {
-      // check to put the little logo if a json has a geojson associated with
-      if (file.extension !== 'json') {
-        return false
-      } else {
-        const filtered = outputFiles.value.filter(el => el.name === file.name).map(el => el.extension)
-        return filtered.includes('geojson')
-      }
-    }
-    const otherOutputs = ref()
-    const otherInputs = ref()
-    const choice = ref('')
-    function buttonHandle (event) {
-      choice.value = event
-      if (choice.value === 'outputs') {
-        otherOutputs.value.click()
-        document.getElementById('other-outputs').value = '' // clean it for next file
-      } else if (choice.value.startsWith('inputs')) {
-        // inputs or a path (if we want to change an existing input)
-        otherInputs.value.click()
-        document.getElementById('other-inputs').value = '' // clean it for next file
-      }
-    }
-    async function readOtherInputs (event) {
-      store.changeLoading(true)
-      const fileList = []
-      const files = event.target.files
+const emit = defineEmits(['filesLoaded'])
 
-      for (const file of files) {
-        let name = 'inputs/' + file.name
-        // if we want to replace an existing input. this.choice contains the existing path name
-        if (choice.value !== 'inputs') {
-          name = choice.value
-        }
-        try {
-          const content = await readFileAsBytes(file)
-          fileList.push({ content, path: name })
-          store.changeLoading(false)
-        } catch (err) {
-          store.changeLoading(false)
-          store.changeAlert(err)
-        }
-      }
-      store.changeLoading(false)
-      context.emit('filesLoaded', fileList)
-    }
-    async function readOtherOutputs (event) {
-      // load outputs as Layer Module and as other files (ex: png)
-      store.changeLoading(true)
-      const fileList = []
-      const files = event.target.files
-      for (const file of files) {
-        const name = 'outputs/' + file.name
-        try {
-          if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
-            let content = await readFileAsText(file)
-            content = JSON.parse(content)
-            fileList.push({ content, path: name })
-          } else { // if not a geojson or a json. save as other.
-            const content = await readFileAsBytes(file)
-            fileList.push({ content, path: name })
-          }
-
-          store.changeLoading(false)
-        } catch (err) {
-          store.changeLoading(false)
-          store.changeAlert(err)
-        }
-      }
-      store.changeLoading(false)
-      context.emit('filesLoaded', fileList)
-    }
-    function deleteFile (file) {
-      store.deleteotherFiles([file])
-      store.changeNotification(
-        { text: file + $gettext(' deleted'), autoClose: true, color: 'success' })
-    }
-
-    return {
-      store,
-      inputFiles,
-      outputFiles,
-      isMatrix,
-      otherInputs,
-      otherOutputs,
-      buttonHandle,
-      readOtherInputs,
-      readOtherOutputs,
-      deleteFile,
-    }
-  },
-
+const store = useIndexStore()
+const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })
+const outputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('output')) })
+function isViz (file, otherFiles) {
+  // check to put the little logo if a json has a geojson associated with
+  if (file.extension === 'geojson') {
+    return true
+  } else if (file.extension === 'json') {
+    const filtered = otherFiles.filter(el => el.name === file.name).map(el => el.extension)
+    return filtered.includes('geojson')
+  } else {
+    return false
+  }
 }
+const otherOutputs = ref()
+const otherInputs = ref()
+const choice = ref('')
+function buttonHandle (event) {
+  choice.value = event
+  if (choice.value === 'outputs') {
+    otherOutputs.value.click()
+    document.getElementById('other-outputs').value = '' // clean it for next file
+  } else if (choice.value.startsWith('inputs')) {
+    // inputs or a path (if we want to change an existing input)
+    otherInputs.value.click()
+    document.getElementById('other-inputs').value = '' // clean it for next file
+  }
+}
+
+async function readOtherFiles (event) {
+  // load outputs as Layer Module and as other files (ex: png)
+  store.changeLoading(true)
+  const fileList = []
+  const files = event.target.files
+  for (const file of files) {
+    let name = choice.value + '/' + file.name // inputs/ or outputs/
+    // if we want to replace an existing input. this.choice contains the existing path name
+    if (!['inputs', 'outputs'].includes(choice.value)) {
+      name = choice.value
+    }
+    try {
+      if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+        let content = await readFileAsText(file)
+        content = JSON.parse(content)
+        fileList.push({ content, path: name })
+      } else { // if not a geojson or a json. save as other.
+        const content = await readFileAsBytes(file)
+        fileList.push({ content, path: name })
+      }
+      store.changeLoading(false)
+    } catch (err) {
+      store.changeLoading(false)
+      store.changeAlert(err)
+    }
+  }
+  store.changeLoading(false)
+  emit('filesLoaded', fileList)
+}
+function deleteFile (file) {
+  store.deleteotherFiles([file])
+  store.changeNotification(
+    { text: file + $gettext(' deleted'), autoClose: true, color: 'success' })
+}
+
 </script>
 <template>
   <input
@@ -112,7 +79,7 @@ export default {
     type="file"
     style="display: none"
     multiple="multiple"
-    @change="readOtherInputs"
+    @change="readOtherFiles"
   >
   <input
     id="other-outputs"
@@ -120,7 +87,7 @@ export default {
     type="file"
     style="display: none"
     multiple="multiple"
-    @change="readOtherOutputs"
+    @change="readOtherFiles"
   >
   <div class="files-container">
     <div class="title-box">
@@ -145,6 +112,22 @@ export default {
         :key="key"
       >
         {{ file.path }}
+        <v-tooltip
+          v-if="isViz(file,inputFiles)"
+          location="top"
+          open-delay="250"
+        >
+          <template v-slot:activator="{ props }">
+            <v-icon
+              size="small"
+              class="list-icon"
+              v-bind="props"
+            >
+              fa-solid fa-layer-group
+            </v-icon>
+          </template>
+          <span>{{ $gettext('Viewable in results') }}</span>
+        </v-tooltip>
         <div class="list-button">
           <v-tooltip
             location="top"
@@ -195,7 +178,7 @@ export default {
       >
         {{ file.path }}
         <v-tooltip
-          v-if="file.extension==='geojson' || isMatrix(file)"
+          v-if="isViz(file,outputFiles)"
           location="top"
           open-delay="250"
         >

@@ -509,8 +509,7 @@ export const useIndexStore = defineStore('store', {
         availableLayers.push(file.name)
       })
 
-      // for now. remove inputs as they are not read. (need to fetch them.)
-      return availableLayers.filter(name => !name.startsWith('inputs/'))
+      return availableLayers
     },
 
   },
