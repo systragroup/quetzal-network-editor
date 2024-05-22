@@ -249,7 +249,12 @@ export function useMapMatching () {
     }
   }
 
-  const isRouted = computed(() => Object.keys(links.features[0].properties).includes('road_link_list'))
+  const isRouted = computed(() => {
+    if (links.features.length === 0) {
+      return false
+    } else {
+      return Object.keys(links.features[0].properties).includes('road_link_list') }
+  })
 
   function toggleRouting() {
     if (isRouted.value) {
