@@ -47,13 +47,14 @@ export function useMapMatching () {
   }
 
   function addVirtualOrigin(link, offset, vindex = 'origin') {
+    // TODO: if oneway: only use B for source. and A for destination
     graph.value.addLink(vindex, link.properties.a, { weight: offset })
-    graph.value.addLink(vindex, link.properties.b, { weight: offset })
+    graph.value.addLink(vindex, link.properties.b, { weight: 1 - offset })
   }
 
   function addVirtualDestination(link, offset, vindex = 'destination') {
     graph.value.addLink(link.properties.a, vindex, { weight: offset })
-    graph.value.addLink(link.properties.b, vindex, { weight: offset })
+    graph.value.addLink(link.properties.b, vindex, { weight: 1 - offset })
   }
 
   function removeVirtualNodes(nodes = ['origin', 'destination']) {
@@ -70,7 +71,7 @@ export function useMapMatching () {
     // for links longeur than 500m, get points along every 500m
     // dist in meters.
     const limit = 1 // % of links to process
-    let dist = 500
+    let dist = 250
     let filtered = rlinks.features.filter(link => link.properties.length > 2 * dist)
     // while the number of links is larger than 1% of links. increase dist.
     while ((100 * filtered.length / rlinks.features.length) > limit) {
