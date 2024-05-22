@@ -5,6 +5,7 @@ import { useAPI } from './APIComposable'
 
 export const useOSMStore = defineStore('runOSM', () => {
   const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-osm-api')
+  const bucket = ref('quetzal-api-bucket')
   const callID = ref('')
 
   const extendedCycleway = ref(false)
@@ -24,6 +25,7 @@ export const useOSMStore = defineStore('runOSM', () => {
 
   return {
     stateMachineArn,
+    bucket,
     selectedHighway,
     extendedCycleway,
     callID,

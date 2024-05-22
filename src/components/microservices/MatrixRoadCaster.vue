@@ -3,12 +3,25 @@ import s3 from '@src/AWSClient'
 import { useMRCStore } from '@src/store/MatrixRoadCaster'
 import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
 
 import { ref, computed, onMounted, watch } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
 const runMRC = useMRCStore()
+const running = computed(() => { return runMRC.running })
+const error = computed(() => { return runMRC.error })
+const errorMessage = computed(() => { return runMRC.errorMessage })
+const bucket = computed(() => { return runMRC.bucket })
+const callID = computed(() => { return runMRC.callID })
+const timer = computed(() => { return runMRC.timer })
+const importStatus = computed(() => { return runMRC.status })
+const selectedZoneFile = ref(runMRC.zoneFile)
+watch(importStatus, (val) => {
+  if (val === 'SUCCEEDED') { getImagesURL() }
+})
+
 const rlinksStore = userLinksStore()
 const store = useIndexStore()
 const imgs = ref([])
@@ -18,7 +31,6 @@ const validForm = ref(true)
 const showP = ref(false)
 const otherFiles = computed(() => store.otherFiles.filter(el => el.extension === 'geojson').map(el => el.name))
 const useZone = computed(() => parameters.value[0].value)
-const selectedZoneFile = ref(runMRC.zoneFile)
 
 const parameters = ref([
   {
@@ -111,29 +123,55 @@ const parameters = ref([
   },
 ])
 
-const bucket = computed(() => { return runMRC.bucket })
-const callID = computed(() => { return runMRC.callID })
-const timer = computed(() => { return runMRC.timer })
-const importStatus = computed(() => { return runMRC.status })
-const running = computed(() => { return runMRC.running })
-const error = computed(() => { return runMRC.error })
-const errorMessage = computed(() => { return runMRC.errorMessage })
-
 onMounted(() => {
   // init params to the store ones.
   const storeParams = runMRC.parameters
-  // eslint-disable-next-line no-return-assign
   parameters.value.forEach(param => param.value = storeParams[param.name])
-  // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
   // if null, we create a uuid. else we fetch the data on S3
   if (callID.value) {
     getImagesURL()
   }
 })
 
-watch(importStatus, (val) => {
-  if (val === 'SUCCEEDED') { getImagesURL() }
-})
+function getApproxTimer () {
+  // payload is number of road links
+  const numZones = runMRC.parameters.num_zones
+  const trainSize = runMRC.parameters.train_size
+  const numPlotOD = runMRC.parameters.num_random_od
+  // API call time (1.8sec per call), 15 iteration X number of links, loadning saving, plotting 15sec.
+  runMRC.timer = Math.min(numZones, trainSize) * 1.8 + rlinksStore.rlinks.features.length * 0.002 + 15
+  runMRC.timer += 10 * numPlotOD // 10 sec per plots
+}
+
+async function exportFiles() {
+  try {
+    await s3.putObject(
+      bucket.value,
+      callID.value.concat('/road_links.geojson'),
+      JSON.stringify(rlinksStore.rlinks))
+    await s3.putObject(
+      bucket.value,
+      callID.value.concat('/road_nodes.geojson'),
+      JSON.stringify(rlinksStore.rnodes))
+
+    if (parameters.value.use_zone) {
+      const store = useIndexStore()
+      const userStore = useUserStore()
+      const name = selectedZoneFile.value
+      const file = store.otherFiles.filter(el => el.name === name)[0]
+      if (file.content == null && userStore.model !== null) {
+        file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
+      }
+      await s3.putObject(
+        bucket.value,
+        callID.value.concat('/zones.geojson'),
+        file.content)
+    }
+  } catch (err) {
+    const store = useIndexStore()
+    store.changeAlert(err)
+  }
+}
 
 async function run (event) {
   const resp = await event
@@ -143,12 +181,13 @@ async function run (event) {
   parameters.value.forEach(item => {
     inputs[item.name] = item.value
   })
-  runMRC.startExecution({
-    rlinks: rlinksStore.rlinks,
-    rnodes: rlinksStore.rnodes,
-    parameters: inputs,
-    selectedZoneFile: selectedZoneFile.value,
-  })
+  runMRC.setParameters(inputs)
+  console.log('exporting roads to s3')
+  runMRC.running = true
+  await exportFiles()
+  getApproxTimer()
+
+  runMRC.startExecution(runMRC.parameters)
 }
 
 function stopRun () { runMRC.stopExecution() }
