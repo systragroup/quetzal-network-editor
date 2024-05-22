@@ -9,6 +9,8 @@ export function useAPI (arn) {
   const executionArn = ref('')
   const error = ref(false)
   const errorMessage = ref('')
+  const pollFreq = 4000
+  const timer = ref(0)
 
   function cleanRun () {
     running.value = false
@@ -18,6 +20,7 @@ export function useAPI (arn) {
   function terminateExecution (payload) {
     running.value = false
     error.value = true
+    timer.value = 0
     errorMessage.value = payload
     executionArn.value = ''
   }
@@ -53,7 +56,7 @@ export function useAPI (arn) {
   function pollExecution () {
     const intervalId = setInterval(async () => {
       let data = { executionArn: executionArn.value }
-      // this.timer = this.timer - 4
+      timer.value = timer.value - pollFreq / 1000
       try {
         const response = await quetzalClient.client.post('/describe', data = JSON.stringify(data))
         status.value = response.data.status
@@ -69,7 +72,7 @@ export function useAPI (arn) {
         const store = useIndexStore()
         store.changeAlert(err)
       }
-    }, 4000)
+    }, pollFreq)
   }
 
   async function stopExecution () {
@@ -88,6 +91,7 @@ export function useAPI (arn) {
     error,
     status,
     errorMessage,
+    timer,
     startExecution,
     cleanRun,
     stopExecution,

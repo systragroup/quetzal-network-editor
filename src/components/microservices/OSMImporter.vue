@@ -66,7 +66,6 @@ function applyOverwriteDialog () {
   importOSM()
 }
 
-const bucket = ref('quetzal-api-bucket')
 async function downloadOSMFromS3 () {
   function applyDict (links, colorDict, widthDict) {
     // 00BCD4
@@ -80,11 +79,11 @@ async function downloadOSMFromS3 () {
     return links
   }
   runOSM.running = true
-  let rlinks = await s3.readJson(bucket.value, runOSM.callID.concat('/links.geojson'))
+  let rlinks = await s3.readJson(runOSM.bucket, runOSM.callID.concat('/links.geojson'))
   rlinks = applyDict(rlinks, highwayColor, highwayWidth)
   const rlinksStore = userLinksStore()
   rlinksStore.appendNewrLinks(rlinks)
-  const rnodes = await s3.readJson(bucket.value, runOSM.callID.concat('/nodes.geojson'))
+  const rnodes = await s3.readJson(runOSM.bucket, runOSM.callID.concat('/nodes.geojson'))
   rlinksStore.appendNewrNodes(rnodes)
   runOSM.running = false
   router.push('/Home').catch(() => {})
