@@ -47,14 +47,17 @@ export function useMapMatching () {
   }
 
   function addVirtualOrigin(link, offset, vindex = 'origin') {
-    // TODO: if oneway: only use B for source. and A for destination
-    graph.value.addLink(vindex, link.properties.a, { weight: offset })
+    if (link.properties.oneway === '0') { // if oneway: only use B for source. and A for destination
+      graph.value.addLink(vindex, link.properties.a, { weight: offset })
+    }
     graph.value.addLink(vindex, link.properties.b, { weight: 1 - offset })
   }
 
   function addVirtualDestination(link, offset, vindex = 'destination') {
+    if (link.properties.oneway === '0') { // if oneway: only use B for source. and A for destination
+      graph.value.addLink(link.properties.b, vindex, { weight: 1 - offset })
+    }
     graph.value.addLink(link.properties.a, vindex, { weight: offset })
-    graph.value.addLink(link.properties.b, vindex, { weight: 1 - offset })
   }
 
   function removeVirtualNodes(nodes = ['origin', 'destination']) {
