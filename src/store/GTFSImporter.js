@@ -40,13 +40,12 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   }
 
   watch(status, async (val) => {
-    console.log(val)
     if (val === 'SUCCEEDED') {
       running.value = true
       const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('gtfs imported successfully!'), autoClose: false, color: 'success' })
-      await downloadOSMFromS3()
+      await downloadFromS3()
       running.value = false
       status.value = ''
       router.push('/Home').catch(() => {})
@@ -69,7 +68,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     return links
   }
 
-  async function downloadOSMFromS3 () {
+  async function downloadFromS3 () {
     const linksStore = useLinksStore()
 
     let links = await s3.readJson(bucket.value, callID.value.concat('/links.geojson'))
