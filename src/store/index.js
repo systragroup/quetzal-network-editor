@@ -242,7 +242,7 @@ export const useIndexStore = defineStore('store', {
       const runGTFSStore = useGTFSStore()
       runStore.cleanRun()
       runOSMStore.cleanRun()
-      runGTFSStore.cleanRun()
+      runGTFSStore.clean()
     },
 
     applySettings (payload) {
