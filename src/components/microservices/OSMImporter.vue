@@ -1,13 +1,10 @@
 <script setup>
+import { ref, computed } from 'vue'
 import { highwayList } from '@constants/highway.js'
 import MapSelector from './MapSelector.vue'
 import { useOSMStore } from '@src/store/OSMImporter'
 import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
-import router from '@src/router/index'
-import { highwayColor, highwayWidth } from '@constants/highway.js'
-import { ref, computed, watch } from 'vue'
-import s3 from '@src/AWSClient'
 
 const store = useIndexStore()
 const runOSM = useOSMStore()
@@ -19,13 +16,6 @@ const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const running = computed(() => { return runOSM.running })
 const error = computed(() => { return runOSM.error })
 const errorMessage = computed(() => { return runOSM.errorMessage })
-
-const status = computed(() => { return runOSM.status })
-watch(status, (val) => {
-  if (val === 'SUCCEEDED') {
-    downloadOSMFromS3()
-  }
-})
 
 function getBBOX (val) {
   poly.value = val
@@ -64,29 +54,6 @@ function applyOverwriteDialog () {
   store.initrLinks()
   showOverwriteDialog.value = false
   importOSM()
-}
-
-async function downloadOSMFromS3 () {
-  function applyDict (links, colorDict, widthDict) {
-    // 00BCD4
-    Object.keys(colorDict).forEach(highway => {
-      links.features.filter(link => link.properties.highway === highway).forEach(
-        link => {
-          link.properties.route_width = widthDict[highway]
-          link.properties.route_color = colorDict[highway]
-        })
-    })
-    return links
-  }
-  runOSM.running = true
-  let rlinks = await s3.readJson(runOSM.bucket, runOSM.callID.concat('/links.geojson'))
-  rlinks = applyDict(rlinks, highwayColor, highwayWidth)
-  const rlinksStore = userLinksStore()
-  rlinksStore.appendNewrLinks(rlinks)
-  const rnodes = await s3.readJson(runOSM.bucket, runOSM.callID.concat('/nodes.geojson'))
-  rlinksStore.appendNewrNodes(rnodes)
-  runOSM.running = false
-  router.push('/Home').catch(() => {})
 }
 
 </script>
