@@ -54,7 +54,7 @@ async function start () {
   runMapMatching.running = true
   runMapMatching.setCallID()
   await exportFiles()
-  runMapMatching.startExecution({ callID: callID.value, exclusions: [] })
+  runMapMatching.startExecution({ callID: callID.value, exclusions: runMapMatching.exclusions })
 }
 
 function applyOverwriteDialog () {
