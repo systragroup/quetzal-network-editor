@@ -3,8 +3,7 @@ import { useMapMatchingStore } from '@src/store/MapMatching'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import router from '@src/router/index'
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -22,7 +21,7 @@ const running = computed(() => { return runMapMatching.running })
 const error = computed(() => { return runMapMatching.error })
 const errorMessage = computed(() => { return runMapMatching.errorMessage })
 const callID = computed(() => { return runMapMatching.callID })
-const status = computed(() => { return runMapMatching.status })
+const bucket = computed(() => { return runMapMatching.bucket })
 const showHint = ref(false)
 // dont use for now.
 // need to change Step function payload if we add parameters.
@@ -50,14 +49,6 @@ onMounted(() => {
   // remove nonExistant routeType from v-model selection (was deleted, or scen changed.)
   runMapMatching.exclusions = runMapMatching.exclusions.filter(el => routeTypeList.value.has(el))
 })
-
-watch(status, (val) => {
-  if (val === 'SUCCEEDED') {
-    ApplyResults()
-  }
-})
-
-const bucket = ref('quetzal-api-bucket')
 
 async function start () {
   runMapMatching.running = true
@@ -100,19 +91,6 @@ async function exportFiles() {
     const store = useIndexStore()
     store.changeAlert(err)
   }
-}
-
-async function ApplyResults () {
-  runMapMatching.running = true
-  linksStore.unloadFiles()
-  const links = await s3.readJson(bucket.value, callID.value.concat('/links_final.geojson'))
-  linksStore.loadLinks(links)
-  const nodes = await s3.readJson(bucket.value, callID.value.concat('/nodes_final.geojson'))
-  linksStore.loadNodes(nodes)
-  store.changeNotification(
-    { text: $gettext('Mapmatched!'), autoClose: true, color: 'success' })
-  runMapMatching.running = false
-  router.push('/Home').catch(() => {})
 }
 
 const routeTypeList = computed(() => new Set(linksStore.links.features.map(link => link.properties.route_type)))

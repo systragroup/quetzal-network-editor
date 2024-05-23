@@ -16,11 +16,8 @@ const errorMessage = computed(() => { return runMRC.errorMessage })
 const bucket = computed(() => { return runMRC.bucket })
 const callID = computed(() => { return runMRC.callID })
 const timer = computed(() => { return runMRC.timer })
-const importStatus = computed(() => { return runMRC.status })
+const status = computed(() => { return runMRC.status })
 const selectedZoneFile = ref(runMRC.zoneFile)
-watch(importStatus, (val) => {
-  if (val === 'SUCCEEDED') { getImagesURL() }
-})
 
 const rlinksStore = userLinksStore()
 const store = useIndexStore()
@@ -122,6 +119,10 @@ const parameters = ref([
     ],
   },
 ])
+
+watch(status, (val) => {
+  if (val === 'SUCCEEDED') { getImagesURL() }
+})
 
 onMounted(() => {
   // init params to the store ones.
@@ -314,22 +315,22 @@ const rules = {
             <v-btn
               color="success"
               variant="elevated"
-              :loading="running || importStatus === 'RUNNING'"
-              :disabled="running || importStatus === 'RUNNING' || !validForm"
+              :loading="running"
+              :disabled="running || !validForm"
               type="submit"
               prepend-icon=" fa-solid fa-play"
             >
               {{ $gettext("Run") }}
             </v-btn>
             <v-btn
-              v-show="importStatus == 'RUNNING'"
+              v-show="running"
               color="grey"
               variant="text"
               @click="stopRun()"
             >
               {{ $gettext("Abort") }}
             </v-btn>
-            <v-card-text v-show="importStatus == 'RUNNING'">
+            <v-card-text v-show="running">
               ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
             </v-card-text>
             <v-spacer />
