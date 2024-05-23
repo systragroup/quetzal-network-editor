@@ -25,12 +25,9 @@ export function useAPI (arn) {
     executionArn.value = ''
   }
 
-  function succeedExecution (message) {
+  function succeedExecution () {
     running.value = false
     executionArn.value = ''
-    const store = useIndexStore()
-    store.changeNotification(
-      { text: message, autoClose: false, color: 'success' })
   }
 
   async function startExecution (input) {

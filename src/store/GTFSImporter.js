@@ -30,7 +30,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     end_time: '08:59:00',
     day: 'tuesday',
   })
-  function saveParams (payload) { payload.forEach(param => this.parameters[param.name] = param.value) }
+  function saveParams (payload) { payload.forEach(param => parameters.value[param.name] = param.value) }
 
   const UploadedGTFS = ref([]) // list of upploded gtfs (zip local)
   const selectedGTFS = ref([]) // list of index for web Importer
@@ -40,11 +40,15 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   }
 
   watch(status, async (val) => {
+    console.log(val)
     if (val === 'SUCCEEDED') {
-      await downloadOSMFromS3()
+      running.value = true
       const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('gtfs imported successfully!'), autoClose: false, color: 'success' })
+      await downloadOSMFromS3()
+      running.value = false
+      status.value = ''
       router.push('/Home').catch(() => {})
     }
   })
@@ -77,6 +81,23 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     linksStore.appendNewNodes(nodes)
   }
 
+  // for zip importer
+  async function addGTFS (payload) {
+    const nameList = UploadedGTFS.value.map(el => el?.name)
+    if (!nameList.includes(payload.info.name)) {
+      UploadedGTFS.value.push(payload.info)
+    }
+    const upload = s3.uploadObject(bucket.value, callID.value + '/' + payload.info.name, payload.content)
+    upload.on('httpUploadProgress', (progress) => {
+      const percent = Math.round(progress.loaded / progress.total * 100)
+      updateProgress({ name: payload.info.name, progress: percent })
+    })
+    upload.done()
+  }
+  function updateProgress (payload) {
+    UploadedGTFS.value.filter(el => el.name === payload.name)[0].progress = payload.progress
+  }
+
   return {
     stateMachineArn,
     bucket,
@@ -90,11 +111,12 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     startExecution,
     stopExecution,
     cleanRun,
+    clean,
     parameters,
     saveParams,
     UploadedGTFS,
     selectedGTFS,
     saveSelectedGTFS,
-    clean,
+    addGTFS,
   }
 })
