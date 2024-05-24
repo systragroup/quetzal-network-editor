@@ -8,6 +8,8 @@
 * all microservices refactored to use the same API composable (polling for example)
 * libs updated (mapbox, Vue)
 
+### Bug Fixes
+* polling internet error. Format AXIOS error when we lost connection for 'Network Error' 'Please check your internet connection.'
 
 ## [6.0.b] (2024-05-21)
 
