@@ -25,7 +25,9 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
       running.value = false
       status.value = ''
       const store = useIndexStore()
-      store.changeNotification({ text: $gettext('Mapmatching successfull'), autoClose: false, color: 'success' })
+      store.changeNotification(
+        { text: $gettext('PT network successfully Mapmatched. See Results pages for more details.'),
+          autoClose: false, color: 'success' })
     }
   })
 
@@ -38,6 +40,24 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     linksStore.appendNewLinks(links)
     const nodes = await s3.readJson(bucket.value, callID.value.concat('/nodes_final.geojson'))
     linksStore.appendNewNodes(nodes)
+    await getCSVs()
+  }
+
+  async function getCSVs() {
+    let filesList = await s3.listFiles(bucket.value, callID.value)
+    filesList = filesList.filter(name => name.endsWith('.csv'))
+    const res = []
+    for (const file of filesList) {
+      let name = file.split('/').slice(-1)
+      name = 'outputs/' + name
+      const content = await s3.readBytes(bucket.value, file)
+      res.push({ path: name, content: content })
+    }
+    if (res.length > 0) {
+      // load new Results
+      const store = useIndexStore()
+      store.loadOtherFiles(res)
+    }
   }
 
   return {
@@ -52,5 +72,6 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     setCallID,
     startExecution,
     stopExecution,
+    getCSVs,
   }
 })

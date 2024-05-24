@@ -65,6 +65,9 @@ export function useAPI (arn) {
           terminateExecution(JSON.parse(response.data.cause))
           clearInterval(intervalId)
         }
+        else if (status.value !== 'RUNNING') {
+          clearInterval(intervalId)
+        }
       } catch (err) {
         const store = useIndexStore()
         store.changeAlert(err)

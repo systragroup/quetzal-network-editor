@@ -323,7 +323,7 @@ const rules = {
               {{ $gettext("Run") }}
             </v-btn>
             <v-btn
-              v-show="running"
+              v-show="running & status === 'RUNNING'"
               color="grey"
               variant="text"
               @click="stopRun()"
