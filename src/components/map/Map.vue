@@ -366,8 +366,8 @@ function applyStickyNode() {
   }
 }
 
-import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
-const { routeLink } = useMapMatching()
+import { useRouting } from '@src/components/utils/routing/routing.js'
+const { routeLink } = useRouting()
 
 </script>
 <template>

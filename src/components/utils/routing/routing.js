@@ -14,7 +14,7 @@ import { shallowRef, toRaw, computed, watch } from 'vue'
 const graph = shallowRef(createGraph())
 const kdTree = shallowRef(null)
 
-export function useMapMatching () {
+export function useRouting () {
   const store = useIndexStore()
   const routingMode = computed(() => store.routingMode)
   watch(routingMode, (val) => {

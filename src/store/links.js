@@ -691,7 +691,7 @@ export const useLinksStore = defineStore('links', {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
       this.calcLengthTime(link)
-      // return the modified link (used for mapmatching)
+      // return the modified link (used for Routing)
       return link
     },
 
@@ -701,7 +701,7 @@ export const useLinksStore = defineStore('links', {
       const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
         ...link.properties.anchors.slice(coordinatedIndex + 1)]
-      // return the modified link (used for mapmatching)
+      // return the modified link (used for Routing)
       return link
     },
 

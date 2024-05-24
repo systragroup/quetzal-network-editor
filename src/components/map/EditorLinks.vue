@@ -50,8 +50,8 @@ const isSticking = computed(() => { return stickyStateId.value !== null && hover
 const keepHovering = ref(false)
 const dragNode = ref(false)
 
-import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
-const { routeLink } = useMapMatching()
+import { useRouting } from '@src/components/utils/routing/routing.js'
+const { routeLink } = useRouting()
 const routeAnchorLine = computed(() => {
   if (anchorMode.value && routingMode.value) {
     return linksStore.routeAnchorLine
