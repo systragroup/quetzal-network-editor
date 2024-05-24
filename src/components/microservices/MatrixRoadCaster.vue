@@ -5,7 +5,7 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -21,9 +21,7 @@ const selectedZoneFile = ref(runMRC.zoneFile)
 
 const rlinksStore = userLinksStore()
 const store = useIndexStore()
-const imgs = ref([])
-const exporting = ref(false)
-const applying = ref(false)
+
 const validForm = ref(true)
 const showP = ref(false)
 const otherFiles = computed(() => store.otherFiles.filter(el => el.extension === 'geojson').map(el => el.name))
@@ -120,18 +118,10 @@ const parameters = ref([
   },
 ])
 
-watch(status, (val) => {
-  if (val === 'SUCCEEDED') { getImagesURL() }
-})
-
 onMounted(() => {
   // init params to the store ones.
   const storeParams = runMRC.parameters
   parameters.value.forEach(param => param.value = storeParams[param.name])
-  // if null, we create a uuid. else we fetch the data on S3
-  if (callID.value) {
-    getImagesURL()
-  }
 })
 
 function getApproxTimer () {
@@ -185,39 +175,12 @@ async function run (event) {
   runMRC.setParameters(inputs)
   console.log('exporting roads to s3')
   runMRC.running = true
-  await exportFiles()
   getApproxTimer()
-
+  await exportFiles()
   runMRC.startExecution(runMRC.parameters)
 }
 
 function stopRun () { runMRC.stopExecution() }
-
-async function ApplyResults () {
-  applying.value = true
-  const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
-  rlinksStore.loadrLinks(rlinks)
-  const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
-  rlinksStore.loadrNodes(rnodes)
-  applying.value = false
-  store.changeNotification(
-    { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
-}
-
-async function getImagesURL () {
-  const outputsFiles = await s3.listFiles(bucket.value, callID.value + '/')
-  const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
-  for (const file of filesNames) {
-    const url = await s3.getImagesURL(bucket.value, file)
-    imgs.value.push(url)
-  }
-}
-
-async function download () {
-  exporting.value = true
-  await s3.downloadFolder(bucket.value, callID.value.concat('/'), 'calibration report.zip')
-  exporting.value = false
-}
 
 const showHint = ref(false)
 // eslint-disable-next-line max-len, no-useless-escape
@@ -242,7 +205,22 @@ const rules = {
         <p> {{ $gettext('2) Call the Here Matrix API on random OD ( around 1% is sufficient )') }}</p>
         <p> {{ $gettext('3) Interpolate every other OD time with an hybrid Machine learning model') }}</p>
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
-
+        <v-alert
+          v-if="error"
+          density="compact"
+          variant="outlined"
+          text
+          type="error"
+        >
+          {{ $gettext("Service ended with an execution error or have been aborted. \
+            Please retry. If the problem persist, contact us.") }}
+          <p
+            v-for="key in Object.keys(errorMessage)"
+            :key="key"
+          >
+            <b>{{ key }}: </b>{{ errorMessage[key] }}
+          </p>
+        </v-alert>
         <v-form
           @submit.prevent="run"
         >
@@ -343,68 +321,6 @@ const rules = {
             </v-btn>
           </v-card-actions>
         </v-form>
-      </v-card>
-    </v-col>
-    <v-col>
-      <v-card class="card2">
-        <v-card-title class="subtitle">
-          {{ $gettext('Calibration Results') }}
-        </v-card-title>
-        <v-btn
-          v-show="imgs.length>0"
-          :loading="applying"
-          :disabled="applying"
-          @click="ApplyResults"
-        >
-          <v-icon
-            size="small"
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-upload
-          </v-icon>
-          {{ $gettext('Apply Road links to project') }}
-        </v-btn>
-        <v-btn
-          v-show="imgs.length>0"
-          :loading="exporting"
-          :disabled="exporting"
-          @click="download"
-        >
-          <v-icon
-            size="small"
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-download
-          </v-icon>
-          {{ $gettext('Download') }}
-        </v-btn>
-        <v-alert
-          v-if="error"
-          density="compact"
-          variant="outlined"
-          text
-          type="error"
-        >
-          {{ $gettext("Service ended with an execution error or have been aborted. \
-            Please retry. If the problem persist, contact us.") }}
-          <p
-            v-for="key in Object.keys(errorMessage)"
-            :key="key"
-          >
-            <b>{{ key }}: </b>{{ errorMessage[key] }}
-          </p>
-        </v-alert>
-        <div
-          v-for="(img,key) in imgs"
-          :key="key"
-          class="gallery"
-        >
-          <v-img
-            :src="img"
-            :alt="'image'"
-            cover
-          />
-        </div>
       </v-card>
     </v-col>
   </v-row>

@@ -1,9 +1,14 @@
 import { v4 as uuid } from 'uuid'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import s3 from '@src/AWSClient'
+import { userLinksStore } from '@src/store/rlinks'
+import { useIndexStore } from '@src/store/index'
 import { useAPI } from './APIComposable'
+import { useGettext } from 'vue3-gettext'
 
 export const useMRCStore = defineStore('runMRC', () => {
+  const { $gettext } = useGettext()
   const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-matrixroadcaster-api')
   const bucket = ref('quetzal-api-bucket')
   const callID = ref('')
@@ -11,6 +16,20 @@ export const useMRCStore = defineStore('runMRC', () => {
 
   const { error, running, errorMessage, status, timer,
     startExecution, stopExecution, cleanRun } = useAPI(stateMachineArn.value)
+
+  watch(status, async (val) => {
+    if (val === 'SUCCEEDED') {
+      running.value = true
+      await ApplyResults()
+      await getOutputs()
+      running.value = false
+      status.value = ''
+      const store = useIndexStore()
+      store.changeNotification(
+        { text: $gettext('Road network successfully calibrated. See results images pages for more details.'),
+          autoClose: false, color: 'success' })
+    }
+  })
 
   const parameters = ref({
     callID: '',
@@ -27,6 +46,31 @@ export const useMRCStore = defineStore('runMRC', () => {
   const zoneFile = ref('')
 
   function setParameters (payload) { parameters.value = payload }
+
+  async function ApplyResults () {
+    const rlinksStore = userLinksStore()
+    const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
+    rlinksStore.loadrLinks(rlinks)
+    const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
+    rlinksStore.loadrNodes(rnodes)
+  }
+
+  async function getOutputs() {
+    let filesList = await s3.listFiles(bucket.value, callID.value)
+    filesList = filesList.filter(name => name.endsWith('.png'))
+    const res = []
+    for (const file of filesList) {
+      let name = file.split('/').slice(-1)
+      name = 'outputs/' + name
+      const content = await s3.readBytes(bucket.value, file)
+      res.push({ path: name, content: content })
+    }
+    if (res.length > 0) {
+      // load new Results
+      const store = useIndexStore()
+      store.loadOtherFiles(res)
+    }
+  }
 
   return {
     stateMachineArn,
