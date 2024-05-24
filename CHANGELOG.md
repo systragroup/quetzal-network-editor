@@ -1,3 +1,14 @@
+## [6.0.c] (2024-05-24)
+
+### Features
+* **Routing**: using the Road network in JS. [#513](https://github.com/systragroup/quetzal-network-editor/issues/513)
+* **MapMatching API**: route everything on the road network with a python api microservice [#512](https://github.com/systragroup/quetzal-network-editor/issues/512)
+
+### Changes
+* all microservices refactored to use the same API composable (polling for example)
+* libs updated (mapbox, Vue)
+
+
 ## [6.0.b] (2024-05-21)
 
 ### Features
