@@ -18,8 +18,10 @@ const showOverwriteDialog = ref(false)
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
 const running = computed(() => { return runMapMatching.running })
+const status = computed(() => { return runMapMatching.status })
 const error = computed(() => { return runMapMatching.error })
 const errorMessage = computed(() => { return runMapMatching.errorMessage })
+const timer = computed(() => { return runMapMatching.timer })
 const callID = computed(() => { return runMapMatching.callID })
 const bucket = computed(() => { return runMapMatching.bucket })
 const showHint = ref(false)
@@ -53,8 +55,33 @@ onMounted(() => {
 async function start () {
   runMapMatching.running = true
   runMapMatching.setCallID()
+  getApproxTimer()
   await exportFiles()
   runMapMatching.startExecution({ callID: callID.value, exclusions: runMapMatching.exclusions })
+}
+
+function getApproxTimer () {
+  // same as in the python function. to decide the number of machine.
+  const num_trips = linksStore.tripId.length
+  let tot_num_iteration = num_trips / 6
+  function get_num_machine(num_it, target_it = 20, choices = [12, 8, 4, 1]) {
+    // return the number of machine (in choices) required to have target_it per machine
+    let num_machine = Math.floor(num_it / target_it)
+    let best_diff = 100
+    let best_val = 12
+    for (let v of choices) { // choice of output
+      let diff = Math.abs(num_machine - v)
+      if (diff < best_diff) {
+        best_diff = diff
+        best_val = v
+      }
+    }
+    return best_val
+  }
+
+  const num_machine = get_num_machine(tot_num_iteration, 20, [12, 8, 4, 1])
+  // spit and merge 10 secs each. maybe 20sec for MM prep + 1 sec per it. 10sec for export
+  runMapMatching.timer = (tot_num_iteration / num_machine) + 20 + 20 + 10// 1 sec per it
 }
 
 function applyOverwriteDialog () {
@@ -95,7 +122,7 @@ async function exportFiles() {
 
 const routeTypeList = computed(() => new Set(linksStore.links.features.map(link => link.properties.route_type)))
 
-// function stopRun () { runMapMatching.stopExecution() }
+function stopRun () { runMapMatching.stopExecution() }
 
 </script>
 <template>
@@ -180,6 +207,17 @@ const routeTypeList = computed(() => new Set(linksStore.links.features.map(link 
         >
           {{ $gettext("Process") }}
         </v-btn>
+        <v-btn
+          v-show="running && status === 'RUNNING'"
+          color="grey"
+          variant="text"
+          @click="stopRun()"
+        >
+          {{ $gettext("Abort") }}
+        </v-btn>
+        <v-card-text v-show="running">
+          ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
+        </v-card-text>
         <v-spacer />
         <v-btn
           size="small"
