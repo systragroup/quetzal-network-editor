@@ -6,12 +6,12 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
-import { useMapMatching } from '@src/components/utils/mapmatching/MapMatching.js'
+import { useRouting } from '@src/components/utils/routing/routing.js'
 
 import { userLinksStore } from '@src/store/rlinks'
 const rlinksStore = userLinksStore()
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-const { toggleRouting, isRouted } = useMapMatching()
+const { toggleRouting, isRouted } = useRouting()
 
 const { $gettext } = useGettext()
 const emit = defineEmits([
