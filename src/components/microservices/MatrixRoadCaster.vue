@@ -3,22 +3,29 @@ import s3 from '@src/AWSClient'
 import { useMRCStore } from '@src/store/MatrixRoadCaster'
 import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
 
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
 const runMRC = useMRCStore()
+const running = computed(() => { return runMRC.running })
+const error = computed(() => { return runMRC.error })
+const errorMessage = computed(() => { return runMRC.errorMessage })
+const bucket = computed(() => { return runMRC.bucket })
+const callID = computed(() => { return runMRC.callID })
+const timer = computed(() => { return runMRC.timer })
+const status = computed(() => { return runMRC.status })
+const selectedZoneFile = ref(runMRC.zoneFile)
+
 const rlinksStore = userLinksStore()
 const store = useIndexStore()
-const imgs = ref([])
-const exporting = ref(false)
-const applying = ref(false)
+
 const validForm = ref(true)
 const showP = ref(false)
 const otherFiles = computed(() => store.otherFiles.filter(el => el.extension === 'geojson').map(el => el.name))
 const useZone = computed(() => parameters.value[0].value)
-const selectedZoneFile = ref(runMRC.zoneFile)
 
 const parameters = ref([
   {
@@ -111,29 +118,51 @@ const parameters = ref([
   },
 ])
 
-const bucket = computed(() => { return runMRC.bucket })
-const callID = computed(() => { return runMRC.callID })
-const timer = computed(() => { return runMRC.timer })
-const importStatus = computed(() => { return runMRC.status })
-const running = computed(() => { return runMRC.running })
-const error = computed(() => { return runMRC.error })
-const errorMessage = computed(() => { return runMRC.errorMessage })
-
 onMounted(() => {
   // init params to the store ones.
   const storeParams = runMRC.parameters
-  // eslint-disable-next-line no-return-assign
   parameters.value.forEach(param => param.value = storeParams[param.name])
-  // this.callID = '7617f433-b80e-4570-bacd-9b26dc1c1311'
-  // if null, we create a uuid. else we fetch the data on S3
-  if (callID.value) {
-    getImagesURL()
-  }
 })
 
-watch(importStatus, (val) => {
-  if (val === 'SUCCEEDED') { getImagesURL() }
-})
+function getApproxTimer () {
+  // payload is number of road links
+  const numZones = runMRC.parameters.num_zones
+  const trainSize = runMRC.parameters.train_size
+  const numPlotOD = runMRC.parameters.num_random_od
+  // API call time (1.8sec per call), 15 iteration X number of links, loadning saving, plotting 15sec.
+  runMRC.timer = Math.min(numZones, trainSize) * 1.8 + rlinksStore.rlinks.features.length * 0.002 + 15
+  runMRC.timer += 10 * numPlotOD // 10 sec per plots
+}
+
+async function exportFiles() {
+  try {
+    await s3.putObject(
+      bucket.value,
+      callID.value.concat('/road_links.geojson'),
+      JSON.stringify(rlinksStore.rlinks))
+    await s3.putObject(
+      bucket.value,
+      callID.value.concat('/road_nodes.geojson'),
+      JSON.stringify(rlinksStore.rnodes))
+
+    if (parameters.value.use_zone) {
+      const store = useIndexStore()
+      const userStore = useUserStore()
+      const name = selectedZoneFile.value
+      const file = store.otherFiles.filter(el => el.name === name)[0]
+      if (file.content == null && userStore.model !== null) {
+        file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
+      }
+      await s3.putObject(
+        bucket.value,
+        callID.value.concat('/zones.geojson'),
+        file.content)
+    }
+  } catch (err) {
+    const store = useIndexStore()
+    store.changeAlert(err)
+  }
+}
 
 async function run (event) {
   const resp = await event
@@ -143,41 +172,15 @@ async function run (event) {
   parameters.value.forEach(item => {
     inputs[item.name] = item.value
   })
-  runMRC.startExecution({
-    rlinks: rlinksStore.rlinks,
-    rnodes: rlinksStore.rnodes,
-    parameters: inputs,
-    selectedZoneFile: selectedZoneFile.value,
-  })
+  runMRC.setParameters(inputs)
+  console.log('exporting roads to s3')
+  runMRC.running = true
+  getApproxTimer()
+  await exportFiles()
+  runMRC.startExecution(runMRC.parameters)
 }
 
 function stopRun () { runMRC.stopExecution() }
-
-async function ApplyResults () {
-  applying.value = true
-  const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
-  rlinksStore.loadrLinks(rlinks)
-  const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
-  rlinksStore.loadrNodes(rnodes)
-  applying.value = false
-  store.changeNotification(
-    { text: $gettext('Road links applied!'), autoClose: true, color: 'success' })
-}
-
-async function getImagesURL () {
-  const outputsFiles = await s3.listFiles(bucket.value, callID.value + '/')
-  const filesNames = outputsFiles.filter(name => name.endsWith('.png'))
-  for (const file of filesNames) {
-    const url = await s3.getImagesURL(bucket.value, file)
-    imgs.value.push(url)
-  }
-}
-
-async function download () {
-  exporting.value = true
-  await s3.downloadFolder(bucket.value, callID.value.concat('/'), 'calibration report.zip')
-  exporting.value = false
-}
 
 const showHint = ref(false)
 // eslint-disable-next-line max-len, no-useless-escape
@@ -202,7 +205,22 @@ const rules = {
         <p> {{ $gettext('2) Call the Here Matrix API on random OD ( around 1% is sufficient )') }}</p>
         <p> {{ $gettext('3) Interpolate every other OD time with an hybrid Machine learning model') }}</p>
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
-
+        <v-alert
+          v-if="error"
+          density="compact"
+          variant="outlined"
+          text
+          type="error"
+        >
+          {{ $gettext("Service ended with an execution error or have been aborted. \
+            Please retry. If the problem persist, contact us.") }}
+          <p
+            v-for="key in Object.keys(errorMessage)"
+            :key="key"
+          >
+            <b>{{ key }}: </b>{{ errorMessage[key] }}
+          </p>
+        </v-alert>
         <v-form
           @submit.prevent="run"
         >
@@ -275,22 +293,22 @@ const rules = {
             <v-btn
               color="success"
               variant="elevated"
-              :loading="running || importStatus === 'RUNNING'"
-              :disabled="running || importStatus === 'RUNNING' || !validForm"
+              :loading="running"
+              :disabled="running || !validForm"
               type="submit"
               prepend-icon=" fa-solid fa-play"
             >
               {{ $gettext("Run") }}
             </v-btn>
             <v-btn
-              v-show="importStatus == 'RUNNING'"
+              v-show="running & status === 'RUNNING'"
               color="grey"
               variant="text"
               @click="stopRun()"
             >
               {{ $gettext("Abort") }}
             </v-btn>
-            <v-card-text v-show="importStatus == 'RUNNING'">
+            <v-card-text v-show="running">
               ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
             </v-card-text>
             <v-spacer />
@@ -303,68 +321,6 @@ const rules = {
             </v-btn>
           </v-card-actions>
         </v-form>
-      </v-card>
-    </v-col>
-    <v-col>
-      <v-card class="card2">
-        <v-card-title class="subtitle">
-          {{ $gettext('Calibration Results') }}
-        </v-card-title>
-        <v-btn
-          v-show="imgs.length>0"
-          :loading="applying"
-          :disabled="applying"
-          @click="ApplyResults"
-        >
-          <v-icon
-            size="small"
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-upload
-          </v-icon>
-          {{ $gettext('Apply Road links to project') }}
-        </v-btn>
-        <v-btn
-          v-show="imgs.length>0"
-          :loading="exporting"
-          :disabled="exporting"
-          @click="download"
-        >
-          <v-icon
-            size="small"
-            style="margin-right: 10px;"
-          >
-            fa-solid fa-download
-          </v-icon>
-          {{ $gettext('Download') }}
-        </v-btn>
-        <v-alert
-          v-if="error"
-          density="compact"
-          variant="outlined"
-          text
-          type="error"
-        >
-          {{ $gettext("Service ended with an execution error or have been aborted. \
-            Please retry. If the problem persist, contact us.") }}
-          <p
-            v-for="key in Object.keys(errorMessage)"
-            :key="key"
-          >
-            <b>{{ key }}: </b>{{ errorMessage[key] }}
-          </p>
-        </v-alert>
-        <div
-          v-for="(img,key) in imgs"
-          :key="key"
-          class="gallery"
-        >
-          <v-img
-            :src="img"
-            :alt="'image'"
-            cover
-          />
-        </div>
       </v-card>
     </v-col>
   </v-row>

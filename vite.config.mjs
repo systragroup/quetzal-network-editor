@@ -38,7 +38,10 @@ export default defineConfig(({ mode }) => {
         'vuetify/lib/components/VChip/index.mjs',
         'vuetify/lib/components/VDatePicker/index.mjs',
         'vuetify/lib/components/VStepper/index.mjs',
-        'vuetify/lib/components/VExpansionPanel/index.mjs'],
+        'vuetify/lib/components/VExpansionPanel/index.mjs',
+        'vuetify/lib/components/VCheckbox/index.mjs',
+        'vuetify/lib/components/VVirtualScroll/index.mjs',
+        'vuetify/lib/components/VColorPicker/index.mjs'],
     },
     base: basePath,
     plugins: [
