@@ -17,9 +17,7 @@ Amplify.configure({
     },
   },
 })
-
 // You can get the current config object
-
 async function login () {
   const userStore = useUserStore()
   const { idToken } = (await fetchAuthSession()).tokens ?? {}
@@ -46,7 +44,6 @@ export default {
   async isUserSignedIn () {
     try {
       await getCurrentUser()
-      await login()
       return true
     } catch {
       return false

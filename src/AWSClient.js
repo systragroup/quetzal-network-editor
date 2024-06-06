@@ -293,7 +293,7 @@ export default {
     s3Client.middlewareStack.add(
       (next, _) => async (args) => {
         const result = await next(args)
-        userStore.isTokenExpired()
+        await userStore.isTokenExpired()
         return result
       },
     )
