@@ -15,7 +15,7 @@ export const useUserStore = defineStore('userStore', {
     bucketListStore: [],
     idToken: '',
     refreshExpTime: 1470 * 24 * 60 * 60,
-    idExpTime: 4 * 60,
+    idExpTime: 23 * 60 * 60,
     signinTime: 0,
     loginTime: 0,
     loggedIn: false,

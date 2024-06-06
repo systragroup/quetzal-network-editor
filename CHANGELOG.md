@@ -1,3 +1,13 @@
+## [6.0.d] (2024-06-06)
+
+### Features
+* **GTFS web importer**: download button to get the zip file.
+
+### Changes
+* refresh token now valid 4 years (was 30 days).
+* ID token is renew after 1 day (23h) in the middleware of S3 and Axios.
+
+
 ## [6.0.c] (2024-05-24)
 
 ### Features
