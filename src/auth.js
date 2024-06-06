@@ -18,7 +18,6 @@ Amplify.configure({
     },
   },
 })
-
 // You can get the current config object
 
 async function logout () {
@@ -62,7 +61,6 @@ export default {
   async isUserSignedIn () {
     try {
       await getCurrentUser()
-      await login()
       return true
     } catch {
       return false

@@ -1,6 +1,7 @@
 import { useIndexStore } from '@src/store/index'
-import { quetzalClient } from '@src/axiosClient.js'
 import { ref } from 'vue'
+import { useClient } from '@src/axiosClient.js'
+const { quetzalClient } = useClient()
 
 export function useAPI (arn) {
   const stateMachineArn = ref(arn)
@@ -39,7 +40,7 @@ export function useAPI (arn) {
     }
 
     try {
-      const response = await quetzalClient.client.post('', data = JSON.stringify(data))
+      const response = await quetzalClient.post('', data = JSON.stringify(data))
       executionArn.value = response.data.executionArn
       pollExecution()
     } catch (err) {
@@ -55,7 +56,7 @@ export function useAPI (arn) {
       let data = { executionArn: executionArn.value }
       timer.value = timer.value - pollFreq / 1000
       try {
-        const response = await quetzalClient.client.post('/describe', data = JSON.stringify(data))
+        const response = await quetzalClient.post('/describe', data = JSON.stringify(data))
         status.value = response.data.status
         console.log(status.value)
         if (status.value === 'SUCCEEDED') {
@@ -78,7 +79,7 @@ export function useAPI (arn) {
   async function stopExecution () {
     let data = { executionArn: executionArn.value }
     try {
-      const response = await quetzalClient.client.post('/abort', data = JSON.stringify(data))
+      const response = await quetzalClient.post('/abort', data = JSON.stringify(data))
       terminateExecution(response.data)
     } catch (err) {
       const store = useIndexStore()
