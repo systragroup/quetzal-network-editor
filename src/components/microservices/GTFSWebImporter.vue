@@ -254,8 +254,9 @@ function applyOverwriteDialog () {
           <span class="list-item-small">All in polygon</span>
           <span class="list-item-small">Code</span>
           <span class="list-item-medium">Name</span>
-          <span class="list-item-large">City</span>
+          <span class="list-item-medium">City</span>
           <span class="list-item-large">Agency</span>
+          <span class="list-item-small">.zip</span>
         </ul>
         <ul
           v-for="(item,key) in availableGTFS"
@@ -270,8 +271,15 @@ function applyOverwriteDialog () {
           <span class="list-item-small">{{ item['allInPolygon'] }} </span>
           <span class="list-item-small">{{ item['location.country_code'] }} </span>
           <span class="list-item-medium">{{ item['location.subdivision_name'] }}</span>
-          <span class="list-item-large">{{ item['location.municipality'] }}</span>
+          <span class="list-item-medium">{{ item['location.municipality'] }}</span>
           <span class="list-item-large">{{ item.provider }}</span>
+          <v-btn
+            variant="text"
+            icon="fa-solid fa-download"
+            size="small"
+            :href="item['urls.latest']"
+            :style="{color: 'white'}"
+          />
         </ul>
       </div>
     </v-card>
