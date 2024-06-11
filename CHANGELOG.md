@@ -1,3 +1,7 @@
+## [5.3.1] (2024-06-11)
+
+* **multiple**: keyword in params.json. if multiple:true. can select multiple value in v-select.
+
 ## [5.3.0] (2024-05-02)
 
 This version add The selection of road Links with a right click drag select.<br>
