@@ -134,6 +134,7 @@ function removeDeletedScenarios (item) {
                   v-model="item.value"
                   variant="outlined"
                   :type="item.type"
+                  :multiple="item?.multiple"
                   :items="item.items"
                   :multiple="item?.multiple"
                   :label="$gettext(item.text)"
