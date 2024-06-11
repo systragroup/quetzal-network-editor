@@ -118,7 +118,7 @@ function removeDeletedScenarios (item) {
                   :items="scenariosList.map(
                     el=>el.scenario).filter(
                     scen=>scen!==activeScenario)"
-                  multiple
+                  :multiple="item?.multiple"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
                   :hint="showHint? $gettext(item.hint): ''"
@@ -131,6 +131,7 @@ function removeDeletedScenarios (item) {
                   v-model="item.value"
                   variant="underlined"
                   :type="item.type"
+                  :multiple="item?.multiple"
                   :items="item.items"
                   :label="$gettext(item.text)"
                   :suffix="item.units"

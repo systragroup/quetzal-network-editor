@@ -1,3 +1,8 @@
+## [6.0.e] (2024-06-11)
+
+### Features
+* **multiple**: choice selection in params.json. just add multiple:true in the json. 
+
 ## [6.0.d] (2024-06-06)
 
 ### Features
