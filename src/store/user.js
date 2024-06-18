@@ -15,7 +15,7 @@ export const useUserStore = defineStore('userStore', {
     bucketListStore: [],
     idToken: '',
     refreshExpTime: 1470 * 24 * 60 * 60,
-    idExpTime: 23 * 60 * 60,
+    idExpTime: 24 * 60 * 59,
     signinTime: 0,
     loginTime: 0,
     loggedIn: false,
@@ -100,6 +100,7 @@ export const useUserStore = defineStore('userStore', {
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
       if (currentTime > this.loginTime + this.idExpTime) {
         await auth.login()
+        await s3.login()
       }
       if (currentTime > this.signinTime + this.refreshExpTime) {
         auth.logout()
