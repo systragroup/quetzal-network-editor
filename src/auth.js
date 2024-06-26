@@ -1,7 +1,7 @@
 import { useUserStore } from '@src/store/user'
+import { useIndexStore } from '@src/store/index'
 import { Amplify } from 'aws-amplify'
 import { signIn, signOut, getCurrentUser, fetchAuthSession, confirmSignIn } from 'aws-amplify/auth'
-import { useIndexStore } from './store'
 
 const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID
 const USERPOOL_ID = import.meta.env.VITE_COGNITO_USERPOOL_ID
@@ -18,7 +18,6 @@ Amplify.configure({
     },
   },
 })
-// You can get the current config object
 
 async function logout () {
   signOut()
