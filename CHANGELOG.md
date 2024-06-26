@@ -1,5 +1,6 @@
 ## [6.0.f] (2024-06-18)
 Update libs (vue 3.4.29 and more.)
+rebase on master (2024-06-26)
 
 ### Bug Fixes
 * **ID Tokcen**: was not renew in the s3 api.

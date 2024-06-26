@@ -1,4 +1,5 @@
 import { useUserStore } from '@src/store/user'
+import { useIndexStore } from '@src/store/index'
 import { Amplify } from 'aws-amplify'
 import { signIn, signOut, getCurrentUser, fetchAuthSession, confirmSignIn } from 'aws-amplify/auth'
 
@@ -17,10 +18,25 @@ Amplify.configure({
     },
   },
 })
-// You can get the current config object
+
+async function logout () {
+  signOut()
+  const userStore = useUserStore()
+  userStore.setLoggedOut()
+}
+
 async function login () {
   const userStore = useUserStore()
-  const { idToken } = (await fetchAuthSession()).tokens ?? {}
+  let idToken = {}
+  try {
+    idToken = (await fetchAuthSession()).tokens.idToken
+  } catch (err) {
+    logout()
+    const indexStore = useIndexStore()
+    indexStore.changeAlert(err)
+    return
+  }
+
   const sessionIdInfo = idToken.payload
   userStore.setIdToken(idToken.toString())
   userStore.setCognitoInfo(sessionIdInfo)
@@ -49,10 +65,6 @@ export default {
       return false
     }
   },
-  logout () {
-    signOut()
-    const userStore = useUserStore()
-    userStore.setLoggedOut()
-  },
+  logout,
 
 }
