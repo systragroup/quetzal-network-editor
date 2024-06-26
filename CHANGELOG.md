@@ -1,3 +1,8 @@
+## [5.3.2] (2024-06-26)
+
+### Bug fixes
+* **Login**: logout when the login fail
+
 ## [5.3.1] (2024-06-11)
 
 * **multiple**: keyword in params.json. if multiple:true. can select multiple value in v-select.
