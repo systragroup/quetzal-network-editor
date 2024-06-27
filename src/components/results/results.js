@@ -179,7 +179,11 @@ export function useResult () {
       }
       refreshVisibleLinks()
       updateSelectedFeature()
-    } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
+    } else {
+      store.changeNotification(
+        { text: $gettext('invalid or missing CRS. use CRS84 / EPSG:4326'),
+          autoClose: true, color: 'warning' })
+    }
   }
   function addMatrix (matData) {
     // payload is a matrix

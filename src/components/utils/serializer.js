@@ -15,7 +15,7 @@ function serializer (geojson, name, type = null, ignoreIndex = false) {
     throw err
   }
   // check CRS. no CRS or invalid
-  if (!CRSis4326) {
+  if (!CRSis4326(geojson)) {
     const err = new Error($gettext(' invalid CRS. Import aborted. use CRS84 / EPSG:4326 in ') + name)
     err.name = 'ImportError'
     throw err
