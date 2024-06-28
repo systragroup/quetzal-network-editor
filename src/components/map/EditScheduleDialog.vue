@@ -46,7 +46,7 @@ watch(showSchedule, (val) => {
     }
 
     datasets.value = buildChartDataset(links.value)
-    listOfTrips.value = getListOfTrips(datasets.value) }
+  }
 })
 
 // Chart Dataset
@@ -99,7 +99,6 @@ function buildChartDataset(links) {
 
 function updateChartDatasets() {
   datasets.value = buildChartDataset(links.value)
-  listOfTrips.value = getListOfTrips(datasets.value)
   checkSchedule()
 }
 
@@ -108,15 +107,11 @@ const labelsChoices = computed(() => { return Object.keys(nodes.value.features[0
 const label = ref('index')
 
 // List of Trip
-const listOfTrips = ref([])
-function getListOfTrips(datasets) {
-  let listOfTrips
-    = datasets.map(d => {
-      return {
-        title: d.data[0].x,
-      } })
-  return listOfTrips
-}
+
+const listOfTrips = computed(() => {
+  const list = datasets.value.map(d => { return { title: d.data[0].x } })
+  return list
+})
 
 function onClickTripList(val) {
   tripKey.value = val
@@ -139,7 +134,6 @@ function deleteTrip(val) {
   links.value.features.forEach(f => f.properties.departures.splice(val, 1))
   links.value.features.forEach(f => f.properties.arrivals.splice(val, 1))
   datasets.value = buildChartDataset(links.value)
-  listOfTrips.value = getListOfTrips(datasets.value)
 }
 
 // Create New Trip
