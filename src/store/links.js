@@ -234,9 +234,11 @@ export const useLinksStore = defineStore('links', {
         this.links.features.filter(link => delete link.properties[payload.name])
         this.editorLinks.features.filter(link => delete link.properties[payload.name])
         this.lineAttributes = this.lineAttributes.filter(item => item !== payload.name)
-      } else {
+      } else if (payload.table === 'nodes') {
         this.nodes.features.filter(node => delete node.properties[payload.name])
         this.editorNodes.features.filter(node => delete node.properties[payload.name])
+      } else if (payload.table === 'editorLinks') {
+        this.editorLinks.features.filter(link => delete link.properties[payload.name])
       }
     },
     changeSelectedTrips (payload) {

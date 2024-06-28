@@ -210,8 +210,8 @@ function save() {
 }
 
 function ConvertToFrequencyTrip() {
-  linksStore.deletePropertie({ name: 'departures', table: 'links' })
-  linksStore.deletePropertie({ name: 'arrivals', table: 'links' })
+  linksStore.deletePropertie({ name: 'departures', table: 'editorLinks' })
+  linksStore.deletePropertie({ name: 'arrivals', table: 'editorLinks' })
   emit('applyAction')
   // return to a frequency base trip.
 }
