@@ -377,6 +377,7 @@ export default {
     />
     <EditScheduleDialog
       v-model="scheduleDialog"
+      @toggle="actionClick( { action: 'Edit Line Info', lingering: true })"
       @cancelAction="cancelAction"
       @applyAction="applyAction"
     />
