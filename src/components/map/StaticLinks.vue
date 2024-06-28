@@ -1,6 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script setup>
-import { MglGeojsonLayer } from 'vue-mapbox3'
+import { MglGeojsonLayer, MglPopup } from 'vue-mapbox3'
 import mapboxgl from 'mapbox-gl'
 import { cloneDeep } from 'lodash'
 import { deleteUnusedNodes } from '@comp/utils/utils.js'
@@ -44,12 +44,16 @@ function enterLink (event) {
 
   if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
   if (selectedPopupContent.value.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
-    // eslint-disable-next-line max-len
-    let htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${selectedFeatures.value[0].properties[prop]}</b>`)
+    // if multiple map element under the mouse. show them all in the popup
+    let htmlContent = []
+    selectedFeatures.value.forEach(feature => {
+      const text = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties[prop]}</b>`)
+      htmlContent.push(...text)
+    })
     htmlContent = htmlContent.join('<br> ')
     popup.value = new mapboxgl.Popup({ closeButton: false })
       .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-      .setHTML(htmlContent)
+      .setHTML(`<p>${htmlContent}</p>`)
       .addTo(event.map)
   }
 }
@@ -93,6 +97,13 @@ function setHiddenFeatures () {
 
   // const endTime = performance.now()
 }
+
+const contextMenu = ref({
+  coordinates: [0, 0],
+  showed: false,
+  features: [],
+})
+
 function selectLine (e) {
   if (mode.value === 'pt') {
     e.preventDefault() // prevent map control
@@ -109,18 +120,44 @@ function selectLine (e) {
       })
     }
     // do nothing if nothing is clicked (clicking on map, not on a link)
-    if (selectedFeatures.value.length > 0) {
-      // set. the first one as editor mode
-      // eslint-disable-next-line max-len
+    if (selectedFeatures.value.length == 1) {
       linksStore.setEditorTrip({ tripId: selectedFeatures.value[0].properties.trip_id, changeBounds: false })
       store.changeNotification({ text: '', autoClose: true })
+    } else if (selectedFeatures.value.length > 1) {
+      const selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
+      contextMenu.value.coordinates = [e.lngLat.lng, e.lngLat.lat]
+      contextMenu.value.showed = true
+      contextMenu.value.action = 'editTrip'
+      contextMenu.value.features = selectedTrips
     }
   }
 }
-function editLineProperties (event) {
-  // eslint-disable-next-line max-len
-  linksStore.setEditorTrip({ tripId: event.mapboxEvent.features[0].properties.trip_id, changeBounds: false })
+
+function rightClick (event) {
+  leaveLink(event)
+  const selectedTrips = event.mapboxEvent.features.map(el => el.properties.trip_id)
+  if (selectedTrips.length === 1) {
+    editLineProperties(selectedTrips[0])
+  } else {
+    contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+    contextMenu.value.showed = true
+    contextMenu.value.action = 'editProperties'
+    contextMenu.value.features = selectedTrips
+  }
+}
+
+function editLineProperties (selectedTrip) {
+  linksStore.setEditorTrip({ tripId: selectedTrip, changeBounds: false })
   emits('rightClick', { action: 'Edit Line Info', lingering: false })
+}
+
+function contextMenuClick(trip) {
+  if (contextMenu.value.action === 'editProperties') {
+    editLineProperties(trip)
+  }
+  else if (contextMenu.value.action === 'editTrip') {
+    linksStore.setEditorTrip({ tripId: trip, changeBounds: false })
+  }
 }
 
 </script>
@@ -156,7 +193,7 @@ function editLineProperties (event) {
         }
       }"
       v-on="isEditorMode ? {mouseenter:()=>{},mouseleave:()=>{},contextmenu:()=>{} } :
-        { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:editLineProperties }"
+        { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:rightClick }"
     />
 
     <MglGeojsonLayer
@@ -185,5 +222,55 @@ function editLineProperties (event) {
         },
       }"
     />
+    <MglPopup
+      :close-button="false"
+      :showed="contextMenu.showed"
+      :coordinates="contextMenu.coordinates"
+      @close="contextMenu.showed=false"
+    >
+      <span
+        @mouseleave="contextMenu.showed=false"
+      >
+        <v-list
+          class="list"
+          density="compact"
+        >
+          <v-list-item-title class="title">{{ $gettext('Select a Trip') }}</v-list-item-title>
+          <v-list-item
+            v-for="(trip,key) in contextMenu.features"
+            :key="key"
+            class="test"
+          >
+            <v-btn
+              variant="outlined"
+              size="small"
+              class="test"
+              block
+              @click="contextMenuClick(trip)"
+            >
+              {{ $gettext(trip) }}
+            </v-btn>
+
+          </v-list-item>
+        </v-list>
+      </span>
+    </MglPopup>
   </section>
 </template>
+<style lang="scss" scoped>
+
+.title{
+  align-items: center;
+}
+.list{
+  overflow-y: scroll;
+  max-height: 20rem;
+  width: max-content;
+  max-width: 50rem;
+}
+.test{
+  max-width:fit-content;
+
+}
+
+</style>
