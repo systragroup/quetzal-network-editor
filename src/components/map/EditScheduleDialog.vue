@@ -10,7 +10,7 @@ import { computed } from 'vue'
 
 const showSchedule = defineModel({ type: Boolean })
 
-const emit = defineEmits(['applyAction', 'cancelAction'])
+const emit = defineEmits(['applyAction', 'cancelAction', 'toggle'])
 
 const theme = useTheme()
 const store = useIndexStore()
@@ -229,7 +229,19 @@ function ConvertToFrequencyTrip() {
     >
       <v-card-title class="text-h5">
         {{ $gettext("Edit Schedule") }}
+        <!--
+        <v-btn
+          color="success"
+          variant="text"
+          class="pl-auto"
+          prepend-icon="fas fa-arrows-rotate"
+          @click="emit('cancelAction'); emit('toggle')"
+        >
+          {{ $gettext("toggle") }}
+        </v-btn>
+        --->
       </v-card-title>
+
       <v-divider />
       <v-card-text>
         <v-row style="min-height: 20rem">
