@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, defineModel, toRaw } from 'vue'
-import ScheduleChart from './ScheduleChart.vue'
+import ScheduleChart from '@comp/utils/ScheduleChart.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
@@ -215,6 +215,13 @@ function save() {
   emit('applyAction')
 }
 
+function ConvertToFrequencyTrip() {
+  linksStore.deletePropertie({ name: 'departures', table: 'links' })
+  linksStore.deletePropertie({ name: 'arrivals', table: 'links' })
+  emit('applyAction')
+  // return to a frequency base trip.
+}
+
 </script>
 <template>
   <v-dialog
@@ -266,7 +273,7 @@ function save() {
                 <v-list-item
                   v-for="(item, key) in listOfTrips"
                   :key="key"
-                  :active="item.value == tripKey"
+                  :active="key === tripKey"
                   @click="onClickTripList(key)"
                   @mouseover="onMouseOverTripList(key)"
                   @mouseleave="onMouseLeaveTripList"
@@ -279,11 +286,10 @@ function save() {
                       variant="text"
                       icon="fas fa-trash"
                       size="small"
-                      density="compact"
                       class="ma-1"
                       color="regular"
                       :disabled="listOfTrips.length === 1"
-                      @click="deleteTrip(key)"
+                      @click.stop="deleteTrip(key)"
                     />
                   </template>
                 </v-list-item>
@@ -393,6 +399,14 @@ function save() {
       </v-card-text>
       <v-divider />
       <v-card-actions>
+        <v-btn
+          color="error"
+          variant="text"
+          prepend-icon="fas fa-arrows-rotate"
+          @click="ConvertToFrequencyTrip"
+        >
+          {{ $gettext("delete") }}
+        </v-btn>
         <v-spacer />
         <v-btn
           color="grey"
