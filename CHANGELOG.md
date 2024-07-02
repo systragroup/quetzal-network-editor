@@ -1,4 +1,9 @@
-## [next] ()
+## [6.0.g] (2024-06-28)
+
+### Features
+* **multiple PT selection**: when superposed on map. can chose wich one to edit with right click or double click. [#533](https://github.com/systragroup/quetzal-network-editor/issues/533)
+* **Toggle Schedule**: Add button to delete the Schedule and return to a normal Frequency trip. [#525](https://github.com/systragroup/quetzal-network-editor/issues/525)
+
 ### Bug Fixes
 * **CRS verification**: was not perform on geojson serialization (was a regression)
 * **CRS verification others**: check if crs is 4326 or missing, but, allow to display event if its not ok or missing for others files.

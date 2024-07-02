@@ -5,11 +5,13 @@
 .mapboxgl-popup-content {
   padding: 10px;
   color: white;
+  display:flex;
+  width:fit-content;
   background-color: $secondary;
 }
 .mapboxgl-popup-tip {
   border-bottom-color: $secondary !important;
-  border-top-color: $secondary !important;
+  border-top-color: $secondary 
 }
 .mapboxgl-popup-close-button {
   right: 20px;

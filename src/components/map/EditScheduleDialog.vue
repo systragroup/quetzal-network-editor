@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, defineModel, toRaw } from 'vue'
-import ScheduleChart from './ScheduleChart.vue'
+import ScheduleChart from '@comp/utils/ScheduleChart.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
@@ -10,7 +10,7 @@ import { computed } from 'vue'
 
 const showSchedule = defineModel({ type: Boolean })
 
-const emit = defineEmits(['applyAction', 'cancelAction'])
+const emit = defineEmits(['applyAction', 'cancelAction', 'toggle'])
 
 const theme = useTheme()
 const store = useIndexStore()
@@ -46,7 +46,7 @@ watch(showSchedule, (val) => {
     }
 
     datasets.value = buildChartDataset(links.value)
-    listOfTrips.value = getListOfTrips(datasets.value) }
+  }
 })
 
 // Chart Dataset
@@ -99,7 +99,6 @@ function buildChartDataset(links) {
 
 function updateChartDatasets() {
   datasets.value = buildChartDataset(links.value)
-  listOfTrips.value = getListOfTrips(datasets.value)
   checkSchedule()
 }
 
@@ -108,15 +107,11 @@ const labelsChoices = computed(() => { return Object.keys(nodes.value.features[0
 const label = ref('index')
 
 // List of Trip
-const listOfTrips = ref([])
-function getListOfTrips(datasets) {
-  let listOfTrips
-    = datasets.map(d => {
-      return {
-        title: d.data[0].x,
-      } })
-  return listOfTrips
-}
+
+const listOfTrips = computed(() => {
+  const list = datasets.value.map(d => { return { title: d.data[0].x } })
+  return list
+})
 
 function onClickTripList(val) {
   tripKey.value = val
@@ -139,7 +134,6 @@ function deleteTrip(val) {
   links.value.features.forEach(f => f.properties.departures.splice(val, 1))
   links.value.features.forEach(f => f.properties.arrivals.splice(val, 1))
   datasets.value = buildChartDataset(links.value)
-  listOfTrips.value = getListOfTrips(datasets.value)
 }
 
 // Create New Trip
@@ -215,6 +209,13 @@ function save() {
   emit('applyAction')
 }
 
+function ConvertToFrequencyTrip() {
+  linksStore.deletePropertie({ name: 'departures', table: 'editorLinks' })
+  linksStore.deletePropertie({ name: 'arrivals', table: 'editorLinks' })
+  emit('applyAction')
+  // return to a frequency base trip.
+}
+
 </script>
 <template>
   <v-dialog
@@ -228,7 +229,19 @@ function save() {
     >
       <v-card-title class="text-h5">
         {{ $gettext("Edit Schedule") }}
+        <!--
+        <v-btn
+          color="success"
+          variant="text"
+          class="pl-auto"
+          prepend-icon="fas fa-arrows-rotate"
+          @click="emit('cancelAction'); emit('toggle')"
+        >
+          {{ $gettext("toggle") }}
+        </v-btn>
+        --->
       </v-card-title>
+
       <v-divider />
       <v-card-text>
         <v-row style="min-height: 20rem">
@@ -266,7 +279,7 @@ function save() {
                 <v-list-item
                   v-for="(item, key) in listOfTrips"
                   :key="key"
-                  :active="item.value == tripKey"
+                  :active="key === tripKey"
                   @click="onClickTripList(key)"
                   @mouseover="onMouseOverTripList(key)"
                   @mouseleave="onMouseLeaveTripList"
@@ -279,11 +292,10 @@ function save() {
                       variant="text"
                       icon="fas fa-trash"
                       size="small"
-                      density="compact"
                       class="ma-1"
                       color="regular"
                       :disabled="listOfTrips.length === 1"
-                      @click="deleteTrip(key)"
+                      @click.stop="deleteTrip(key)"
                     />
                   </template>
                 </v-list-item>
@@ -393,6 +405,14 @@ function save() {
       </v-card-text>
       <v-divider />
       <v-card-actions>
+        <v-btn
+          color="error"
+          variant="text"
+          prepend-icon="fas fa-arrows-rotate"
+          @click="ConvertToFrequencyTrip"
+        >
+          {{ $gettext("delete") }}
+        </v-btn>
         <v-spacer />
         <v-btn
           color="grey"
