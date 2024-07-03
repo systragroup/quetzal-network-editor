@@ -1,3 +1,8 @@
+## [5.3.3] (2024-07-03)
+
+### Changes
+* **Run page**: change items to a outlines box for better clarity (hint). add some padding between them.
+
 ## [5.3.2] (2024-06-26)
 
 ### Bug fixes

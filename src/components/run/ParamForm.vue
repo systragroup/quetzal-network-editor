@@ -89,11 +89,14 @@ function removeDeletedScenarios (item) {
               <li
                 v-for="(item, key2) in group.params"
                 :key="key2"
+                class="param-list"
               >
                 <v-switch
                   v-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
                   v-model="item.value"
                   color="primary"
+                  density="compact"
+                  class="pl-2"
                   :label="$gettext(item.text)"
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
@@ -101,7 +104,7 @@ function removeDeletedScenarios (item) {
                 <v-text-field
                   v-else-if="typeof item.items === 'undefined' "
                   v-model="item.value"
-                  variant="underlined"
+                  variant="outlined"
                   :type="item.type"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
@@ -113,7 +116,7 @@ function removeDeletedScenarios (item) {
                 <v-select
                   v-else-if="item.items === '$scenarios'"
                   v-model="item.value"
-                  variant="underlined"
+                  variant="outlined"
                   :type="item.type"
                   :items="scenariosList.map(
                     el=>el.scenario).filter(
@@ -129,7 +132,7 @@ function removeDeletedScenarios (item) {
                 <v-select
                   v-else
                   v-model="item.value"
-                  variant="underlined"
+                  variant="outlined"
                   :type="item.type"
                   :items="item.items"
                   :multiple="item?.multiple"
@@ -208,5 +211,7 @@ function removeDeletedScenarios (item) {
   font-weight: bold;
   background:rgb(var(--v-theme-mediumgrey)) ;
 }
-
+.param-list{
+  margin-bottom:1.2rem;
+}
 </style>
