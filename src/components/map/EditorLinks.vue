@@ -22,6 +22,7 @@ const stickyMode = computed(() => { return store.stickyMode })
 const showedTrips = computed(() => { return linksStore.selectedTrips })
 
 const visibleNodes = computed(() => { return stickyMode.value ? linksStore.visibleNodes : geojson })
+
 onMounted(() => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
 watch(stickyMode, () => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
 watch(showedTrips, () => { map.value.getSource('stickyNodes').setData(visibleNodes.value) })
@@ -42,6 +43,29 @@ const anchorNodes = computed(() => {
 })
 
 const { map } = toRefs(props)
+
+watch(editorLinks, (links) => {
+  // update map when change.
+  map.value.getSource('editorLinks').setData(links)
+  if (!keepHovering.value) {
+    // do not check if moving node
+    setNodesPickupDropOff()
+  }
+}, { deep: true, immediate: false })
+
+function setNodesPickupDropOff() {
+  // get nodes with dropOff and pickup not 0. mark them as stop:false.
+  // this change their opacity.
+  const linksa = editorLinks.value.features.filter(el => Number(el.properties.pickup_type) !== 0)
+  const nodesArra = linksa.map(el => el.properties.a)
+  const linksb = editorLinks.value.features.filter(el => Number(el.properties.drop_off_type) !== 0)
+  const nodesArrb = linksb.map(el => el.properties.b)
+  const nodesSet = new Set([...nodesArra, ...nodesArrb])
+  let otherNodes = editorNodes.value.features.map(node => node.properties.index)
+  otherNodes = otherNodes.filter(node => !nodesSet.has(node))
+  otherNodes.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: true }))
+  nodesSet.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: false }))
+}
 
 const selectedFeature = ref(null)
 const hoveredStateId = ref(null)
@@ -300,6 +324,7 @@ function stopMovingNode () {
   <section>
     <MglGeojsonLayer
       source-id="editorLinks"
+      :reactive="false"
       :source="{
         type: 'geojson',
         data: editorLinks,
@@ -358,6 +383,7 @@ function stopMovingNode () {
         type: 'circle',
         minzoom: 2,
         paint: {
+          'circle-opacity':['case', ['boolean', ['feature-state', 'stop'], true], 1, 0.7],
           'circle-color': $vuetify.theme.current.colors.accent,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], ['case', ['boolean', isSticking, false], 24, 16], 8],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
