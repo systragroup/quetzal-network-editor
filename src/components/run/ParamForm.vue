@@ -136,7 +136,6 @@ function removeDeletedScenarios (item) {
                   :type="item.type"
                   :multiple="item?.multiple"
                   :items="item.items"
-                  :multiple="item?.multiple"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
                   :hint="showHint? $gettext(item.hint): ''"

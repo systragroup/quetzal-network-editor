@@ -209,6 +209,22 @@ function deleteField (field) {
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }
 
+async function submitForm() {
+  // just for editLine info:  check if trip exist
+  if ((action.value == 'Edit Line Info')
+    && (editorForm.value.trip_id.value !== linksStore.editorTrip)
+    && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
+    // reset all. just like abortChanges but without the abort changes notification
+    store.changeNotification({
+      text: $gettext('Cannot apply modification. Trip_id already exist'),
+      autoClose: true,
+      color: 'red darken-2',
+    })
+  } else {
+    emit('applyAction')
+  }
+}
+
 </script>
 <template>
   <v-dialog
@@ -217,135 +233,140 @@ function deleteField (field) {
     persistent
     :max-width="numLinks > 1 ? '40rem': '30rem'"
   >
-    <v-card
-      max-height="55rem"
+    <v-form
+      ref="form"
+      @submit.prevent="submitForm"
     >
-      <v-card-title class="text-h5">
-        {{ $gettext("Edit Properties") }}
-      </v-card-title>
-      <v-divider />
-      <v-card-text>
-        <v-row>
-          <v-col
-            v-for="(n,idx) in numLinks"
-            :key="idx"
+      <v-card
+        max-height="55rem"
+      >
+        <v-card-title class="text-h5">
+          {{ $gettext("Edit Properties") }}
+        </v-card-title>
+        <v-divider />
+        <v-card-text>
+          <v-row>
+            <v-col
+              v-for="(n,idx) in numLinks"
+              :key="idx"
+            >
+              <v-list>
+                <v-list-item v-if="numLinks > 1">
+                  <v-icon
+                    :style="{'align-items':'center',
+                             'justify-content': 'center',
+                             transform: 'rotate('+linkDir[idx]+'deg)'}"
+                  >
+                    fas fa-long-arrow-alt-up
+                  </v-icon>
+                </v-list-item>
+                <v-text-field
+                  v-for="(value, key) in orderedForm(idx)"
+                  :key="key"
+                  v-model="value['value']"
+                  :label="key"
+                  :hint="showHint? hints[key]: ''"
+                  :persistent-hint="showHint"
+                  :variant="value['disabled']? 'underlined': 'filled'"
+                  :type="linksStore.attributeType(key)"
+                  :placeholder="value['placeholder']? $gettext('multiple Values'):''"
+                  :persistent-placeholder=" value['placeholder']? true:false "
+                  :disabled="value['disabled']"
+                  :suffix="units[key]"
+                  :prepend-inner-icon="['length','speed','time'].includes(key) && mode === 'pt' ? 'fas fa-calculator':''"
+                  @wheel="$event.target.blur()"
+                  @change="change(key)"
+                >
+                  <template
+                    v-if="key==='route_color'"
+                    v-slot:append-inner
+                  >
+                    <color-picker
+                      v-model:pcolor="value['value']"
+                    />
+                  </template>
+                  <template
+                    v-else-if="Object.keys(attributesChoices).includes(key)"
+                    v-slot:append-inner
+                  >
+                    <MenuSelector
+                      v-model:value="value['value']"
+                      :items="attributesChoices[key]"
+                    />
+                  </template>
+                  <template
+                    v-if="showDeleteOption"
+                    v-slot:prepend
+                  >
+                    <v-btn
+                      variant="text"
+                      icon="fas fa-trash small"
+                      size="x-small"
+                      :disabled="attributeNonDeletable(key)"
+                      color="error"
+                      @click="()=>deleteField(key)"
+                    />
+                  </template>
+                </v-text-field>
+              </v-list>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-text-field
+              v-model="newFieldName"
+              :label=" $gettext('add field')"
+              :placeholder="$gettext('new field name')"
+              variant="filled"
+              :rules="rules.newField"
+              @keydown.enter.prevent="addField"
+              @wheel="$event.target.blur()"
+            >
+              <template v-slot:append-inner>
+                <v-btn
+                  color="primary"
+                  icon="fas fa-plus"
+                  size="x-small"
+                  @click="addField"
+                />
+              </template>
+            </v-text-field>
+          </v-row>
+        </v-card-text>
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn
+            icon="far fa-question-circle small"
+            variant="text"
+            size="x-small"
+            @click="()=>showHint = !showHint"
+          />
+          <v-btn
+            :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
+            size="x-small"
+            variant="text"
+            @click="ToggleDeleteOption"
+          />
+          <v-spacer />
+
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="emit('cancelAction')"
           >
-            <v-list>
-              <v-list-item v-if="numLinks > 1">
-                <v-icon
-                  :style="{'align-items':'center',
-                           'justify-content': 'center',
-                           transform: 'rotate('+linkDir[idx]+'deg)'}"
-                >
-                  fas fa-long-arrow-alt-up
-                </v-icon>
-              </v-list-item>
-              <v-text-field
-                v-for="(value, key) in orderedForm(idx)"
-                :key="key"
-                v-model="value['value']"
-                :label="key"
-                :hint="showHint? hints[key]: ''"
-                :persistent-hint="showHint"
-                :variant="value['disabled']? 'underlined': 'filled'"
-                :type="linksStore.attributeType(key)"
-                :placeholder="value['placeholder']? $gettext('multiple Values'):''"
-                :persistent-placeholder=" value['placeholder']? true:false "
-                :disabled="value['disabled']"
-                :suffix="units[key]"
-                :prepend-inner-icon="['length','speed','time'].includes(key) && mode === 'pt' ? 'fas fa-calculator':''"
-                @wheel="$event.target.blur()"
-                @change="change(key)"
-              >
-                <template
-                  v-if="key==='route_color'"
-                  v-slot:append-inner
-                >
-                  <color-picker
-                    v-model:pcolor="value['value']"
-                  />
-                </template>
-                <template
-                  v-else-if="Object.keys(attributesChoices).includes(key)"
-                  v-slot:append-inner
-                >
-                  <MenuSelector
-                    v-model:value="value['value']"
-                    :items="attributesChoices[key]"
-                  />
-                </template>
-                <template
-                  v-if="showDeleteOption"
-                  v-slot:prepend
-                >
-                  <v-btn
-                    variant="text"
-                    icon="fas fa-trash small"
-                    size="x-small"
-                    :disabled="attributeNonDeletable(key)"
-                    color="error"
-                    @click="()=>deleteField(key)"
-                  />
-                </template>
-              </v-text-field>
-            </v-list>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-text-field
-            v-model="newFieldName"
-            :label=" $gettext('add field')"
-            :placeholder="$gettext('new field name')"
-            variant="filled"
-            :rules="rules.newField"
-            @keydown.enter.stop="addField"
-            @wheel="$event.target.blur()"
+            {{ $gettext("Cancel") }}
+          </v-btn>
+
+          <v-btn
+            color="success"
+            variant="text"
+            type="submit"
           >
-            <template v-slot:append-inner>
-              <v-btn
-                color="primary"
-                icon="fas fa-plus"
-                size="x-small"
-                @click="addField"
-              />
-            </template>
-          </v-text-field>
-        </v-row>
-      </v-card-text>
-      <v-divider />
-
-      <v-card-actions>
-        <v-btn
-          icon="far fa-question-circle small"
-          variant="text"
-          size="x-small"
-          @click="()=>showHint = !showHint"
-        />
-        <v-btn
-          :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
-          size="x-small"
-          variant="text"
-          @click="ToggleDeleteOption"
-        />
-        <v-spacer />
-
-        <v-btn
-          color="grey"
-          variant="text"
-          @click="emit('cancelAction')"
-        >
-          {{ $gettext("Cancel") }}
-        </v-btn>
-
-        <v-btn
-          color="success"
-          variant="text"
-          @click="emit('applyAction')"
-        >
-          {{ $gettext("Save") }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+            {{ $gettext("Save") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
   </v-dialog>
 </template>
 <style lang="scss" scoped>

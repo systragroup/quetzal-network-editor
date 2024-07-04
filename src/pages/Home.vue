@@ -186,24 +186,10 @@ export default {
           linksStore.editNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
           break
         case 'Edit Line Info':
-          // check if trip_id was changed and if it already exist.
-          if ((editorForm.value.trip_id.value !== linksStore.editorTrip)
-            && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
-            // reset all. just like abortChanges but without the abort changes notification
-            lingering.value = true // if not, applyAction is call after and the notification is overwrite.
-            linksStore.setEditorTrip({ tripId: null, changeBounds: false })
-            action.value = null
-            store.changeNotification({
-              text: $gettext('Could not apply modification. Trip_id already exist'),
-              autoClose: true,
-              color: 'red darken-2',
-            })
+          if (linksStore.editorNodes.features.length === 0) {
+            store.changeNotification({ text: $gettext('Click on the map to start drawing'), autoClose: false })
           }
           linksStore.editLineInfo(editorForm.value)
-          if (linksStore.editorNodes.features.length === 0) {
-            store.changeNotification(
-              { text: $gettext('Click on the map to start drawing'), autoClose: false })
-          }
           break
         case 'Edit Group Info':
           linksStore.editGroupInfo({ groupTripIds: groupTripIds.value, info: editorForm.value })
