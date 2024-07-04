@@ -1,3 +1,9 @@
+## [6.0.h] (2024-07-04)
+
+### Features
+* **pickup dropoff type**:nodes have now a 0.7 opacity if those are not 0. [#538](https://github.com/systragroup/quetzal-network-editor/issues/538)
+* **edit dup trip_id**: if trying to change the trip_id to an existing one. do not let the user do it. but let them change it as the edit dialog will stay open with an error notification.
+
 ## [6.0.g] (2024-06-28)
 
 ### Features
