@@ -1,6 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script setup>
-import { MglGeojsonLayer, MglPopup } from 'vue-mapbox3'
+import { MglGeojsonLayer, MglPopup, MglImageLayer } from 'vue-mapbox3'
 import mapboxgl from 'mapbox-gl'
 import { cloneDeep } from 'lodash'
 import { deleteUnusedNodes } from '@comp/utils/utils.js'
@@ -135,7 +135,8 @@ function selectLine (e) {
 
 function rightClick (event) {
   leaveLink(event)
-  const selectedTrips = event.mapboxEvent.features.map(el => el.properties.trip_id)
+  let selectedTrips = event.mapboxEvent.features.map(el => el.properties.trip_id)
+  selectedTrips = Array.from(new Set(selectedTrips))
   if (selectedTrips.length === 1) {
     editLineProperties(selectedTrips[0])
   } else {
@@ -154,10 +155,19 @@ function editLineProperties (selectedTrip) {
 function contextMenuClick(trip) {
   if (contextMenu.value.action === 'editProperties') {
     editLineProperties(trip)
+    contextMenu.value.showed = false
+    setHighlightTrip(null)
   }
   else if (contextMenu.value.action === 'editTrip') {
     linksStore.setEditorTrip({ tripId: trip, changeBounds: false })
+    contextMenu.value.showed = false
+    setHighlightTrip(null)
   }
+}
+function setHighlightTrip(event) {
+  const highlightLinks = cloneDeep(geojson)
+  highlightLinks.features = visibleLinks.value.features.filter(el => el.properties.trip_id === event)
+  map.value.getSource('highlightLink').setData(highlightLinks)
 }
 
 </script>
@@ -222,6 +232,50 @@ function contextMenuClick(trip) {
         },
       }"
     />
+    <MglGeojsonLayer
+      source-id="highlightLink"
+      :reactive="false"
+      :source="{
+        type: 'geojson',
+        data: geojson,
+        promoteId: 'index',
+      }"
+      layer-id="highlightLink"
+      :layer="{
+        type: 'line',
+        minzoom: 1,
+        maxzoom: 18,
+        paint: {
+          'line-color': $vuetify.theme.current.colors.linksprimary,
+          'line-opacity': 1,
+          'line-width': 5,
+        },
+        layout: { 'line-cap': 'round', }
+      }"
+      v-on="isEditorMode ? {mouseenter:()=>{},mouseleave:()=>{},contextmenu:()=>{} } :
+        { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:rightClick }"
+    />
+    <MglImageLayer
+      source-id="highlightLink"
+      type="symbol"
+      source="highlightLink"
+      layer-id="highlight-arrow-layer"
+      :layer="{
+        type: 'symbol',
+        minzoom: 5,
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 30,
+          'icon-ignore-placement': true,
+          'icon-image':'arrow',
+          'icon-size': 0.5,
+          'icon-rotate': 90
+        },
+        paint: {
+          'icon-color': $vuetify.theme.current.colors.linksprimary,
+        }
+      }"
+    />
     <MglPopup
       :close-button="false"
       :showed="contextMenu.showed"
@@ -239,13 +293,15 @@ function contextMenuClick(trip) {
           <v-list-item
             v-for="(trip,key) in contextMenu.features"
             :key="key"
-            class="test"
+            class="popup-content"
           >
             <v-btn
               variant="outlined"
               size="small"
-              class="test"
+              class="popup-content"
               block
+              @mouseenter="setHighlightTrip(trip)"
+              @mouseleave="setHighlightTrip()"
               @click="contextMenuClick(trip)"
             >
               {{ $gettext(trip) }}
@@ -268,7 +324,7 @@ function contextMenuClick(trip) {
   width: max-content;
   max-width: 50rem;
 }
-.test{
+.popup-content{
   max-width:fit-content;
 
 }
