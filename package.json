@@ -52,7 +52,7 @@
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "map-promisified": "latest",
-    "mapbox-gl": "^3.4.0",
+    "mapbox-gl": "^3.5.1",
     "moment": "^2.30.1",
     "ngraph.graph": "^20.0.1",
     "ngraph.path": "^1.5.0",
@@ -100,7 +100,7 @@
     "vite": "^5.3.1",
     "vite-plugin-style-import": "^2.0.0",
     "vite-plugin-stylelint": "^4.3.0",
-    "vite-plugin-vue-devtools": "^7.3.1",
+    "vite-plugin-vue-devtools": "^7.3.5",
     "vite-plugin-vuetify": "^1.0.2",
     "vitest": "^1.6.0",
     "write-file-webpack-plugin": "^4.5.1"

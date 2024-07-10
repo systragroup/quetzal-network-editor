@@ -258,6 +258,7 @@ function addPointPT(event) {
     routeLink(linksStore.newLink)
   }
 }
+const roadref = ref()
 
 function addPointRoad(event) {
   const pointGeom = Object.values(event.mapboxEvent.lngLat)
@@ -314,7 +315,7 @@ function onHoverRoad (event) {
       // nodes are sticky. drawlink change size and style
       connectedDrawLink.value = true
     } else {
-      const node = rlinksStore.renderedrNodes.features.filter(node =>
+      const node = rlinksStore.visiblerNodes.features.filter(node =>
         node.properties.index === hoverId.value)[0]
       drawLink.value.geometry.coordinates = [node.geometry.coordinates, node.geometry.coordinates]
       drawMode.value = true

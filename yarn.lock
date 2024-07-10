@@ -4723,24 +4723,24 @@
   resolved "https://registry.yarnpkg.com/@vue/devtools-api/-/devtools-api-6.6.1.tgz#7c14346383751d9f6ad4bea0963245b30220ef83"
   integrity sha512-LgPscpE3Vs0x96PzSSB4IGVSZXZBZHpfxs+ZA1d+VEPwHdOXowy/Y2CsvCAIFrf+ssVU1pD1jidj505EpUnfbA==
 
-"@vue/devtools-core@^7.3.1":
-  version "7.3.1"
-  resolved "https://registry.yarnpkg.com/@vue/devtools-core/-/devtools-core-7.3.1.tgz#e7621e09064d3846ba6c7ed301148c989921cd69"
-  integrity sha512-5q+q4s3vop3HqSM0+sOVGhT4zEPlI9Cbo2u8sjjizWarBWM4r1FK+SRC2I2Yeg61xxcNViQ1+tOVF3QLNY7WuQ==
+"@vue/devtools-core@^7.3.5":
+  version "7.3.5"
+  resolved "https://registry.yarnpkg.com/@vue/devtools-core/-/devtools-core-7.3.5.tgz#0a61b26e1eb980b1dec8ddc47df80ee7a02e3138"
+  integrity sha512-uSC3IkIp6MtyJYSh5xzY99sgqlAXLq+peE2KKXTi6JeRHOtMngFWFWENXi70IJ1EVGYztiFQoHhI9WZcgKBz8g==
   dependencies:
-    "@vue/devtools-kit" "^7.3.1"
-    "@vue/devtools-shared" "^7.3.1"
+    "@vue/devtools-kit" "^7.3.5"
+    "@vue/devtools-shared" "^7.3.5"
     mitt "^3.0.1"
     nanoid "^3.3.4"
     pathe "^1.1.2"
     vite-hot-client "^0.2.3"
 
-"@vue/devtools-kit@^7.3.1":
-  version "7.3.1"
-  resolved "https://registry.yarnpkg.com/@vue/devtools-kit/-/devtools-kit-7.3.1.tgz#0aa3795235486415a15da441979d7d8ea801bb04"
-  integrity sha512-O9LXPo0kC/PGFBRBMvT5PHiSXr6ZdJTshVuGQ1L2mnIZlIBdTjdtCRYQg/OMcEA5JDJPeJT8bnDYBBUbssGjoA==
+"@vue/devtools-kit@^7.3.5":
+  version "7.3.5"
+  resolved "https://registry.yarnpkg.com/@vue/devtools-kit/-/devtools-kit-7.3.5.tgz#66669ee94da6c927fc28255477f65aae3f616316"
+  integrity sha512-wwfi10gJ1HMtjzcd8aIOnzBHlIRqsYDgcDyrKvkeyc0Gbcoe7UrkXRVHZUOtcxxoplHA0PwpT6wFg0uUCmi8Ww==
   dependencies:
-    "@vue/devtools-shared" "^7.3.1"
+    "@vue/devtools-shared" "^7.3.5"
     birpc "^0.2.17"
     hookable "^5.5.3"
     mitt "^3.0.1"
@@ -4748,12 +4748,12 @@
     speakingurl "^14.0.1"
     superjson "^2.2.1"
 
-"@vue/devtools-shared@^7.3.1":
-  version "7.3.1"
-  resolved "https://registry.yarnpkg.com/@vue/devtools-shared/-/devtools-shared-7.3.1.tgz#afb8bcd4de29b9c181910ad39a1d44299ed5e11a"
-  integrity sha512-TYbJLZwBy5+SliE095T+V0IMwRu+oP7I2KAsDuNtSsjHKITZvrhz2fNEvik9NsTLcEQBBoX81NvdgpoB29JAog==
+"@vue/devtools-shared@^7.3.5":
+  version "7.3.5"
+  resolved "https://registry.yarnpkg.com/@vue/devtools-shared/-/devtools-shared-7.3.5.tgz#4c4020df6d71ab058518a8f3a272fc7f2682c5d8"
+  integrity sha512-Rqii3VazmWTi67a86rYopi61n5Ved05EybJCwyrfoO9Ok3MaS/4yRFl706ouoISMlyrASJFEzM0/AiDA6w4f9A==
   dependencies:
-    rfdc "^1.3.1"
+    rfdc "^1.4.1"
 
 "@vue/reactivity@3.4.29":
   version "3.4.29"
@@ -5410,10 +5410,10 @@ chartjs-plugin-zoom@^2.0.1:
   dependencies:
     hammerjs "^2.0.8"
 
-cheap-ruler@^3.0.1:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/cheap-ruler/-/cheap-ruler-3.0.2.tgz#60d2b3a0cb77a420472c8c5bb8f2c320fba4bb87"
-  integrity sha512-02T332h1/HTN6cDSufLP8x4JzDs2+VC+8qZ/N0kWIVPyc2xUkWwWh3B2fJxR7raXkL4Mq7k554mfuM9ofv/vGg==
+cheap-ruler@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/cheap-ruler/-/cheap-ruler-4.0.0.tgz#bdc984de7e0e3f748bdfd2dbe23ec6b9dc820a09"
+  integrity sha512-0BJa8f4t141BYKQyn9NSQt1PguFQXMXwZiA5shfoaBYHAb2fFk2RAX+tiWMoQU+Agtzt3mdt0JtuyshAXqZ+Vw==
 
 check-error@^1.0.3:
   version "1.0.3"
@@ -5852,10 +5852,10 @@ dot-case@^3.0.4:
     no-case "^3.0.4"
     tslib "^2.0.3"
 
-earcut@^2.2.4:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/earcut/-/earcut-2.2.4.tgz#6d02fd4d68160c114825d06890a92ecaae60343a"
-  integrity sha512-/pjZsA1b4RPHbeWZQn66SWS8nZZWLQQ23oE3Eam7aroEFGEvwKAsJfZ9ytiEMycfzXWpca4FA9QIOehf7PocBQ==
+earcut@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/earcut/-/earcut-3.0.0.tgz#a8d5bf891224eaea8287201b5e787c6c0318af89"
+  integrity sha512-41Fs7Q/PLq1SDbqjsgcY7GA42T0jvaCNGXgGtsNdvg+Yv8eIu06bxv4/PoREkZ9nMDNwnUSG9OFB9+yv8eKhDg==
 
 easygettext@^2.17.0:
   version "2.17.0"
@@ -6596,10 +6596,10 @@ geojson-rbush@3.x:
     "@types/geojson" "7946.0.8"
     rbush "^3.0.1"
 
-geojson-vt@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/geojson-vt/-/geojson-vt-3.2.1.tgz#f8adb614d2c1d3f6ee7c4265cad4bbf3ad60c8b7"
-  integrity sha512-EvGQQi/zPrDA6zr6BnJD/YhwAkBP8nnJ9emh3EnHQKVMfg/MRVtPbMYdgVy/IaEmn4UfagD2a6fafPDL5hbtwg==
+geojson-vt@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/geojson-vt/-/geojson-vt-4.0.2.tgz#1162f6c7d61a0ba305b1030621e6e111f847828a"
+  integrity sha512-AV9ROqlNqoZEIJGfm1ncNjEXfkz2hdFlZf0qkVfmkwdKa8vj7H16YUOT81rJw1rdFhyEDlN2Tds91p/glzbl5A==
 
 get-func-name@^2.0.1, get-func-name@^2.0.2:
   version "2.0.2"
@@ -7407,7 +7407,7 @@ jwt-decode@^4.0.0:
   resolved "https://registry.yarnpkg.com/jwt-decode/-/jwt-decode-4.0.0.tgz#2270352425fd413785b2faf11f6e755c5151bd4b"
   integrity sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==
 
-kdbush@^4.0.1, kdbush@^4.0.2:
+kdbush@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/kdbush/-/kdbush-4.0.2.tgz#2f7b7246328b4657dd122b6c7f025fbc2c868e39"
   integrity sha512-WbCVYJ27Sz8zi9Q7Q0xHC+05iwkm3Znipc2XTlrnJbsHMYktW4hPhXUE8Ys1engBrvffoSCqbil1JQAa7clRpA==
@@ -7601,10 +7601,10 @@ map-promisified@latest:
   resolved "https://registry.yarnpkg.com/map-promisified/-/map-promisified-0.4.0.tgz#c33cc8b93d2d28b0df0b0937ffabcd145b9b9a82"
   integrity sha512-VYBQ3rTMykg2CSVgSrZBvhAwxuIuYbAHCtjjq/ATnD5kMq7I/ROmMBckwlmfwtEIx9yXufF+3QY5WxUH5EeM/Q==
 
-mapbox-gl@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-3.4.0.tgz#4db6fde1748937c7c8fd956fea2557f63a37fe11"
-  integrity sha512-QWgL28zg/zuIOHeF8DXPvHy1UHTgO5p4Oy6ifCAHwI9/hoI9/Fruya0yI4HkDtX1OgzTLO6SHO13A781BGJvyw==
+mapbox-gl@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-3.5.1.tgz#a7c2688a765c223b864490888464b077a87fb80b"
+  integrity sha512-sf4N18vl5FHS8lPRWZjTZShgIziDqSxan3MazHClvYYXezsAPn6hApRvAS2HEMTq7MXzRcvvt4sYgQWLubwnBw==
   dependencies:
     "@mapbox/jsonlint-lines-primitives" "^2.0.2"
     "@mapbox/mapbox-gl-supported" "^3.0.0"
@@ -7613,14 +7613,14 @@ mapbox-gl@^3.4.0:
     "@mapbox/unitbezier" "^0.0.1"
     "@mapbox/vector-tile" "^1.3.1"
     "@mapbox/whoots-js" "^3.1.0"
-    cheap-ruler "^3.0.1"
+    cheap-ruler "^4.0.0"
     csscolorparser "~1.0.3"
-    earcut "^2.2.4"
+    earcut "^3.0.0"
     fflate "^0.8.1"
-    geojson-vt "^3.2.1"
+    geojson-vt "^4.0.2"
     gl-matrix "^3.4.3"
     grid-index "^1.1.0"
-    kdbush "^4.0.1"
+    kdbush "^4.0.2"
     lodash.clonedeep "^4.5.0"
     murmurhash-js "^1.0.0"
     pbf "^3.2.1"
@@ -7628,10 +7628,10 @@ mapbox-gl@^3.4.0:
     quickselect "^2.0.0"
     rw "^1.3.3"
     serialize-to-js "^3.1.2"
-    supercluster "^8.0.0"
+    supercluster "^8.0.1"
     tiny-lru "^11.2.6"
     tinyqueue "^2.0.3"
-    tweakpane "^4.0.3"
+    tweakpane "^4.0.4"
     vt-pbf "^3.1.3"
 
 mathml-tag-names@^2.1.3:
@@ -8610,10 +8610,10 @@ reusify@^1.0.4:
   resolved "https://registry.yarnpkg.com/reusify/-/reusify-1.0.4.tgz#90da382b1e126efc02146e90845a88db12925d76"
   integrity sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==
 
-rfdc@^1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/rfdc/-/rfdc-1.3.1.tgz#2b6d4df52dffe8bb346992a10ea9451f24373a8f"
-  integrity sha512-r5a3l5HzYlIC68TpmYKlxWjmOP6wiPJ1vWv2HeLhNsRZMrCkxeqxiHlQ21oXmQ4F3SiryXBHhAD7JZqvOJjFmg==
+rfdc@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/rfdc/-/rfdc-1.4.1.tgz#778f76c4fb731d93414e8f925fbecf64cce7f6ca"
+  integrity sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==
 
 rimraf@^3.0.2:
   version "3.0.2"
@@ -9112,7 +9112,7 @@ stylelint@^16.6.1:
     table "^6.8.2"
     write-file-atomic "^5.0.1"
 
-supercluster@^8.0.0:
+supercluster@^8.0.1:
   version "8.0.1"
   resolved "https://registry.yarnpkg.com/supercluster/-/supercluster-8.0.1.tgz#9946ba123538e9e9ab15de472531f604e7372df5"
   integrity sha512-IiOea5kJ9iqzD2t7QJq/cREyLHTtSmUT6gQsweojg9WH2sYJqZK9SswTu6jrscO6D1G5v5vYZ9ru/eq85lXeZQ==
@@ -9309,10 +9309,10 @@ turf-polygon@^1.0.3:
   resolved "https://registry.yarnpkg.com/turf-polygon/-/turf-polygon-1.0.3.tgz#671dd34849864509281af18e236f67a7448c6363"
   integrity sha512-zpyHEUcnhGI02QjL/OJapQXkZSTCCbY5aErWt5P40iF5lbVAof+fZJKL9XJVAmTbrJ4FK2yH0gsxox99VSu7cQ==
 
-tweakpane@^4.0.3:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/tweakpane/-/tweakpane-4.0.3.tgz#6bb8a24706916a33d59ab0e478c2a66a9928fc60"
-  integrity sha512-BlcWOAe8oe4c+k9pmLBARGdWB6MVZMszayekkixQXTgkxTaYoTUpHpwVEp+3HkoamZkomodpbBf0CkguIHTgLg==
+tweakpane@^4.0.4:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/tweakpane/-/tweakpane-4.0.4.tgz#db55a54721872b10a698fbf900506d8f4d4840d0"
+  integrity sha512-RkWD54zDlEbnN01wQPk0ANHGbdCvlJx/E8A1QxhTfCbX+ROWos1Ws2MnhOm39aUGMOh+36TjUwpDmLfmwTr1Fg==
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
@@ -9569,14 +9569,14 @@ vite-plugin-stylelint@^4.3.0:
     "@rollup/pluginutils" "^5.0.2"
     chokidar "^3.5.3"
 
-vite-plugin-vue-devtools@^7.3.1:
-  version "7.3.1"
-  resolved "https://registry.yarnpkg.com/vite-plugin-vue-devtools/-/vite-plugin-vue-devtools-7.3.1.tgz#e284b165692f6f5664328e4bfa6d5ea70a698ad6"
-  integrity sha512-KuksceHlb5QZtb5gRB4wuRiquZRX74//i0X5jzvy5QzY11qwK44goyVrhPupZbsNfqwmZWNi3CQAe0RhLBUylg==
+vite-plugin-vue-devtools@^7.3.5:
+  version "7.3.5"
+  resolved "https://registry.yarnpkg.com/vite-plugin-vue-devtools/-/vite-plugin-vue-devtools-7.3.5.tgz#e938fe75fcbd34fcb6bfbb2d21d6bc1c6bcba27d"
+  integrity sha512-6omLXTfYu0bmSmncPSbj4mdMPB3t5dAZkUyriJikahGEnvv5gynHlydDsJShHT6l/5dCkvmSesSji/2a6FfutQ==
   dependencies:
-    "@vue/devtools-core" "^7.3.1"
-    "@vue/devtools-kit" "^7.3.1"
-    "@vue/devtools-shared" "^7.3.1"
+    "@vue/devtools-core" "^7.3.5"
+    "@vue/devtools-kit" "^7.3.5"
+    "@vue/devtools-shared" "^7.3.5"
     execa "^8.0.1"
     sirv "^2.0.4"
     vite-plugin-inspect "^0.8.4"
