@@ -37,6 +37,7 @@ export const userLinksStore = defineStore('rlinks', {
     defaultHighway: 'quenedi',
     updateLinks: [],
     updateNodes: [],
+    updateAnchor: [],
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
     rlinksAttributesChoices: {},
@@ -305,6 +306,7 @@ export const userLinksStore = defineStore('rlinks', {
       if (payload.method === 'showAll') {
         this.visiblerNodes.features = this.rnodes.features
         this.updateNodes = this.visiblerNodes.features
+        // updateAnchor = 'showAll'
         return
       } else if (payload.method === 'hideAll') {
         this.updateNodes = this.visiblerNodes.features.map(el => { return { type: 'Feature', id: el.properties.index } })
@@ -590,6 +592,7 @@ export const userLinksStore = defineStore('rlinks', {
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
       const time = distance / this.roadSpeed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      this.updateLinks = [link]
     },
     deleteAnchorrNode (payload) {
       const linkIndex = payload.selectedNode.linkIndex
@@ -597,6 +600,7 @@ export const userLinksStore = defineStore('rlinks', {
       const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+      this.updateLinks = [link]
     },
     deleterLink (payload) {
       const linkArr = new Set(payload.selectedIndex)
@@ -621,7 +625,6 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     editrGroupInfo (payload) {
-      console.time('edit')
       // edit line info on multiple trips at once.
       const groupInfo = payload.info
       const selectedLinks = payload.selectedLinks // observer of this.links
@@ -657,7 +660,6 @@ export const userLinksStore = defineStore('rlinks', {
       }
       this.refreshVisibleRoads()
       this.getFilteredrCat()
-      console.timeEnd('edit')
     },
 
   },
@@ -665,25 +667,6 @@ export const userLinksStore = defineStore('rlinks', {
   getters: {
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
-
-    anchorrNodes: (state) => {
-      const nodes = cloneDeep(geojson)
-      state.visiblerLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
-        feature => {
-          const linkIndex = feature.properties.index
-          feature.geometry.coordinates.slice(1, -1).forEach(
-            (point, idx) => nodes.features.push(Point(
-              point,
-              { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
-            ),
-            ),
-
-          )
-        },
-      )
-
-      return nodes
-    },
     rlinkDirection: (state) => (indexList, reversed = false) => {
       const links = state.rlinks.features.filter(link => indexList.includes(link.properties.index))
       const res = []

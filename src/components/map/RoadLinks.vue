@@ -1,11 +1,14 @@
 <script setup>
 
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
-import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount, watchEffect } from 'vue'
 import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
+import Point from 'turf-point'
+import short from 'short-uuid'
+
 import geojson from '@constants/geojson'
 import { useGettext } from 'vue3-gettext'
 import { cloneDeep } from 'lodash'
@@ -32,12 +35,12 @@ onBeforeUnmount(() => {
 })
 
 function initLinks() {
-  const links = (visiblerLinks.value)
+  const links = cloneDeep(visiblerLinks.value)
   links.features.forEach((link) => link.id = link.properties.index)
   map.value.getSource('rlinks').setData(links)
 }
 function initNodes() {
-  const nodes = (visiblerNodes.value)
+  const nodes = cloneDeep(visiblerNodes.value)
   nodes.features.forEach((node) => node.id = node.properties.index)
   map.value.getSource('rnodes').setData(nodes)
 }
@@ -45,45 +48,81 @@ function init() {
   initLinks()
   initNodes()
 }
-
 const selectedPopupContent = computed(() => { return store.roadsPopupContent })
 const visiblerLinks = computed(() => { return rlinksStore.visiblerLinks })
 const visiblerNodes = computed(() => { return rlinksStore.visiblerNodes })
+function queryAnchor() {
+  // query links in window and generate Anchor nodes.
+  const query = map.value.queryRenderedFeatures({ layers: ['rlinks'] })
+  const rlinksSet = new Set(query.map(el => el.id))
+  const renderedFeatures = visiblerLinks.value.features.filter(link => rlinksSet.has(link.properties.index))
+  const nodes = cloneDeep(geojson)
+  renderedFeatures.filter(link => link.geometry.coordinates.length > 2).forEach(
+    feature => {
+      const linkIndex = feature.properties.index
+      feature.geometry.coordinates.slice(1, -1).forEach(
+        (point, idx) => nodes.features.push(Point(
+          point,
+          { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
+        ),
+        ),
+
+      )
+    },
+  )
+  return nodes
+}
+
 const anchorMode = computed(() => { return store.anchorMode })
-const header = geojson
-const anchorrNodes = computed(() => {
-  return anchorMode.value ? rlinksStore.anchorrNodes : geojson
-})
+
+watchEffect(() => {
+  // query nodes every time VisibleLinks, zoom and anchorMode changes.
+  if (isRoadMode.value && anchorMode.value && currentZoom.value >= minZoom.value.anchor) {
+    const anchors = queryAnchor()
+    map.value.getSource('anchorrNodes').setData(anchors)
+  } else {
+    map.value.getSource('anchorrNodes').setData(geojson)
+  }
+}, { flush: 'post' }) // so its done after the source is created
+
 const popup = ref(null)
 const hoveredStateId = ref(null)
 const disablePopup = ref(false)
 const currentZoom = ref(10)
-// width go to x2 when zoomed. go progressively
+// width go to x3 when zoomed. go progressively (sigmoid function.)
 const width = computed(() => {
-  if (currentZoom.value > minZoom.value.rendered + 1) {
-    return 2
-  } else if (currentZoom.value > minZoom.value.rendered) {
-    return 1 + (currentZoom.value - minZoom.value.rendered)
-  } else { return 1 }
+  const x = currentZoom.value - minZoom.value.nodes
+  const res = 2 / (1 + Math.exp(-x + 3)) + 1
+  return res
 })
 
 const minZoom = ref({
-  links: 4,
-  rendered: 12,
+  anchor: 14,
+  nodes: 12,
 })
 
-async function getBounds() { currentZoom.value = map.value.getZoom() }
+async function getZoom() { currentZoom.value = map.value.getZoom() }
+
+async function getBounds() {
+  // query anchors if we move on the map
+  if (anchorMode.value && currentZoom.value >= minZoom.value.anchor) {
+    const anchors = queryAnchor()
+    map.value.getSource('anchorrNodes').setData(anchors)
+  }
+}
 
 watch(isRoadMode, (val) => {
   if (val) {
     map.value.on('dragend', getBounds)
-    map.value.on('zoomend', getBounds)
+    map.value.on('zoomend', getZoom)
+    minZoom.value.nodes = 12
   } else {
+    store.setAnchorMode(false)
     map.value.off('dragend', getBounds)
-    map.value.off('zoomend', getBounds)
-    map.value.getSource('rnodes').setData(header)
+    map.value.off('zoomend', getZoom)
+    minZoom.value.nodes = 24
   }
-})
+}, { immediate: true })
 
 const keepHovering = ref(false)
 const dragNode = ref(false)
@@ -95,7 +134,7 @@ function onCursor (event) {
     if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'rlinks') {
       if (!disablePopup.value && selectedPopupContent.value.length > 0) {
         const selectedFeature = event.mapboxEvent.features[0]
-        if (selectedFeature.layer.id !== 'rnodes') {
+        if (selectedFeature.layer.id === 'rlinks') {
           // eslint-disable-next-line max-len
           let htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${selectedFeature.properties[prop]}</b>`)
           htmlContent = htmlContent.join('<br> ')
@@ -350,16 +389,11 @@ function onMove (event) {
   // get position and update node position
   // only if dragmode is activated (we just leave the node hovering state.)
   if (dragNode.value && selectedFeature.value) {
-    emits('clickFeature', { action: 'Move rNode' })
     if (hoveredStateId.value.layerId === 'anchorrNodes') {
       rlinksStore.moverAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
-      const linkIndex = selectedFeature.value.properties.linkIndex
-      const link = visiblerLinks.value.features.filter(feature => feature.properties.index === linkIndex)[0]
-      const source = map.value.getSource('rlinks')
-      link.id = link.properties.index
-      source.updateData(link)
-      // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
     } else {
+      // when we move a rNode, we need to update drawlink as it is link to this moved node.
+      emits('clickFeature', { action: 'Move rNode' })
       rlinksStore.moverNode({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
     }
   }
@@ -404,8 +438,8 @@ const ArrowSizeCondition = computed(() => {
   // The direction is determined with the another function (ArrowDirCondition)
 
   const defaultCondition = ['case', ['has', 'oneway'],
-    ['case', ['to-boolean', ['to-number', ['get', 'oneway']]], 0.25, 0],
-    0.25]
+    ['case', ['to-boolean', ['to-number', ['get', 'oneway']]], 0.1 * width.value, 0],
+    0.1 * width.value]
 
   const getRouteWidth = ['case', ['has', 'route_width'],
     ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
@@ -514,7 +548,7 @@ const ArrowDirCondition = computed(() => {
       layer-id="arrow-rlinks"
       :layer="{
         type: 'symbol',
-        minzoom: minZoom.rendered,
+        minzoom: minZoom.nodes,
         layout: {
           'symbol-placement': 'line',
           'symbol-spacing': 200,
@@ -542,7 +576,7 @@ const ArrowDirCondition = computed(() => {
       layer-id="rnodes"
       :layer="{
         type: 'circle',
-        minzoom: minZoom.rendered,
+        minzoom: minZoom.nodes,
         paint: {
           'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
           'circle-stroke-color': $vuetify.theme.current.colors.white,
@@ -559,17 +593,18 @@ const ArrowDirCondition = computed(() => {
 
     <MglGeojsonLayer
       source-id="anchorrNodes"
+      :reactive="false"
       :source="{
         type: 'geojson',
-        data: isRoadMode? anchorrNodes: header,
+        data: geojson,
+        dynamic:false,
         buffer: 0,
         promoteId: 'index',
       }"
       layer-id="anchorrNodes"
       :layer="{
-        interactive: true,
         type: 'circle',
-        minzoom: minZoom.rendered,
+        minzoom: minZoom.anchor,
         paint: {
           'circle-color': '#ffffff',
           'circle-opacity':0.5,
