@@ -1,4 +1,4 @@
-## [6.0.i] (2024-07-04)
+## [6.0.i] (2024-07-11)
 
 ### Features
 * **Trip selection**: when hover over the choice of trip (right click). make the one under the mouse Highlighted with its direction arrows.
