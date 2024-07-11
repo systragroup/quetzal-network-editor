@@ -98,7 +98,7 @@ export default {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="vmodelSelectedCat.length ===filteredCat.length ? 'fa-eye-slash fa' : 'fa-eye fa' "
+            :icon="vmodelSelectedCat.length ===filteredCat.length ? 'fa-eye fa' : 'fa-eye-slash fa' "
             class="ma-2"
             :style="{color: 'white'}"
 

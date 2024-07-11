@@ -1,3 +1,12 @@
+## [6.0.i] (2024-07-04)
+
+### Features
+* **Trip selection**: when hover over the choice of trip (right click). make the one under the mouse Highlighted with its direction arrows.
+
+### Changes
+* **update Geojson Road**: using the new mapbox function to update single Geojson features. this improve performance a lot. no more rendered geojson layer.[#527](https://github.com/systragroup/quetzal-network-editor/issues/527)
+* **Side Panel eyes**: are now inverse to give the status. so eye slash if all hidden.
+
 ## [6.0.h] (2024-07-04)
 
 ### Features
