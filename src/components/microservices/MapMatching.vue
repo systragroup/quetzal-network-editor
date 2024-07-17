@@ -3,17 +3,14 @@ import { useMapMatchingStore } from '@src/store/MapMatching'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
-const store = useIndexStore()
 const runMapMatching = useMapMatchingStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
-
-const showOverwriteDialog = ref(false)
 
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
@@ -27,29 +24,58 @@ const bucket = computed(() => { return runMapMatching.bucket })
 const showHint = ref(false)
 // dont use for now.
 // need to change Step function payload if we add parameters.
-/*
 const parameters = ref([
   {
     name: 'SIGMA',
     text: 'Sigma',
-    value: 4.02,
+    value: runMapMatching.parameters.SIGMA,
     type: 'Number',
     units: 'meters',
-    hint: 'emission probablity constant. the bigger it is the further away a stops can be from roads.',
+    hint: 'emission probablity constant. the bigger it \
+    is the further away a stops can be from roads.',
   },
   {
     name: 'BETA',
     text: 'beta',
-    value: 3,
+    value: runMapMatching.parameters.BETA,
     type: 'Number',
     units: 'meters',
-    hint: 'transition probablity constant. the smaller the smaller the difference between the as-the-crow and routing distance can be.',
+    hint: 'transition probablity constant. The smaller the smaller  \
+    the difference between the as-the-crow and routing distance can be (if use difference is true)',
+  },
+  {
+    name: 'POWER',
+    text: 'power',
+    value: runMapMatching.parameters.POWER,
+    type: 'Number',
+    units: 'meters',
+    hint: 'Power used in the Emission Probability',
+  },
+  {
+    name: 'DIFF',
+    text: 'Use difference',
+    value: runMapMatching.parameters.DIFF,
+    type: 'Boolean',
+    units: 'bool',
+    hint: 'If False, act_dist is ignore in the transition probability. This change the emission to only \
+    consider the shortest path between nodes. ',
+  },
+  {
+    name: 'ptMetrics',
+    text: 'Add indicators on links',
+    value: runMapMatching.parameters.ptMetrics,
+    type: 'Boolean',
+    units: 'bool',
+    hint: 'Add PT metrics to road links (ex: number of trips & number of lines)',
   }])
-*/
 
 onMounted(() => {
   // remove nonExistant routeType from v-model selection (was deleted, or scen changed.)
-  runMapMatching.exclusions = runMapMatching.exclusions.filter(el => routeTypeList.value.has(el))
+  runMapMatching.exclusions = runMapMatching.exclusions.filter(el => routeTypeList.value.includes(el))
+})
+
+onBeforeUnmount(() => {
+  runMapMatching.saveParams(parameters.value)
 })
 
 async function start () {
@@ -57,14 +83,18 @@ async function start () {
   runMapMatching.setCallID()
   getApproxTimer()
   await exportFiles()
-  runMapMatching.startExecution({ callID: callID.value, exclusions: runMapMatching.exclusions })
+  const inputs = { callID: callID.value, exclusions: runMapMatching.exclusions }
+  parameters.value.forEach(item => {
+    inputs[item.name] = item.value
+  })
+  runMapMatching.startExecution(inputs)
 }
 
 function getApproxTimer () {
   // same as in the python function. to decide the number of machine.
   const num_trips = linksStore.tripId.length
   let tot_num_iteration = num_trips / 6
-  function get_num_machine(num_it, target_it = 20, choices = [12, 8, 4, 1]) {
+  function get_num_machine(num_it, target_it = 20, choices = [12, 8, 4, 2, 1]) {
     // return the number of machine (in choices) required to have target_it per machine
     let num_machine = Math.floor(num_it / target_it)
     let best_diff = 100
@@ -79,15 +109,9 @@ function getApproxTimer () {
     return best_val
   }
 
-  const num_machine = get_num_machine(tot_num_iteration, 20, [12, 8, 4, 1])
+  const num_machine = get_num_machine(tot_num_iteration, 20, [12, 8, 4, 2, 1])
   // spit and merge 10 secs each. maybe 20sec for MM prep + 1 sec per it. 10sec for export
   runMapMatching.timer = (tot_num_iteration / num_machine) + 20 + 20 + 10// 1 sec per it
-}
-
-function applyOverwriteDialog () {
-  store.initrLinks()
-  showOverwriteDialog.value = false
-  start()
 }
 
 async function exportFiles() {
@@ -120,7 +144,8 @@ async function exportFiles() {
   }
 }
 
-const routeTypeList = computed(() => new Set(linksStore.links.features.map(link => link.properties.route_type)))
+const routeTypeList = computed(() =>
+  Array.from(new Set(linksStore.links.features.map(link => link.properties.route_type))))
 
 function stopRun () { runMapMatching.stopExecution() }
 
@@ -136,6 +161,20 @@ function stopRun () { runMapMatching.stopExecution() }
       <v-card-subtitle v-if="rlinksIsEmpty || linksIsEmpty">
         {{ $gettext("need a road and a PT network") }}
       </v-card-subtitle>
+
+      <v-spacer />
+      <p class="pl-4">
+        Emission = 0.5 x ( dist_to_road / SIGMA ) ^ POWER <br>
+        Transition = 1 / BETA x | dijkstra_dist - acf_dist* | <br>
+        Probablity = Emission + Transition <br>
+        * If use difference is true. Else acf_dist = 0 <br>
+      </p>
+      <v-spacer />
+      <v-card-subtitle>
+        Hidden Markov Map Matching Through Noise and Sparseness <br>
+        Paul Newson and John Krumm 2009
+      </v-card-subtitle>
+
       <v-spacer />
       <v-card-subtitle>
         <v-alert
@@ -162,9 +201,10 @@ function stopRun () { runMapMatching.stopExecution() }
       <v-select
         v-model="runMapMatching.exclusions"
         :items="routeTypeList"
+        :disabled="running"
         :hint="showHint? $gettext('routes type to not mapmatch (ex subway are not on roads)'): ''"
         label="route_type exclusion"
-        variant="underlined"
+        variant="outlined"
         multiple
       >
         <template v-slot:selection="{ item, index }">
@@ -179,15 +219,26 @@ function stopRun () { runMapMatching.stopExecution() }
           </span>
         </template>
       </v-select>
-      <!--
       <div
         v-for="(item, key) in parameters"
         :key="key"
+        class="items"
       >
-        <v-text-field
+        <v-switch
+          v-if="item.type==='Boolean'"
           v-model="item.value"
-          :disabled="useZone && item.name === 'num_zones'"
+          class="pr-2"
+          color="primary"
+          :disabled="running"
+          :label="$gettext(item.text)"
+          :hint="showHint? $gettext(item.hint): ''"
+          :persistent-hint="showHint"
+        />
+        <v-text-field
+          v-else
+          v-model="item.value"
           :type="item.type"
+          :disabled="running"
           :label="$gettext(item.text)"
           :suffix="item.units"
           :hint="showHint? $gettext(item.hint): ''"
@@ -196,7 +247,6 @@ function stopRun () { runMapMatching.stopExecution() }
           @wheel="()=>{}"
         />
       </div>
-      -->
       <v-card-actions>
         <v-btn
           variant="outlined"
@@ -227,35 +277,6 @@ function stopRun () { runMapMatching.stopExecution() }
         </v-btn>
       </v-card-actions>
     </v-card>
-    <v-dialog
-      v-model="showOverwriteDialog"
-      persistent
-      max-width="500"
-      @keydown.enter="applyOverwriteDialog"
-      @keydown.esc="showOverwriteDialog=false"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Overwrite current road network ?") }}
-        </v-card-title>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="showOverwriteDialog = !showOverwriteDialog"
-          >
-            {{ $gettext("No") }}
-          </v-btn>
-
-          <v-btn
-            color="primary"
-            @click="applyOverwriteDialog"
-          >
-            {{ $gettext("Yes") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </section>
 </template>
 <style lang="scss" scoped>
@@ -263,18 +284,18 @@ function stopRun () { runMapMatching.stopExecution() }
 .card {
   background-color: rgb(var(--v-theme-lightergrey));
   margin:1rem;
-  height: 100%;
+  max-height: 85vh;
+  width: 40rem;
   overflow-y: auto;
   padding: 2.5rem;
-}
-.map {
-  max-width: 100rem;
-  width:50rem;
-  height: 35rem;
 }
 .freeform-button {
   position: absolute;
   top: 5px;
   right: 5px;
+}
+
+.items {
+  margin-bottom:0.3rem;
 }
 </style>

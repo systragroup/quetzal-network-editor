@@ -6,6 +6,7 @@ import s3 from '@src/AWSClient'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
+import { userLinksStore } from './rlinks'
 
 export const useMapMatchingStore = defineStore('runMapMatching', () => {
   const { $gettext } = useGettext()
@@ -17,6 +18,15 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
   const exclusions = ref([])
 
   const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI(stateMachineArn.value)
+
+  const parameters = ref({
+    SIGMA: 4.02,
+    BETA: 3,
+    POWER: 2,
+    DIFF: true,
+    ptMetrics: true,
+  })
+  function saveParams (payload) { payload.forEach(param => parameters.value[param.name] = param.value) }
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {
@@ -41,6 +51,12 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     linksStore.appendNewLinks(links)
     const nodes = await s3.readJson(bucket.value, callID.value.concat('/nodes_final.geojson'))
     linksStore.appendNewNodes(nodes)
+    if (parameters.value.ptMetrics) {
+      store.initrLinks()
+      const rlinksStore = userLinksStore()
+      const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
+      rlinksStore.loadrLinks(rlinks)
+    }
   }
 
   async function getCSVs() {
@@ -69,6 +85,8 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     running,
     error,
     errorMessage,
+    parameters,
+    saveParams,
     setCallID,
     startExecution,
     stopExecution,

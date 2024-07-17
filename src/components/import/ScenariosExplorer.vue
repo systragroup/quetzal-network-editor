@@ -177,7 +177,7 @@ function cancelDialog () {
 }
 
 const deleteDialog = ref(false)
-const scenarioToDelete = ref(null)
+const scenarioToDelete = ref('')
 
 function deleteScenario () {
   deleteDialog.value = false
@@ -341,8 +341,8 @@ function deleteScenario () {
 
   <SimpleDialog
     v-model="showDialog"
-    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{scen} ?',{scen: localScen})"
-    :body="$gettext('Any unsaved changes to %{scen} will be lost',{scen: model})"
+    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{sc} ?', {sc: 55})"
+    :body="$gettext('Any unsaved changes to %{sc} will be lost', {sc: 55})"
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
@@ -352,7 +352,7 @@ function deleteScenario () {
 
   <SimpleDialog
     v-model="deleteDialog"
-    :title=" $gettext('Delete %{scen}?', { scen: scenarioToDelete }) "
+    :title=" $gettext('Delete %{sc}?', { sc: scenarioToDelete }) "
     :body="$gettext('The scenario will be permanently deleted')"
     :confirm-button="$gettext('Delete')"
     confirm-color="error"
