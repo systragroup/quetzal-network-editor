@@ -1,3 +1,8 @@
+## [6.0.j] (2024-07-17)
+
+### Features
+* **Mapmatching API**: add params and option to add PT metrics to road_links too. 
+
 ## [6.0.i] (2024-07-11)
 
 ### Features
