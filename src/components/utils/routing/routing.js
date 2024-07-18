@@ -149,12 +149,22 @@ export function useRouting () {
     let toNodeCandidate = nearest(nodeB, 25)
     const { link: fromLink, offset: fromOffset } = nodesToLinks(nodeA, fromNodeCandidate)
     const { link: toLink, offset: toOffset } = nodesToLinks(nodeB, toNodeCandidate)
+    let nodesList = []
+    // if on the same link we and in the correct direction, we return the link.
+    if ((fromLink === toLink) && (fromOffset < toOffset)) {
+      nodesList = [fromLink.properties.a, fromLink.properties.b]
+    // if its in the reverse direction but both way, we need to return the inverse
+    } else if ((fromLink === toLink) && (fromOffset > toOffset) && (fromLink.properties.oneway === '0')) {
+      nodesList = [fromLink.properties.b, fromLink.properties.a]
+      // else we route. (if on the the same oneway but not the correct direction. we route)
+    } else {
+      // add virtual node snap point to a,b, dijkstra then remove them
+      addVirtualOrigin(fromLink, fromOffset, 'origin')
+      addVirtualDestination(toLink, toOffset, 'destination')
 
-    // add virtual node snap point to a,b, dijkstra then remove them
-    addVirtualOrigin(fromLink, fromOffset, 'origin')
-    addVirtualDestination(toLink, toOffset, 'destination')
-    let nodesList = dijkstra('origin', 'destination')
-    removeVirtualNodes(['origin', 'destination'])
+      nodesList = dijkstra('origin', 'destination')
+      removeVirtualNodes(['origin', 'destination'])
+    }
 
     // replace virtual nodes ('origin' 'destination') with actual first link node. (a or b)
     const firstNode = (nodesList[1] === fromLink.properties.a) ? fromLink.properties.b : fromLink.properties.a
@@ -188,12 +198,13 @@ export function useRouting () {
     const geomA = Array.isArray(nodeA) ? nodeA : nodeA.geometry.coordinates
     const geomB = Array.isArray(nodeB) ? nodeB : nodeB.geometry.coordinates
     const snappedA = nearestPointOnLine(link, geomA, { units: 'kilometers' })
-    const snappedB = nearestPointOnLine(link, geomB, { units: 'kilometers' })
     const indexA = snappedA.properties.index + 1
-    const indexB = snappedB.properties.index + 1
-    // changing link change editorLinks as it is an observer.
-    link.geometry.coordinates = link.geometry.coordinates.slice(indexA, indexB)
+    link.geometry.coordinates = link.geometry.coordinates.slice(indexA)
     link.geometry.coordinates.splice(0, 0, snappedA.geometry.coordinates)
+
+    const snappedB = nearestPointOnLine(link, geomB, { units: 'kilometers' })
+    const indexB = snappedB.properties.index + 1
+    link.geometry.coordinates = link.geometry.coordinates.slice(0, indexB)
     link.geometry.coordinates.push(snappedB.geometry.coordinates)
 
     nodeA.geometry.coordinates = snappedA.geometry.coordinates

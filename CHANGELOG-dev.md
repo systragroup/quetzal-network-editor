@@ -1,3 +1,9 @@
+## [6.0.k] (2024-07-18)
+
+### Bug Fixes
+* **Routing JS**: when routing 2 point on a onway, the geom was not ok (was the reverse of the oneway). Bug was also hapenning on both way sometime.
+
+
 ## [6.0.j] (2024-07-17)
 
 ### Features
