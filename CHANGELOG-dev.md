@@ -2,6 +2,8 @@
 
 ### Bug Fixes
 * **Routing JS**: when routing 2 point on a onway, the geom was not ok (was the reverse of the oneway). Bug was also hapenning on both way sometime.
+* **Load OD**: overwrite already loaded ODs. [#545](https://github.com/systragroup/quetzal-network-editor/issues/545)
+* **Long scenario name**: text wrap now. so any length is readable. [#546](https://github.com/systragroup/quetzal-network-editor/issues/546)
 
 
 ## [6.0.j] (2024-07-17)

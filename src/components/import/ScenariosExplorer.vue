@@ -289,7 +289,9 @@ function deleteScenario () {
         lines="two"
         @click="(e)=>{selectScenario(e,scen)}"
       >
-        <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
+        <v-list-item-title class="name-wrap">
+          {{ scen.scenario }}
+        </v-list-item-title>
         <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
         <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
         <template v-slot:append>
@@ -451,5 +453,8 @@ function deleteScenario () {
 .v-card-content {
   overflow: auto; /* Enable scrolling if the content overflows */
   max-height:calc(100% - 10rem);
+}
+.name-wrap{
+  text-wrap: auto;
 }
 </style>

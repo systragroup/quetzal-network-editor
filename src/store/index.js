@@ -221,11 +221,15 @@ export const useIndexStore = defineStore('store', {
       rlinks.loadrLinks(geojson)
       rlinks.loadrNodes(geojson)
     },
+    initOD () {
+      const odStore = useODStore()
+      odStore.loadLayer(geojson)
+    },
+
     initNetworks () {
-      const od = useODStore()
       this.initLinks()
       this.initrLinks()
-      od.loadLayer(geojson)
+      this.initOD()
       this.visibleRasters = []
       this.styles = []
       this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
