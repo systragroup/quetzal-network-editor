@@ -1,4 +1,4 @@
-## [FUTURE] ()
+## [6.0.l] (2024-07-19)
 ### CHANGES
 remove MomentJS. use plain old javascript and use the Luxon ChartJS plugin instead.
 
@@ -7,7 +7,7 @@ remove MomentJS. use plain old javascript and use the Luxon ChartJS plugin inste
 
 ### Bug Fixes
 * **Adding Ttrip**: Ttrip are now insert in the correct index adding a Ttrip at 9am in [8am, 10am] => [8am, 9am, 10am]
-
+* **watcher**: in infinte loop fetching fix. [#547](https://github.com/systragroup/quetzal-network-editor/issues/547)
 
 ## [6.0.k] (2024-07-18)
 
