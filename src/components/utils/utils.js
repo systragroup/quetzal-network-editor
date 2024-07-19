@@ -256,6 +256,28 @@ function shuffleString (str) {
   return array.join('')
 }
 
+function hhmmssToSeconds(timeString) {
+  // Split the time string into its components
+  const [hours, minutes, seconds] = timeString.split(':').map(Number)
+  const totalSeconds = (hours * 3600) + (minutes * 60) + seconds
+  return totalSeconds
+}
+
+function secondsTohhmmss(seconds) {
+  // Calculate hours, minutes, and remaining seconds
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 3600 % 60
+
+  // Pad the hours, minutes, and seconds with leading zeros if necessary
+  const paddedHours = String(hours).padStart(2, '0')
+  const paddedMinutes = String(minutes).padStart(2, '0')
+  const paddedSeconds = String(remainingSeconds).padStart(2, '0')
+
+  // Combine them into the 'HH:mm:ss' format
+  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`
+}
+
 export {
   readFileAsText,
   readFileAsBytes,
@@ -272,4 +294,6 @@ export {
   csvJSON,
   unzipCalendar,
   generatePassword,
+  hhmmssToSeconds,
+  secondsTohhmmss,
 }

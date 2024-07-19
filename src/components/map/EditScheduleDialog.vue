@@ -1,12 +1,11 @@
 <script setup>
-import { ref, watch, defineModel, toRaw } from 'vue'
+import { ref, watch, toRaw, computed } from 'vue'
 import ScheduleChart from '@comp/utils/ScheduleChart.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
 import { cloneDeep } from 'lodash'
-import moment from 'moment'
-import { computed } from 'vue'
+import { hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
 
 const showSchedule = defineModel({ type: Boolean })
 
@@ -18,16 +17,15 @@ const linksStore = useLinksStore()
 
 const links = ref()
 const nodes = ref()
-const timeFormat = 'HH:mm:ss'
 const tripKey = ref(0)
 const startTime = ref('08:00:00')
 
 function toSchedule(links) {
-  let currentTime = moment(startTime.value, timeFormat)
+  let currentTime = hhmmssToSeconds(startTime.value)
   links.features.forEach(f => {
-    f.properties.departures = [currentTime.format(timeFormat)]
-    currentTime = currentTime.add(f.properties.time, 'seconds')
-    f.properties.arrivals = [currentTime.format(timeFormat)]
+    f.properties.departures = [secondsTohhmmss(currentTime)]
+    currentTime = currentTime += f.properties.time
+    f.properties.arrivals = [secondsTohhmmss(currentTime)]
   })
 }
 
@@ -36,9 +34,6 @@ watch(showSchedule, (val) => {
     links.value = cloneDeep(linksStore.editorLinks)
     nodes.value = cloneDeep(linksStore.editorNodes)
     tripKey.value = 0
-
-    console.log(nodeHover.value)
-
     if (links.value.features[0].properties.arrivals === undefined) {
       // arrivals are undefined. Probably a headway based trip
       // Convert temporarely to schedule based trips
@@ -147,17 +142,30 @@ function cancelNewTrip() {
   startTime.value = '08:00:00'
 }
 
+function findInsertIndex(arr, num) {
+  // return index to insert
+  // ex: arr = [8,10,12,16] & num = 9 => return 1. if smaller return 0 if larger return len(arr)
+  const index = arr.findIndex(element => element >= num)
+  // Handle case when the number is larger than all elements
+  return index === -1 ? arr.length : index
+}
+
 function createNewTrip() {
   showDialog.value = false
+  const departuresList = links.value.features[0].properties.departures.map(el => hhmmssToSeconds(el))
+  const startTimeSecs = hhmmssToSeconds(startTime.value)
+  // get the position to append the new Ttrip (if we add 9h to [8h, 10h], we have [8h, 9h, 10h])
+  const index = findInsertIndex(departuresList, startTimeSecs)
+
   // Compute the time differencial between template trip departure and new start time
-  const templateStartTime = moment(links.value.features[0].properties.departures[tripKey.value], timeFormat)
-  const timeDiff = moment.duration(moment(startTime.value, timeFormat).diff(templateStartTime)).asSeconds()
-  // Append new departures and arrivals
-  links.value.features.forEach(f => {
-    let newDeparture = moment(f.properties.departures[tripKey.value], timeFormat).add(timeDiff, 'seconds')
-    f.properties.departures.push(newDeparture.format(timeFormat))
-    let newArrival = moment(f.properties.arrivals[tripKey.value], timeFormat).add(timeDiff, 'seconds')
-    f.properties.arrivals.push(newArrival.format(timeFormat))
+  const templateStartTime = hhmmssToSeconds(links.value.features[0].properties.departures[tripKey.value])
+  const timeDiff = startTimeSecs - templateStartTime
+  // insert new departures and arrival.
+  links.value.features.forEach(link => {
+    let newDeparture = hhmmssToSeconds(link.properties.departures[tripKey.value]) + timeDiff
+    link.properties.departures.splice(index, 0, secondsTohhmmss(newDeparture))
+    let newArrival = hhmmssToSeconds(link.properties.arrivals[tripKey.value]) + timeDiff
+    link.properties.arrivals.splice(index, 0, secondsTohhmmss(newArrival))
   })
   startTime.value = '08:00:00'
   updateChartDatasets()
@@ -182,9 +190,9 @@ function checkSchedule() {
   const timeData = datasets.value[tripKey.value].data.map(d => d.x)
   let scheduleErrorKey = []
   for (let i = 0; i < timeData.length - 1; i++) {
-    let a = moment(timeData[i], timeFormat)
-    let b = moment(timeData[i + 1], timeFormat)
-    if (moment.duration(b.diff(a)).asSeconds() < 0) {
+    let a = hhmmssToSeconds(timeData[i])
+    let b = hhmmssToSeconds(timeData[i + 1])
+    if ((b - a) < 0) {
       scheduleErrorKey.push(i)
     }
   }
@@ -338,8 +346,8 @@ function ConvertToFrequencyTrip() {
                       density="compact"
                       type="time"
                       step="1"
-                      :error="formErrorKey.find(o => o.key === key && o.departure == true)"
-                      :error-messages="formErrorKey.find(o => o.key === key && o.departure == true)
+                      :error="formErrorKey.find(o => o.key === key && o.departure)!==undefined"
+                      :error-messages="formErrorKey.find(o => o.key === key && o.departure)
                         ? $gettext('Invalid Time') : ''"
                       @update:model-value="updateChartDatasets"
                       @mouseover="mouseoverSchedule(key, 'departures')"
@@ -352,8 +360,8 @@ function ConvertToFrequencyTrip() {
                       density="compact"
                       type="time"
                       step="1"
-                      :error="formErrorKey.find(o => o.key === key && o.departure == false)"
-                      :error-messages="formErrorKey.find(o => o.key === key && o.departure == false)
+                      :error="formErrorKey.find(o => o.key === key && !o.departure)!==undefined"
+                      :error-messages="formErrorKey.find(o => o.key === key && !o.departure)
                         ? $gettext('Invalid Time') : ''"
                       @update:model-value="updateChartDatasets"
                       @mouseover="mouseoverSchedule(key, 'arrivals')"

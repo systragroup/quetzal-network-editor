@@ -11,7 +11,7 @@ import { IndexAreDifferent, deleteUnusedNodes, getGroupForm } from '@comp/utils/
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
-import moment from 'moment'
+import { hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
@@ -317,28 +317,28 @@ export const useLinksStore = defineStore('links', {
           for (let i = 0; i < cloned.features[0].properties.departures.length; i++) {
             let dwellTimes = []
             for (let j = 0; j < features.length - 1; j++) {
-              let t1 = moment(features[j].properties.arrivals[i], 'HH:mm:ss')
-              let t2 = moment(features[j + 1].properties.departures[i], 'HH:mm:ss')
-              dwellTimes.push(moment.duration(t2.diff(t1)).asSeconds())
+              let t1 = hhmmssToSeconds(features[j].properties.arrivals[i])
+              let t2 = hhmmssToSeconds(features[j + 1].properties.departures[i])
+              dwellTimes.push(t2 - t1)
             }
             dwellTimes = dwellTimes.reverse()
             let t4 = 0
             for (let j = 0; j < cloned.features.length; j++) {
               console.log(j)
-              let t1 = moment(cloned.features[j].properties.departures[i], 'HH:mm:ss')
-              let t2 = moment(cloned.features[j].properties.arrivals[i], 'HH:mm:ss')
-              let travelTime = moment.duration(t2.diff(t1)).asSeconds()
+              let t1 = hhmmssToSeconds(cloned.features[j].properties.departures[i])
+              let t2 = hhmmssToSeconds(cloned.features[j].properties.arrivals[i])
+              let travelTime = t2 - t1
               if (j == 0) {
                 console.log('hello')
                 cloned.features[j].properties.departures[i] = features[0].properties.departures[i]
               } else {
                 console.log('T4', t4)
                 console.log('Dwell', dwellTimes[j - 1])
-                cloned.features[j].properties.departures[i] = t4.add(dwellTimes[j - 1], 'seconds').format('HH:mm:ss')
+                cloned.features[j].properties.departures[i] = secondsTohhmmss(t4 + dwellTimes[j - 1])
               }
-              let t3 = moment(cloned.features[j].properties.departures[i], 'HH:mm:ss')
-              cloned.features[j].properties.arrivals[i] = t3.add(travelTime, 'seconds').format('HH:mm:ss')
-              t4 = moment(cloned.features[j].properties.arrivals[i], 'HH:mm:ss')
+              let t3 = hhmmssToSeconds(cloned.features[j].properties.departures[i])
+              cloned.features[j].properties.arrivals[i] = secondsTohhmmss(t3 + travelTime)
+              t4 = hhmmssToSeconds(cloned.features[j].properties.arrivals[i])
             }
           }
           console.log(cloned.features)

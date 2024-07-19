@@ -16,8 +16,7 @@ import {
   getDatasetAtEvent,
 } from 'vue-chartjs'
 import zoomPlugin from 'chartjs-plugin-zoom'
-import 'chartjs-adapter-moment'
-import moment from 'moment'
+import 'chartjs-adapter-luxon'
 
 ChartJS.register(
   CategoryScale,
@@ -36,8 +35,8 @@ const xScaleOptions = { type: 'time',
     parser: 'HH:mm:ss',
     tooltipFormat: 'HH:mm:ss',
   },
-  min: moment().startOf('day'),
-  max: moment().endOf('day'),
+  min: '00:00:00',
+  max: '23:00:00',
 }
 
 const scales = {
