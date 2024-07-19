@@ -43,7 +43,7 @@ watch(avalaibleStepFunctions, (val) => {
       runStore.getSteps()
     }
   }
-})
+}, { once: true })
 
 watch(stepFunction, async (val) => {
   if (modelIsLoaded.value) {
