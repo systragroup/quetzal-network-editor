@@ -5,7 +5,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
 import { cloneDeep } from 'lodash'
-import { hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
+import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
 
 const showSchedule = defineModel({ type: Boolean })
 
@@ -24,7 +24,7 @@ function toSchedule(links) {
   let currentTime = hhmmssToSeconds(startTime.value)
   links.features.forEach(f => {
     f.properties.departures = [secondsTohhmmss(currentTime)]
-    currentTime = currentTime += f.properties.time
+    currentTime = currentTime + f.properties.time
     f.properties.arrivals = [secondsTohhmmss(currentTime)]
   })
 }
@@ -34,7 +34,7 @@ watch(showSchedule, (val) => {
     links.value = cloneDeep(linksStore.editorLinks)
     nodes.value = cloneDeep(linksStore.editorNodes)
     tripKey.value = 0
-    if (links.value.features[0].properties.arrivals === undefined) {
+    if (!isScheduleTrip(links.value.features[0])) {
       // arrivals are undefined. Probably a headway based trip
       // Convert temporarely to schedule based trips
       toSchedule(links.value)
@@ -43,6 +43,103 @@ watch(showSchedule, (val) => {
     datasets.value = buildChartDataset(links.value)
   }
 })
+
+// Station Label
+const labelsChoices = computed(() => { return Object.keys(nodes.value.features[0].properties) })
+const label = ref('index')
+
+// List of Trip
+
+const listOfTrips = computed(() => {
+  const list = datasets.value.map(d => { return { title: d.data[0].x } })
+  return list
+})
+
+// Create New Trip
+const showDialog = ref(false)
+function openCreateNewTripDialog() {
+  showDialog.value = true
+}
+
+function cancelNewTrip() {
+  showDialog.value = false
+  startTime.value = '08:00:00'
+}
+
+function findInsertIndex(arr, num) {
+  // return index to insert
+  // ex: arr = [8,10,12,16] & num = 9 => return 1. if smaller return 0 if larger return len(arr)
+  const index = arr.findIndex(element => element >= num)
+  // Handle case when the number is larger than all elements
+  return index === -1 ? arr.length : index
+}
+
+function createNewTrip() {
+  showDialog.value = false
+  const departuresList = links.value.features[0].properties.departures.map(el => hhmmssToSeconds(el))
+  const startTimeSecs = hhmmssToSeconds(startTime.value)
+  // get the position to append the new Ttrip (if we add 9h to [8h, 10h], we have [8h, 9h, 10h])
+  const index = findInsertIndex(departuresList, startTimeSecs)
+
+  // Compute the time differencial between template trip departure and new start time
+  const templateStartTime = hhmmssToSeconds(links.value.features[0].properties.departures[tripKey.value])
+  const timeDiff = startTimeSecs - templateStartTime
+  // insert new departures and arrival.
+  links.value.features.forEach(link => {
+    let newDeparture = hhmmssToSeconds(link.properties.departures[tripKey.value]) + timeDiff
+    link.properties.departures.splice(index, 0, secondsTohhmmss(newDeparture))
+    let newArrival = hhmmssToSeconds(link.properties.arrivals[tripKey.value]) + timeDiff
+    link.properties.arrivals.splice(index, 0, secondsTohhmmss(newArrival))
+  })
+  startTime.value = '08:00:00'
+  updateChartDatasets()
+}
+
+function deleteTrip(val) {
+  links.value.features.forEach(f => f.properties.departures.splice(val, 1))
+  links.value.features.forEach(f => f.properties.arrivals.splice(val, 1))
+  datasets.value = buildChartDataset(links.value)
+}
+
+// Checks on Schedule
+const formErrorKey = ref([])
+function checkSchedule() {
+  const timeData = datasets.value[tripKey.value].data.map(d => d.x)
+  let scheduleErrorKey = []
+  for (let i = 0; i < timeData.length - 1; i++) {
+    let a = hhmmssToSeconds(timeData[i])
+    let b = hhmmssToSeconds(timeData[i + 1])
+    if ((b - a) < 0) {
+      scheduleErrorKey.push(i)
+    }
+  }
+  formErrorKey.value = scheduleErrorKey.map(e => {
+    return {
+      key: parseInt(e / 2),
+      departure: (e % 2 === 0),
+    }
+  })
+}
+
+function save() {
+  showSchedule.value = false
+  let payload = []
+  links.value.features.forEach(f => {
+    payload.push({
+      departures: toRaw(f.properties['departures']),
+      arrivals: toRaw(f.properties['arrivals']),
+    })
+  })
+  linksStore.editEditorLinksInfo(payload)
+  emit('applyAction')
+}
+
+function ConvertToFrequencyTrip() {
+  linksStore.deletePropertie({ name: 'departures', table: 'editorLinks' })
+  linksStore.deletePropertie({ name: 'arrivals', table: 'editorLinks' })
+  emit('applyAction')
+  // return to a frequency base trip.
+}
 
 // Chart Dataset
 const datasets = ref()
@@ -92,21 +189,23 @@ function buildChartDataset(links) {
   return datasets
 }
 
+// Node Hover from Schedule
+const nodeHover = ref()
+function mouseoverSchedule(key, type) {
+  nodeHover.value = 2 * key
+  if (type == 'arrivals') { nodeHover.value++ }
+  updateChartDatasets()
+}
+
+function mouseleaveSchedule() {
+  nodeHover.value = undefined
+  updateChartDatasets()
+}
+
 function updateChartDatasets() {
   datasets.value = buildChartDataset(links.value)
   checkSchedule()
 }
-
-// Station Label
-const labelsChoices = computed(() => { return Object.keys(nodes.value.features[0].properties) })
-const label = ref('index')
-
-// List of Trip
-
-const listOfTrips = computed(() => {
-  const list = datasets.value.map(d => { return { title: d.data[0].x } })
-  return list
-})
 
 function onClickTripList(val) {
   tripKey.value = val
@@ -123,105 +222,6 @@ function onMouseOverTripList(val) {
 function onMouseLeaveTripList() {
   tripHover.value = null
   datasets.value = buildChartDataset(links.value)
-}
-
-function deleteTrip(val) {
-  links.value.features.forEach(f => f.properties.departures.splice(val, 1))
-  links.value.features.forEach(f => f.properties.arrivals.splice(val, 1))
-  datasets.value = buildChartDataset(links.value)
-}
-
-// Create New Trip
-const showDialog = ref(false)
-function openCreateNewTripDialog() {
-  showDialog.value = true
-}
-
-function cancelNewTrip() {
-  showDialog.value = false
-  startTime.value = '08:00:00'
-}
-
-function findInsertIndex(arr, num) {
-  // return index to insert
-  // ex: arr = [8,10,12,16] & num = 9 => return 1. if smaller return 0 if larger return len(arr)
-  const index = arr.findIndex(element => element >= num)
-  // Handle case when the number is larger than all elements
-  return index === -1 ? arr.length : index
-}
-
-function createNewTrip() {
-  showDialog.value = false
-  const departuresList = links.value.features[0].properties.departures.map(el => hhmmssToSeconds(el))
-  const startTimeSecs = hhmmssToSeconds(startTime.value)
-  // get the position to append the new Ttrip (if we add 9h to [8h, 10h], we have [8h, 9h, 10h])
-  const index = findInsertIndex(departuresList, startTimeSecs)
-
-  // Compute the time differencial between template trip departure and new start time
-  const templateStartTime = hhmmssToSeconds(links.value.features[0].properties.departures[tripKey.value])
-  const timeDiff = startTimeSecs - templateStartTime
-  // insert new departures and arrival.
-  links.value.features.forEach(link => {
-    let newDeparture = hhmmssToSeconds(link.properties.departures[tripKey.value]) + timeDiff
-    link.properties.departures.splice(index, 0, secondsTohhmmss(newDeparture))
-    let newArrival = hhmmssToSeconds(link.properties.arrivals[tripKey.value]) + timeDiff
-    link.properties.arrivals.splice(index, 0, secondsTohhmmss(newArrival))
-  })
-  startTime.value = '08:00:00'
-  updateChartDatasets()
-}
-
-// Node Hover from Schedule
-const nodeHover = ref()
-function mouseoverSchedule(key, type) {
-  nodeHover.value = 2 * key
-  if (type == 'arrivals') { nodeHover.value++ }
-  updateChartDatasets()
-}
-
-function mouseleaveSchedule() {
-  nodeHover.value = undefined
-  updateChartDatasets()
-}
-
-// Checks on Schedule
-const formErrorKey = ref([])
-function checkSchedule() {
-  const timeData = datasets.value[tripKey.value].data.map(d => d.x)
-  let scheduleErrorKey = []
-  for (let i = 0; i < timeData.length - 1; i++) {
-    let a = hhmmssToSeconds(timeData[i])
-    let b = hhmmssToSeconds(timeData[i + 1])
-    if ((b - a) < 0) {
-      scheduleErrorKey.push(i)
-    }
-  }
-  formErrorKey.value = scheduleErrorKey.map(e => {
-    return {
-      key: parseInt(e / 2),
-      departure: (e % 2 === 0),
-    }
-  })
-}
-
-function save() {
-  showSchedule.value = false
-  let payload = []
-  links.value.features.forEach(f => {
-    payload.push({
-      departures: toRaw(f.properties['departures']),
-      arrivals: toRaw(f.properties['arrivals']),
-    })
-  })
-  linksStore.editEditorLinksInfo(payload)
-  emit('applyAction')
-}
-
-function ConvertToFrequencyTrip() {
-  linksStore.deletePropertie({ name: 'departures', table: 'editorLinks' })
-  linksStore.deletePropertie({ name: 'arrivals', table: 'editorLinks' })
-  emit('applyAction')
-  // return to a frequency base trip.
 }
 
 </script>

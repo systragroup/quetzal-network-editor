@@ -2,6 +2,9 @@
 ### CHANGES
 remove MomentJS. use plain old javascript and use the Luxon ChartJS plugin instead.
 
+### Features
+* **Schedule Trip**: Can now Add Node, Delete Node and Draw with with Schedule updated. [#522](https://github.com/systragroup/quetzal-network-editor/issues/522)
+
 ### Bug Fixes
 * **Adding Ttrip**: Ttrip are now insert in the correct index adding a Ttrip at 9am in [8am, 10am] => [8am, 9am, 10am]
 

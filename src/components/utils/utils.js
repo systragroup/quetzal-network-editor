@@ -256,6 +256,10 @@ function shuffleString (str) {
   return array.join('')
 }
 
+function isScheduleTrip(link) {
+  return (link.properties.arrivals !== undefined)
+}
+
 function hhmmssToSeconds(timeString) {
   // Split the time string into its components
   const [hours, minutes, seconds] = timeString.split(':').map(Number)
@@ -265,6 +269,7 @@ function hhmmssToSeconds(timeString) {
 
 function secondsTohhmmss(seconds) {
   // Calculate hours, minutes, and remaining seconds
+  seconds = Math.round(seconds)
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
   const remainingSeconds = seconds % 3600 % 60
@@ -294,6 +299,7 @@ export {
   csvJSON,
   unzipCalendar,
   generatePassword,
+  isScheduleTrip,
   hhmmssToSeconds,
   secondsTohhmmss,
 }

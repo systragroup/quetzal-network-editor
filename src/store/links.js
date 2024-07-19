@@ -11,7 +11,7 @@ import { IndexAreDifferent, deleteUnusedNodes, getGroupForm } from '@comp/utils/
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
-import { hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
+import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
 const $gettext = s => s
 
 export const useLinksStore = defineStore('links', {
@@ -486,6 +486,26 @@ export const useLinksStore = defineStore('links', {
       }
       this.newLink = features
     },
+
+    calcSchedule(link, action) {
+      // ScheduleTrip
+      if (isScheduleTrip(link)) {
+        if (action === 'Extend Line Upward') {
+          link.properties['departures'] = link.properties['arrivals']
+          const diff = link.properties.time
+          const arrivals = link.properties['arrivals'].map(t => secondsTohhmmss(hhmmssToSeconds(t) + diff))
+          link.properties['arrivals'] = arrivals
+        }
+        else if (action === 'Extend Line Downward') {
+          link.properties['arrivals'] = link.properties['departures']
+          const diff = link.properties.time
+          const departures = link.properties['departures'].map(t => secondsTohhmmss(hhmmssToSeconds(t) - diff))
+          console.log(departures)
+          link.properties['departures'] = departures
+        }
+      }
+    },
+
     createNewNode (payload) {
       const nodeProperties = {}
       this.nodeAttributes.forEach(key => {
@@ -531,6 +551,7 @@ export const useLinksStore = defineStore('links', {
       this.setNewLink({ action: payload.action })
       this.editNewLink({ geom: payload.geom, action: payload.action })
       this.calcLengthTime(this.newLink)
+      this.calcSchedule(this.newLink, payload.action)
 
       if (payload.action === 'Extend Line Upward') {
         this.editorLinks.features.push(this.newLink)
@@ -564,6 +585,9 @@ export const useLinksStore = defineStore('links', {
           ...link1.geometry.coordinates.slice(0, -1),
           ...link2.geometry.coordinates.slice(1)]
         link1.properties.b = link2.properties.b
+        if (isScheduleTrip(link1)) {
+          link1.properties.arrivals = link2.properties.arrivals
+        }
         // weighed average for speed. this help to have round value of speed (ex both 20kmh, at the end 20kmh)
         const time1 = Number(link1.properties.time)
         const time2 = Number(link2.properties.time)
@@ -571,6 +595,7 @@ export const useLinksStore = defineStore('links', {
         const speed2 = Number(link2.properties.speed)
         link1.properties.speed = Number((speed1 * time1 + speed2 * time2) / (time1 + time2)).toFixed(6)
         this.calcLengthTime(link1)
+
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = this.editorLinks.features.findIndex(
           link => link.properties.index === link2.properties.index)
@@ -611,6 +636,16 @@ export const useLinksStore = defineStore('links', {
       link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
       link2.properties.time = link2.properties.time * (1 - ratio)
+
+      if (isScheduleTrip(link1)) {
+        const departures = link1.properties.departures.map(el => hhmmssToSeconds(el))
+        const arrivals = link1.properties.arrivals.map(el => hhmmssToSeconds(el))
+        for (let i = 0; i < departures.length; i++) {
+          const midPoint = departures[i] + (arrivals[i] - departures[i]) * ratio
+          link1.properties.arrivals[i] = secondsTohhmmss(midPoint)
+          link2.properties.departures[i] = secondsTohhmmss(midPoint)
+        }
+      }
 
       this.editorLinks.features.splice(featureIndex + 1, 0, link2)
       this.editorNodes.features.push(this.newNode)
