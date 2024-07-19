@@ -1,5 +1,4 @@
 <script setup>
-import { defineModel } from 'vue'
 
 const props = defineProps({
   title: {

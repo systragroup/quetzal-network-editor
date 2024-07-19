@@ -1,3 +1,11 @@
+## [FUTURE] ()
+### CHANGES
+remove MomentJS. use plain old javascript and use the Luxon ChartJS plugin instead.
+
+### Bug Fixes
+* **Adding Ttrip**: Ttrip are now insert in the correct index adding a Ttrip at 9am in [8am, 10am] => [8am, 9am, 10am]
+
+
 ## [6.0.k] (2024-07-18)
 
 ### Bug Fixes
