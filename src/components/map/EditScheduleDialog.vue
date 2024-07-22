@@ -48,7 +48,7 @@ watch(showSchedule, (val) => {
       toSchedule(links.value)
     }
 
-    datasets.value = buildChartDataset(links.value)
+    buildChartDataset()
   }
 })
 
@@ -104,13 +104,17 @@ function createNewTrip() {
     link.properties.arrivals.splice(index, 0, secondsTohhmmss(newArrival))
   })
   startTime.value = '08:00:00'
-  updateChartDatasets()
+  buildChartDataset()
 }
 
 function deleteTrip(val) {
   links.value.features.forEach(f => f.properties.departures.splice(val, 1))
   links.value.features.forEach(f => f.properties.arrivals.splice(val, 1))
-  datasets.value = buildChartDataset(links.value)
+  if (tripKey.value === listOfTrips.value.length - 1) {
+    tripKey.value -= 1
+  }
+
+  buildChartDataset()
 }
 
 // Checks on Schedule
@@ -157,10 +161,10 @@ function ConvertToFrequencyTrip() {
 }
 
 // Chart Dataset
-const datasets = ref()
-function buildChartDataset(links) {
+const datasets = ref([])
+function buildChartDataset() {
   let stackedData = []
-  links.features.forEach(f => {
+  links.value.features.forEach(f => {
     stackedData.push({
       x: f.properties.departures,
       y: f.properties.a,
@@ -171,16 +175,13 @@ function buildChartDataset(links) {
     })
   })
 
-  let datasets = []
+  let datas = []
   for (let i = 0; i < stackedData[0].x.length; i++) {
-    // Node Hover
+    // Node
     let pointRadius = Array(stackedData.length).fill(4)
-    if (i === tripKey.value && nodeHover.value !== undefined) {
-      pointRadius[nodeHover.value] = 6
-    }
 
     // Build Datasets
-    datasets.push({
+    datas.push({
       id: i,
       data: stackedData.map(d => {
         let node_index = nodes.value.features.findIndex(obj => obj.properties['index'] === d.y)
@@ -196,12 +197,12 @@ function buildChartDataset(links) {
       borderColor: (i === tripKey.value)
         ? theme.current.value.colors.primary
         : theme.current.value.colors.lightgrey,
-      borderWidth: (i === tripHover.value) ? 4 : 2,
+      borderWidth: 2,
       pointRadius: pointRadius,
     })
   }
 
-  return datasets
+  datasets.value = datas
 }
 
 // Node Hover from Schedule
@@ -209,33 +210,36 @@ const nodeHover = ref()
 function mouseoverSchedule(key, type) {
   nodeHover.value = 2 * key
   if (type == 'arrivals') { nodeHover.value++ }
-  updateChartDatasets()
+  const ttrip = datasets.value.filter(el => el.id === tripKey.value)[0]
+  ttrip.pointRadius[nodeHover.value] = 6
 }
 
 function mouseleaveSchedule() {
+  const ttrip = datasets.value.filter(el => el.id === tripKey.value)[0]
+  ttrip.pointRadius[nodeHover.value] = 4
   nodeHover.value = undefined
-  updateChartDatasets()
-}
-
-function updateChartDatasets() {
-  datasets.value = buildChartDataset(links.value)
 }
 
 function onClickTripList(val) {
   tripKey.value = val
-  datasets.value = buildChartDataset(links.value)
+  buildChartDataset()
 }
 
 // Trip Hover from List
 const tripHover = ref()
 function onMouseOverTripList(val) {
   tripHover.value = val
-  datasets.value = buildChartDataset(links.value)
+  const ttrip = datasets.value.filter(el => el.id === tripHover.value)[0]
+  ttrip.borderWidth = 4
+  // buildChartDataset()
 }
 
 function onMouseLeaveTripList() {
+  const ttrip = datasets.value.filter(el => el.id === tripHover.value)[0]
+
+  ttrip.borderWidth = 2
   tripHover.value = null
-  datasets.value = buildChartDataset(links.value)
+  // buildChartDataset()
 }
 
 const showSaveDialog = ref(false)
@@ -291,7 +295,7 @@ function handleSimpleDialog(event) {
               density="compact"
               variant="outlined"
               :label="$gettext('Station Label')"
-              @update:model-value="updateChartDatasets"
+              @update:model-value="buildChartDataset"
             />
             <v-card variant="outlined">
               <v-card-title>
@@ -319,7 +323,7 @@ function handleSimpleDialog(event) {
                   :key="key"
                   :active="key === tripKey"
                   @click="onClickTripList(key)"
-                  @mouseover="onMouseOverTripList(key)"
+                  @mouseenter="onMouseOverTripList(key)"
                   @mouseleave="onMouseLeaveTripList"
                 >
                   <v-list-item-title>
@@ -379,8 +383,8 @@ function handleSimpleDialog(event) {
                       :error="formErrorKey.find(o => o.key === key && o.departure)!==undefined"
                       :error-messages="formErrorKey.find(o => o.key === key && o.departure)
                         ? $gettext('Invalid Time') : ''"
-                      @update:model-value="updateChartDatasets"
-                      @mouseover="mouseoverSchedule(key, 'departures')"
+                      @update:model-value="buildChartDataset"
+                      @mouseenter="mouseoverSchedule(key, 'departures')"
                       @mouseleave="mouseleaveSchedule()"
                     />
                   </v-col>
@@ -393,8 +397,8 @@ function handleSimpleDialog(event) {
                       :error="formErrorKey.find(o => o.key === key && !o.departure)!==undefined"
                       :error-messages="formErrorKey.find(o => o.key === key && !o.departure)
                         ? $gettext('Invalid Time') : ''"
-                      @update:model-value="updateChartDatasets"
-                      @mouseover="mouseoverSchedule(key, 'arrivals')"
+                      @update:model-value="buildChartDataset"
+                      @mouseenter="mouseoverSchedule(key, 'arrivals')"
                       @mouseleave="mouseleaveSchedule()"
                     />
                   </v-col>

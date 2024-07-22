@@ -3,6 +3,9 @@
 ### Features
 * **Schedule toggle**:can toggle between schedule and normal edition. ask for save, drop or cancel in dialog if hash changed.
 
+### optimization
+* **Schedule Chart**: optimize Hover rendereing with a watcher
+
 ## [6.0.l] (2024-07-19)
 ### CHANGES
 remove MomentJS. use plain old javascript and use the Luxon ChartJS plugin instead.

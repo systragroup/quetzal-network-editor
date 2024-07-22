@@ -1,5 +1,5 @@
 <script setup>
-import { ref, toRefs } from 'vue'
+import { ref, toRefs, watch } from 'vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -91,6 +91,13 @@ const options = ref({
 })
 
 const { data } = toRefs(props)
+watch(data, (val) => {
+  if (chartRef.value.chart) {
+    chartRef.value.chart.data.datasets = val.datasets
+    chartRef.value.chart.update()
+  }
+}
+, { deep: true })
 
 function datasetAtEvent(dataset) {
   if (dataset.length > 0) {
