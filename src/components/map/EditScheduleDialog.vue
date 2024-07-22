@@ -6,6 +6,9 @@ import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
 import { cloneDeep } from 'lodash'
 import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
+import { createHash } from 'sha256-uint8array'
+
+import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
 const showSchedule = defineModel({ type: Boolean })
 
@@ -16,9 +19,14 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 
 const links = ref()
-const nodes = ref()
+const nodes = computed(() => linksStore.editorNodes)
 const tripKey = ref(0)
 const startTime = ref('08:00:00')
+
+const initialHash = ref()
+function hashJson(body) {
+  return createHash().update(JSON.stringify(body)).digest('hex')
+}
 
 function toSchedule(links) {
   let currentTime = hhmmssToSeconds(startTime.value)
@@ -32,7 +40,7 @@ function toSchedule(links) {
 watch(showSchedule, (val) => {
   if (val) { store.changeNotification({ text: '', autoClose: true })
     links.value = cloneDeep(linksStore.editorLinks)
-    nodes.value = cloneDeep(linksStore.editorNodes)
+    initialHash.value = hashJson(links.value)
     tripKey.value = 0
     if (!isScheduleTrip(links.value.features[0])) {
       // arrivals are undefined. Probably a headway based trip
@@ -45,7 +53,11 @@ watch(showSchedule, (val) => {
 })
 
 // Station Label
-const labelsChoices = computed(() => { return Object.keys(nodes.value.features[0].properties) })
+const labelsChoices = computed(() => {
+  if (nodes.value.features.lengh > 0) {
+    return Object.keys(nodes.value.features[0].properties)
+  } else { return [] }
+})
 const label = ref('index')
 
 // List of Trip
@@ -102,8 +114,7 @@ function deleteTrip(val) {
 }
 
 // Checks on Schedule
-const formErrorKey = ref([])
-function checkSchedule() {
+const formErrorKey = computed(() => {
   const timeData = datasets.value[tripKey.value].data.map(d => d.x)
   let scheduleErrorKey = []
   for (let i = 0; i < timeData.length - 1; i++) {
@@ -113,15 +124,15 @@ function checkSchedule() {
       scheduleErrorKey.push(i)
     }
   }
-  formErrorKey.value = scheduleErrorKey.map(e => {
+  return scheduleErrorKey.map(e => {
     return {
       key: parseInt(e / 2),
       departure: (e % 2 === 0),
     }
   })
-}
+})
 
-function save() {
+function applyChanges() {
   showSchedule.value = false
   let payload = []
   links.value.features.forEach(f => {
@@ -131,6 +142,10 @@ function save() {
     })
   })
   linksStore.editEditorLinksInfo(payload)
+}
+
+function saveAndQuit() {
+  applyChanges()
   emit('applyAction')
 }
 
@@ -204,7 +219,6 @@ function mouseleaveSchedule() {
 
 function updateChartDatasets() {
   datasets.value = buildChartDataset(links.value)
-  checkSchedule()
 }
 
 function onClickTripList(val) {
@@ -224,6 +238,25 @@ function onMouseLeaveTripList() {
   datasets.value = buildChartDataset(links.value)
 }
 
+const showSaveDialog = ref(false)
+function toggle() {
+  if (hashJson(links.value) == initialHash.value) {
+    emit('toggle')
+  } else {
+    showSaveDialog.value = true
+  }
+}
+function handleSimpleDialog(event) {
+  showSaveDialog.value = false
+  showSchedule.value = false
+  if (event) {
+    applyChanges()
+    emit('toggle')
+  } else {
+    emit('toggle')
+  }
+}
+
 </script>
 <template>
   <v-dialog
@@ -237,17 +270,14 @@ function onMouseLeaveTripList() {
     >
       <v-card-title class="text-h5">
         {{ $gettext("Edit Schedule") }}
-        <!--
         <v-btn
-          color="success"
           variant="text"
           class="pl-auto"
-          prepend-icon="fas fa-arrows-rotate"
-          @click="emit('cancelAction'); emit('toggle')"
+          prepend-icon="fas fa-list"
+          @click="toggle"
         >
-          {{ $gettext("toggle") }}
+          {{ $gettext("Edit Properties") }}
         </v-btn>
-        --->
       </v-card-title>
 
       <v-divider />
@@ -434,11 +464,28 @@ function onMouseLeaveTripList() {
           color="success"
           variant="text"
           :disabled="formErrorKey.length > 0"
-          @click="save"
+          @click="saveAndQuit"
         >
           {{ $gettext("Save") }}
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <SimpleDialog
+    v-model="showSaveDialog"
+    :title="$gettext('Save Changes?')"
+    body=""
+    confirm-color="primary"
+    :confirm-button="$gettext('Yes')"
+    :cancel-button="$gettext('No')"
+    @confirm="handleSimpleDialog(true)"
+    @cancel="handleSimpleDialog(false)"
+  >
+    <v-btn
+      color="regular"
+      @click="showSaveDialog=false"
+    >
+      {{ $gettext('Cancel') }}
+    </v-btn>
+  </SimpleDialog>
 </template>

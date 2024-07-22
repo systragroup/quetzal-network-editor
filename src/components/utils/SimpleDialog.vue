@@ -50,6 +50,7 @@ function cancel() {
         {{ props.body }}
       </v-card-text>
       <v-card-actions>
+        <slot />
         <v-spacer />
         <v-btn
           color="regular"

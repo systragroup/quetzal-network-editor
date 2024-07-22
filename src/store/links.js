@@ -283,7 +283,6 @@ export const useLinksStore = defineStore('links', {
       const cloned = cloneDeep(geojson)
       const features = this.links.features.filter(link => link.properties.trip_id === payload.tripId)
       cloned.features = cloneDeep(features)
-      console.log(features)
 
       // change tripId.
       cloned.features.forEach(link => link.properties.trip_id = payload.name)
@@ -313,7 +312,7 @@ export const useLinksStore = defineStore('links', {
         }
         // If schedule trip, rebuilt schedule
         // TODO: refactoring
-        if (cloned.features[0].properties.departures !== undefined) {
+        if (isScheduleTrip(cloned.features[0])) {
           for (let i = 0; i < cloned.features[0].properties.departures.length; i++) {
             let dwellTimes = []
             for (let j = 0; j < features.length - 1; j++) {
@@ -324,16 +323,12 @@ export const useLinksStore = defineStore('links', {
             dwellTimes = dwellTimes.reverse()
             let t4 = 0
             for (let j = 0; j < cloned.features.length; j++) {
-              console.log(j)
               let t1 = hhmmssToSeconds(cloned.features[j].properties.departures[i])
               let t2 = hhmmssToSeconds(cloned.features[j].properties.arrivals[i])
               let travelTime = t2 - t1
               if (j == 0) {
-                console.log('hello')
                 cloned.features[j].properties.departures[i] = features[0].properties.departures[i]
               } else {
-                console.log('T4', t4)
-                console.log('Dwell', dwellTimes[j - 1])
                 cloned.features[j].properties.departures[i] = secondsTohhmmss(t4 + dwellTimes[j - 1])
               }
               let t3 = hhmmssToSeconds(cloned.features[j].properties.departures[i])
@@ -341,7 +336,6 @@ export const useLinksStore = defineStore('links', {
               t4 = hhmmssToSeconds(cloned.features[j].properties.arrivals[i])
             }
           }
-          console.log(cloned.features)
         }
       }
 
@@ -371,7 +365,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     getEditorLineInfo () {
-      const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors']
+      const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
       // empty trip, when its a newLine
       if (this.editorLinks.features.length === 0) {
         const defaultValue = {
@@ -500,7 +494,6 @@ export const useLinksStore = defineStore('links', {
           link.properties['arrivals'] = link.properties['departures']
           const diff = link.properties.time
           const departures = link.properties['departures'].map(t => secondsTohhmmss(hhmmssToSeconds(t) - diff))
-          console.log(departures)
           link.properties['departures'] = departures
         }
       }

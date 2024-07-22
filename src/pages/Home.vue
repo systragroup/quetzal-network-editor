@@ -60,30 +60,36 @@ export default {
 
     function actionClick (event) {
       action.value = event.action
+      // if (Object.keys(event).includes('lingering')) {
+      //  lingering.value = event.lingering
+      // }
+      lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
+
       if (action.value === 'Edit Line Info') {
         // this use getGroupForm. its needed as we need to store info somewhere when we create new line.
         editorForm.value = cloneDeep(linksStore.editorLineInfo)
-        lingering.value = event.lingering
         showDialog.value = true
+      } else if (action.value === 'Edit Line Schedule') {
+        scheduleDialog.value = true
       } else if (action.value === 'Edit Group Info') {
         groupTripIds.value = new Set(event.tripIds)
-        const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors']
+        const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence',
+          'trip_id', 'anchors', 'departures', 'arrivals']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.links.features.filter(
           link => groupTripIds.value.has(link.properties.trip_id))
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-        lingering.value = event.lingering
         showDialog.value = true
       } else if (action.value === 'Edit Link Info') {
         // link is clicked on the map
         selectedLink.value = event.selectedFeature.properties
-        const uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors']
+        const uneditable = ['a', 'b', 'index', 'length', 'link_sequence',
+          'trip_id', 'anchors', 'departures', 'arrivals']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.editorLinks.features.filter(
           (link) => link.properties.index === selectedLink.value.index)
 
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-        lingering.value = event.lingering
         showDialog.value = true
       } else if (action.value === 'Edit rLink Info') {
         selectedLink.value = event.selectedIndex
@@ -107,24 +113,19 @@ export default {
         const lineAttributes = rlinksStore.rlineAttributes
         const uneditable = ['index', 'length', 'time', 'a', 'b']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-        lingering.value = event.lingering
         showDialog.value = true
       } else if (action.value === 'Edit selected Info') {
         selectedLink.value = rlinksStore.rlinks.features.filter(link => event.selectedIndex.has(link.properties.index))
         const lineAttributes = rlinksStore.rlineAttributes
         const uneditable = ['index', 'length', 'time', 'a', 'b']
         editorForm.value = getGroupForm(selectedLink.value, lineAttributes, uneditable)
-        lingering.value = event.lingering
         showDialog.value = true
-      }
-
-      else if (action.value === 'Edit Visible Road Info') {
+      } else if (action.value === 'Edit Visible Road Info') {
         const features = rlinksStore.visiblerLinks.features
         selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
         const lineAttributes = rlinksStore.rlineAttributes
         const uneditable = ['index', 'length', 'time', 'a', 'b']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-        lingering.value = event.lingering
         showDialog.value = true
       } else if (action.value === 'Edit OD Group Info') {
         const features = ODStore.groupLayer(event.category, event.group)
@@ -132,7 +133,6 @@ export default {
         const lineAttributes = ODStore.layerAttributes
         const uneditable = ['index']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-        lingering.value = event.lingering
         showDialog.value = true
       } else if (action.value === 'Edit Visible OD Info') {
         const features = ODStore.visibleLayer.features
@@ -140,7 +140,6 @@ export default {
         const lineAttributes = ODStore.layerAttributes
         const uneditable = ['index']
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-        lingering.value = event.lingering
         showDialog.value = true
       } else if (['Edit Node Info', 'Edit rNode Info'].includes(action.value)) {
         selectedNode.value = event.selectedFeature.properties
@@ -305,10 +304,10 @@ export default {
       cloneDialog.value = false
     }
 
-    function scheduleButton (event) {
-      action.value = event.action
-      lingering.value = event.lingering
-      scheduleDialog.value = true
+    function toggleSchedule(event) {
+      showDialog.value = false
+      scheduleDialog.value = false
+      actionClick(event)
     }
 
     return {
@@ -321,7 +320,7 @@ export default {
       duplicate,
       cloneButton,
       cancelClone,
-      scheduleButton,
+      toggleSchedule,
       selectedNode,
       selectedLink,
       selectedIndex,
@@ -358,12 +357,13 @@ export default {
       :mode="mode"
       :action="action"
       :link-dir="linkDir"
+      @toggle="toggleSchedule( { action: 'Edit Line Schedule'})"
       @applyAction="applyAction"
       @cancelAction="cancelAction"
     />
     <EditScheduleDialog
       v-model="scheduleDialog"
-      @toggle="actionClick( { action: 'Edit Line Info', lingering: true })"
+      @toggle="toggleSchedule( { action: 'Edit Line Info' })"
       @cancelAction="cancelAction"
       @applyAction="applyAction"
     />
@@ -453,7 +453,7 @@ export default {
       @deleteButton="deleteButton"
       @cloneButton="cloneButton"
       @propertiesButton="actionClick"
-      @scheduleButton="scheduleButton"
+      @scheduleButton="actionClick"
       @change-mode="(e) => mode = e"
     />
     <Map

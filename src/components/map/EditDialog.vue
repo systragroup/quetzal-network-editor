@@ -8,8 +8,12 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 import { computed, ref, watch, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
+import { createHash } from 'sha256-uint8array'
+
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
+import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
+
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -18,16 +22,22 @@ const editorForm = defineModel('editorForm')
 const props = defineProps(['mode', 'action', 'linkDir'])
 
 const { mode, action } = toRefs(props)
-const emit = defineEmits(['applyAction', 'cancelAction'])
+const emit = defineEmits(['applyAction', 'cancelAction', 'toggle'])
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 const ODStore = useODStore()
 
+const initialHash = ref()
+function hashJson(body) {
+  return createHash().update(JSON.stringify(body)).digest('hex')
+}
+
 watch(showDialog, (val) => {
   // do not show a notification when dialog is on. sometime its over the confirm button
   if (val) { store.changeNotification({ text: '', autoClose: true }) }
+  initialHash.value = hashJson(editorForm.value)
   showHint.value = false
   showDeleteOption.value = false
 })
@@ -225,6 +235,24 @@ async function submitForm() {
   }
 }
 
+const showSaveDialog = ref(false)
+function toggle() {
+  if (hashJson(editorForm.value) == initialHash.value) {
+    emit('toggle')
+  } else {
+    showSaveDialog.value = true
+  }
+}
+function handleSimpleDialog(event) {
+  showSaveDialog.value = false
+  if (event) {
+    submitForm()
+    emit('toggle')
+  } else {
+    emit('toggle')
+  }
+}
+
 </script>
 <template>
   <v-dialog
@@ -242,6 +270,15 @@ async function submitForm() {
       >
         <v-card-title class="text-h5">
           {{ $gettext("Edit Properties") }}
+          <v-btn
+            v-if="action === 'Edit Line Info' && linksStore.editorNodes.features.length !== 0"
+            variant="text"
+            class="pl-auto"
+            prepend-icon="fas fa-clock"
+            @click="toggle"
+          >
+            {{ $gettext("Edit Schedule") }}
+          </v-btn>
         </v-card-title>
         <v-divider />
         <v-card-text>
@@ -368,6 +405,23 @@ async function submitForm() {
       </v-card>
     </v-form>
   </v-dialog>
+  <SimpleDialog
+    v-model="showSaveDialog"
+    :title="$gettext('Save Changes?')"
+    body=""
+    confirm-color="primary"
+    :confirm-button="$gettext('Yes')"
+    :cancel-button="$gettext('No')"
+    @confirm="handleSimpleDialog(true)"
+    @cancel="handleSimpleDialog(false)"
+  >
+    <v-btn
+      color="regular"
+      @click="showSaveDialog=false"
+    >
+      {{ $gettext('Cancel') }}
+    </v-btn>
+  </SimpleDialog>
 </template>
 <style lang="scss" scoped>
 
