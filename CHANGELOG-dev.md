@@ -1,4 +1,9 @@
-## [6.0.m] (2024-07-19)
+## [6.0.n] (2024-07-22)
+
+### Changes
+* **Schedule Speed edition**: disabled Speed and time when a trip is in Schdedule mode. This will not apply to group edition as you could edit both genre of trips.
+
+## [6.0.m] (2024-07-22)
 
 ### Features
 * **Schedule toggle**:can toggle between schedule and normal edition. ask for save, drop or cancel in dialog if hash changed.

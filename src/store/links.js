@@ -7,7 +7,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import Linestring from 'turf-linestring'
 import Point from 'turf-point'
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
-import { IndexAreDifferent, deleteUnusedNodes, getGroupForm } from '@comp/utils/utils.js'
+import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import geojson from '@constants/geojson'
@@ -22,7 +22,7 @@ export const useLinksStore = defineStore('links', {
     editorNodes: {},
     editorLinks: {},
     editorTrip: null,
-    editorLineInfo: {},
+    defaultLink: {},
     tripId: [],
     scheduledTrips: new Set([]),
     selectedTrips: [],
@@ -260,7 +260,7 @@ export const useLinksStore = defineStore('links', {
       // get the corresponding nodes
       this.getEditorNodes({ nodes: this.nodes })
 
-      this.getEditorLineInfo()
+      this.getDefaultLink()
     },
 
     editEditorLinksInfo (payload) {
@@ -364,38 +364,28 @@ export const useLinksStore = defineStore('links', {
       this.editorNodes.features = cloneDeep(features)
     },
 
-    getEditorLineInfo () {
-      const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
-      // empty trip, when its a newLine
-      if (this.editorLinks.features.length === 0) {
-        const defaultValue = {
-          agency_id: 'QUENEDI',
-          route_id: 'Q1',
-          route_short_name: 'Q1',
-          route_type: 'quenedi',
-          route_color: this.linksDefaultColor,
-          route_width: 3,
-          headway: 600,
-          pickup_type: 0,
-          drop_off_type: 0,
-          direction_id: 0,
-          speed: 20,
-        }
-
-        const form = this.lineAttributes.reduce((dict, key) => {
-          dict[key] = {
-            value: defaultValue[key],
-            disabled: uneditable.includes(key),
-            placeholder: false,
-          }
-          return dict
-        }, {})
-
-        form.trip_id = { value: this.editorTrip, disabled: false, placeholder: false }
-        this.editorLineInfo = form
-      } else {
-        this.editorLineInfo = getGroupForm(this.editorLinks.features, this.lineAttributes, uneditable)
+    getDefaultLink () {
+      // empty trip, when its a newLine. those are the default Values.
+      const defaultValue = {
+        agency_id: 'QUENEDI',
+        route_id: 'Q1',
+        route_short_name: 'Q1',
+        route_type: 'quenedi',
+        route_color: this.linksDefaultColor,
+        route_width: 3,
+        headway: 600,
+        pickup_type: 0,
+        drop_off_type: 0,
+        direction_id: 0,
+        speed: 20,
       }
+      const props = this.lineAttributes.reduce((dict, key) => {
+        dict[key] = defaultValue[key]
+        return dict
+      }, {})
+
+      props.trip_id = this.editorTrip
+      this.defaultLink = [{ properties: props }]
     },
 
     getTripId () {
@@ -419,10 +409,7 @@ export const useLinksStore = defineStore('links', {
       // if there is no link to copy, create one. (new Line)
       if (tempLink.length === 0) {
         // copy Line properties.
-        const linkProperties = {}
-        Object.keys(this.editorLineInfo).forEach((key) => {
-          linkProperties[key] = this.editorLineInfo[key].value
-        })
+        const linkProperties = cloneDeep(this.defaultLink[0].properties)
         // set default links values
         const defaultValue = {
           index: 'link_' + short.generate(),
@@ -832,13 +819,15 @@ export const useLinksStore = defineStore('links', {
     },
 
     editLineInfo (payload) {
-      this.editorLineInfo = payload
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(payload).filter(key =>
         ((payload[key].value !== '') || !payload[key].placeholder) && (!payload[key].disabled))
       // add new line info to each links of each trips.
       this.editorLinks.features.forEach(
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
+
+      // update default Link. this is necessary when we draw a new Trip. default info must be store here
+      props.forEach((key) => this.defaultLink[0].properties[key] = payload[key].value)
 
       // apply speed (get time on each link for the new speed.)
       if (props.includes('speed')) {

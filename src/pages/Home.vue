@@ -14,6 +14,7 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 
 import { computed, ref, onUnmounted } from 'vue'
+import { isScheduleTrip } from '../components/utils/utils'
 const $gettext = s => s
 
 export default {
@@ -60,35 +61,37 @@ export default {
 
     function actionClick (event) {
       action.value = event.action
-      // if (Object.keys(event).includes('lingering')) {
-      //  lingering.value = event.lingering
-      // }
       lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
 
       if (action.value === 'Edit Line Info') {
-        // this use getGroupForm. its needed as we need to store info somewhere when we create new line.
-        editorForm.value = cloneDeep(linksStore.editorLineInfo)
+        const lineAttributes = linksStore.lineAttributes
+        const features = linksStore.editorLinks.features.length === 0
+          ? cloneDeep(linksStore.defaultLink)
+          : linksStore.editorLinks.features
+        let uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
+        if (isScheduleTrip(features[0])) { uneditable = [...uneditable, 'speed'] }
+        editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         showDialog.value = true
       } else if (action.value === 'Edit Line Schedule') {
         scheduleDialog.value = true
       } else if (action.value === 'Edit Group Info') {
         groupTripIds.value = new Set(event.tripIds)
-        const uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence',
-          'trip_id', 'anchors', 'departures', 'arrivals']
         const lineAttributes = linksStore.lineAttributes
-        const features = linksStore.links.features.filter(
-          link => groupTripIds.value.has(link.properties.trip_id))
+        const features = linksStore.links.features.filter(link => groupTripIds.value.has(link.properties.trip_id))
+        // eslint-disable-next-line max-len
+        let uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
+        // should check everything. could edit group with and without Schedules... so user  change speed if they want
+        // if (isScheduleTrip(features[0])) { uneditable = [...uneditable, ...['speed', ]] }
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         showDialog.value = true
       } else if (action.value === 'Edit Link Info') {
         // link is clicked on the map
         selectedLink.value = event.selectedFeature.properties
-        const uneditable = ['a', 'b', 'index', 'length', 'link_sequence',
-          'trip_id', 'anchors', 'departures', 'arrivals']
         const lineAttributes = linksStore.lineAttributes
         const features = linksStore.editorLinks.features.filter(
           (link) => link.properties.index === selectedLink.value.index)
-
+        let uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
+        if (isScheduleTrip(features[0])) { uneditable = [...uneditable, ...['speed', 'time']] }
         editorForm.value = getGroupForm(features, lineAttributes, uneditable)
         showDialog.value = true
       } else if (action.value === 'Edit rLink Info') {
