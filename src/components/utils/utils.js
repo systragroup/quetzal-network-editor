@@ -53,7 +53,7 @@ async function extractZip (file) {
     let content = {}
     if (filesNames[i].endsWith('.json') || filesNames[i].endsWith('.geojson')) {
       try {
-        content = JSON.parse(str)
+        content = JSON.parse(str.trim())
       } catch (err) {
         err.name = 'ImportError in ' + filesNames[i]
         if (str.length === 0) { err.message = 'file is empty' }
