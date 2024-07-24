@@ -50,6 +50,10 @@ const scales = {
     autoSkip: false,
     ticks: {
       padding: 5, // Adjust the padding value as needed
+      callback: function(value) {
+        var label = this.getLabelForValue(value)
+        return label.length > 15 ? [label.slice(0, 15), label.slice(15)] : label
+      },
     },
   },
 }

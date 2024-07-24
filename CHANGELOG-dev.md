@@ -1,3 +1,11 @@
+## [6.0.o] (2024-07-23)
+
+### Changes
+* **Schedule css**: wrap y labels and ajust width / height of all.
+
+### Bug Fixes
+* **Schedule toggle**: was not ok when lingering was false.
+
 ## [6.0.n] (2024-07-22)
 
 ### Changes

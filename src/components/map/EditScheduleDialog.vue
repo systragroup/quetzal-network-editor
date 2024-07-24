@@ -267,10 +267,10 @@ function handleSimpleDialog(event) {
     v-model="showSchedule"
     scrollable
     persistent
-    max-width="90rem"
+    max-width="90vw"
   >
     <v-card
-      max-height="60rem"
+      max-height="80vh"
     >
       <v-card-title class="text-h5">
         {{ $gettext("Edit Schedule") }}
@@ -278,6 +278,7 @@ function handleSimpleDialog(event) {
           variant="text"
           class="pl-auto"
           prepend-icon="fas fa-list"
+          :disabled="formErrorKey.length > 0"
           @click="toggle"
         >
           {{ $gettext("Edit Properties") }}
@@ -287,7 +288,7 @@ function handleSimpleDialog(event) {
       <v-divider />
       <v-card-text>
         <v-row style="min-height: 20rem">
-          <v-col cols="3">
+          <v-col cols="2">
             <v-select
               v-model="label"
               :items="labelsChoices.sort()"
@@ -299,22 +300,15 @@ function handleSimpleDialog(event) {
             />
             <v-card variant="outlined">
               <v-card-title>
-                <v-row>
-                  <v-col cols="9">
-                    <h5> {{ $gettext("List of Trips") }} </h5>
-                  </v-col>
-                  <v-col
-                    cols="3"
-                    class="text-right"
-                  >
-                    <v-btn
-                      color="primary"
-                      size="small"
-                      class="mx-2"
-                      icon="fas fa-plus"
-                      @click="openCreateNewTripDialog"
-                    />
-                  </v-col>
+                <v-row class="trip-ls-title">
+                  <h5> {{ $gettext("List of Trips") }} </h5>
+                  <v-btn
+                    color="primary"
+                    size="small"
+                    class="mx-2"
+                    icon="fas fa-plus"
+                    @click="openCreateNewTripDialog"
+                  />
                 </v-row>
               </v-card-title>
               <v-card-text>
@@ -344,7 +338,7 @@ function handleSimpleDialog(event) {
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="6">
+          <v-col cols="7">
             <ScheduleChart
               v-if="showSchedule"
               :data="{datasets}"
@@ -493,3 +487,11 @@ function handleSimpleDialog(event) {
     </v-btn>
   </SimpleDialog>
 </template>
+
+<style lang="scss" scoped>
+.trip-ls-title{
+  padding: 1.2rem;
+  align-items: center;
+  justify-content: space-between;
+}
+</style>

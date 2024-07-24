@@ -187,12 +187,7 @@ export default {
         case 'Edit Node Info':
           linksStore.editNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
           break
-        case 'Edit Line Info':
-          if (linksStore.editorNodes.features.length === 0) {
-            store.changeNotification({ text: $gettext('Click on the map to start drawing'), autoClose: false })
-          }
-          linksStore.editLineInfo(editorForm.value)
-          break
+          // case 'Edit Line Info': was move directly to the editDialog for toggle
         case 'Edit Group Info':
           linksStore.editGroupInfo({ groupTripIds: groupTripIds.value, info: editorForm.value })
           break

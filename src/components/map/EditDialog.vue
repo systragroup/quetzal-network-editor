@@ -219,20 +219,31 @@ function deleteField (field) {
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }
 
+function save() {
+  if (action.value == 'Edit Line Info') {
+    if ((editorForm.value.trip_id.value !== linksStore.editorTrip)
+      && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
+      // reset all. just like abortChanges but without the abort changes notification
+      store.changeNotification({
+        text: $gettext('Cannot apply modification. Trip_id already exist'),
+        autoClose: true,
+        color: 'red darken-2',
+      })
+      return false
+    } else {
+      if (linksStore.editorNodes.features.length === 0) {
+        store.changeNotification({ text: $gettext('Click on the map to start drawing'), autoClose: false })
+      }
+      linksStore.editLineInfo(editorForm.value)
+      return true
+    }
+  } else { return true }
+}
+
 async function submitForm() {
   // just for editLine info:  check if trip exist
-  if ((action.value == 'Edit Line Info')
-    && (editorForm.value.trip_id.value !== linksStore.editorTrip)
-    && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
-    // reset all. just like abortChanges but without the abort changes notification
-    store.changeNotification({
-      text: $gettext('Cannot apply modification. Trip_id already exist'),
-      autoClose: true,
-      color: 'red darken-2',
-    })
-  } else {
-    emit('applyAction')
-  }
+  const ok = save()
+  if (ok) { emit('applyAction') }
 }
 
 const showSaveDialog = ref(false)
@@ -246,8 +257,8 @@ function toggle() {
 function handleSimpleDialog(event) {
   showSaveDialog.value = false
   if (event) {
-    submitForm()
-    emit('toggle')
+    const ok = save()
+    if (ok) { emit('toggle') }
   } else {
     emit('toggle')
   }
