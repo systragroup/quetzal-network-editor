@@ -124,7 +124,8 @@ function selectLine (e) {
       linksStore.setEditorTrip({ tripId: selectedFeatures.value[0].properties.trip_id, changeBounds: false })
       store.changeNotification({ text: '', autoClose: true })
     } else if (selectedFeatures.value.length > 1) {
-      const selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
+      let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
+      selectedTrips = Array.from(new Set(selectedTrips))
       contextMenu.value.coordinates = [e.lngLat.lng, e.lngLat.lat]
       contextMenu.value.showed = true
       contextMenu.value.action = 'editTrip'

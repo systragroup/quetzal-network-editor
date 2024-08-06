@@ -1,3 +1,9 @@
+## [6.0.p] (2024-08-06)
+
+### Changes
+* Remove duplicated trips when right click on map for selection.
+* update AWS, Amplify, axios ChromaJS, luxon, pinia, vue, vue-router
+
 ## [6.0.o] (2024-07-23)
 
 ### Changes

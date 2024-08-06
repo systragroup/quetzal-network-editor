@@ -294,7 +294,6 @@ function stopRun () { runMapMatching.stopExecution() }
   top: 5px;
   right: 5px;
 }
-
 .items {
   margin-bottom:0.3rem;
 }
