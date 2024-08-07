@@ -1,3 +1,8 @@
+## [6.0.q] (2024-08-07)
+
+### Optimization
+* Optimize rlinks group modification and deletion. Do not refrsh everything, just the moidified ones.
+
 ## [6.0.p] (2024-08-06)
 
 ### Changes

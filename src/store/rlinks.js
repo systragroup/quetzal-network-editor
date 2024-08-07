@@ -292,13 +292,13 @@ export const userLinksStore = defineStore('rlinks', {
       const group = new Set(this.selectedrGroup)
       const cat = this.selectedrFilter
       this.visiblerLinks.features = this.rlinks.features.filter(link => group.has(link.properties[cat]))
-      this.getVisiblerNodes({ method: 'add' })
+      this.getVisiblerNodes({ method: 'showAll' })
+
       // when we rename a group (highway => test), are rename many group.
       // remove nonexistant group in the selected group.
       const possibleGroups = new Set(this.visiblerLinks.features.map(
         item => item.properties[cat]))
-      this.selectedrGroup = [...possibleGroups].filter(x => group.has(x))
-      this.updateLinks = []
+      this.selectedrGroup = Array.from(possibleGroups).filter(x => group.has(x))
     },
     getVisiblerNodes (payload) {
       // payload contain nodes. this.nodes or this.editorNodes
@@ -614,10 +614,9 @@ export const userLinksStore = defineStore('rlinks', {
     deleterGroup (payload) {
       const group = payload
       const cat = this.selectedrFilter
-      this.rlinks.features = this.rlinks.features.filter(link => link.properties[cat] !== group)
-      this.refreshVisibleRoads()
-      this.deleteUnusedrNodes()
-      this.getFilteredrCat()
+      const filtered = this.rlinks.features.filter(link => link.properties[cat] === group)
+      const selectedIndex = filtered.map(link => link.properties.index)
+      this.deleterLink({ selectedIndex: selectedIndex })
     },
     deleteUnusedrNodes () {
       // delete every every nodes not in links
@@ -658,8 +657,10 @@ export const userLinksStore = defineStore('rlinks', {
           (features) => reversedProps.forEach((rkey) => features.properties[rkey] = groupInfo[rkey.slice(0, -2)].value),
         )
       }
+
       this.refreshVisibleRoads()
       this.getFilteredrCat()
+      this.updateLinks = selectedLinks
     },
 
   },
