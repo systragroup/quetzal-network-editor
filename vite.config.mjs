@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     server: {
+      strictPort: true,
       port: 8081,
     },
     preview: {

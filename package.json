@@ -77,6 +77,7 @@
     "@babel/eslint-parser": "^7.24.7",
     "@babel/preset-env": "^7.24.7",
     "@stylistic/eslint-plugin": "^1.8.1",
+    "@tauri-apps/cli": "^1.6.0",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vitest/coverage-v8": "^0.34.5",
     "@vue/compiler-sfc": "^3.4.36",
