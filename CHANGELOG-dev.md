@@ -1,3 +1,8 @@
+## [6.0.r] (2024-08-12)
+
+### Features
+* **upload/download polygon**: in the OSM importer. can download the drawn polygon and can upload one. [#516](https://github.com/systragroup/quetzal-network-editor/issues/516)
+
 ## [6.0.q] (2024-08-07)
 
 ### Optimization

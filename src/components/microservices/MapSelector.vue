@@ -156,6 +156,37 @@ function addNode (event) {
   }
 }
 
+// Loading and uploading a geojson
+import { readFileAsText } from '@comp/utils/utils.js'
+import { serializer } from '@comp/utils/serializer.js'
+import saveAs from 'file-saver'
+
+function downloadPoly() {
+  const val = cloneDeep(geojson)
+  val.features = [cloneDeep(poly.value)]
+  val.features[0].properties = { index: '1' }
+  const blob = new Blob([JSON.stringify(val)], { type: 'application/json' })
+  saveAs(blob, 'polygon.geojson')
+}
+
+const fileInput = ref()
+function uploadPoly() {
+  fileInput.value.click()
+  fileInput.value.value = '' // clean it for next file
+}
+async function readGeojson(event) {
+  try {
+    const files = event.target.files
+    let data = await readFileAsText(files[0])
+    data = JSON.parse(data)
+    data = serializer(data, files[0].name, 'Polygon')
+    poly.value = data.features[0]
+    toggleFreeForm()
+  } catch (err) {
+    store.changeAlert(err)
+  }
+}
+
 </script>
 <template>
   <MglMap
@@ -177,6 +208,29 @@ function addNode (event) {
       :icon=" freeForm? 'far fa-square':'fas fa-vector-square'"
       @click="toggleFreeForm"
     />
+    <input
+      id="file-input"
+      ref="fileInput"
+      type="file"
+      style="display: none"
+      accept=".geojson"
+      @change="readGeojson"
+    >
+    <v-tooltip
+      location="top"
+      open-delay="250"
+    >
+      <template v-slot:activator="{ props }">
+        <v-btn
+          class="download-button"
+          size="small"
+          v-bind="props"
+          :icon=" freeForm? 'fas fa-download':'fas fa-upload'"
+          @click="freeForm? downloadPoly(): uploadPoly()"
+        />
+      </template>
+      <span>{{ freeForm? $gettext('Download polygon') : $gettext('Upload a polygon') }}</span>
+    </v-tooltip>
 
     <MglGeojsonLayer
       source-id="polygon"
@@ -228,6 +282,11 @@ function addNode (event) {
   position: absolute;
   top: 5px;
   right: 5px;
+}
+.download-button {
+  position: absolute;
+  top: 5px;
+  left: 5px;
 }
 
 </style>
