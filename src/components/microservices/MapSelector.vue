@@ -1,4 +1,4 @@
-<script>
+<script setup>
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox3'
 import NodesLayer from './NodesLayer.vue'
 import buffer from '@turf/buffer'
@@ -6,179 +6,156 @@ import bboxPolygon from '@turf/bbox-polygon'
 import Point from 'turf-point'
 import Linestring from 'turf-linestring'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useIndexStore } from '@src/store/index'
-import { userLinksStore } from '@src/store/rlinks'
 import { cloneDeep } from 'lodash'
 import geojson from '@constants/geojson'
 
 import short from 'short-uuid'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
+
 const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 
-export default {
-  name: 'MapSelector',
-  components: {
-    MglMap,
-    MglNavigationControl,
-    MglScaleControl,
-    MglGeojsonLayer,
-    NodesLayer,
-  },
-  emits: ['change'],
+const emits = defineEmits(['change'])
 
-  setup () {
-    const store = useIndexStore()
-    const rlinksStore = userLinksStore()
+const store = useIndexStore()
+const map = ref()
+const mapboxPublicKey = key
+const mapIsLoaded = ref(false)
+const poly = ref(null)
+const nodes = ref({})
+const header = geojson
+const freeForm = ref(false)
 
-    const mapboxPublicKey = key
-    const mapIsLoaded = ref(false)
-    const poly = ref(null)
-    const nodes = ref({})
-    const header = geojson
-    const freeForm = ref(false)
+const mapStyle = computed(() => { return store.mapStyle })
 
-    const mapStyle = computed(() => { return store.mapStyle })
-    const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+onBeforeUnmount(() => {
+  // remove stroke layer as it use the polygon layer data.
+  const center = map.value?.getCenter()
+  if (center) {
+    store.saveMapPosition({
+      mapCenter: [center.lng, center.lat],
+      mapZoom: map.value.getZoom(),
+    })
+  }
+  store.saveImportPoly({ freeForm: freeForm.value, poly: poly.value })
+  try {
+    map.value.removeLayer('stroke')
+  } catch (err) {}
+})
 
-    return {
-      store,
-      mapIsLoaded,
-      mapboxPublicKey,
-      poly,
-      nodes,
-      header,
-      freeForm,
-      mapStyle,
-      rlinksIsEmpty,
-    }
-  },
+watch(mapStyle, () => {
+  try {
+    map.value.removeLayer('stroke')
+  } catch (err) {}
+})
 
-  watch: {
-    mapStyle () {
-      try {
-        this.map.removeLayer('stroke')
-      } catch (err) {}
-    },
-  },
+function onMapLoaded (event) {
+  event.map.dragRotate.disable()
+  map.value = event.map
+  map.value.on('dragend', getBounds)
+  map.value.on('zoomend', getBounds)
+  freeForm.value = false
+  if (store.importPoly?.freeForm) {
+    poly.value = store.importPoly.poly
+    toggleFreeForm()
+  } else {
+    getBounds()
+  }
 
-  beforeDestroy () {
-    // remove stroke layer as it use the polygon layer data.
-    const center = this.map?.getCenter()
-    if (center) {
-      this.store.saveMapPosition({
-        mapCenter: [center.lng, center.lat],
-        mapZoom: this.map.getZoom(),
-      })
-    }
-    this.storesaveImportPoly({ freeForm: this.freeForm, poly: this.poly })
-    try {
-      this.map.removeLayer('stroke')
-    } catch (err) {}
-  },
-
-  methods: {
-
-    onMapLoaded (event) {
-      event.map.dragRotate.disable()
-      this.map = event.map
-      this.map.on('dragend', this.getBounds)
-      this.map.on('zoomend', this.getBounds)
-      this.freeForm = false
-      if (this.store.importPoly?.freeForm) {
-        this.poly = this.store.importPoly.poly
-        this.toggleFreeForm()
-      } else {
-        this.getBounds()
-      }
-
-      this.mapIsLoaded = true
-    },
-    getBounds () {
-      const mapbbox = this.map.getBounds()
-      const bbox = bboxPolygon([mapbbox._sw.lng, mapbbox._sw.lat, mapbbox._ne.lng, mapbbox._ne.lat])
-      this.poly = buffer(bbox, -0.1 * (mapbbox._ne.lat - mapbbox._sw.lat), { units: 'degrees' })
-      this.poly.geometry.coordinates[0] = this.poly.geometry.coordinates[0].reverse()
-      const geom = [mapbbox._sw.lat, mapbbox._sw.lng, mapbbox._ne.lat, mapbbox._ne.lng]
-      this.$emit('change', { style: 'bbox', geometry: geom })
-    },
-    toggleFreeForm () {
-      this.freeForm = !this.freeForm
-      if (this.freeForm) {
-        this.map.off('dragend', this.getBounds)
-        this.map.off('zoomend', this.getBounds)
-        this.getNodes()
-        this.store.changeNotification(
-          { text: $gettext('Click to add points. Right click de remove'), autoClose: false })
-      } else {
-        this.map.on('dragend', this.getBounds)
-        this.map.on('zoomend', this.getBounds)
-        this.getBounds()
-        this.store.changeNotification(
-          { text: '', autoClose: true })
-      }
-    },
-    onHover () {
-      if (this.freeForm) {
-        this.map.getCanvas().style.cursor = 'pointer'
-      }
-    },
-    offHover () {
-      if (this.freeForm) {
-        this.map.getCanvas().style.cursor = ''
-      }
-    },
-
-    getNodes () {
-      const nodes = cloneDeep(geojson)
-      const poly = this.poly.geometry.coordinates[0]
-      // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
-      poly.slice(0, poly.length - 1).forEach(
-        (point, idx) => nodes.features.push(Point(point, { index: short.generate(), coordinatesIndex: idx })),
-      )
-      this.nodes = nodes
-      this.$emit('change', { style: 'poly', geometry: this.poly.geometry.coordinates[0] })
-    },
-    moveNode (event) {
-      const idx = event.selectedFeature.properties.coordinatesIndex
-      const poly = this.poly.geometry.coordinates[0]
-      poly[idx] = event.lngLat
-      if (idx === 0) {
-        // last point is duplicated to first one (square have 5 points)
-        poly[poly.length - 1] = event.lngLat
-      }
-      this.getNodes()
-    },
-    removeNode (event) {
-      const idx = event.selectedFeature.properties.coordinatesIndex
-      const poly = this.poly.geometry.coordinates[0]
-      if (poly.length <= 4) {
-        this.store.changeNotification(
-          { text: $gettext('Cannot delete anymore'), autoClose: true })
-      } else if (idx === 0) {
-        this.store.changeNotification(
-          { text: $gettext('cannot delete first point of polygon'), autoClose: true })
-      } else {
-        this.poly.geometry.coordinates[0] = [...poly.slice(0, idx), ...poly.slice(idx + 1)]
-        this.getNodes()
-      }
-    },
-    addNode (event) {
-      if (this.freeForm && Object.keys(event).includes('mapboxEvent')) {
-        const poly = this.poly.geometry.coordinates[0]
-        const lngLat = event.mapboxEvent.lngLat
-        const linkGeom = Linestring(poly)
-        const clickedPoint = Point(Object.values(lngLat))
-        const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
-        // for multiString, gives the index of the closest one, add +1 for the slice.
-        const sliceIndex = snapped.properties.index + 1
-        poly.splice(sliceIndex, 0, Object.values(lngLat))
-        this.getNodes()
-      }
-    },
-  },
-
+  mapIsLoaded.value = true
 }
+
+function getBounds () {
+  const mapbbox = map.value.getBounds()
+  const bbox = bboxPolygon([mapbbox._sw.lng, mapbbox._sw.lat, mapbbox._ne.lng, mapbbox._ne.lat])
+  poly.value = buffer(bbox, -0.1 * (mapbbox._ne.lat - mapbbox._sw.lat), { units: 'degrees' })
+  poly.value.geometry.coordinates[0] = poly.value.geometry.coordinates[0].reverse()
+  const geom = [mapbbox._sw.lat, mapbbox._sw.lng, mapbbox._ne.lat, mapbbox._ne.lng]
+  emits('change', { style: 'bbox', geometry: geom })
+}
+
+function toggleFreeForm () {
+  freeForm.value = !freeForm.value
+  if (freeForm.value) {
+    map.value.off('dragend', getBounds)
+    map.value.off('zoomend', getBounds)
+    getNodes()
+    store.changeNotification(
+      { text: $gettext('Click to add points. Right click de remove'), autoClose: false })
+  } else {
+    map.value.on('dragend', getBounds)
+    map.value.on('zoomend', getBounds)
+    getBounds()
+    store.changeNotification(
+      { text: '', autoClose: true })
+  }
+}
+
+function onHover () {
+  if (freeForm.value) {
+    map.value.getCanvas().style.cursor = 'pointer'
+  }
+}
+
+function offHover () {
+  if (freeForm.value) {
+    map.value.getCanvas().style.cursor = ''
+  }
+}
+
+function getNodes () {
+  const tempNodes = cloneDeep(geojson)
+  const polygon = poly.value.geometry.coordinates[0]
+  // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
+  polygon.slice(0, polygon.length - 1).forEach(
+    (point, idx) => tempNodes.features.push(Point(point, { index: short.generate(), coordinatesIndex: idx })),
+  )
+  nodes.value = tempNodes
+  emits('change', { style: 'poly', geometry: poly.value.geometry.coordinates[0] })
+}
+
+function moveNode (event) {
+  const idx = event.selectedFeature.properties.coordinatesIndex
+  const polygon = poly.value.geometry.coordinates[0]
+  polygon[idx] = event.lngLat
+  if (idx === 0) {
+    // last point is duplicated to first one (square have 5 points)
+    polygon[polygon.length - 1] = event.lngLat
+  }
+  getNodes()
+}
+
+function removeNode (event) {
+  const idx = event.selectedFeature.properties.coordinatesIndex
+  const polygon = poly.value.geometry.coordinates[0]
+  if (polygon.length <= 4) {
+    store.changeNotification(
+      { text: $gettext('Cannot delete anymore'), autoClose: true })
+  } else if (idx === 0) {
+    store.changeNotification(
+      { text: $gettext('cannot delete first point of polygon'), autoClose: true })
+  } else {
+    poly.value.geometry.coordinates[0] = [...polygon.slice(0, idx), ...polygon.slice(idx + 1)]
+    getNodes()
+  }
+}
+
+function addNode (event) {
+  if (freeForm.value && Object.keys(event).includes('mapboxEvent')) {
+    const polygon = poly.value.geometry.coordinates[0]
+    const lngLat = event.mapboxEvent.lngLat
+    const linkGeom = Linestring(polygon)
+    const clickedPoint = Point(Object.values(lngLat))
+    const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
+    // for multiString, gives the index of the closest one, add +1 for the slice.
+    const sliceIndex = snapped.properties.index + 1
+    polygon.splice(sliceIndex, 0, Object.values(lngLat))
+    getNodes()
+  }
+}
+
 </script>
 <template>
   <MglMap
