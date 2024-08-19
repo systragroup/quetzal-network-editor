@@ -1,3 +1,9 @@
+## [6.0.s] (2024-08-19)
+
+### Bug Fixes
+* **Mapmatching Api**: Was not loading rnodes.
+* **Routing (nearest)**: was looking for links with node A near. now looks for a and b. also. 50 neighbor instead of 25.
+
 ## [6.0.r] (2024-08-12)
 
 ### Features

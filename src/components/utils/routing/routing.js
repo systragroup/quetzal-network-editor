@@ -132,7 +132,7 @@ export function useRouting () {
   function nodesToLinks(node, candidate) {
     // from clicked points and candidate nodes, find closest rLink
     const nodesSet = new Set(candidate)
-    const filtered = rlinks.features.filter(link => nodesSet.has(link.properties.a))
+    const filtered = rlinks.features.filter(link => nodesSet.has(link.properties.a) | nodesSet.has(link.properties.b))
     const clickedPoint = Array.isArray(node) ? node : node.geometry.coordinates
     const snapped = filtered.map(link => nearestPointOnLine(link, clickedPoint, { units: 'kilometers' }))
     const distArr = snapped.map(el => el.properties.dist)
@@ -145,8 +145,8 @@ export function useRouting () {
   // graph.addLink('a', 'b', {weight: 10});
   function RoutingBetweenTwoPoints(nodeA, nodeB) {
   // takes 2 nodes and return the road geometry between them.
-    let fromNodeCandidate = nearest(nodeA, 25)
-    let toNodeCandidate = nearest(nodeB, 25)
+    let fromNodeCandidate = nearest(nodeA, 50)
+    let toNodeCandidate = nearest(nodeB, 50)
     const { link: fromLink, offset: fromOffset } = nodesToLinks(nodeA, fromNodeCandidate)
     const { link: toLink, offset: toOffset } = nodesToLinks(nodeB, toNodeCandidate)
     let nodesList = []
