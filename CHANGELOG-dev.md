@@ -1,3 +1,8 @@
+## [6.0.t] (2024-08-26)
+
+### Bug Fixes
+* **Scenario text wrap**: was not wrapping on chrome.
+
 ## [6.0.s] (2024-08-19)
 
 ### Bug Fixes

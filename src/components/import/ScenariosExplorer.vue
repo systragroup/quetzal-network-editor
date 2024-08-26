@@ -455,6 +455,6 @@ function deleteScenario () {
   max-height:calc(100% - 10rem);
 }
 .name-wrap{
-  text-wrap: auto;
+  text-wrap: wrap;
 }
 </style>
