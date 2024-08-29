@@ -26,14 +26,21 @@ watch(showLeftPanel, (val) => {
 
 const editorTrip = computed(() => { return linksStore.editorTrip })
 
-const tab = ref('pt')
+const tab = ref()
 onMounted(() => {
+  // default Tab when loading page.
   if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
     tab.value = 'road'
+  } else {
+    tab.value = 'pt'
   }
 })
-watch(tab, (mode) => {
-  emits('change-mode', mode)
+
+// Active a v-if once. So the component is loaded when click, and stay loaded for next click.
+const loadComponent = ref({ pt: false, road: false, od: false })
+watch(tab, (val) => {
+  emits('change-mode', val)
+  loadComponent.value[val] = true
 })
 
 const leftPanelDiv = ref(null)
@@ -108,25 +115,32 @@ function stopResize () {
                 {{ $gettext("OD") }}
               </v-tab>
             </v-tabs>
-            <LinksSidePanel
-              v-show="tab==='pt'"
-              @confirmChanges="(e) => $emit('confirmChanges',e)"
-              @abortChanges="(e) => $emit('abortChanges',e)"
-              @cloneButton="(e) => $emit('cloneButton',e)"
-              @deleteButton="(e) => $emit('deleteButton',e)"
-              @propertiesButton="(e) => $emit('propertiesButton',e)"
-              @scheduleButton="(e) => $emit('scheduleButton',e)"
-            />
-            <RoadSidePanel
-              v-show="tab==='road'"
-              @deleteButton="(e) => $emit('deleteButton',e)"
-              @propertiesButton="(e) => $emit('propertiesButton',e)"
-            />
-            <ODSidePanel
-              v-show="tab==='od'"
-              @deleteButton="(e) => $emit('deleteButton',e)"
-              @propertiesButton="(e) => $emit('propertiesButton',e)"
-            />
+            <template v-if="loadComponent.pt">
+              <LinksSidePanel
+                v-show="tab==='pt'"
+                @confirmChanges="(e) => $emit('confirmChanges',e)"
+                @abortChanges="(e) => $emit('abortChanges',e)"
+                @cloneButton="(e) => $emit('cloneButton',e)"
+                @deleteButton="(e) => $emit('deleteButton',e)"
+                @propertiesButton="(e) => $emit('propertiesButton',e)"
+                @scheduleButton="(e) => $emit('scheduleButton',e)"
+              />
+            </template>
+
+            <template v-if="loadComponent.road">
+              <RoadSidePanel
+                v-show="tab==='road'"
+                @deleteButton="(e) => $emit('deleteButton',e)"
+                @propertiesButton="(e) => $emit('propertiesButton',e)"
+              />
+            </template>
+            <template v-if="loadComponent.od">
+              <ODSidePanel
+                v-show="tab==='od'"
+                @deleteButton="(e) => $emit('deleteButton',e)"
+                @propertiesButton="(e) => $emit('propertiesButton',e)"
+              />
+            </template>
           </div>
         </div>
       </div>

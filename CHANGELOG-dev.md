@@ -5,7 +5,7 @@
 * Road links and node will now export with column ID. this is better than a deepClone (slow) when adding the ID field. it could be remove when we export.
 
 ### Optimization
-* SidePanels and map rendering improved. Sidepanels refactored to script setup. And remove unnecessary Store mutation that was slowing down.
+* SidePanels and map rendering improved. Sidepanels refactored to script setup. And remove unnecessary Store mutation that was slowing down. v-if first time each sidepanel is loaded. v-show then.
 
 ### Bug Fixes
 * **Scenario was 55**: when changing scneario, the dialog was saying 55 for scen.
