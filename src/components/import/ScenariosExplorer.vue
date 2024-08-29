@@ -342,9 +342,10 @@ function deleteScenario () {
   </div>
 
   <SimpleDialog
+    v-if="showDialog"
     v-model="showDialog"
-    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{sc} ?', {sc: 55})"
-    :body="$gettext('Any unsaved changes to %{sc} will be lost', {sc: 55})"
+    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{sc} ?', {sc: localScen})"
+    :body="$gettext('Any unsaved changes to %{sc} will be lost', {sc: scenario})"
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"

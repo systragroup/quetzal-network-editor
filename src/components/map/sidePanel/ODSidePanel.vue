@@ -4,7 +4,7 @@ import { useODStore } from '@src/store/od'
 import { computed } from 'vue'
 
 export default {
-  name: 'RoadSidePanel',
+  name: 'ODSidePanel',
   components: {
   },
   emits: ['deleteButton', 'propertiesButton'],
