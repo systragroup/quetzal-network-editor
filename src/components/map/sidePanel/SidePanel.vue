@@ -1,4 +1,4 @@
-<script>
+<script setup>
 import LinksSidePanel from './LinksSidePanel.vue'
 import RoadSidePanel from './RoadSidePanel.vue'
 import ODSidePanel from './ODSidePanel.vue'
@@ -6,91 +6,61 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 
-export default {
-  name: 'SidePanel',
-  components: {
-    LinksSidePanel,
-    RoadSidePanel,
-    ODSidePanel,
-  },
-  emits: [
-    'selectEditorTrip',
-    'confirmChanges',
-    'abortChanges',
-    'cloneButton',
-    'deleteButton',
-    'propertiesButton',
-    'scheduleButton',
-    'change-mode'],
-  setup (_, context) {
-    const store = useIndexStore()
-    const linksStore = useLinksStore()
+const emits = defineEmits(['change-mode'])
 
-    const showLeftPanel = computed(() => { return store.showLeftPanel })
-    const showLeftPanelContent = ref(true)
-    watch(showLeftPanel, (val) => {
-      if (val) {
-        // Leave time for animation to end (.fade-enter-active css rule)
-        setTimeout(() => {
-          showLeftPanelContent.value = true
-        }, 500)
-      } else {
-        showLeftPanelContent.value = false
-      }
-    })
+const store = useIndexStore()
+const linksStore = useLinksStore()
 
-    const editorTrip = computed(() => { return linksStore.editorTrip })
+const showLeftPanel = computed(() => { return store.showLeftPanel })
+const showLeftPanelContent = ref(true)
+watch(showLeftPanel, (val) => {
+  if (val) {
+    // Leave time for animation to end (.fade-enter-active css rule)
+    setTimeout(() => {
+      showLeftPanelContent.value = true
+    }, 500)
+  } else {
+    showLeftPanelContent.value = false
+  }
+})
 
-    const tab = ref('pt')
-    onMounted(() => {
-      if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
-        tab.value = 'road'
-      }
-    })
-    watch(tab, (mode) => {
-      context.emit('change-mode', mode)
-    })
+const editorTrip = computed(() => { return linksStore.editorTrip })
 
-    const leftPanelDiv = ref(null)
-    const isResizing = ref(false)
-    const windowOffest = ref(0)
-    const width = ref(400) // Initial width of the resizable section
-    function startResize (event) {
-      event.preventDefault()
-      isResizing.value = true
-      windowOffest.value = event.clientX - leftPanelDiv.value.clientWidth
-      document.addEventListener('mousemove', resize)
-      document.addEventListener('mouseup', stopResize)
-    }
-    function resize (event) {
-      if (isResizing.value) {
-        const w = event.clientX - windowOffest.value
-        width.value = w > 400 ? w : 400
-        // event.target.style.cursor = 'col-resize'
-      }
-    }
-    function stopResize () {
-      isResizing.value = false
-      document.removeEventListener('mousemove', resize)
-      document.removeEventListener('mouseup', stopResize)
-      // event.target.style.cursor = 'default'
-    }
+const tab = ref('pt')
+onMounted(() => {
+  if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
+    tab.value = 'road'
+  }
+})
+watch(tab, (mode) => {
+  emits('change-mode', mode)
+})
 
-    return {
-      tab,
-      store,
-      showLeftPanel,
-      showLeftPanelContent,
-      editorTrip,
-      leftPanelDiv,
-      isResizing,
-      windowOffest,
-      width,
-      startResize,
-    }
-  },
-
+const leftPanelDiv = ref(null)
+const isResizing = ref(false)
+const windowOffest = ref(0)
+const width = ref(400) // Initial width of the resizable section
+function startResize (event) {
+  event.preventDefault()
+  isResizing.value = true
+  windowOffest.value = event.clientX - leftPanelDiv.value.clientWidth
+  document.addEventListener('mousemove', resize)
+  document.addEventListener('mouseup', stopResize)
 }
+function resize (event) {
+  if (isResizing.value) {
+    const w = event.clientX - windowOffest.value
+    width.value = w > 400 ? w : 400
+    // event.target.style.cursor = 'col-resize'
+  }
+}
+function stopResize () {
+  isResizing.value = false
+  document.removeEventListener('mousemove', resize)
+  document.removeEventListener('mouseup', stopResize)
+  // event.target.style.cursor = 'default'
+}
+
 </script>
 <template>
   <section

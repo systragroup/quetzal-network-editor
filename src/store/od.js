@@ -79,8 +79,9 @@ export const useODStore = defineStore('od', {
       defaultAttributes.forEach(att => header.add(att))
       this.layerAttributes = Array.from(header)
       this.selectedFilter = 'name'
-      this.selectedCategory = Array.from(new Set(this.layer.features.map(
-        item => item.properties[this.selectedFilter])))
+      // set all visible
+      // this.selectedCategory = Array.from(new Set(this.layer.features.map(
+      //  item => item.properties[this.selectedFilter])))
     },
 
     refreshVisibleLayer () {

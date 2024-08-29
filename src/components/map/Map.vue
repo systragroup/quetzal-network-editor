@@ -258,7 +258,6 @@ function addPointPT(event) {
     routeLink(linksStore.newLink)
   }
 }
-const roadref = ref()
 
 function addPointRoad(event) {
   const pointGeom = Object.values(event.mapboxEvent.lngLat)
@@ -425,7 +424,6 @@ const { routeLink } = useRouting()
     </div>
     <template v-if="mapIsLoaded && !rlinksIsEmpty">
       <RoadLinks
-        ref="roadref"
         :map="map"
         :is-editor-mode="isEditorMode"
         :is-road-mode="mode==='road'"

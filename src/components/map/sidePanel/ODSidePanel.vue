@@ -1,92 +1,58 @@
-<script>
+<script setup>
 import { useIndexStore } from '@src/store/index'
 import { useODStore } from '@src/store/od'
-import { computed } from 'vue'
+import { computed, watch, ref } from 'vue'
+import { cloneDeep } from 'lodash'
 
-export default {
-  name: 'ODSidePanel',
-  components: {
-  },
-  emits: ['deleteButton', 'propertiesButton'],
-  setup () {
-    const store = useIndexStore()
-    const odStore = useODStore()
-    const layer = computed(() => { return odStore.layer })
-    const filterChoices = computed(() => { return odStore.layerAttributes })
-    const selectedFilter = computed(() => { return odStore.selectedFilter })
-    const selectedCat = computed(() => { return odStore.selectedCategory })
-    const filteredCat = computed(() => { return odStore.filteredCategory })
+const emits = defineEmits(['deleteButton', 'propertiesButton'])
+const store = useIndexStore()
+const odStore = useODStore()
+const filterChoices = computed(() => { return odStore.layerAttributes })
+const selectedFilter = computed(() => { return odStore.selectedFilter })
+const selectedCat = computed(() => { return odStore.selectedCategory })
+const filteredCat = computed(() => { return odStore.filteredCategory })
 
-    return {
-      store,
-      odStore,
-      layer,
-      filterChoices,
-      selectedFilter,
-      selectedCat,
-      filteredCat,
-    }
-  },
-  data () {
-    return {
-      // for some reason, the v-model does not update when i force it in a watcher or a method.
-      // I this vmodelselectedFilter for displaying the correct selected filter in the filter selector.
-      vmodelSelectedFilter: 'cycleway',
-      vmodelSelectedCat: [],
-    }
-  },
+const vmodelSelectedFilter = ref(cloneDeep(selectedFilter.value))
+const vmodelSelectedCat = ref(cloneDeep(selectedCat.value))
+watch(vmodelSelectedCat, (val) => {
+  odStore.changeSelectedCategory(val)
+})
 
-  watch: {
-    vmodelSelectedCat (val) {
-      this.odStore.changeSelectedCategory(val)
-    },
-    vmodelSelectedFilter (val) {
-      this.odStore.changeSelectedFilter(val)
-      this.vmodelSelectedCat = [] // reset.
-    },
+watch(vmodelSelectedFilter, (val) => {
+  odStore.changeSelectedFilter(val)
+  vmodelSelectedCat.value = [] // reset.
+})
 
-  },
-  mounted () {
-    this.vmodelSelectedCat = this.selectedCat
-    this.vmodelSelectedFilter = this.selectedFilter
-  },
-
-  methods: {
-
-    propertiesButton (value) {
-      // select the TripId and open dialog
-      this.$emit('propertiesButton', {
-        action: 'Edit OD Group Info',
-        lingering: false,
-        category: this.vmodelSelectedFilter,
-        group: value,
-      })
-    },
-    editVisible () {
-      this.$emit('propertiesButton', {
-        action: 'Edit Visible OD Info',
-        lingering: false,
-      })
-    },
-
-    deleteButton (obj) {
-      // obj contain trip and message.
-      this.$emit('deleteButton', obj)
-    },
-    showAll () {
-      if (this.vmodelSelectedCat.length === this.filteredCat.length) {
-        this.vmodelSelectedCat = []
-      } else {
-        this.vmodelSelectedCat = this.filteredCat
-      }
-    },
-    showGroup (val) {
-      this.tripList = Array.from(new Set([...this.tripList, ...val]))
-    },
-
-  },
-
+function propertiesButton (value) {
+  // select the TripId and open dialog
+  emits('propertiesButton', {
+    action: 'Edit OD Group Info',
+    lingering: false,
+    category: vmodelSelectedFilter.value,
+    group: value,
+  })
 }
+
+function editVisible () {
+  emits('propertiesButton', {
+    action: 'Edit Visible OD Info',
+    lingering: false,
+  })
+}
+
+function deleteButton (obj) {
+  // obj contain trip and message.
+  emits('deleteButton', obj)
+}
+
+function showAll () {
+  if (vmodelSelectedCat.value.length === filteredCat.value.length) {
+    vmodelSelectedCat.value = []
+  } else {
+    vmodelSelectedCat.value = filteredCat.value
+  }
+}
+
 </script>
 <template>
   <section>

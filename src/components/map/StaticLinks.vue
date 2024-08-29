@@ -283,9 +283,7 @@ function setHighlightTrip(event) {
       :coordinates="contextMenu.coordinates"
       @close="contextMenu.showed=false"
     >
-      <span
-        @mouseleave="contextMenu.showed=false"
-      >
+      <span>
         <v-list
           class="list"
           density="compact"

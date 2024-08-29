@@ -1,5 +1,3 @@
-<!-- eslint-disable no-multi-str -->
-<!-- eslint-disable no-return-assign -->
 <script setup>
 // const SidePanel = defineAsyncComponent(() => import('@comp/map/sidePanel/SidePanel.vue'))
 // const Map = defineAsyncComponent(() => import('@comp/map/Map.vue'))
@@ -17,7 +15,8 @@ import { useODStore } from '@src/store/od'
 
 import { ref, onUnmounted } from 'vue'
 import { isScheduleTrip } from '../components/utils/utils'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
 const store = useIndexStore()
 const linksStore = useLinksStore()

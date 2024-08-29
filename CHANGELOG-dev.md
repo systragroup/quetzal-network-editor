@@ -1,3 +1,15 @@
+## [6.0.u] (2024-08-29)
+
+### Changes
+* Links popup will Stay on until click. mot just over off.
+* Road links and node will now export with column ID. this is better than a deepClone (slow) when adding the ID field. it could be remove when we export.
+
+### Optimization
+* SidePanels and map rendering improved. Sidepanels refactored to script setup. And remove unnecessary Store mutation that was slowing down.
+
+### Bug Fixes
+* **Scenario was 55**: when changing scneario, the dialog was saying 55 for scen.
+
 ## [6.0.t] (2024-08-26)
 
 ### Bug Fixes

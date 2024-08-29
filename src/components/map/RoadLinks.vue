@@ -16,7 +16,7 @@ const { $gettext } = useGettext()
 
 const props = defineProps(['map', 'isEditorMode', 'isRoadMode'])
 const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'select'])
-defineExpose({ init })
+// defineExpose({ init })
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 
@@ -34,13 +34,13 @@ onBeforeUnmount(() => {
   map.value.removeLayer('arrow-rlinks')
 })
 
-function initLinks() {
-  const links = cloneDeep(visiblerLinks.value)
+async function initLinks() {
+  const links = visiblerLinks.value
   links.features.forEach((link) => link.id = link.properties.index)
   map.value.getSource('rlinks').setData(links)
 }
-function initNodes() {
-  const nodes = cloneDeep(visiblerNodes.value)
+async function initNodes() {
+  const nodes = visiblerNodes.value
   nodes.features.forEach((node) => node.id = node.properties.index)
   map.value.getSource('rnodes').setData(nodes)
 }

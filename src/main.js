@@ -51,6 +51,7 @@ app.use(router)
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 library.add(fas)
 app.config.devtools = true
+app.config.performance = false
 const bestLanguage = selectBestLanguage(navigator.languages, ['en', 'fr'])
 const vuetify = createVuetify({
   // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides

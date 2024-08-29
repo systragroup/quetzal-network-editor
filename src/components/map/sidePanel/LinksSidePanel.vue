@@ -1,7 +1,7 @@
 <script setup>
 
 import short from 'short-uuid'
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
@@ -14,7 +14,7 @@ const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
 
 const { $gettext } = useGettext()
-const emit = defineEmits([
+const emits = defineEmits([
   'selectEditorTrip',
   'confirmChanges',
   'abortChanges',
@@ -30,10 +30,7 @@ const linksStore = useLinksStore()
 const editorTrip = computed(() => { return linksStore.editorTrip })
 
 const selectedTrips = computed(() => { return linksStore.selectedTrips })
-const localSelectedTrip = ref([])
-onMounted(() => {
-  localSelectedTrip.value = cloneDeep(selectedTrips.value)
-})
+const localSelectedTrip = ref(cloneDeep(selectedTrips.value))
 
 watch(localSelectedTrip, (val) => {
   linksStore.changeSelectedTrips(val)
@@ -147,10 +144,10 @@ function editButton (value) {
 function scheduleButton (value) {
   if (!editorTrip.value) {
     linksStore.setEditorTrip({ tripId: value, changeBounds: false })
-    emit('scheduleButton', { action: 'Edit Line Schedule', lingering: false })
+    emits('scheduleButton', { action: 'Edit Line Schedule', lingering: false })
     // just open dialog
   } else {
-    emit('scheduleButton', { action: 'Edit Line Schedule', lingering: true })
+    emits('scheduleButton', { action: 'Edit Line Schedule', lingering: true })
   }
   store.changeNotification({ text: '', autoClose: true })
 }
@@ -158,13 +155,13 @@ function scheduleButton (value) {
 function propertiesButton (value) {
   // select the TripId and open dialog
   if (typeof value === 'object') {
-    emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
+    emits('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
   } else if (!editorTrip.value) {
     linksStore.setEditorTrip({ tripId: value, changeBounds: false })
-    emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
+    emits('propertiesButton', { action: 'Edit Line Info', lingering: false })
     // just open dialog
   } else {
-    emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
+    emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
     store.changeNotification({ text: '', autoClose: true })
   }
 }
@@ -172,16 +169,16 @@ function propertiesButton (value) {
 function createNewLine () {
   const name = 'trip_' + short.generate()
   linksStore.setEditorTrip({ tripId: name, changeBounds: false })
-  emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
+  emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
 }
 
 function cloneButton (obj) {
-  emit('cloneButton', obj)
+  emits('cloneButton', obj)
 }
 
 function deleteButton (obj) {
   // obj contain trip and message.
-  emit('deleteButton', obj)
+  emits('deleteButton', obj)
 }
 
 </script>
@@ -578,7 +575,7 @@ function deleteButton (obj) {
           <v-btn
             prepend-icon="fas fa-times-circle"
             width="40%"
-            @click="$emit('abortChanges')"
+            @click="emits('abortChanges')"
           >
             {{ $gettext("Abort") }}
           </v-btn>
@@ -587,7 +584,7 @@ function deleteButton (obj) {
             class="mx-2"
             width="55%"
             prepend-icon="fas fa-save"
-            @click="$emit('confirmChanges')"
+            @click="emits('confirmChanges')"
           >
             {{ $gettext("Confirm") }}
           </v-btn>
