@@ -1,3 +1,8 @@
+## [6.0.v] (2024-09-03)
+
+### Features
+* **new line in params info**: can now parse \n as new line. 
+
 ## [6.0.u] (2024-08-29)
 
 ### Changes

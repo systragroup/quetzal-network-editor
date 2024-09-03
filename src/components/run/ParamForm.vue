@@ -182,6 +182,7 @@ function removeDeletedScenarios (item) {
 }
 .info-div{
   flex:0;
+  white-space: pre-line;
 }
 .subtitle {
   font-size: 2em;
