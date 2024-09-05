@@ -7,9 +7,11 @@
 
 It is a ***free open-source web application*** hosted on github-page (<https://systragroup.github.io/quetzal-network-editor/>)
 
-![Screenshot 2022-11-08 at 3 54 42 PM](https://user-images.githubusercontent.com/79281989/200673287-fc06af70-03e1-4854-8099-7dcaf35d5c83.png)
+![Screenshot from 2024-09-05 11-07-04](https://github.com/user-attachments/assets/e7e32811-d04c-47c4-91dc-4e4331ebdff9)
 
-![Screenshot 2022-11-08 at 4 06 06 PM](https://user-images.githubusercontent.com/79281989/200675384-31d7b65b-8a80-402c-8c0f-6ea0bdef884d.png)
+![Screenshot from 2024-09-05 11-07-57](https://github.com/user-attachments/assets/c8ac8d08-4832-4d2a-b2db-08f95803b0c5)
+
+![Screenshot from 2024-09-05 11-08-30](https://github.com/user-attachments/assets/daf6e03c-c972-44c4-8917-b622c0115233)
 
 ## Inputs
 
