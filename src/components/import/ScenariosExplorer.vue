@@ -177,7 +177,7 @@ function cancelDialog () {
 }
 
 const deleteDialog = ref(false)
-const scenarioToDelete = ref(null)
+const scenarioToDelete = ref('')
 
 function deleteScenario () {
   deleteDialog.value = false
@@ -289,7 +289,9 @@ function deleteScenario () {
         lines="two"
         @click="(e)=>{selectScenario(e,scen)}"
       >
-        <v-list-item-title>{{ scen.scenario }}</v-list-item-title>
+        <v-list-item-title class="name-wrap">
+          {{ scen.scenario }}
+        </v-list-item-title>
         <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
         <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
         <template v-slot:append>
@@ -340,9 +342,10 @@ function deleteScenario () {
   </div>
 
   <SimpleDialog
+    v-if="showDialog"
     v-model="showDialog"
-    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{scen} ?',{scen: localScen})"
-    :body="$gettext('Any unsaved changes to %{scen} will be lost',{scen: model})"
+    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{sc} ?', {sc: localScen})"
+    :body="$gettext('Any unsaved changes to %{sc} will be lost', {sc: scenario})"
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
@@ -352,7 +355,7 @@ function deleteScenario () {
 
   <SimpleDialog
     v-model="deleteDialog"
-    :title=" $gettext('Delete %{scen}?', { scen: scenarioToDelete }) "
+    :title=" $gettext('Delete %{sc}?', { sc: scenarioToDelete }) "
     :body="$gettext('The scenario will be permanently deleted')"
     :confirm-button="$gettext('Delete')"
     confirm-color="error"
@@ -451,5 +454,8 @@ function deleteScenario () {
 .v-card-content {
   overflow: auto; /* Enable scrolling if the content overflows */
   max-height:calc(100% - 10rem);
+}
+.name-wrap{
+  text-wrap: wrap;
 }
 </style>

@@ -15,7 +15,7 @@ msgstr ""
 
 #: src/components/microservices/MatrixRoadCaster.vue:201
 msgid "   or import and use your own zoning."
-msgstr " ou utilise ton propre zonage"
+msgstr ""
 
 #: src/components/import/FilesList.vue:89
 msgid " deleted"
@@ -41,7 +41,7 @@ msgstr " minutes restantes"
 msgid " root folders should be inputs/ and outputs/. not: "
 msgstr " Les dossiers à la racines devraient être inputs/ et outputs/. non: "
 
-#: src/store/links.js:112 src/store/links.js:120 src/store/od.js:40
+#: src/store/links.js:114 src/store/links.js:122 src/store/od.js:40
 #: src/store/rlinks.js:101 src/store/rlinks.js:109
 msgid " there is duplicated index, "
 msgstr " il y a des index en double, "
@@ -118,7 +118,7 @@ msgid ""
 "time using an iterative algorithm"
 msgstr ""
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:537
+#: src/components/map/sidePanel/LinksSidePanel.vue:559
 #: src/components/microservices/MatrixRoadCaster.vue:291 src/pages/Run.vue:171
 msgid "Abort"
 msgstr "Annuler"
@@ -158,6 +158,10 @@ msgstr "appliquer"
 msgid "Apply Road links to project"
 msgstr "Ajouter aux Liens routiers du projet"
 
+#: src/components/map/EditScheduleDialog.vue:307
+msgid "Arrivals"
+msgstr "Arrivées"
+
 #: src/components/layout/Profile.vue:101
 msgid "at least 8 character long"
 msgstr "Au moins 8 caractères de long"
@@ -180,9 +184,12 @@ msgid "cancel"
 msgstr "Annuler"
 
 #: src/components/import/ScenariosExplorer.vue:398
-#: src/components/map/EditDialog.vue:337 src/components/map/Settings.vue:217
-#: src/components/results/ResultsSettings.vue:453 src/pages/Home.vue:383
-#: src/pages/Home.vue:431 src/pages/ResultMap.vue:405
+#: src/components/map/EditDialog.vue:337
+#: src/components/map/EditScheduleDialog.vue:380
+#: src/components/map/EditScheduleDialog.vue:402
+#: src/components/map/Settings.vue:217
+#: src/components/results/ResultsSettings.vue:453 src/pages/Home.vue:401
+#: src/pages/Home.vue:449 src/pages/ResultMap.vue:405
 #: src/pages/ResultMap.vue:438
 msgid "Cancel"
 msgstr "Annuler"
@@ -199,7 +206,7 @@ msgstr "Nombre de point minimum. Impossible de supprimer d'avantage"
 msgid "cannot delete first point of polygon"
 msgstr "Le premier point du polygone ne peut pas être supprimé"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:286
+#: src/components/map/sidePanel/LinksSidePanel.vue:307
 msgid ""
 "Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
 msgstr ""
@@ -214,7 +221,7 @@ msgstr ""
 msgid "cannot have # in name"
 msgstr ""
 
-#: src/pages/Home.vue:201
+#: src/pages/Home.vue:205
 msgid "Click on the map to start drawing"
 msgstr "Cliquer sur la carte pour commencer"
 
@@ -246,7 +253,7 @@ msgstr "palette de couleur"
 msgid "color to display on the map (i.e. FFFFFF)"
 msgstr "couleur à afficher sur la carte (ex: FFFFFF)"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:546
+#: src/components/map/sidePanel/LinksSidePanel.vue:568
 msgid "Confirm"
 msgstr "Valider"
 
@@ -262,7 +269,7 @@ msgstr "convertir"
 msgid "copy"
 msgstr "copier"
 
-#: src/pages/Home.vue:193
+#: src/pages/Home.vue:197
 msgid "Could not apply modification. Trip_id already exist"
 msgstr "Les modifications n'ont pas pu être appliquées. Le trip_id existe déjà"
 
@@ -276,6 +283,10 @@ msgstr ""
 #: src/components/layout/Profile.vue:377
 msgid "create"
 msgstr "Créer"
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:445
+msgid "Create a Line Schedule"
+msgstr "Créer un horaire pour la ligne"
 
 #: src/components/layout/Profile.vue:319
 msgid ""
@@ -326,7 +337,7 @@ msgstr "Données introuvables: "
 msgid "delete"
 msgstr "Supprimer "
 
-#: src/components/import/ScenariosExplorer.vue:357 src/pages/Home.vue:373
+#: src/components/import/ScenariosExplorer.vue:357 src/pages/Home.vue:391
 #: src/pages/ResultMap.vue:428
 msgid "Delete"
 msgstr "Supprimer "
@@ -335,11 +346,11 @@ msgstr "Supprimer "
 msgid "Delete %{scen}?"
 msgstr "Supprimer %{scen}?"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:362
+#: src/components/map/sidePanel/LinksSidePanel.vue:383
 msgid "Delete Group"
 msgstr "Supprimer le groupe"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:482
+#: src/components/map/sidePanel/LinksSidePanel.vue:504
 #: src/components/map/sidePanel/ODSidePanel.vue:264
 #: src/components/map/sidePanel/RoadSidePanel.vue:287
 msgid "Delete Line"
@@ -365,6 +376,10 @@ msgstr "Supprimer l'arrêt"
 #: src/components/layout/Profile.vue:307
 msgid "delete User"
 msgstr "Supprimer l'utilisateur "
+
+#: src/components/map/EditScheduleDialog.vue:304
+msgid "Departures"
+msgstr "Départs"
 
 #: src/constants/hints.js:7
 msgid ""
@@ -398,36 +413,36 @@ msgstr "Télécharger"
 msgid "Download"
 msgstr "Télécharger"
 
-#: src/pages/Home.vue:405
+#: src/pages/Home.vue:423
 msgid "Duplicate"
 msgstr "Dupliquer"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:463
+#: src/components/map/sidePanel/LinksSidePanel.vue:485
 msgid "Duplicate and reverse"
 msgstr "Dupliquer et inverser"
 
-#: src/pages/Home.vue:418
+#: src/pages/Home.vue:436
 msgid "duplicate nodes"
 msgstr "Dupliquer les noeuds"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:346
+#: src/components/map/sidePanel/LinksSidePanel.vue:367
 msgid "Edit Group Properties"
 msgstr "Modifier les propriétés du groupe"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:423
-msgid "Edit Line"
-msgstr "Modifier la ligne"
-
-#: src/components/map/sidePanel/LinksSidePanel.vue:509
+#: src/components/map/sidePanel/LinksSidePanel.vue:531
 #: src/components/map/sidePanel/RoadSidePanel.vue:313
 msgid "Edit Line geometry"
 msgstr "Modifier La géométrie de la ligne"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:443
+#: src/components/map/sidePanel/LinksSidePanel.vue:465
 #: src/components/map/sidePanel/ODSidePanel.vue:244
 #: src/components/map/sidePanel/RoadSidePanel.vue:269
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:444
+msgid "Edit Line Schedule"
+msgstr "Modifier l'horaire de la ligne"
 
 #: src/components/map/EditorLinks.vue:105 src/components/map/EditorLinks.vue:99
 msgid "Edit Node Info"
@@ -445,11 +460,15 @@ msgstr "Modifier"
 msgid "Edit rLink Info"
 msgstr "Modifier les infos"
 
+#: src/components/map/EditScheduleDialog.vue:230
+msgid "Edit Schedule"
+msgstr "Modifier l'horaire"
+
 #: src/components/map/RoadLinks.vue:290 src/components/map/RoadLinks.vue:323
 msgid "Edit selected Info"
 msgstr "Modifier la selection"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:201
+#: src/components/map/sidePanel/LinksSidePanel.vue:222
 #: src/components/map/sidePanel/ODSidePanel.vue:127
 #: src/components/map/sidePanel/RoadSidePanel.vue:165
 msgid "Edit Visibles Properties"
@@ -479,7 +498,7 @@ msgstr "Étendre tout"
 msgid "Export"
 msgstr "Exporter"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:233
+#: src/components/map/sidePanel/LinksSidePanel.vue:254
 #: src/components/map/sidePanel/ODSidePanel.vue:159
 #: src/components/map/sidePanel/RoadSidePanel.vue:197
 msgid "Export All"
@@ -489,7 +508,7 @@ msgstr "Exporter tout"
 msgid "Export name"
 msgstr "Nom du fichier"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:241
+#: src/components/map/sidePanel/LinksSidePanel.vue:262
 #: src/components/map/sidePanel/ODSidePanel.vue:167
 #: src/components/map/sidePanel/RoadSidePanel.vue:205
 msgid "Export Only Visible"
@@ -527,7 +546,7 @@ msgstr "Fichier(s) ajouté(s)"
 msgid "Files unloaded"
 msgstr "Fichiers déchargés"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:263
+#: src/components/map/sidePanel/LinksSidePanel.vue:284
 #: src/components/map/sidePanel/ODSidePanel.vue:185
 #: src/components/map/sidePanel/RoadSidePanel.vue:223
 #: src/components/results/ResultsSidePanel.vue:269
@@ -569,8 +588,8 @@ msgstr "GTFS importés avec succès"
 msgid "GTFS importer"
 msgstr "GTFS importer"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:183
-#: src/components/map/sidePanel/LinksSidePanel.vue:320
+#: src/components/map/sidePanel/LinksSidePanel.vue:204
+#: src/components/map/sidePanel/LinksSidePanel.vue:341
 #: src/components/map/sidePanel/ODSidePanel.vue:109
 #: src/components/map/sidePanel/RoadSidePanel.vue:147
 #: src/components/results/ResultsSidePanel.vue:206
@@ -630,6 +649,12 @@ msgstr "date invalide"
 msgid "invalid email address"
 msgstr "adresse courriel invalide"
 
+#: src/components/map/EditScheduleDialog.vue:331
+#: src/components/map/EditScheduleDialog.vue:345
+#, fuzzy
+msgid "Invalid Time"
+msgstr "Heure invalide"
+
 #: src/components/layout/Profile.vue:348
 msgid "last name"
 msgstr "nom"
@@ -662,7 +687,7 @@ msgstr ""
 " Ligne (ou trip) (i.e. 100 est). \n"
 "         Les liens sont groupé par trip_id dans Quetzal-network_editor"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:206
+#: src/components/map/sidePanel/LinksSidePanel.vue:227
 msgid "Lines"
 msgstr "Lignes"
 
@@ -686,6 +711,10 @@ msgstr "Liens"
 #: src/constants/hints.js:29
 msgid "links geometry linestring length (meters)"
 msgstr "longueur de la géometrie (lineString) du liens (mètres)"
+
+#: src/components/map/EditScheduleDialog.vue:249
+msgid "List of Trips"
+msgstr "Liste des départs"
 
 #: src/components/import/ScenariosExplorer.vue:344
 msgid "Load %{scen} ?"
@@ -757,11 +786,11 @@ msgstr "Largeur min"
 msgid "ML Matrix Road Caster"
 msgstr "ML Matrix Road Caster"
 
-#: src/pages/Home.vue:279
+#: src/pages/Home.vue:284
 msgid "modification aborted"
 msgstr "Modification annulée"
 
-#: src/components/map/Settings.vue:90 src/pages/Home.vue:271
+#: src/components/map/Settings.vue:90 src/pages/Home.vue:276
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
@@ -796,11 +825,12 @@ msgstr "Besoin du même nombre de fichiers de liens et de noeuds routiers"
 msgid "new field name"
 msgstr "nouveau champ"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:560
+#: src/components/map/sidePanel/LinksSidePanel.vue:582
+#, fuzzy
 msgid "new Line"
-msgstr "nouvelle ligne"
+msgstr "Créer une nouvelle ligne"
 
-#: src/pages/Home.vue:410
+#: src/pages/Home.vue:428
 msgid "New name"
 msgstr "Nouveau nom"
 
@@ -845,7 +875,7 @@ msgstr "Noeuds"
 msgid "Nothing to display"
 msgstr "Rien à afficher"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:290
+#: src/components/map/sidePanel/LinksSidePanel.vue:311
 msgid "Nothing to display."
 msgstr "Rien à afficher"
 
@@ -855,7 +885,7 @@ msgid "numStep"
 msgstr "nombre de pas "
 
 #: src/components/map/sidePanel/ODSidePanel.vue:132
-#: src/components/map/sidePanel/SidePanel.vue:130
+#: src/components/map/sidePanel/SidePanel.vue:138
 msgid "OD"
 msgstr "OD"
 
@@ -948,7 +978,7 @@ msgstr "Préréglages"
 msgid "project already exist"
 msgstr "le project existe déjà"
 
-#: src/components/map/sidePanel/SidePanel.vue:124
+#: src/components/map/sidePanel/SidePanel.vue:132
 msgid "PT"
 msgstr "TC"
 
@@ -1010,7 +1040,7 @@ msgstr "Carte des Résultats"
 msgid "Results Pictures"
 msgstr "images des Résultats"
 
-#: src/pages/Home.vue:414
+#: src/pages/Home.vue:432
 msgid "reverse"
 msgstr "inverser"
 
@@ -1034,7 +1064,7 @@ msgstr "Clique droit pour modifier"
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/components/map/sidePanel/SidePanel.vue:127
+#: src/components/map/sidePanel/SidePanel.vue:135
 msgid "Road"
 msgstr "Routes"
 
@@ -1075,8 +1105,11 @@ msgid "save"
 msgstr "Sauv..."
 
 #: src/components/layout/NavigationDrawer.vue:40
-#: src/components/map/EditDialog.vue:345 src/components/map/Settings.vue:225
-#: src/pages/Home.vue:391 src/pages/Home.vue:439
+#: src/components/map/EditDialog.vue:345
+#: src/components/map/EditScheduleDialog.vue:388
+#: src/components/map/EditScheduleDialog.vue:411
+#: src/components/map/Settings.vue:225 src/pages/Home.vue:409
+#: src/pages/Home.vue:457
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -1118,7 +1151,7 @@ msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
 #: src/components/import/ScenariosExplorer.vue:229
-#: src/components/map/sidePanel/LinksSidePanel.vue:276
+#: src/components/map/sidePanel/LinksSidePanel.vue:297
 msgid "search"
 msgstr "recherche"
 
@@ -1178,8 +1211,8 @@ msgstr "devrait être plus grand que 0"
 msgid "show"
 msgstr "Afficher"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:183
-#: src/components/map/sidePanel/LinksSidePanel.vue:321
+#: src/components/map/sidePanel/LinksSidePanel.vue:204
+#: src/components/map/sidePanel/LinksSidePanel.vue:342
 #: src/components/map/sidePanel/ODSidePanel.vue:109
 #: src/components/map/sidePanel/RoadSidePanel.vue:147
 #: src/components/results/ResultsSidePanel.vue:206
@@ -1237,11 +1270,19 @@ msgstr ""
 "Vitesse utilisé pour calculer le temps de parcours lorsqu'un lien est "
 "ajouté, allongé ou déplacé"
 
+#: src/components/map/EditScheduleDialog.vue:368
+msgid "Start Time"
+msgstr "Heure de départ"
+
 #: src/components/utils/LayerSelector.vue:76
 msgid "Static Layers"
 msgstr "Couches Statiques"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:525
+#: src/components/map/EditScheduleDialog.vue:242
+msgid "Station Label"
+msgstr "Étiquette des stations"
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:547
 msgid "stick nodes on existing nodes"
 msgstr "coller les noeds aux noeds existant"
 
@@ -1336,7 +1377,7 @@ msgstr ""
 "Temps de parcours sur le lien. Défini comme distance / vitesse quand un lien "
 "est créé ou modifier (secondes)"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:98
+#: src/components/map/sidePanel/LinksSidePanel.vue:108
 msgid "undefined"
 msgstr "indéfini"
 
@@ -1395,6 +1436,9 @@ msgstr "besoins de paramètres pour entrer"
 msgid "your session has expired. Please sign in again"
 msgstr ""
 "Votre session est expiré. Veuillez rafraichir la page ou vous reconnecter. "
+
+#~ msgid "Edit Line"
+#~ msgstr "Modifier la ligne"
 
 #~ msgid "Change Scenario"
 #~ msgstr "Changer le scénario?"

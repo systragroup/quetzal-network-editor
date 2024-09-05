@@ -53,7 +53,7 @@ async function extractZip (file) {
     let content = {}
     if (filesNames[i].endsWith('.json') || filesNames[i].endsWith('.geojson')) {
       try {
-        content = JSON.parse(str)
+        content = JSON.parse(str.trim())
       } catch (err) {
         err.name = 'ImportError in ' + filesNames[i]
         if (str.length === 0) { err.message = 'file is empty' }
@@ -256,6 +256,33 @@ function shuffleString (str) {
   return array.join('')
 }
 
+function isScheduleTrip(link) {
+  return (link.properties.arrivals !== undefined)
+}
+
+function hhmmssToSeconds(timeString) {
+  // Split the time string into its components
+  const [hours, minutes, seconds] = timeString.split(':').map(Number)
+  const totalSeconds = (hours * 3600) + (minutes * 60) + seconds
+  return totalSeconds
+}
+
+function secondsTohhmmss(seconds) {
+  // Calculate hours, minutes, and remaining seconds
+  seconds = Math.round(seconds)
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 3600 % 60
+
+  // Pad the hours, minutes, and seconds with leading zeros if necessary
+  const paddedHours = String(hours).padStart(2, '0')
+  const paddedMinutes = String(minutes).padStart(2, '0')
+  const paddedSeconds = String(remainingSeconds).padStart(2, '0')
+
+  // Combine them into the 'HH:mm:ss' format
+  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`
+}
+
 export {
   readFileAsText,
   readFileAsBytes,
@@ -272,4 +299,7 @@ export {
   csvJSON,
   unzipCalendar,
   generatePassword,
+  isScheduleTrip,
+  hhmmssToSeconds,
+  secondsTohhmmss,
 }

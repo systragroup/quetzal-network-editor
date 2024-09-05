@@ -1,147 +1,112 @@
-<script>
+<script setup>
 import { unzipCalendar } from '@comp/utils/utils.js'
 import DatePicker from '@comp/utils/DatePicker.vue'
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-const $gettext = s => s
+const runGTFS = useGTFSStore()
+const linksStore = useLinksStore()
+const store = useIndexStore()
+const showOverwriteDialog = ref(false)
+const showHint = ref(false)
+const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
+const callID = computed(() => { return runGTFS.callID })
+const UploadedGTFS = computed(() => { return runGTFS.UploadedGTFS })
+const running = computed(() => { return runGTFS.running })
+const error = computed(() => { return runGTFS.error })
+const errorMessage = computed(() => { return runGTFS.errorMessage })
+const isUploading = computed(() => { return UploadedGTFS.value.filter(item => item.progress < 100).length > 0 })
 
-export default {
-  name: 'GTFSWebImporter',
-  components: {
-    DatePicker,
-  },
-  setup () {
-    const runGTFS = useGTFSStore()
-    const linksStore = useLinksStore()
-    const store = useIndexStore()
-    const showOverwriteDialog = ref(false)
-    const poly = ref(null)
-    const nodes = ref({})
-    const gtfsList = ref([])
-    const checkall = ref(false)
-    const showHint = ref(false)
-    const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
-    const UploadedGTFS = computed(() => { return runGTFS.UploadedGTFS })
-    const callID = computed(() => { return runGTFS.callID })
-    const running = computed(() => { return runGTFS.running })
-    const error = computed(() => { return runGTFS.error })
-    const errorMessage = computed(() => { return runGTFS.errorMessage })
-    const isUploading = computed(() => { return UploadedGTFS.value.filter(item => item.progress < 100).length > 0 })
+onBeforeUnmount(() => {
+  runGTFS.saveParams(parameters.value)
+})
 
-    onBeforeUnmount(() => {
-      runGTFS.saveParams(parameters.value)
-    })
-
-    const rules = {
-      required: v => !!v || $gettext('Required'),
-    }
-
-    const parameters = ref([{
-      name: 'start_time',
-      text: 'start time',
-      value: runGTFS.parameters.start_time,
-      type: 'time',
-      units: '',
-      hint: 'Start Time to restrict the GTFS in a period',
-      rules: [
-        'required',
-      ],
-    },
-    {
-      name: 'end_time',
-      text: 'end time',
-      value: runGTFS.parameters.end_time,
-      type: 'time',
-      units: '',
-      hint: 'End Time to restrict the GTFS in a period',
-      rules: [
-        'required',
-      ],
-    },
-    ])
-
-    return {
-      showOverwriteDialog,
-      poly,
-      runGTFS,
-      store,
-      nodes,
-      gtfsList,
-      checkall,
-      showHint,
-      parameters,
-      rules,
-      linksIsEmpty,
-      UploadedGTFS,
-      callID,
-      running,
-      error,
-      errorMessage,
-      isUploading,
-    }
-  },
-
-  methods: {
-
-    uploadGTFS () {
-      this.$refs.zipInput.click()
-      document.getElementById('zip-input').value = '' // clean it for next file
-    },
-
-    async readZip (event) {
-      try {
-        this.store.changeLoading(true)
-        const zfiles = event.target.files
-        // there is a file
-        if (!zfiles.length) {
-          this.store.changeLoading(false)
-          return
-        }
-        for (const file of zfiles) {
-          const calendar = await unzipCalendar(file)
-          const minDate = calendar.reduce((min, date) =>
-            (date.start_date < min ? date.start_date : min), calendar[0].start_date)
-          const maxDate = calendar.reduce((max, date) =>
-            (date.end_date > max ? date.end_date : max), calendar[0].end_date)
-
-          const payload = {
-            content: file,
-            info: { name: file.name, minDate, maxDate, date: minDate, progress: 0 },
-          }
-          await this.runGTFS.addGTFS(payload)
-        }
-        this.store.changeLoading(false)
-      } catch (err) {
-        this.store.changeLoading(false)
-        this.store.changeAlert(err)
-      }
-    },
-
-    importGTFS () {
-      if (this.linksIsEmpty) {
-        const files = this.UploadedGTFS.map(el => el.name)
-        const dates = this.UploadedGTFS.map(el => el.date)
-        const inputs = { files, dates }
-        this.parameters.forEach(item => {
-          inputs[item.name] = item.value
-        })
-        this.runGTFS.startExecution(inputs)
-      } else {
-        this.showOverwriteDialog = true
-      }
-    },
-
-    applyOverwriteDialog () {
-      this.store.initLinks()
-      this.showOverwriteDialog = false
-      this.importGTFS()
-    },
-  },
-
+const rules = {
+  required: v => !!v || $gettext('Required'),
 }
+
+const parameters = ref([{
+  name: 'start_time',
+  text: 'start time',
+  value: runGTFS.parameters.start_time,
+  type: 'time',
+  units: '',
+  hint: 'Start Time to restrict the GTFS in a period',
+  rules: [
+    'required',
+  ],
+},
+{
+  name: 'end_time',
+  text: 'end time',
+  value: runGTFS.parameters.end_time,
+  type: 'time',
+  units: '',
+  hint: 'End Time to restrict the GTFS in a period',
+  rules: [
+    'required',
+  ],
+},
+])
+const zipInput = ref()
+function uploadGTFS () {
+  zipInput.value.click()
+  document.getElementById('zip-input').value = '' // clean it for next file
+}
+
+async function readZip (event) {
+  try {
+    store.changeLoading(true)
+    const zfiles = event.target.files
+    // there is a file
+    if (!zfiles.length) {
+      store.changeLoading(false)
+      return
+    }
+    for (const file of zfiles) {
+      const calendar = await unzipCalendar(file)
+      const minDate = calendar.reduce((min, date) =>
+        (date.start_date < min ? date.start_date : min), calendar[0].start_date)
+      const maxDate = calendar.reduce((max, date) =>
+        (date.end_date > max ? date.end_date : max), calendar[0].end_date)
+
+      const payload = {
+        content: file,
+        info: { name: file.name, minDate, maxDate, date: minDate, progress: 0 },
+      }
+      await runGTFS.addGTFS(payload)
+    }
+    store.changeLoading(false)
+  } catch (err) {
+    store.changeLoading(false)
+    store.changeAlert(err)
+  }
+}
+
+function importGTFS () {
+  if (linksIsEmpty.value) {
+    const files = UploadedGTFS.value.map(el => el.name)
+    const dates = UploadedGTFS.value.map(el => el.date)
+    const inputs = { files, dates, callID: callID.value }
+    parameters.value.forEach(item => {
+      inputs[item.name] = item.value
+    })
+    runGTFS.startExecution(inputs)
+  } else {
+    showOverwriteDialog.value = true
+  }
+}
+
+function applyOverwriteDialog () {
+  store.initLinks()
+  showOverwriteDialog.value = false
+  importGTFS()
+}
+
 </script>
 <template>
   <div>

@@ -206,6 +206,11 @@ function loadNetwork (files) {
   if (roadFiles.length > 0 && !rlinksIsEmpty.value) {
     infoRoad = handleConflict(roadFiles, 'road')
   }
+  // OD are overwrite. if a file is imported. just initOD.
+  const ODFiles = files.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
+  if (ODFiles.length > 0) {
+    store.initOD()
+  }
   store.loadFiles(files)
   filesAdded.value = true
   store.changeLoading(false)

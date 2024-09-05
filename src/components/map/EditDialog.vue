@@ -6,10 +6,14 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
-import { computed, ref, watch, defineModel, toRefs } from 'vue'
+import { computed, ref, watch, toRefs } from 'vue'
 import { cloneDeep } from 'lodash'
+import { createHash } from 'sha256-uint8array'
+
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
+import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
+
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -18,16 +22,22 @@ const editorForm = defineModel('editorForm')
 const props = defineProps(['mode', 'action', 'linkDir'])
 
 const { mode, action } = toRefs(props)
-const emit = defineEmits(['applyAction', 'cancelAction'])
+const emit = defineEmits(['applyAction', 'cancelAction', 'toggle'])
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 const ODStore = useODStore()
 
+const initialHash = ref()
+function hashJson(body) {
+  return createHash().update(JSON.stringify(body)).digest('hex')
+}
+
 watch(showDialog, (val) => {
   // do not show a notification when dialog is on. sometime its over the confirm button
   if (val) { store.changeNotification({ text: '', autoClose: true }) }
+  initialHash.value = hashJson(editorForm.value)
   showHint.value = false
   showDeleteOption.value = false
 })
@@ -209,144 +219,220 @@ function deleteField (field) {
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }
 
+function save() {
+  if (action.value == 'Edit Line Info') {
+    if ((editorForm.value.trip_id.value !== linksStore.editorTrip)
+      && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
+      // reset all. just like abortChanges but without the abort changes notification
+      store.changeNotification({
+        text: $gettext('Cannot apply modification. Trip_id already exist'),
+        autoClose: true,
+        color: 'red darken-2',
+      })
+      return false
+    } else {
+      if (linksStore.editorNodes.features.length === 0) {
+        store.changeNotification({ text: $gettext('Click on the map to start drawing'), autoClose: false })
+      }
+      linksStore.editLineInfo(editorForm.value)
+      return true
+    }
+  } else { return true }
+}
+
+async function submitForm() {
+  // just for editLine info:  check if trip exist
+  const ok = save()
+  if (ok) { emit('applyAction') }
+}
+
+const showSaveDialog = ref(false)
+function toggle() {
+  if (hashJson(editorForm.value) == initialHash.value) {
+    emit('toggle')
+  } else {
+    showSaveDialog.value = true
+  }
+}
+function handleSimpleDialog(event) {
+  showSaveDialog.value = false
+  if (event) {
+    const ok = save()
+    if (ok) { emit('toggle') }
+  } else {
+    emit('toggle')
+  }
+}
+
 </script>
 <template>
   <v-dialog
     v-model="showDialog"
     scrollable
     persistent
-    :max-width="numLinks>1? '40rem':'20rem'"
+    :max-width="numLinks > 1 ? '40rem': '30rem'"
   >
-    <v-card
-      max-height="55rem"
+    <v-form
+      ref="form"
+      @submit.prevent="submitForm"
     >
-      <v-card-title class="text-h5">
-        {{ $gettext("Edit Properties") }}
-      </v-card-title>
-      <v-divider />
-      <v-card-text>
-        <v-row>
-          <v-col
-            v-for="(n,idx) in numLinks"
-            :key="idx"
+      <v-card
+        max-height="55rem"
+      >
+        <v-card-title class="text-h5">
+          {{ $gettext("Edit Properties") }}
+          <v-btn
+            v-if="action === 'Edit Line Info' && linksStore.editorNodes.features.length !== 0"
+            variant="text"
+            class="pl-auto"
+            prepend-icon="fas fa-clock"
+            @click="toggle"
           >
-            <v-list>
-              <v-list-item v-if="numLinks > 1">
-                <v-icon
-                  :style="{'align-items':'center',
-                           'justify-content': 'center',
-                           transform: 'rotate('+linkDir[idx]+'deg)'}"
+            {{ $gettext("Edit Schedule") }}
+          </v-btn>
+        </v-card-title>
+        <v-divider />
+        <v-card-text>
+          <v-row>
+            <v-col
+              v-for="(n,idx) in numLinks"
+              :key="idx"
+            >
+              <v-list>
+                <v-list-item v-if="numLinks > 1">
+                  <v-icon
+                    :style="{'align-items':'center',
+                             'justify-content': 'center',
+                             transform: 'rotate('+linkDir[idx]+'deg)'}"
+                  >
+                    fas fa-long-arrow-alt-up
+                  </v-icon>
+                </v-list-item>
+                <v-text-field
+                  v-for="(value, key) in orderedForm(idx)"
+                  :key="key"
+                  v-model="value['value']"
+                  :label="key"
+                  :hint="showHint? hints[key]: ''"
+                  :persistent-hint="showHint"
+                  :variant="value['disabled']? 'underlined': 'filled'"
+                  :type="linksStore.attributeType(key)"
+                  :placeholder="value['placeholder']? $gettext('multiple Values'):''"
+                  :persistent-placeholder=" value['placeholder']? true:false "
+                  :disabled="value['disabled']"
+                  :suffix="units[key]"
+                  :prepend-inner-icon="['length','speed','time'].includes(key) && mode === 'pt' ? 'fas fa-calculator':''"
+                  @wheel="$event.target.blur()"
+                  @change="change(key)"
                 >
-                  fas fa-long-arrow-alt-up
-                </v-icon>
-              </v-list-item>
-              <v-text-field
-                v-for="(value, key) in orderedForm(idx)"
-                :key="key"
-                v-model="value['value']"
-                :label="key"
-                :hint="showHint? hints[key]: ''"
-                :persistent-hint="showHint"
-                :variant="value['disabled']? 'underlined': 'filled'"
-                :type="linksStore.attributeType(key)"
-                :placeholder="value['placeholder']? $gettext('multiple Values'):''"
-                :persistent-placeholder=" value['placeholder']? true:false "
-                :disabled="value['disabled']"
-                :suffix="units[key]"
-                :prepend-inner-icon="['length','speed','time'].includes(key) && mode === 'pt' ? 'fas fa-calculator':''"
-                @wheel="$event.target.blur()"
-                @change="change(key)"
-              >
-                <template
-                  v-if="key==='route_color'"
-                  v-slot:append-inner
-                >
-                  <color-picker
-                    v-model:pcolor="value['value']"
-                  />
-                </template>
-                <template
-                  v-else-if="Object.keys(attributesChoices).includes(key)"
-                  v-slot:append-inner
-                >
-                  <MenuSelector
-                    v-model:value="value['value']"
-                    :items="attributesChoices[key]"
-                  />
-                </template>
-                <template
-                  v-if="showDeleteOption"
-                  v-slot:prepend
-                >
-                  <v-btn
-                    variant="text"
-                    icon="fas fa-trash small"
-                    size="x-small"
-                    :disabled="attributeNonDeletable(key)"
-                    color="error"
-                    @click="()=>deleteField(key)"
-                  />
-                </template>
-              </v-text-field>
-            </v-list>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-text-field
-            v-model="newFieldName"
-            :label=" $gettext('add field')"
-            :placeholder="$gettext('new field name')"
-            variant="filled"
-            :rules="rules.newField"
-            @keydown.enter.stop="addField"
-            @wheel="$event.target.blur()"
+                  <template
+                    v-if="key==='route_color'"
+                    v-slot:append-inner
+                  >
+                    <color-picker
+                      v-model:pcolor="value['value']"
+                    />
+                  </template>
+                  <template
+                    v-else-if="Object.keys(attributesChoices).includes(key)"
+                    v-slot:append-inner
+                  >
+                    <MenuSelector
+                      v-model:value="value['value']"
+                      :items="attributesChoices[key]"
+                    />
+                  </template>
+                  <template
+                    v-if="showDeleteOption"
+                    v-slot:prepend
+                  >
+                    <v-btn
+                      variant="text"
+                      icon="fas fa-trash small"
+                      size="x-small"
+                      :disabled="attributeNonDeletable(key)"
+                      color="error"
+                      @click="()=>deleteField(key)"
+                    />
+                  </template>
+                </v-text-field>
+              </v-list>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-text-field
+              v-model="newFieldName"
+              :label=" $gettext('add field')"
+              :placeholder="$gettext('new field name')"
+              variant="filled"
+              :rules="rules.newField"
+              @keydown.enter.prevent="addField"
+              @wheel="$event.target.blur()"
+            >
+              <template v-slot:append-inner>
+                <v-btn
+                  color="primary"
+                  icon="fas fa-plus"
+                  size="x-small"
+                  @click="addField"
+                />
+              </template>
+            </v-text-field>
+          </v-row>
+        </v-card-text>
+        <v-divider />
+
+        <v-card-actions>
+          <v-btn
+            icon="far fa-question-circle small"
+            variant="text"
+            size="x-small"
+            @click="()=>showHint = !showHint"
+          />
+          <v-btn
+            :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
+            size="x-small"
+            variant="text"
+            @click="ToggleDeleteOption"
+          />
+          <v-spacer />
+
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="emit('cancelAction')"
           >
-            <template v-slot:append-inner>
-              <v-btn
-                color="primary"
-                icon="fas fa-plus"
-                size="x-small"
-                @click="addField"
-              />
-            </template>
-          </v-text-field>
-        </v-row>
-      </v-card-text>
-      <v-divider />
+            {{ $gettext("Cancel") }}
+          </v-btn>
 
-      <v-card-actions>
-        <v-btn
-          icon="far fa-question-circle small"
-          variant="text"
-          size="x-small"
-          @click="()=>showHint = !showHint"
-        />
-        <v-btn
-          :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
-          size="x-small"
-          variant="text"
-          @click="ToggleDeleteOption"
-        />
-        <v-spacer />
-
-        <v-btn
-          color="grey"
-          variant="text"
-          @click="emit('cancelAction')"
-        >
-          {{ $gettext("Cancel") }}
-        </v-btn>
-
-        <v-btn
-          color="success"
-          variant="text"
-          @click="emit('applyAction')"
-        >
-          {{ $gettext("Save") }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+          <v-btn
+            color="success"
+            variant="text"
+            type="submit"
+          >
+            {{ $gettext("Save") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
   </v-dialog>
+  <SimpleDialog
+    v-model="showSaveDialog"
+    :title="$gettext('Save Changes?')"
+    body=""
+    confirm-color="primary"
+    :confirm-button="$gettext('Yes')"
+    :cancel-button="$gettext('No')"
+    @confirm="handleSimpleDialog(true)"
+    @cancel="handleSimpleDialog(false)"
+  >
+    <v-btn
+      color="regular"
+      @click="showSaveDialog=false"
+    >
+      {{ $gettext('Cancel') }}
+    </v-btn>
+  </SimpleDialog>
 </template>
 <style lang="scss" scoped>
 

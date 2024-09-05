@@ -1,28 +1,36 @@
-<script>
-</script>
-
 <script setup>
 
 import short from 'short-uuid'
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
-// import MapMatching from '@src/components/utils/MapMatching.vue'
+import { useRouting } from '@src/components/utils/routing/routing.js'
+
+import { userLinksStore } from '@src/store/rlinks'
+const rlinksStore = userLinksStore()
+const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
+const { toggleRouting, isRouted } = useRouting()
 
 const { $gettext } = useGettext()
-const emit = defineEmits(['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'newLine'])
+const emits = defineEmits([
+  'selectEditorTrip',
+  'confirmChanges',
+  'abortChanges',
+  'cloneButton',
+  'deleteButton',
+  'propertiesButton',
+  'scheduleButton',
+  'newLine',
+])
 const maxSize = 200
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const editorTrip = computed(() => { return linksStore.editorTrip })
 
 const selectedTrips = computed(() => { return linksStore.selectedTrips })
-const localSelectedTrip = ref([])
-onMounted(() => {
-  localSelectedTrip.value = cloneDeep(selectedTrips.value)
-})
+const localSelectedTrip = ref(cloneDeep(selectedTrips.value))
 
 watch(localSelectedTrip, (val) => {
   linksStore.changeSelectedTrips(val)
@@ -37,6 +45,7 @@ function showAll () {
 }
 
 const tripId = computed(() => { return linksStore.tripId })
+const scheduledTrips = computed(() => { return linksStore.scheduledTrips })
 watch(tripId, (newVal, oldVal) => {
   if (newVal.length < oldVal.length) {
     // if a trip is deleted. we remove it, no remapping.
@@ -132,16 +141,27 @@ function editButton (value) {
   }
 }
 
+function scheduleButton (value) {
+  if (!editorTrip.value) {
+    linksStore.setEditorTrip({ tripId: value, changeBounds: false })
+    emits('scheduleButton', { action: 'Edit Line Schedule', lingering: false })
+    // just open dialog
+  } else {
+    emits('scheduleButton', { action: 'Edit Line Schedule', lingering: true })
+  }
+  store.changeNotification({ text: '', autoClose: true })
+}
+
 function propertiesButton (value) {
   // select the TripId and open dialog
   if (typeof value === 'object') {
-    emit('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
+    emits('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
   } else if (!editorTrip.value) {
     linksStore.setEditorTrip({ tripId: value, changeBounds: false })
-    emit('propertiesButton', { action: 'Edit Line Info', lingering: false })
+    emits('propertiesButton', { action: 'Edit Line Info', lingering: false })
     // just open dialog
   } else {
-    emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
+    emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
     store.changeNotification({ text: '', autoClose: true })
   }
 }
@@ -149,16 +169,16 @@ function propertiesButton (value) {
 function createNewLine () {
   const name = 'trip_' + short.generate()
   linksStore.setEditorTrip({ tripId: name, changeBounds: false })
-  emit('propertiesButton', { action: 'Edit Line Info', lingering: true })
+  emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
 }
 
 function cloneButton (obj) {
-  emit('cloneButton', obj)
+  emits('cloneButton', obj)
 }
 
 function deleteButton (obj) {
   // obj contain trip and message.
-  emit('deleteButton', obj)
+  emits('deleteButton', obj)
 }
 
 </script>
@@ -172,7 +192,7 @@ function deleteButton (obj) {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="localSelectedTrip.length === tripId.length ? 'fa-eye-slash fa' : 'fa-eye fa' "
+            :icon="localSelectedTrip.length === tripId.length ? 'fa-eye fa' : 'fa-eye-slash fa' "
             class="ma-2 "
             :style="{color: 'white'}"
 
@@ -410,17 +430,18 @@ function deleteButton (obj) {
                   <template v-slot:activator="{ props }">
                     <v-btn
                       variant="text"
-                      icon="fas fa-pen"
+                      :icon="scheduledTrips.has(item) ? 'fas fa-clock' : 'far fa-clock'"
                       size="small"
                       density="compact"
                       class="ma-1"
                       color="regular"
-                      :disabled="editorTrip ? true: false"
+                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
                       v-bind="props"
-                      @click="editButton(item)"
+                      @click="scheduleButton(item)"
                     />
                   </template>
-                  <span>{{ $gettext("Edit Line") }}</span>
+                  <span v-if="scheduledTrips.has(item)">{{ $gettext("Edit Line Schedule") }}</span>
+                  <span v-else>{{ $gettext("Create a Line Schedule") }}</span>
                 </v-tooltip>
 
                 <v-tooltip
@@ -524,15 +545,37 @@ function deleteButton (obj) {
             </template>
             <span> {{ $gettext("stick nodes on existing nodes") }}</span>
           </v-tooltip>
-          <!---
-              <MapMatching />
-          -->
+          <v-tooltip
+            location="right"
+            open-delay="500"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                size="small"
+                v-bind="props"
+                :disabled="rlinksIsEmpty"
+                :color="store.routingMode? 'green':'regular'"
+                icon="fas fa-route"
+                @click="store.changeRoutingMode()"
+              />
+            </template>
+            <span> {{ $gettext("Follow roads") }}</span>
+          </v-tooltip>
+
+          <v-btn
+            v-if="store.routingMode"
+            class="ml-2"
+            append-icon="fas fa-road"
+            @click="toggleRouting"
+          >
+            {{ !isRouted? 'all': 'none' }}
+          </v-btn>
         </div>
         <div>
           <v-btn
             prepend-icon="fas fa-times-circle"
             width="40%"
-            @click="$emit('abortChanges')"
+            @click="emits('abortChanges')"
           >
             {{ $gettext("Abort") }}
           </v-btn>
@@ -541,7 +584,7 @@ function deleteButton (obj) {
             class="mx-2"
             width="55%"
             prepend-icon="fas fa-save"
-            @click="$emit('confirmChanges')"
+            @click="emits('confirmChanges')"
           >
             {{ $gettext("Confirm") }}
           </v-btn>

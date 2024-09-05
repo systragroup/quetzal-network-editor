@@ -134,8 +134,8 @@ function removeDeletedScenarios (item) {
                   v-model="item.value"
                   variant="outlined"
                   :type="item.type"
-                  :items="item.items"
                   :multiple="item?.multiple"
+                  :items="item.items"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
                   :hint="showHint? $gettext(item.hint): ''"
@@ -182,6 +182,7 @@ function removeDeletedScenarios (item) {
 }
 .info-div{
   flex:0;
+  white-space: pre-line;
 }
 .subtitle {
   font-size: 2em;

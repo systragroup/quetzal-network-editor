@@ -1,4 +1,3 @@
-import { quetzalClient } from '@src/axiosClient.js'
 import { paramsSerializer } from '@src/components/utils/serializer.js'
 import s3 from '@src/AWSClient'
 import { defineStore } from 'pinia'
@@ -6,6 +5,8 @@ import { useIndexStore } from './index'
 import { useUserStore } from './user'
 import audioFile from '@static/samsung-washing-machine-melody-made-with-Voicemod-technology.mp3'
 const $gettext = s => s
+import { useClient } from '@src/axiosClient.js'
+const { quetzalClient } = useClient()
 
 export const useRunStore = defineStore('run', {
   state: () => ({
@@ -53,9 +54,6 @@ export const useRunStore = defineStore('run', {
       this.errorMessage = payload
       this.executionArn = ''
       this.checkLogs()
-    },
-    changeRunning (payload) {
-      this.running = payload
     },
     succeedExecution () {
       const store = useIndexStore()
@@ -155,7 +153,7 @@ export const useRunStore = defineStore('run', {
 
       try {
         let data = { stateMachineArn: this.stateMachineArnBase + userStore.model }
-        const response = await quetzalClient.client.post('/describe/model',
+        const response = await quetzalClient.post('/describe/model',
           data = JSON.stringify(data))
         const def = JSON.parse(response.data.definition)
 
@@ -211,7 +209,7 @@ export const useRunStore = defineStore('run', {
         const stateMachineArn = this.stateMachineArnBase + userStore.model
         const scen = userStore.scenario
         if (!this.running) {
-          const resp = await quetzalClient.client.post(`model/running/${stateMachineArn}/${scen}/`)
+          const resp = await quetzalClient.post(`model/running/${stateMachineArn}/${scen}/`)
           if (resp.data !== '') {
             this.initExecution()
             this.executionArn = resp.data
@@ -235,23 +233,25 @@ export const useRunStore = defineStore('run', {
         }, {})
         return acc
       }, {})
+
+      const input = JSON.stringify({
+        authorization: userStore.idToken,
+        choice: this.selectedStepFunction,
+        scenario_path_S3: payload.scenario + '/',
+        launcher_arg: {
+          training_folder: '/tmp',
+          params: paramsDict,
+        },
+        metadata: {
+          user_email: userStore.cognitoInfo.email,
+        },
+      })
       let data = {
         // eslint-disable-next-line no-useless-escape
-        input: JSON.stringify({
-          authorization: userStore.idToken,
-          choice: this.selectedStepFunction,
-          scenario_path_S3: payload.scenario + '/',
-          launcher_arg: {
-            training_folder: '/tmp',
-            params: paramsDict,
-          },
-          metadata: {
-            user_email: userStore.cognitoInfo.email,
-          },
-        }),
+        input: input,
         stateMachineArn: this.stateMachineArnBase + userStore.model,
       }
-      quetzalClient.client.post('',
+      quetzalClient.post('',
         data = JSON.stringify(data),
       ).then(
         response => {
@@ -266,7 +266,7 @@ export const useRunStore = defineStore('run', {
     pollExecution () {
       const intervalId = setInterval(async () => {
         let data = { executionArn: this.executionArn }
-        quetzalClient.client.post('/describe',
+        quetzalClient.post('/describe',
           data = JSON.stringify(data),
         ).then(
           response => {
@@ -302,7 +302,7 @@ export const useRunStore = defineStore('run', {
     async getHistory () {
       try {
         let data = { executionArn: this.executionArn, includeExecutionData: false, reverseOrder: true }
-        const response = await quetzalClient.client.post('/history', data = JSON.stringify(data))
+        const response = await quetzalClient.post('/history', data = JSON.stringify(data))
         const arr = []
         for (const event of response.data.events) {
           if (['TaskStateEntered'].includes(event.type)) {
@@ -315,7 +315,7 @@ export const useRunStore = defineStore('run', {
 
     stopExecution () {
       let data = { executionArn: this.executionArn }
-      quetzalClient.client.post('/abort',
+      quetzalClient.post('/abort',
         data = JSON.stringify(data),
       ).then(
         response => {

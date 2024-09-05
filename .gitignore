@@ -24,3 +24,5 @@ version
 
 .nyc_output/
 .tmp/
+
+.vite/

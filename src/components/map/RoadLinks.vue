@@ -1,11 +1,14 @@
 <script setup>
 
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
-import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount, watchEffect } from 'vue'
 import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
+import Point from 'turf-point'
+import short from 'short-uuid'
+
 import geojson from '@constants/geojson'
 import { useGettext } from 'vue3-gettext'
 import { cloneDeep } from 'lodash'
@@ -13,100 +16,113 @@ const { $gettext } = useGettext()
 
 const props = defineProps(['map', 'isEditorMode', 'isRoadMode'])
 const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'select'])
+// defineExpose({ init })
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 
 const { map, isRoadMode } = toRefs(props)
 onMounted(() => {
-  map.value.on('dragend', getBounds)
-  map.value.on('zoomend', getBounds)
   if (map.value.getLayer('links')) {
     map.value.moveLayer('rlinks', 'links')
-    map.value.moveLayer('staticrLinks', 'links')
     map.value.moveLayer('anchorrNodes', 'links')
     map.value.moveLayer('rnodes', 'links')
   }
+  init()
 })
 onBeforeUnmount(() => {
   // remove arrow layer first as it depend on rlink layer
   map.value.removeLayer('arrow-rlinks')
 })
 
+async function initLinks() {
+  const links = visiblerLinks.value
+  links.features.forEach((link) => link.id = link.properties.index)
+  map.value.getSource('rlinks').setData(links)
+}
+async function initNodes() {
+  const nodes = visiblerNodes.value
+  nodes.features.forEach((node) => node.id = node.properties.index)
+  map.value.getSource('rnodes').setData(nodes)
+}
+function init() {
+  initLinks()
+  initNodes()
+}
 const selectedPopupContent = computed(() => { return store.roadsPopupContent })
-const selectedrGroup = computed(() => { return rlinksStore.selectedrGroup })
 const visiblerLinks = computed(() => { return rlinksStore.visiblerLinks })
-const renderedrLinks = computed(() => { return rlinksStore.renderedrLinks })
-const renderedrNodes = computed(() => { return rlinksStore.renderedrNodes })
+const visiblerNodes = computed(() => { return rlinksStore.visiblerNodes })
+function queryAnchor() {
+  // query links in window and generate Anchor nodes.
+  const query = map.value.queryRenderedFeatures({ layers: ['rlinks'] })
+  const rlinksSet = new Set(query.map(el => el.id))
+  const renderedFeatures = visiblerLinks.value.features.filter(link => rlinksSet.has(link.properties.index))
+  const nodes = cloneDeep(geojson)
+  renderedFeatures.filter(link => link.geometry.coordinates.length > 2).forEach(
+    feature => {
+      const linkIndex = feature.properties.index
+      feature.geometry.coordinates.slice(1, -1).forEach(
+        (point, idx) => nodes.features.push(Point(
+          point,
+          { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
+        ),
+        ),
+
+      )
+    },
+  )
+  return nodes
+}
+
 const anchorMode = computed(() => { return store.anchorMode })
-const header = geojson
-const renderedAnchorrNodes = computed(() => {
-  return anchorMode.value ? rlinksStore.anchorrNodes : geojson
-})
+
+watchEffect(() => {
+  // query nodes every time VisibleLinks, zoom and anchorMode changes.
+  if (isRoadMode.value && anchorMode.value && currentZoom.value >= minZoom.value.anchor) {
+    const anchors = queryAnchor()
+    map.value.getSource('anchorrNodes').setData(anchors)
+  } else {
+    map.value.getSource('anchorrNodes').setData(geojson)
+  }
+}, { flush: 'post' }) // so its done after the source is created
+
 const popup = ref(null)
 const hoveredStateId = ref(null)
 const disablePopup = ref(false)
-const lastZoom = ref(100)
 const currentZoom = ref(10)
-// width go to x2 when zoomed. go progressively
+// width go to x3 when zoomed. go progressively (sigmoid function.)
 const width = computed(() => {
-  if (currentZoom.value > minZoom.value.rendered + 1) {
-    return 2
-  } else if (currentZoom.value > minZoom.value.rendered) {
-    return 1 + (currentZoom.value - minZoom.value.rendered)
-  } else { return 1 }
+  const x = currentZoom.value - minZoom.value.nodes
+  const res = 2 / (1 + Math.exp(-x + 3)) + 1
+  return res
 })
 
 const minZoom = ref({
-  links: 4,
-  rendered: 14,
+  anchor: 14,
+  nodes: 12,
 })
 
-watch(selectedrGroup, () => {
-  lastZoom.value = 100 // this will force the rerender on visiblerLinks in getbounds()
-  getBounds()
-})
+async function getZoom() { currentZoom.value = map.value.getZoom() }
+
+async function getBounds() {
+  // query anchors if we move on the map
+  if (anchorMode.value && currentZoom.value >= minZoom.value.anchor) {
+    const anchors = queryAnchor()
+    map.value.getSource('anchorrNodes').setData(anchors)
+  }
+}
+
 watch(isRoadMode, (val) => {
   if (val) {
     map.value.on('dragend', getBounds)
-    map.value.on('zoomend', getBounds)
-    getBounds()
+    map.value.on('zoomend', getZoom)
+    minZoom.value.nodes = 12
   } else {
+    store.setAnchorMode(false)
     map.value.off('dragend', getBounds)
-    map.value.off('zoomend', getBounds)
-    // remove rendered and refresh visible (not editable but all visible)
-    rlinksStore.setRenderedrLinks({ method: 'None' })
-    map.value.setLayoutProperty('staticrLinks', 'visibility', 'visible')
-    map.value.getSource('staticrLinks').setData(visiblerLinks.value)
+    map.value.off('zoomend', getZoom)
+    minZoom.value.nodes = 24
   }
-})
-
-async function getBounds() {
-  // get map bounds and return only the features inside of it.
-  // this way, only the visible links and node are rendered and updating is fast
-  // (i.e. moving a node in real time)
-  // Note there is rendered and visible links. only one at the time is visible.
-  currentZoom.value = map.value.getZoom()
-  if (currentZoom.value > minZoom.value.rendered) { // when zoomed
-    // get windows BBOX
-    const bounds = map.value.getBounds()
-    rlinksStore.getRenderedrLinks({ bbox: [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat] })
-
-    map.value.setLayoutProperty('staticrLinks', 'visibility', 'none')
-
-    // check lastzoom so we only setData when it changed, not at every zoom and move.
-  } else if (currentZoom.value > minZoom.value.links && lastZoom.value > minZoom.value.rendered) {
-    // evrey links are rendered (not editable). no nodes
-    // set Data for static links as the map is not reactive
-    await map.value.setLayoutProperty('staticrLinks', 'visibility', 'visible')
-    map.value.getSource('staticrLinks').setData(visiblerLinks.value)
-    rlinksStore.setRenderedrLinks({ method: 'None' })
-    deselectAll() // when zoom out. deselect all selected and remove popup
-  } else {
-    // Nothing is is rendered.
-  }
-  // save lastZoom value
-  lastZoom.value = currentZoom.value
-}
+}, { immediate: true })
 
 const keepHovering = ref(false)
 const dragNode = ref(false)
@@ -118,7 +134,7 @@ function onCursor (event) {
     if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'rlinks') {
       if (!disablePopup.value && selectedPopupContent.value.length > 0) {
         const selectedFeature = event.mapboxEvent.features[0]
-        if (selectedFeature.layer.id !== 'rnodes') {
+        if (selectedFeature.layer.id === 'rlinks') {
           // eslint-disable-next-line max-len
           let htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${selectedFeature.properties[prop]}</b>`)
           htmlContent = htmlContent.join('<br> ')
@@ -191,6 +207,25 @@ function selectClick (event) {
     }
   }
 }
+
+function updateData(source, array) {
+  // update features. if properties is not provided: ex: {type:'Feature',id:'link_1'}. will delete
+  // if its empty. we set Data (refresh all.)
+  if (array.length === 0) {
+    init()
+  } else {
+    const features = cloneDeep(array)
+    features.forEach(el => el.id = el.properties ? el.properties.index : el.id)
+    const mapSource = map.value.getSource(source)
+    mapSource.updateData({ type: 'FeatureCollection', features: features })
+  // features.forEach(feature => mapSource.updateData(feature))
+  }
+}
+
+const updateLinks = computed(() => { return rlinksStore.updateLinks })
+const updateNodes = computed(() => { return rlinksStore.updateNodes })
+watch(updateLinks, (list) => { updateData('rlinks', list) }, { flush: 'sync' })
+watch(updateNodes, (list) => { updateData('rnodes', list) }, { flush: 'sync' })
 
 const contextMenu = ref({
   coordinates: [0, 0],
@@ -354,11 +389,11 @@ function onMove (event) {
   // get position and update node position
   // only if dragmode is activated (we just leave the node hovering state.)
   if (dragNode.value && selectedFeature.value) {
-    emits('clickFeature', { action: 'Move rNode' })
     if (hoveredStateId.value.layerId === 'anchorrNodes') {
       rlinksStore.moverAnchor({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
-      // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
     } else {
+      // when we move a rNode, we need to update drawlink as it is link to this moved node.
+      emits('clickFeature', { action: 'Move rNode' })
       rlinksStore.moverNode({ selectedNode: selectedFeature.value, lngLat: Object.values(event.lngLat) })
     }
   }
@@ -403,8 +438,8 @@ const ArrowSizeCondition = computed(() => {
   // The direction is determined with the another function (ArrowDirCondition)
 
   const defaultCondition = ['case', ['has', 'oneway'],
-    ['case', ['to-boolean', ['to-number', ['get', 'oneway']]], 0.25, 0],
-    0.25]
+    ['case', ['to-boolean', ['to-number', ['get', 'oneway']]], 0.1 * width.value, 0],
+    0.1 * width.value]
 
   const getRouteWidth = ['case', ['has', 'route_width'],
     ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
@@ -468,54 +503,20 @@ const ArrowDirCondition = computed(() => {
       :map="map"
       @mouseup="contextMenuSelection"
     />
+
     <MglGeojsonLayer
-      source-id="staticrLinks"
+      source-id="rlinks"
       :reactive="false"
       :source="{
         type: 'geojson',
+        dynamic:true,
         data: visiblerLinks ,
-        buffer: 0,
-        promoteId: 'index',
-      }"
-      layer-id="staticrLinks"
-      :layer="{
-        type: 'line',
-        maxzoom: 18, // maxZoom set in getData. else. its glitchy and dispapear before rendered appear
-        minzoom: minZoom.links,
-        paint: {
-          'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
-          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
-          'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width, width],
-                         ['case', ['has', 'route_width'],
-                          ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
-                           ['to-number', ['get', 'route_width']],
-                           2], 2]],
-          'line-blur': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 1, 0],
-                        ['case', ['has', 'route_width'],
-                         ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
-                          ['to-number', ['get', 'route_width']],
-                          2], 2]],
-        },
-        layout: {
-          'line-sort-key': ['to-number',['get', 'route_width']],
-        }
-
-      }"
-      @mouseenter="onCursor"
-      @mouseleave="offCursor"
-    />
-    <MglGeojsonLayer
-      source-id="rlinks"
-      :source="{
-        type: 'geojson',
-        data: renderedrLinks ,
         buffer: 0,
         promoteId: 'index',
       }"
       layer-id="rlinks"
       :layer="{
         type: 'line',
-        minzoom: minZoom.links,
         paint: {
           'line-color': ['case', ['boolean', ['feature-state', 'select'], false], '#87FFF3', ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary]],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
@@ -547,7 +548,7 @@ const ArrowDirCondition = computed(() => {
       layer-id="arrow-rlinks"
       :layer="{
         type: 'symbol',
-        minzoom: minZoom.rendered,
+        minzoom: minZoom.nodes,
         layout: {
           'symbol-placement': 'line',
           'symbol-spacing': 200,
@@ -564,17 +565,18 @@ const ArrowDirCondition = computed(() => {
 
     <MglGeojsonLayer
       source-id="rnodes"
+      :reactive="false"
       :source="{
         type: 'geojson',
-        data: renderedrNodes,
+        dynamic: true,
+        data: visiblerNodes,
         buffer: 0,
         promoteId: 'index',
       }"
       layer-id="rnodes"
       :layer="{
-        interactive: true,
         type: 'circle',
-        minzoom: minZoom.rendered,
+        minzoom: minZoom.nodes,
         paint: {
           'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
           'circle-stroke-color': $vuetify.theme.current.colors.white,
@@ -591,17 +593,18 @@ const ArrowDirCondition = computed(() => {
 
     <MglGeojsonLayer
       source-id="anchorrNodes"
+      :reactive="false"
       :source="{
         type: 'geojson',
-        data: isRoadMode? renderedAnchorrNodes: header,
+        data: geojson,
+        dynamic:false,
         buffer: 0,
         promoteId: 'index',
       }"
       layer-id="anchorrNodes"
       :layer="{
-        interactive: true,
         type: 'circle',
-        minzoom: minZoom.rendered,
+        minzoom: minZoom.anchor,
         paint: {
           'circle-color': '#ffffff',
           'circle-opacity':0.5,

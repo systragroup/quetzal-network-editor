@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash'
-import { ref, computed, toRaw } from 'vue'
+import { ref, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { CRSis4326 } from '@comp/utils/serializer.js'
 import chroma from 'chroma-js'
@@ -156,7 +156,7 @@ export function useResult () {
     reset()
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
-    layer.value = cloneDeep(toRaw(data))
+    layer.value = cloneDeep(data)
     type.value = layer.value.features[0]?.geometry.type
     // change Multipolygon to polygon type. just as they the same for mapbox and the app.
     type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value
@@ -179,7 +179,11 @@ export function useResult () {
       }
       refreshVisibleLinks()
       updateSelectedFeature()
-    } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
+    } else {
+      store.changeNotification(
+        { text: $gettext('invalid or missing CRS. use CRS84 / EPSG:4326'),
+          autoClose: true, color: 'warning' })
+    }
   }
   function addMatrix (matData) {
     // payload is a matrix

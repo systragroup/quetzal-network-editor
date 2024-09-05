@@ -10,6 +10,11 @@ const close = () => {
   sheet.value = !sheet.value
 }
 watch(err, (val) => {
+  // for AXIOS network error. reformat it as there is no messahe in the front...
+  if (val.code === 'ERR_NETWORK') {
+    err.value.name = 'Network Error'
+    err.value.message = 'Please check your internet connection.'
+  }
   if (val.name) {
     sheet.value = true
     console.error(val)

@@ -31,6 +31,7 @@ export const useIndexStore = defineStore('store', {
     showLeftPanel: true,
     anchorMode: false,
     stickyMode: false,
+    routingMode: false,
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
     cyclewayMode: false,
@@ -86,6 +87,12 @@ export const useIndexStore = defineStore('store', {
     },
     changeStickyMode () {
       this.stickyMode = !this.stickyMode
+    },
+    setRoutingMode(payload) {
+      this.routingMode = payload
+    },
+    changeRoutingMode () {
+      this.routingMode = !this.routingMode
     },
     changeCyclewayMode () {
       this.cyclewayMode = !this.cyclewayMode
@@ -214,11 +221,15 @@ export const useIndexStore = defineStore('store', {
       rlinks.loadrLinks(geojson)
       rlinks.loadrNodes(geojson)
     },
+    initOD () {
+      const odStore = useODStore()
+      odStore.loadLayer(geojson)
+    },
+
     initNetworks () {
-      const od = useODStore()
       this.initLinks()
       this.initrLinks()
-      od.loadLayer(geojson)
+      this.initOD()
       this.visibleRasters = []
       this.styles = []
       this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
@@ -235,7 +246,7 @@ export const useIndexStore = defineStore('store', {
       const runGTFSStore = useGTFSStore()
       runStore.cleanRun()
       runOSMStore.cleanRun()
-      runGTFSStore.cleanRun()
+      runGTFSStore.clean()
     },
 
     applySettings (payload) {
@@ -509,8 +520,7 @@ export const useIndexStore = defineStore('store', {
         availableLayers.push(file.name)
       })
 
-      // for now. remove inputs as they are not read. (need to fetch them.)
-      return availableLayers.filter(name => !name.startsWith('inputs/'))
+      return availableLayers
     },
 
   },

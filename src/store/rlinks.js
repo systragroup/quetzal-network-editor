@@ -11,7 +11,6 @@ import bearing from '@turf/bearing'
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
-import { toRaw } from 'vue'
 import geojson from '@constants/geojson'
 
 import short from 'short-uuid'
@@ -33,11 +32,12 @@ export const userLinksStore = defineStore('rlinks', {
     rnodeAttributes: [],
     newrNode: {},
     visiblerLinks: {},
-    renderedrLinks: {},
     visiblerNodes: {},
-    renderedrNodes: {},
     connectedLinks: [],
     defaultHighway: 'quenedi',
+    updateLinks: [],
+    updateNodes: [],
+    updateAnchor: [],
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
     rlinksAttributesChoices: {},
@@ -61,7 +61,6 @@ export const userLinksStore = defineStore('rlinks', {
       this.rlinks = cloneDeep(payload)
       if (CRSis4326(this.rlinks)) {
         this.visiblerLinks = cloneDeep(geojson)
-        this.renderedrLinks = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -77,7 +76,6 @@ export const userLinksStore = defineStore('rlinks', {
       this.rnodes = JSON.parse(JSON.stringify(payload))
       if (CRSis4326(this.rnodes)) {
         this.visiblerNodes = cloneDeep(geojson)
-        this.renderedrNodes = cloneDeep(geojson)
         // limit geometry precision to 6 digit
         this.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
@@ -261,9 +259,11 @@ export const userLinksStore = defineStore('rlinks', {
           this.selectedrGroup = data
           // need to slice. so it doest change if we append to rlinks.
           this.visiblerLinks.features = this.rlinks.features.slice()
+          this.updateLinks = this.visiblerLinks.features
           break
         case 'hideAll':
           this.selectedrGroup = data
+          this.updateLinks = this.visiblerLinks.features.map(el => { return { type: 'Feature', id: el.properties.index } })
           this.visiblerLinks.features = []
           break
         case 'add':
@@ -275,12 +275,14 @@ export const userLinksStore = defineStore('rlinks', {
             link => link.properties[cat] === data[0])
           // this.visiblerLinks.features.push(...tempLinks) will crash with large array (stack size limit)
           tempLinks.forEach(link => this.visiblerLinks.features.push(link))
+          this.updateLinks = [...tempLinks]
           break
         case 'remove':
           this.selectedrGroup = this.selectedrGroup.filter(el => el !== data[0])
           tempLinks = new Set(this.visiblerLinks.features.filter(
             link => link.properties[cat] === data[0]))
           this.visiblerLinks.features = this.visiblerLinks.features.filter(link => !tempLinks.has(link))
+          this.updateLinks = Array.from(tempLinks).map(el => { return { type: 'Feature', id: el.properties.index } })
           break
       }
       this.getVisiblerNodes({ method })
@@ -290,95 +292,47 @@ export const userLinksStore = defineStore('rlinks', {
       const group = new Set(this.selectedrGroup)
       const cat = this.selectedrFilter
       this.visiblerLinks.features = this.rlinks.features.filter(link => group.has(link.properties[cat]))
-      this.getVisiblerNodes({ method: 'add' })
+      this.getVisiblerNodes({ method: 'showAll' })
+
       // when we rename a group (highway => test), are rename many group.
       // remove nonexistant group in the selected group.
       const possibleGroups = new Set(this.visiblerLinks.features.map(
         item => item.properties[cat]))
-      this.selectedrGroup = [...possibleGroups].filter(x => group.has(x))
+      this.selectedrGroup = Array.from(possibleGroups).filter(x => group.has(x))
     },
     getVisiblerNodes (payload) {
       // payload contain nodes. this.nodes or this.editorNodes
       // find the nodes in the editor links
-      switch (payload.method) {
-        case 'showAll':
-          this.visiblerNodes.features = this.rnodes.features
-          break
-        case 'hideAll':
-          this.visiblerNodes.features = []
-          break
-        case 'add':
-          // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
-          // use rnodes as they are new to visiblerNodes
-          this.visiblerNodes.features = deleteUnusedNodes(this.rnodes, this.visiblerLinks)
-          break
-        case 'remove' :
-          // cannot simply remove the nodes from the deleted links. they can be used by others visibles links
-          // use visibleRnodes, as they are already inside of it.
-          this.visiblerNodes.features = deleteUnusedNodes(this.visiblerNodes, this.visiblerLinks)
-          break
-        // case 'refresh'
-      }
-    },
-
-    getRenderedrLinks (payload) {
-      const bbox = toRaw(payload.bbox)
-      function inBBox(pt, bbox) {
-        // pt point [x,y]
-        // {BBox} bbox BBox [west, south, east, north]
-        return (bbox[0] <= pt[0] && bbox[1] <= pt[1] && bbox[2] >= pt[0] && bbox[3] >= pt[1])
-      }
-      function getMidPoint(line) {
-        const p1 = line[0]
-        const p2 = line[line.length - 1]
-        return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
+      if (payload.method === 'showAll') {
+        this.visiblerNodes.features = this.rnodes.features
+        this.updateNodes = this.visiblerNodes.features
+        // updateAnchor = 'showAll'
+        return
+      } else if (payload.method === 'hideAll') {
+        this.updateNodes = this.visiblerNodes.features.map(el => { return { type: 'Feature', id: el.properties.index } })
+        this.visiblerNodes.features = []
+        return
       }
 
-      function lineInBBox(line, bbox) {
-        // get check if line in BBOX with nodes.
-        // keep 5 anchors. if less than 5, add midpoint.
-        const len = line.length
-        const inc = len > 10 ? (len - 1) / 10 : 1
-        for (let i = 0; i < len; i += inc) {
-          const pt = line[Math.floor(i)]
-          if (inBBox(pt, bbox))
-            return true
-        }
-        // get midpoint for 2 points linestring.
-        if (len < 3) {
-          if (inBBox(getMidPoint(line), bbox)) { return true }
-        }
-        return false
-      }
-
-      // eslint-disable-next-line max-len
-      this.renderedrLinks.features = this.visiblerLinks.features.filter(link => lineInBBox(link.geometry.coordinates, bbox))
-      this.getRenderedrNodes()
-    },
-
-    getRenderedrNodes () { // get rendered nodes
-      const a = this.renderedrLinks.features.map(item => item.properties.a)
-      const b = this.renderedrLinks.features.map(item => item.properties.b)
-      const rNodesList = new Set([...a, ...b])
-      // filter with rnodesList
-      this.renderedrNodes.features = this.visiblerNodes.features.filter(node => rNodesList.has(node.properties.index))
-    },
-    setRenderedrLinks (payload) {
-      if (payload.method === 'visible') {
-        this.renderedrLinks.features = this.visiblerLinks.features
-        this.renderedrNodes.features = []
-      } else {
-        this.renderedrLinks.features = []
-        this.renderedrNodes.features = []
+      const nodesBefore = this.visiblerNodes.features.map(item => item.properties.index)
+      this.visiblerNodes.features = deleteUnusedNodes(this.rnodes, this.visiblerLinks)
+      const nodesAfter = new Set(this.visiblerNodes.features.map(item => item.properties.index))
+      if (payload.method === 'add') {
+        const nodesSet = new Set(nodesBefore)
+        this.updateNodes = this.visiblerNodes.features.filter(el => !nodesSet.has(el.properties.index))
+      } else if (payload.method === 'remove') {
+        const nodesToDelete = new Set(nodesBefore.filter(el => !nodesAfter.has(el)))
+        this.updateNodes = Array.from(nodesToDelete).map(idx => { return { type: 'Feature', id: idx } })
       }
     },
 
     editrLinkInfo (payload) {
       // get selected link in editorLinks and modify the changes attributes.
+      const tempList = []
       const { selectedLinkId, info } = payload
       for (let i = 0; i < selectedLinkId.length; i++) {
         const props = Object.keys(info[i])
-        const link = this.renderedrLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
+        const link = this.visiblerLinks.features.filter((link) => link.properties.index === selectedLinkId[i])[0]
         // if we change a one way to a 2 way, copy one way properties to the reverse one.
         if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '0')) {
           this.reversedAttributes.forEach(
@@ -389,7 +343,9 @@ export const userLinksStore = defineStore('rlinks', {
         }
         // applied all properties.
         props.forEach((key) => link.properties[key] = info[i][key].value)
+        tempList.push(link)
       }
+      this.updateLinks = [...tempList]
     },
 
     editrNodeInfo (payload) {
@@ -422,12 +378,13 @@ export const userLinksStore = defineStore('rlinks', {
       newNode.features = [nodeFeatures]
       this.newrNode = newNode
       this.visiblerNodes.features.push(this.newrNode.features[0])
-      this.renderedrNodes.features.push(this.newrNode.features[0])
+      this.rnodes.features.push(this.newrNode.features[0])
     },
     splitrLink (payload) {
       // changing link1 change editorLinks as it is an observer.
       const link1 = payload.selectedFeature
       const link2 = cloneDeep(link1)
+      const toDelete = cloneDeep(payload.selectedFeature.properties.index)
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
 
@@ -437,7 +394,7 @@ export const userLinksStore = defineStore('rlinks', {
         this.newrNode.features[0].geometry.coordinates,
       ]
 
-      link1.properties.index = 'link_' + short.generate() // link1.properties.index+ '-1'
+      link1.properties.index = 'rlink_' + short.generate() // link1.properties.index+ '-1'
       link1.properties.length = link1.properties.length * ratio
       link1.properties.time = link1.properties.time * ratio
       if (link1.properties.length_r) link1.properties.length_r = link1.properties.length
@@ -455,17 +412,18 @@ export const userLinksStore = defineStore('rlinks', {
       if (link2.properties.time_r) link2.properties.time_r = link2.properties.time
 
       this.visiblerLinks.features.push(link2)
-      this.renderedrLinks.features.push(link2)
       // update actual rlinks and rnodes
       this.rlinks.features.filter((link) => link.properties.index === link1.properties.index)[0] = link1
       this.rlinks.features.push(link2)
+
+      this.updateLinks = [link1, link2, { type: 'Feature', id: toDelete }]
     },
 
     addRoadNodeInline (payload) {
       // selectedLink : list of links index
       // lngLat : object wit click geometry
       // nodes : str. name of node to add (rnode, anchorrNodeS)
-      const selectedFeatures = this.renderedrLinks.features
+      const selectedFeatures = this.visiblerLinks.features
         .filter((link) => payload.selectedIndex.includes(link.properties.index))
       // for loop. for each selectedc links add the node and split.
       for (let i = 0; i < selectedFeatures.length; i++) {
@@ -482,6 +440,7 @@ export const userLinksStore = defineStore('rlinks', {
             this.createNewrNode(snapped.geometry.coordinates)
           }
           this.splitrLink({ selectedFeature: selectedFeatures[i], offset, sliceIndex })
+          this.updateNodes = [this.newrNode.features[0]]
 
         // Anchor Nodes
         } else {
@@ -495,9 +454,9 @@ export const userLinksStore = defineStore('rlinks', {
     },
     addAnchorrNode (payload) {
       const linkIndex = payload.selectedLink.properties.index
-      const featureIndex = this.renderedrLinks.features.findIndex(link => link.properties.index === linkIndex)
+      const featureIndex = this.visiblerLinks.features.findIndex(link => link.properties.index === linkIndex)
       // changing link change visible rLinks as it is an observer.
-      const link = this.renderedrLinks.features[featureIndex]
+      const link = this.visiblerLinks.features[featureIndex]
       link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
     },
     createrLink (payload) {
@@ -555,27 +514,32 @@ export const userLinksStore = defineStore('rlinks', {
       if (!this.selectedrGroup.includes(newLinkGroup)) {
         // if its not already selected, push it.
         this.visiblerLinks.features.push(linkFeature)
-        this.renderedrLinks.features.push(linkFeature)
-        this.selectedrGroup.push(newLinkGroup)
+        this.selectedrGroup = [...this.selectedrGroup, newLinkGroup]
       } else {
         this.visiblerLinks.features.push(linkFeature)
-        this.renderedrLinks.features.push(linkFeature)
       }
+      this.updateLinks = [linkFeature]
+      this.updateNodes = [rnodeB]
     },
 
     getConnectedLinks (payload) {
       const nodeIndex = payload.selectedNode.properties.index
       // get links connected to the node
+      // visible List here is used to update only the visible links on the map
+      const b = this.visiblerLinks.features.filter(link => link.properties.b === nodeIndex)
+      const a = this.visiblerLinks.features.filter(link => link.properties.a === nodeIndex)
+      const visibleLinksList = [...a, ...b]
       // use rLinks as we could moidified links that are not visible moving a node.
       this.connectedLinks = {
         b: this.rlinks.features.filter(link => link.properties.b === nodeIndex),
         a: this.rlinks.features.filter(link => link.properties.a === nodeIndex),
+        visibleLinksList: visibleLinksList,
       }
     },
     moverNode (payload) {
       const nodeIndex = payload.selectedNode.properties.index
       // remove node
-      const newNode = this.renderedrNodes.features.filter(node => node.properties.index === nodeIndex)[0]
+      const newNode = this.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0]
       newNode.geometry.coordinates = payload.lngLat
 
       // changing links
@@ -612,11 +576,13 @@ export const userLinksStore = defineStore('rlinks', {
         }
         if (link.properties.length_r) link.properties.length_r = link.properties.length
       })
+      this.updateLinks = [...this.connectedLinks.visibleLinksList]
+      this.updateNodes = [newNode]
     },
     moverAnchor (payload) {
       const linkIndex = payload.selectedNode.properties.linkIndex
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
-      const link = this.renderedrLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
@@ -626,31 +592,31 @@ export const userLinksStore = defineStore('rlinks', {
       link.properties.length = Number((distance * 1000).toFixed(0)) // metres
       const time = distance / this.roadSpeed * 3600 // 20kmh hard code speed. time in secs
       link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      this.updateLinks = [link]
     },
     deleteAnchorrNode (payload) {
       const linkIndex = payload.selectedNode.linkIndex
       const coordinatedIndex = payload.selectedNode.coordinatedIndex
-      const link = this.renderedrLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+      const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+      this.updateLinks = [link]
     },
     deleterLink (payload) {
       const linkArr = new Set(payload.selectedIndex)
       this.rlinks.features = this.rlinks.features.filter(link => !linkArr.has(link.properties.index))
       this.visiblerLinks.features = this.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
-      this.renderedrLinks.features = this.renderedrLinks.features.filter(link => !linkArr.has(link.properties.index))
+      this.updateLinks = Array.from(linkArr).map(idx => { return { type: 'Feature', id: idx } })
       this.deleteUnusedrNodes()
       this.getVisiblerNodes({ method: 'remove' })
-      this.getRenderedrNodes()
       this.getFilteredrCat()
     },
     deleterGroup (payload) {
       const group = payload
       const cat = this.selectedrFilter
-      this.rlinks.features = this.rlinks.features.filter(link => link.properties[cat] !== group)
-      this.refreshVisibleRoads()
-      this.deleteUnusedrNodes()
-      this.getFilteredrCat()
+      const filtered = this.rlinks.features.filter(link => link.properties[cat] === group)
+      const selectedIndex = filtered.map(link => link.properties.index)
+      this.deleterLink({ selectedIndex: selectedIndex })
     },
     deleteUnusedrNodes () {
       // delete every every nodes not in links
@@ -691,8 +657,10 @@ export const userLinksStore = defineStore('rlinks', {
           (features) => reversedProps.forEach((rkey) => features.properties[rkey] = groupInfo[rkey.slice(0, -2)].value),
         )
       }
+
       this.refreshVisibleRoads()
       this.getFilteredrCat()
+      this.updateLinks = selectedLinks
     },
 
   },
@@ -700,25 +668,6 @@ export const userLinksStore = defineStore('rlinks', {
   getters: {
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
-
-    anchorrNodes: (state) => {
-      const nodes = cloneDeep(geojson)
-      state.renderedrLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
-        feature => {
-          const linkIndex = feature.properties.index
-          feature.geometry.coordinates.slice(1, -1).forEach(
-            (point, idx) => nodes.features.push(Point(
-              point,
-              { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
-            ),
-            ),
-
-          )
-        },
-      )
-
-      return nodes
-    },
     rlinkDirection: (state) => (indexList, reversed = false) => {
       const links = state.rlinks.features.filter(link => indexList.includes(link.properties.index))
       const res = []

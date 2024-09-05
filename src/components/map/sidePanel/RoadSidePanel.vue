@@ -1,131 +1,101 @@
-<script>
+<script setup>
 import { toRaw, ref, onMounted, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 
-export default {
-  name: 'RoadSidePanel',
-  components: {
-  },
-  emits: ['deleteButton', 'propertiesButton', 'update-tripList'],
-  setup () {
-    const store = useIndexStore()
-    const rlinksStore = userLinksStore()
-    const linksStore = useLinksStore()
-    const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
-    const localSelectedTrip = ref([])
+const emits = defineEmits(['deleteButton', 'propertiesButton', 'update-tripList'])
+const store = useIndexStore()
+const rlinksStore = userLinksStore()
+const linksStore = useLinksStore()
+const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
+const localSelectedTrip = ref(cloneDeep(selectedrGoup.value))
 
-    onMounted(() => { localSelectedTrip.value = cloneDeep(selectedrGoup.value) })
-    watch(localSelectedTrip, (newVal, oldVal) => {
-      let changes = ''
-      let method = 'add'
-      if (JSON.stringify(newVal) === JSON.stringify(filteredCat.value)) {
-        changes = newVal
-        method = 'showAll'
-      } else if (newVal.length === 0) {
-        changes = []
-        method = 'hideAll'
-      } else if (newVal.length < oldVal.length) {
-        // if a tripis unchecked. we remove it
-        changes = oldVal.filter(item => !newVal.includes(item))
-        method = 'remove'
-      } else if (newVal.length > oldVal.length) {
-        // if a trip is added, we add it!
-        changes = newVal.filter(item => !oldVal.includes(item))
-        method = 'add'
-      }
-      if (changes !== '') {
-        rlinksStore.changeVisibleRoads({ category: vmodelSelectedFilter.value, data: changes, method })
-      }
-    })
-    watch(selectedrGoup, (newVal) => {
-      // check selected group in store. if it changes from another component
-      const a = new Set(newVal)
-      const b = new Set(localSelectedTrip.value)
-      if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
-        localSelectedTrip.value = toRaw(newVal)
-      }
-    })
-    const selectedFilter = ref('')
-    const vmodelSelectedFilter = ref('')
-    const filterChoices = computed(() => { return rlinksStore.rlineAttributes })
-    const filteredCat = computed(() => { return rlinksStore.filteredrCategory })
-    return {
-      store,
-      rlinksStore,
-      selectedrGoup,
-      localSelectedTrip,
-      selectedFilter,
-      vmodelSelectedFilter,
-      linksStore,
-      filterChoices,
-      filteredCat,
-    }
-  },
+watch(localSelectedTrip, (newVal, oldVal) => {
+  let changes = ''
+  let method = 'add'
+  if (JSON.stringify(newVal) === JSON.stringify(filteredCat.value)) {
+    changes = newVal
+    method = 'showAll'
+  } else if (newVal.length === 0) {
+    changes = []
+    method = 'hideAll'
+  } else if (newVal.length < oldVal.length) {
+    // if a tripis unchecked. we remove it
+    changes = oldVal.filter(item => !newVal.includes(item))
+    method = 'remove'
+  } else if (newVal.length > oldVal.length) {
+    // if a trip is added, we add it!
+    changes = newVal.filter(item => !oldVal.includes(item))
+    method = 'add'
+  }
+  if (changes !== '') {
+    rlinksStore.changeVisibleRoads({ category: vmodelSelectedFilter.value, data: changes, method })
+  }
+})
+watch(selectedrGoup, (newVal) => {
+  // check selected group in store. if it changes from another component
+  const a = new Set(newVal)
+  const b = new Set(localSelectedTrip.value)
+  if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
+    localSelectedTrip.value = toRaw(newVal)
+  }
+})
 
-  watch: {
+const selectedFilter = ref(cloneDeep(rlinksStore.selectedrFilter))
+const vmodelSelectedFilter = ref(selectedFilter.value)
+const filterChoices = computed(() => { return rlinksStore.rlineAttributes })
+const filteredCat = computed(() => { return rlinksStore.filteredrCategory })
+// this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
+watch(vmodelSelectedFilter, (newVal, oldVal) => {
+  selectedFilter.value = newVal
+  // only reset if we change the filter.
+  rlinksStore.changeSelectedrFilter(selectedFilter.value)
+  // when the component is loaded, oldVal is null and we dont want to overwrite localSelectedTrip to [].
+  if (oldVal) {
+    localSelectedTrip.value = []
+  }
+})
 
-    vmodelSelectedFilter (newVal, oldVal) {
-      this.selectedFilter = newVal
-      // only reset if we change the filter.
-      this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
-      // when the component is loaded, oldVal is null and we dont want to overwrite localSelectedTrip to [].
-      if (oldVal) {
-        this.localSelectedTrip = []
-      }
-    },
+onMounted(() => {
+  if (linksStore.links.features.length === 0
+    && !store.projectIsEmpty
+    && selectedrGoup.value.length === 0) {
+    showAll()
+  }
+})
 
-  },
-  mounted () {
-    this.selectedFilter = this.rlinksStore.selectedrFilter
-    this.vmodelSelectedFilter = this.selectedFilter
-    this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
-
-    if (this.linksStore.links.features.length === 0
-      && !this.store.projectIsEmpty
-      && this.selectedrGoup.length === 0) {
-      this.showAll()
-    }
-  },
-
-  methods: {
-
-    propertiesButton (value) {
-      // select the TripId and open dialog
-      this.$emit('propertiesButton', {
-        action: 'Edit Road Group Info',
-        lingering: false,
-        category: this.vmodelSelectedFilter,
-        group: value,
-      })
-    },
-    editVisible () {
-      this.$emit('propertiesButton', {
-        action: 'Edit Visible Road Info',
-        lingering: false,
-      })
-    },
-
-    deleteButton (obj) {
-      // obj contain trip and message.
-      this.$emit('deleteButton', obj)
-    },
-    showAll () {
-      if (this.localSelectedTrip.length === this.filteredCat.length) {
-        this.localSelectedTrip = []
-      } else {
-        this.localSelectedTrip = this.filteredCat
-      }
-    },
-    showGroup (val) {
-      this.localSelectedTrip = Array.from(new Set([...this.localSelectedTrip, ...val]))
-    },
-
-  },
-
+function propertiesButton (value) {
+  // select the TripId and open dialog
+  emits('propertiesButton', {
+    action: 'Edit Road Group Info',
+    lingering: false,
+    category: vmodelSelectedFilter.value,
+    group: value,
+  })
 }
+
+function editVisible () {
+  emits('propertiesButton', {
+    action: 'Edit Visible Road Info',
+    lingering: false,
+  })
+}
+
+function deleteButton (obj) {
+  // obj contain trip and message.
+  emits('deleteButton', obj)
+}
+
+function showAll () {
+  if (localSelectedTrip.value.length === filteredCat.value.length) {
+    localSelectedTrip.value = []
+  } else {
+    localSelectedTrip.value = filteredCat.value
+  }
+}
+
 </script>
 <template>
   <section>
@@ -137,7 +107,7 @@ export default {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="localSelectedTrip.length === filteredCat.length? 'fa-eye-slash fa' : 'fa-eye fa'"
+            :icon="localSelectedTrip.length === filteredCat.length? 'fa-eye fa' : 'fa-eye-slash fa'"
             class="ma-2"
             :style="{color: 'white'}"
             v-bind="props"

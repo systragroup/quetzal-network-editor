@@ -1,5 +1,4 @@
 <script setup>
-import { defineModel } from 'vue'
 
 const props = defineProps({
   title: {
@@ -51,6 +50,7 @@ function cancel() {
         {{ props.body }}
       </v-card-text>
       <v-card-actions>
+        <slot />
         <v-spacer />
         <v-btn
           color="regular"

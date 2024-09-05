@@ -1,4 +1,4 @@
-<script>
+<script setup>
 import LinksSidePanel from './LinksSidePanel.vue'
 import RoadSidePanel from './RoadSidePanel.vue'
 import ODSidePanel from './ODSidePanel.vue'
@@ -6,83 +6,68 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 
-export default {
-  name: 'SidePanel',
-  components: {
-    LinksSidePanel,
-    RoadSidePanel,
-    ODSidePanel,
-  },
-  emits: ['selectEditorTrip', 'confirmChanges', 'abortChanges', 'cloneButton', 'deleteButton', 'propertiesButton', 'change-mode'],
-  setup (_, context) {
-    const store = useIndexStore()
-    const linksStore = useLinksStore()
+const emits = defineEmits(['change-mode'])
 
-    const showLeftPanel = computed(() => { return store.showLeftPanel })
-    const showLeftPanelContent = ref(true)
-    watch(showLeftPanel, (val) => {
-      if (val) {
-        // Leave time for animation to end (.fade-enter-active css rule)
-        setTimeout(() => {
-          showLeftPanelContent.value = true
-        }, 500)
-      } else {
-        showLeftPanelContent.value = false
-      }
-    })
+const store = useIndexStore()
+const linksStore = useLinksStore()
 
-    const editorTrip = computed(() => { return linksStore.editorTrip })
+const showLeftPanel = computed(() => { return store.showLeftPanel })
+const showLeftPanelContent = ref(true)
+watch(showLeftPanel, (val) => {
+  if (val) {
+    // Leave time for animation to end (.fade-enter-active css rule)
+    setTimeout(() => {
+      showLeftPanelContent.value = true
+    }, 500)
+  } else {
+    showLeftPanelContent.value = false
+  }
+})
 
-    const tab = ref('pt')
-    onMounted(() => {
-      if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
-        tab.value = 'road'
-      }
-    })
-    watch(tab, (mode) => {
-      context.emit('change-mode', mode)
-    })
+const editorTrip = computed(() => { return linksStore.editorTrip })
 
-    const leftPanelDiv = ref(null)
-    const isResizing = ref(false)
-    const windowOffest = ref(0)
-    const width = ref(400) // Initial width of the resizable section
-    function startResize (event) {
-      event.preventDefault()
-      isResizing.value = true
-      windowOffest.value = event.clientX - leftPanelDiv.value.clientWidth
-      document.addEventListener('mousemove', resize)
-      document.addEventListener('mouseup', stopResize)
-    }
-    function resize (event) {
-      if (isResizing.value) {
-        const w = event.clientX - windowOffest.value
-        width.value = w > 400 ? w : 400
-        // event.target.style.cursor = 'col-resize'
-      }
-    }
-    function stopResize () {
-      isResizing.value = false
-      document.removeEventListener('mousemove', resize)
-      document.removeEventListener('mouseup', stopResize)
-      // event.target.style.cursor = 'default'
-    }
+const tab = ref()
+onMounted(() => {
+  // default Tab when loading page.
+  if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
+    tab.value = 'road'
+  } else {
+    tab.value = 'pt'
+  }
+})
 
-    return {
-      tab,
-      store,
-      showLeftPanel,
-      showLeftPanelContent,
-      editorTrip,
-      leftPanelDiv,
-      isResizing,
-      windowOffest,
-      width,
-      startResize,
-    }
-  },
+// Active a v-if once. So the component is loaded when click, and stay loaded for next click.
+const loadComponent = ref({ pt: false, road: false, od: false })
+watch(tab, (val) => {
+  emits('change-mode', val)
+  loadComponent.value[val] = true
+})
 
+const leftPanelDiv = ref(null)
+const isResizing = ref(false)
+const windowOffest = ref(0)
+const width = ref(400) // Initial width of the resizable section
+function startResize (event) {
+  event.preventDefault()
+  isResizing.value = true
+  windowOffest.value = event.clientX - leftPanelDiv.value.clientWidth
+  document.addEventListener('mousemove', resize)
+  document.addEventListener('mouseup', stopResize)
 }
+function resize (event) {
+  if (isResizing.value) {
+    const w = event.clientX - windowOffest.value
+    width.value = w > 400 ? w : 400
+    // event.target.style.cursor = 'col-resize'
+  }
+}
+function stopResize () {
+  isResizing.value = false
+  document.removeEventListener('mousemove', resize)
+  document.removeEventListener('mouseup', stopResize)
+  // event.target.style.cursor = 'default'
+}
+
 </script>
 <template>
   <section
@@ -130,24 +115,32 @@ export default {
                 {{ $gettext("OD") }}
               </v-tab>
             </v-tabs>
-            <LinksSidePanel
-              v-show="tab==='pt'"
-              @confirmChanges="(e) => $emit('confirmChanges',e)"
-              @abortChanges="(e) => $emit('abortChanges',e)"
-              @cloneButton="(e) => $emit('cloneButton',e)"
-              @deleteButton="(e) => $emit('deleteButton',e)"
-              @propertiesButton="(e) => $emit('propertiesButton',e)"
-            />
-            <RoadSidePanel
-              v-show="tab==='road'"
-              @deleteButton="(e) => $emit('deleteButton',e)"
-              @propertiesButton="(e) => $emit('propertiesButton',e)"
-            />
-            <ODSidePanel
-              v-show="tab==='od'"
-              @deleteButton="(e) => $emit('deleteButton',e)"
-              @propertiesButton="(e) => $emit('propertiesButton',e)"
-            />
+            <template v-if="loadComponent.pt">
+              <LinksSidePanel
+                v-show="tab==='pt'"
+                @confirmChanges="(e) => $emit('confirmChanges',e)"
+                @abortChanges="(e) => $emit('abortChanges',e)"
+                @cloneButton="(e) => $emit('cloneButton',e)"
+                @deleteButton="(e) => $emit('deleteButton',e)"
+                @propertiesButton="(e) => $emit('propertiesButton',e)"
+                @scheduleButton="(e) => $emit('scheduleButton',e)"
+              />
+            </template>
+
+            <template v-if="loadComponent.road">
+              <RoadSidePanel
+                v-show="tab==='road'"
+                @deleteButton="(e) => $emit('deleteButton',e)"
+                @propertiesButton="(e) => $emit('propertiesButton',e)"
+              />
+            </template>
+            <template v-if="loadComponent.od">
+              <ODSidePanel
+                v-show="tab==='od'"
+                @deleteButton="(e) => $emit('deleteButton',e)"
+                @propertiesButton="(e) => $emit('propertiesButton',e)"
+              />
+            </template>
           </div>
         </div>
       </div>

@@ -1,10 +1,8 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
 
-import { quetzalClient } from '@src/axiosClient.js'
 import { generatePassword } from '@src/components/utils/utils'
 import auth from '@src/auth'
-import { axiosClient } from '@src/axiosClient'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
@@ -19,13 +17,14 @@ const projectIsEmpty = computed(() => store.projectIsEmpty)
 const loggedIn = computed(() => userStore.loggedIn)
 const cognitoInfo = computed(() => userStore.cognitoInfo)
 const initial = computed(() => (cognitoInfo.value?.given_name[0] + cognitoInfo.value?.family_name[0]).toUpperCase())
-const idToken = computed(() => userStore.idToken)
+
+import { useClient } from '@src/axiosClient.js'
+const { quetzalClient } = useClient()
 
 onMounted(async () => {
   if (await auth.isUserSignedIn()) {
     await auth.login()
     await s3.login()
-    await axiosClient.loginAll(idToken.value)
     userStore.getBucketList()
   }
 })
@@ -36,7 +35,6 @@ async function signin (event) {
     ui.value = false
     await auth.login()
     await s3.login()
-    await axiosClient.loginAll(idToken.value)
     userStore.getBucketList()
   }
 }
@@ -75,7 +73,7 @@ watch(selectedGroup, async (_, oldVal) => {
 
 async function listGroup () {
   try {
-    const resp = await quetzalClient.client.get('listGroups/')
+    const resp = await quetzalClient.get('listGroups/')
     groups.value = resp.data
   } catch (err) {
     store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
@@ -83,7 +81,7 @@ async function listGroup () {
 }
 async function listUser (group) {
   try {
-    const resp = await quetzalClient.client.get(`listUser/${group}/`)
+    const resp = await quetzalClient.get(`listUser/${group}/`)
     users.value = resp.data
   } catch (err) {
     store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
@@ -103,7 +101,7 @@ const rules = {
 }
 async function createUser () {
   try {
-    await quetzalClient.client.post(`createUser/${selectedGroup.value}/`, userForm.value)
+    await quetzalClient.post(`createUser/${selectedGroup.value}/`, userForm.value)
     store.changeNotification(
       { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
   } catch (err) {
@@ -114,7 +112,7 @@ async function createUser () {
 
 async function deleteUser (username) {
   try {
-    await quetzalClient.client.post('deleteUser/', { username })
+    await quetzalClient.post('deleteUser/', { username })
     store.changeNotification({ text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
   } catch (err) {
     store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })

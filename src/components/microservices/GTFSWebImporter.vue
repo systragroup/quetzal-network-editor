@@ -1,205 +1,165 @@
-<script>
+<script setup>
 import bboxPolygon from '@turf/bbox-polygon'
 import booleanContains from '@turf/boolean-contains'
 import booleanIntersects from '@turf/boolean-intersects'
 import Polygon from 'turf-polygon'
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-
 import { csvJSON } from '../utils/utils.js'
-
 import MapSelector from './MapSelector.vue'
-const $gettext = s => s
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-export default {
-  name: 'GTFSWebImporter',
-  components: {
-    MapSelector,
-  },
-  setup () {
-    const runGTFS = useGTFSStore()
-    const linksStore = useLinksStore()
-    const store = useIndexStore()
-    const showOverwriteDialog = ref(false)
-    const poly = ref(null)
-    const nodes = ref({})
-    const gtfsList = ref([])
-    const availableGTFS = ref([])
-    const checkall = ref(false)
-    const showHint = ref(false)
-    const selectedGTFS = ref(runGTFS.selectedGTFS)
-    const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
-    const UploadedGTFS = computed(() => { return runGTFS.UploadedGTFS })
-    const callID = computed(() => { return runGTFS.callID })
-    const running = computed(() => { return runGTFS.running })
-    const error = computed(() => { return runGTFS.error })
-    const errorMessage = computed(() => { return runGTFS.errorMessage })
-    const isUploading = computed(() => { return UploadedGTFS.value.filter(item => item.progress < 100).length > 0 })
-    onBeforeUnmount(() => {
-      runGTFS.saveParams(parameters.value)
-      runGTFS.saveSelectedGTFS(selectedGTFS.value)
-    })
-    const parameters = ref([{
-      name: 'start_time',
-      text: 'start time',
-      value: runGTFS.parameters.start_time,
-      type: 'time',
-      units: '',
-      hint: 'Start Time to restrict the GTFS in a period',
-      rules: [
-        'required',
-      ],
-    },
-    {
-      name: 'end_time',
-      text: 'end time',
-      value: runGTFS.parameters.end_time,
-      type: 'time',
-      units: '',
-      hint: 'End Time to restrict the GTFS in a period',
-      rules: [
-        'required',
-      ],
-    },
-    {
-      name: 'day',
-      text: 'day',
-      value: runGTFS.parameters.day,
-      type: 'String',
-      items: ['monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday',
-        'sunday'],
-      units: '',
-      hint: 'restrict each GTFS to this day.',
-      rules: [
-        'required',
-      ],
-    },
-    ])
-    const rules = {
-      required: v => !!v || $gettext('Required'),
-    }
+const runGTFS = useGTFSStore()
+const linksStore = useLinksStore()
+const store = useIndexStore()
+const showOverwriteDialog = ref(false)
+const poly = ref(null)
+const gtfsList = ref([])
+const availableGTFS = ref([])
+const showHint = ref(false)
+const selectedGTFS = ref(runGTFS.selectedGTFS)
+const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
+const callID = computed(() => { return runGTFS.callID })
+const running = computed(() => { return runGTFS.running })
+const error = computed(() => { return runGTFS.error })
+const errorMessage = computed(() => { return runGTFS.errorMessage })
 
-    return {
-      showOverwriteDialog,
-      poly,
-      runGTFS,
-      store,
-      nodes,
-      gtfsList,
-      availableGTFS,
-      selectedGTFS,
-      checkall,
-      showHint,
-      parameters,
-      rules,
-      linksIsEmpty,
-      UploadedGTFS,
-      callID,
-      running,
-      error,
-      errorMessage,
-      isUploading,
-    }
-  },
-
-  async created () {
-    this.gtfsList = await this.fetchCSV()
-    this.gtfsList.forEach((el, idx) => {
-      try {
-        el.bbox = bboxPolygon(
-          [el['location.bounding_box.minimum_longitude'],
-            el['location.bounding_box.minimum_latitude'],
-            el['location.bounding_box.maximum_longitude'],
-            el['location.bounding_box.maximum_latitude'],
-          ])
-      } catch {
-        el.bbox = null
-      }
-      el.index = idx
-    })
-    this.gtfsList = this.gtfsList.filter(el => el.bbox)
-    this.gtfsList = this.gtfsList.filter(el => el['urls.latest'].length > 0)
-    this.gtfsList.sort((a, b) => {
-      if (a['location.country_code'] < b['location.country_code']) return -1
-      if (a['location.country_code'] > b['location.country_code']) return 1
-      return 0
-    })
-  },
-
-  methods: {
-
-    async fetchCSV () {
-      try {
-        const response = await fetch('https://storage.googleapis.com/storage/v1/b/mdb-csv/o/sources.csv?alt=media', {
-        })
-        if (!response.ok) {
-          this.store.changeAlert({ name: 'Network error', message: 'cannot fetch GTFS list' })
-        }
-        const data = await response.arrayBuffer()
-        const json = csvJSON(data)
-        return json
-      } catch (err) {
-        this.store.changeAlert(err)
-      }
-    },
-    getBBOX (val) {
-      if (!this.poly) {
-        this.poly = val
-        this.getAvaileGTFS()
-      } else {
-        this.poly = val
-      }
-    },
-    getAvaileGTFS () {
-      let poly = null
-      if (this.poly.style === 'bbox') {
-        const g = this.poly.geometry
-        poly = bboxPolygon([g[1], g[0], g[3], g[2]])
-      } else {
-        poly = Polygon([this.poly.geometry])
-      }
-      this.availableGTFS = this.gtfsList.filter(
-        el => (booleanContains(poly, el.bbox) || booleanIntersects(poly, el.bbox)))
-      // eslint-disable-next-line no-return-assign
-      this.availableGTFS.forEach(el => el.allInPolygon = booleanContains(poly, el.bbox))
-      // remove checked gtfs not available anymore.
-      const indexSet = new Set(this.availableGTFS.map(el => el.index))
-      this.selectedGTFS = this.selectedGTFS.filter(el => indexSet.has(el))
-      // const selected = this.availableGTFS.filter(el => this.selectedGTFS.includes(el.index))
-      // console.log(selected.map(el => el['urls.latest']))
-    },
-
-    importGTFS () {
-      if (this.linksIsEmpty) {
-        this.runGTFS.setCallID()
-
-        const selected = this.availableGTFS.filter(el => this.selectedGTFS.includes(el.index))
-        const filesPath = selected.map(el => el['urls.latest'])
-        const inputs = { files: filesPath }
-        this.parameters.forEach(item => {
-          inputs[item.name] = item.value
-        })
-        this.runGTFS.startExecution(inputs)
-      } else {
-        this.showOverwriteDialog = true
-      }
-    },
-
-    applyOverwriteDialog () {
-      this.store.initLinks()
-      this.showOverwriteDialog = false
-      this.importGTFS()
-    },
-  },
-
+onBeforeUnmount(() => {
+  runGTFS.saveParams(parameters.value)
+  runGTFS.saveSelectedGTFS(selectedGTFS.value)
+})
+const parameters = ref([{
+  name: 'start_time',
+  text: 'start time',
+  value: runGTFS.parameters.start_time,
+  type: 'time',
+  units: '',
+  hint: 'Start Time to restrict the GTFS in a period',
+  rules: [
+    'required',
+  ],
+},
+{
+  name: 'end_time',
+  text: 'end time',
+  value: runGTFS.parameters.end_time,
+  type: 'time',
+  units: '',
+  hint: 'End Time to restrict the GTFS in a period',
+  rules: [
+    'required',
+  ],
+},
+{
+  name: 'day',
+  text: 'day',
+  value: runGTFS.parameters.day,
+  type: 'String',
+  items: ['monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday'],
+  units: '',
+  hint: 'restrict each GTFS to this day.',
+  rules: [
+    'required',
+  ],
+},
+])
+const rules = {
+  required: v => !!v || $gettext('Required'),
 }
+
+onMounted(async () => {
+  gtfsList.value = await fetchCSV()
+  gtfsList.value.forEach((el, idx) => {
+    try {
+      el.bbox = bboxPolygon(
+        [el['location.bounding_box.minimum_longitude'],
+          el['location.bounding_box.minimum_latitude'],
+          el['location.bounding_box.maximum_longitude'],
+          el['location.bounding_box.maximum_latitude'],
+        ])
+    } catch {
+      el.bbox = null
+    }
+    el.index = idx
+  })
+  gtfsList.value = gtfsList.value.filter(el => el.bbox)
+  gtfsList.value = gtfsList.value.filter(el => el['urls.latest'].length > 0)
+  gtfsList.value.sort((a, b) => {
+    if (a['location.country_code'] < b['location.country_code']) return -1
+    if (a['location.country_code'] > b['location.country_code']) return 1
+    return 0
+  })
+})
+
+async function fetchCSV () {
+  try {
+    const response = await fetch('https://storage.googleapis.com/storage/v1/b/mdb-csv/o/sources.csv?alt=media', {
+    })
+    if (!response.ok) {
+      store.changeAlert({ name: 'Network error', message: 'cannot fetch GTFS list' })
+    }
+    const data = await response.arrayBuffer()
+    const json = csvJSON(data)
+    return json
+  } catch (err) {
+    store.changeAlert(err)
+  }
+}
+
+function getBBOX (val) {
+  if (!poly.value) {
+    poly.value = val
+    getAvaileGTFS()
+  } else {
+    poly.value = val
+  }
+}
+function getAvaileGTFS () {
+  let lPoly = null
+  if (poly.value.style === 'bbox') {
+    const g = poly.value.geometry
+    lPoly = bboxPolygon([g[1], g[0], g[3], g[2]])
+  } else {
+    lPoly = Polygon([poly.value.geometry])
+  }
+  availableGTFS.value = gtfsList.value.filter(
+    el => (booleanContains(lPoly, el.bbox) || booleanIntersects(lPoly, el.bbox)))
+  availableGTFS.value.forEach(el => el.allInPolygon = booleanContains(lPoly, el.bbox))
+  // remove checked gtfs not available anymore.
+  const indexSet = new Set(availableGTFS.value.map(el => el.index))
+  selectedGTFS.value = selectedGTFS.value.filter(el => indexSet.has(el))
+}
+
+function importGTFS () {
+  if (linksIsEmpty.value) {
+    runGTFS.setCallID()
+    const selected = availableGTFS.value.filter(el => selectedGTFS.value.includes(el.index))
+    const filesPath = selected.map(el => el['urls.latest'])
+    const inputs = { files: filesPath, callID: callID.value }
+    parameters.value.forEach(item => {
+      inputs[item.name] = item.value
+    })
+    runGTFS.startExecution(inputs)
+  } else {
+    showOverwriteDialog.value = true
+  }
+}
+
+function applyOverwriteDialog () {
+  store.initLinks()
+  showOverwriteDialog.value = false
+  importGTFS()
+}
+
 </script>
 <template>
   <div class=" background">
@@ -294,8 +254,9 @@ export default {
           <span class="list-item-small">All in polygon</span>
           <span class="list-item-small">Code</span>
           <span class="list-item-medium">Name</span>
-          <span class="list-item-large">City</span>
+          <span class="list-item-medium">City</span>
           <span class="list-item-large">Agency</span>
+          <span class="list-item-small">.zip</span>
         </ul>
         <ul
           v-for="(item,key) in availableGTFS"
@@ -310,8 +271,15 @@ export default {
           <span class="list-item-small">{{ item['allInPolygon'] }} </span>
           <span class="list-item-small">{{ item['location.country_code'] }} </span>
           <span class="list-item-medium">{{ item['location.subdivision_name'] }}</span>
-          <span class="list-item-large">{{ item['location.municipality'] }}</span>
+          <span class="list-item-medium">{{ item['location.municipality'] }}</span>
           <span class="list-item-large">{{ item.provider }}</span>
+          <v-btn
+            variant="text"
+            icon="fa-solid fa-download"
+            size="small"
+            :href="item['urls.latest']"
+            :style="{color: 'white'}"
+          />
         </ul>
       </div>
     </v-card>

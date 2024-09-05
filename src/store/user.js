@@ -2,8 +2,9 @@ import { defineStore } from 'pinia'
 import { useIndexStore } from './index'
 
 import s3 from '@src/AWSClient'
-import { quetzalClient } from '../axiosClient'
 import auth from '../auth'
+import { useClient } from '@src/axiosClient.js'
+const { quetzalClient } = useClient()
 
 const $gettext = s => s
 
@@ -13,8 +14,10 @@ export const useUserStore = defineStore('userStore', {
     cognitoGroup: '',
     bucketListStore: [],
     idToken: '',
-    refreshExpTime: 30 * 24 * 60 * 60,
-    expData: 0,
+    refreshExpTime: 1470 * 24 * 60 * 60,
+    idExpTime: 24 * 60 * 59,
+    signinTime: 0,
+    loginTime: 0,
     loggedIn: false,
     loadingState: true,
     errorLoadingState: false,
@@ -37,7 +40,7 @@ export const useUserStore = defineStore('userStore', {
       this.cognitoGroup = ''
       this.bucketListStore = []
       this.idToken = ''
-      this.expData = 0
+      this.signinTime = 0
       this.loggedIn = false
       this.loadingState = true
       this.errorLoadingState = false
@@ -47,8 +50,9 @@ export const useUserStore = defineStore('userStore', {
       this.protected = false
     },
     setCognitoInfo (payload) {
-      this.expDate = payload.auth_time
+      this.signinTime = payload.auth_time
       this.cognitoInfo = payload
+      this.loginTime = Math.floor(Date.now() / 1000)
     },
     setCognitoGroup (payload) {
       this.cognitoGroup = payload
@@ -82,16 +86,23 @@ export const useUserStore = defineStore('userStore', {
     },
     async getBucketList () {
       try {
-        const resp = await quetzalClient.client.get('buckets/')
+        const resp = await quetzalClient.get('buckets/')
         this.setBucketList(resp.data)
       } catch (err) {
         const store = useIndexStore()
         store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
       }
     },
-    isTokenExpired () {
+    async isTokenExpired () {
+      // Check if the token is expired.
+      // re login using the refresh token. (if ID token is expired)
+      // IF the refresh token is expired, log out.
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
-      if (currentTime > this.expDate + this.refreshExpTime) {
+      if (currentTime > this.loginTime + this.idExpTime) {
+        await auth.login()
+        await s3.login()
+      }
+      if (currentTime > this.signinTime + this.refreshExpTime) {
         auth.logout()
         const store = useIndexStore()
         store.changeAlert({

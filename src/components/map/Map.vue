@@ -95,16 +95,16 @@ function saveMapPosition () {
 }
 
 // All of the rasters
-const visibleRasters = computed(() => { return store.visibleRasters })
-const rasterFiles = computed(() => { return store.styles })
-const availableLayers = computed(() => { return store.availableLayers })
+const visibleRasters = computed(() => store.visibleRasters)
+const rasterFiles = computed(() => store.styles)
+const availableLayers = computed(() => store.availableLayers)
 
 // modes
 const { mode } = toRefs(props)
-const editorNodes = computed(() => { return linksStore.editorNodes })
-const anchorMode = computed(() => { return store.anchorMode })
-const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-const editorTrip = computed(() => { return linksStore.editorTrip })
+const editorNodes = computed(() => linksStore.editorNodes)
+const anchorMode = computed(() => store.anchorMode)
+const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
+const editorTrip = computed(() => linksStore.editorTrip)
 const isEditorMode = computed(() => editorTrip.value !== null)
 
 // DrakLink
@@ -142,10 +142,11 @@ function clickStopDraw (event) {
 }
 
 watch(editorTrip, (val) => {
+  store.setAnchorMode(false)
   store.setStickyMode(false)
+  store.setRoutingMode(false)
   connectedDrawLink.value = false
   if (val) {
-    store.setAnchorMode(false)
     if (linksStore.changeBounds) {
       const bounds = new Mapbox.LngLatBounds()
       editorNodes.value.features.forEach(node => {
@@ -155,9 +156,7 @@ watch(editorTrip, (val) => {
         padding: 200,
       })
     }
-  } else {
-    drawMode.value = false
-  }
+  } else { drawMode.value = false }
 })
 
 watch(isEditorMode, (val) => {
@@ -252,8 +251,11 @@ function addPointPT(event) {
   } else if (connectedDrawLink.value && hoverLayer.value === 'stickyNodes' && hoverId.value) {
     // reuse a existing node. create the link and simulate a move event with useStickyNode()
     linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
-    const newNode = linksStore.newNode.features[0].properties.index
+    const newNode = linksStore.newNode.properties.index
     useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
+  }
+  if (store.routingMode) {
+    routeLink(linksStore.newLink)
   }
 }
 
@@ -312,7 +314,7 @@ function onHoverRoad (event) {
       // nodes are sticky. drawlink change size and style
       connectedDrawLink.value = true
     } else {
-      const node = rlinksStore.renderedrNodes.features.filter(node =>
+      const node = rlinksStore.visiblerNodes.features.filter(node =>
         node.properties.index === hoverId.value)[0]
       drawLink.value.geometry.coordinates = [node.geometry.coordinates, node.geometry.coordinates]
       drawMode.value = true
@@ -363,6 +365,9 @@ function applyStickyNode() {
       { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
   }
 }
+
+import { useRouting } from '@src/components/utils/routing/routing.js'
+const { routeLink } = useRouting()
 
 </script>
 <template>
@@ -419,7 +424,6 @@ function applyStickyNode() {
     </div>
     <template v-if="mapIsLoaded && !rlinksIsEmpty">
       <RoadLinks
-        ref="roadref"
         :map="map"
         :is-editor-mode="isEditorMode"
         :is-road-mode="mode==='road'"
