@@ -4,12 +4,8 @@ import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref, watch, onMounted } from 'vue'
-import { useTheme } from 'vuetify'
 
-const theme = useTheme()
 const store = useIndexStore()
-onMounted(() => { store.changeDarkMode(theme.global.current.value.dark) })
-
 const loading = computed(() => store.loading)
 
 const snackbar = ref(false)

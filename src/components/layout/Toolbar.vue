@@ -1,46 +1,33 @@
-<script>
+<script setup>
 
 import Profile from './Profile.vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useTheme } from 'vuetify'
+import { useGettext } from 'vue3-gettext'
 import systraLogoUrl from '@static/systra_logo.png'
-export default {
-  name: 'Toolbar',
-  components: { Profile },
-  setup () {
-    const store = useIndexStore()
-    const userStore = useUserStore()
-    const imageUrl = ref(systraLogoUrl)
-    const scenario = computed(() => { return userStore.model + '/' + userStore.scenario })
-    return { store, imageUrl, scenario }
-  },
-  data () {
-    return {
-      dialog: true,
-      currentTheme: null,
-    }
-  },
-  watch: {
-    '$vuetify.theme.dark'  (val) {
-      this.$vuetify.theme.global.name = this.$vuetify.theme.global.current.dark ? 'light' : 'dark'
-      this.store.changeDarkMode(val)
-    },
-  },
 
-  created () {
-    const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    this.$vuetify.theme.dark = darkMode
-    this.$vuetify.theme.global.name = darkMode ? 'light' : 'dark'
-  },
+const store = useIndexStore()
+const userStore = useUserStore()
 
-  methods: {
-    handleChangeLanguage (lang) {
-      this.$vuetify.locale.current = lang
-      this.$language.current = lang
-    },
-  },
+const imageUrl = ref(systraLogoUrl)
+const scenario = computed(() => { return userStore.model + '/' + userStore.scenario })
+
+const theme = useTheme()
+// when init. get preference. watcher on immediate will sync it with vuetify and store.
+const darkMode = ref(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+watch(darkMode, (val) => {
+  theme.global.name.value = val ? 'dark' : 'light'
+  store.changeDarkMode(val)
+}, { immediate: true })
+
+const language = useGettext()
+function handleChangeLanguage(lang) {
+  // this.$vuetify.locale.current = lang
+  language.current = lang
 }
+
 </script>
 <template>
   <v-toolbar
@@ -80,7 +67,7 @@ export default {
     </div>
     <div class="switch">
       <v-switch
-        v-model="$vuetify.theme.dark"
+        v-model="darkMode"
         hide-details
         false-icon="fas fa-sun"
         true-icon="fas fa-moon"
@@ -99,18 +86,16 @@ export default {
 
             v-bind="props"
           >
-            {{ $language.current }}
+            {{ language.current }}
           </v-btn>
         </template>
         <v-list>
           <v-list-item
-            v-for="(language, lang) in $language.available"
-            :key="lang"
-            :class="language"
-
-            @click="()=>handleChangeLanguage(lang)"
+            v-for="(lang, l) in language.available"
+            :key="l"
+            @click="()=>handleChangeLanguage(l)"
           >
-            {{ language.toUpperCase() }}
+            {{ lang.toUpperCase() }}
           </v-list-item>
         </v-list>
       </v-menu>

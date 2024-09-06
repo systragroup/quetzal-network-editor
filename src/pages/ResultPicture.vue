@@ -1,60 +1,93 @@
-<script>
+<script setup>
 import s3 from '../AWSClient'
+import Markdown from '@comp/utils/Markdown.vue'
 import { ref, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-const $gettext = s => s
+// Function to convert Blob to Data URL using a Promise
+function readBlobAsDataURL (blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      resolve(event.target.result)
+    }
+    reader.onerror = (error) => {
+      reject(error)
+    }
+    reader.readAsDataURL(blob)
+  })
+}
 
-export default {
-  name: 'ResultPicture',
-  components: {
-  },
-  setup () {
-    const store = useIndexStore()
-    const userStore = useUserStore()
-    const imgs = ref([])
-    const message = ref('')
+const store = useIndexStore()
+const userStore = useUserStore()
+const imgs = ref([])
+const message = ref('')
+const mdString = ref('')
 
-    async function getImg () {
-      // get the list of CSV from output files.
-      // if its undefined (its on s3). fetch it.
-      const scenario = userStore.scenario + '/'
-      const otherFiles = store.otherFiles
-      const imgFiles = otherFiles.filter(file => file.extension === 'png')
-      for (const file of imgFiles) {
-        if (!(file.content instanceof Uint8Array)) {
-          const url = await s3.getImagesURL(userStore.model, scenario + file.path)
-          imgs.value.push(url)
-        } else {
-          const blob = new Blob([file.content], { type: 'image/png' })
-          // Create a data URL from the Blob
-          const reader = new FileReader()
-          reader.onload = (event) => {
-            const url = event.target.result
-            imgs.value.push(url)
-            return url
-          }
-          reader.readAsDataURL(blob)
-        }
+async function getImg () {
+  // get the list of images from output files.
+  // if its undefined (its on s3). fetch it.
+  const scenario = userStore.scenario + '/'
+  const otherFiles = store.otherFiles
+  const imgFiles = otherFiles.filter(file => file.extension === 'png')
+  for (const file of imgFiles) {
+    if (!(file.content instanceof Uint8Array)) {
+      var url = await s3.getImagesURL(userStore.model, scenario + file.path)
+    } else {
+      const blob = new Blob([file.content], { type: 'image/png' })
+      // Create a data URL from the Blob
+      var url = await readBlobAsDataURL(blob)
+    }
+    const name = file.path.split('/').slice(-1)[0]
+    imgs.value.push({ name: name, src: url })
+  }
+}
+
+async function getMD() {
+  // get MD file (first one.) if undefined. its on S3. fetch it
+  const scenario = userStore.scenario + '/'
+  const otherFiles = store.otherFiles
+  const mdFile = otherFiles.filter(file => file.extension === 'md')
+  if (mdFile.length > 0) {
+    let content = mdFile[0].content
+    if (!(content instanceof Uint8Array)) {
+      content = await s3.readBytes(userStore.model, scenario + mdFile[0].path)
+    }
+    mdString.value = new TextDecoder().decode(content)
+  }
+}
+function replaceSrc() {
+  // for each image name check if its in MD file.
+  // if true. insert its src in the MD string. and remove it from the imgs list.
+  // then any unfound imgs will be display at the end (no duplicates)
+  if (mdString.value.length > 0) {
+    const toDelete = []
+    for (const img of imgs.value) {
+      if (mdString.value.includes(img.name)) {
+        mdString.value = mdString.value.replace(img.name, img.src)
+        toDelete.push(img)
       }
     }
-
-    onMounted(async () => {
-      store.changeLoading(true)
-      await getImg()
-      store.changeLoading(false)
-      if (imgs.value.length === 0) {
-        message.value = $gettext('Nothing to display')
-      }
-    })
-
-    const width = ref(50)
-
-    return { imgs, message, width }
-  },
-
+    imgs.value = imgs.value.filter(img => !toDelete.includes(img))
+  }
 }
+
+onMounted(async () => {
+  store.changeLoading(true)
+  await getImg()
+  await getMD()
+  replaceSrc()
+  store.changeLoading(false)
+  if (imgs.value.length === 0 && mdString.value.length === 0) {
+    message.value = $gettext('Nothing to display')
+  }
+})
+
+const width = ref(50)
+
 </script>
 <template>
   <v-bottom-navigation
@@ -98,16 +131,20 @@ export default {
     <p v-if="imgs.length===0">
       {{ $gettext(message) }}
     </p>
+    <Markdown
+      :source="mdString"
+      :style="{'width':`${width}%`}"
+    />
     <div
-      v-for="(img,key) in imgs"
-      :key="key"
+      v-for="img in imgs"
+      :key="img.name"
       class="gallery"
 
       :style="{'width':`${width}%`}"
     >
       <v-img
-        :src="img"
-        alt="Loading"
+        :src="img.src"
+        :alt="img.name"
       />
     </div>
   </section>
