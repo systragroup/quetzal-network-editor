@@ -1,6 +1,7 @@
 ## [6.1.b] (2024-09-20)
 
 ### Features
+* **edit hint**: double click to edit hints in params. enter to stop editing.[#554](https://github.com/systragroup/quetzal-network-editor/issues/554)
 * **Params form model list**: added support for list in model. field.
 
 ### Changes

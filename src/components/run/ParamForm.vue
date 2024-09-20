@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useRunStore } from '@src/store/run'
@@ -9,14 +8,13 @@ const runStore = useRunStore()
 const userStore = useUserStore()
 
 function includesOrEqual(a, b) {
-  // to check list and string.
+  // to check list and string.f
   if (Array.isArray(a)) {
     return a.includes(b)
   } else {
     return a === b
   }
 }
-
 const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
 const parameters = computed(() => {
   return runStore.parameters.filter(
@@ -87,6 +85,8 @@ const rules = {
   nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
 }
 
+const editHint = ref(false)
+
 </script>
 <template>
   <v-card
@@ -129,8 +129,8 @@ const rules = {
                   color="primary"
                   density="compact"
                   class="pl-2"
+                  hide-details
                   :label="$gettext(item.text)"
-                  :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                 />
                 <v-number-input
@@ -141,35 +141,51 @@ const rules = {
                   :type="item.type"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
-                  :hint="showHint? $gettext(item.hint): ''"
-                  :persistent-hint="showHint"
+                  hide-details
                   :rules="item.rules.map((rule) => rules[rule])"
+                  @keydown="(k)=>console.log(k)"
                 />
                 <v-text-field
                   v-else-if="typeof item.items === 'undefined' "
                   v-model="item.value"
                   variant="outlined"
+                  hide-details
                   :type="item.type"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
-                  :hint="showHint? $gettext(item.hint): ''"
-                  :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
                 />
+
                 <v-select
                   v-else
                   v-model="item.value"
                   variant="outlined"
+                  hide-details
                   :type="item.type"
                   :multiple="item?.multiple"
                   :items="getItems(item)"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
-                  :hint="showHint? $gettext(item.hint): ''"
-                  :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
                   @update:model-value="removeDeletedScenarios(item)"
                 />
+                <div v-if="showHint">
+                  <div
+                    v-if="!editHint"
+                    class="custom-hint"
+                    @dblclick="editHint=true"
+                  >
+                    {{ item.hint }}
+                  </div>
+
+                  <textarea
+                    v-else
+                    v-model="item.hint"
+                    rows="1"
+                    class="custom-hint edition"
+                    @keydown.enter="editHint=false"
+                  />
+                </div>
               </li>
             </v-expansion-panel-text>
           </v-expansion-panel>
@@ -242,5 +258,15 @@ const rules = {
 }
 .param-list{
   margin-bottom:1.2rem;
+}
+
+.custom-hint{
+  opacity: var(--v-medium-emphasis-opacity);
+  width:100%;
+  font-size:small;
+  margin-right: auto;
+}
+.edition{
+  border:1px gray solid
 }
 </style>
