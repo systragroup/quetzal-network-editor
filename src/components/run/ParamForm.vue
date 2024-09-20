@@ -8,29 +8,68 @@ const { $gettext } = useGettext()
 const runStore = useRunStore()
 const userStore = useUserStore()
 
+function includesOrEqual(a, b) {
+  // to check list and string.
+  if (Array.isArray(a)) {
+    return a.includes(b)
+  } else {
+    return a === b
+  }
+}
+
 const selectedStepFunction = computed(() => { return runStore.selectedStepFunction })
-const paramsBrute = computed(() => { return runStore.parameters })
 const parameters = computed(() => {
-  return paramsBrute.value.filter(
-    param => (Object.keys(param).includes('category') && param.model === selectedStepFunction.value))
+  return runStore.parameters.filter(
+    param => (Object.keys(param).includes('category') && includesOrEqual(param.model, selectedStepFunction.value)))
 })
 
 const info = computed(() => {
-  return paramsBrute.value.filter(param => (param?.info && param?.model) === selectedStepFunction.value)[0]?.info
-})
-
-const panel = ref([])
-
-onMounted(() => {
-  panel.value = [...Array(parameters.value.length).keys()].map((k, i) => i)
+  let infoArr = runStore.parameters.filter(param => param?.info)
+  infoArr = infoArr.filter(param => includesOrEqual(param.model, selectedStepFunction.value))
+  return infoArr[0]?.info
 })
 
 const scenariosList = computed(() => { return userStore.scenariosList })
 const activeScenario = computed(() => { return userStore.scenario })
 
+function removeDeletedScenarios () {
+  // for $scenario field: remove selected scenario if not in the scen list anymore.
+  for (const cat of parameters.value) {
+    for (const item of cat.params) {
+      if (item.items === '$scenarios') {
+        const scenarios = scenariosList.value.map(el => el.scenario)
+        if (Array.isArray(item.value)) {
+          item.value = item.value.filter(name => scenarios.includes(name))
+        } else {
+          item.value = scenarios.includes(item.value) ? item.value : ''
+        }
+      }
+    }
+  }
+}
+
+onMounted(() => {
+  removeDeletedScenarios()
+})
+
+function getItems(item) {
+  // give all scenario as items choice.
+  // else return items in the json (item.items)
+  if (item.items === '$scenarios') {
+    return scenariosList.value.map(
+      el => el.scenario).filter(
+      scen => scen !== activeScenario.value)
+  } else {
+    return item.items
+  }
+}
+
+// funcitions to show panel, reset, show hints, etc.
 function reset () {
   runStore.getParameters()
 }
+
+const panel = ref([...Array(parameters.value.length).keys()].map((k, i) => i))
 
 function expandAll () {
   if (panel.value.length < parameters.value.length) {
@@ -41,18 +80,11 @@ function expandAll () {
 }
 
 const showHint = ref(false)
+
 const rules = {
   required: v => v != null || $gettext('Required'),
   largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
   nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
-}
-
-function removeDeletedScenarios (item) {
-  // when selecting a value. make sure it exist in the scen list.
-  // if a scen selected was deleted. it will be remove from the v-model here.
-  // this is not perfect, but a user who toggle a scen will fix the problem...
-  const scenarios = scenariosList.value.map(el => el.scenario)
-  item.value = item.value.filter(name => scenarios.includes(name))
 }
 
 </script>
@@ -101,6 +133,18 @@ function removeDeletedScenarios (item) {
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                 />
+                <v-number-input
+                  v-else-if="item.type == 'Number'"
+                  v-model="item.value"
+                  variant="outlined"
+                  control-variant="stacked"
+                  :type="item.type"
+                  :label="$gettext(item.text)"
+                  :suffix="item.units"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                  :rules="item.rules.map((rule) => rules[rule])"
+                />
                 <v-text-field
                   v-else-if="typeof item.items === 'undefined' "
                   v-model="item.value"
@@ -112,35 +156,19 @@ function removeDeletedScenarios (item) {
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
                 />
-
-                <v-select
-                  v-else-if="item.items === '$scenarios'"
-                  v-model="item.value"
-                  variant="outlined"
-                  :type="item.type"
-                  :items="scenariosList.map(
-                    el=>el.scenario).filter(
-                    scen=>scen!==activeScenario)"
-                  :multiple="item?.multiple"
-                  :label="$gettext(item.text)"
-                  :suffix="item.units"
-                  :hint="showHint? $gettext(item.hint): ''"
-                  :persistent-hint="showHint"
-                  :rules="item.rules.map((rule) => rules[rule])"
-                  @update:model-value="removeDeletedScenarios(item)"
-                />
                 <v-select
                   v-else
                   v-model="item.value"
                   variant="outlined"
                   :type="item.type"
                   :multiple="item?.multiple"
-                  :items="item.items"
+                  :items="getItems(item)"
                   :label="$gettext(item.text)"
                   :suffix="item.units"
                   :hint="showHint? $gettext(item.hint): ''"
                   :persistent-hint="showHint"
                   :rules="item.rules.map((rule) => rules[rule])"
+                  @update:model-value="removeDeletedScenarios(item)"
                 />
               </li>
             </v-expansion-panel-text>

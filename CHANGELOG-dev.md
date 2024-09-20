@@ -1,3 +1,13 @@
+## [6.1.b] (2024-09-20)
+
+### Features
+* **Params form model list**: added support for list in model. field.
+
+### Changes
+* **Params form**: change a bit. added v-number-input for number.
+
+
+
 ## [6.1.a] (2024-09-06)
 
 ### Features
