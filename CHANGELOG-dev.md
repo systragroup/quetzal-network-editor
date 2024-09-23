@@ -1,3 +1,11 @@
+## [6.1.c] (2024-09-23)
+
+### Bug Fixes
+* **parameters info**: is now scrollable and wont use all the page height if long.[#556](https://github.com/systragroup/quetzal-network-editor/issues/556)
+
+### Changes
+* **edit hint**: focus on double click on the element (not triple). exit qhen hints are hidden.
+
 ## [6.1.b] (2024-09-20)
 
 ### Features
@@ -6,7 +14,6 @@
 
 ### Changes
 * **Params form**: change a bit. added v-number-input for number.
-
 
 
 ## [6.1.a] (2024-09-06)

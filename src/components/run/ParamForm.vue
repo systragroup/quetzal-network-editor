@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch, useTemplateRef, nextTick } from 'vue'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
 import { useGettext } from 'vue3-gettext'
@@ -77,15 +77,29 @@ function expandAll () {
   }
 }
 
-const showHint = ref(false)
-
 const rules = {
   required: v => v != null || $gettext('Required'),
   largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
   nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
 }
 
+const showHint = ref(false)
 const editHint = ref(false)
+const hintRef = useTemplateRef('editRef')
+
+function dblclick(parentKey, key) {
+  editHint.value = true
+  // we have 2 v-for. get the index with key + sum of params in cat before.
+  const paramsLength = parameters.value.slice(0, parentKey).map(param => param.params.length)
+  // slice and count. then do the sum with reduce.
+  const idx = paramsLength.reduce((sum, x) => sum + x, 0) + key
+  // next tock as it is not mount yet.
+  nextTick(() => hintRef.value[idx].focus())
+}
+
+watch(showHint, (val) => {
+  if (!val) { editHint.value = false }
+})
 
 </script>
 <template>
@@ -95,12 +109,12 @@ const editHint = ref(false)
     <v-card-title class="subtitle">
       {{ $gettext('Scenario Settings') }}
     </v-card-title>
-    <v-card-text
+    <div
       v-if="info"
       class="info-div"
     >
       {{ info }}
-    </v-card-text>
+    </div>
     <div class="expansion">
       <v-form
         ref="form"
@@ -119,8 +133,8 @@ const editHint = ref(false)
             </v-expansion-panel-title>
             <v-expansion-panel-text style="background-color:rgb(var(--v-theme-lightgrey));">
               <li
-                v-for="(item, key2) in group.params"
-                :key="key2"
+                v-for="(item, itemKey) in group.params"
+                :key="itemKey"
                 class="param-list"
               >
                 <v-switch
@@ -169,23 +183,28 @@ const editHint = ref(false)
                   :rules="item.rules.map((rule) => rules[rule])"
                   @update:model-value="removeDeletedScenarios(item)"
                 />
-                <div v-if="showHint">
+                <v-fade-transition>
                   <div
-                    v-if="!editHint"
+                    v-if="showHint"
                     class="custom-hint"
-                    @dblclick="editHint=true"
                   >
-                    {{ item.hint }}
-                  </div>
+                    <div
+                      v-if="!editHint"
+                      @dblclick="dblclick(key, itemKey)"
+                    >
+                      {{ item.hint }}
+                    </div>
 
-                  <textarea
-                    v-else
-                    v-model="item.hint"
-                    rows="1"
-                    class="custom-hint edition"
-                    @keydown.enter="editHint=false"
-                  />
-                </div>
+                    <textarea
+                      v-else
+                      ref="editRef"
+                      v-model="item.hint"
+                      rows="1"
+                      class="edition"
+                      @keydown.enter="editHint=false"
+                    />
+                  </div>
+                </v-fade-transition>
               </li>
             </v-expansion-panel-text>
           </v-expansion-panel>
@@ -223,10 +242,18 @@ const editHint = ref(false)
 .expansion{
   max-height:100%;
   overflow-y:auto;
+  flex-grow: 1;
+  height:20rem;
+
 }
 .info-div{
-  flex:0;
+  max-height:20vh;
   white-space: pre-line;
+  overflow-y: scroll;
+  //border-radius: 5px;
+  //background:rgb(var(--v-theme-mediumgrey));
+  padding: 1rem;
+  margin-bottom:1rem
 }
 .subtitle {
   font-size: 2em;
@@ -262,11 +289,14 @@ const editHint = ref(false)
 
 .custom-hint{
   opacity: var(--v-medium-emphasis-opacity);
+  margin-left: 0.2rem;
   width:100%;
+  min-height: 1.5rem;
   font-size:small;
   margin-right: auto;
 }
 .edition{
-  border:1px gray solid
+  border:1px gray solid;
+  width:100%;
 }
 </style>
