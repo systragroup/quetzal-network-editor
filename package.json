@@ -11,6 +11,7 @@
     "build-staging": "vite build --mode staging",
     "preview": "vite preview",
     "preview-staging": "vite preview --mode staging",
+    "deploy-staging": "sh build/deploy_dev.sh",
     "clean": "rm -rf dist src/config.js src/translations.json",
     "setup": "sh build/setup.sh",
     "lint": "ko=0; yarn run -s jslint || ko=1; yarn run -s csslint || ko=1; [ ! $ko -eq 1 ]",
