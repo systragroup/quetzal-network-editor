@@ -244,14 +244,11 @@ watch(showHint, (val) => {
   overflow-y:auto;
   flex-grow: 1;
   height:20rem;
-
 }
 .info-div{
   max-height:20vh;
   white-space: pre-line;
   overflow-y: scroll;
-  //border-radius: 5px;
-  //background:rgb(var(--v-theme-mediumgrey));
   padding: 1rem;
   margin-bottom:1rem
 }
@@ -286,7 +283,6 @@ watch(showHint, (val) => {
 .param-list{
   margin-bottom:1.2rem;
 }
-
 .custom-hint{
   opacity: var(--v-medium-emphasis-opacity);
   margin-left: 0.2rem;
