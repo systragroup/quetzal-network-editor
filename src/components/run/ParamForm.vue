@@ -132,6 +132,12 @@ watch(showHint, (val) => {
               {{ group.category }}
             </v-expansion-panel-title>
             <v-expansion-panel-text style="background-color:rgb(var(--v-theme-lightgrey));">
+              <div
+                v-if="group.info"
+                class="categorie-info"
+              >
+                {{ group.info }}
+              </div>
               <li
                 v-for="(item, itemKey) in group.params"
                 :key="itemKey"
@@ -278,7 +284,13 @@ watch(showHint, (val) => {
 .categorie {
   font-size: 1.5em;
   font-weight: bold;
-  background:rgb(var(--v-theme-mediumgrey)) ;
+  background: rgb(var(--v-theme-mediumgrey)) ;
+}
+.categorie-info{
+  padding-bottom: 1rem;
+  opacity: var(--v-medium-emphasis-opacity);
+  white-space: pre-line;
+  font-size: small;
 }
 .param-list{
   margin-bottom:1.2rem;

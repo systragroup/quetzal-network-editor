@@ -42,8 +42,7 @@ const rlinksStore = userLinksStore()
 const map = shallowRef(null)
 const mapIsLoaded = ref(false)
 
-function onMapLoaded (event) {
-  if (map.value) mapIsLoaded.value = false
+function fitBounds() {
   const bounds = new Mapbox.LngLatBounds()
   // only use first and last point. seems to bug when there is anchor...
   if (linksStore.links.features.length > 0) {
@@ -60,19 +59,23 @@ function onMapLoaded (event) {
 
   // for empty (new) project, do not fit bounds around the links geometries.
   if (Object.keys(bounds).length !== 0) {
-    event.map.fitBounds(bounds, {
+    map.value.fitBounds(bounds, {
       padding: 100,
     })
   }
-  event.map.loadImage(arrowImage, function (err, image) {
+  map.value.loadImage(arrowImage, function (err, image) {
     if (err) {
       console.error('err image', err)
       return
     }
-    event.map.addImage('arrow', image, { sdf: true })
+    map.value.addImage('arrow', image, { sdf: true })
   })
+}
 
+function onMapLoaded (event) {
+  if (map.value) mapIsLoaded.value = false
   map.value = event.map
+  fitBounds()
   event.map.dragRotate.disable()
   mapIsLoaded.value = true
 }

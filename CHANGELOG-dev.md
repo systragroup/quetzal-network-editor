@@ -1,3 +1,8 @@
+## [6.1.d] (2024-09-24)
+
+### Features
+* **param category info**: aff info: {"category":"aggregation", "info": "this is my category info", "params":...}. support newline[#551](https://github.com/systragroup/quetzal-network-editor/issues/551)
+
 ## [6.1.c] (2024-09-23)
 
 ### Bug Fixes
