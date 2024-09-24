@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, watch, useTemplateRef, nextTick } from 'vue'
+import { computed, ref, onMounted, watch, nextTick } from 'vue'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
 import { useGettext } from 'vue3-gettext'
@@ -85,16 +85,22 @@ const rules = {
 
 const showHint = ref(false)
 const editHint = ref(false)
-const hintRef = useTemplateRef('editRef')
+const hintRefs = ref({})
+// we have 2 v-for and some v-if. finding the correct ref in an array is impossible
+// So we set it in a dict with the 2 key.
+// Function to dynamically set the hint ref by ID
+const setHintRef = (el, key, itemKey) => {
+  if (el) {
+    const stringKey = String(key) + String(itemKey)
+    hintRefs.value[stringKey] = el
+  }
+}
 
-function dblclick(parentKey, key) {
+function dblclick(key, itemKey) {
   editHint.value = true
-  // we have 2 v-for. get the index with key + sum of params in cat before.
-  const paramsLength = parameters.value.slice(0, parentKey).map(param => param.params.length)
-  // slice and count. then do the sum with reduce.
-  const idx = paramsLength.reduce((sum, x) => sum + x, 0) + key
-  // next tock as it is not mount yet.
-  nextTick(() => hintRef.value[idx].focus())
+  // on next tick (not mounted yet) put on focus.
+  const stringKey = String(key) + String(itemKey)
+  nextTick(() => hintRefs.value[stringKey].focus())
 }
 
 watch(showHint, (val) => {
@@ -200,10 +206,9 @@ watch(showHint, (val) => {
                     >
                       {{ item.hint }}
                     </div>
-
                     <textarea
                       v-else
-                      ref="editRef"
+                      :ref="el => setHintRef(el, key, itemKey)"
                       v-model="item.hint"
                       rows="1"
                       class="edition"
