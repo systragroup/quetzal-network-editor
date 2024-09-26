@@ -1,5 +1,5 @@
 <!-- eslint-disable no-case-declarations -->
-<script>
+<script setup>
 
 import { ref, computed } from 'vue'
 import { useResult } from '@comp/results/results.js'
@@ -16,249 +16,195 @@ import MapLegend from '@comp/utils/MapLegend.vue'
 import LayerSelector from '@comp/utils/LayerSelector.vue'
 import StyleSelector from '@comp/utils/StyleSelector.vue'
 import StaticLayer from '@comp/utils/StaticLayer.vue'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-const $gettext = s => s
+const linksStore = useLinksStore()
+const rlinksStore = userLinksStore()
+const ODStore = useODStore()
+const store = useIndexStore()
+const {
+  visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures, matSelectedIndex, changeOD,
+  isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter,
+  filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
+} = useResult()
 
-export default {
-  name: 'ResultMap',
-  components: {
-    MapResults,
-    ResultsSidePanel,
-    ResultsSettings,
-    MapLegend,
-    LayerSelector,
-    StyleSelector,
-    StaticLayer,
-
-  },
-
-  setup () {
-    const linksStore = useLinksStore()
-    const rlinksStore = userLinksStore()
-    const ODStore = useODStore()
-    const store = useIndexStore()
-    const {
-      visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures, matSelectedIndex, changeOD,
-      isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter,
-      filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
-    } = useResult()
-
-    const mapRef = ref() //  we update the map with this ref
-
-    function updateSettings (payload) {
-      applySettings(payload)
-      mapRef.value.update()
-    }
-    function updateSelectedFilter (val) {
-      changeSelectedFilter(val)
-      updateSelectedFeature()
-      mapRef.value.update()
-    }
-    function updateSelectedCategory (val) {
-      changeSelectedCategory(val)
-      updateSelectedFeature()
-      mapRef.value.update()
-    }
-
-    const selectedLayer = ref('')
-
-    async function changeLayer (layer, settings = null) {
-      selectedLayer.value = layer
-      switch (layer) {
-        case 'links':
-          await loadLayer(linksStore.links, null, settings)
-          break
-        case 'rlinks':
-          await loadLayer(rlinksStore.rlinks, null, settings)
-          break
-        case 'nodes':
-          await loadLayer(linksStore.nodes, null, settings)
-          break
-        case 'rnodes':
-          await loadLayer(rlinksStore.rnodes, null, settings)
-          break
-        case 'od':
-          await loadLayer(ODStore.layer, null, settings)
-          break
-        default:
-          const data = await store.getOtherFile(layer, 'geojson')
-          const matrix = await store.getOtherFile(layer, 'json')
-          await loadLayer(data, matrix, settings)
-          break
-      }
-      mapRef.value.update()
-    }
-
-    const selectedPreset = ref(null)
-    const availableLayers = computed(() => store.availableLayers)
-
-    const visibleRasters = computed(() => store.visibleRasters)
-    const availableStyles = computed(() => store.styles)
-
-    const presetToDelete = ref('')
-    const showDeleteDialog = ref(false)
-    const showPresetDialog = ref(false)
-    const inputName = ref('')
-    const tempDisplaySettings = ref({})
-
-    async function changePreset (preset) {
-      selectedPreset.value = preset.name
-      if (availableLayers.value.includes(preset.layer)) {
-        // change layer if it exist
-        await changeLayer(preset.layer, preset.displaySettings)
-        if (attributes.value.includes(preset?.selectedFilter)) {
-          // if preset contain a filter. apply it if it exist.
-          changeSelectedFilter(preset.selectedFilter)
-          // if there is a list of cat. apply them, else its everything
-          if (Object.keys(preset).includes('selectedCategory')) {
-            changeSelectedCategory(preset.selectedCategory)
-          }
-          // else it will show all
-        } else {
-          // if the filter is in the preset but not the the layer. just put a warning.
-          if (Object.keys(preset).includes('selectedFilter')) {
-            store.changeNotification(
-              {
-                text: preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
-                autoClose: true,
-                color: 'error',
-              })
-          }
-        }
-      } else {
-        store.changeNotification(
-          { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
-      }
-      // apply all settings.
-      // if its an OD. click on the selected index.
-      if (Object.keys(preset).includes('selectedIndex') && isIndexAvailable(preset.selectedIndex)) {
-        changeOD(preset.selectedIndex)
-        store.changeNotification({})
-      }
-      mapRef.value.update()
-    }
-
-    function clickDeletePreset (event) {
-      // open a dialog to make sure we want to delete
-      presetToDelete.value = event.name
-      showDeleteDialog.value = true
-    }
-
-    function clickSavePreset (event) {
-      // open a dialog to chose the name and accept
-      tempDisplaySettings.value = event
-      inputName.value = selectedPreset.value
-      showPresetDialog.value = true
-    }
-    async function createPreset (event) {
-      const resp = await event
-      if (resp.valid) {
-        showPresetDialog.value = false
-        const style = {
-          name: cloneDeep(inputName.value),
-          layer: cloneDeep(selectedLayer.value),
-          displaySettings: cloneDeep(tempDisplaySettings.value),
-          selectedFilter: cloneDeep(selectedFilter.value),
-        }
-
-        // only add the list of category (eyes) if its not everything.
-        // first filter to only get possible cat. we way load a style with non existing cat (ex highway=quenedi)
-        const filteredCat = selectedCategory.value.filter(val => filteredCategory.value.includes(val))
-        if (filteredCat.length < filteredCategory.value.length) {
-          style.selectedCategory = cloneDeep(selectedCategory.value)
-        }
-
-        // if its an OD preset. save the selected index.
-        if (ODfeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
-          style.selectedIndex = matSelectedIndex.value
-        }
-
-        store.addStyle(style)
-        if (visibleRasters.value.includes(inputName.value)) {
-          store.changeNotification(
-            {
-              text: $gettext('Preset changed. Please reload the active layer on the map'),
-              autoClose: true,
-              color: 'warning',
-            })
-        } else {
-          store.changeNotification(
-            { text: $gettext('Preset Saved'), autoClose: true, color: 'success' })
-        }
-
-        selectedPreset.value = cloneDeep(inputName.value)
-      }
-    }
-
-    function deletePreset () {
-      store.deleteStyle(presetToDelete.value)
-      showDeleteDialog.value = false
-      if (presetToDelete.value === selectedPreset.value) {
-        // if it was selected. unselect it
-        selectedPreset.value = null
-      }
-      store.changeNotification(
-        { text: $gettext('Preset deleted'), autoClose: true, color: 'success' })
-      presetToDelete.value = ''
-    }
-
-    const showDialog = ref(false)
-    const formData = ref([])
-    function featureClicked (event) {
-      if (event.action === 'featureClick') {
-        formData.value = event.feature
-        showDialog.value = true
-        // OD click.
-      } else {
-        // will verify in this function if hasOD and the selected feature is an OD.
-        changeOD(event.feature.index)
-        mapRef.value.update()
-      }
-    }
-
-    return {
-
-      store,
-      mapRef,
-      selectedLayer,
-      selectedPreset,
-      availableLayers,
-      visibleLayer,
-      NaNLayer,
-      type,
-      displaySettings,
-      selectedCategory,
-      selectedFilter,
-      attributes,
-      filteredCategory,
-      colorScale,
-      updateSettings,
-      updateSelectedFilter,
-      updateSelectedCategory,
-      changeLayer,
-      changePreset,
-      showDeleteDialog,
-      presetToDelete,
-      clickDeletePreset,
-      deletePreset,
-      showPresetDialog,
-      inputName,
-      clickSavePreset,
-      createPreset,
-      featureClicked,
-      availableStyles,
-      visibleRasters,
-      showDialog,
-      formData,
-    }
-  },
-
+const mapRef = ref() //  we update the map with this ref
+function updateSettings (payload) {
+  applySettings(payload)
+  mapRef.value.update()
 }
+function updateSelectedFilter (val) {
+  changeSelectedFilter(val)
+  updateSelectedFeature()
+  mapRef.value.update()
+}
+function updateSelectedCategory (val) {
+  changeSelectedCategory(val)
+  updateSelectedFeature()
+  mapRef.value.update()
+}
+
+const selectedLayer = ref('')
+
+async function changeLayer (layer, settings = null) {
+  selectedLayer.value = layer
+  switch (layer) {
+    case 'links':
+      await loadLayer(linksStore.links, null, settings)
+      break
+    case 'rlinks':
+      await loadLayer(rlinksStore.rlinks, null, settings)
+      break
+    case 'nodes':
+      await loadLayer(linksStore.nodes, null, settings)
+      break
+    case 'rnodes':
+      await loadLayer(rlinksStore.rnodes, null, settings)
+      break
+    case 'od':
+      await loadLayer(ODStore.layer, null, settings)
+      break
+    default:
+      const data = await store.getOtherFile(layer, 'geojson')
+      const matrix = await store.getOtherFile(layer, 'json')
+      await loadLayer(data, matrix, settings)
+      break
+  }
+  mapRef.value.update()
+}
+
+const selectedPreset = ref(null)
+const availableLayers = computed(() => store.availableLayers)
+
+const visibleRasters = computed(() => store.visibleRasters)
+const availableStyles = computed(() => store.styles)
+
+const presetToDelete = ref('')
+const showDeleteDialog = ref(false)
+const showPresetDialog = ref(false)
+const inputName = ref('')
+const tempDisplaySettings = ref({})
+
+async function changePreset (preset) {
+  selectedPreset.value = preset.name
+  if (availableLayers.value.includes(preset.layer)) {
+    // change layer if it exist
+    await changeLayer(preset.layer, preset.displaySettings)
+    if (attributes.value.includes(preset?.selectedFilter)) {
+      // if preset contain a filter. apply it if it exist.
+      changeSelectedFilter(preset.selectedFilter)
+      // if there is a list of cat. apply them, else its everything
+      if (Object.keys(preset).includes('selectedCategory')) {
+        changeSelectedCategory(preset.selectedCategory)
+      }
+      // else it will show all
+    } else {
+      // if the filter is in the preset but not the the layer. just put a warning.
+      if (Object.keys(preset).includes('selectedFilter')) {
+        store.changeNotification(
+          {
+            text: preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
+            autoClose: true,
+            color: 'error',
+          })
+      }
+    }
+  } else {
+    store.changeNotification(
+      { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
+  }
+  // apply all settings.
+  // if its an OD. click on the selected index.
+  if (Object.keys(preset).includes('selectedIndex') && isIndexAvailable(preset.selectedIndex)) {
+    changeOD(preset.selectedIndex)
+    store.changeNotification({})
+  }
+  mapRef.value.update()
+}
+
+function clickDeletePreset (event) {
+  // open a dialog to make sure we want to delete
+  presetToDelete.value = event.name
+  showDeleteDialog.value = true
+}
+
+function clickSavePreset (event) {
+  // open a dialog to chose the name and accept
+  tempDisplaySettings.value = event
+  inputName.value = selectedPreset.value
+  showPresetDialog.value = true
+}
+async function createPreset (event) {
+  const resp = await event
+  if (resp.valid) {
+    showPresetDialog.value = false
+    const style = {
+      name: cloneDeep(inputName.value),
+      layer: cloneDeep(selectedLayer.value),
+      displaySettings: cloneDeep(tempDisplaySettings.value),
+      selectedFilter: cloneDeep(selectedFilter.value),
+    }
+
+    // only add the list of category (eyes) if its not everything.
+    // first filter to only get possible cat. we way load a style with non existing cat (ex highway=quenedi)
+    const filteredCat = selectedCategory.value.filter(val => filteredCategory.value.includes(val))
+    if (filteredCat.length < filteredCategory.value.length) {
+      style.selectedCategory = cloneDeep(selectedCategory.value)
+    }
+
+    // if its an OD preset. save the selected index.
+    if (ODfeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
+      style.selectedIndex = matSelectedIndex.value
+    }
+
+    store.addStyle(style)
+    if (visibleRasters.value.includes(inputName.value)) {
+      store.changeNotification(
+        {
+          text: $gettext('Preset changed. Please reload the active layer on the map'),
+          autoClose: true,
+          color: 'warning',
+        })
+    } else {
+      store.changeNotification(
+        { text: $gettext('Preset Saved'), autoClose: true, color: 'success' })
+    }
+
+    selectedPreset.value = cloneDeep(inputName.value)
+  }
+}
+
+function deletePreset () {
+  store.deleteStyle(presetToDelete.value)
+  showDeleteDialog.value = false
+  if (presetToDelete.value === selectedPreset.value) {
+    // if it was selected. unselect it
+    selectedPreset.value = null
+  }
+  store.changeNotification(
+    { text: $gettext('Preset deleted'), autoClose: true, color: 'success' })
+  presetToDelete.value = ''
+}
+
+const showDialog = ref(false)
+const formData = ref([])
+function featureClicked (event) {
+  if (event.action === 'featureClick') {
+    formData.value = event.feature
+    showDialog.value = true
+    // OD click.
+  } else {
+    // will verify in this function if hasOD and the selected feature is an OD.
+    changeOD(event.feature.index)
+    mapRef.value.update()
+  }
+}
+
 </script>
 <template>
   <section class="map-view">
     <ResultsSidePanel
-      ref="sidePanel"
       :selected-category="selectedCategory"
       :selected-filter="selectedFilter"
       :layer-choices="availableLayers"

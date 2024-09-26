@@ -1,201 +1,176 @@
 <!-- eslint-disable vue/no-dupe-keys -->
-<script>
+<script setup>
 
 import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox3'
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
 import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef } from 'vue'
-
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
-const $gettext = s => s
 
-export default {
-  name: 'ResultMap',
+const props = defineProps([
+  'selectedFeature',
+  'layerType',
+  'extrusion',
+  'links',
+  'nanLinks',
+  'opacity',
+  'offset',
+  'selectedLayer'])
+const { selectedFeature, layerType, extrusion, links, nanLinks, opacity, offset, selectedLayer } = toRefs(props)
 
-  components: {
-    MglMap,
-    MglNavigationControl,
-    MglScaleControl,
-    MglGeojsonLayer,
-    MglImageLayer,
+const emits = defineEmits(['selectClick'])
+const store = useIndexStore()
 
-  },
-  props: ['selectedFeature', 'layerType', 'extrusion', 'links', 'nanLinks', 'opacity', 'offset', 'selectedLayer'],
-  emits: ['selectClick'],
-  setup (props, context) {
-    const store = useIndexStore()
+// Mapbox
+const mapIsLoaded = ref(false)
+const mapboxPublicKey = key
+const map = shallowRef(null)
+const minZoom = ref({
+  nodes: 14,
+  links: 2,
+})
 
-    // Mapbox
-    const mapIsLoaded = ref(false)
-    const mapboxPublicKey = key
-    const map = shallowRef(null)
-    const minZoom = ref({
-      nodes: 14,
-      links: 2,
-    })
+const mapStyle = computed(() => { return store.mapStyle })
 
-    const mapStyle = computed(() => { return store.mapStyle })
+watch(mapStyle, () => {
+  if (map.value) {
+    if (map.value.getLayer('arrow')) map.value.removeLayer('arrow')
+    if (map.value.getLayer('links')) map.value.removeLayer('links')
+    if (map.value.getLayer('zones')) map.value.removeLayer('zones')
+    if (map.value.getLayer('nodes')) map.value.removeLayer('nodes')
+    mapIsLoaded.value = false
+    saveMapPosition()
+  }
+})
 
-    watch(mapStyle, () => {
-      if (map.value) {
-        if (map.value.getLayer('arrow')) map.value.removeLayer('arrow')
-        if (map.value.getLayer('links')) map.value.removeLayer('links')
-        if (map.value.getLayer('zones')) map.value.removeLayer('zones')
-        if (map.value.getLayer('nodes')) map.value.removeLayer('nodes')
-        mapIsLoaded.value = false
-        saveMapPosition()
-      }
-    })
+onBeforeUnmount(() => {
+  // remove arrow layer first as it depend on rlink layer
+  if (map.value) { saveMapPosition() }
+  if (map.value?.getLayer('arrow')) { map.value.removeLayer('arrow') }
+})
 
-    onBeforeUnmount(() => {
-      // remove arrow layer first as it depend on rlink layer
-      if (map.value) { saveMapPosition() }
-      if (map.value?.getLayer('arrow')) { map.value.removeLayer('arrow') }
-    })
+function saveMapPosition () {
+  const center = map.value.getCenter()
+  store.saveMapPosition({
+    mapCenter: [center.lng, center.lat],
+    mapZoom: map.value.getZoom(),
+  })
+}
 
-    function saveMapPosition () {
-      const center = map.value.getCenter()
-      store.saveMapPosition({
-        mapCenter: [center.lng, center.lat],
-        mapZoom: map.value.getZoom(),
-      })
+function onMapLoaded (event) {
+  if (map.value) mapIsLoaded.value = false
+  map.value = event.map
+  fitBounds()
+  map.value.loadImage(arrowImage, function (err, image) {
+    if (err) {
+      console.error('err image', err)
+      return
     }
+    map.value.addImage('arrow', image, { sdf: true })
+  })
 
-    function onMapLoaded (event) {
-      if (map.value) mapIsLoaded.value = false
-      map.value = event.map
-      fitBounds()
-      map.value.loadImage(arrowImage, function (err, image) {
-        if (err) {
-          console.error('err image', err)
-          return
+  if (extrusion.value) {
+    store.changeNotification(
+      { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
+  }
+  mapIsLoaded.value = true
+}
+function fitBounds () {
+  const bounds = new mapboxgl.LngLatBounds()
+  // only use first and last point. seems to bug when there is anchor...
+  if ((['Polygon']).includes(layerType.value)) {
+    links.value.features.forEach(link => {
+      try { // try, so NaN will not crash
+        if (link.geometry.type === 'Polygon') {
+          bounds.extend([link.geometry.coordinates[0][0],
+            link.geometry.coordinates[0][link.geometry.coordinates.length - 1]])
+        } else {
+          bounds.extend([link.geometry.coordinates[0][0][0],
+            link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
         }
-        map.value.addImage('arrow', image, { sdf: true })
-      })
+      } catch (err) { }
+    })
+  } else {
+    links.value.features.forEach(link => {
+      bounds.extend([link.geometry.coordinates[0],
+        link.geometry.coordinates[link.geometry.coordinates.length - 1]])
+    })
+  }
 
-      if (extrusion.value) {
-        store.changeNotification(
-          { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
-      }
-      mapIsLoaded.value = true
+  // for empty (new) project, do not fit bounds around the links geometries.
+  if (Object.keys(bounds).length !== 0) {
+    map.value.fitBounds(bounds, {
+      padding: 100,
+    })
+  }
+}
+
+const selectedLinks = ref([])
+const popup = ref(null)
+
+defineExpose({ update })
+function update () {
+  // childComponentRef.value.update()
+  // update map like that as the mapbox watcher is slower.
+  if (mapIsLoaded.value) {
+    map.value.getSource('results').setData(links.value)
+    map.value.getSource('NaNresults')?.setData(nanLinks.value)
+  }
+}
+
+// as the component is reRender when a layer changes type (ex point to line.) this is only
+// trigger when we changes layer of the same time. doing this. the map is not reloaded and we need to FitBounds.
+watch(selectedLayer, () => fitBounds())
+
+const offsetValue = computed(() => { return offset.value ? -1 : 1 })
+
+function enterLink (event) {
+  event.map.getCanvas().style.cursor = 'pointer'
+  selectedLinks.value = event.mapboxEvent.features
+  if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
+  if (selectedFeature.value && layerType.value !== 'Polygon') { // do not show popup if nothing is selected
+    const val = selectedLinks.value[0].properties[selectedFeature.value]
+    if (val) {
+      popup.value = new mapboxgl.Popup({ closeButton: false })
+        .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+        .setHTML(`${selectedFeature.value}: <br> ${val}`)
+        .addTo(event.map)
     }
-    function fitBounds () {
-      const bounds = new mapboxgl.LngLatBounds()
-      // only use first and last point. seems to bug when there is anchor...
-      if ((['Polygon']).includes(layerType.value)) {
-        links.value.features.forEach(link => {
-          try { // try, so NaN will not crash
-            if (link.geometry.type === 'Polygon') {
-              bounds.extend([link.geometry.coordinates[0][0],
-                link.geometry.coordinates[0][link.geometry.coordinates.length - 1]])
-            } else {
-              bounds.extend([link.geometry.coordinates[0][0][0],
-                link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
-            }
-          } catch (err) { }
-        })
-      } else {
-        links.value.features.forEach(link => {
-          bounds.extend([link.geometry.coordinates[0],
-            link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-        })
-      }
+  }
+}
 
-      // for empty (new) project, do not fit bounds around the links geometries.
-      if (Object.keys(bounds).length !== 0) {
-        map.value.fitBounds(bounds, {
-          padding: 100,
-        })
-      }
-    }
+function leaveLink (event) {
+  selectedLinks.value = []
+  if (popup.value?.isOpen()) popup.value.remove()
+  event.map.getCanvas().style.cursor = ''
+}
 
-    const selectedLinks = ref([])
-    const popup = ref(null)
-    const { selectedFeature, layerType, extrusion, links, nanLinks, opacity, offset, selectedLayer } = toRefs(props)
-    function update () {
-      // childComponentRef.value.update()
-      // update map like that as the mapbox watcher is slower.
-      if (mapIsLoaded.value) {
-        map.value.getSource('results').setData(links.value)
-        map.value.getSource('NaNresults')?.setData(nanLinks.value)
-      }
-    }
-    // as the component is reRender when a layer changes type (ex point to line.) this is only
-    // trigger when we changes layer of the same time. doing this. the map is not reloaded and we need to FitBounds.
-    watch(selectedLayer, () => fitBounds())
+function selectClick (event) {
+  selectedLinks.value = event.mapboxEvent.features
+  if (selectedLinks.value?.length > 0) {
+    emits('selectClick', { feature: selectedLinks.value[0].properties, action: 'featureClick' })
+  }
+}
 
-    const offsetValue = computed(() => { return offset.value ? -1 : 1 })
+function zoneClick (event) {
+  selectedLinks.value = event.mapboxEvent.features
+  if (selectedLinks.value?.length > 0) {
+    emits('selectClick', { feature: selectedLinks.value[0].properties, action: 'zoneClick' })
+  }
+}
 
-    function enterLink (event) {
-      event.map.getCanvas().style.cursor = 'pointer'
-      selectedLinks.value = event.mapboxEvent.features
-      if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
-      if (selectedFeature.value && layerType.value !== 'Polygon') { // do not show popup if nothing is selected
-        const val = selectedLinks.value[0].properties[selectedFeature.value]
-        if (val) {
-          popup.value = new mapboxgl.Popup({ closeButton: false })
-            .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-            .setHTML(`${selectedFeature.value}: <br> ${val}`)
-            .addTo(event.map)
-        }
-      }
-    }
+function zoneHover (event) {
+  event.map.getCanvas().style.cursor = 'pointer'
+}
 
-    function leaveLink (event) {
-      selectedLinks.value = []
-      if (popup.value?.isOpen()) popup.value.remove()
-      event.map.getCanvas().style.cursor = ''
-    }
-
-    function selectClick (event) {
-      selectedLinks.value = event.mapboxEvent.features
-      if (selectedLinks.value?.length > 0) {
-        context.emit('selectClick', { feature: selectedLinks.value[0].properties, action: 'featureClick' })
-      }
-    }
-
-    function zoneClick (event) {
-      selectedLinks.value = event.mapboxEvent.features
-      if (selectedLinks.value?.length > 0) {
-        context.emit('selectClick', { feature: selectedLinks.value[0].properties, action: 'zoneClick' })
-      }
-    }
-
-    function zoneHover (event) {
-      event.map.getCanvas().style.cursor = 'pointer'
-    }
-
-    function zoneLeave (event) {
-      event.map.getCanvas().style.cursor = ''
-    }
-
-    return {
-      store,
-      update,
-      mapIsLoaded,
-      mapboxPublicKey,
-      minZoom,
-      map,
-      mapStyle,
-      onMapLoaded,
-      layerType,
-      extrusion,
-      links,
-      nanLinks,
-      opacity,
-      offset,
-      offsetValue,
-      enterLink,
-      leaveLink,
-      selectClick,
-      zoneClick,
-      zoneHover,
-      zoneLeave,
-    }
-  },
+function zoneLeave (event) {
+  event.map.getCanvas().style.cursor = ''
 }
 </script>
+
 <template>
   <MglMap
     :key="mapStyle"
