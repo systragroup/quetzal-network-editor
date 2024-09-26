@@ -1,3 +1,10 @@
+## [6.1.e] (2024-09-26)
+
+### Features
+* **param category info ajustable**: Change [#560](https://github.com/systragroup/quetzal-network-editor/issues/560)
+
+* **multiple Road popup**: fix at the bottom (its a snackbar) [#559](https://github.com/systragroup/quetzal-network-editor/issues/559)
+
 ## [6.1.d] (2024-09-24)
 
 ### Features

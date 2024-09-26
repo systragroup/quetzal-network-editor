@@ -350,8 +350,8 @@ function contextMenuSelection (event) {
 
   if (selectedIds.value.size > 0) {
     contextMenu.value.showed = true
-    const poly = event.polygon.geometry.coordinates[0]
-    contextMenu.value.coordinates = [(poly[0][0] + poly[2][0]) / 2, Math.max(poly[0][1], poly[2][1])]
+    // put it in the nsakbar popup
+    contextMenu.value.coordinates = null
     contextMenu.value.feature = cloneDeep(selectedIds)
     contextMenu.value.actions
           = [
@@ -621,6 +621,7 @@ const ArrowDirCondition = computed(() => {
       @contextmenu="contextMenuNode"
     />
     <MglPopup
+      v-if="contextMenu.coordinates!==null"
       :close-button="false"
       :showed="contextMenu.showed"
       :coordinates="contextMenu.coordinates"
@@ -637,7 +638,6 @@ const ArrowDirCondition = computed(() => {
             v-for="action in contextMenu.actions"
             :key="action.id"
           >
-
             <v-btn
               variant="outlined"
               size="small"
@@ -647,11 +647,35 @@ const ArrowDirCondition = computed(() => {
             >
               {{ $gettext(action.text) }}
             </v-btn>
-
           </v-list-item>
         </v-list>
       </span>
     </MglPopup>
+    <v-snackbar
+      v-else
+      v-model="contextMenu.showed"
+      :close-button="false"
+      :coordinates="contextMenu.coordinates"
+      timeout="-1"
+      class="snackbar"
+    >
+      <v-list density="compact">
+        <v-list-item
+          v-for="action in contextMenu.actions"
+          :key="action.id"
+        >
+          <v-btn
+            variant="outlined"
+            size="small"
+            @click="actionClick({action: action.name,
+                                 feature: contextMenu.feature,
+                                 coordinates: contextMenu.coordinates})"
+          >
+            {{ $gettext(action.text) }}
+          </v-btn>
+        </v-list-item>
+      </v-list>
+    </v-snackbar>
   </section>
 </template>
 <style lang="scss" scoped>
