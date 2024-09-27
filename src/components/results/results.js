@@ -355,7 +355,7 @@ export function useResult () {
     // for a given filter (key) get array of unique value
     // e.g. get ['bus','subway'] for route_type
     const val = Array.from(new Set(layer.value.features.map(
-      item => item.properties[selectedFilter.value])))
+      item => item.properties[selectedFilter.value]))).sort()
     return val
   })
 

@@ -6,6 +6,10 @@
 ### Bug Fixes
 * **csv with list**: Can now show csv that contain lists.
 
+### Changes
+* **Map ColorMap selector**: add preview. change list css for a list (with hover). sort choice with classic one on top.
+* **Result side panel**: Features for filtering are now sorted.
+
 ## [6.1.e] (2024-09-26)
 
 ### Features
