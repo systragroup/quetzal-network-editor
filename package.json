@@ -68,7 +68,7 @@
     "vue": "^3.5.9",
     "vue-chartjs": "^5.3.1",
     "vue-i18n": "^9.14.1",
-    "vue-mapbox3": "^0.7.0",
+    "vue-mapbox3": "^0.8.1",
     "vue-router": "^4.4.5",
     "vue3-gettext": "^4.0.0-alpha.8",
     "vue3-json-viewer": "^2.2.2",

@@ -1,3 +1,11 @@
+## [6.1.f] (2024-09-27)
+
+### Features
+* **Labels in results map**: can show labels on result map.
+
+### Bug Fixes
+* **csv with list**: Can now show csv that contain lists.
+
 ## [6.1.e] (2024-09-26)
 
 ### Features

@@ -23,6 +23,7 @@ const defaultSettings = {
   reverseColor: false,
   extrusion: false,
   padding: [0, 100],
+  labels: null,
 }
 
 function isHexColor (variable) {

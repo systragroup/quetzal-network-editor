@@ -9011,10 +9011,10 @@ vue-i18n@^9.14.1:
     "@intlify/shared" "9.14.1"
     "@vue/devtools-api" "^6.5.0"
 
-vue-mapbox3@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/vue-mapbox3/-/vue-mapbox3-0.7.0.tgz#d0845c7ea14a996f26e9f4c97ef64f36ccf90e0b"
-  integrity sha512-anFvGWjXvsv/2xEHUfUNHqZcTsyzVT0BxqYW19ND2DSD4lJnkMn2LvWwn4gBagpF8ghN/y2i+zbUeo8sn1o8PQ==
+vue-mapbox3@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/vue-mapbox3/-/vue-mapbox3-0.8.1.tgz#ea389d0cd63048de80c8a2d9c3db429272b73d49"
+  integrity sha512-quzGCwxh7ke6tgNe3yuJONhlMIXr+jGw5MNSg8ZKbbPiY2NrvunXdS/V6B2dy97T8D8Yk1Nz0wgzwg8vpQf+cg==
 
 vue-router@^4.4.5:
   version "4.4.5"

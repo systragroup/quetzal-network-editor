@@ -1,213 +1,207 @@
-<script>
+<script setup>
 import chroma from 'chroma-js'
+import { ref, watch, toRefs } from 'vue'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-const $gettext = s => s
+const props = defineProps(['displaySettings', 'featureChoices', 'type'])
+const emits = defineEmits(['submit', 'save-preset'])
+const { displaySettings, featureChoices, type } = toRefs(props)
 
-export default {
-  name: 'ResultsSettings',
+const showDialog = ref(false)
+const parameters = ref([{
+  name: $gettext('selectedFeature'),
+  type: 'String',
+  value: displaySettings.value.selectedFeature,
+  units: '',
+  hint: $gettext('selectedFeature'),
+},
+{
+  name: $gettext('minWidth'),
+  type: 'Number',
+  value: displaySettings.value.minWidth,
+  units: 'a.u.',
+  hint: $gettext('minWidth'),
+},
+{
+  name: $gettext('maxWidth'),
+  type: 'Number',
+  value: displaySettings.value.maxWidth,
+  units: 'a.u.',
+  hint: $gettext('maxWidth'),
+},
+{
+  name: $gettext('numStep'),
+  type: 'Number',
+  value: displaySettings.value.numStep,
+  units: 'int',
+  hint: $gettext('numStep'),
+},
+{
+  name: $gettext('opacity'),
+  type: 'Number',
+  value: displaySettings.value.opacity,
+  units: 'number',
+  hint: $gettext('opacity'),
+},
+{
+  name: $gettext('scale'),
+  type: 'String',
+  value: displaySettings.value.scale,
+  choices: ['linear', 'sqrt', 'log', 'exp', 'quad'],
+  units: '',
+  hint: $gettext('scale'),
+},
+{
+  name: $gettext('color map'),
+  type: 'String',
+  choices: Object.keys(chroma.brewer).slice(0, 36),
+  value: displaySettings.value.cmap,
+  units: '',
+  hint: $gettext('cmap to use'),
+},
+{
+  name: $gettext('show NaN'),
+  value: displaySettings.value.showNaN,
+  hint: $gettext('Hide NaN on map and color map'),
+},
+{
+  name: $gettext('reverse color'),
+  value: displaySettings.value.reverseColor,
+  hint: $gettext('reverse color scale'),
+},
+{
+  name: $gettext('scale min'),
+  type: 'Number',
+  value: displaySettings.value.minVal,
+  units: 'a.u.',
+  hint: $gettext('mininum value on the color Map'),
+},
+{
+  name: $gettext('scale max'),
+  type: 'Number',
+  value: displaySettings.value.maxVal,
+  units: 'a.u.',
+  hint: $gettext('maximum value on the color Map'),
+},
+{
+  name: $gettext('custom scale'),
+  value: displaySettings.value.fixScale,
+  hint: $gettext('customize to inputs values'),
+},
+{
+  name: $gettext('Left side driving'),
+  value: displaySettings.value.offset,
+  hint: $gettext('Select which side of the road the links are display'),
+},
+{
+  name: $gettext('3D'),
+  value: displaySettings.value.extrusion,
+  hint: $gettext('display zones as 3D extrusion'),
+},
+{
+  name: $gettext('padding'),
+  type: 'Number',
+  value: displaySettings.value.padding,
+  units: 'number',
+  hint: $gettext('range of colors'),
+},
+{
+  name: $gettext('labels'),
+  type: 'String',
+  value: displaySettings.value.labels,
+  hint: $gettext('show labels'),
+},
+])
+const showHint = ref(false)
+const showFixScale = ref(false)
+const shake = ref(false)
 
-  props: ['displaySettings', 'featureChoices', 'type'],
-  emits: ['submit', 'save-preset'],
-  setup () {
+watch(showDialog, () => {
+  refresh()
+  showFixScale.value = parameters.value[11].value
+})
+// when we change layer
+watch(featureChoices, () => refresh())
 
-  },
-  data () {
-    return {
-      showDialog: false,
-      parameters: [{
-        name: $gettext('selectedFeature'),
-        type: 'String',
-        value: this.displaySettings.selectedFeature,
-        units: '',
-        hint: $gettext('selectedFeature'),
-      },
-      {
-        name: $gettext('minWidth'),
-        type: 'Number',
-        value: this.displaySettings.minWidth,
-        units: 'a.u.',
-        hint: $gettext('minWidth'),
-      },
-      {
-        name: $gettext('maxWidth'),
-        type: 'Number',
-        value: this.displaySettings.maxWidth,
-        units: 'a.u.',
-        hint: $gettext('maxWidth'),
-      },
-      {
-        name: $gettext('numStep'),
-        type: 'Number',
-        value: this.displaySettings.numStep,
-        units: 'int',
-        hint: $gettext('numStep'),
-      },
-      {
-        name: $gettext('opacity'),
-        type: 'Number',
-        value: this.displaySettings.opacity,
-        units: 'number',
-        hint: $gettext('opacity'),
-      },
-      {
-        name: $gettext('scale'),
-        type: 'String',
-        value: this.displaySettings.scale,
-        choices: ['linear', 'sqrt', 'log', 'exp', 'quad'],
-        units: '',
-        hint: $gettext('scale'),
-      },
-      {
-        name: $gettext('color map'),
-        type: 'String',
-        choices: Object.keys(chroma.brewer).slice(0, 36),
-        value: this.displaySettings.cmap,
-        units: '',
-        hint: $gettext('cmap to use'),
-      },
-      {
-        name: $gettext('show NaN'),
-        value: this.displaySettings.showNaN,
-        hint: $gettext('Hide NaN on map and color map'),
-      },
-      {
-        name: $gettext('reverse color'),
-        value: this.displaySettings.reverseColor,
-        hint: $gettext('reverse color scale'),
-      },
-      {
-        name: $gettext('scale min'),
-        type: 'Number',
-        value: this.displaySettings.minVal,
-        units: 'a.u.',
-        hint: $gettext('mininum value on the color Map'),
-      },
-      {
-        name: $gettext('scale max'),
-        type: 'Number',
-        value: this.displaySettings.maxVal,
-        units: 'a.u.',
-        hint: $gettext('maximum value on the color Map'),
-      },
-      {
-        name: $gettext('custom scale'),
-        value: this.displaySettings.fixScale,
-        hint: $gettext('customize to inputs values'),
-      },
-      {
-        name: $gettext('Left side driving'),
-        value: this.displaySettings.offset,
-        hint: $gettext('Select which side of the road the links are display'),
-      },
-      {
-        name: $gettext('3D'),
-        value: this.displaySettings.extrusion,
-        hint: $gettext('display zones as 3D extrusion'),
-      },
-      {
-        name: $gettext('padding'),
-        type: 'Number',
-        value: this.displaySettings.padding,
-        units: 'number',
-        hint: $gettext('range of colors'),
-      },
-
-      ],
-      showHint: false,
-      showFixScale: false,
-      shake: false,
-
-      rules: {
-        required: v => !!v || $gettext('Required'),
-        largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
-        nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
-      },
-    }
-  },
-  watch: {
-    showDialog () {
-      this.refresh()
-      this.showFixScale = this.parameters[11].value
-    },
-    // when we change layer
-    featureChoices () { this.refresh() },
-  },
-
-  methods: {
-    toggleFixScale () {
-      if (this.parameters[11].value) {
-        this.showFixScale = true
-        // refresh min max value when displayed
-        this.parameters[9].value = this.displaySettings.minVal
-        this.parameters[10].value = this.displaySettings.maxVal
-      } else { this.showFixScale = false }
-    },
-    getColor (scale) {
-      const arr = []
-      const reversed = this.parameters[8].value
-      let pad = this.parameters[14].value
-      pad = [pad[0] / 100, 1 - pad[1] / 100]
-      pad = reversed ? pad.reverse() : pad
-      const colorScale = chroma.scale(scale).padding(pad)
-        .domain([0, 100]).classes(25)
-      for (let i = 0; i < 100; i++) {
-        arr.push(colorScale(i).hex())
-      }
-      return reversed ? arr.reverse() : arr
-    },
-    refresh () {
-      this.parameters[0].value = this.displaySettings.selectedFeature
-      this.parameters[1].value = this.displaySettings.minWidth
-      this.parameters[2].value = this.displaySettings.maxWidth
-      this.parameters[3].value = this.displaySettings.numStep
-      this.parameters[4].value = this.displaySettings.opacity
-      this.parameters[5].value = this.displaySettings.scale
-      this.parameters[6].value = this.displaySettings.cmap
-      this.parameters[7].value = this.displaySettings.showNaN
-      this.parameters[8].value = this.displaySettings.reverseColor
-      this.parameters[9].value = this.displaySettings.minVal
-      this.parameters[10].value = this.displaySettings.maxVal
-      this.parameters[11].value = this.displaySettings.fixScale
-      this.parameters[12].value = this.displaySettings.offset
-      this.parameters[13].value = this.displaySettings.extrusion
-      this.parameters[14].value = this.displaySettings.padding
-    },
-    submit (method) {
-      if (this.$refs.form.validate()) {
-        const payload = {
-          selectedFeature: this.parameters[0].value,
-          minWidth: Number(this.parameters[1].value),
-          maxWidth: Number(this.parameters[2].value),
-          numStep: Number(this.parameters[3].value),
-          opacity: Number(this.parameters[4].value),
-          scale: this.parameters[5].value,
-          cmap: this.parameters[6].value,
-          showNaN: this.parameters[7].value,
-          reverseColor: this.parameters[8].value,
-          minVal: Number(this.parameters[9].value),
-          maxVal: Number(this.parameters[10].value),
-          fixScale: this.parameters[11].value,
-          offset: this.parameters[12].value,
-          extrusion: this.parameters[13].value,
-          padding: this.parameters[14].value,
-        }
-        if (method === 'apply') {
-          this.$emit('submit', payload)
-        } else if (method === 'save') {
-          this.$emit('save-preset', payload)
-        }
-      } else {
-        this.shake = true
-        setTimeout(() => {
-          this.shake = false
-        }, 500)
-      }
-    },
-    cancel () {
-      this.showDialog = false
-    },
-  },
+function toggleFixScale () {
+  if (parameters.value[11].value) {
+    showFixScale.value = true
+    // refresh min max value when displayed
+    parameters.value[9].value = displaySettings.value.minVal
+    parameters.value[10].value = displaySettings.value.maxVal
+  } else { showFixScale.value = false }
 }
+
+function getColor (scale) {
+  const arr = []
+  const reversed = parameters.value[8].value
+  let pad = parameters.value[14].value
+  pad = [pad[0] / 100, 1 - pad[1] / 100]
+  pad = reversed ? pad.reverse() : pad
+  const colorScale = chroma.scale(scale).padding(pad)
+    .domain([0, 100]).classes(25)
+  for (let i = 0; i < 100; i++) {
+    arr.push(colorScale(i).hex())
+  }
+  return reversed ? arr.reverse() : arr
+}
+
+function refresh () {
+  parameters.value[0].value = displaySettings.value.selectedFeature
+  parameters.value[1].value = displaySettings.value.minWidth
+  parameters.value[2].value = displaySettings.value.maxWidth
+  parameters.value[3].value = displaySettings.value.numStep
+  parameters.value[4].value = displaySettings.value.opacity
+  parameters.value[5].value = displaySettings.value.scale
+  parameters.value[6].value = displaySettings.value.cmap
+  parameters.value[7].value = displaySettings.value.showNaN
+  parameters.value[8].value = displaySettings.value.reverseColor
+  parameters.value[9].value = displaySettings.value.minVal
+  parameters.value[10].value = displaySettings.value.maxVal
+  parameters.value[11].value = displaySettings.value.fixScale
+  parameters.value[12].value = displaySettings.value.offset
+  parameters.value[13].value = displaySettings.value.extrusion
+  parameters.value[14].value = displaySettings.value.padding
+  parameters.value[15].value = displaySettings.value.labels
+}
+function submit (method) {
+  if (true) {
+    const payload = {
+      selectedFeature: parameters.value[0].value,
+      minWidth: Number(parameters.value[1].value),
+      maxWidth: Number(parameters.value[2].value),
+      numStep: Number(parameters.value[3].value),
+      opacity: Number(parameters.value[4].value),
+      scale: parameters.value[5].value,
+      cmap: parameters.value[6].value,
+      showNaN: parameters.value[7].value,
+      reverseColor: parameters.value[8].value,
+      minVal: Number(parameters.value[9].value),
+      maxVal: Number(parameters.value[10].value),
+      fixScale: parameters.value[11].value,
+      offset: parameters.value[12].value,
+      extrusion: parameters.value[13].value,
+      padding: parameters.value[14].value,
+      labels: parameters.value[15].value,
+    }
+    if (method === 'apply') {
+      emits('submit', payload)
+    } else if (method === 'save') {
+      emits('save-preset', payload)
+    }
+  } else {
+    shake.value = true
+    setTimeout(() => {
+      shake.value = false
+    }, 500)
+  }
+}
+
+function cancel () {
+  showDialog.value = false
+}
+
 </script>
 <template>
   <v-menu
@@ -383,6 +377,7 @@ export default {
               v-model="parameters[12].value"
               density="compact"
               color="primary"
+              :hide-details="!showHint"
               :label="$gettext(parameters[12].name)"
               :hint="showHint? $gettext(parameters[12].hint): ''"
               :persistent-hint="showHint"
@@ -392,6 +387,7 @@ export default {
               v-model="parameters[7].value"
               density="compact"
               color="primary"
+              :hide-details="!showHint"
               :label="$gettext(parameters[7].name)"
               :hint="showHint? $gettext(parameters[7].hint): ''"
               :persistent-hint="showHint"
@@ -401,6 +397,7 @@ export default {
               v-model="parameters[8].value"
               density="compact"
               color="primary"
+              :hide-details="!showHint"
               :label="$gettext(parameters[8].name)"
               :hint="showHint? $gettext(parameters[7].hint): ''"
               :persistent-hint="showHint"
@@ -411,36 +408,51 @@ export default {
               v-model="parameters[13].value"
               density="compact"
               color="primary"
+              :hide-details="!showHint"
               :label="$gettext(parameters[13].name)"
               :disabled="!['Polygon','extrusion'].includes(type)"
               :hint="showHint? $gettext(parameters[13].hint): ''"
               :persistent-hint="showHint"
+            />
+            <v-select
+              v-model="parameters[15].value"
+              variant="underlined"
+              :items="[null, ...featureChoices.sort()]"
+              :label="$gettext(parameters[15].name)"
+              :hint="showHint? $gettext(parameters[15].hint): ''"
+              :persistent-hint="showHint"
+              required
             />
             <v-switch
               :key="parameters[11].name"
               v-model="parameters[11].value"
               density="compact"
               variant="underlined"
-
               color="primary"
+              :hide-details="!showHint"
               :label="$gettext(parameters[11].name)"
               :hint="showHint? $gettext(parameters[11].hint): ''"
               :persistent-hint="showHint"
               @update:modelValue="toggleFixScale(parameters[11].name)"
             />
-            <v-text-field
-              v-for="item in parameters.slice(9,11)"
-              v-show="showFixScale"
-              :key="item.name"
-              v-model="item.value"
-              variant="underlined"
-              :type="item.type"
-              :label="$gettext(item.name)"
-              :suffix="item.units"
-              :hint="showHint? $gettext(item.hint): ''"
-              :persistent-hint="showHint"
-              required
-            />
+            <v-row>
+              <v-col
+                v-for="item in parameters.slice(9,11)"
+                :key="item.name"
+              >
+                <v-text-field
+                  v-show="showFixScale"
+                  v-model="item.value"
+                  variant="underlined"
+                  :type="item.type"
+                  :label="$gettext(item.name)"
+                  :suffix="item.units"
+                  :hint="showHint? $gettext(item.hint): ''"
+                  :persistent-hint="showHint"
+                  required
+                />
+              </v-col>
+            </v-row>
           </v-col>
         </v-container>
       </v-form>

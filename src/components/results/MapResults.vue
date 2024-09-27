@@ -2,7 +2,7 @@
 <script setup>
 
 import mapboxgl from 'mapbox-gl'
-import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer } from 'vue-mapbox3'
+import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer, MglSymbolLayer } from 'vue-mapbox3'
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
 import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef } from 'vue'
@@ -14,12 +14,13 @@ const props = defineProps([
   'selectedFeature',
   'layerType',
   'extrusion',
+  'labels',
   'links',
   'nanLinks',
   'opacity',
   'offset',
   'selectedLayer'])
-const { selectedFeature, layerType, extrusion, links, nanLinks, opacity, offset, selectedLayer } = toRefs(props)
+const { selectedFeature, layerType, extrusion, labels, links, nanLinks, opacity, offset, selectedLayer } = toRefs(props)
 
 const emits = defineEmits(['selectClick'])
 const store = useIndexStore()
@@ -118,6 +119,9 @@ function update () {
   if (mapIsLoaded.value) {
     map.value.getSource('results').setData(links.value)
     map.value.getSource('NaNresults')?.setData(nanLinks.value)
+    if (!labels.value) {
+      if (map.value.getLayer('labels')) map.value.removeLayer('labels')
+    }
   }
 }
 
@@ -353,6 +357,23 @@ function zoneLeave (event) {
       @mouseleave="zoneLeave"
       @click="zoneClick"
       @contextmenu="selectClick"
+    />
+    <MglSymbolLayer
+      v-if="labels!==null"
+      type="symbol"
+      source-id="results"
+      source="links"
+      layer-id="labels"
+      :layer="{
+        type: 'symbol',
+        layout: {
+          'text-field': ['get', labels],
+          'text-variable-anchor': ['top'],
+          'text-radial-offset': 0.6,
+          'text-justify': 'auto',
+        },
+        paint:{'text-color':$vuetify.theme.current.colors.black,}
+      }"
     />
   </MglMap>
 </template>

@@ -1,7 +1,7 @@
 <!-- eslint-disable no-case-declarations -->
 <script setup>
 
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useResult } from '@comp/results/results.js'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
@@ -32,17 +32,17 @@ const {
 const mapRef = ref() //  we update the map with this ref
 function updateSettings (payload) {
   applySettings(payload)
-  mapRef.value.update()
+  nextTick(() => mapRef.value.update())
 }
 function updateSelectedFilter (val) {
   changeSelectedFilter(val)
   updateSelectedFeature()
-  mapRef.value.update()
+  nextTick(() => mapRef.value.update())
 }
 function updateSelectedCategory (val) {
   changeSelectedCategory(val)
   updateSelectedFeature()
-  mapRef.value.update()
+  nextTick(() => mapRef.value.update())
 }
 
 const selectedLayer = ref('')
@@ -237,6 +237,7 @@ function featureClicked (event) {
       :selected-layer="selectedLayer"
       :layer-type="type"
       :extrusion="displaySettings.extrusion"
+      :labels="displaySettings.labels"
       :links="visibleLayer"
       :nan-links="NaNLayer"
       :selected-feature="displaySettings.selectedFeature"
