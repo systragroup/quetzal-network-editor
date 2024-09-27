@@ -9,6 +9,8 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
+import { useTheme } from 'vuetify'
+const theme = useTheme()
 // set visibility. to render or not by fetching the data.
 // we need to create all the statics link (even without the data)
 // for the correct z-order. if not, they are drawn over the links.
@@ -22,6 +24,8 @@ const store = useIndexStore()
 const name = preset.value.name
 const sourceId = name + '-source'
 const layerId = name + '-layer'
+const labelId = name + '-labels'
+
 const {
   visibleLayer, type, loadLayer, displaySettings, attributes, changeSelectedFilter,
   changeSelectedCategory, colorScale, isIndexAvailable, changeOD,
@@ -29,6 +33,7 @@ const {
 
 const opacity = preset.value.displaySettings.opacity
 const offsetValue = preset.value.displaySettings.offset ? -1 : 1
+const labels = preset.value.displaySettings.labels
 
 async function changeLayer (layer, settings = null) {
   switch (layer) {
@@ -90,6 +95,7 @@ onMounted(async () => {
       properties: {
         display_color: obj.properties.display_color,
         display_width: obj.properties.display_width,
+        label: obj.properties[labels],
       },
     }
   })
@@ -162,6 +168,20 @@ function addLayer () {
       },
     })
   }
+  if (labels !== null) {
+    map.value.addLayer({
+      id: labelId,
+      source: sourceId,
+      type: 'symbol',
+      layout: {
+        'text-field': ['get', 'label'],
+        'text-variable-anchor': ['top'],
+        'text-radial-offset': 0.6,
+        'text-justify': 'auto',
+      },
+      paint: { 'text-color': theme.current.value.colors.black },
+    })
+  }
 }
 function moveLayer () {
   // move layer in the correct order. must move layer under another layer.
@@ -194,6 +214,9 @@ function moveLayerOnTop () {
   }
 }
 onBeforeUnmount(() => {
+  if (map.value.getLayer(labelId)) {
+    map.value.removeLayer(labelId)
+  }
   if (map.value.getLayer(layerId)) {
     map.value.removeLayer(layerId)
     map.value.removeSource(sourceId)

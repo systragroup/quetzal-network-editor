@@ -1,3 +1,8 @@
+## [6.1.g] (2024-09-27)
+
+### Features
+* **Labels in static layers**: can show labels in static layers
+
 ## [6.1.f] (2024-09-27)
 
 ### Features
