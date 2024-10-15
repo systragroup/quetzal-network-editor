@@ -65,6 +65,20 @@ function handleChangeLanguage(lang) {
         <span>GitHub</span>
       </v-tooltip>
     </div>
+    <div>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            icon="fas fa-book"
+            color="'white'"
+            href="https://systragroup.github.io/quetzal-network-editor-doc/"
+            target="_blank"
+            v-bind="props"
+          />
+        </template>
+        <span>Doc</span>
+      </v-tooltip>
+    </div>
     <div class="switch">
       <v-switch
         v-model="darkMode"
@@ -93,7 +107,7 @@ function handleChangeLanguage(lang) {
           <v-list-item
             v-for="(lang, l) in language.available"
             :key="l"
-            @click="()=>handleChangeLanguage(l)"
+            @click="handleChangeLanguage(l)"
           >
             {{ lang.toUpperCase() }}
           </v-list-item>
