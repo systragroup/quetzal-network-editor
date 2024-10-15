@@ -581,7 +581,7 @@ const ArrowDirCondition = computed(() => {
           'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
           'circle-stroke-color': $vuetify.theme.current.colors.white,
           'circle-stroke-width': 1,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 6],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         },
       }"
@@ -608,7 +608,7 @@ const ArrowDirCondition = computed(() => {
         paint: {
           'circle-color': '#ffffff',
           'circle-opacity':0.5,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 8],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
           'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
           'circle-stroke-width': 2,
@@ -679,5 +679,4 @@ const ArrowDirCondition = computed(() => {
   </section>
 </template>
 <style lang="scss" scoped>
-
 </style>
