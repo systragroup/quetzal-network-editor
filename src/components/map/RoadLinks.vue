@@ -1,7 +1,7 @@
 <script setup>
 
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
-import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount, watchEffect } from 'vue'
+import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount, watchEffect, onUnmounted } from 'vue'
 import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
@@ -33,6 +33,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // remove arrow layer first as it depend on rlink layer
   map.value.removeLayer('arrow-rlinks')
+})
+
+onUnmounted(() => {
   if (isRoadMode.value) { rlinksStore.cancelEdition() } // if page change. we cancel.
 })
 
@@ -228,8 +231,8 @@ function updateData(source, array) {
     features.forEach(el => el.id = el.properties ? el.properties.index : el.id)
     const mapSource = map.value.getSource(source)
     mapSource.updateData({ type: 'FeatureCollection', features: features })
-  // features.forEach(feature => mapSource.updateData(feature))
   }
+  rlinksStore.networkWasModified = true // mark as updated. (if nothing change. Canel will be faster)
 }
 
 const updateLinks = computed(() => { return rlinksStore.updateLinks })
