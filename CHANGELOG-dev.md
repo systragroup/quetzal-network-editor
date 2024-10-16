@@ -1,3 +1,13 @@
+## [6.1.h] (2024-10-16)
+
+### Features
+* **Documentation hyperlink**: added to Toolbar.  [#561](https://github.com/systragroup/quetzal-network-editor/issues/561)
+
+* **Road edition can be Cancel**: added edit button (like TC) to start editing. can cancel or save changes. This changes the roadMode trigger wich was activate when tab was selected. [#563](https://github.com/systragroup/quetzal-network-editor/issues/563)
+
+### Changes
+* **road nodes size**:is now dynamic with zoom.  [#564](https://github.com/systragroup/quetzal-network-editor/issues/564)
+
 ## [6.1.g] (2024-09-27)
 
 ### Features
