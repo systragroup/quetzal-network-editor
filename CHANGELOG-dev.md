@@ -1,3 +1,8 @@
+## [6.1.i] (2024-10-16)
+
+### Optimization
+* **road links edition**: Changing page Faster. Only apply copied Network if changes was done. 
+
 ## [6.1.h] (2024-10-16)
 
 ### Features

@@ -35,9 +35,6 @@ export const userLinksStore = defineStore('rlinks', {
     visiblerNodes: {},
     connectedLinks: [],
     defaultHighway: 'quenedi',
-    updateLinks: [],
-    updateNodes: [],
-    updateAnchor: [],
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
     rlinksAttributesChoices: {},
@@ -45,8 +42,12 @@ export const userLinksStore = defineStore('rlinks', {
     rcstAttributes: defaultrCstAttributes,
     rundeletable: defaultrUndeletable,
     reversedAttributes: [],
+    updateLinks: [],
+    updateNodes: [],
+    updateAnchor: [],
     editionMode: false,
     savedNetwork: null,
+    networkWasModified: false, // update in Roadlinks.vue when map is updated (updateLinks and others are watch)
   }),
 
   actions: {
@@ -216,17 +217,21 @@ export const userLinksStore = defineStore('rlinks', {
     startEditing () {
       this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
       this.editionMode = true
+      this.networkWasModified = false
     },
     saveEdition() {
       this.savedNetwork = null
       this.editionMode = false
+      this.networkWasModified = false
     },
     cancelEdition() {
-      this.rlinks = JSON.parse(this.savedNetwork.rlinks)
-      this.rnodes = JSON.parse(this.savedNetwork.rnodes)
-      this.getFilteredrCat()
-      this.refreshVisibleRoads() // nodes are refresh in this method
-      this.updateLinks = [] // refresh rlinks
+      if (this.networkWasModified) {
+        this.rlinks = JSON.parse(this.savedNetwork.rlinks)
+        this.rnodes = JSON.parse(this.savedNetwork.rnodes)
+        this.getFilteredrCat()
+        this.refreshVisibleRoads() // nodes are refresh in this method
+        this.updateLinks = [] // refresh rlinks
+      }
 
       this.savedNetwork = null
       this.editionMode = false
@@ -329,8 +334,8 @@ export const userLinksStore = defineStore('rlinks', {
         this.updateNodes = [] // this fill reinit (show all)
         return
       } else if (payload.method === 'hideAll') {
+        this.visiblerNodes.features = [] // this will reinit (show none)
         this.updateNodes = []
-        this.visiblerNodes.features = [] // this fill reinit (show none)
         return
       }
 
@@ -372,14 +377,9 @@ export const userLinksStore = defineStore('rlinks', {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedNodeId, info } = payload
       const props = Object.keys(info)
-      this.rnodes.features.filter(
-        // eslint-disable-next-line array-callback-return
-        function (node) {
-          if (node.properties.index === selectedNodeId) {
-            props.forEach((key) => node.properties[key] = info[key].value)
-          }
-        },
-      )
+      const node = this.rnodes.features.filter(node => node.properties.index === selectedNodeId)[0]
+      props.forEach((key) => node.properties[key] = info[key].value)
+      this.updateNodes = [node]
     },
 
     createNewrNode (payload) {
