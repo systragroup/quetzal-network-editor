@@ -4,6 +4,7 @@ import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
+import SidePanelBottom from './SidePanelBottom.vue'
 
 const emits = defineEmits(['deleteButton', 'propertiesButton', 'update-tripList'])
 const store = useIndexStore()
@@ -96,6 +97,17 @@ function showAll () {
   }
 }
 
+const roadEditionMode = computed(() => rlinksStore.editionMode)
+function edit() {
+  rlinksStore.startEditing()
+}
+function confirmChanges() {
+  rlinksStore.saveEdition()
+}
+function abortChanges() {
+  rlinksStore.cancelEdition()
+}
+
 </script>
 <template>
   <section>
@@ -181,7 +193,7 @@ function showAll () {
     <v-card
       max-width="100%"
       min-width="100%"
-      :style="{'height':'calc(100vh - 250px)'}"
+      :style="roadEditionMode? {'height':'calc(100vh - 300px)'}: {'height':'calc(100vh - 260px)'}"
       class="mx-auto scrollable"
     >
       <v-list-item>
@@ -202,7 +214,7 @@ function showAll () {
       <v-virtual-scroll
         :items="filteredCat"
         :item-height="45"
-        :height="'calc(100vh - 250px - 88px)'"
+        :max-height="roadEditionMode? 'calc(100vh - 250px - 110px)': 'calc(100vh - 250px - 70px)'"
       >
         <template v-slot="{ item }">
           <div
@@ -262,7 +274,14 @@ function showAll () {
 
       <v-divider />
     </v-card>
-    <v-card class="mx-auto py-2">
+    <SidePanelBottom
+      :title="$gettext('Edit')"
+      :prepend-icon="false"
+      :is-edition="roadEditionMode"
+      @edit="edit"
+      @confirm-changes="confirmChanges"
+      @abort-changes="abortChanges"
+    >
       <v-tooltip
         location="right"
         open-delay="500"
@@ -301,8 +320,7 @@ function showAll () {
         </template>
         <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
       </v-tooltip>
-      <v-spacer />
-    </v-card>
+    </SidePanelBottom>
   </section>
 </template>
 <style lang="scss" scoped>

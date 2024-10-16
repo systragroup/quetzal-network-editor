@@ -7,8 +7,8 @@ import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
 import { useRouting } from '@src/components/utils/routing/routing.js'
-
 import { userLinksStore } from '@src/store/rlinks'
+import SidePanelBottom from './SidePanelBottom.vue'
 const rlinksStore = userLinksStore()
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
@@ -510,100 +510,70 @@ function deleteButton (obj) {
 
       <v-divider />
     </v-card>
-    <div class="mx-auto py-2 card">
-      <div v-if="editorTrip">
-        <div class="action-row">
-          <v-tooltip
-            location="right"
-            open-delay="500"
-          >
-            <template v-slot:activator="{ props }">
-              <v-btn
-                class="mx-1"
-                :color="store.anchorMode? 'grey':'regular'"
-                v-bind="props"
-                size="small"
-                icon="fas fa-anchor"
-                @click="store.changeAnchorMode()"
-              />
-            </template>
-            <span> {{ $gettext("Edit Line geometry") }} </span>
-          </v-tooltip>
-          <v-tooltip
-            location="right"
-            open-delay="500"
-          >
-            <template v-slot:activator="{ props }">
-              <v-btn
-                class="mx-1"
-                size="small"
-                :color="store.stickyMode? 'green':'regular'"
-                v-bind="props"
-                icon="fa-solid fa-magnet"
-                @click="store.changeStickyMode()"
-              />
-            </template>
-            <span> {{ $gettext("stick nodes on existing nodes") }}</span>
-          </v-tooltip>
-          <v-tooltip
-            location="right"
-            open-delay="500"
-          >
-            <template v-slot:activator="{ props }">
-              <v-btn
-                size="small"
-                v-bind="props"
-                :disabled="rlinksIsEmpty"
-                :color="store.routingMode? 'green':'regular'"
-                icon="fas fa-route"
-                @click="store.changeRoutingMode()"
-              />
-            </template>
-            <span> {{ $gettext("Follow roads") }}</span>
-          </v-tooltip>
-
-          <v-btn
-            v-if="store.routingMode"
-            class="ml-2"
-            append-icon="fas fa-road"
-            @click="toggleRouting"
-          >
-            {{ !isRouted? 'all': 'none' }}
-          </v-btn>
-        </div>
-        <div>
-          <v-btn
-            prepend-icon="fas fa-times-circle"
-            width="40%"
-            @click="emits('abortChanges')"
-          >
-            {{ $gettext("Abort") }}
-          </v-btn>
-          <v-btn
-            color="primary"
-            class="mx-2"
-            width="55%"
-            prepend-icon="fas fa-save"
-            @click="emits('confirmChanges')"
-          >
-            {{ $gettext("Confirm") }}
-          </v-btn>
-        </div>
-      </div>
-      <div
-        v-else
-        :style="{'justify-content':'flex-end'}"
+    <SidePanelBottom
+      :is-edition="editorTrip"
+      @edit="createNewLine"
+      @confirm-changes="emits('confirmChanges')"
+      @abort-changes="emits('abortChanges')"
+    >
+      <v-tooltip
+        location="right"
+        open-delay="500"
       >
-        <v-btn
-          color="primary"
-          block
-          prepend-icon="fas fa-plus"
-          @click="createNewLine"
-        >
-          {{ $gettext("new Line") }}
-        </v-btn>
-      </div>
-    </div>
+        <template v-slot:activator="{ props }">
+          <v-btn
+            class="mx-1"
+            :color="store.anchorMode? 'grey':'regular'"
+            v-bind="props"
+            size="small"
+            icon="fas fa-anchor"
+            @click="store.changeAnchorMode()"
+          />
+        </template>
+        <span> {{ $gettext("Edit Line geometry") }} </span>
+      </v-tooltip>
+      <v-tooltip
+        location="right"
+        open-delay="500"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
+            class="mx-1"
+            size="small"
+            :color="store.stickyMode? 'green':'regular'"
+            v-bind="props"
+            icon="fa-solid fa-magnet"
+            @click="store.changeStickyMode()"
+          />
+        </template>
+        <span> {{ $gettext("stick nodes on existing nodes") }}</span>
+      </v-tooltip>
+      <v-tooltip
+        location="right"
+        open-delay="500"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
+            size="small"
+            v-bind="props"
+            :disabled="rlinksIsEmpty"
+            :color="store.routingMode? 'green':'regular'"
+            icon="fas fa-route"
+            @click="store.changeRoutingMode()"
+          />
+        </template>
+        <span> {{ $gettext("Follow roads") }}</span>
+      </v-tooltip>
+
+      <v-btn
+        v-if="store.routingMode"
+        class="ml-2"
+        append-icon="fas fa-road"
+        @click="toggleRouting"
+      >
+        {{ !isRouted? 'all': 'none' }}
+      </v-btn>
+    </SidePanelBottom>
   </section>
 </template>
 <style lang="scss" scoped>
@@ -697,14 +667,4 @@ transition:0.3s
   margin: 0 !important;
   color: white;
 }
-.card {
-  display:flex;
-  background-color: rgb(var(--v-theme-lightergrey));
-  margin:0.5rem;
-  padding: 1rem
-}
-.action-row {
-  margin-bottom:0.3rem
-}
-
 </style>

@@ -45,6 +45,8 @@ export const userLinksStore = defineStore('rlinks', {
     rcstAttributes: defaultrCstAttributes,
     rundeletable: defaultrUndeletable,
     reversedAttributes: [],
+    editionMode: false,
+    savedNetwork: null,
   }),
 
   actions: {
@@ -211,6 +213,24 @@ export const userLinksStore = defineStore('rlinks', {
         this.visiblerNodes.features.filter(node => delete node.properties[payload.name])
       }
     },
+    startEditing () {
+      this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
+      this.editionMode = true
+    },
+    saveEdition() {
+      this.savedNetwork = null
+      this.editionMode = false
+    },
+    cancelEdition() {
+      this.rlinks = JSON.parse(this.savedNetwork.rlinks)
+      this.rnodes = JSON.parse(this.savedNetwork.rnodes)
+      this.getFilteredrCat()
+      this.refreshVisibleRoads() // nodes are refresh in this method
+      this.updateLinks = [] // refresh rlinks
+
+      this.savedNetwork = null
+      this.editionMode = false
+    },
 
     changeSelectedrFilter (payload) {
       this.selectedrFilter = payload
@@ -305,12 +325,12 @@ export const userLinksStore = defineStore('rlinks', {
       // find the nodes in the editor links
       if (payload.method === 'showAll') {
         this.visiblerNodes.features = this.rnodes.features
-        this.updateNodes = this.visiblerNodes.features
-        // updateAnchor = 'showAll'
+        // this.updateNodes = this.visiblerNodes.features
+        this.updateNodes = [] // this fill reinit (show all)
         return
       } else if (payload.method === 'hideAll') {
-        this.updateNodes = this.visiblerNodes.features.map(el => { return { type: 'Feature', id: el.properties.index } })
-        this.visiblerNodes.features = []
+        this.updateNodes = []
+        this.visiblerNodes.features = [] // this fill reinit (show none)
         return
       }
 
