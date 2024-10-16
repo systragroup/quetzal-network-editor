@@ -429,7 +429,6 @@ const { routeLink } = useRouting()
       <RoadLinks
         :map="map"
         :is-editor-mode="isEditorMode"
-        :is-road-mode="mode==='road'"
         @select="drawMode = false"
         v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
       />

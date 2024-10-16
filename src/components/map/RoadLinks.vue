@@ -14,13 +14,14 @@ import { useGettext } from 'vue3-gettext'
 import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
 
-const props = defineProps(['map', 'isEditorMode', 'isRoadMode'])
+const props = defineProps(['map', 'isEditorMode'])
 const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'select'])
 // defineExpose({ init })
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 
-const { map, isRoadMode } = toRefs(props)
+const { map } = toRefs(props)
+const isRoadMode = computed(() => rlinksStore.editionMode)
 onMounted(() => {
   if (map.value.getLayer('links')) {
     map.value.moveLayer('rlinks', 'links')
@@ -32,6 +33,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // remove arrow layer first as it depend on rlink layer
   map.value.removeLayer('arrow-rlinks')
+  if (isRoadMode.value) { rlinksStore.cancelEdition() } // if page change. we cancel.
 })
 
 async function initLinks() {
@@ -88,7 +90,10 @@ watchEffect(() => {
 const popup = ref(null)
 const hoveredStateId = ref(null)
 const disablePopup = ref(false)
+
 const currentZoom = ref(10)
+
+async function getZoom() { currentZoom.value = map.value.getZoom() }
 // width go to x3 when zoomed. go progressively (sigmoid function.)
 const width = computed(() => {
   const x = currentZoom.value - minZoom.value.nodes
@@ -98,10 +103,8 @@ const width = computed(() => {
 
 const minZoom = ref({
   anchor: 14,
-  nodes: 12,
+  nodes: 24, // 12. start at 24 so non visible until isRoadMode change.
 })
-
-async function getZoom() { currentZoom.value = map.value.getZoom() }
 
 async function getBounds() {
   // query anchors if we move on the map
@@ -115,14 +118,17 @@ watch(isRoadMode, (val) => {
   if (val) {
     map.value.on('dragend', getBounds)
     map.value.on('zoomend', getZoom)
-    minZoom.value.nodes = 12
+    getZoom() // call function immediatly so line width are update at current zoom.
+    minZoom.value.nodes = 12 // set to visible
   } else {
     store.setAnchorMode(false)
     map.value.off('dragend', getBounds)
     map.value.off('zoomend', getZoom)
-    minZoom.value.nodes = 24
+    minZoom.value.nodes = 24 // set to invisible.
+    deselectAll() // deselect any selected links
+    emits('select') // this cancel the DrawMode.
   }
-}, { immediate: true })
+})
 
 const keepHovering = ref(false)
 const dragNode = ref(false)
@@ -212,7 +218,11 @@ function updateData(source, array) {
   // update features. if properties is not provided: ex: {type:'Feature',id:'link_1'}. will delete
   // if its empty. we set Data (refresh all.)
   if (array.length === 0) {
-    init()
+    if (source == 'rlinks') {
+      initLinks()
+    } else {
+      initNodes()
+    }
   } else {
     const features = cloneDeep(array)
     features.forEach(el => el.id = el.properties ? el.properties.index : el.id)
@@ -510,7 +520,7 @@ const ArrowDirCondition = computed(() => {
       :source="{
         type: 'geojson',
         dynamic:true,
-        data: visiblerLinks ,
+        data: geojson ,
         buffer: 0,
         promoteId: 'index',
       }"
