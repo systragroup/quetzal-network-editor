@@ -1,7 +1,7 @@
 <script setup>
 import s3 from '../AWSClient'
 import Markdown from '@comp/utils/Markdown.vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useGettext } from 'vue3-gettext'
@@ -23,6 +23,13 @@ function readBlobAsDataURL (blob) {
 
 const store = useIndexStore()
 const userStore = useUserStore()
+
+const isMobile = computed(() => store.isMobile)
+const width = ref(50)
+onMounted(() => {
+  width.value = isMobile.value ? 100 : 50
+})
+
 const imgs = ref([])
 const message = ref('')
 const mdString = ref('')
@@ -85,8 +92,6 @@ onMounted(async () => {
     message.value = $gettext('Nothing to display')
   }
 })
-
-const width = ref(50)
 
 </script>
 <template>

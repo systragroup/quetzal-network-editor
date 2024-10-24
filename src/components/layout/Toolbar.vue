@@ -7,12 +7,26 @@ import { ref, computed, watch } from 'vue'
 import { useTheme } from 'vuetify'
 import { useGettext } from 'vue3-gettext'
 import systraLogoUrl from '@static/systra_logo.png'
-
+import favicon from '@static/favicon.png'
 const store = useIndexStore()
 const userStore = useUserStore()
 
-const imageUrl = ref(systraLogoUrl)
-const scenario = computed(() => { return userStore.model + '/' + userStore.scenario })
+import { useCheckMobile } from '@comp/utils/useCheckMobile'
+const { isMobile } = useCheckMobile()
+watch(isMobile, (val) => {
+  store.changeMobile(val)
+}, { immediate: true })
+
+const imageUrl = computed(() => {
+  return isMobile.value ? favicon : systraLogoUrl
+})
+const scenario = computed(() => {
+  if (isMobile.value) {
+    return userStore.scenario
+  } else {
+    return userStore.model + '/' + userStore.scenario }
+},
+)
 
 const theme = useTheme()
 // when init. get preference. watcher on immediate will sync it with vuetify and store.
@@ -173,5 +187,14 @@ function handleChangeLanguage(lang) {
   font-size: 1.2em;
   padding-left: 1.2rem;
   color: rgb(var(--v-theme-secondarydark));
+}
+/* on mobile */
+@media (max-width: 768px) {
+  .app-name {
+    font-size: 0px;
+  }
+  .copyright{
+    font-size: 0px;
+  }
 }
 </style>

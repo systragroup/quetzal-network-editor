@@ -83,155 +83,157 @@ async function run() {
 
 </script>
 <template>
-  <v-row class="background">
-    <v-col order="1">
-      <ParamForm />
-    </v-col>
-    <v-col order="2">
-      <v-card class="card">
-        <div class="title-container">
-          <v-card-title class="subtitle">
-            {{ $gettext('Scenario Simulation') }}
-          </v-card-title>
-          <Logs :disabled="running || !modelIsLoaded" />
-        </div>
+  <section class="section">
+    <v-row class="background">
+      <v-col order="1">
+        <ParamForm />
+      </v-col>
+      <v-col order="2">
+        <v-card class="card">
+          <div class="title-container">
+            <v-card-title class="subtitle">
+              {{ $gettext('Scenario Simulation') }}
+            </v-card-title>
+            <Logs :disabled="running || !modelIsLoaded" />
+          </div>
 
-        <v-stepper
-          v-model="currentStep"
-          class="stepper"
-        >
-          <v-tabs
-            v-if="avalaibleStepFunctions.length>1"
-            v-model="stepFunction"
-            show-arrows
-            bg-color="lightgrey"
-            color="success"
-            fixed-tabs
+          <v-stepper
+            v-model="currentStep"
+            class="stepper"
           >
-            <v-tab
-              v-for="tab in avalaibleStepFunctions"
-              :key="tab"
-              :value="tab"
-              :disabled="running || !modelIsLoaded"
-            >
-              {{ tab }}
-            </v-tab>
-          </v-tabs>
-          <v-alert
-            v-if="!synchronized"
-            density="compact"
-            variant="outlined"
-            text
-            type="warning"
-          >
-            {{ $gettext("Results are not synchronized with latest modifications. \
-            Please relauch simulation to update results.") }}
-          </v-alert>
-          <v-alert
-            v-if="error"
-            density="compact"
-            variant="outlined"
-            text
-            type="error"
-          >
-            {{ $gettext("Simulation ended with an execution error or have been aborted. \
-            Please relauch simulation. If the problem persist, contact us.") }}
-            <p
-              v-for="key in Object.keys(errorMessage)"
-              :key="key"
-            >
-              <b>{{ key }}: </b>{{ errorMessage[key] }}
-            </p>
-          </v-alert>
-          <v-alert
-            v-if="isProtected"
-            density="compact"
-            variant="outlined"
-            text
-            type="error"
-          >
-            {{ $gettext("This scenario is protected. You can not run simulation.") }}
-          </v-alert>
-          <div class="buttons-row ma-2">
-            <v-btn
-              :loading="running"
-              :disabled="running || isProtected || !modelIsLoaded"
+            <v-tabs
+              v-if="avalaibleStepFunctions.length>1"
+              v-model="stepFunction"
+              show-arrows
+              bg-color="lightgrey"
               color="success"
-              prepend-icon="fa-solid fa-play"
-              @click="run()"
+              fixed-tabs
             >
-              {{ $gettext("Run Simulation") }}
-            </v-btn>
-            <v-btn
-              v-show="running && currentStep!==1"
-              color="grey"
-              variant="text"
-              @click="runStore.stopExecution()"
-            >
-              {{ $gettext("Abort") }}
-            </v-btn>
-
-            <v-switch
-              v-model="endSignal"
-              class="switch"
-              density="compact"
-              false-icon="fas fa-volume-xmark"
-              true-icon="fas fa-volume-high"
-              inset
-              color="success"
-              hide-details
-            >
-              <template
-                v-slot:prepend
+              <v-tab
+                v-for="tab in avalaibleStepFunctions"
+                :key="tab"
+                :value="tab"
+                :disabled="running || !modelIsLoaded"
               >
-                <span> {{ $gettext('End signal') }}</span>
-              </template>
-            </v-switch>
-          </div>
-          <div
-            v-if="modelIsLoaded"
-          >
-            <div
-              v-for="(step, i) in steps"
-              :key="i+1"
+                {{ tab }}
+              </v-tab>
+            </v-tabs>
+            <v-alert
+              v-if="!synchronized"
+              density="compact"
+              variant="outlined"
+              text
+              type="warning"
             >
-              <v-stepper-item
-                v-if="!error"
-                :complete="currentStep > i+1"
-                :color="currentStep >= i+1?'primary':'regular'"
-                :title="step.name"
-                :value="i+1"
-                compact
-                :step="i+1"
-              />
-              <v-stepper-item
-                v-else
-                :complete="currentStep > i+1"
-                :title="step.name"
-                :value="i+1"
-                :step="i+1"
-              />
+              {{ $gettext("Results are not synchronized with latest modifications. \
+            Please relauch simulation to update results.") }}
+            </v-alert>
+            <v-alert
+              v-if="error"
+              density="compact"
+              variant="outlined"
+              text
+              type="error"
+            >
+              {{ $gettext("Simulation ended with an execution error or have been aborted. \
+            Please relauch simulation. If the problem persist, contact us.") }}
+              <p
+                v-for="key in Object.keys(errorMessage)"
+                :key="key"
+              >
+                <b>{{ key }}: </b>{{ errorMessage[key] }}
+              </p>
+            </v-alert>
+            <v-alert
+              v-if="isProtected"
+              density="compact"
+              variant="outlined"
+              text
+              type="error"
+            >
+              {{ $gettext("This scenario is protected. You can not run simulation.") }}
+            </v-alert>
+            <div class="buttons-row ma-2">
+              <v-btn
+                :loading="running"
+                :disabled="running || isProtected || !modelIsLoaded"
+                color="success"
+                prepend-icon="fa-solid fa-play"
+                @click="run()"
+              >
+                {{ $gettext("Run Simulation") }}
+              </v-btn>
+              <v-btn
+                v-show="running && currentStep!==1"
+                color="grey"
+                variant="text"
+                @click="runStore.stopExecution()"
+              >
+                {{ $gettext("Abort") }}
+              </v-btn>
+
+              <v-switch
+                v-model="endSignal"
+                class="switch"
+                density="compact"
+                false-icon="fas fa-volume-xmark"
+                true-icon="fas fa-volume-high"
+                inset
+                color="success"
+                hide-details
+              >
+                <template
+                  v-slot:prepend
+                >
+                  <span> {{ $gettext('End signal') }}</span>
+                </template>
+              </v-switch>
             </div>
-          </div>
-        </v-stepper>
-      </v-card>
-    </v-col>
-  </v-row>
+            <div
+              v-if="modelIsLoaded"
+            >
+              <div
+                v-for="(step, i) in steps"
+                :key="i+1"
+              >
+                <v-stepper-item
+                  v-if="!error"
+                  :complete="currentStep > i+1"
+                  :color="currentStep >= i+1?'primary':'regular'"
+                  :title="step.name"
+                  :value="i+1"
+                  compact
+                  :step="i+1"
+                />
+                <v-stepper-item
+                  v-else
+                  :complete="currentStep > i+1"
+                  :title="step.name"
+                  :value="i+1"
+                  :step="i+1"
+                />
+              </div>
+            </div>
+          </v-stepper>
+        </v-card>
+      </v-col>
+    </v-row>
+  </section>
 </template>
 <style lang="scss" scoped>
-.container {
-  background-color:rgb(var(--v-theme-background)) !important;
-  overflow: hidden;
-  padding: 0;
+.section{
+  height: 100vh; /* or any fixed height */
+  position: relative;
 }
 .background {
   background-color: rgb(var(--v-theme-background));
   height: 100%;
   padding: 1rem;
-  overflow: hidden;
+  padding-bottom: 4rem;
+  overflow: auto;
 }
 .card {
-  height: 90vh;
+  height: 100%;
   overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
 }

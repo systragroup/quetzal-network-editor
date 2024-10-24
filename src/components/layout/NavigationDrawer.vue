@@ -11,7 +11,7 @@ import { version } from '../../../package.json'
 const store = useIndexStore()
 const userStore = useUserStore()
 const runStore = useRunStore()
-
+const isMobile = computed(() => store.isMobile)
 const running = computed(() => runStore.running)
 watch(running, (val) => {
   const item = menuItems.value.filter(item => item.name == 'Run')[0]
@@ -48,7 +48,13 @@ onMounted(() => {
   })
 })
 
-const getDisplayedRoutes = computed(() => menuItems.value.filter(o => o.icon))
+const getDisplayedRoutes = computed(() => {
+  if (isMobile.value) {
+    return menuItems.value.filter(o => o.name !== 'Home')
+  } else {
+    return menuItems.value
+  }
+})
 
 async function handleClickMenuItem (route) {
   switch (route.name) {

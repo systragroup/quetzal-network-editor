@@ -27,6 +27,7 @@ export const useIndexStore = defineStore('store', {
     notification: { autoClose: true },
     alert: {},
     darkMode: false,
+    isMobile: false,
     loading: false,
     showLeftPanel: true,
     anchorMode: false,
@@ -61,6 +62,9 @@ export const useIndexStore = defineStore('store', {
       rlinks.rlinksDefaultColor = this.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
       links.linksDefaultColor = this.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
       this.mapStyle = this.darkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11'
+    },
+    changeMobile (payload) {
+      this.isMobile = payload
     },
     changeMapStyle (payload) {
       this.mapStyle = payload

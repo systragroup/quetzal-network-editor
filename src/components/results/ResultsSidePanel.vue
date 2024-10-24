@@ -1,98 +1,95 @@
-<script>
+<script setup>
 import { useIndexStore } from '@src/store/index'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
-export default {
-  name: 'SidePanel',
-  components: {
+const props = defineProps(['selectedCategory',
+  'selectedFilter',
+  'filterChoices',
+  'filteredCat',
+  'layerChoices',
+  'selectedLayer',
+  'presetChoices',
+  'selectedPreset'])
+const emits = defineEmits(['update-selectedCategory',
+  'select-layer',
+  'select-preset',
+  'delete-preset',
+  'update-selectedFilter'])
 
-  },
+const store = useIndexStore()
 
-  props: ['selectedCategory', 'selectedFilter', 'filterChoices', 'filteredCat', 'layerChoices', 'selectedLayer', 'presetChoices', 'selectedPreset'],
-  emits: ['update-selectedCategory', 'select-layer', 'select-preset', 'delete-preset', 'update-selectedFilter'],
-  setup (props, context) {
-    const store = useIndexStore()
-    const showLeftPanel = computed(() => { return store.showLeftPanel })
-    const showLeftPanelContent = ref(true)
-    watch(showLeftPanel, (val) => {
-      if (val) {
-        // Leave time for animation to end (.fade-enter-active css rule)
-        setTimeout(() => {
-          showLeftPanelContent.value = true
-        }, 500)
-      } else {
-        showLeftPanelContent.value = false
-      }
-    })
-    const openMenu = ref(false)
-    const presetsMenu = ref(false)
+const isMobile = computed(() => store.isMobile)
 
-    const { selectedCategory, filteredCat } = toRefs(props)
-    const selectedCat = ref([])
-    watch(selectedCategory, (newVal, oldVal) => {
-      if (newVal !== oldVal) {
-        selectedCat.value = newVal
-      }
-    })
-    watch(selectedCat, (val) => {
-      if (val !== selectedCategory.value) {
-        context.emit('update-selectedCategory', val)
-      }
-    })
-    function init (payload) {
-      selectedCat.value = payload.selectedCategory
-    }
-    function showAll () {
-      if (selectedCat.value.length === filteredCat.value.length) {
-        selectedCat.value = []
-      } else {
-        selectedCat.value = filteredCat.value
-      }
-    }
+const showLeftPanel = computed(() => { return store.showLeftPanel })
+const showLeftPanelContent = ref(true)
+const panelWidth = ref(350)
+onMounted(() => { panelWidth.value = isMobile.value ? window.innerWidth - 100 : 350 })
 
-    const { selectedFilter } = toRefs(props)
-    const vmodelSelectedFilter = ref('')
-    watch(selectedFilter, (val) => {
-      // when we change seledted filter from other component (changing layer.)
-      if (val !== vmodelSelectedFilter.value) {
-        vmodelSelectedFilter.value = val
-        // this.selectedCat = this.selectedCategory
-      }
-    })
-    watch(vmodelSelectedFilter, (val) => {
-      if ((val !== selectedFilter.value)) { // when created, we dont want to emit
-        context.emit('update-selectedFilter', val)
-        selectedCat.value = selectedCategory.value // show all. when we change layer
-      }
-    })
+watch(showLeftPanel, (val) => {
+  if (val) {
+    // Leave time for animation to end (.fade-enter-active css rule)
+    setTimeout(() => {
+      showLeftPanelContent.value = true
+    }, 500)
+  } else {
+    showLeftPanelContent.value = false
+  }
+})
+const openMenu = ref(false)
+const presetsMenu = ref(false)
 
-    onMounted(() => {
-      vmodelSelectedFilter.value = selectedFilter.value
-      selectedCat.value = selectedCategory.value
-      // this is necessary to show the initial layer on the map.
-      context.emit('update-selectedFilter', selectedFilter.value)
-      context.emit('update-selectedCategory', selectedCategory.value)
-    })
+const { selectedCategory, filteredCat } = toRefs(props)
+const selectedCat = ref([])
+watch(selectedCategory, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    selectedCat.value = newVal
+  }
+})
+watch(selectedCat, (val) => {
+  if (val !== selectedCategory.value) {
+    emits('update-selectedCategory', val)
+  }
+})
 
-    return {
-      store,
-      showLeftPanel,
-      showLeftPanelContent,
-      openMenu,
-      presetsMenu,
-      selectedCat,
-      vmodelSelectedFilter,
-      init,
-      showAll,
-    }
-  },
-
+function showAll () {
+  if (selectedCat.value.length === filteredCat.value.length) {
+    selectedCat.value = []
+  } else {
+    selectedCat.value = filteredCat.value
+  }
 }
+
+const { selectedFilter } = toRefs(props)
+const vmodelSelectedFilter = ref('')
+watch(selectedFilter, (val) => {
+  // when we change seledted filter from other component (changing layer.)
+  if (val !== vmodelSelectedFilter.value) {
+    vmodelSelectedFilter.value = val
+    // this.selectedCat = this.selectedCategory
+  }
+})
+watch(vmodelSelectedFilter, (val) => {
+  if ((val !== selectedFilter.value)) { // when created, we dont want to emit
+    emits('update-selectedFilter', val)
+    selectedCat.value = selectedCategory.value // show all. when we change layer
+  }
+})
+
+onMounted(() => {
+  vmodelSelectedFilter.value = selectedFilter.value
+  selectedCat.value = selectedCategory.value
+  // this is necessary to show the initial layer on the map.
+  emits('update-selectedFilter', selectedFilter.value)
+  emits('update-selectedCategory', selectedCategory.value)
+})
+
 </script>
 <template>
   <section
     :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
-    :style="{'width': showLeftPanel ? '350px' : '0px'}"
+    :style="{'width': showLeftPanel ? panelWidth+'px' : '0px'}"
   >
     <div
       class="left-panel-toggle-btn elevation-4"
@@ -125,10 +122,10 @@ export default {
 
                 transition="slide-y-transition"
               >
-                <template v-slot:activator="{ props }">
+                <template v-slot:activator="{ props:p }">
                   <div
                     class="menu-container"
-                    v-bind="props"
+                    v-bind="p"
                   >
                     <div
                       class="title-div"
@@ -175,10 +172,10 @@ export default {
                 location="bottom"
                 open-delay="300"
               >
-                <template v-slot:activator="{ props }">
+                <template v-slot:activator="{ props:p }">
                   <v-btn
                     variant="text"
-                    v-bind="props"
+                    v-bind="p"
                     :disabled="presetChoices.length===0"
                     :style="{color: 'white'}"
                     icon="fas fa-download"
@@ -193,13 +190,13 @@ export default {
                 location="bottom"
                 open-delay="500"
               >
-                <template v-slot:activator="{ props }">
+                <template v-slot:activator="{ props:p }">
                   <v-btn
                     :style="{color: 'white', flex:0, 'padding-left':'1.1rem','padding-right':'1.5rem'}"
                     class="eye-button"
                     :icon=" selectedCat.length == filteredCat.length ? 'fa-eye-slash fa' : 'fa-eye fa'"
                     variant="text"
-                    v-bind="props"
+                    v-bind="p"
                     @click="showAll()"
                   />
                 </template>
@@ -211,14 +208,14 @@ export default {
                 close-delay="100"
                 transition="slide-y-transition"
               >
-                <template v-slot:activator="{ props }">
+                <template v-slot:activator="{ props:p }">
                   <div
                     class="title-div"
-                    v-bind="props"
+                    v-bind="p"
                   >
                     <div
                       class="menu-container"
-                      v-bind="props"
+                      v-bind="p"
                     >
                       <div
                         class="title-div"
