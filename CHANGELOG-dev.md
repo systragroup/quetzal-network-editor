@@ -1,3 +1,8 @@
+## [6.1.k] (2024-10-24)
+
+### Changes
+Change Navigation drawer and Toolbar.On mobile. hide the navigation drawer
+
 ## [6.1.j] (2024-10-24)
 
 ### Changes

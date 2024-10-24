@@ -11,6 +11,8 @@ import favicon from '@static/favicon.png'
 const store = useIndexStore()
 const userStore = useUserStore()
 
+const showRail = defineModel({ type: Boolean, default: false })
+
 import { useCheckMobile } from '@comp/utils/useCheckMobile'
 const { isMobile } = useCheckMobile()
 watch(isMobile, (val) => {
@@ -44,12 +46,17 @@ function handleChangeLanguage(lang) {
 
 </script>
 <template>
-  <v-toolbar
-    :class="'app-toolbar elevation-4'"
-    dense
+  <v-app-bar
+    density="compact"
+    class="app-toolbar "
   >
+    <v-btn
+      :icon="showRail? 'fas fa-chevron-left': 'fas fa-bars'"
+      @click="showRail=!showRail"
+    />
     <v-img
       :src="imageUrl"
+      min-width="50px"
       max-width="6rem"
     />
     <span class="copyright">©</span>
@@ -131,16 +138,21 @@ function handleChangeLanguage(lang) {
     <div>
       <Profile />
     </div>
-  </v-toolbar>
+  </v-app-bar>
 </template>
 
 <style lang="scss" scoped>
+
+// display: flex;
+//  align-items: center;
+//  justify-content: space-between;
+//  height: 100% !important;
+//  width: 100%;
+
 .app-toolbar {
   z-index: 100;
-  height: 50px !important;
-  display: flex;
-  position: relative;
-  padding-right: 1rem;
+  padding-right: 1rem !important;
+  background-color:rgb(var(--v-theme-lightgrey)) !important;
 }
 .login {
   padding-left: 50px;
