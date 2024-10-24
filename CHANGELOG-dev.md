@@ -1,3 +1,14 @@
+## [6.1.j] (2024-10-24)
+
+### Changes
+Mobile version [#569](https://github.com/systragroup/quetzal-network-editor/issues/569)
+* Import page working
+* Run page working
+* Home page (network editing) hidden
+* image result set to 100 zoom if mobile
+* map result side panel set smaller.
+
+
 ## [6.1.i] (2024-10-16)
 
 ### Optimization
