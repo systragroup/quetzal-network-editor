@@ -1,3 +1,8 @@
+## [6.1.l] (2024-10-24)
+
+### Changes
+Toolbar change CSS.scaling better on mobile. we have access to every buttons
+
 ## [6.1.k] (2024-10-24)
 
 ### Changes
