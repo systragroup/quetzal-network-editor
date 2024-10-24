@@ -26,10 +26,32 @@ watch(error, (val) => {
 
 const isProtected = computed(() => userStore.protected)
 const scenario = computed(() => userStore.scenario)
-const rail = ref(true)
+
 const drawer = ref(true)
+const showRail = defineModel({ type: Boolean, default: false })
+// logic to only have the sidepanel (small) if on desktop
 // force drawer to True. the action of opening it with an overlay set it to false.
-watch(drawer, () => { drawer.value = true })
+watch(drawer, () => {
+  if (showRail.value) {
+    drawer.value = true
+  } else if (isMobile.value) {
+    drawer.value = false
+  }
+})
+watch(showRail, (v) => {
+  if (v) {
+    drawer.value = true }
+  else if (isMobile.value) {
+    drawer.value = false }
+})
+
+watch(isMobile, (v) => {
+  if (v) {
+    drawer.value = false
+  } else {
+    drawer.value = true
+  }
+})
 
 const menuItems = ref([])
 onMounted(() => {
@@ -82,7 +104,7 @@ async function handleClickMenuItem (route) {
 
     default:
       router.push(route.path)
-      rail.value = true
+      showRail.value = false
       break
   }
 }
@@ -94,22 +116,11 @@ async function handleClickMenuItem (route) {
     <v-navigation-drawer
       v-model="drawer"
       class="drawer elevation-4"
-      :rail="rail"
+      :rail="!showRail"
       rail-width="50"
-      :temporary="!rail"
-      :permanent="rail"
+      temporary
+      :permanent="!showRail"
     >
-      <div
-        class="drawer-header"
-        @click.stop="rail = !rail"
-      >
-        <v-icon
-          size="small"
-          class="icon"
-        >
-          {{ rail ? 'fas fa-bars' : 'fas fa-angle-left' }}
-        </v-icon>
-      </div>
       <v-list
         class="app-menu"
       >
@@ -181,11 +192,14 @@ async function handleClickMenuItem (route) {
   </div>
 </template>
 <style lang="scss" scoped>
+.app-menu{
+  padding-top:1rem;
+}
 .version-number {
   justify-content: center ;
   display: flex;
   color:white !important;
-  margin-bottom: -0.5rem;
+  margin-bottom: 0.5rem;
   margin-top:1rem;
 
 }
