@@ -293,6 +293,7 @@ function stopResize () {
 .expansion{
   max-height:100%;
   overflow-y:auto;
+  overflow-x:hidden;
   flex-grow: 1;
   height:20rem;
 }
@@ -357,5 +358,11 @@ function stopResize () {
 .edition{
   border:1px gray solid;
   width:100%;
+}
+@media (max-width: 768px) {
+  .categorie {
+    font-size: 1em;
+  }
+
 }
 </style>
