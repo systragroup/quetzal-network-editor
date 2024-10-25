@@ -24,7 +24,7 @@ const showRail = ref(false)
 <template>
   <v-app class="app">
     <v-card
-      class="container"
+      class="container rounded-0"
     >
       <Toolbar v-model="showRail" />
       <NavigationDrawer v-model="showRail" />
