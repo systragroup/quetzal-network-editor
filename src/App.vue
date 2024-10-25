@@ -23,7 +23,7 @@ const showRail = ref(false)
 </script>
 <template>
   <v-app class="app">
-    <div
+    <v-card
       class="container"
     >
       <Toolbar v-model="showRail" />
@@ -39,7 +39,7 @@ const showRail = ref(false)
         />
       </v-overlay>
       <RouterView />
-    </div>
+    </v-card>
     <v-snackbar
       v-model="snackbar"
       :timeout="notification.autoClose ? 3000 : -1"

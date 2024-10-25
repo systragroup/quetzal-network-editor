@@ -1,3 +1,8 @@
+## [6.1.m] (2024-10-23)
+
+### Bug Fixes
+* bug in the dark mode (light mode en fact) of the app when I changed the global v-card to a div. revert.
+
 ## [6.1.l] (2024-10-24)
 
 ### Changes
