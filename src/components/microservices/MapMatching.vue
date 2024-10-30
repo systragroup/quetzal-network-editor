@@ -69,7 +69,16 @@ const parameters = ref([
     type: 'Boolean',
     units: 'bool',
     hint: 'Add PT metrics to road links (ex: number of trips & number of lines)',
-  }])
+  },
+  {
+    name: 'keepTime',
+    text: 'keep time',
+    value: runMapMatching.parameters.keepTime,
+    type: 'Boolean',
+    units: 'bool',
+    hint: 'if true. keep time and calculate speed. if false. keep speed and calcule time',
+  },
+])
 
 onMounted(() => {
   // remove nonExistant routeType from v-model selection (was deleted, or scen changed.)

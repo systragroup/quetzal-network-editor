@@ -1,3 +1,6 @@
+## [6.0.4] (2024-10-30)
+* add keepTime to mapmatching API.
+
 ## [6.0.3] (2024-10-30)
 * Update Mapmatching to new API structure. 
 
