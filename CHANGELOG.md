@@ -1,3 +1,6 @@
+## [6.0.3] (2024-10-30)
+* Update Mapmatching to new API structure. 
+
 ## [6.0.2] (2024-10-28)
 * security updates
 

@@ -3,6 +3,8 @@ import { useMapMatchingStore } from '@src/store/MapMatching'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
+import { useUserStore } from '@src/store/user'
+
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
@@ -79,14 +81,25 @@ onBeforeUnmount(() => {
 })
 
 async function start () {
+  const userStore = useUserStore()
   runMapMatching.running = true
   runMapMatching.setCallID()
   getApproxTimer()
   await exportFiles()
-  const inputs = { callID: callID.value, exclusions: runMapMatching.exclusions }
+  const params = { exclusions: runMapMatching.exclusions }
   parameters.value.forEach(item => {
-    inputs[item.name] = item.value
+    params[item.name] = item.value
   })
+  const inputs = {
+    scenario_path_S3: callID.value,
+    launcher_arg: {
+      training_folder: '/tmp',
+      params: params,
+    },
+    metadata: {
+      user_email: userStore.cognitoInfo.email,
+    },
+  }
   runMapMatching.startExecution(inputs)
 }
 
