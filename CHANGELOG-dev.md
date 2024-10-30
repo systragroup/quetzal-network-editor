@@ -1,3 +1,8 @@
+## [6.1.n] (2024-10-30)
+
+### Features
+* add keep time to mapmatching. (if true calclate Speed from time and length. if False calculate time from speed and length.) [#567](https://github.com/systragroup/quetzal-network-editor/issues/567)
+
 ## [6.1.m] (2024-10-23)
 
 ### Bug Fixes

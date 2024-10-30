@@ -25,6 +25,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     POWER: 2,
     DIFF: true,
     ptMetrics: true,
+    keepTime: true,
   })
   function saveParams (payload) { payload.forEach(param => parameters.value[param.name] = param.value) }
 
