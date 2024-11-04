@@ -276,7 +276,7 @@ function abortChanges() {
     </v-card>
     <SidePanelBottom
       :title="$gettext('Edit')"
-      :prepend-icon="false"
+      :prepend-icon="''"
       :is-edition="roadEditionMode"
       @edit="edit"
       @confirm-changes="confirmChanges"

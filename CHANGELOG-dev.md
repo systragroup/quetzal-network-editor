@@ -1,7 +1,16 @@
+## [6.1.o] (2024-11-04)
+
+### Bug Fixes
+* Translation was not working anymore with latest version of gettext (>3.0).
+
+
 ## [6.1.n] (2024-10-30)
 
 ### Features
 * add keep time to mapmatching. (if true calclate Speed from time and length. if False calculate time from speed and length.) [#567](https://github.com/systragroup/quetzal-network-editor/issues/567)
+
+### Features
+* **Google API**: support in Matrix Road caster.
 
 ## [6.1.m] (2024-10-23)
 

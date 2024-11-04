@@ -190,7 +190,7 @@ async function loadExample (filesToLoads) {
     store.changeLoading(false)
     store.changeAlert({
       name: 'ImportError',
-      message: $gettext($gettext('An error occur fetching example on github')),
+      message: $gettext('An error occur fetching example on github'),
     })
   }
 }
