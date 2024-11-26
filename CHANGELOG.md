@@ -32,6 +32,10 @@
 * bug in the dark mode (light mode en fact) of the app when I changed the global v-card to a div. revert.
 * **parameters info**: is now scrollable and wont use all the page height if long.[#556](https://github.com/systragroup/quetzal-network-editor/issues/556)
 
+## [6.0.4] (2024-10-30)
+* add keepTime to mapmatching API.
+
+
 ## [6.0.3] (2024-10-30)
 * Update Mapmatching to new API structure. 
 
