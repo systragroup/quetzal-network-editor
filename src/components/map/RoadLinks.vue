@@ -1,7 +1,7 @@
 <script setup>
 
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
-import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount, watchEffect } from 'vue'
+import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount, watchEffect, onUnmounted } from 'vue'
 import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
@@ -14,13 +14,14 @@ import { useGettext } from 'vue3-gettext'
 import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
 
-const props = defineProps(['map', 'isEditorMode', 'isRoadMode'])
+const props = defineProps(['map', 'isEditorMode'])
 const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'select'])
 // defineExpose({ init })
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 
-const { map, isRoadMode } = toRefs(props)
+const { map } = toRefs(props)
+const isRoadMode = computed(() => rlinksStore.editionMode)
 onMounted(() => {
   if (map.value.getLayer('links')) {
     map.value.moveLayer('rlinks', 'links')
@@ -32,6 +33,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // remove arrow layer first as it depend on rlink layer
   map.value.removeLayer('arrow-rlinks')
+})
+
+onUnmounted(() => {
+  if (isRoadMode.value) { rlinksStore.cancelEdition() } // if page change. we cancel.
 })
 
 async function initLinks() {
@@ -88,7 +93,10 @@ watchEffect(() => {
 const popup = ref(null)
 const hoveredStateId = ref(null)
 const disablePopup = ref(false)
+
 const currentZoom = ref(10)
+
+async function getZoom() { currentZoom.value = map.value.getZoom() }
 // width go to x3 when zoomed. go progressively (sigmoid function.)
 const width = computed(() => {
   const x = currentZoom.value - minZoom.value.nodes
@@ -98,10 +106,8 @@ const width = computed(() => {
 
 const minZoom = ref({
   anchor: 14,
-  nodes: 12,
+  nodes: 24, // 12. start at 24 so non visible until isRoadMode change.
 })
-
-async function getZoom() { currentZoom.value = map.value.getZoom() }
 
 async function getBounds() {
   // query anchors if we move on the map
@@ -115,14 +121,17 @@ watch(isRoadMode, (val) => {
   if (val) {
     map.value.on('dragend', getBounds)
     map.value.on('zoomend', getZoom)
-    minZoom.value.nodes = 12
+    getZoom() // call function immediatly so line width are update at current zoom.
+    minZoom.value.nodes = 12 // set to visible
   } else {
     store.setAnchorMode(false)
     map.value.off('dragend', getBounds)
     map.value.off('zoomend', getZoom)
-    minZoom.value.nodes = 24
+    minZoom.value.nodes = 24 // set to invisible.
+    deselectAll() // deselect any selected links
+    emits('select') // this cancel the DrawMode.
   }
-}, { immediate: true })
+})
 
 const keepHovering = ref(false)
 const dragNode = ref(false)
@@ -212,14 +221,18 @@ function updateData(source, array) {
   // update features. if properties is not provided: ex: {type:'Feature',id:'link_1'}. will delete
   // if its empty. we set Data (refresh all.)
   if (array.length === 0) {
-    init()
+    if (source == 'rlinks') {
+      initLinks()
+    } else {
+      initNodes()
+    }
   } else {
     const features = cloneDeep(array)
     features.forEach(el => el.id = el.properties ? el.properties.index : el.id)
     const mapSource = map.value.getSource(source)
     mapSource.updateData({ type: 'FeatureCollection', features: features })
-  // features.forEach(feature => mapSource.updateData(feature))
   }
+  rlinksStore.networkWasModified = true // mark as updated. (if nothing change. Canel will be faster)
 }
 
 const updateLinks = computed(() => { return rlinksStore.updateLinks })
@@ -350,8 +363,8 @@ function contextMenuSelection (event) {
 
   if (selectedIds.value.size > 0) {
     contextMenu.value.showed = true
-    const poly = event.polygon.geometry.coordinates[0]
-    contextMenu.value.coordinates = [(poly[0][0] + poly[2][0]) / 2, Math.max(poly[0][1], poly[2][1])]
+    // put it in the nsakbar popup
+    contextMenu.value.coordinates = null
     contextMenu.value.feature = cloneDeep(selectedIds)
     contextMenu.value.actions
           = [
@@ -510,7 +523,7 @@ const ArrowDirCondition = computed(() => {
       :source="{
         type: 'geojson',
         dynamic:true,
-        data: visiblerLinks ,
+        data: geojson ,
         buffer: 0,
         promoteId: 'index',
       }"
@@ -581,7 +594,7 @@ const ArrowDirCondition = computed(() => {
           'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
           'circle-stroke-color': $vuetify.theme.current.colors.white,
           'circle-stroke-width': 1,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 14, 6],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         },
       }"
@@ -608,7 +621,7 @@ const ArrowDirCondition = computed(() => {
         paint: {
           'circle-color': '#ffffff',
           'circle-opacity':0.5,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 8],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
           'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
           'circle-stroke-width': 2,
@@ -621,6 +634,7 @@ const ArrowDirCondition = computed(() => {
       @contextmenu="contextMenuNode"
     />
     <MglPopup
+      v-if="contextMenu.coordinates!==null"
       :close-button="false"
       :showed="contextMenu.showed"
       :coordinates="contextMenu.coordinates"
@@ -637,7 +651,6 @@ const ArrowDirCondition = computed(() => {
             v-for="action in contextMenu.actions"
             :key="action.id"
           >
-
             <v-btn
               variant="outlined"
               size="small"
@@ -647,13 +660,36 @@ const ArrowDirCondition = computed(() => {
             >
               {{ $gettext(action.text) }}
             </v-btn>
-
           </v-list-item>
         </v-list>
       </span>
     </MglPopup>
+    <v-snackbar
+      v-else
+      v-model="contextMenu.showed"
+      :close-button="false"
+      :coordinates="contextMenu.coordinates"
+      timeout="-1"
+      class="snackbar"
+    >
+      <v-list density="compact">
+        <v-list-item
+          v-for="action in contextMenu.actions"
+          :key="action.id"
+        >
+          <v-btn
+            variant="outlined"
+            size="small"
+            @click="actionClick({action: action.name,
+                                 feature: contextMenu.feature,
+                                 coordinates: contextMenu.coordinates})"
+          >
+            {{ $gettext(action.text) }}
+          </v-btn>
+        </v-list-item>
+      </v-list>
+    </v-snackbar>
   </section>
 </template>
 <style lang="scss" scoped>
-
 </style>

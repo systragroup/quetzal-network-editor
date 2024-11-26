@@ -35,9 +35,6 @@ export const userLinksStore = defineStore('rlinks', {
     visiblerNodes: {},
     connectedLinks: [],
     defaultHighway: 'quenedi',
-    updateLinks: [],
-    updateNodes: [],
-    updateAnchor: [],
     roadSpeed: 20,
     rlinksDefaultColor: '2196F3',
     rlinksAttributesChoices: {},
@@ -45,6 +42,12 @@ export const userLinksStore = defineStore('rlinks', {
     rcstAttributes: defaultrCstAttributes,
     rundeletable: defaultrUndeletable,
     reversedAttributes: [],
+    updateLinks: [],
+    updateNodes: [],
+    updateAnchor: [],
+    editionMode: false,
+    savedNetwork: null,
+    networkWasModified: false, // update in Roadlinks.vue when map is updated (updateLinks and others are watch)
   }),
 
   actions: {
@@ -211,6 +214,28 @@ export const userLinksStore = defineStore('rlinks', {
         this.visiblerNodes.features.filter(node => delete node.properties[payload.name])
       }
     },
+    startEditing () {
+      this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
+      this.editionMode = true
+      this.networkWasModified = false
+    },
+    saveEdition() {
+      this.savedNetwork = null
+      this.editionMode = false
+      this.networkWasModified = false
+    },
+    cancelEdition() {
+      if (this.networkWasModified) {
+        this.rlinks = JSON.parse(this.savedNetwork.rlinks)
+        this.rnodes = JSON.parse(this.savedNetwork.rnodes)
+        this.getFilteredrCat()
+        this.refreshVisibleRoads() // nodes are refresh in this method
+        this.updateLinks = [] // refresh rlinks
+      }
+
+      this.savedNetwork = null
+      this.editionMode = false
+    },
 
     changeSelectedrFilter (payload) {
       this.selectedrFilter = payload
@@ -305,12 +330,12 @@ export const userLinksStore = defineStore('rlinks', {
       // find the nodes in the editor links
       if (payload.method === 'showAll') {
         this.visiblerNodes.features = this.rnodes.features
-        this.updateNodes = this.visiblerNodes.features
-        // updateAnchor = 'showAll'
+        // this.updateNodes = this.visiblerNodes.features
+        this.updateNodes = [] // this fill reinit (show all)
         return
       } else if (payload.method === 'hideAll') {
-        this.updateNodes = this.visiblerNodes.features.map(el => { return { type: 'Feature', id: el.properties.index } })
-        this.visiblerNodes.features = []
+        this.visiblerNodes.features = [] // this will reinit (show none)
+        this.updateNodes = []
         return
       }
 
@@ -352,14 +377,9 @@ export const userLinksStore = defineStore('rlinks', {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedNodeId, info } = payload
       const props = Object.keys(info)
-      this.rnodes.features.filter(
-        // eslint-disable-next-line array-callback-return
-        function (node) {
-          if (node.properties.index === selectedNodeId) {
-            props.forEach((key) => node.properties[key] = info[key].value)
-          }
-        },
-      )
+      const node = this.rnodes.features.filter(node => node.properties.index === selectedNodeId)[0]
+      props.forEach((key) => node.properties[key] = info[key].value)
+      this.updateNodes = [node]
     },
 
     createNewrNode (payload) {
@@ -377,8 +397,12 @@ export const userLinksStore = defineStore('rlinks', {
       const nodeFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
       newNode.features = [nodeFeatures]
       this.newrNode = newNode
-      this.visiblerNodes.features.push(this.newrNode.features[0])
       this.rnodes.features.push(this.newrNode.features[0])
+      // dont duplicate nodes. Sometime, if quenedi road are hidden we need to happen.
+      const lastIndex = this.visiblerNodes.features.slice(-1)[0].properties.index
+      if (lastIndex !== this.newrNode.features[0].properties.index) {
+        this.visiblerNodes.features.push(this.newrNode.features[0])
+      }
     },
     splitrLink (payload) {
       // changing link1 change editorLinks as it is an observer.

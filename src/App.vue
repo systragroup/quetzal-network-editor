@@ -4,12 +4,8 @@ import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref, watch, onMounted } from 'vue'
-import { useTheme } from 'vuetify'
 
-const theme = useTheme()
 const store = useIndexStore()
-onMounted(() => { store.changeDarkMode(theme.global.current.value.dark) })
-
 const loading = computed(() => store.loading)
 
 const snackbar = ref(false)
@@ -22,25 +18,26 @@ watch(snackbar, (val) => {
 })
 onMounted(() => { store.initNetworks() })
 
+const showRail = ref(false)
+
 </script>
 <template>
   <v-app class="app">
-    <NavigationDrawer />
     <v-card
       class="container rounded-0"
     >
+      <Toolbar v-model="showRail" />
+      <NavigationDrawer v-model="showRail" />
       <v-overlay
         :model-value="loading"
         persistent
         class="align-center justify-center"
       >
         <v-progress-circular
-
           indeterminate
           size="64"
         />
       </v-overlay>
-      <Toolbar />
       <RouterView />
     </v-card>
     <v-snackbar
@@ -77,14 +74,21 @@ onMounted(() => { store.initNetworks() })
 
 }
 .container {
-  height: 100%;
-  margin-left: 50px;
+  height: calc(100% - 48px);
+  align-items:center;
   max-width: calc(100% - 50px);
-  padding: 0;
+  margin-left: 50px;
+  margin-top: 48px;
   background-color: rgb(var(--v-theme-background));
 }
 .container.login {
   margin-left: 0;
   max-width: 100%;
+}
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    margin-left:0;
+  }
 }
 </style>

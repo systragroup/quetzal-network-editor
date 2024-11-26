@@ -25,9 +25,19 @@ const store = useIndexStore()
 const validForm = ref(true)
 const showP = ref(false)
 const otherFiles = computed(() => store.otherFiles.filter(el => el.extension === 'geojson').map(el => el.name))
-const useZone = computed(() => parameters.value[0].value)
+const useZone = computed(() => parameters.value.filter(el => el.name == 'use_zone')[0].value)
+const isGoogle = computed(() => parameters.value.filter(el => el.name == 'api')[0].value === 'google')
 
 const parameters = ref([
+  {
+    name: 'api',
+    text: 'Api',
+    value: 'google',
+    type: 'String',
+    hint: 'api to use',
+    items: ['google', 'here'],
+    rules: [],
+  },
   {
     name: 'use_zone',
     text: 'Use zone',
@@ -66,9 +76,9 @@ const parameters = ref([
     value: null,
     type: 'String',
     units: '',
-    hint: 'DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal))',
+    hint: 'HERE DateTime in the past. (YYYY-MM-DDTHH:MM:SS(UTC-timezone) (-04:00 for montreal)). Google: datetime in the future. The timezone is not used here (local timezone used)',
     rules: [
-      'required', 'dateTimeRule',
+      'required', 'dateTimeRule', 'futureRule',
     ],
   },
   {
@@ -107,11 +117,11 @@ const parameters = ref([
   },
   {
     name: 'hereApiKey',
-    text: 'HERE api key',
+    text: 'api key',
     value: null,
     type: 'password',
     units: '',
-    hint: 'HERE api key to download a set of OD',
+    hint: 'Google or Here api key to download a set of OD',
     rules: [
       'required',
     ],
@@ -190,6 +200,7 @@ const rules = {
   largerThanZero: v => v > 0 || $gettext('should be larger than 0'),
   nonNegative: v => v >= 0 || $gettext('should be larger or equal to 0'),
   dateTimeRule: v => re.test(v) || $gettext('invalid date time'),
+  futureRule: v => (isGoogle.value && (Date.parse(v) > Date.now())) || $gettext('datetime must be in the future'),
 }
 
 </script>
@@ -207,6 +218,7 @@ const rules = {
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
         <v-alert
           v-if="error"
+          class="alert"
           density="compact"
           variant="outlined"
           text
@@ -329,10 +341,10 @@ const rules = {
 
 .card {
   height: 85vh;
+  width:50vw;
   overflow-y: auto;
   padding: 2.5rem;
   background-color: rgb(var(--v-theme-lightergrey));
-
 }
 .card2 {
   height: 85vh;
@@ -340,7 +352,6 @@ const rules = {
   padding: 2.5rem;
   margin-right: 3rem;
   background-color: rgb(var(--v-theme-lightergrey));
-
 }
 .zone-row {
   padding:1rem;
@@ -388,5 +399,9 @@ div.gallery img {
   width: 100%;
   height: auto;
 }
-
+.alert{
+  max-width: 100%;
+  min-height: 5rem;
+  overflow-y: scroll;
+}
 </style>

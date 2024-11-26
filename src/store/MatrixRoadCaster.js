@@ -33,9 +33,10 @@ export const useMRCStore = defineStore('runMRC', () => {
 
   const parameters = ref({
     callID: '',
+    api: 'google',
     num_zones: 100,
     train_size: 100,
-    date_time: '2022-12-13T08:00:21-04:00',
+    date_time: '2024-12-13T08:00:00-04:00',
     ff_time_col: 'time',
     max_speed: 100,
     num_cores: 1,

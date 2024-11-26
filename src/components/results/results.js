@@ -23,6 +23,7 @@ const defaultSettings = {
   reverseColor: false,
   extrusion: false,
   padding: [0, 100],
+  labels: null,
 }
 
 function isHexColor (variable) {
@@ -353,8 +354,9 @@ export function useResult () {
   const filteredCategory = computed(() => {
     // for a given filter (key) get array of unique value
     // e.g. get ['bus','subway'] for route_type
-    const val = Array.from(new Set(layer.value.features.map(
+    let val = Array.from(new Set(layer.value.features.map(
       item => item.properties[selectedFilter.value])))
+    val = val.sort((a, b) => a - b)
     return val
   })
 

@@ -171,34 +171,30 @@ async function unzip (file) {
 }
 
 // https://stackoverflow.com/questions/27979002/convert-csv-data-into-json-format-using-javascript
-function csvJSON (bytes) {
-  const csv = new TextDecoder().decode(bytes)
-  let lines = csv.split('\n')
-  lines = lines.map(line => line.replace(/\r/g, ''))
-  lines = lines.filter(line => line.length > 0)
-  const result = []
-  // NOTE: If your columns contain commas in their values, you'll need
-  // to deal with those before doing the next step
-  // (you might convert them to &&& or something, then covert them back later)
-  // jsfiddle showing the issue https://jsfiddle.net/
-  // if (lines.length > 100000) {
+function csvJSON(bytes, quoteChar = '"', delimiter = ',') {
+  // this version will read columns with lists.
+  const text = new TextDecoder().decode(bytes)
+  var rows = text.split('\n')
+  var headers = rows[0].split(',')
 
-  //  return [{ error: 'too many lines' }]
-  // }
-  const headers = lines[0].split(',')
-  for (let i = 1; i < lines.length; i++) {
-    const obj = {}
-    const currentline = lines[i].split(',')
+  const regex = new RegExp(`\\s*(${quoteChar})?(.*?)\\1\\s*(?:${delimiter}|$)`, 'gs')
 
-    for (let j = 0; j < headers.length; j++) {
-      // convert to number if possible
-      obj[headers[j]] = Number(currentline[j]) ? Number(currentline[j]) : currentline[j]
-    }
+  const match = line => [...line.matchAll(regex)]
+    .map(m => m[2])
+    .slice(0, -1)
 
-    result.push(obj)
-  }
-  // return result; //JavaScript object
-  return result
+  var lines = text.split('\n')
+  const heads = headers ?? match(lines.shift())
+  lines = lines.slice(1)
+
+  return lines.map(line => {
+    return match(line).reduce((acc, cur, i) => {
+      // replace blank matches with `null`
+      const val = cur.length <= 0 ? null : Number(cur) || cur
+      const key = heads[i] ?? `{i}`
+      return { ...acc, [key]: val }
+    }, {})
+  })
 }
 
 async function unzipCalendar (file) {

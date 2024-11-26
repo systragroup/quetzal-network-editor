@@ -151,6 +151,15 @@ Then compile the `po` files to a single `json` file using:
 yarn run i18n-compile
 ```
 
+### Deployment on dev
+
+1) change version number in package.json (ex: 6.1.b).
+2) add info to the CHANGELOG-dev.md
+3) run this script to deploy on https://github.com/systragroup/quetzal-network-editor-dev
+```bash
+yarn run deploy-staging
+```
+
 ### Deployement and Releases
 
 After merging developements on master create a tag matching the value in package.json.<br>

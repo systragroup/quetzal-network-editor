@@ -23,6 +23,8 @@ const store = useIndexStore()
 const userStore = useUserStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
+
+const isMobile = computed(() => store.isMobile)
 const projectIsEmpty = computed(() => store.projectIsEmpty)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
@@ -34,10 +36,11 @@ const zipInput = ref()
 
 onMounted(() => { store.changeNotification('') })
 
-function login () {
+function clickGo () {
   // Leave time for animation to end (.animate-login and .animate-layer css rules)
   setTimeout(() => {
-    router.push('/Home').catch(() => {})
+    let page = isMobile.value ? 'Run' : 'Home'
+    router.push(page).catch(() => {})
   }, 300)
 }
 
@@ -187,7 +190,7 @@ async function loadExample (filesToLoads) {
     store.changeLoading(false)
     store.changeAlert({
       name: 'ImportError',
-      message: $gettext($gettext('An error occur fetching example on github')),
+      message: $gettext('An error occur fetching example on github'),
     })
   }
 }
@@ -219,7 +222,7 @@ function loadNetwork (files) {
 
 </script>
 <template>
-  <section>
+  <section class="section">
     <input
       id="zip-input"
       ref="zipInput"
@@ -307,7 +310,7 @@ function loadNetwork (files) {
               <v-btn
                 :disabled="!filesAdded"
                 :color="filesAdded? 'primary' :'regular'"
-                @click="login()"
+                @click="clickGo()"
               >
                 {{ $gettext('Go!') }}
               </v-btn>
@@ -356,14 +359,17 @@ function loadNetwork (files) {
 </template>
 <style lang="scss" scoped>
 .layout {
-  position: relative;
   padding: 4rem 2rem;
   height:100%;
   display: flex;
   flex-flow: row;
   justify-content: center;
-  align-items: center;
+  align-items: start;
   overflow-y: auto;
+}
+.section{
+  height: 100vh; /* or any fixed height */
+  position: relative;
 }
 .center-col{
   display: flex;

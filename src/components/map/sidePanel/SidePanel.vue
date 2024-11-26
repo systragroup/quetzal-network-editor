@@ -5,11 +5,13 @@ import ODSidePanel from './ODSidePanel.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
+import { userLinksStore } from '@src/store/rlinks'
 
 const emits = defineEmits(['change-mode'])
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
+const rlinksStore = userLinksStore()
 
 const showLeftPanel = computed(() => { return store.showLeftPanel })
 const showLeftPanelContent = ref(true)
@@ -24,10 +26,12 @@ watch(showLeftPanel, (val) => {
   }
 })
 
-const editorTrip = computed(() => { return linksStore.editorTrip })
+const tcEditionMode = computed(() => linksStore.editorTrip !== null)
+const disableTabs = computed(() => tcEditionMode.value || rlinksStore.editionMode)
 
 const tab = ref()
 onMounted(() => {
+  rlinksStore.editionMode = false
   // default Tab when loading page.
   if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
     tab.value = 'road'
@@ -101,7 +105,7 @@ function stopResize () {
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
             <v-tabs
               v-model="tab"
-              :disabled="editorTrip!==null"
+              :disabled="disableTabs"
               bg-color="secondary"
               grow
             >
