@@ -1,3 +1,37 @@
+## [6.1.0] (2024-11-26)
+
+### Features
+* **Road edition can be Cancel**: added edit button (like TC) to start editing. can cancel or save changes. This changes the roadMode trigger wich was activate when tab was selected. [#563](https://github.com/systragroup/quetzal-network-editor/issues/563)
+* **Mobile version**: without edition page.  [#569](https://github.com/systragroup/quetzal-network-editor/issues/569)
+* **MD file in result**: Can display a MD file in the Picture page with png at the correct place. [#553](https://github.com/systragroup/quetzal-network-editor/issues/553)
+* **Labels in results layers**: can show labels in static layers
+* **Edit Params hint**: can double click on hints (parameters) and edit them.
+* **keep time mapmatching** api. (if true calculate Speed from time and length. if False calculate time from speed and length.) [#567](https://github.com/systragroup/quetzal-network-editor/issues/567)
+* **Google API**: support in Matrix Road caster.
+
+
+### Changes
+* **Documentation hyperlink**: added to Toolbar.  [#561](https://github.com/systragroup/quetzal-network-editor/issues/561)
+* **road nodes size**:is now dynamic with zoom.  [#564](https://github.com/systragroup/quetzal-network-editor/issues/564)
+* **multiple Road popup**: fix at the bottom (its a snackbar) [#559](https://github.com/systragroup/quetzal-network-editor/issues/559)
+* **Map ColorMap selector**: add preview. change list css for a list (with hover). sort choice with classic one on top.
+* **Result side panel**: Features for filtering are now sorted.
+* **param category info ajustable**: Change [#560](https://github.com/systragroup/quetzal-network-editor/issues/560)
+* **param category info**: aff info: {"category":"aggregation", "info": "this is my category info", "params":...}. support newline[#551]
+* **csv with list**: Can now show csv that contain lists.(https://github.com/systragroup/quetzal-network-editor/issues/551)
+* **Params form model list**: added support for list in model. field.
+* **VueJS 3.5**
+
+### Optimization
+* **road links edition**: Changing page Faster. Only apply copied Network if changes was done. 
+
+
+### Bug Fixes
+* Duplicate rnodes
+* Translation was not working anymore with latest version of gettext (>3.0).
+* bug in the dark mode (light mode en fact) of the app when I changed the global v-card to a div. revert.
+* **parameters info**: is now scrollable and wont use all the page height if long.[#556](https://github.com/systragroup/quetzal-network-editor/issues/556)
+
 ## [6.0.3] (2024-10-30)
 * Update Mapmatching to new API structure. 
 
