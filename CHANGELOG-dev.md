@@ -1,3 +1,8 @@
+## [6.1.p] (2024-11-26)
+
+### Bug Fixes
+* Duplicate rnodes
+
 ## [6.1.o] (2024-11-04)
 
 ### Bug Fixes

@@ -397,8 +397,12 @@ export const userLinksStore = defineStore('rlinks', {
       const nodeFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
       newNode.features = [nodeFeatures]
       this.newrNode = newNode
-      this.visiblerNodes.features.push(this.newrNode.features[0])
       this.rnodes.features.push(this.newrNode.features[0])
+      // dont duplicate nodes. Sometime, if quenedi road are hidden we need to happen.
+      const lastIndex = this.visiblerNodes.features.slice(-1)[0].properties.index
+      if (lastIndex !== this.newrNode.features[0].properties.index) {
+        this.visiblerNodes.features.push(this.newrNode.features[0])
+      }
     },
     splitrLink (payload) {
       // changing link1 change editorLinks as it is an observer.
