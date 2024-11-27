@@ -119,7 +119,8 @@ export const userLinksStore = defineStore('rlinks', {
       // append new links and node to the project (import page)
       payload.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
         points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
-
+      // remove links with a == b
+      payload.features = payload.features.filter(link => link.properties.a !== link.properties.b)
       payload.features.forEach(link => this.rlinks.features.push(link))
       this.getrLinksProperties()
       this.splitOneway()

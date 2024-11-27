@@ -1,3 +1,7 @@
+## [6.1.1] (2024-11-27)
+### Bug Fixes
+* Remove road links with a == b on import
+
 ## [6.1.0] (2024-11-26)
 
 ### Features
