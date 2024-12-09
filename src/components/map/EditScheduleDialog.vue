@@ -54,7 +54,8 @@ watch(showSchedule, (val) => {
 
 // Station Label
 const labelsChoices = computed(() => {
-  if (nodes.value.features.lengh > 0) {
+  if (nodes.value.features.length > 0) {
+    console.log(nodes.value.features[0].properties)
     return Object.keys(nodes.value.features[0].properties)
   } else { return [] }
 })

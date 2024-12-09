@@ -1,3 +1,7 @@
+## [6.1.2] (2024-12-09)
+### Bug Fixes
+* Station label in Schedule edition was not changeable.
+
 ## [6.1.1] (2024-11-27)
 ### Bug Fixes
 * Remove road links with a == b on import
