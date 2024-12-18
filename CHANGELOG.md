@@ -1,3 +1,7 @@
+## [6.1.3] (2024-12-09)
+### Bug Fixes
+* Change New password Regex for more special characters
+
 ## [6.1.2] (2024-12-09)
 ### Bug Fixes
 * Station label in Schedule edition was not changeable.
