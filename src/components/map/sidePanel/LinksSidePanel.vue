@@ -267,7 +267,7 @@ function deleteButton (obj) {
     <v-card
       max-width="100%"
       min-width="100%"
-      :style="editorTrip? {'height':'calc(100vh - 300px)'}: {'height':'calc(100vh - 260px)'}"
+      :style="editorTrip? {'height':'calc(100vh - 305px)'}: {'height':'calc(100vh - 260px)'}"
       class=" mx-auto scrollable"
     >
       <v-list-item>

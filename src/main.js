@@ -80,6 +80,7 @@ const vuetify = createVuetify({
           mediumgrey: '#ededed',
           darkgrey: '#5B5B5C',
           accent: '#2C3E4E',
+          accentlight: '#8f99a2',
           linksprimary: '#7EBAAC',
           linkssecondary: '#B5E0D6',
         },
@@ -101,6 +102,7 @@ const vuetify = createVuetify({
           black: '#FFFFFF',
           success: '#2196F3',
           accent: '#d3c1b1',
+          accentlight: '#8f99a2',
           linksprimary: '#2196F3',
           linkssecondary: '#90CAF9',
 

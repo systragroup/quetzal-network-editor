@@ -368,6 +368,29 @@ function stopMovingNode () {
         }
       }"
     />
+    <MglGeojsonLayer
+      source-id="stickyNodes"
+      :reactive="false"
+      :source="{
+        type: 'geojson',
+        data: geojson,
+        buffer: 0,
+        promoteId: 'index',
+      }"
+      layer-id="stickyNodes"
+      :layer="{
+        interactive: true,
+        type: 'circle',
+        minzoom: 2,
+        paint: {
+          'circle-color': $vuetify.theme.current.colors.accentlight,
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], ['case', ['boolean', isSticking, false], 24, 16], 8],
+          'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0, 0]
+        }
+      }"
+      @mouseover="onCursorSticky"
+      @mouseleave="offCursorSticky"
+    />
 
     <MglGeojsonLayer
       source-id="editorNodes"
@@ -422,32 +445,6 @@ function stopMovingNode () {
       @mouseleave="offCursor"
       @mousedown="moveNode"
       @contextmenu="contextMenuAnchor"
-    />
-
-    <MglGeojsonLayer
-      source-id="stickyNodes"
-      :reactive="false"
-      :source="{
-        type: 'geojson',
-        data: geojson,
-        buffer: 0,
-        promoteId: 'index',
-      }"
-      layer-id="stickyNodes"
-      :layer="{
-        interactive: true,
-        type: 'circle',
-        minzoom: 2,
-        paint: {
-          'circle-color': $vuetify.theme.current.colors.accent,
-          'circle-stroke-color': '#2C3E4E',
-          'circle-stroke-width': 2,
-          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], ['case', ['boolean', isSticking, false], 24, 10], 8],
-          'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0, 0]
-        }
-      }"
-      @mouseover="onCursorSticky"
-      @mouseleave="offCursorSticky"
     />
     <MglGeojsonLayer
       source-id="virtualLine"
