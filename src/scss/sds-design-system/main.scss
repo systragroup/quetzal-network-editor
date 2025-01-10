@@ -1,9 +1,9 @@
-@import 'body';
-@import 'color-shades';
-@import 'layout';
-@import 'typography';
-@import 'navigation-drawer';
-@import 'toolbar';
+@use 'body';
+@use 'color-shades';
+@use 'layout';
+@use 'typography';
+@use 'navigation-drawer';
+@use 'toolbar';
 
-@import 'mapboxgl';
-@import 'home';
+@use 'mapboxgl';
+@use 'home';

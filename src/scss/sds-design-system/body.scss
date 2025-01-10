@@ -1,3 +1,5 @@
+@use "color-shades";
+
 body {
   font-family: 'Roboto', sans-serif;
   font-size: 1rem; // 16px
@@ -12,11 +14,11 @@ body::-webkit-scrollbar {
 }
 ::-webkit-scrollbar-track {
   background-clip: padding-box;
-  background-color: $grey-medium;
+  background-color: color-shades.$grey-medium;
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb {
   background-clip: padding-box;
-  background-color: $secondary;
+  background-color: color-shades.$secondary;
   border-radius: 8px;
 }

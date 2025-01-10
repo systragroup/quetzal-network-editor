@@ -1,3 +1,5 @@
+@use "color-shades";
+
 .mapboxgl-ctrl-bottom-right {
   right: 10px;
   bottom: 10px;
@@ -7,11 +9,11 @@
   color: white;
   display:flex;
   width:fit-content;
-  background-color: $secondary;
+  background-color: color-shades.$secondary;
 }
 .mapboxgl-popup-tip {
-  border-bottom-color: $secondary !important;
-  border-top-color: $secondary 
+  border-bottom-color: color-shades.$secondary !important;
+  border-top-color: color-shades.$secondary 
 }
 .mapboxgl-popup-close-button {
   right: 20px;
@@ -19,5 +21,5 @@
   font-size: 1.5em;
 }
 .mapboxgl-ctrl-attrib-inner > a {
-  color: $secondary !important;
+  color: color-shades.$secondary !important;
 }
