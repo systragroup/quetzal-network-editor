@@ -83,6 +83,7 @@ const vuetify = createVuetify({
           accentlight: '#8f99a2',
           linksprimary: '#7EBAAC',
           linkssecondary: '#B5E0D6',
+          hover: '#f6f6f7',
         },
       },
       dark: {
@@ -105,6 +106,7 @@ const vuetify = createVuetify({
           accentlight: '#8f99a2',
           linksprimary: '#2196F3',
           linkssecondary: '#90CAF9',
+          hover: '#2a2a2a',
 
         },
       },

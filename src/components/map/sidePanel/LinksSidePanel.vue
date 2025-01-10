@@ -86,7 +86,7 @@ const arrayUniqueTripId = computed(() => {
   // drop duplicates links trips. each line is a trip here.
   const arrayUniqueByKey = [...new Map(linksStore.links.features.map(item =>
     [item.properties.trip_id, item.properties])).values()].filter(
-    (item) => item.trip_id.toLowerCase().startsWith(searchString.value.toLowerCase()))
+    (item) => item.trip_id.toLowerCase().includes(searchString.value.toLowerCase()))
   return arrayUniqueByKey
 })
 const filteredCat = computed(() => {
@@ -179,6 +179,15 @@ function cloneButton (obj) {
 function deleteButton (obj) {
   // obj contain trip and message.
   emits('deleteButton', obj)
+}
+import { useHighlight } from '../useHighlight'
+const { setHighlightTrip } = useHighlight()
+function setHighlight(trip) {
+  if (!editorTrip.value) {
+    setHighlightTrip(trip)
+  } else {
+    setHighlightTrip(null)
+  }
 }
 
 </script>
@@ -357,7 +366,6 @@ function deleteButton (obj) {
                       variant="text"
                       icon="fas fa-list"
                       class="ma-1"
-
                       :disabled="editorTrip!=null? true: false"
                       v-bind="hover"
                       @click.stop="propertiesButton(value.tripId)"
@@ -394,7 +402,9 @@ function deleteButton (obj) {
             <template v-slot="{ item }">
               <div
                 :key="item"
-                class="container"
+                class="container cell"
+                @mouseenter="setHighlight(item)"
+                @mouseleave="setHighlight()"
               >
                 <v-checkbox
                   v-model="localSelectedTrip"
@@ -511,7 +521,7 @@ function deleteButton (obj) {
       <v-divider />
     </v-card>
     <SidePanelBottom
-      :is-edition="editorTrip"
+      :is-edition="typeof editorTrip === 'string'"
       @edit="createNewLine"
       @confirm-changes="emits('confirmChanges')"
       @abort-changes="emits('abortChanges')"
@@ -597,6 +607,10 @@ function deleteButton (obj) {
 }
 .clickable{
   cursor: pointer;
+}
+.cell:hover{
+  background-color:  rgb(var(--v-theme-hover));
+  transition: background-color 0.3s ease; /* Smooth transition */
 }
 .clickable:hover {
   font-weight:bold;
