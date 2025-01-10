@@ -64,7 +64,7 @@ export default defineConfig(({ mode }) => {
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: '@import "@scss/sds-design-system/color-shades.scss";',
+          additionalData: '@use "@scss/sds-design-system/color-shades.scss" as *;',
           api: 'modern-compiler',
         },
       },
