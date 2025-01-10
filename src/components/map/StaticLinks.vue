@@ -153,6 +153,9 @@ function editLineProperties (selectedTrip) {
   emits('rightClick', { action: 'Edit Line Info', lingering: false })
 }
 
+import { useHighlight } from './useHighlight'
+const { highlightTrip, setHighlightTrip } = useHighlight()
+
 function contextMenuClick(trip) {
   if (contextMenu.value.action === 'editProperties') {
     editLineProperties(trip)
@@ -165,11 +168,11 @@ function contextMenuClick(trip) {
     setHighlightTrip(null)
   }
 }
-function setHighlightTrip(event) {
+watch(highlightTrip, (trip) => {
   const highlightLinks = cloneDeep(geojson)
-  highlightLinks.features = visibleLinks.value.features.filter(el => el.properties.trip_id === event)
+  highlightLinks.features = visibleLinks.value.features.filter(el => el.properties.trip_id === trip)
   map.value.getSource('highlightLink').setData(highlightLinks)
-}
+})
 
 </script>
 <template>
