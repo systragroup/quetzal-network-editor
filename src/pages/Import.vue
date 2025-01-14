@@ -359,35 +359,37 @@ function loadNetwork (files) {
 </template>
 <style lang="scss" scoped>
 .layout {
-  padding: 4rem 2rem;
+  padding: 1rem 2rem;
   height:100%;
   display: flex;
   flex-flow: row;
   justify-content: center;
   align-items: start;
-  overflow-y: auto;
 }
 .section{
-  height: 100vh; /* or any fixed height */
+  height: 100%; /* or any fixed height */
   position: relative;
 }
 .center-col{
   display: flex;
   flex-direction: column;
   width:28rem;
+  margin-bottom: 0.2rem;
   padding:0.5rem;
 
 }
 .left-col{
   display: flex;
-  height:80vh;
+  height:calc(100vh - 100px);
   flex-direction: column;
   width:28rem;
   padding:0.5rem;
 }
 .card {
-  overflow-y:hidden;
+  overflow-y:auto;
   padding: 20px;
+  height:100%;
+  width:100%;
   background-color: rgb(var(--v-theme-lightergrey));
 
 }
