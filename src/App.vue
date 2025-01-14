@@ -23,9 +23,7 @@ const showRail = ref(false)
 </script>
 <template>
   <v-app class="app">
-    <v-card
-      class="container rounded-0"
-    >
+    <v-layout>
       <Toolbar v-model="showRail" />
       <NavigationDrawer v-model="showRail" />
       <v-overlay
@@ -38,8 +36,10 @@ const showRail = ref(false)
           size="64"
         />
       </v-overlay>
-      <RouterView />
-    </v-card>
+      <v-main>
+        <RouterView />
+      </v-main>
+    </v-layout>
     <v-snackbar
       v-model="snackbar"
       :timeout="notification.autoClose ? 3000 : -1"
@@ -67,28 +67,9 @@ const showRail = ref(false)
 </template>
 <style lang="scss" scoped>
 .app {
-  background-color: $grey-ultralight!important;
   width: 100%;
   height: 100vh;
   overflow: hidden;
+}
 
-}
-.container {
-  height: calc(100% - 48px);
-  align-items:center;
-  max-width: calc(100% - 50px);
-  margin-left: 50px;
-  margin-top: 48px;
-  background-color: rgb(var(--v-theme-background));
-}
-.container.login {
-  margin-left: 0;
-  max-width: 100%;
-}
-@media (max-width: 768px) {
-  .container {
-    max-width: 100%;
-    margin-left:0;
-  }
-}
 </style>

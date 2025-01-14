@@ -1,3 +1,7 @@
+## [6.2.c] (2025-01-)
+### Changes
+* Change NavigationDrawer Looks and feels
+
 ## [6.2.b] (2025-01-14)
 ### Bug Fixes
 * Right click on links show hovered list and not a new mapbox request under the mouse
