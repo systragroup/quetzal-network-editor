@@ -7,8 +7,6 @@ import { useResult } from '@comp/results/results.js'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
-import { useGettext } from 'vue3-gettext'
-const { $gettext } = useGettext()
 import { useTheme } from 'vuetify'
 const theme = useTheme()
 // set visibility. to render or not by fetching the data.
@@ -27,61 +25,39 @@ const layerId = name + '-layer'
 const labelId = name + '-labels'
 
 const {
-  visibleLayer, type, loadLayer, displaySettings, attributes, changeSelectedFilter,
-  changeSelectedCategory, colorScale, isIndexAvailable, changeOD,
-} = useResult()
+  visibleLayer, type, loadLayer, displaySettings, colorScale, isIndexAvailable, changeOD } = useResult()
 
 const opacity = preset.value.displaySettings.opacity
 const offsetValue = preset.value.displaySettings.offset ? -1 : 1
 const labels = preset.value.displaySettings.labels
 
-async function changeLayer (layer, settings = null) {
+async function changeLayer (layer, preset = null) {
   switch (layer) {
     case 'links':
-      await loadLayer(linksStore.links, null, settings)
+      await loadLayer(linksStore.links, null, preset)
       break
     case 'rlinks':
-      await loadLayer(rlinksStore.rlinks, null, settings)
+      await loadLayer(rlinksStore.rlinks, null, preset)
       break
     case 'nodes':
-      await loadLayer(linksStore.nodes, null, settings)
+      await loadLayer(linksStore.nodes, null, preset)
       break
     case 'rnodes':
-      await loadLayer(rlinksStore.rnodes, null, settings)
+      await loadLayer(rlinksStore.rnodes, null, preset)
       break
     case 'od':
-      await loadLayer(ODStore.layer, null, settings)
+      await loadLayer(ODStore.layer, null, preset)
       break
     default:
       const data = await store.getOtherFile(layer, 'geojson')
       const matrix = await store.getOtherFile(layer, 'json')
-      await loadLayer(data, matrix, settings)
-
+      await loadLayer(data, matrix, preset)
       break
   }
 }
 
 onMounted(async () => {
-  await changeLayer(preset.value.layer, preset.value.displaySettings)
-
-  if (attributes.value.includes(preset.value?.selectedFilter)) {
-    // if preset contain a filter. apply it if it exist.
-    changeSelectedFilter(preset.value.selectedFilter)
-    // if there is a list of cat. apply them, else its everything
-    if (Object.keys(preset.value).includes('selectedCategory')) {
-      changeSelectedCategory(preset.value.selectedCategory)
-    } // else it will show all
-  } else {
-    // if the filter is in the preset but not the the layer. just put a warning.
-    if (Object.keys(preset.value).includes('selectedFilter')) {
-      store.changeNotification(
-        {
-          text: preset.value.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
-          autoClose: true,
-          color: 'error',
-        })
-    }
-  }
+  await changeLayer(preset.value.layer, preset.value)
 
   // if its an OD. click on the selected index.
   if (Object.keys(preset.value).includes('selectedIndex') && isIndexAvailable(preset.value.selectedIndex)) {

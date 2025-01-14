@@ -47,30 +47,30 @@ function updateSelectedCategory (val) {
 
 const selectedLayer = ref('')
 
-async function changeLayer (layer, settings = null) {
-  selectedLayer.value = layer
+async function changeLayer (layer, preset = null) {
   switch (layer) {
     case 'links':
-      await loadLayer(linksStore.links, null, settings)
+      await loadLayer(linksStore.links, null, preset)
       break
     case 'rlinks':
-      await loadLayer(rlinksStore.rlinks, null, settings)
+      await loadLayer(rlinksStore.rlinks, null, preset)
       break
     case 'nodes':
-      await loadLayer(linksStore.nodes, null, settings)
+      await loadLayer(linksStore.nodes, null, preset)
       break
     case 'rnodes':
-      await loadLayer(rlinksStore.rnodes, null, settings)
+      await loadLayer(rlinksStore.rnodes, null, preset)
       break
     case 'od':
-      await loadLayer(ODStore.layer, null, settings)
+      await loadLayer(ODStore.layer, null, preset)
       break
     default:
       const data = await store.getOtherFile(layer, 'geojson')
       const matrix = await store.getOtherFile(layer, 'json')
-      await loadLayer(data, matrix, settings)
+      await loadLayer(data, matrix, preset)
       break
   }
+  selectedLayer.value = layer
   mapRef.value.update()
 }
 
@@ -90,26 +90,7 @@ async function changePreset (preset) {
   selectedPreset.value = preset.name
   if (availableLayers.value.includes(preset.layer)) {
     // change layer if it exist
-    await changeLayer(preset.layer, preset.displaySettings)
-    if (attributes.value.includes(preset?.selectedFilter)) {
-      // if preset contain a filter. apply it if it exist.
-      changeSelectedFilter(preset.selectedFilter)
-      // if there is a list of cat. apply them, else its everything
-      if (Object.keys(preset).includes('selectedCategory')) {
-        changeSelectedCategory(preset.selectedCategory)
-      }
-      // else it will show all
-    } else {
-      // if the filter is in the preset but not the the layer. just put a warning.
-      if (Object.keys(preset).includes('selectedFilter')) {
-        store.changeNotification(
-          {
-            text: preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
-            autoClose: true,
-            color: 'error',
-          })
-      }
-    }
+    await changeLayer(preset.layer, preset)
   } else {
     store.changeNotification(
       { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
