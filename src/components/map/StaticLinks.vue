@@ -15,6 +15,12 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 const { map, isEditorMode, mode } = toRefs(props)
 
+const contextMenu = ref({
+  coordinates: [0, 0],
+  showed: false,
+  features: [],
+})
+
 // immediate necessary to trigger this (add doubleClick) when component is remounted (changing there for example)
 watch(isEditorMode, (val) => {
   if (val) {
@@ -102,12 +108,6 @@ function setHiddenFeatures () {
 
   // const endTime = performance.now()
 }
-
-const contextMenu = ref({
-  coordinates: [0, 0],
-  showed: false,
-  features: [],
-})
 
 function selectLine (e) {
   if (mode.value === 'pt') {
