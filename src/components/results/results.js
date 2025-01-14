@@ -153,8 +153,9 @@ export function useResult () {
     matSelectedIndex.value = null
   }
 
-  function loadLayer (data, matData, settings = null) {
+  function loadLayer (data, matData, preset = null) {
     reset()
+    const settings = preset?.displaySettings
     // Maybe. serializer. but we should do it in import. not here...
     // file.content = serializer(file.content, file.path, null, false)
     layer.value = cloneDeep(data)
@@ -174,6 +175,14 @@ export function useResult () {
         displaySettings.value.selectedFeature = settings?.selectedFeature
       } else {
         displaySettings.value.selectedFeature = null
+      }
+      if (attributes.value.includes(preset?.selectedFilter)) {
+        // if preset contain a filter. apply it if it exist.
+        changeSelectedFilter(preset.selectedFilter)
+        // if there is a list of cat. apply them, else its everything
+        if (Object.keys(preset).includes('selectedCategory')) {
+          selectedCategory.value = preset.selectedCategory
+        }
       }
       if (settings != null) {
         applySettings(settings, true)

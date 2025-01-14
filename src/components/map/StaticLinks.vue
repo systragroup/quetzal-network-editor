@@ -17,7 +17,12 @@ const { map, isEditorMode, mode } = toRefs(props)
 
 // immediate necessary to trigger this (add doubleClick) when component is remounted (changing there for example)
 watch(isEditorMode, (val) => {
-  val ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
+  if (val) {
+    contextMenu.value.showed = false
+    map.value.off('dblclick', selectLine)
+  } else {
+    map.value.on('dblclick', selectLine)
+  }
 }, { immediate: true })
 
 watch(mode, (val) => {
@@ -135,9 +140,9 @@ function selectLine (e) {
 }
 
 function rightClick (event) {
-  leaveLink(event)
-  let selectedTrips = event.mapboxEvent.features.map(el => el.properties.trip_id)
+  let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
   selectedTrips = Array.from(new Set(selectedTrips))
+  leaveLink(event)
   if (selectedTrips.length === 1) {
     editLineProperties(selectedTrips[0])
   } else {
