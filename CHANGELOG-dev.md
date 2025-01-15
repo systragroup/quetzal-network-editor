@@ -1,5 +1,3 @@
-
-
 ## [6.2.c] (2025-01-15)
 ### Changes
 * Change NavigationDrawer Looks and feels
