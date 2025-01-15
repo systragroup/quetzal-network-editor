@@ -2,12 +2,12 @@
 const $gettext = s => s
 import { indexAreUnique, dropDuplicatesIndex } from './utils'
 
-function CRSis4326(geojson) {
+export function CRSis4326(geojson) {
   const arr = ['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326', 'urn:ogc:def:crs:EPSG:4326']
   return arr.includes(geojson.crs?.properties.name)
 }
 
-function serializer (geojson, name, type = null, ignoreIndex = false) {
+export function serializer (geojson, name, type = null, ignoreIndex = false) {
   // check that file is not empty
   if (geojson.features.length === 0) {
     const err = new Error(name + $gettext(' is empty'))
@@ -47,7 +47,7 @@ function serializer (geojson, name, type = null, ignoreIndex = false) {
   return geojson
 }
 
-function paramsSerializer (json) {
+export function paramsSerializer (json) {
   if (!Array.isArray(json)) {
     const err = new Error($gettext('params.json should be an array of object [{category: , params: }, ...]'))
     err.name = 'ImportError'
@@ -71,7 +71,7 @@ function paramsSerializer (json) {
   return json
 }
 
-function stylesSerializer (json) {
+export function stylesSerializer (json) {
   if (!Array.isArray(json)) {
     // eslint-disable-next-line max-len
     const err = new Error($gettext('styles.json should be an array of object with at least [{name:,layer:}]'))
@@ -89,4 +89,13 @@ function stylesSerializer (json) {
   return json
 }
 
-export { serializer, paramsSerializer, stylesSerializer, CRSis4326 }
+export function infoSerializer (json) {
+  const keys = Object.keys(json)
+  if (!keys.includes('description') || !keys.includes('note')) {
+    const err = new Error($gettext('info.json should be of the form {description: "", note: ""}'))
+    err.name = 'ImportError'
+    throw err
+  }
+
+  return json
+}

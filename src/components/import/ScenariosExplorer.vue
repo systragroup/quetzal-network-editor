@@ -194,6 +194,14 @@ function deleteScenario () {
   })
 }
 
+async function mouseOn(val) {
+  const info = await val.info
+  userStore.setInfoPreview(info)
+}
+async function mouseOff() {
+  userStore.setInfoPreview(null)
+}
+
 </script>
 <template>
   <div
@@ -287,7 +295,9 @@ function deleteScenario () {
         class="list-item"
         :class="{'is-active': modelScen === scen.model + scen.scenario}"
         lines="two"
-        @click="(e)=>{selectScenario(e,scen)}"
+        @click="(e)=>selectScenario(e,scen)"
+        @mouseenter="mouseOn(scen)"
+        @mouseleave="mouseOff()"
       >
         <v-list-item-title class="name-wrap">
           {{ scen.scenario }}

@@ -5,6 +5,7 @@ import s3 from '@src/AWSClient'
 import { extractZip, unzip } from '@comp/utils/utils.js'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
+import Info from '@comp/import/Info.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
 import { useConflicts } from '@comp/import/conflicts.js'
 
@@ -124,6 +125,9 @@ async function loadFilesFromS3 () {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
       } else if (name === 'styles.json') {
+        const content = await s3.readJson(model, file)
+        res.push({ path: name, content })
+      } else if (name === 'info.json') {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
       } else if (name === 'attributesChoices.json') {
@@ -291,6 +295,7 @@ function loadNetwork (files) {
             <FileLoader
               @filesLoaded="(files) => loadNetwork(files)"
             />
+            <Info />
             <div class="button-row">
               <v-tooltip
                 location="bottom"
