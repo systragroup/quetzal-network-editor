@@ -292,9 +292,10 @@ function stopResize () {
 // card style come from parent component.
 .expansion{
   max-height:100%;
-  overflow-y:hidden auto;
+  overflow:hidden auto;
   flex-grow: 1;
   height:20rem;
+
 }
 .info-div{
   white-space: pre-line;

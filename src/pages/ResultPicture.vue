@@ -163,6 +163,7 @@ onMounted(async () => {
 }
 .layout {
   background-color:rgb(var(--v-theme-white));
+  color:rgb(var(--v-theme-black));
   display: flex;
   height: 100%;
   align-items: center;

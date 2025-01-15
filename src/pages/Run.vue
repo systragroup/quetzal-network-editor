@@ -222,8 +222,9 @@ async function run() {
 </template>
 <style lang="scss" scoped>
 .section{
-  height: 100vh; /* or any fixed height */
+  height: 100%; /* or any fixed height */
   position: relative;
+  display:flex;
 }
 .background {
   background-color: rgb(var(--v-theme-background));
