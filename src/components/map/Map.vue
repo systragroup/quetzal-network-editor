@@ -3,7 +3,7 @@ import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
-import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef } from 'vue'
+import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef, onMounted } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -80,8 +80,20 @@ function onMapLoaded (event) {
   mapIsLoaded.value = true
 }
 
-const showLeftPanel = computed(() => { return store.showLeftPanel })
-watch(showLeftPanel, () => { setTimeout(() => map.value.resize(), 250) })
+function resizeMap() {
+  if (canvasDiv.value && map.value) {
+    setTimeout(() => map.value.resize(), 250)
+  }
+}
+
+const canvasDiv = ref(null)
+onMounted(() => {
+  const resizeObserver = new ResizeObserver(resizeMap)
+  resizeObserver.observe(canvasDiv.value)
+  onBeforeUnmount(() => {
+    resizeObserver.disconnect()
+  })
+})
 
 const mapStyle = computed(() => { return store.mapStyle })
 watch(mapStyle, () => { saveMapPosition() })
@@ -380,104 +392,108 @@ const { routeLink } = useRouting()
     :body="$gettext('with %{index}?', { index: stickyNodeId }) "
     @confirm="applyStickyNode"
   />
-  <MglMap
-    :key="mapStyle"
-    :style="{'width': '100%'}"
-    :access-token="mapboxPublicKey"
-    :map-style="mapStyle"
-    :center="store.mapCenter"
-    :zoom="store.mapZoom"
-    @load="onMapLoaded"
-    @mousemove="draw"
-    @mouseout="resetDraw('out')"
-    @mouseenter="resetDraw('in')"
-    @click="addPoint"
-    @mousedown="clickStopDraw"
+  <div
+    ref="canvasDiv"
+    class="map"
   >
-    <div
-      v-if="mapIsLoaded"
-      :style="{'display':'flex'}"
+    <MglMap
+      :key="mapStyle"
+      :access-token="mapboxPublicKey"
+      :map-style="mapStyle"
+      :center="store.mapCenter"
+      :zoom="store.mapZoom"
+      @load="onMapLoaded"
+      @mousemove="draw"
+      @mouseout="resetDraw('out')"
+      @mouseenter="resetDraw('in')"
+      @click="addPoint"
+      @mousedown="clickStopDraw"
     >
-      <Settings />
-      <StyleSelector />
-      <LayerSelector
-        v-if="rasterFiles.length>0"
-        :choices="rasterFiles"
-        :available-layers="availableLayers"
-        :map="map"
+      <div
+        v-if="mapIsLoaded"
+        :style="{'display':'flex'}"
+      >
+        <Settings />
+        <StyleSelector />
+        <LayerSelector
+          v-if="rasterFiles.length>0"
+          :choices="rasterFiles"
+          :available-layers="availableLayers"
+          :map="map"
+        />
+      </div>
+      <MglScaleControl position="bottom-right" />
+      <MglNavigationControl
+        position="bottom-right"
+        :visualize-pitch="true"
       />
-    </div>
-    <MglScaleControl position="bottom-right" />
-    <MglNavigationControl
-      position="bottom-right"
-      :visualize-pitch="true"
-    />
-    <div
-      v-for="file in rasterFiles"
-      :key="file.name"
-    >
-      <StaticLayer
-        v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)"
+      <div
+        v-for="file in rasterFiles"
         :key="file.name"
-        :map="map"
-        :preset="file"
-        :order="visibleRasters.indexOf(file.name)"
-        :visible-rasters="visibleRasters"
-      />
-    </div>
-    <template v-if="mapIsLoaded && !rlinksIsEmpty">
-      <RoadLinks
+      >
+        <StaticLayer
+          v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)"
+          :key="file.name"
+          :map="map"
+          :preset="file"
+          :order="visibleRasters.indexOf(file.name)"
+          :visible-rasters="visibleRasters"
+        />
+      </div>
+      <template v-if="mapIsLoaded && !rlinksIsEmpty">
+        <RoadLinks
+          :map="map"
+          :is-editor-mode="isEditorMode"
+          @select="drawMode = false"
+          v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+        />
+      </template>
+      <StaticLinks
         :map="map"
         :is-editor-mode="isEditorMode"
-        @select="drawMode = false"
-        v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+        :mode="mode"
+        @rightClick="(e) => emits('clickFeature',e)"
       />
-    </template>
-    <StaticLinks
-      :map="map"
-      :is-editor-mode="isEditorMode"
-      :mode="mode"
-      @rightClick="(e) => emits('clickFeature',e)"
-    />
-    <template v-if="mapIsLoaded">
-      <EditorLinks
+      <template v-if="mapIsLoaded">
+        <EditorLinks
+          :map="map"
+          v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover,onHoverSticky:onHoverSticky, offHover:offHover,clickFeature: clickFeature, useStickyNode:useStickyNode}"
+        />
+      </template>
+      <ODMap
         :map="map"
-        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover,onHoverSticky:onHoverSticky, offHover:offHover,clickFeature: clickFeature, useStickyNode:useStickyNode}"
+        :is-editor-mode="isEditorMode"
+        :is-o-d-mode="mode==='od'"
+        @clickFeature="clickFeature"
       />
-    </template>
-    <ODMap
-      :map="map"
-      :is-editor-mode="isEditorMode"
-      :is-o-d-mode="mode==='od'"
-      @clickFeature="clickFeature"
-    />
 
-    <MglGeojsonLayer
-      v-show="drawMode"
-      source-id="drawLink"
-      :source="{
-        type: 'geojson',
-        data:drawLink,
-        buffer: 0,
-        generateId: true,
-      }"
-      layer-id="drawLink"
-      :layer="{
-        type: 'line',
-        minzoom: 2,
-        paint: {
-          'line-opacity': 1,
-          'line-color': $vuetify.theme.current.colors.linksprimary,
-          'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
-          'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
+      <MglGeojsonLayer
+        v-show="drawMode"
+        source-id="drawLink"
+        :source="{
+          type: 'geojson',
+          data:drawLink,
+          buffer: 0,
+          generateId: true,
+        }"
+        layer-id="drawLink"
+        :layer="{
+          type: 'line',
+          minzoom: 2,
+          paint: {
+            'line-opacity': 1,
+            'line-color': $vuetify.theme.current.colors.linksprimary,
+            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
+            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 
-        }
-      }"
-    />
-  </MglMap>
+          }
+        }"
+      />
+    </MglMap>
+  </div>
 </template>
 <style lang="scss" scoped>
-.map-view {
+.map{
   width: 100%;
 }
 .my-custom-dialog {

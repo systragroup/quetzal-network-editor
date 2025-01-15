@@ -20,7 +20,7 @@ watch(showLeftPanel, (val) => {
     // Leave time for animation to end (.fade-enter-active css rule)
     setTimeout(() => {
       showLeftPanelContent.value = true
-    }, 500)
+    }, 200)
   } else {
     showLeftPanelContent.value = false
   }
@@ -75,10 +75,13 @@ function stopResize () {
 </script>
 <template>
   <section
-    ref="leftPanelDiv"
     :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
-    :style="{ width:showLeftPanel? width + 'px' : '0px' }"
+    :style="{ width: showLeftPanel? width + 'px ' : '0px' }"
   >
+    <div
+      class="resizable-handle"
+      @mousedown="startResize"
+    />
     <div
       class="left-panel-toggle-btn elevation-4"
       @click="store.changeLeftPanel()"
@@ -90,16 +93,12 @@ function stopResize () {
         {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
       </v-icon>
     </div>
-    <div
-      class="resizable-handle"
-      @mousedown="startResize"
-    />
     <transition name="fade">
       <div
         v-show="showLeftPanelContent"
-        id="left-panel"
-        ref="leftPanel"
+        ref="leftPanelDiv"
         class="left-panel-content"
+        :style="{ width: width + 'px'}"
       >
         <div>
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
@@ -156,7 +155,6 @@ function stopResize () {
   height: 100%;
   background-color:rgb(var(--v-theme-primarydark));
   transition: 0.3s;
-  position: absolute;
   display:flex;
   z-index: 20;
 }
@@ -168,9 +166,9 @@ width:0;
   width: 5px;
   height: 100%;
   background-color: rgb(var(--v-theme-background));
-  position: absolute;
-  right: 0;
-  top: 0;
+  left:100%;
+  display: flex;
+  position: relative;
   cursor: col-resize; /* Use the col-resize cursor for horizontal resizing */
 }
 .left-panel-content {

@@ -176,207 +176,215 @@ function zoneLeave (event) {
 </script>
 
 <template>
-  <MglMap
-    :key="mapStyle"
-    :style="{'width': '100%'}"
-    :access-token="mapboxPublicKey"
-    :map-style="mapStyle"
-    :center="store.mapCenter"
-    :zoom="store.mapZoom"
-    @load="onMapLoaded"
+  <div
+    ref="canvasDiv"
+    class="map"
   >
-    <MglScaleControl position="bottom-right" />
-    <MglNavigationControl
-      position="bottom-right"
-      :visualize-pitch="true"
-    />
-    <slot
-      :map="map"
-      :map-is-loaded="mapIsLoaded"
-    />
-    <MglGeojsonLayer
-      v-if="layerType == 'LineString'"
-      source-id="results"
-      :reactive="false"
-      :source="{
-        type: 'geojson',
-        data: links,
-        buffer: 0,
-        promoteId: 'index',
-      }"
-      layer-id="results"
-      :layer="{
-        interactive: true,
-        type: 'line',
-        minzoom: minZoom.links,
-        paint: {
-          'line-color': ['get', 'display_color'],
-          'line-offset': ['*',offsetValue*0.5,['to-number', ['get', 'display_width']]],
-          'line-opacity':opacity/100,
-          'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0],
-          'line-width':['get', 'display_width'],
+    <MglMap
+      :key="mapStyle"
+      :style="{'width': '100%'}"
+      :access-token="mapboxPublicKey"
+      :map-style="mapStyle"
+      :center="store.mapCenter"
+      :zoom="store.mapZoom"
+      @load="onMapLoaded"
+    >
+      <MglScaleControl position="bottom-right" />
+      <MglNavigationControl
+        position="bottom-right"
+        :visualize-pitch="true"
+      />
+      <slot
+        :map="map"
+        :map-is-loaded="mapIsLoaded"
+      />
+      <MglGeojsonLayer
+        v-if="layerType == 'LineString'"
+        source-id="results"
+        :reactive="false"
+        :source="{
+          type: 'geojson',
+          data: links,
+          buffer: 0,
+          promoteId: 'index',
+        }"
+        layer-id="results"
+        :layer="{
+          interactive: true,
+          type: 'line',
+          minzoom: minZoom.links,
+          paint: {
+            'line-color': ['get', 'display_color'],
+            'line-offset': ['*',offsetValue*0.5,['to-number', ['get', 'display_width']]],
+            'line-opacity':opacity/100,
+            'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0],
+            'line-width':['get', 'display_width'],
 
-        },
-        layout: {
-          'line-sort-key': ['to-number',['get', 'display_width']],
-          'line-cap': 'round',
-        }
+          },
+          layout: {
+            'line-sort-key': ['to-number',['get', 'display_width']],
+            'line-cap': 'round',
+          }
 
-      }"
-      @mouseenter="enterLink"
-      @mouseleave="leaveLink"
-      @click="zoneClick"
-      @contextmenu="selectClick"
-    />
-    <MglGeojsonLayer
-      v-if="layerType == 'Point'"
-      :reactive="false"
-      source-id="results"
-      :source="{
-        type: 'geojson',
-        data: links,
-        buffer: 0,
-        promoteId: 'index',
-      }"
-      layer-id="results"
-      :layer="{
-        interactive: true,
-        type: 'circle',
-        minzoom: minZoom.links,
-        paint: {
-          'circle-color': ['get', 'display_color'],
-          'circle-radius': ['get', 'display_width'],
-          'circle-opacity':opacity/100,
-        },
-        layout: {
-          'circle-sort-key': ['to-number',['get', 'display_width']],
-        }
-      }"
-      @mouseenter="enterLink"
-      @mouseleave="leaveLink"
-      @click="zoneClick"
-      @contextmenu="selectClick"
-    />
+        }"
+        @mouseenter="enterLink"
+        @mouseleave="leaveLink"
+        @click="zoneClick"
+        @contextmenu="selectClick"
+      />
+      <MglGeojsonLayer
+        v-if="layerType == 'Point'"
+        :reactive="false"
+        source-id="results"
+        :source="{
+          type: 'geojson',
+          data: links,
+          buffer: 0,
+          promoteId: 'index',
+        }"
+        layer-id="results"
+        :layer="{
+          interactive: true,
+          type: 'circle',
+          minzoom: minZoom.links,
+          paint: {
+            'circle-color': ['get', 'display_color'],
+            'circle-radius': ['get', 'display_width'],
+            'circle-opacity':opacity/100,
+          },
+          layout: {
+            'circle-sort-key': ['to-number',['get', 'display_width']],
+          }
+        }"
+        @mouseenter="enterLink"
+        @mouseleave="leaveLink"
+        @click="zoneClick"
+        @contextmenu="selectClick"
+      />
 
-    <MglImageLayer
-      v-if="layerType == 'LineString'"
-      source-id="results"
-      type="symbol"
-      source="links"
-      layer-id="arrow"
-      :layer="{
-        type: 'symbol',
-        minzoom: minZoom.nodes,
-        layout: {
-          'symbol-placement': 'line',
-          'symbol-spacing': 200,
-          'icon-ignore-placement': true,
-          'icon-image':'arrow',
-          'icon-size': ['*',0.1,['to-number', ['get', 'display_width']]],
-          'icon-rotate': 90,
-          'icon-offset': [offsetValue*5,5],
+      <MglImageLayer
+        v-if="layerType == 'LineString'"
+        source-id="results"
+        type="symbol"
+        source="links"
+        layer-id="arrow"
+        :layer="{
+          type: 'symbol',
+          minzoom: minZoom.nodes,
+          layout: {
+            'symbol-placement': 'line',
+            'symbol-spacing': 200,
+            'icon-ignore-placement': true,
+            'icon-image':'arrow',
+            'icon-size': ['*',0.1,['to-number', ['get', 'display_width']]],
+            'icon-rotate': 90,
+            'icon-offset': [offsetValue*5,5],
 
-        },
-        paint: {
-          'icon-color':['get', 'display_color'],
-          'icon-opacity':opacity/100,
+          },
+          paint: {
+            'icon-color':['get', 'display_color'],
+            'icon-opacity':opacity/100,
 
-        }
-      }"
-    />
-    <MglGeojsonLayer
-      v-if="layerType === 'Polygon' && extrusion"
-      source-id="results"
-      :reactive="false"
-      :source="{
-        type: 'geojson',
-        data: links,
-        promoteId: 'index',
-      }"
-      layer-id="results"
-      :layer="{
-        interactive: true,
-        type: 'fill-extrusion',
-        'paint': {
-          'fill-extrusion-color':['get', 'display_color'],
-          'fill-extrusion-opacity': opacity/100,
-          'fill-extrusion-height':['*',1000,['to-number', ['get', 'display_width']]],
+          }
+        }"
+      />
+      <MglGeojsonLayer
+        v-if="layerType === 'Polygon' && extrusion"
+        source-id="results"
+        :reactive="false"
+        :source="{
+          type: 'geojson',
+          data: links,
+          promoteId: 'index',
+        }"
+        layer-id="results"
+        :layer="{
+          interactive: true,
+          type: 'fill-extrusion',
+          'paint': {
+            'fill-extrusion-color':['get', 'display_color'],
+            'fill-extrusion-opacity': opacity/100,
+            'fill-extrusion-height':['*',1000,['to-number', ['get', 'display_width']]],
 
-        }
-      }"
-      @mouseenter="zoneHover"
-      @mouseleave="zoneLeave"
-      @click="zoneClick"
-      @contextmenu="selectClick"
-    />
+          }
+        }"
+        @mouseenter="zoneHover"
+        @mouseleave="zoneLeave"
+        @click="zoneClick"
+        @contextmenu="selectClick"
+      />
 
-    <MglGeojsonLayer
-      v-if="layerType === 'Polygon' && !extrusion"
-      :reactive="false"
-      source-id="results"
-      :source="{
-        type: 'geojson',
-        data: links,
-        promoteId: 'index',
-      }"
-      layer-id="results"
-      :layer="{
-        interactive: true,
-        type: 'fill',
-        'paint': {
-          'fill-color':['get', 'display_color'],
-          'fill-opacity': opacity/100,
+      <MglGeojsonLayer
+        v-if="layerType === 'Polygon' && !extrusion"
+        :reactive="false"
+        source-id="results"
+        :source="{
+          type: 'geojson',
+          data: links,
+          promoteId: 'index',
+        }"
+        layer-id="results"
+        :layer="{
+          interactive: true,
+          type: 'fill',
+          'paint': {
+            'fill-color':['get', 'display_color'],
+            'fill-opacity': opacity/100,
 
-        }
-      }"
-      @mouseenter="zoneHover"
-      @mouseleave="zoneLeave"
-      @click="zoneClick"
-      @contextmenu="selectClick"
-    />
+          }
+        }"
+        @mouseenter="zoneHover"
+        @mouseleave="zoneLeave"
+        @click="zoneClick"
+        @contextmenu="selectClick"
+      />
 
-    <MglGeojsonLayer
-      v-if="layerType === 'Polygon' && !extrusion"
-      :reactive="false"
-      source-id="NaNresults"
-      :source="{
-        type: 'geojson',
-        data: nanLinks,
-        promoteId: 'index',
-      }"
-      layer-id="NaNresults"
-      :layer="{
-        interactive: true,
-        type: 'fill',
-        'paint': {
-          'fill-outline-color':'#cccccc',
-          'fill-color':'rgba(0, 0, 0, 0)',
-        }
-      }"
-      @mouseenter="zoneHover"
-      @mouseleave="zoneLeave"
-      @click="zoneClick"
-      @contextmenu="selectClick"
-    />
-    <MglSymbolLayer
-      v-if="labels!==null"
-      type="symbol"
-      source-id="results"
-      source="links"
-      layer-id="labels"
-      :layer="{
-        type: 'symbol',
-        layout: {
-          'text-field': ['get', labels],
-          'text-variable-anchor': ['top'],
-          'text-radial-offset': 0.6,
-          'text-justify': 'auto',
-        },
-        paint:{'text-color':$vuetify.theme.current.colors.black,}
-      }"
-    />
-  </MglMap>
+      <MglGeojsonLayer
+        v-if="layerType === 'Polygon' && !extrusion"
+        :reactive="false"
+        source-id="NaNresults"
+        :source="{
+          type: 'geojson',
+          data: nanLinks,
+          promoteId: 'index',
+        }"
+        layer-id="NaNresults"
+        :layer="{
+          interactive: true,
+          type: 'fill',
+          'paint': {
+            'fill-outline-color':'#cccccc',
+            'fill-color':'rgba(0, 0, 0, 0)',
+          }
+        }"
+        @mouseenter="zoneHover"
+        @mouseleave="zoneLeave"
+        @click="zoneClick"
+        @contextmenu="selectClick"
+      />
+      <MglSymbolLayer
+        v-if="labels!==null"
+        type="symbol"
+        source-id="results"
+        source="links"
+        layer-id="labels"
+        :layer="{
+          type: 'symbol',
+          layout: {
+            'text-field': ['get', labels],
+            'text-variable-anchor': ['top'],
+            'text-radial-offset': 0.6,
+            'text-justify': 'auto',
+          },
+          paint:{'text-color':$vuetify.theme.current.colors.black,}
+        }"
+      />
+    </MglMap>
+  </div>
 </template>
 <style lang="scss" scoped>
-
+.map{
+  width: 100%;
+  height:100%;
+}
 </style>

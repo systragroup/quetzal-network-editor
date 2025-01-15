@@ -130,6 +130,7 @@ export default {
       <div class="setting">
         <v-btn
           icon="fa-solid fa-cog"
+          color="white"
           v-bind="props"
         />
       </div>

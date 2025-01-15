@@ -403,6 +403,7 @@ function loadNetwork (files) {
   padding: 20px;
   height:100%;
   width:100%;
+  max-width: 100rem;
   background-color: rgb(var(--v-theme-lightergrey));
 
 }

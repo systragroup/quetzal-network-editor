@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue'
-import { useIndexStore } from '@src/store/index'
 
 const props = defineProps({
   colorScale: {
@@ -11,10 +10,6 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
-  baseOffset: {
-    type: Number,
-    default: () => 300,
-  },
   order: {
     type: Number,
     default: () => 0,
@@ -22,10 +17,7 @@ const props = defineProps({
 })
 // const { displaySettings } = toRefs(props)
 
-const store = useIndexStore()
-const leftOffset = computed(() => {
-  return store.showLeftPanel ? 50 + (180 * props.order) + props.baseOffset : 50 + (180 * props.order)
-})
+const leftOffset = computed(() => 50 + (180 * props.order))
 // only show if not all nan.
 const show = computed(() => (!isNaN(props.displaySettings.minVal) && !isNaN(props.displaySettings.minVal)))
 const midValue = computed(() => {
@@ -69,6 +61,7 @@ const midValue = computed(() => {
     position: absolute;
     right: 25%;
     left: 25%;
+    color:rgb(var(--v-theme-black));
     text-align: center;
     font-size: 11px;
     top: 6px;
@@ -77,6 +70,7 @@ const midValue = computed(() => {
 .gradient .domain-min {
     position: absolute;
     left: 0;
+    color:rgb(var(--v-theme-black));
     font-size: 11px;
     bottom: 5px;
 }
@@ -84,6 +78,7 @@ const midValue = computed(() => {
     position: absolute;
     right: 25%;
     left: 25%;
+    color:rgb(var(--v-theme-black));
     text-align: center;
     font-size: 11px;
     bottom: 5px;
@@ -92,6 +87,7 @@ const midValue = computed(() => {
     position: absolute;
     right: 0;
     font-size: 11px;
+    color:rgb(var(--v-theme-black));
     bottom: 5px;
 }
 .grad-step {

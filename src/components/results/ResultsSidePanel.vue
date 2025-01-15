@@ -24,7 +24,7 @@ const isMobile = computed(() => store.isMobile)
 
 const showLeftPanel = computed(() => { return store.showLeftPanel })
 const showLeftPanelContent = ref(true)
-const panelWidth = ref(350)
+const panelWidth = ref(500)
 onMounted(() => { panelWidth.value = isMobile.value ? window.innerWidth - 100 : 350 })
 
 watch(showLeftPanel, (val) => {
@@ -106,6 +106,7 @@ onMounted(() => {
       <div
         v-show="showLeftPanelContent"
         class="left-panel-content"
+        :style="{'width': showLeftPanel ? panelWidth+'px' : '0px'}"
       >
         <div>
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
@@ -311,8 +312,7 @@ onMounted(() => {
   height: 100%;
   background-color:rgb(var(--v-theme-primarydark));
   transition: 0.3s;
-  position: absolute;
-  display: flex;
+  display:flex;
   z-index: 20;
 }
 .container{
@@ -370,7 +370,6 @@ transition:0.3s
 }
 .left-panel-content {
   display:inline-block;
-  width : 100%;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
