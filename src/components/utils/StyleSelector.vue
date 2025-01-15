@@ -34,7 +34,7 @@ function changeMapStyle (event) {
       <div class="layer-button">
         <v-btn
           v-bind="menuProps"
-          color="regular"
+          color="white"
           icon="fas fa-map"
         />
       </div>

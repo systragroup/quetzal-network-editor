@@ -208,7 +208,6 @@ onBeforeUnmount(() => {
       <MapLegend
         :color-scale="colorScale"
         :display-settings="displaySettings"
-        :base-offset="350"
         :order="zorder"
       />
     </div>

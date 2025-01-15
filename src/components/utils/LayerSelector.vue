@@ -63,7 +63,7 @@ function moveLayer (name) {
       <div class="layer-button">
         <v-btn
           v-bind="menuProps"
-          :color="(selectedLayers.length > 0)? 'success' : 'regular'"
+          :color="(selectedLayers.length > 0)? 'success' : 'white'"
           icon="fas fa-layer-group"
         />
       </div>

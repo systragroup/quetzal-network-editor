@@ -200,16 +200,6 @@ function featureClicked (event) {
       @select-preset="changePreset"
       @delete-preset="clickDeletePreset"
     />
-
-    <div class="left-panel">
-      <MapLegend
-        v-show="visibleLayer.features.length>0"
-        key="result"
-        :order="0"
-        :color-scale="colorScale"
-        :display-settings="displaySettings"
-      />
-    </div>
     <MapResults
       v-if="visibleLayer.features"
       ref="mapRef"
@@ -226,6 +216,15 @@ function featureClicked (event) {
       :offset="displaySettings.offset"
       @selectClick="featureClicked"
     >
+      <div class="legend">
+        <MapLegend
+          v-show="visibleLayer.features.length>0"
+          key="result"
+          :order="0"
+          :color-scale="colorScale"
+          :display-settings="displaySettings"
+        />
+      </div>
       <div :style="{'display':'flex'}">
         <ResultsSettings
           :display-settings="displaySettings"
@@ -243,6 +242,7 @@ function featureClicked (event) {
           :available-layers="availableLayers"
         />
       </div>
+
       <div
         v-for="file in availableStyles"
         :key="file.name"
@@ -257,7 +257,6 @@ function featureClicked (event) {
         </template>
       </div>
     </MapResults>
-
     <v-dialog
       v-model="showDialog"
       scrollable
@@ -383,9 +382,8 @@ function featureClicked (event) {
   width: 100%;
   display: flex;
 }
-.left-panel {
-  height: 100%;
-  position: absolute;
+.legend {
+  position:absolute
 }
 
 </style>
