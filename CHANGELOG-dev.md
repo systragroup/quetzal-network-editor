@@ -3,6 +3,7 @@
 ## [6.2.c] (2025-01-15)
 ### Changes
 * Change NavigationDrawer Looks and feels
+* Map (and result map) are now not under the left panel and resize well.
 
 ### Features
 * **Project Description and Note**: new info.json at the root of a project. 

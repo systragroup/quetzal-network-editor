@@ -13,7 +13,7 @@ const userStore = useUserStore()
 
 const showRail = defineModel({ type: Boolean, default: false })
 
-import { useCheckMobile } from '@comp/utils/useCheckMobile'
+import { useCheckMobile } from '@src/composables/useCheckMobile'
 const { isMobile } = useCheckMobile()
 watch(isMobile, (val) => {
   store.changeMobile(val)
