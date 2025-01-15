@@ -146,7 +146,7 @@ async function readStyles (event) {
 
 </script>
 <template>
-  <div>
+  <div class="section">
     <input
       id="file-input"
       ref="fileInput"
@@ -389,6 +389,10 @@ async function readStyles (event) {
 </template>
 <style lang="scss" scoped>
 
+.section{
+  flex:1;
+}
+
 .row{
   display: flex;
   flex-direction: column;
@@ -396,7 +400,6 @@ async function readStyles (event) {
   align-items: center;
   padding-bottom: 30px;
   padding-top:18px;
-
 }
 .container{
   display: flex;
@@ -406,6 +409,7 @@ async function readStyles (event) {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
+
 }
 .type-icon{
   padding-right: 3rem;

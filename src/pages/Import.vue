@@ -295,6 +295,7 @@ function loadNetwork (files) {
             <FileLoader
               @filesLoaded="(files) => loadNetwork(files)"
             />
+            <v-divider />
             <Info />
             <div class="button-row">
               <v-tooltip
@@ -323,7 +324,7 @@ function loadNetwork (files) {
           </v-col>
           <v-divider vertical />
 
-          <v-col class="left-col">
+          <v-col class="right-col">
             <FilesList
               @filesLoaded="(files) => loadNetwork(files)"
             />
@@ -389,6 +390,13 @@ function loadNetwork (files) {
   flex-direction: column;
   width:28rem;
   padding:0.5rem;
+}
+.right-col{
+  display: flex;
+  height:calc(100vh - 100px);
+  flex-direction: column;
+  width:28rem;
+  padding:0.5rem 0.5rem 4.2rem 0.5rem;
 }
 .card {
   overflow-y:auto;

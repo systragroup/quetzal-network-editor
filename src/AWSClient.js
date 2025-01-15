@@ -222,7 +222,7 @@ async function readInfo (bucket, key) {
     const fileContent = JSON.parse(str.trim())
     return fileContent
   } catch (err) {
-    return { description: '', note: '' }
+    return { description: '' }
   }
 }
 

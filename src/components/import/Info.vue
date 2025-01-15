@@ -25,26 +25,14 @@ const info = computed(() => {
       :disabled="showPreview"
     />
   </div>
-  <div class="text-container">
-    <div class="title-box">
-      <h1 class="custom-title">
-        {{ $gettext('Note') }}
-      </h1>
-    </div>
-    <textarea
-      v-model="info.note"
-      class="area"
-      :disabled="showPreview"
-    />
-  </div>
 </template>
 <style lang="scss" scoped>
 .text-container{
-  height: calc(50% - 35px );
+  flex:1;
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
   display: flex;
-  margin: 0.25rem 0 0.25rem;
+  margin: 1rem 0 1rem;
   flex-direction: column;
 }
 .title-box {
@@ -54,10 +42,19 @@ const info = computed(() => {
   border-radius: 5px 5px 0 0;
   padding: 0.5rem 0.5rem 0.5rem 1rem;
 }
+.custom-title{
+  font-size: 2em !important;
+  font-weight: bold;
+}
 
 .area{
   height:100%;
-  margin:1rem;
+  margin:0.25rem;
+  color:rgb(var(--v-theme-black));
+  padding:0.25rem;
   resize: none;
+}
+.area:disabled {
+  color:rgba(var(--v-theme-black),0.5);
 }
 </style>

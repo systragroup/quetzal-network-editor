@@ -1,13 +1,13 @@
 
 
-## [6.2.c] (2025-01-)
+## [6.2.c] (2025-01-15)
 ### Changes
 * Change NavigationDrawer Looks and feels
 
 ### Features
 * **Project Description and Note**: new info.json at the root of a project. 
     Display info when hovering and editable for a selected project.
-    info.json = {description: "", note: ""}
+    info.json = {description: ""}
 
 ## [6.2.b] (2025-01-14)
 ### Bug Fixes

@@ -206,7 +206,7 @@ function deleteFile (file) {
 </template>
 <style lang="scss" scoped>
 .files-container{
-  height: calc(50% - 32px );
+  flex:1;
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
   display: flex;
