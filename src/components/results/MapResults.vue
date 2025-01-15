@@ -102,12 +102,15 @@ function fitBounds () {
   }
 
   // for empty (new) project, do not fit bounds around the links geometries.
-  if (Object.keys(bounds).length !== 0) {
+  if (Object.keys(bounds).length !== 0 && map.value) {
     map.value.fitBounds(bounds, {
       padding: 100,
     })
   }
 }
+
+import { useMapResize } from '@src/composables/useMapResize.js'
+const { canvasDiv } = useMapResize(map)
 
 const selectedLinks = ref([])
 const popup = ref(null)

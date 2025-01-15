@@ -3,7 +3,7 @@ import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
-import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef, onMounted } from 'vue'
+import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -80,20 +80,8 @@ function onMapLoaded (event) {
   mapIsLoaded.value = true
 }
 
-function resizeMap() {
-  if (canvasDiv.value && map.value) {
-    setTimeout(() => map.value.resize(), 250)
-  }
-}
-
-const canvasDiv = ref(null)
-onMounted(() => {
-  const resizeObserver = new ResizeObserver(resizeMap)
-  resizeObserver.observe(canvasDiv.value)
-  onBeforeUnmount(() => {
-    resizeObserver.disconnect()
-  })
-})
+import { useMapResize } from '@src/composables/useMapResize.js'
+const { canvasDiv } = useMapResize(map)
 
 const mapStyle = computed(() => { return store.mapStyle })
 watch(mapStyle, () => { saveMapPosition() })

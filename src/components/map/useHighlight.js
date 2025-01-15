@@ -1,4 +1,3 @@
-// composables/useCheckMobile.js
 import { ref, onUnmounted } from 'vue'
 const highlightTrip = ref(null)
 export function useHighlight() {
