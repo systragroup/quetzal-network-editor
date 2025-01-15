@@ -43,7 +43,7 @@ export const useIndexStore = defineStore('store', {
     importPoly: null,
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
-    projectInfo: { description: '', note: '' },
+    projectInfo: { description: '' },
     otherFiles: [], // [{path, content}]
     attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
   }),
@@ -241,7 +241,7 @@ export const useIndexStore = defineStore('store', {
       this.initOD()
       this.visibleRasters = []
       this.styles = []
-      this.projectInfo = { description: '', note: '' }
+      this.projectInfo = { description: '' }
       this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
       this.loadAttributesChoices(defaultAttributesChoices)
       this.otherFiles = []

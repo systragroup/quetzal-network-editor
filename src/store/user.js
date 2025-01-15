@@ -24,7 +24,7 @@ export const useUserStore = defineStore('userStore', {
     scenariosList: [],
     model: null,
     scenario: null,
-    infoPreview: null, // { description: '', note: '' }
+    infoPreview: null, // null or { description: '' }
     protected: false,
   }),
 
@@ -48,7 +48,7 @@ export const useUserStore = defineStore('userStore', {
       this.scenariosList = []
       this.model = null
       this.scenario = null
-      this.infoPreview = { description: '', note: '' }
+      this.infoPreview = null
       this.protected = false
     },
     setCognitoInfo (payload) {
