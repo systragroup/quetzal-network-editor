@@ -10,7 +10,7 @@ import { useRunStore } from './run'
 import { useOSMStore } from './OSMImporter'
 import { useGTFSStore } from './GTFSImporter'
 
-import { stylesSerializer } from '../components/utils/serializer.js'
+import { infoSerializer, stylesSerializer } from '../components/utils/serializer.js'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
@@ -43,6 +43,7 @@ export const useIndexStore = defineStore('store', {
     importPoly: null,
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
+    projectInfo: { description: '', note: '' },
     otherFiles: [], // [{path, content}]
     attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
   }),
@@ -129,6 +130,9 @@ export const useIndexStore = defineStore('store', {
         const attributesChoicesFile = otherFiles.filter(el => el.path === 'attributesChoices.json')[0]
         otherFiles = otherFiles.filter(el => el !== attributesChoicesFile)
 
+        const infoFile = otherFiles.filter(el => el.path === 'info.json')[0]
+        otherFiles = otherFiles.filter(el => el !== infoFile)
+
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
 
@@ -154,6 +158,7 @@ export const useIndexStore = defineStore('store', {
         if (paramFile) runStore.getLocalParameters(paramFile.content)
         if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
         if (stylesFile) { this.loadStyles(stylesFile.content) }
+        if (infoFile) { this.loadInfo(infoFile.content) }
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
@@ -236,6 +241,7 @@ export const useIndexStore = defineStore('store', {
       this.initOD()
       this.visibleRasters = []
       this.styles = []
+      this.projectInfo = { description: '', note: '' }
       this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
       this.loadAttributesChoices(defaultAttributesChoices)
       this.otherFiles = []
@@ -282,6 +288,12 @@ export const useIndexStore = defineStore('store', {
       // payload = name of the preset to delete
       this.styles = this.styles.filter(el => el.name !== payload)
     },
+
+    loadInfo (payload) {
+      const json = infoSerializer(payload)
+      this.projectInfo = json
+    },
+
     saveImportPoly (payload) {
       this.importPoly = payload
     },
@@ -360,6 +372,10 @@ export const useIndexStore = defineStore('store', {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           zip.file('styles.json', blob)
         }
+        if (this.projectInfo) {
+          const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
+          zip.file('info.json', blob)
+        }
         if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
           const blob = new Blob([JSON.stringify(this.attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
@@ -409,6 +425,7 @@ export const useIndexStore = defineStore('store', {
         od: odFolder + 'od.geojson',
         params: scen + 'inputs/params.json',
         styles: scen + 'styles.json',
+        info: scen + 'info.json',
         attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
@@ -418,6 +435,9 @@ export const useIndexStore = defineStore('store', {
       // save styles if changed
       if (this.styles.length > 0) {
         await s3.putObject(bucket, paths.styles, JSON.stringify(this.styles))
+      }
+      if (this.projectInfo) {
+        await s3.putObject(bucket, paths.info, JSON.stringify(this.projectInfo))
       }
       // save attributes choices if changed
       if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {

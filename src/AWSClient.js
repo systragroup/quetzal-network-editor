@@ -213,6 +213,19 @@ function uploadObject (bucket, key, body = '') {
   return resp
 }
 
+async function readInfo (bucket, key) {
+  try {
+    const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
+    // const params = { Bucket: bucket, Key: key }
+    const response = await s3Client.getObject(params) // await the promise
+    const str = await response.Body.transformToString('utf-8')
+    const fileContent = JSON.parse(str.trim())
+    return fileContent
+  } catch (err) {
+    return { description: '', note: '' }
+  }
+}
+
 async function getScenario (bucket) {
   // list all files in bucket
   const params = { Bucket: bucket, encodingType: 'url' }
@@ -252,6 +265,8 @@ async function getScenario (bucket) {
       console.log(err)
       return 'idns-canada@systra.com'
     })
+    const infoPromise = readInfo(bucket, `${scen}/info.json`).then(resp => resp).catch(() => {})
+
     scenList.push({
       model: bucket,
       scenario: scen,
@@ -259,6 +274,7 @@ async function getScenario (bucket) {
       timestamp,
       userEmail: '...',
       userEmailPromise,
+      info: infoPromise,
       protected: isLocked,
     })
   }

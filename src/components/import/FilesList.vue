@@ -206,11 +206,11 @@ function deleteFile (file) {
 </template>
 <style lang="scss" scoped>
 .files-container{
-  height: calc(50% - 35px );
+  height: calc(50% - 32px );
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
   display: flex;
-  margin: 10px 0 0;
+  margin: 0.5rem 0 0 0;
   flex-direction: column;
 }
 .title-box {

@@ -24,6 +24,7 @@ export const useUserStore = defineStore('userStore', {
     scenariosList: [],
     model: null,
     scenario: null,
+    infoPreview: null, // { description: '', note: '' }
     protected: false,
   }),
 
@@ -47,6 +48,7 @@ export const useUserStore = defineStore('userStore', {
       this.scenariosList = []
       this.model = null
       this.scenario = null
+      this.infoPreview = { description: '', note: '' }
       this.protected = false
     },
     setCognitoInfo (payload) {
@@ -79,6 +81,9 @@ export const useUserStore = defineStore('userStore', {
       this.scenario = payload.scenario
       this.protected = payload.protected
       store.changeOutputName(payload.scenario)
+    },
+    setInfoPreview(payload) {
+      this.infoPreview = payload
     },
     async getScenario (payload) {
       const res = await s3.getScenario(payload.model)
