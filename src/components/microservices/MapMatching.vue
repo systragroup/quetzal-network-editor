@@ -79,7 +79,6 @@ const parameters = ref([
     hint: 'if true. keep time and calculate speed. if false. keep speed and calcule time',
   }])
 
-
 onMounted(() => {
   // remove nonExistant routeType from v-model selection (was deleted, or scen changed.)
   runMapMatching.exclusions = runMapMatching.exclusions.filter(el => routeTypeList.value.includes(el))

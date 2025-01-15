@@ -392,7 +392,6 @@ async function readStyles (event) {
 .section{
   flex:1;
 }
-
 .row{
   display: flex;
   flex-direction: column;
