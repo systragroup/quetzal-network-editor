@@ -210,7 +210,7 @@ function deleteFile (file) {
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
   display: flex;
-  margin: 0.5rem 0 0 0;
+  margin: 0.5rem 0 0;
   flex-direction: column;
 }
 .title-box {

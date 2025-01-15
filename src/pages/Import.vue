@@ -393,10 +393,10 @@ function loadNetwork (files) {
 }
 .right-col{
   display: flex;
-  height:calc(100vh - 100px);
+  height: calc(100vh - 100px);
   flex-direction: column;
-  width:28rem;
-  padding:0.5rem 0.5rem 4.2rem 0.5rem;
+  width: 28rem;
+  padding: 0.5rem 0.5rem 4.2rem;
 }
 .card {
   overflow-y:auto;

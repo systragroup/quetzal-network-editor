@@ -246,7 +246,6 @@ async function handleClickMenuItem (route) {
   padding-bottom:5px;
 
 }
-
 .version-number {
   justify-content: left ;
   display: flex;

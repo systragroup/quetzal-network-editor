@@ -249,7 +249,7 @@ function cancel () {
 
       <v-form
         ref="form"
-        lazy-validation
+        validate-on="lazy"
       >
         <v-col>
           <v-select

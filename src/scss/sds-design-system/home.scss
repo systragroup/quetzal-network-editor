@@ -5,19 +5,23 @@
   padding: 40px;
   position: relative;
 }
+
 .welcome-title {
   font-size: 3rem; // 48px
   font-weight: 700; // bold
   z-index: 10;
 }
+
 .welcome-subtitle {
   font-size: 2rem;
   font-weight: 500;
   z-index: 10;
 }
+
 .welcome-btn {
   z-index: 10;
 }
+
 .welcome-icon {
   position: absolute;
   z-index: 1;
@@ -26,10 +30,13 @@
   bottom: 28px;
   font-size: 25rem;
 }
-@media (max-width: 1000px), (max-height: 850px) {
+
+@media (width <=1000px),
+(height<=850px) {
   .welcome-panel {
     width: max-content;
   }
+
   .welcome-subtitle {
     font-size: 1rem;
   }

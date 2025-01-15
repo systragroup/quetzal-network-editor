@@ -32,7 +32,7 @@ const info = computed(() => {
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
   display: flex;
-  margin: 1rem 0 1rem;
+  margin: 1rem 0;
   flex-direction: column;
 }
 .title-box {
@@ -46,7 +46,6 @@ const info = computed(() => {
   font-size: 2em !important;
   font-weight: bold;
 }
-
 .area{
   height:100%;
   margin:0.25rem;

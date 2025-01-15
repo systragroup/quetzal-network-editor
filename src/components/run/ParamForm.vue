@@ -165,7 +165,7 @@ function stopResize () {
     <div class="expansion">
       <v-form
         ref="form"
-        lazy-validation
+        validate-on="lazy"
       >
         <v-expansion-panels
           v-model="panel"
@@ -293,8 +293,7 @@ function stopResize () {
 // card style come from parent component.
 .expansion{
   max-height:100%;
-  overflow-y:auto;
-  overflow-x:hidden;
+  overflow-y:hidden auto;
   flex-grow: 1;
   height:20rem;
 }
@@ -302,7 +301,7 @@ function stopResize () {
   white-space: pre-line;
   overflow-y: scroll;
   padding: 1rem;
-  margin-bottom:0rem
+  margin-bottom:0
 
 }
 .drag-handle {
@@ -360,10 +359,10 @@ function stopResize () {
   border:1px gray solid;
   width:100%;
 }
-@media (max-width: 768px) {
+
+@media (width <= 768px) {
   .categorie {
     font-size: 1em;
   }
-
 }
 </style>
