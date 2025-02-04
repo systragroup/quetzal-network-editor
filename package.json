@@ -104,7 +104,7 @@
     "vite-plugin-stylelint": "^4.3.0",
     "vite-plugin-vue-devtools": "^7.4.6",
     "vite-plugin-vuetify": "^1.0.2",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.1"
   },
   "resolutions": {
     "string-width": "4.2.3"
