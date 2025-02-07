@@ -9,6 +9,7 @@ import { useODStore } from './od'
 import { useRunStore } from './run'
 import { useOSMStore } from './OSMImporter'
 import { useGTFSStore } from './GTFSImporter'
+import { useMapStore } from './map.js'
 
 import { infoSerializer, stylesSerializer } from '../components/utils/serializer.js'
 import { useUserStore } from './user.js'
@@ -37,9 +38,6 @@ export const useIndexStore = defineStore('store', {
     roadsPopupContent: ['highway'],
     cyclewayMode: false,
     outputName: 'output',
-    mapCenter: [-73.570337, 45.498310],
-    mapStyle: 'mapbox://styles/mapbox/light-v11',
-    mapZoom: 11,
     importPoly: null,
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
@@ -62,13 +60,12 @@ export const useIndexStore = defineStore('store', {
       this.darkMode = payload
       rlinks.rlinksDefaultColor = this.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
       links.linksDefaultColor = this.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
-      this.mapStyle = this.darkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11'
+      const mapStore = useMapStore()
+      const style = this.darkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11'
+      mapStore.changeMapStyle(style)
     },
     changeMobile (payload) {
       this.isMobile = payload
-    },
-    changeMapStyle (payload) {
-      this.mapStyle = payload
     },
     changeLoading (payload) {
       this.loading = payload
@@ -77,10 +74,6 @@ export const useIndexStore = defineStore('store', {
       this.showLeftPanel = !this.showLeftPanel
     },
 
-    saveMapPosition (payload) {
-      this.mapCenter = payload.mapCenter
-      this.mapZoom = payload.mapZoom
-    },
     setAnchorMode (payload) {
       this.anchorMode = payload
     },

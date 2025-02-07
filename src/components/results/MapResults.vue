@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer, MglSymbolLayer } from 'vue-mapbox3'
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
+import { useMapStore } from '../../store/map'
 import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -24,6 +25,7 @@ const { selectedFeature, layerType, extrusion, labels, links, nanLinks, opacity,
 
 const emits = defineEmits(['selectClick'])
 const store = useIndexStore()
+const mapStore = useMapStore()
 
 // Mapbox
 const mapIsLoaded = ref(false)
@@ -34,7 +36,7 @@ const minZoom = ref({
   links: 2,
 })
 
-const mapStyle = computed(() => { return store.mapStyle })
+const mapStyle = computed(() => { return mapStore.mapStyle })
 
 watch(mapStyle, () => {
   if (map.value) {
@@ -55,7 +57,7 @@ onBeforeUnmount(() => {
 
 function saveMapPosition () {
   const center = map.value.getCenter()
-  store.saveMapPosition({
+  mapStore.saveMapPosition({
     mapCenter: [center.lng, center.lat],
     mapZoom: map.value.getZoom(),
   })
@@ -188,8 +190,8 @@ function zoneLeave (event) {
       :style="{'width': '100%'}"
       :access-token="mapboxPublicKey"
       :map-style="mapStyle"
-      :center="store.mapCenter"
-      :zoom="store.mapZoom"
+      :center="mapStore.mapCenter"
+      :zoom="mapStore.mapZoom"
       @load="onMapLoaded"
     >
       <MglScaleControl position="bottom-right" />
