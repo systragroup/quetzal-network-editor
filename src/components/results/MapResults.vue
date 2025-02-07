@@ -5,9 +5,12 @@ import mapboxgl from 'mapbox-gl'
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImageLayer, MglSymbolLayer } from 'vue-mapbox3'
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
-import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef } from 'vue'
+import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef, nextTick } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
+import * as THREE from 'three'
+import { Threebox } from 'threebox-plugin'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 
 const props = defineProps([
@@ -78,7 +81,69 @@ function onMapLoaded (event) {
       { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
   }
   mapIsLoaded.value = true
+
+  // setTerrain()
+  addModel()
 }
+
+function setTerrain() {
+  map.value.addSource('mapbox-dem', {
+    type: 'raster-dem',
+    url: 'mapbox://mapbox.terrain-rgb',
+    tileSize: 512,
+    maxzoom: 14,
+  })
+  // add the DEM source as a terrain layer with exaggerated height
+  map.value.setTerrain({ source: 'mapbox-dem', exaggeration: 1 })
+}
+
+const center = ref([-13.09078256900195, 9.868951447426264])
+const url = 'https://docs.mapbox.com/mapbox-gl-js/assets/metlife-building.gltf'
+function addModel() {
+  // parameters to ensure the model is georeferenced correctly on the map
+  const tb = (window.tb = new Threebox(
+    map.value,
+    map.value.getCanvas().getContext('webgl'),
+    {
+      defaultLights: true,
+    },
+  ))
+
+  const customLayer = {
+    id: 'custom-threebox-model',
+    type: 'custom',
+    renderingMode: '3d',
+    onAdd: function () {
+      // Creative Commons License attribution:  Metlife Building model by https://sketchfab.com/NanoRay
+      // https://sketchfab.com/3d-models/metlife-building-32d3a4a1810a4d64abb9547bb661f7f3
+      const scale = 1
+      const options = {
+        obj: url,
+        type: 'gltf',
+        scale: { x: scale, y: scale, z: 1 },
+        units: 'meters',
+        rotation: { x: -90, y: -180, z: 0 },
+      }
+
+      tb.loadObj(options, (model) => {
+        model.setCoords(center.value)
+        model.setRotation({ x: 0, y: 0, z: 0 })
+        model.addTooltip('Glacier d\'Argentière', true)
+
+        tb.add(model)
+      })
+    },
+
+    render: function () {
+      tb.update()
+    },
+  }
+
+  map.value.addLayer(customLayer, 'waterway-label')
+
+  console.log('added')
+}
+
 function fitBounds () {
   const bounds = new mapboxgl.LngLatBounds()
   // only use first and last point. seems to bug when there is anchor...
@@ -188,8 +253,8 @@ function zoneLeave (event) {
       :style="{'width': '100%'}"
       :access-token="mapboxPublicKey"
       :map-style="mapStyle"
-      :center="store.mapCenter"
-      :zoom="store.mapZoom"
+      :center="center"
+      :zoom="16"
       @load="onMapLoaded"
     >
       <MglScaleControl position="bottom-right" />

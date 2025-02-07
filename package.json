@@ -62,6 +62,8 @@
     "seedrandom": "^3.0.5",
     "sha256-uint8array": "^0.10.7",
     "short-uuid": "^4.2.2",
+    "three": "^0.172.0",
+    "threebox-plugin": "^2.2.7",
     "turf-linestring": "^1.0.2",
     "turf-point": "^2.0.1",
     "turf-polygon": "^1.0.3",
