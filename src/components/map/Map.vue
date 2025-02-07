@@ -13,6 +13,7 @@ import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import ODMap from './ODMap.vue'
 import { useIndexStore } from '@src/store/index'
+import { useMapStore } from '../../store/map'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
@@ -35,6 +36,7 @@ const props = defineProps({
 })
 const emits = defineEmits(['clickFeature'])
 const store = useIndexStore()
+const mapStore = useMapStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 
@@ -83,14 +85,14 @@ function onMapLoaded (event) {
 import { useMapResize } from '@src/composables/useMapResize.js'
 const { canvasDiv } = useMapResize(map)
 
-const mapStyle = computed(() => { return store.mapStyle })
+const mapStyle = computed(() => { return mapStore.mapStyle })
 watch(mapStyle, () => { saveMapPosition() })
 onBeforeUnmount(() => { saveMapPosition() })
 
 function saveMapPosition () {
   try {
     const center = map.value.getCenter()
-    store.saveMapPosition({
+    mapStore.saveMapPosition({
       mapCenter: [center.lng, center.lat],
       mapZoom: map.value.getZoom(),
     })
@@ -388,8 +390,8 @@ const { routeLink } = useRouting()
       :key="mapStyle"
       :access-token="mapboxPublicKey"
       :map-style="mapStyle"
-      :center="store.mapCenter"
-      :zoom="store.mapZoom"
+      :center="mapStore.mapCenter"
+      :zoom="mapStore.mapZoom"
       @load="onMapLoaded"
       @mousemove="draw"
       @mouseout="resetDraw('out')"

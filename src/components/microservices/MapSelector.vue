@@ -8,6 +8,7 @@ import Linestring from 'turf-linestring'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useIndexStore } from '@src/store/index'
+import { useMapStore } from '../../store/map'
 import { cloneDeep } from 'lodash'
 import geojson from '@constants/geojson'
 
@@ -20,6 +21,7 @@ const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 const emits = defineEmits(['change'])
 
 const store = useIndexStore()
+const mapStore = useMapStore()
 const map = ref()
 const mapboxPublicKey = key
 const mapIsLoaded = ref(false)
@@ -28,13 +30,13 @@ const nodes = ref({})
 const header = geojson
 const freeForm = ref(false)
 
-const mapStyle = computed(() => { return store.mapStyle })
+const mapStyle = computed(() => { return mapStore.mapStyle })
 
 onBeforeUnmount(() => {
   // remove stroke layer as it use the polygon layer data.
   const center = map.value?.getCenter()
   if (center) {
-    store.saveMapPosition({
+    mapStore.saveMapPosition({
       mapCenter: [center.lng, center.lat],
       mapZoom: map.value.getZoom(),
     })
@@ -192,8 +194,8 @@ async function readGeojson(event) {
   <MglMap
     :key="mapStyle"
     class="map"
-    :center="store.mapCenter"
-    :zoom="store.mapZoom"
+    :center="mapStore.mapCenter"
+    :zoom="mapStore.mapZoom"
     :min-zoom="3"
     :access-token="mapboxPublicKey"
     :map-style="mapStyle"
