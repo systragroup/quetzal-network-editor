@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid'
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import { useAPI } from './APIComposable'
+import { useAPI } from '../composables/APIComposable'
 import s3 from '@src/AWSClient'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
