@@ -9,7 +9,6 @@ import { useMapStore } from '../../store/map'
 import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 
 const props = defineProps([
   'selectedFeature',
@@ -29,7 +28,6 @@ const mapStore = useMapStore()
 
 // Mapbox
 const mapIsLoaded = ref(false)
-const mapboxPublicKey = key
 const map = shallowRef(null)
 const minZoom = ref({
   nodes: 14,
@@ -188,7 +186,7 @@ function zoneLeave (event) {
     <MglMap
       :key="mapStyle"
       :style="{'width': '100%'}"
-      :access-token="mapboxPublicKey"
+      :access-token="mapStore.key"
       :map-style="mapStyle"
       :center="mapStore.mapCenter"
       :zoom="mapStore.mapZoom"

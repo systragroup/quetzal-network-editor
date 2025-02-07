@@ -73,7 +73,6 @@ export const useIndexStore = defineStore('store', {
     changeLeftPanel () {
       this.showLeftPanel = !this.showLeftPanel
     },
-
     setAnchorMode (payload) {
       this.anchorMode = payload
     },
@@ -172,9 +171,11 @@ export const useIndexStore = defineStore('store', {
         this.otherFiles.push({ ...file, name, extension })
       }
     },
+
     deleteOutputs () {
       this.otherFiles = this.otherFiles.filter(file => !file.path.startsWith('outputs/'))
     },
+
     deleteotherFiles (paths) {
       // list of paths
       this.otherFiles = this.otherFiles.filter(file => !paths.includes(file.path))
@@ -204,6 +205,7 @@ export const useIndexStore = defineStore('store', {
       Object.keys(payload.road).forEach(key => this.attributesChoices.road[key] = payload.road[key])
       rlinks.loadrLinksAttributesChoices(payload.road)
     },
+
     setVisibleRasters (payload) {
       // payload.forEach(el => arr.push({ item: el }))
       // this.visibleRasters = new Set(payload)
@@ -223,6 +225,7 @@ export const useIndexStore = defineStore('store', {
       rlinks.loadrLinks(geojson)
       rlinks.loadrNodes(geojson)
     },
+
     initOD () {
       const odStore = useODStore()
       odStore.loadLayer(geojson)
@@ -260,7 +263,10 @@ export const useIndexStore = defineStore('store', {
       rlinksStore.defaultHighway = payload.defaultHighway
       this.outputName = payload.outputName
     },
-    changeOutputName (payload) { this.outputName = payload },
+
+    changeOutputName (payload) {
+      this.outputName = payload
+    },
 
     loadStyles (payload) {
       const json = stylesSerializer(payload)
@@ -277,6 +283,7 @@ export const useIndexStore = defineStore('store', {
         this.styles.push(payload)
       }
     },
+
     deleteStyle (payload) {
       // payload = name of the preset to delete
       this.styles = this.styles.filter(el => el.name !== payload)
@@ -290,6 +297,7 @@ export const useIndexStore = defineStore('store', {
     saveImportPoly (payload) {
       this.importPoly = payload
     },
+
     async exportFile (path = '') {
       if (path === 'styles.json') {
         if (this.styles.length > 0) {
@@ -491,10 +499,12 @@ export const useIndexStore = defineStore('store', {
         }
       }
     },
+
     async deleteOutputsOnS3 () {
       const userStore = useUserStore()
       await s3.deleteFolder(userStore.model, userStore.scenario + '/outputs/')
     },
+
     async deleteLogsOnS3 () {
       const userStore = useUserStore()
       await s3.deleteFolder(userStore.model, userStore.scenario + '/logs/')

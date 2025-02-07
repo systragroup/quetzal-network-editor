@@ -2,7 +2,7 @@
 /* eslint-disable no-return-assign */
 import { defineStore } from 'pinia'
 
-import Point from 'turf-point'
+import { point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
@@ -219,8 +219,8 @@ export const useODStore = defineStore('od', {
         feature => {
           const Index = feature.properties.index
           feature.geometry.coordinates.forEach(
-            (point, idx) => nodes.features.push(Point(
-              point,
+            (pt, idx) => nodes.features.push(Point(
+              pt,
               { index: short.generate(), linkIndex: Index, coordinatedIndex: idx },
             ),
             ),

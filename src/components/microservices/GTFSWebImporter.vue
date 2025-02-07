@@ -2,7 +2,7 @@
 import bboxPolygon from '@turf/bbox-polygon'
 import booleanContains from '@turf/boolean-contains'
 import booleanIntersects from '@turf/boolean-intersects'
-import Polygon from 'turf-polygon'
+import { polygon } from '@turf/helpers'
 import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
@@ -129,7 +129,7 @@ function getAvaileGTFS () {
     const g = poly.value.geometry
     lPoly = bboxPolygon([g[1], g[0], g[3], g[2]])
   } else {
-    lPoly = Polygon([poly.value.geometry])
+    lPoly = polygon([poly.value.geometry])
   }
   availableGTFS.value = gtfsList.value.filter(
     el => (booleanContains(lPoly, el.bbox) || booleanIntersects(lPoly, el.bbox)))

@@ -7,7 +7,7 @@ import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, sh
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
-import Linestring from 'turf-linestring'
+import { lineString } from '@turf/helpers'
 import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
@@ -19,7 +19,6 @@ import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
-const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -113,7 +112,7 @@ const editorTrip = computed(() => linksStore.editorTrip)
 const isEditorMode = computed(() => editorTrip.value !== null)
 
 // DrakLink
-const drawLink = ref(Linestring([]))
+const drawLink = ref(lineString([[0, 0], [0, 0]]))
 const drawMode = ref(false)
 const connectedDrawLink = ref(false)
 
@@ -388,7 +387,7 @@ const { routeLink } = useRouting()
   >
     <MglMap
       :key="mapStyle"
-      :access-token="mapboxPublicKey"
+      :access-token="mapStore.key"
       :map-style="mapStyle"
       :center="mapStore.mapCenter"
       :zoom="mapStore.mapZoom"
@@ -442,7 +441,7 @@ const { routeLink } = useRouting()
         :map="map"
         :is-editor-mode="isEditorMode"
         :mode="mode"
-        @rightClick="(e) => emits('clickFeature',e)"
+        @right-click="(e) => emits('clickFeature',e)"
       />
       <template v-if="mapIsLoaded">
         <EditorLinks
@@ -454,7 +453,7 @@ const { routeLink } = useRouting()
         :map="map"
         :is-editor-mode="isEditorMode"
         :is-o-d-mode="mode==='od'"
-        @clickFeature="clickFeature"
+        @click-feature="clickFeature"
       />
 
       <MglGeojsonLayer
