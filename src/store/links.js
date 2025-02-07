@@ -4,8 +4,8 @@ import { defineStore } from 'pinia'
 
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import Linestring from 'turf-linestring'
-import Point from 'turf-point'
+import { lineString, point as Point } from '@turf/helpers'
+
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
@@ -642,7 +642,7 @@ export const useLinksStore = defineStore('links', {
     addNodeInline (payload) {
       // payload contain selectedLink and event.lngLat (clicked point)
       const link = this.editorLinks.features.filter((link) => link.properties.index === payload.selectedLink.index)[0]
-      const linkGeom = Linestring(link.geometry.coordinates)
+      const linkGeom = lineString(link.geometry.coordinates)
       const clickedPoint = Point(Object.values(payload.lngLat))
       const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
       // we snap on the temp geom for the index:
@@ -665,7 +665,7 @@ export const useLinksStore = defineStore('links', {
         // in the cas of a Routing Anchor, we want the find the slice index on the
         // virtual geometry created with link.proeperties.anchor. not the actual geom.
         const inBetween = link.properties.anchors || []
-        const routingGeom = Linestring([
+        const routingGeom = lineString([
           link.geometry.coordinates[0],
           ...inBetween,
           ...link.geometry.coordinates.slice(-1),
@@ -1004,9 +1004,9 @@ export const useLinksStore = defineStore('links', {
         feature => {
           const linkIndex = feature.properties.index
           feature.geometry.coordinates.slice(1, -1).forEach(
-            (point, idx) => nodes.features.push({
+            (pt, idx) => nodes.features.push({
               properties: { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
-              geometry: { coordinates: point, type: 'Point' },
+              geometry: { coordinates: pt, type: 'Point' },
             }),
           )
         },
@@ -1019,9 +1019,9 @@ export const useLinksStore = defineStore('links', {
         feature => {
           const linkIndex = feature.properties.index
           feature.properties.anchors?.forEach(
-            (point, idx) => nodes.features.push({
+            (pt, idx) => nodes.features.push({
               properties: { index: short.generate(), linkIndex, coordinatedIndex: idx },
-              geometry: { coordinates: point, type: 'Point' },
+              geometry: { coordinates: pt, type: 'Point' },
             }),
           )
         },
@@ -1037,7 +1037,7 @@ export const useLinksStore = defineStore('links', {
         geom.push(...inBetween)
         geom.push(...link.geometry.coordinates.slice(-1))
       })
-      return Linestring(geom)
+      return lineString(geom)
     },
     // this return the attribute type, of undefined.
     attributeType: (state) => (name) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,

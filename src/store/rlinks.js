@@ -5,8 +5,7 @@ import { defineStore } from 'pinia'
 
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import Linestring from 'turf-linestring'
-import Point from 'turf-point'
+import { lineString, point as Point } from '@turf/helpers'
 import bearing from '@turf/bearing'
 import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
 import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
@@ -452,7 +451,7 @@ export const userLinksStore = defineStore('rlinks', {
         .filter((link) => payload.selectedIndex.includes(link.properties.index))
       // for loop. for each selectedc links add the node and split.
       for (let i = 0; i < selectedFeatures.length; i++) {
-        const linkGeom = Linestring(selectedFeatures[i].geometry.coordinates)
+        const linkGeom = lineString(selectedFeatures[i].geometry.coordinates)
         const clickedPoint = Point(Object.values(payload.lngLat))
         const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
         const dist = length(linkGeom, { units: 'kilometers' }) // dist

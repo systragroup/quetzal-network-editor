@@ -3,8 +3,7 @@ import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from '
 import NodesLayer from './NodesLayer.vue'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
-import Point from 'turf-point'
-import Linestring from 'turf-linestring'
+import { lineString, point as Point } from '@turf/helpers'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useIndexStore } from '@src/store/index'
@@ -16,14 +15,11 @@ import short from 'short-uuid'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
-const key = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
-
 const emits = defineEmits(['change'])
 
 const store = useIndexStore()
 const mapStore = useMapStore()
 const map = ref()
-const mapboxPublicKey = key
 const mapIsLoaded = ref(false)
 const poly = ref(null)
 const nodes = ref({})
@@ -112,7 +108,7 @@ function getNodes () {
   const polygon = poly.value.geometry.coordinates[0]
   // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
   polygon.slice(0, polygon.length - 1).forEach(
-    (point, idx) => tempNodes.features.push(Point(point, { index: short.generate(), coordinatesIndex: idx })),
+    (pt, idx) => tempNodes.features.push(Point(pt, { index: short.generate(), coordinatesIndex: idx })),
   )
   nodes.value = tempNodes
   emits('change', { style: 'poly', geometry: poly.value.geometry.coordinates[0] })
@@ -148,7 +144,7 @@ function addNode (event) {
   if (freeForm.value && Object.keys(event).includes('mapboxEvent')) {
     const polygon = poly.value.geometry.coordinates[0]
     const lngLat = event.mapboxEvent.lngLat
-    const linkGeom = Linestring(polygon)
+    const linkGeom = lineString(polygon)
     const clickedPoint = Point(Object.values(lngLat))
     const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
     // for multiString, gives the index of the closest one, add +1 for the slice.
@@ -197,7 +193,7 @@ async function readGeojson(event) {
     :center="mapStore.mapCenter"
     :zoom="mapStore.mapZoom"
     :min-zoom="3"
-    :access-token="mapboxPublicKey"
+    :access-token="mapStore.key"
     :map-style="mapStyle"
     @load="onMapLoaded"
     @click="addNode"
@@ -274,7 +270,7 @@ async function readGeojson(event) {
       :nodes="freeForm? nodes: header"
       :active="freeForm"
       @move="moveNode"
-      @rightClick="removeNode"
+      @right-click="removeNode"
     />
   </MglMap>
 </template>

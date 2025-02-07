@@ -6,7 +6,7 @@ import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
-import Point from 'turf-point'
+import { point as Point } from '@turf/helpers'
 import short from 'short-uuid'
 
 import geojson from '@constants/geojson'
@@ -66,8 +66,8 @@ function queryAnchor() {
     feature => {
       const linkIndex = feature.properties.index
       feature.geometry.coordinates.slice(1, -1).forEach(
-        (point, idx) => nodes.features.push(Point(
-          point,
+        (pt, idx) => nodes.features.push(Point(
+          pt,
           { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
         ),
         ),
