@@ -4,7 +4,7 @@ import { ref, watch } from 'vue'
 import s3 from '@src/AWSClient'
 import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
-import { useAPI } from './APIComposable'
+import { useAPI } from '../composables/APIComposable'
 import { useGettext } from 'vue3-gettext'
 
 export const useMRCStore = defineStore('runMRC', () => {
