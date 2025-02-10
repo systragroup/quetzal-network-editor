@@ -1,4 +1,4 @@
-import { FormFormat } from './components'
+import { GroupForm } from './components'
 import { LineStringGeoJson, LineStringFeatures, PointGeoJson } from './geojson'
 
 // payloads
@@ -76,7 +76,7 @@ export interface StickyNodePayload {
 }
 
 export interface EditGroupPayload {
-  info: FormFormat
+  info: GroupForm
   groupTripIds: Set<string>
 }
 

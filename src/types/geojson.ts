@@ -50,22 +50,6 @@ interface GeoJsonGeometryCollection extends GeoJsonGeometry {
   geometries: GeoJsonGeometry[]
 }
 
-// Feature and FeatureCollection
-interface GeoJsonFeature {
-  type: 'Feature'
-  geometry: GeoJsonGeometry | null // Null for features with no geometry
-  properties: { [key: string]: any } | null // Can be null
-  id?: string | number // Optional ID
-  crs?: GeoJsonCRS // Optional CRS
-}
-
-export interface GeoJsonFeatureCollection {
-  type: 'FeatureCollection'
-  features: GeoJsonFeature[]
-  crs?: GeoJsonCRS // Optional CRS
-}
-
-//
 // My Geojson types
 //
 
@@ -111,6 +95,7 @@ export type GeoJson =
   | LineStringGeoJson
   | PointGeoJson
 
+export type GeoJsonFeature = LineStringFeatures | PointFeatures
 // export Template values
 
 export const basePoint: PointGeoJson = {

@@ -22,6 +22,8 @@ export interface FormFormat {
   [key: string]: any// Give key type
 }
 
+export type GroupForm = Record<string, FormFormat>
+
 export interface FormOption {
   continue: boolean
 }

@@ -17,7 +17,7 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   PTFilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
-import { FormFormat } from '@src/types/components'
+import { GroupForm } from '@src/types/components'
 const $gettext = (s: string) => s
 
 export const useLinksStore = defineStore('links', {
@@ -826,7 +826,7 @@ export const useLinksStore = defineStore('links', {
       this.getEditorNodes(this.editorNodes)
     },
 
-    editLineInfo (payload: FormFormat) {
+    editLineInfo (payload: GroupForm) {
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(payload).filter(key =>
         ((payload[key].value !== '') || !payload[key].placeholder) && (!payload[key].disabled))
@@ -848,7 +848,7 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
-    editLinkInfo (payload: FormFormat) {
+    editLinkInfo (payload: GroupForm) {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedLinkId, info } = payload
       const props = Object.keys(info)
@@ -861,7 +861,7 @@ export const useLinksStore = defineStore('links', {
       )
     },
 
-    editNodeInfo (payload: FormFormat) {
+    editNodeInfo (payload: GroupForm) {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedNodeId, info } = payload
       const props = Object.keys(info)
