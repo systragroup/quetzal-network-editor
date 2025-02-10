@@ -3,7 +3,7 @@
 import { defineStore } from 'pinia'
 
 import { point as Point } from '@turf/helpers'
-import { serializer, CRSis4326 } from '@comp/utils/serializer.js'
+import { serializer, CRSis4326 } from '@comp/utils/serializer'
 import { IndexAreDifferent } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'

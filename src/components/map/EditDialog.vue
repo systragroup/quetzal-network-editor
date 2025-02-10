@@ -174,13 +174,13 @@ function addField () {
     }
 
     if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
-      linksStore.addPropertie({ name: newFieldName.value, table: 'links' })
+      linksStore.addLinksPropertie({ name: newFieldName.value })
     } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(action.value)) {
       rlinksStore.addRoadPropertie({ name: newFieldName.value, table: 'rlinks' })
     } else if (action.value === 'Edit Node Info') {
-      linksStore.addPropertie({ name: newFieldName.value, table: 'nodes' })
+      linksStore.addNodesPropertie({ name: newFieldName.value, table: 'nodes' })
     } else if (action.value === 'Edit rNode Info') {
-      rlinksStore.addRoadPropertie({ name: newFieldName.value, table: 'rnodes' })
+      rlinksStore.addRoadPropertie({ name: newFieldName.value })
     } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(action.value)) {
       ODStore.addPropertie(newFieldName.value)
     }
@@ -206,11 +206,11 @@ function deleteField (field) {
   editorForm.value = form
 
   if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
-    linksStore.deletePropertie({ name: field, table: 'links' })
+    linksStore.deleteLinksPropertie({ name: field })
   } else if (['Edit rLink Info', 'Edit Road Group Info', 'Edit Visible Road Info'].includes(action.value)) {
     rlinksStore.deleteRoadPropertie({ name: field, table: 'rlinks' })
   } else if (action.value === 'Edit Node Info') {
-    linksStore.deletePropertie({ name: field, table: 'nodes' })
+    linksStore.deleteNodesPropertie({ name: field })
   } else if (action.value === 'Edit rNode Info') {
     rlinksStore.deleteRoadPropertie({ name: field, table: 'rnodes' })
   } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(action.value)) {

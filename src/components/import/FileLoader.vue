@@ -1,6 +1,6 @@
 <!-- eslint-disable no-case-declarations -->
 <script setup>
-import { serializer } from '@comp/utils/serializer.js'
+import { serializer } from '@comp/utils/serializer'
 import { readFileAsText } from '@comp/utils/utils.js'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'

@@ -1,13 +1,18 @@
 // import JSZip from 'jszip'
-const $gettext = s => s
+const $gettext = (s: string) => s
+import { GeoJson } from '@src/types/geojson'
 import { indexAreUnique, dropDuplicatesIndex } from './utils'
 
-export function CRSis4326(geojson) {
+export function CRSis4326(geojson: GeoJson) {
   const arr = ['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326', 'urn:ogc:def:crs:EPSG:4326']
-  return arr.includes(geojson.crs?.properties.name)
+  if (geojson.crs) {
+    return arr.includes(geojson.crs.properties.name)
+  } else {
+    return false
+  }
 }
 
-export function serializer (geojson, name, type = null, ignoreIndex = false) {
+export function serializer (geojson: GeoJson, name: string, type: string | null = null, ignoreIndex: boolean = false): any {
   // check that file is not empty
   if (geojson.features.length === 0) {
     const err = new Error(name + $gettext(' is empty'))
@@ -47,14 +52,14 @@ export function serializer (geojson, name, type = null, ignoreIndex = false) {
   return geojson
 }
 
-export function paramsSerializer (json) {
+export function paramsSerializer (json: JSON) {
   if (!Array.isArray(json)) {
     const err = new Error($gettext('params.json should be an array of object [{category: , params: }, ...]'))
     err.name = 'ImportError'
     throw err
   }
   const params = json.filter(item => !item?.info)
-  const contains = (a, b) => [...b].every(value => a.has(value))
+  const contains = (a: any, b: any) => [...b].every(value => a.has(value))
   const expectedKeys = new Set(['category', 'params'])
   params.forEach(el => {
     if (!contains(new Set(Object.keys(el)), expectedKeys)) {
@@ -71,7 +76,7 @@ export function paramsSerializer (json) {
   return json
 }
 
-export function stylesSerializer (json) {
+export function stylesSerializer (json: JSON) {
   if (!Array.isArray(json)) {
     // eslint-disable-next-line max-len
     const err = new Error($gettext('styles.json should be an array of object with at least [{name:,layer:}]'))
@@ -89,7 +94,7 @@ export function stylesSerializer (json) {
   return json
 }
 
-export function infoSerializer (json) {
+export function infoSerializer (json: JSON) {
   const keys = Object.keys(json)
   if (!keys.includes('description')) {
     const err = new Error($gettext('info.json should be of the form {description: ""}'))

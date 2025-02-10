@@ -136,14 +136,14 @@ function showGroup (val) {
 
 function editButton (value) {
   if (!editorTrip.value) {
-    linksStore.setEditorTrip({ tripId: value, changeBounds: true })
+    linksStore.setEditorTrip(value)
     store.changeNotification({ text: '', autoClose: true })
   }
 }
 
 function scheduleButton (value) {
   if (!editorTrip.value) {
-    linksStore.setEditorTrip({ tripId: value, changeBounds: false })
+    linksStore.setEditorTrip(value)
     emits('scheduleButton', { action: 'Edit Line Schedule', lingering: false })
     // just open dialog
   } else {
@@ -157,7 +157,7 @@ function propertiesButton (value) {
   if (typeof value === 'object') {
     emits('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
   } else if (!editorTrip.value) {
-    linksStore.setEditorTrip({ tripId: value, changeBounds: false })
+    linksStore.setEditorTrip(value)
     emits('propertiesButton', { action: 'Edit Line Info', lingering: false })
     // just open dialog
   } else {
@@ -168,7 +168,7 @@ function propertiesButton (value) {
 
 function createNewLine () {
   const name = 'trip_' + short.generate()
-  linksStore.setEditorTrip({ tripId: name, changeBounds: false })
+  linksStore.setEditorTrip(name)
   emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
 }
 

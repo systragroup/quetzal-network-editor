@@ -150,17 +150,7 @@ watch(editorTrip, (val) => {
   store.setStickyMode(false)
   store.setRoutingMode(false)
   connectedDrawLink.value = false
-  if (val) {
-    if (linksStore.changeBounds) {
-      const bounds = new Mapbox.LngLatBounds()
-      editorNodes.value.features.forEach(node => {
-        bounds.extend(node.geometry.coordinates)
-      })
-      map.value.fitBounds(bounds, {
-        padding: 200,
-      })
-    }
-  } else { drawMode.value = false }
+  if (!val) { drawMode.value = false }
 })
 
 watch(isEditorMode, (val) => {
@@ -207,8 +197,15 @@ const selectedNode = ref({ id: null, layerId: null })
 const hoverId = ref(null)
 const hoverLayer = ref(null)
 
-const firstNode = computed(() => { return linksStore.firstNode })
-const lastNode = computed(() => { return linksStore.lastNode })
+const firstNodeId = computed(() => { return linksStore.firstNodeId })
+const lastNodeId = computed(() => { return linksStore.lastNodeId })
+
+const firstNode = computed(() =>
+  editorNodes.value.features.filter((node) => node.properties.index === firstNodeId.value)[0],
+)
+const lastNode = computed(() =>
+  editorNodes.value.features.filter((node) => node.properties.index === lastNodeId.value)[0],
+)
 // when the first or last node change (delete or new) change the value of those nodes.
 watch(firstNode, (val) => {
   if (editorTrip.value && val) {
@@ -255,11 +252,11 @@ function addPointPT(event) {
   } else if (connectedDrawLink.value && hoverLayer.value === 'stickyNodes' && hoverId.value) {
     // reuse a existing node. create the link and simulate a move event with useStickyNode()
     linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
-    const newNode = linksStore.newNode.properties.index
+    const newNode = linksStore.newNode.features[0].properties.index
     useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
   }
   if (store.routingMode) {
-    routeLink(linksStore.newLink)
+    routeLink(linksStore.newLink.features[0])
   }
 }
 

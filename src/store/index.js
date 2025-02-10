@@ -11,14 +11,13 @@ import { useOSMStore } from './OSMImporter'
 import { useGTFSStore } from './GTFSImporter'
 import { useMapStore } from './map.js'
 
-import { infoSerializer, stylesSerializer } from '../components/utils/serializer.js'
+import { infoSerializer, stylesSerializer } from '../components/utils/serializer'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import geojson from '@constants/geojson'
 import { deleteUnusedNodes } from '../components/utils/utils.js'
-
-const $gettext = s => s
+const $gettext = (s) => s
 
 const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
 
@@ -97,6 +96,7 @@ export const useIndexStore = defineStore('store', {
 
     loadFiles (payload) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() || null })
+
       const linksStore = useLinksStore()
       const rlinksStore = userLinksStore()
       const ODStore = useODStore()

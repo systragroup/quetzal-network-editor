@@ -1,3 +1,10 @@
+## [6.2.x] (2025-xx-xx)
+### Refactor
+* Links Store in TypeScript
+
+### Changes
+* remove changeBounds when click on a link
+
 ## [6.2.c] (2025-01-15)
 ### Changes
 * Change NavigationDrawer Looks and feels
