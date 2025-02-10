@@ -27,7 +27,7 @@ const mode = ref('pt')
 const action = ref(null)
 
 onUnmounted(() => {
-  linksStore.setEditorTrip({ tripId: null, changeBounds: false })
+  linksStore.setEditorTrip(null)
   if (store.anchorMode) { store.changeAnchorMode() }
   if (store.cyclewayMode) { store.changeCyclewayMode() }
 })
@@ -55,7 +55,7 @@ function actionClick (event) {
   if (action.value === 'Edit Line Info') {
     const lineAttributes = linksStore.lineAttributes
     const features = linksStore.editorLinks.features.length === 0
-      ? cloneDeep(linksStore.defaultLink)
+      ? cloneDeep(linksStore.defaultLink.features)
       : linksStore.editorLinks.features
     let uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
     if (isScheduleTrip(features[0])) { uneditable = [...uneditable, 'speed'] }
@@ -241,7 +241,7 @@ function confirmChanges () {
   // confirm changes on sidePanel, this overwrite Links in store.
   linksStore.confirmChanges()
   // put editTrip and action to null.
-  linksStore.setEditorTrip({ tripId: null, changeBounds: false })
+  linksStore.setEditorTrip(null)
   action.value = null
   // notification
   store.changeNotification(
@@ -250,7 +250,7 @@ function confirmChanges () {
 function abortChanges () {
   // unselect a trip for edition. nothing to commit on link here.
   // put editTrip and action to null.
-  linksStore.setEditorTrip({ tripId: null, changeBounds: false })
+  linksStore.setEditorTrip(null)
   action.value = null
   // notification
   store.changeNotification({ text: $gettext('modification aborted'), autoClose: true })
@@ -309,14 +309,14 @@ function toggleSchedule(event) {
       :action="action"
       :link-dir="linkDir"
       @toggle="toggleSchedule( { action: 'Edit Line Schedule'})"
-      @applyAction="applyAction"
-      @cancelAction="cancelAction"
+      @apply-action="applyAction"
+      @cancel-action="cancelAction"
     />
     <EditScheduleDialog
       v-model="scheduleDialog"
       @toggle="toggleSchedule( { action: 'Edit Line Info' })"
-      @cancelAction="cancelAction"
-      @applyAction="applyAction"
+      @cancel-action="cancelAction"
+      @apply-action="applyAction"
     />
     <v-dialog
       v-model="deleteDialog"
@@ -399,17 +399,17 @@ function toggleSchedule(event) {
     </v-dialog>
 
     <SidePanel
-      @confirmChanges="confirmChanges"
-      @abortChanges="abortChanges"
-      @deleteButton="deleteButton"
-      @cloneButton="cloneButton"
-      @propertiesButton="actionClick"
-      @scheduleButton="actionClick"
+      @confirm-changes="confirmChanges"
+      @abort-changes="abortChanges"
+      @delete-button="deleteButton"
+      @clone-button="cloneButton"
+      @properties-button="actionClick"
+      @schedule-button="actionClick"
       @change-mode="(e) => mode = e"
     />
     <Map
       :mode="mode"
-      @clickFeature="actionClick"
+      @click-feature="actionClick"
     />
   </section>
 </template>

@@ -126,7 +126,7 @@ function selectLine (e) {
     }
     // do nothing if nothing is clicked (clicking on map, not on a link)
     if (selectedFeatures.value.length == 1) {
-      linksStore.setEditorTrip({ tripId: selectedFeatures.value[0].properties.trip_id, changeBounds: false })
+      linksStore.setEditorTrip(selectedFeatures.value[0].properties.trip_id)
       store.changeNotification({ text: '', autoClose: true })
     } else if (selectedFeatures.value.length > 1) {
       let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
@@ -154,7 +154,7 @@ function rightClick (event) {
 }
 
 function editLineProperties (selectedTrip) {
-  linksStore.setEditorTrip({ tripId: selectedTrip, changeBounds: false })
+  linksStore.setEditorTrip(selectedTrip)
   emits('rightClick', { action: 'Edit Line Info', lingering: false })
 }
 
@@ -168,7 +168,7 @@ function contextMenuClick(trip) {
     setHighlightTrip(null)
   }
   else if (contextMenu.value.action === 'editTrip') {
-    linksStore.setEditorTrip({ tripId: trip, changeBounds: false })
+    linksStore.setEditorTrip(trip)
     contextMenu.value.showed = false
     setHighlightTrip(null)
   }

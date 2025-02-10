@@ -156,7 +156,7 @@ function addNode (event) {
 
 // Loading and uploading a geojson
 import { readFileAsText } from '@comp/utils/utils.js'
-import { serializer } from '@comp/utils/serializer.js'
+import { serializer } from '@comp/utils/serializer'
 import saveAs from 'file-saver'
 
 function downloadPoly() {
