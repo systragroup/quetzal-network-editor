@@ -3,6 +3,8 @@ import { LineStringGeoJson, LineStringFeatures, PointGeoJson } from './geojson'
 
 // payloads
 
+export type LinksAction = '' | 'Edit Group Info' | 'Edit Line Info' | 'Extend Line Upward' | 'Extend Line Downward'
+
 export interface PTFilesPayload {
   path: string
   content: LineStringGeoJson | PointGeoJson
@@ -24,8 +26,6 @@ export interface CloneTrip {
   cloneNodes: boolean
   reverse: boolean
 }
-
-export type LinksAction = 'Extend Line Upward' | 'Extend Line Downward'
 
 export interface EditNewLinkPayload {
   geom: number[]
@@ -88,8 +88,6 @@ export interface Attributes {
 }
 
 export type AttributesChoice = Record<string, (string | number)[]>
-
-export type Action = '' | 'Edit Group Info' | 'Edit Line Info'
 
 export interface LinksStore {
   links: LineStringGeoJson

@@ -10,7 +10,6 @@ import { computed, ref, watch, toRefs, onMounted } from 'vue'
 import geojson from '@constants/geojson'
 
 const props = defineProps(['map', 'isEditorMode', 'mode'])
-const emits = defineEmits(['rightClick', 'onHover', 'offHover'])
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const { map, isEditorMode, mode } = toRefs(props)
@@ -153,9 +152,12 @@ function rightClick (event) {
   }
 }
 
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
+
 function editLineProperties (selectedTrip) {
   linksStore.setEditorTrip(selectedTrip)
-  emits('rightClick', { action: 'Edit Line Info', lingering: false })
+  openDialog({ action: 'Edit Line Info', selectedSet: new Set(selectedTrip), lingering: false })
 }
 
 import { useHighlight } from './useHighlight'

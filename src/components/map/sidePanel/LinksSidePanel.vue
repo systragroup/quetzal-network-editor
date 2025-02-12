@@ -25,13 +25,11 @@ interface ClonePayload {
 }
 
 const emits = defineEmits([
-  'selectEditorTrip',
   'confirmChanges',
   'abortChanges',
   'cloneButton',
   'deleteButton',
   'scheduleButton',
-  'newLine',
 ])
 const maxSize = 200
 const store = useIndexStore()
@@ -174,7 +172,7 @@ function scheduleButton (tripId: string) {
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
 
-function propertiesButton (value: string[], action: Action) {
+function propertiesButton (value: string[], action: LinksAction) {
   // select the TripId and open dialog
   if (action === 'Edit Group Info') {
     openDialog({ action: 'Edit Group Info', selectedSet: new Set(value), lingering: false })
@@ -211,7 +209,7 @@ function deleteButton (obj: DeletePayload) {
 }
 
 import { useHighlight } from '../useHighlight'
-import { Action } from '@src/types/typesStore'
+import { LinksAction } from '@src/types/typesStore'
 const { setHighlightTrip } = useHighlight()
 function setHighlight(trip: string | null) {
   if (!editorTrip.value) {

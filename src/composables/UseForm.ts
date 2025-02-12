@@ -1,3 +1,4 @@
+import { LinksAction } from '@src/types/typesStore'
 import { ref } from 'vue'
 
 const showDialog = ref(false)
@@ -5,9 +6,11 @@ const selectedSet = ref<Set<string>>(new Set([]))
 const action = ref<string>('')
 const lingering = ref(false)
 
+type Action = LinksAction
+
 interface OpenFormPayload {
   selectedSet: Set<string>
-  action: string
+  action: Action
   lingering: boolean
 }
 

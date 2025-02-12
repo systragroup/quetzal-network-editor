@@ -438,7 +438,6 @@ const { routeLink } = useRouting()
         :map="map"
         :is-editor-mode="isEditorMode"
         :mode="mode"
-        @right-click="(e) => emits('clickFeature',e)"
       />
       <template v-if="mapIsLoaded">
         <EditorLinks
