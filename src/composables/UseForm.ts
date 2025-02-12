@@ -1,11 +1,6 @@
 import { LinksAction } from '@src/types/typesStore'
 import { ref } from 'vue'
 
-const showDialog = ref(false)
-const selectedArr = ref<string[]>([])
-const action = ref<string>('')
-const lingering = ref(false)
-
 type Action = LinksAction
 
 interface OpenFormPayload {
@@ -13,6 +8,11 @@ interface OpenFormPayload {
   action: Action
   lingering: boolean
 }
+// Global variables.
+const showDialog = ref(false)
+const selectedArr = ref<string[]>([])
+const action = ref<Action>('')
+const lingering = ref(false)
 
 export function useForm() {
   // resize map when div change

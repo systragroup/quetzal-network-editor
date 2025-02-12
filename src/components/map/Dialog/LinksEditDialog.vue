@@ -29,6 +29,7 @@ const { showDialog, action, selectedArr, lingering } = useForm()
 // const links = computed(() => linksStore.links)
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
+const nodeAttributes = computed(() => linksStore.nodeAttributes)
 const tripList = computed(() => linksStore.tripId)
 const formRef = ref()
 const newFieldRef = ref()
@@ -70,9 +71,15 @@ function createForm() {
       // link is clicked on the map
       const selectedLink = selectedArr.value[0]
       features = linksStore.editorLinks.features.filter((link) => link.properties.index === selectedLink)
-      let uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
-      if (isScheduleTrip(features[0])) { uneditable = [...uneditable, ...['speed', 'time']] }
-      editorForm.value = getGroupForm(features, lineAttributes.value, uneditable)
+      disabled = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
+      if (isScheduleTrip(features[0])) { disabled = [...disabled, ...['speed', 'time']] }
+      editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
+      break
+    case 'Edit Node Info':
+      const selectedNode = selectedArr.value[0]
+      features = linksStore.editorNodes.features.filter((node) => node.properties.index === selectedNode)
+      disabled = ['index', 'route_width']
+      editorForm.value = getGroupForm(features, nodeAttributes.value, disabled)
       break
   }
 }
@@ -93,6 +100,9 @@ async function submitForm() {
     case 'Edit Link Info':
       linksStore.editLinkInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
       break
+    case 'Edit Node Info':
+      console.log(selectedArr.value)
+      linksStore.editNodeInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
   }
   showDialog.value = false
   if (!lingering.value) {
