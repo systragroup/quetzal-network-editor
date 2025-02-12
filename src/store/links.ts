@@ -225,12 +225,13 @@ export const useLinksStore = defineStore('links', {
       // when a new line properties is added (in dataframe page)
       this.links.features.map(link => link.properties[payload.name] = null)
       this.editorLinks.features.map(link => link.properties[payload.name] = null)
-      this.lineAttributes.push(payload.name) // could put that at applied. so we can cancel
+      this.lineAttributes.push(payload.name)
     },
 
     addNodesPropertie (payload: NewAttribute) {
       this.nodes.features.map(node => node.properties[payload.name] = null)
       this.editorNodes.features.map(node => node.properties[payload.name] = null)
+      this.nodeAttributes.push(payload.name)
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
