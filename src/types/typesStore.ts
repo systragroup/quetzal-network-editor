@@ -89,6 +89,8 @@ export interface Attributes {
 
 export type AttributesChoice = Record<string, (string | number)[]>
 
+export type Action = '' | 'Edit Group Info' | 'Edit Line Info'
+
 export interface LinksStore {
   links: LineStringGeoJson
   nodes: PointGeoJson
@@ -97,6 +99,9 @@ export interface LinksStore {
   editorLinks: LineStringGeoJson
   editorTrip: string | null
   defaultLink: LineStringGeoJson
+  showEditorForm: boolean
+  editorValueSet: Set<string>
+  action: Action
   tripId: string[]
   scheduledTrips: Set<string>
   selectedTrips: string[]

@@ -15,3 +15,7 @@ export function getGroupForm (features: GeoJsonFeature[], lineAttributes: string
   })
   return form
 }
+
+export function isScheduleTrip(link: GeoJsonFeature) {
+  return (link.properties.arrivals !== undefined)
+}

@@ -7,10 +7,10 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
+import { IndexAreDifferent, deleteUnusedNodes,
+  isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
-import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditNewLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
@@ -29,6 +29,9 @@ export const useLinksStore = defineStore('links', {
     editorLinks: baseLineString,
     editorTrip: null,
     defaultLink: baseLineString,
+    showEditorForm: false,
+    editorValueSet: new Set(),
+    action: '',
     tripId: [],
     scheduledTrips: new Set([]),
     selectedTrips: [],
@@ -251,7 +254,7 @@ export const useLinksStore = defineStore('links', {
       this.selectedTrips = payload
     },
 
-    setEditorTrip (selectedTrip: string) {
+    setEditorTrip (selectedTrip: string | null) {
       // set Trip Id
       this.editorTrip = selectedTrip
       // set editor links corresponding to trip id
@@ -825,6 +828,12 @@ export const useLinksStore = defineStore('links', {
       this.editorLinks.features = this.editorLinks.features.filter(item => !toDelete.includes(item))
       this.getEditorNodes(this.editorNodes)
     },
+
+    // SetEditForm(valueSet: Set<string>, action: Action) {
+    //   this.showEditorForm = true
+    //   this.editorValueSet = valueSet
+    //   this.action = action
+    // },
 
     editLineInfo (payload: GroupForm) {
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
