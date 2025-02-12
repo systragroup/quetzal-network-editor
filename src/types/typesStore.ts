@@ -1,3 +1,4 @@
+import { Group } from '@src/components/map/sidePanel/LinksSidePanel.vue'
 import { GroupForm } from './components'
 import { LineStringGeoJson, LineStringFeatures, PointGeoJson } from './geojson'
 
@@ -77,7 +78,12 @@ export interface StickyNodePayload {
 
 export interface EditGroupPayload {
   info: GroupForm
-  groupTripIds: Set<string>
+  groupTripIds: string[]
+}
+
+export interface EditLinkPayload {
+  info: GroupForm
+  selectedIndex: string
 }
 
 // store values

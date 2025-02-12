@@ -53,16 +53,6 @@ function actionClick (event) {
 
   if (action.value === 'Edit Line Schedule') {
     scheduleDialog.value = true
-  } else if (action.value === 'Edit Link Info') {
-    // link is clicked on the map
-    selectedLink.value = event.selectedFeature.properties
-    const lineAttributes = linksStore.lineAttributes
-    const features = linksStore.editorLinks.features.filter(
-      (link) => link.properties.index === selectedLink.value.index)
-    let uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
-    if (isScheduleTrip(features[0])) { uneditable = [...uneditable, ...['speed', 'time']] }
-    editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-    showDialog.value = true
   } else if (action.value === 'Edit rLink Info') {
     selectedLink.value = event.selectedIndex
     editorForm.value = selectedLink.value.map(linkId => rlinksStore.rlinksForm(linkId))
@@ -150,9 +140,6 @@ function applyAction () {
   scheduleDialog.value = false
   deleteDialog.value = false
   switch (action.value) {
-    case 'Edit Link Info':
-      linksStore.editLinkInfo({ selectedLinkId: selectedLink.value.index, info: editorForm.value })
-      break
     case 'Edit Node Info':
       linksStore.editNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
       break

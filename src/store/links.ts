@@ -12,7 +12,7 @@ import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, 
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
-  CloneTrip, EditGroupPayload, EditNewLinkPayload, LinksAction,
+  CloneTrip, EditGroupPayload, EditLinkPayload, EditNewLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
   PTFilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures,
@@ -848,27 +848,27 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
-    editLinkInfo (payload: GroupForm) {
+    editLinkInfo (payload: EditLinkPayload) {
       // get selected link in editorLinks and modify the changes attributes.
-      const { selectedLinkId, info } = payload
+      const { selectedIndex, info } = payload
       const props = Object.keys(info)
       this.editorLinks.features.filter(
         function (link) {
-          if (link.properties.index === selectedLinkId) {
+          if (link.properties.index === selectedIndex) {
             props.forEach((key) => link.properties[key] = info[key].value)
           }
         },
       )
     },
 
-    editNodeInfo (payload: GroupForm) {
+    editNodeInfo (payload: EditLinkPayload) {
       // get selected node in editorNodes and modify the changes attributes.
-      const { selectedNodeId, info } = payload
+      const { selectedIndex, info } = payload
       const props = Object.keys(info)
       this.editorNodes.features.filter(
         // eslint-disable-next-line array-callback-return
         function (node) {
-          if (node.properties.index === selectedNodeId) {
+          if (node.properties.index === selectedIndex) {
             props.forEach((key) => node.properties[key] = info[key].value)
           }
         },
@@ -878,7 +878,7 @@ export const useLinksStore = defineStore('links', {
     editGroupInfo (payload: EditGroupPayload) {
       // edit line info on multiple trips at once.
       const editorGroupInfo = payload.info
-      const groupTripIds = payload.groupTripIds
+      const groupTripIds = new Set(payload.groupTripIds)
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(editorGroupInfo).filter(key =>
         ((editorGroupInfo[key].value !== '') || !editorGroupInfo[key].placeholder))
