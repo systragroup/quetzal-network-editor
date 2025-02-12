@@ -22,14 +22,11 @@ const emit = defineEmits(['applyAction', 'cancelAction', 'toggle'])
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
-const showDialog = computed({
-  get: () => linksStore.showEditorForm,
-  set: (val) => linksStore.showEditorForm = val,
-})
 
-const links = computed(() => linksStore.links)
-const valueSet = computed(() => linksStore.editorValueSet)
-const action = computed(() => linksStore.action)
+import { useForm } from '@src/composables/UseForm'
+const { showDialog, action, selectedSet, lingering } = useForm()
+
+// const links = computed(() => linksStore.links)
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const tripList = computed(() => linksStore.tripId)
@@ -62,10 +59,9 @@ function createForm() {
       disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
       if (isScheduleTrip(features[0])) { disabled = [...disabled, 'speed'] }
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
-
       break
     case 'Edit Group Info':
-      features = linksStore.links.features.filter(link => valueSet.value.has(link.properties.trip_id))
+      features = linksStore.links.features.filter(link => selectedSet.value.has(link.properties.trip_id))
       disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
@@ -92,6 +88,9 @@ const showScheduleButton = computed(() => linksStore.editorNodes.features.length
 
 function cancel() {
   showDialog.value = false
+  if (!lingering.value) {
+    linksStore.setEditorTrip(null)
+  }
 }
 
 async function submitForm() {
@@ -105,10 +104,15 @@ async function submitForm() {
       linksStore.editLineInfo(editorForm.value)
       break
     case 'Edit Group Info':
-      linksStore.editGroupInfo(editorForm.value)
+      linksStore.editGroupInfo({ groupTripIds: selectedSet.value, info: editorForm.value })
       break
   }
   showDialog.value = false
+  if (!lingering.value) {
+    linksStore.confirmChanges()
+    store.changeNotification(
+      { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+  }
   return true
 }
 

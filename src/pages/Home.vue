@@ -5,8 +5,8 @@ import SidePanel from '@comp/map/sidePanel/SidePanel.vue'
 import Map from '@comp/map/Map.vue'
 import EditDialog from '@comp/map/EditDialog.vue'
 import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
+import LinksEditDialog from '@src/components/map/Dialog/LinksEditDialog.vue'
 import { getGroupForm } from '@comp/utils/utils.js'
-import { cloneDeep } from 'lodash'
 // only used to force to see translation to vue-gettext
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
@@ -45,34 +45,14 @@ const message = ref('')
 const cloneObj = ref({ trip: null, name: null, reverse: true, nodes: false })
 const errorMessage = ref(null)
 const lingering = ref(true)
-const groupTripIds = ref([])
 const linkDir = ref([])
 
 function actionClick (event) {
   action.value = event.action
   lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
 
-  if (action.value === 'Edit Line Info') {
-    const lineAttributes = linksStore.lineAttributes
-    const features = linksStore.editorLinks.features.length === 0
-      ? cloneDeep(linksStore.defaultLink.features)
-      : linksStore.editorLinks.features
-    let uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
-    if (isScheduleTrip(features[0])) { uneditable = [...uneditable, 'speed'] }
-    editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-    showDialog.value = true
-  } else if (action.value === 'Edit Line Schedule') {
+  if (action.value === 'Edit Line Schedule') {
     scheduleDialog.value = true
-  } else if (action.value === 'Edit Group Info') {
-    groupTripIds.value = new Set(event.tripIds)
-    const lineAttributes = linksStore.lineAttributes
-    const features = linksStore.links.features.filter(link => groupTripIds.value.has(link.properties.trip_id))
-    // eslint-disable-next-line max-len
-    let uneditable = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
-    // should check everything. could edit group with and without Schedules... so user  change speed if they want
-    // if (isScheduleTrip(features[0])) { uneditable = [...uneditable, ...['speed', ]] }
-    editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-    showDialog.value = true
   } else if (action.value === 'Edit Link Info') {
     // link is clicked on the map
     selectedLink.value = event.selectedFeature.properties
@@ -175,10 +155,6 @@ function applyAction () {
       break
     case 'Edit Node Info':
       linksStore.editNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
-      break
-      // case 'Edit Line Info': was move directly to the editDialog for toggle
-    case 'Edit Group Info':
-      linksStore.editGroupInfo({ groupTripIds: groupTripIds.value, info: editorForm.value })
       break
     case 'Edit rLink Info':
       rlinksStore.editrLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
@@ -302,6 +278,7 @@ function toggleSchedule(event) {
   <section
     class="map-view"
   >
+    <LinksEditDialog />
     <EditDialog
       v-model:show-dialog="showDialog"
       v-model:editor-form="editorForm"

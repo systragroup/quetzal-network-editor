@@ -30,7 +30,6 @@ const emits = defineEmits([
   'abortChanges',
   'cloneButton',
   'deleteButton',
-  'propertiesButton',
   'scheduleButton',
   'newLine',
 ])
@@ -172,24 +171,25 @@ function scheduleButton (tripId: string) {
   store.changeNotification({ text: '', autoClose: true })
 }
 
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
+
 function propertiesButton (value: string[], action: Action) {
   // select the TripId and open dialog
   if (action === 'Edit Group Info') {
-    emits('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
+    openDialog({ action: 'Edit Group Info', selectedSet: new Set(value), lingering: false })
   } else if (!editorTrip.value) {
     linksStore.setEditorTrip(value[0])
-    emits('propertiesButton', { action: 'Edit Line Info', lingering: false })
-    // just open dialog
+    openDialog({ action: 'Edit Line Info', selectedSet: new Set(value), lingering: false })
   } else {
-    emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
-    store.changeNotification({ text: '', autoClose: true })
+    openDialog({ action: 'Edit Line Info', selectedSet: new Set(value), lingering: true })
   }
 }
 
 function createNewLine () {
   const name = 'trip_' + short.generate()
   linksStore.setEditorTrip(name)
-  emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
+  openDialog({ action: 'Edit Line Info', selectedSet: new Set([]), lingering: true })
 }
 
 function confirmChanges() {
