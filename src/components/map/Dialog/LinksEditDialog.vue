@@ -24,7 +24,7 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 
 import { useForm } from '@src/composables/UseForm'
-const { showDialog, action, selectedSet, lingering } = useForm()
+const { showDialog, action, selectedArr, lingering } = useForm()
 
 // const links = computed(() => linksStore.links)
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
@@ -61,11 +61,46 @@ function createForm() {
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Group Info':
-      features = linksStore.links.features.filter(link => selectedSet.value.has(link.properties.trip_id))
+      const selectedSet = new Set(selectedArr.value)
+      features = linksStore.links.features.filter(link => selectedSet.has(link.properties.trip_id))
       disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
+    case 'Edit Link Info':
+      // link is clicked on the map
+      const selectedLink = selectedArr.value[0]
+      features = linksStore.editorLinks.features.filter((link) => link.properties.index === selectedLink)
+      let uneditable = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
+      if (isScheduleTrip(features[0])) { uneditable = [...uneditable, ...['speed', 'time']] }
+      editorForm.value = getGroupForm(features, lineAttributes.value, uneditable)
+      break
   }
+}
+
+async function submitForm() {
+  const resp = await formRef.value.validate()
+  if (!resp.valid) { return false }
+  if (linksStore.editorNodes.features.length === 0) {
+    store.changeNotification({ text: $gettext('Click on the map to start drawing'), autoClose: false })
+  }
+  switch (action.value) {
+    case 'Edit Line Info':
+      linksStore.editLineInfo(editorForm.value)
+      break
+    case 'Edit Group Info':
+      linksStore.editGroupInfo({ groupTripIds: selectedArr.value, info: editorForm.value })
+      break
+    case 'Edit Link Info':
+      linksStore.editLinkInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
+      break
+  }
+  showDialog.value = false
+  if (!lingering.value) {
+    linksStore.confirmChanges()
+    store.changeNotification(
+      { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+  }
+  return true
 }
 
 const orderedForm = computed (() => {
@@ -91,29 +126,6 @@ function cancel() {
   if (!lingering.value) {
     linksStore.setEditorTrip(null)
   }
-}
-
-async function submitForm() {
-  const resp = await formRef.value.validate()
-  if (!resp.valid) { return false }
-  if (linksStore.editorNodes.features.length === 0) {
-    store.changeNotification({ text: $gettext('Click on the map to start drawing'), autoClose: false })
-  }
-  switch (action.value) {
-    case 'Edit Line Info':
-      linksStore.editLineInfo(editorForm.value)
-      break
-    case 'Edit Group Info':
-      linksStore.editGroupInfo({ groupTripIds: selectedSet.value, info: editorForm.value })
-      break
-  }
-  showDialog.value = false
-  if (!lingering.value) {
-    linksStore.confirmChanges()
-    store.changeNotification(
-      { text: $gettext('modification applied'), autoClose: true, color: 'success' })
-  }
-  return true
 }
 
 // computed speed, time, length. for individual links only.

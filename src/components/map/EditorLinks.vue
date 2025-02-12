@@ -4,7 +4,8 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, toRefs, ref, watch, onMounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
-
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
 import geojson from '@constants/geojson'
 
 const { $gettext } = useGettext()
@@ -166,17 +167,12 @@ function contextMenuAnchor() {
   }
 }
 
-function linkRightClick (event) {
+function linkRightClick () {
   if (hoveredStateId.value.layerId === 'editorLinks') {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
-    const click = {
-      selectedFeature: selectedFeature.value,
-      action: 'Edit Link Info',
-      lngLat: event.mapboxEvent.lngLat,
-      lingering: true,
-    }
-    emits('clickFeature', click)
+    const selectedIndex = selectedFeature.value.properties.index
+    openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true })
   }
 }
 function actionClick (event) {
