@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 
 import short from 'short-uuid'
 import { ref, computed, watch } from 'vue'
@@ -12,8 +12,18 @@ import SidePanelBottom from './SidePanelBottom.vue'
 const rlinksStore = userLinksStore()
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
-
 const { $gettext } = useGettext()
+
+interface DeletePayload {
+  trip: string | string[]
+  message: string
+  action: 'deleteTrip'
+}
+interface ClonePayload {
+  trip: string | string[]
+  message: string
+}
+
 const emits = defineEmits([
   'selectEditorTrip',
   'confirmChanges',
@@ -57,7 +67,7 @@ watch(tripId, (newVal, oldVal) => {
   } else {
     // if a trip name changes.
     // update localSelectedTrip v-model when a trip_id is changed.
-    const dict = {}
+    const dict: any = {}
     oldVal.forEach(
       function (key, i) {
         dict[key] = newVal[i]
@@ -68,10 +78,15 @@ watch(tripId, (newVal, oldVal) => {
 // filters (route_type)
 const filterChoices = computed(() => { return linksStore.lineAttributes })
 const selectedFilter = ref('route_type')
-const ShowGroupList = ref(new Set([]))
+const ShowGroupList = ref<Set<String>>(new Set([]))
 watch(selectedFilter, () => { ShowGroupList.value = new Set([]) })
 
-function toggleGroup (e) {
+export interface Group {
+  key: string
+  isOpen: boolean
+}
+
+function toggleGroup (e: Group) {
   if (e.isOpen) {
     ShowGroupList.value.add(e.key)
   } else {
@@ -97,14 +112,19 @@ const filteredCat = computed(() => {
   return val
 })
 
+interface ClassifiedTripList {
+  name: string
+  tripId: string[]
+}
+
 const classifiedTripId = computed(() => {
   // return this list of object, {cat_name, tripId list}
   // if >500. we do not change and we will rerun this with the old value
   // see watch(selectedFilter)
 
   if (filteredCat.value.length > maxSize) { return [] }
-  const classifiedTripId = []
-  const undefinedCat = { name: $gettext('undefined'), tripId: [] }
+  const classifiedTripId: ClassifiedTripList[] = []
+  const undefinedCat: ClassifiedTripList = { name: $gettext('undefined'), tripId: [] }
   filteredCat.value.forEach(c => {
     const arr = arrayUniqueTripId.value.filter(
       item => item[selectedFilter.value] === c,
@@ -124,7 +144,7 @@ const classifiedTripId = computed(() => {
   return classifiedTripId
 })
 
-function showGroup (val) {
+function showGroup (val: string[]) {
   // at least one value is selected in the group : uncheck all
   if (val.some(value => localSelectedTrip.value.includes(value))) {
     localSelectedTrip.value = localSelectedTrip.value.filter(trip => !val.includes(trip))
@@ -134,16 +154,16 @@ function showGroup (val) {
   }
 }
 
-function editButton (value) {
+function editButton (tripId: string) {
   if (!editorTrip.value) {
-    linksStore.setEditorTrip(value)
+    linksStore.setEditorTrip(tripId)
     store.changeNotification({ text: '', autoClose: true })
   }
 }
 
-function scheduleButton (value) {
+function scheduleButton (tripId: string) {
   if (!editorTrip.value) {
-    linksStore.setEditorTrip(value)
+    linksStore.setEditorTrip(tripId)
     emits('scheduleButton', { action: 'Edit Line Schedule', lingering: false })
     // just open dialog
   } else {
@@ -152,12 +172,12 @@ function scheduleButton (value) {
   store.changeNotification({ text: '', autoClose: true })
 }
 
-function propertiesButton (value) {
+function propertiesButton (value: string[], action: Action) {
   // select the TripId and open dialog
-  if (typeof value === 'object') {
+  if (action === 'Edit Group Info') {
     emits('propertiesButton', { action: 'Edit Group Info', lingering: false, tripIds: value })
   } else if (!editorTrip.value) {
-    linksStore.setEditorTrip(value)
+    linksStore.setEditorTrip(value[0])
     emits('propertiesButton', { action: 'Edit Line Info', lingering: false })
     // just open dialog
   } else {
@@ -172,17 +192,28 @@ function createNewLine () {
   emits('propertiesButton', { action: 'Edit Line Info', lingering: true })
 }
 
-function cloneButton (obj) {
+function confirmChanges() {
+  emits('confirmChanges')
+}
+
+function abortChanges () {
+  emits('abortChanges')
+}
+
+// add dialogs here
+function cloneButton (obj: ClonePayload) {
   emits('cloneButton', obj)
 }
 
-function deleteButton (obj) {
+function deleteButton (obj: DeletePayload) {
   // obj contain trip and message.
   emits('deleteButton', obj)
 }
+
 import { useHighlight } from '../useHighlight'
+import { Action } from '@src/types/typesStore'
 const { setHighlightTrip } = useHighlight()
-function setHighlight(trip) {
+function setHighlight(trip: string | null) {
   if (!editorTrip.value) {
     setHighlightTrip(trip)
   } else {
@@ -224,7 +255,7 @@ function setHighlight(trip) {
 
             :disabled="localSelectedTrip.length===0? true: false"
             v-bind="props"
-            @click="propertiesButton(localSelectedTrip)"
+            @click="propertiesButton(localSelectedTrip,'Edit Group Info')"
           />
         </template>
         <span>{{ $gettext("Edit Visibles Properties") }}</span>
@@ -311,9 +342,9 @@ function setHighlight(trip) {
         </div>
       </v-list-item>
       <v-list>
-        <v-list-item v-if=" filteredCat.length>maxSize">
+        <v-list-item v-if=" filteredCat.length > maxSize">
           <span>{{ $gettext('Cannot filter by this field as it result in %{res} groups. max is %{maxSize} ',
-                            { res: filteredCat.length ,maxSize:maxSize}) }}</span>
+                            { res: String(filteredCat.length), maxSize: String(maxSize)}) }}</span>
         </v-list-item>
         <v-list-item v-if="(filteredCat.length===0) && (searchString!=='')">
           <span>{{ $gettext('Nothing to display.') }}</span>
@@ -368,7 +399,7 @@ function setHighlight(trip) {
                       class="ma-1"
                       :disabled="editorTrip!=null? true: false"
                       v-bind="hover"
-                      @click.stop="propertiesButton(value.tripId)"
+                      @click.stop="propertiesButton(value.tripId,'Edit Group Info')"
                     />
                   </template>
                   <span>{{ $gettext("Edit Group Properties") }}</span>
@@ -404,7 +435,7 @@ function setHighlight(trip) {
                 :key="item"
                 class="container cell"
                 @mouseenter="setHighlight(item)"
-                @mouseleave="setHighlight()"
+                @mouseleave="setHighlight(null)"
               >
                 <v-checkbox
                   v-model="localSelectedTrip"
@@ -468,7 +499,7 @@ function setHighlight(trip) {
                       color="regular"
                       :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
                       v-bind="props"
-                      @click="propertiesButton(item)"
+                      @click="propertiesButton([item],'Edit Line Info')"
                     />
                   </template>
                   <span>{{ $gettext("Edit Line Properties") }}</span>
@@ -523,8 +554,8 @@ function setHighlight(trip) {
     <SidePanelBottom
       :is-edition="typeof editorTrip === 'string'"
       @edit="createNewLine"
-      @confirm-changes="emits('confirmChanges')"
-      @abort-changes="emits('abortChanges')"
+      @confirm-changes="confirmChanges"
+      @abort-changes="abortChanges"
     >
       <v-tooltip
         location="right"

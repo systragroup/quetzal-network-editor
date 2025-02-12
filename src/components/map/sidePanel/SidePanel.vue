@@ -121,27 +121,27 @@ function stopResize () {
             <template v-if="loadComponent.pt">
               <LinksSidePanel
                 v-show="tab==='pt'"
-                @confirmChanges="(e) => $emit('confirmChanges',e)"
-                @abortChanges="(e) => $emit('abortChanges',e)"
-                @cloneButton="(e) => $emit('cloneButton',e)"
-                @deleteButton="(e) => $emit('deleteButton',e)"
-                @propertiesButton="(e) => $emit('propertiesButton',e)"
-                @scheduleButton="(e) => $emit('scheduleButton',e)"
+                @confirm-changes="(e) => $emit('confirmChanges',e)"
+                @abort-changes="(e) => $emit('abortChanges',e)"
+                @clone-button="(e) => $emit('cloneButton',e)"
+                @delete-button="(e) => $emit('deleteButton',e)"
+                @properties-button="(e) => $emit('propertiesButton',e)"
+                @schedule-button="(e) => $emit('scheduleButton',e)"
               />
             </template>
 
             <template v-if="loadComponent.road">
               <RoadSidePanel
                 v-show="tab==='road'"
-                @deleteButton="(e) => $emit('deleteButton',e)"
-                @propertiesButton="(e) => $emit('propertiesButton',e)"
+                @delete-button="(e) => $emit('deleteButton',e)"
+                @properties-button="(e) => $emit('propertiesButton',e)"
               />
             </template>
             <template v-if="loadComponent.od">
               <ODSidePanel
                 v-show="tab==='od'"
-                @deleteButton="(e) => $emit('deleteButton',e)"
-                @propertiesButton="(e) => $emit('propertiesButton',e)"
+                @delete-button="(e) => $emit('deleteButton',e)"
+                @properties-button="(e) => $emit('propertiesButton',e)"
               />
             </template>
           </div>
