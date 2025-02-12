@@ -187,13 +187,9 @@ function actionClick (event) {
       const modLink = linksStore.deleteNode({ selectedNode: event.feature.properties })
       if (store.routingMode && modLink) { routeLink(modLink) }
       break
-    default:
-      // edit node info
-      emits('clickFeature', {
-        selectedFeature: event.feature,
-        action: event.action,
-        lngLat: event.coordinates,
-      })
+    case 'Edit Node Info':
+      const selectedIndex = event.feature.properties.index
+      openDialog({ action: 'Edit Node Info', selectedArr: [selectedIndex], lingering: true })
       break
   }
   contextMenu.value.showed = false

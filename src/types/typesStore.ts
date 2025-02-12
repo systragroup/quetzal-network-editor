@@ -1,10 +1,15 @@
-import { Group } from '@src/components/map/sidePanel/LinksSidePanel.vue'
 import { GroupForm } from './components'
 import { LineStringGeoJson, LineStringFeatures, PointGeoJson } from './geojson'
 
 // payloads
 
-export type LinksAction = '' | 'Edit Group Info' | 'Edit Line Info' | 'Extend Line Upward' | 'Extend Line Downward'
+export type LinksAction = ''
+  | 'Edit Group Info'
+  | 'Edit Line Info'
+  | 'Edit Link Info'
+  | 'Edit Node Info'
+  | 'Extend Line Upward'
+  | 'Extend Line Downward'
 
 export interface PTFilesPayload {
   path: string

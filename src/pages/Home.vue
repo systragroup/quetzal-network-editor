@@ -14,7 +14,6 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 
 import { ref, onUnmounted } from 'vue'
-import { isScheduleTrip } from '../components/utils/utils'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -103,17 +102,14 @@ function actionClick (event) {
     const uneditable = ['index']
     editorForm.value = getGroupForm(features, lineAttributes, uneditable)
     showDialog.value = true
-  } else if (['Edit Node Info', 'Edit rNode Info'].includes(action.value)) {
+  } else if (action.value === 'Edit rNode Info') {
     selectedNode.value = event.selectedFeature.properties
     // map selected node doesnt not return properties with nanulln value.
     // we need to get the node in the store with the selected index.
-    if (action.value === 'Edit Node Info') {
-      editorForm.value = linksStore.editorNodes.features.filter(
-        (node) => node.properties.index === selectedNode.value.index)
-    } else if (action.value === 'Edit rNode Info') {
-      editorForm.value = rlinksStore.visiblerNodes.features.filter(
-        (node) => node.properties.index === selectedNode.value.index)
-    }
+
+    editorForm.value = rlinksStore.visiblerNodes.features.filter(
+      (node) => node.properties.index === selectedNode.value.index)
+
     editorForm.value = editorForm.value[0].properties
     // filter properties to only the one that are editable.
     const uneditable = ['index', 'route_width']
@@ -140,9 +136,6 @@ function applyAction () {
   scheduleDialog.value = false
   deleteDialog.value = false
   switch (action.value) {
-    case 'Edit Node Info':
-      linksStore.editNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
-      break
     case 'Edit rLink Info':
       rlinksStore.editrLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
       break
