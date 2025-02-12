@@ -99,9 +99,6 @@ export interface LinksStore {
   editorLinks: LineStringGeoJson
   editorTrip: string | null
   defaultLink: LineStringGeoJson
-  showEditorForm: boolean
-  editorValueSet: Set<string>
-  action: Action
   tripId: string[]
   scheduledTrips: Set<string>
   selectedTrips: string[]
