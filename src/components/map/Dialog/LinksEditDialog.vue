@@ -101,7 +101,6 @@ async function submitForm() {
       linksStore.editLinkInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
       break
     case 'Edit Node Info':
-      console.log(selectedArr.value)
       linksStore.editNodeInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
   }
   showDialog.value = false
@@ -194,6 +193,12 @@ async function addField () {
   if (!resp.valid) { return false }
   if (newFieldName.value) {
     editorForm.value[newFieldName.value] = { disabled: false, placeholder: false, value: undefined }
+    if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
+      linksStore.addLinksPropertie({ name: newFieldName.value })
+    } else if (action.value === 'Edit Node Info') {
+      linksStore.addNodesPropertie({ name: newFieldName.value })
+    }
+
     newFieldName.value = undefined // null so there is no rules error.
     store.changeNotification({ text: $gettext('Field added'), autoClose: true, color: 'success' })
   }
