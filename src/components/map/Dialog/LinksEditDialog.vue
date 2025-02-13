@@ -192,7 +192,6 @@ const showDeleteOption = ref(false)
 
 function deleteField (field: string) {
   delete editorForm.value[field]
-  store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
   if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
     linksStore.deleteLinksPropertie({ name: field })
   } else if (action.value === 'Edit Node Info') {
@@ -205,7 +204,7 @@ function ToggleDeleteOption () {
   showDeleteOption.value = !showDeleteOption.value
   if (showDeleteOption.value) {
     store.changeNotification({
-      text: $gettext('This action will delete properties on every links (and reversed one for two-way roads)'),
+      text: $gettext('This action will delete properties on every links or nodes'),
       autoClose: false,
       color: 'warning',
     })
@@ -248,12 +247,6 @@ async function handleSimpleDialog(response: boolean) {
 
 </script>
 <template>
-  <EditScheduleDialog
-    v-model="showSchedule"
-    @toggle="toggleSchedule()"
-    @cancel-action="cancel"
-    @apply-action="quit"
-  />
   <v-dialog
     v-model="showDialog"
     scrollable
@@ -330,6 +323,15 @@ async function handleSimpleDialog(response: boolean) {
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Schedule Dialog -->
+
+  <EditScheduleDialog
+    v-model="showSchedule"
+    @toggle="toggleSchedule()"
+    @cancel-action="cancel"
+    @apply-action="quit"
+  />
   <SimpleDialog
     v-model="showSaveDialog"
     :title="$gettext('Save Changes?')"
