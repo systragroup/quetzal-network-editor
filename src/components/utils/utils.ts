@@ -16,6 +16,7 @@ export function getGroupForm (features: GeoJsonFeature[], lineAttributes: string
   return form
 }
 
-export function isScheduleTrip(link: GeoJsonFeature) {
+export function isScheduleTrip(link: GeoJsonFeature | undefined) {
+  if (link == undefined) { return false }
   return (link.properties.arrivals !== undefined)
 }
