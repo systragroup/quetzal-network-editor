@@ -118,17 +118,21 @@ async function submitForm() {
     case 'Edit Node Info':
       linksStore.editNodeInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
   }
-  save()
   return true
 }
-
-function save() {
+function quit() {
   showDialog.value = false
+  showSchedule.value = false
   if (!lingering.value) {
     linksStore.confirmChanges()
     store.changeNotification(
       { text: $gettext('modification applied'), autoClose: true, color: 'success' })
   }
+}
+
+function saveAndQuit() {
+  submitForm()
+  quit()
 }
 
 function cancel() {
@@ -246,7 +250,6 @@ const showSchedule = ref(false)
 function toggleSchedule() {
   showSchedule.value = !showSchedule.value
   showDialog.value = !showSchedule.value
-  console.log(showSchedule.value)
 }
 
 const showSaveDialog = ref(false)
@@ -257,11 +260,13 @@ function toggle() {
     showSaveDialog.value = true
   }
 }
-async function handleSimpleDialog(event: boolean) {
+async function handleSimpleDialog(response: boolean) {
   showSaveDialog.value = false
-  if (event) {
+  if (response) {
     const ok = await submitForm()
     if (ok) { toggleSchedule() }
+  } else {
+    toggleSchedule()
   }
 }
 
@@ -271,7 +276,7 @@ async function handleSimpleDialog(event: boolean) {
     v-model="showSchedule"
     @toggle="toggleSchedule()"
     @cancel-action="cancel"
-    @apply-action="save"
+    @apply-action="quit"
   />
   <v-dialog
     v-model="showDialog"
@@ -358,7 +363,7 @@ async function handleSimpleDialog(event: boolean) {
         <v-btn
           color="success"
           variant="text"
-          @click="submitForm"
+          @click="saveAndQuit"
         >
           {{ $gettext("Save") }}
         </v-btn>

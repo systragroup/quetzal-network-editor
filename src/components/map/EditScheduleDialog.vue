@@ -55,7 +55,6 @@ watch(showSchedule, (val) => {
 // Station Label
 const labelsChoices = computed(() => {
   if (nodes.value.features.length > 0) {
-    console.log(nodes.value.features[0].properties)
     return Object.keys(nodes.value.features[0].properties)
   } else { return [] }
 })
@@ -138,7 +137,6 @@ const formErrorKey = computed(() => {
 })
 
 function applyChanges() {
-  showSchedule.value = false
   let payload = []
   links.value.features.forEach(f => {
     payload.push({
@@ -162,7 +160,6 @@ function ConvertToFrequencyTrip() {
 }
 
 function cancel() {
-  showSchedule.value = false
   emit('cancelAction')
 }
 
@@ -258,7 +255,6 @@ function toggle() {
 }
 function handleSimpleDialog(event) {
   showSaveDialog.value = false
-  showSchedule.value = false
   if (event) {
     applyChanges()
     emit('toggle')
