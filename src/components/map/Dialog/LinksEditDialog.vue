@@ -10,6 +10,7 @@ import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 import EditForm from '@src/components/common/EditForm.vue'
+import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
 import { getGroupForm, isScheduleTrip } from '@src/components/utils/utils.ts'
@@ -33,12 +34,12 @@ const lineAttributes = computed(() => linksStore.lineAttributes)
 const nodeAttributes = computed(() => linksStore.nodeAttributes)
 const tripList = computed(() => linksStore.tripId)
 const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features[0]))
+const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 
 const typesMap = computed(() => Object.fromEntries(linksStore.defaultAttributes.map(attr => [attr.name, attr.type])))
 const attributeNonDeletable = computed(() => linksStore.defaultAttributes.map(el => el.name))
 
 const formRef = ref()
-const newFieldRef = ref()
 
 const initialHash = ref()
 const initialForm = ref<GroupForm>({})
@@ -144,22 +145,6 @@ function cancel() {
   }
 }
 
-const orderedForm = computed (() => {
-  // order editor Form in alphatical order
-  let form = editorForm.value
-  // order keys in alphabetical order, and with disabled last
-  const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
-  keys.push(...Object.keys(form).filter(key => form[key].disabled).sort())
-  const ordered = keys.reduce(
-    (obj: Record<string, any>, key: string) => {
-      obj[key] = form[key]
-      return obj
-    },
-    {},
-  )
-  return ordered
-})
-
 // computed speed, time, length. for individual links only.
 
 function change (key: string) {
@@ -190,25 +175,14 @@ function change (key: string) {
 
 // add
 
-const newFieldName = ref<string | undefined>()
-const newFieldRules = [
-  (val: string) => !Object.keys(editorForm.value).includes(val) || $gettext('field already exist'),
-  (val: string) => val !== '' || $gettext('cannot add empty field'),
-  (val: string) => !val?.includes('#') || $gettext('field cannot contain #'),
-]
-
-async function addField () {
-  const resp = await newFieldRef.value.validate()
-  if (!resp.valid) { return false }
-  if (newFieldName.value) {
-    editorForm.value[newFieldName.value] = { disabled: false, placeholder: false, value: undefined }
+async function addField (newFieldName: string) {
+  if (newFieldName) {
+    editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined }
     if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
-      linksStore.addLinksPropertie({ name: newFieldName.value })
+      linksStore.addLinksPropertie({ name: newFieldName })
     } else if (action.value === 'Edit Node Info') {
-      linksStore.addNodesPropertie({ name: newFieldName.value })
+      linksStore.addNodesPropertie({ name: newFieldName })
     }
-    newFieldName.value = undefined // null so there is no rules error.
-    store.changeNotification({ text: $gettext('Field added'), autoClose: true, color: 'success' })
   }
 }
 
@@ -305,7 +279,7 @@ async function handleSimpleDialog(response: boolean) {
       <v-card-text>
         <EditForm
           ref="formRef"
-          v-model:editor-form="orderedForm"
+          v-model:editor-form="editorForm"
           :show-hint="showHint"
           :show-delete-option="showDeleteOption"
           :hints="hints"
@@ -317,26 +291,10 @@ async function handleSimpleDialog(response: boolean) {
           @change="change"
           @delete-field="deleteField"
         />
-        <v-form ref="newFieldRef">
-          <v-text-field
-            v-model="newFieldName"
-            :label=" $gettext('add field')"
-            :placeholder="$gettext('new field name')"
-            variant="filled"
-            :rules="newFieldRules"
-            @keydown.enter.prevent="addField"
-            @wheel="$event.target.blur()"
-          >
-            <template v-slot:append-inner>
-              <v-btn
-                color="primary"
-                icon="fas fa-plus"
-                size="x-small"
-                @click="addField"
-              />
-            </template>
-          </v-text-field>
-        </v-form>
+        <NewFieldForm
+          :exclusions-list="exclusionList"
+          @add-field="addField"
+        />
       </v-card-text>
       <v-divider />
       <v-card-actions>

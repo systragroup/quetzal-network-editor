@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-import { toRefs, ref } from 'vue'
+import { toRefs, ref, computed } from 'vue'
 import { GroupForm } from '@src/types/components'
 import ColorPicker from '../utils/ColorPicker.vue'
 import { AttributeTypes } from '@src/types/typesStore'
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   showDeleteOption: false,
 })
 const { hints, types, units, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
-const editorForm = defineModel<GroupForm>('editorForm')
+const editorForm = defineModel<GroupForm>('editorForm', { default: {} })
 
 const emits = defineEmits(['change', 'deleteField'])
 
@@ -55,6 +55,22 @@ async function validate() {
   }
 }
 
+const orderedForm = computed (() => {
+  // order editor Form in alphatical order
+  let form = editorForm.value
+  // order keys in alphabetical order, and with disabled last
+  const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
+  keys.push(...Object.keys(form).filter(key => form[key].disabled).sort())
+  const ordered = keys.reduce(
+    (obj: Record<string, any>, key: string) => {
+      obj[key] = form[key]
+      return obj
+    },
+    {},
+  )
+  return ordered
+})
+
 defineExpose({
   validate,
 })
@@ -70,7 +86,7 @@ defineExpose({
       validate-on="submit lazy"
     >
       <div
-        v-for="(item, key) in editorForm"
+        v-for="(item, key) in orderedForm"
         :key="key"
         class="form"
       >
