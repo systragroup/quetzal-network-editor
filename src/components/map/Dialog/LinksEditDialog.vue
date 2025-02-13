@@ -32,6 +32,7 @@ const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const nodeAttributes = computed(() => linksStore.nodeAttributes)
 const tripList = computed(() => linksStore.tripId)
+const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features[0]))
 
 const typesMap = computed(() => Object.fromEntries(linksStore.defaultAttributes.map(attr => [attr.name, attr.type])))
 const attributeNonDeletable = computed(() => linksStore.defaultAttributes.map(el => el.name))
@@ -73,7 +74,7 @@ function createForm() {
         ? cloneDeep(linksStore.defaultLink.features)
         : linksStore.editorLinks.features
       disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
-      if (isScheduleTrip(features[0])) { disabled = [...disabled, 'speed'] }
+      if (isSchedule.value) { disabled = [...disabled, 'speed'] }
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Group Info':
@@ -87,7 +88,7 @@ function createForm() {
       const selectedLink = selectedArr.value[0]
       features = linksStore.editorLinks.features.filter((link) => link.properties.index === selectedLink)
       disabled = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
-      if (isScheduleTrip(features[0])) { disabled = [...disabled, ...['speed', 'time']] }
+      if (isSchedule.value) { disabled = [...disabled, ...['speed', 'time']] }
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Node Info':
@@ -137,6 +138,7 @@ function saveAndQuit() {
 
 function cancel() {
   showDialog.value = false
+  showSchedule.value = false
   if (!lingering.value) {
     linksStore.setEditorTrip(null)
   }
@@ -296,7 +298,7 @@ async function handleSimpleDialog(response: boolean) {
           prepend-icon="fas fa-clock"
           @click="toggle"
         >
-          {{ $gettext("Edit Schedule") }}
+          {{ isSchedule? $gettext("Edit Schedule"): $gettext("Create Schedule") }}
         </v-btn>
       </v-card-title>
       <v-divider />
