@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import ColorPicker from '@comp/utils/ColorPicker.vue'
-import MenuSelector from '@comp/utils/MenuSelector.vue'
 import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
 
 import { useIndexStore } from '@src/store/index'
@@ -11,11 +9,14 @@ import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
-
+import EditForm from '@src/components/common/EditForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
 import { getGroupForm, isScheduleTrip } from '@src/components/utils/utils.ts'
 const { $gettext } = useGettext()
+
+type Dict = Record<string, string>
+
 function hashJson(body: Record<string, any>) {
   return createHash().update(JSON.stringify(body)).digest('hex')
 }
@@ -31,13 +32,27 @@ const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const nodeAttributes = computed(() => linksStore.nodeAttributes)
 const tripList = computed(() => linksStore.tripId)
+
+const typesMap = computed(() => Object.fromEntries(linksStore.defaultAttributes.map(attr => [attr.name, attr.type])))
+const attributeNonDeletable = computed(() => linksStore.defaultAttributes.map(el => el.name))
+
 const formRef = ref()
 const newFieldRef = ref()
 
 const initialHash = ref()
 const initialForm = ref<GroupForm>({})
 const editorForm = ref<GroupForm>({})
-const showDeleteOption = ref(false)
+
+const showHint = ref(false)
+const hints: Dict = attributesHints
+const units: Dict = attributesUnits
+
+const rules: any = ({
+  trip_id: [
+    (val: string) => ((val === initialForm.value.trip_id.value) || (!tripList.value.includes(val)))
+    || $gettext('already exist'),
+  ],
+})
 
 watch(showDialog, (val) => {
   // do not show a notification when dialog is on. sometime its over the confirm button
@@ -86,7 +101,7 @@ function createForm() {
 
 async function submitForm() {
   const resp = await formRef.value.validate()
-  if (!resp.valid) { return false }
+  if (!resp) { return false }
   if (linksStore.editorNodes.features.length === 0) {
     store.changeNotification({ text: $gettext('Click on the map to start drawing'), autoClose: false })
   }
@@ -116,6 +131,13 @@ function save() {
   }
 }
 
+function cancel() {
+  showDialog.value = false
+  if (!lingering.value) {
+    linksStore.setEditorTrip(null)
+  }
+}
+
 const orderedForm = computed (() => {
   // order editor Form in alphatical order
   let form = editorForm.value
@@ -132,14 +154,8 @@ const orderedForm = computed (() => {
   return ordered
 })
 
-function cancel() {
-  showDialog.value = false
-  if (!lingering.value) {
-    linksStore.setEditorTrip(null)
-  }
-}
-
 // computed speed, time, length. for individual links only.
+
 function change (key: string) {
   switch (key) {
     case 'speed':
@@ -166,29 +182,14 @@ function change (key: string) {
   }
 }
 
-function attributeNonDeletable (field: string) {
-  return linksStore.defaultAttributesNames.includes(field)
-}
+// add
 
-type Dict = Record<string, string>
-
-const showHint = ref(false)
-const hints: Dict = attributesHints
-const units: Dict = attributesUnits
+const newFieldName = ref<string | undefined>()
 const newFieldRules = [
   (val: string) => !Object.keys(editorForm.value).includes(val) || $gettext('field already exist'),
   (val: string) => val !== '' || $gettext('cannot add empty field'),
   (val: string) => !val?.includes('#') || $gettext('field cannot contain #'),
 ]
-
-const rules: any = ({
-  trip_id: [
-    (val: string) => ((val === initialForm.value.trip_id.value) || (!tripList.value.includes(val)))
-    || $gettext('already exist'),
-  ],
-})
-
-const newFieldName = ref<string | undefined>()
 
 async function addField () {
   const resp = await newFieldRef.value.validate()
@@ -200,19 +201,28 @@ async function addField () {
     } else if (action.value === 'Edit Node Info') {
       linksStore.addNodesPropertie({ name: newFieldName.value })
     }
-
     newFieldName.value = undefined // null so there is no rules error.
     store.changeNotification({ text: $gettext('Field added'), autoClose: true, color: 'success' })
   }
 }
+
+// delete
+
+const showDeleteOption = ref(false)
+
 function deleteField (field: string) {
   delete editorForm.value[field]
+  store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
+  if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
+    linksStore.deleteLinksPropertie({ name: field })
+  } else if (action.value === 'Edit Node Info') {
+    linksStore.deleteNodesPropertie({ name: field })
+  }
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }
 
 function ToggleDeleteOption () {
   showDeleteOption.value = !showDeleteOption.value
-
   if (showDeleteOption.value) {
     store.changeNotification({
       text: $gettext('This action will delete properties on every links (and reversed one for two-way roads)'),
@@ -224,6 +234,8 @@ function ToggleDeleteOption () {
   }
 }
 
+// schedule
+
 const showScheduleButton = computed(() =>
   linksStore.editorNodes.features.length !== 0
   && action.value === 'Edit Line Info',
@@ -232,7 +244,6 @@ const showScheduleButton = computed(() =>
 const showSchedule = ref(false)
 
 function toggleSchedule() {
-  console.log('ss')
   showSchedule.value = !showSchedule.value
   showDialog.value = !showSchedule.value
   console.log(showSchedule.value)
@@ -285,59 +296,20 @@ async function handleSimpleDialog(event: boolean) {
       </v-card-title>
       <v-divider />
       <v-card-text>
-        <v-form ref="formRef">
-          <v-list>
-            <v-text-field
-              v-for="(value, key) in orderedForm"
-              :key="key"
-              v-model="value['value']"
-              :label="String(key)"
-              :hint="showHint? hints[key]: ''"
-              :persistent-hint="showHint"
-              :variant="value['disabled']? 'underlined': 'filled'"
-              :type="linksStore.attributeType(key)"
-              :placeholder="value['placeholder']? $gettext('multiple Values'):''"
-              :persistent-placeholder=" value['placeholder']? true:false "
-              :disabled="value['disabled']"
-              :suffix="units[key]"
-              :rules="rules[key]"
-              :prepend-inner-icon="['length','speed','time'].includes(key) ? 'fas fa-calculator' : '' "
-              @wheel="$event.target.blur()"
-              @change="change(key)"
-            >
-              <template
-                v-if="key==='route_color'"
-                v-slot:append-inner
-              >
-                <color-picker
-                  v-model:pcolor="value['value']"
-                />
-              </template>
-              <template
-                v-else-if="Object.keys(attributesChoices).includes(key)"
-                v-slot:append-inner
-              >
-                <MenuSelector
-                  v-model:value="value['value']"
-                  :items="attributesChoices[key]"
-                />
-              </template>
-              <template
-                v-if="showDeleteOption"
-                v-slot:prepend
-              >
-                <v-btn
-                  variant="text"
-                  icon="fas fa-trash small"
-                  size="x-small"
-                  :disabled="attributeNonDeletable(key)"
-                  color="error"
-                  @click="()=>deleteField(key)"
-                />
-              </template>
-            </v-text-field>
-          </v-list>
-        </v-form>
+        <EditForm
+          ref="formRef"
+          v-model:editor-form="orderedForm"
+          :show-hint="showHint"
+          :show-delete-option="showDeleteOption"
+          :hints="hints"
+          :units="units"
+          :rules="rules"
+          :attribute-non-deletable="attributeNonDeletable"
+          :attributes-choices="attributesChoices"
+          :types="typesMap"
+          @change="change"
+          @delete-field="deleteField"
+        />
         <v-form ref="newFieldRef">
           <v-text-field
             v-model="newFieldName"
