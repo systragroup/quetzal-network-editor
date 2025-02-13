@@ -1068,6 +1068,5 @@ export const useLinksStore = defineStore('links', {
     },
     // this return the attribute type, of undefined.
     attributeType: (state) => (name: string) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
-    defaultAttributesNames: (state) => state.defaultAttributes.map(attr => attr.name),
   },
 })

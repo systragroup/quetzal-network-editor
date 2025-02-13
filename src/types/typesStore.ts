@@ -93,9 +93,11 @@ export interface EditLinkPayload {
 
 // store values
 
+export type AttributeTypes = 'String' | 'Number'
+
 export interface Attributes {
   name: string
-  type: 'String' | 'Number'
+  type: AttributeTypes
 }
 
 export type AttributesChoice = Record<string, (string | number)[]>
