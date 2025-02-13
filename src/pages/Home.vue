@@ -4,7 +4,6 @@
 import SidePanel from '@comp/map/sidePanel/SidePanel.vue'
 import Map from '@comp/map/Map.vue'
 import EditDialog from '@comp/map/EditDialog.vue'
-import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
 import LinksEditDialog from '@src/components/map/Dialog/LinksEditDialog.vue'
 import { getGroupForm } from '@comp/utils/utils.js'
 // only used to force to see translation to vue-gettext
@@ -32,7 +31,6 @@ onUnmounted(() => {
 })
 
 const showDialog = ref(false)
-const scheduleDialog = ref(false)
 
 const selectedNode = ref(null)
 const selectedLink = ref(null)
@@ -50,9 +48,7 @@ function actionClick (event) {
   action.value = event.action
   lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
 
-  if (action.value === 'Edit Line Schedule') {
-    scheduleDialog.value = true
-  } else if (action.value === 'Edit rLink Info') {
+  if (action.value === 'Edit rLink Info') {
     selectedLink.value = event.selectedIndex
     editorForm.value = selectedLink.value.map(linkId => rlinksStore.rlinksForm(linkId))
     linkDir.value = rlinksStore.rlinkDirection(selectedLink.value)
@@ -133,7 +129,6 @@ function actionClick (event) {
 function applyAction () {
   // click yes on dialog
   showDialog.value = false
-  scheduleDialog.value = false
   deleteDialog.value = false
   switch (action.value) {
     case 'Edit rLink Info':
@@ -186,7 +181,6 @@ function applyAction () {
 }
 function cancelAction () {
   showDialog.value = false
-  scheduleDialog.value = false
   deleteDialog.value = false
   if (!lingering.value) {
     abortChanges()
@@ -247,34 +241,23 @@ function cancelClone () {
   cloneDialog.value = false
 }
 
-function toggleSchedule(event) {
-  showDialog.value = false
-  scheduleDialog.value = false
-  actionClick(event)
-}
-
 </script>
 <template>
   <section
     class="map-view"
   >
     <LinksEditDialog />
+
     <EditDialog
       v-model:show-dialog="showDialog"
       v-model:editor-form="editorForm"
       :mode="mode"
       :action="action"
       :link-dir="linkDir"
-      @toggle="toggleSchedule( { action: 'Edit Line Schedule'})"
       @apply-action="applyAction"
       @cancel-action="cancelAction"
     />
-    <EditScheduleDialog
-      v-model="scheduleDialog"
-      @toggle="toggleSchedule( { action: 'Edit Line Info' })"
-      @cancel-action="cancelAction"
-      @apply-action="applyAction"
-    />
+
     <v-dialog
       v-model="deleteDialog"
       scrollable

@@ -161,6 +161,11 @@ function ConvertToFrequencyTrip() {
   // return to a frequency base trip.
 }
 
+function cancel() {
+  showSchedule.value = false
+  emit('cancelAction')
+}
+
 // Chart Dataset
 const datasets = ref([])
 function buildChartDataset() {
@@ -454,7 +459,7 @@ function handleSimpleDialog(event) {
         <v-btn
           color="grey"
           variant="text"
-          @click="emit('cancelAction')"
+          @click="cancel"
         >
           {{ $gettext("Cancel") }}
         </v-btn>

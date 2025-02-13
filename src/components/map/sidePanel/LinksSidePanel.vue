@@ -52,7 +52,7 @@ function showAll () {
 }
 
 const tripId = computed(() => { return linksStore.tripId })
-const scheduledTrips = computed(() => { return linksStore.scheduledTrips })
+
 watch(tripId, (newVal, oldVal) => {
   if (newVal.length < oldVal.length) {
     // if a trip is deleted. we remove it, no remapping.
@@ -156,17 +156,6 @@ function editButton (tripId: string) {
     linksStore.setEditorTrip(tripId)
     store.changeNotification({ text: '', autoClose: true })
   }
-}
-
-function scheduleButton (tripId: string) {
-  if (!editorTrip.value) {
-    linksStore.setEditorTrip(tripId)
-    emits('scheduleButton', { action: 'Edit Line Schedule', lingering: false })
-    // just open dialog
-  } else {
-    emits('scheduleButton', { action: 'Edit Line Schedule', lingering: true })
-  }
-  store.changeNotification({ text: '', autoClose: true })
 }
 
 import { useForm } from '@src/composables/UseForm'
@@ -460,27 +449,6 @@ function setHighlight(trip: string | null) {
                     </v-list-item-title>
                   </template>
                   <span>{{ item }}</span>
-                </v-tooltip>
-
-                <v-tooltip
-                  location="bottom"
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      variant="text"
-                      :icon="scheduledTrips.has(item) ? 'fas fa-clock' : 'far fa-clock'"
-                      size="small"
-                      density="compact"
-                      class="ma-1"
-                      color="regular"
-                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
-                      v-bind="props"
-                      @click="scheduleButton(item)"
-                    />
-                  </template>
-                  <span v-if="scheduledTrips.has(item)">{{ $gettext("Edit Line Schedule") }}</span>
-                  <span v-else>{{ $gettext("Create a Line Schedule") }}</span>
                 </v-tooltip>
 
                 <v-tooltip

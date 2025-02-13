@@ -22,6 +22,7 @@ export function useForm() {
     action.value = payload.action
     lingering.value = payload.lingering
   }
+
   return {
     showDialog, selectedArr, action, openDialog, lingering,
   }

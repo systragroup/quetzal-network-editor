@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import ColorPicker from '@comp/utils/ColorPicker.vue'
 import MenuSelector from '@comp/utils/MenuSelector.vue'
+import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
+
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch } from 'vue'
@@ -17,8 +19,6 @@ const { $gettext } = useGettext()
 function hashJson(body: Record<string, any>) {
   return createHash().update(JSON.stringify(body)).digest('hex')
 }
-
-const emit = defineEmits(['applyAction', 'cancelAction', 'toggle'])
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
@@ -103,13 +103,17 @@ async function submitForm() {
     case 'Edit Node Info':
       linksStore.editNodeInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
   }
+  save()
+  return true
+}
+
+function save() {
   showDialog.value = false
   if (!lingering.value) {
     linksStore.confirmChanges()
     store.changeNotification(
       { text: $gettext('modification applied'), autoClose: true, color: 'success' })
   }
-  return true
 }
 
 const orderedForm = computed (() => {
@@ -127,8 +131,6 @@ const orderedForm = computed (() => {
   )
   return ordered
 })
-
-const showScheduleButton = computed(() => linksStore.editorNodes.features.length !== 0)
 
 function cancel() {
   showDialog.value = false
@@ -222,10 +224,24 @@ function ToggleDeleteOption () {
   }
 }
 
+const showScheduleButton = computed(() =>
+  linksStore.editorNodes.features.length !== 0
+  && action.value === 'Edit Line Info',
+)
+
+const showSchedule = ref(false)
+
+function toggleSchedule() {
+  console.log('ss')
+  showSchedule.value = !showSchedule.value
+  showDialog.value = !showSchedule.value
+  console.log(showSchedule.value)
+}
+
 const showSaveDialog = ref(false)
 function toggle() {
   if (hashJson(editorForm.value) == initialHash.value) {
-    emit('toggle')
+    toggleSchedule()
   } else {
     showSaveDialog.value = true
   }
@@ -234,14 +250,18 @@ async function handleSimpleDialog(event: boolean) {
   showSaveDialog.value = false
   if (event) {
     const ok = await submitForm()
-    if (ok) { emit('toggle') }
-  } else {
-    emit('toggle')
+    if (ok) { toggleSchedule() }
   }
 }
 
 </script>
 <template>
+  <EditScheduleDialog
+    v-model="showSchedule"
+    @toggle="toggleSchedule()"
+    @cancel-action="cancel"
+    @apply-action="save"
+  />
   <v-dialog
     v-model="showDialog"
     scrollable
