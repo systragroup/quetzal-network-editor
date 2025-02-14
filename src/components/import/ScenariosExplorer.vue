@@ -310,7 +310,6 @@ async function mouseOff() {
             icon="fas fa-copy"
             class="ma-1"
             size="small"
-            color="regular"
             @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
           />
           <v-btn
@@ -318,7 +317,6 @@ async function mouseOff() {
             :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
             :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
             class="ma-1"
-            color="regular"
             size="small"
             @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
           />

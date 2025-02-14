@@ -3,7 +3,7 @@ import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
 
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { createHash } from 'sha256-uint8array'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
@@ -57,14 +57,20 @@ const rules: any = ({
 })
 
 onMounted(() => {
-  // do not show a notification when dialog is on. sometime its over the confirm button
+  init()
+})
+watch(showDialog, () => {
+  init()
+})
+
+function init() {
   store.changeNotification({ text: '', autoClose: true })
   createForm()
   initialHash.value = hashJson(editorForm.value)
   initialForm.value = cloneDeep(editorForm.value)
   showHint.value = false
   showDeleteOption.value = false
-})
+}
 
 function createForm() {
   let disabled = []
