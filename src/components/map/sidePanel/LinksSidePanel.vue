@@ -164,19 +164,19 @@ const { openDialog } = useForm()
 function propertiesButton (value: string[], action: LinksAction) {
   // select the TripId and open dialog
   if (action === 'Edit Group Info') {
-    openDialog({ action: 'Edit Group Info', selectedArr: value, lingering: false })
+    openDialog({ action: 'Edit Group Info', selectedArr: value, lingering: false, type: 'pt' })
   } else if (!editorTrip.value) {
     linksStore.setEditorTrip(value[0])
-    openDialog({ action: 'Edit Line Info', selectedArr: value, lingering: false })
+    openDialog({ action: 'Edit Line Info', selectedArr: value, lingering: false, type: 'pt' })
   } else {
-    openDialog({ action: 'Edit Line Info', selectedArr: value, lingering: true })
+    openDialog({ action: 'Edit Line Info', selectedArr: value, lingering: true, type: 'pt' })
   }
 }
 
 function createNewLine () {
   const name = 'trip_' + short.generate()
   linksStore.setEditorTrip(name)
-  openDialog({ action: 'Edit Line Info', selectedArr: [name], lingering: true })
+  openDialog({ action: 'Edit Line Info', selectedArr: [name], lingering: true, type: 'pt' })
 }
 
 function confirmChanges() {

@@ -16,6 +16,9 @@ import { ref, onUnmounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
+import { useForm } from '@src/composables/UseForm'
+const { dialogType } = useForm()
+
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
@@ -246,7 +249,7 @@ function cancelClone () {
   <section
     class="map-view"
   >
-    <LinksEditDialog />
+    <LinksEditDialog v-if="dialogType==='pt'" />
 
     <EditDialog
       v-model:show-dialog="showDialog"

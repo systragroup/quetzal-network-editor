@@ -1,15 +1,17 @@
-import { LinksAction } from '@src/types/typesStore'
+import { LinksAction, RoadsAction } from '@src/types/typesStore'
 import { ref } from 'vue'
 
-type Action = LinksAction
-
+type Action = LinksAction | RoadsAction
+type ActionType = '' | 'pt' | 'road' | 'od'
 interface OpenFormPayload {
   selectedArr: string[]
   action: Action
+  type: ActionType
   lingering: boolean
 }
 // Global variables.
 const showDialog = ref(false)
+const dialogType = ref('')
 const selectedArr = ref<string[]>([])
 const action = ref<Action>('')
 const lingering = ref(false)
@@ -17,13 +19,14 @@ const lingering = ref(false)
 export function useForm() {
   // resize map when div change
   function openDialog(payload: OpenFormPayload) {
+    action.value = payload.action
+    dialogType.value = payload.type
     showDialog.value = true
     selectedArr.value = payload.selectedArr
-    action.value = payload.action
     lingering.value = payload.lingering
   }
 
   return {
-    showDialog, selectedArr, action, openDialog, lingering,
+    showDialog, selectedArr, action, openDialog, lingering, dialogType,
   }
 }

@@ -157,7 +157,7 @@ const { openDialog } = useForm()
 
 function editLineProperties (selectedTrip) {
   linksStore.setEditorTrip(selectedTrip)
-  openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false })
+  openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false, type: 'pt' })
 }
 
 import { useHighlight } from './useHighlight'
