@@ -17,6 +17,7 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
 import { useForm } from '@src/composables/UseForm'
+import RoadsEditDialog from '@src/components/map/Dialog/RoadsEditDialog.vue'
 const { dialogType } = useForm()
 
 const store = useIndexStore()
@@ -50,42 +51,9 @@ const linkDir = ref([])
 function actionClick (event) {
   action.value = event.action
   lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
-
-  if (action.value === 'Edit rLink Info') {
-    selectedLink.value = event.selectedIndex
-    editorForm.value = selectedLink.value.map(linkId => rlinksStore.rlinksForm(linkId))
-    linkDir.value = rlinksStore.rlinkDirection(selectedLink.value)
-    event.selectedIndex.forEach(linkId => {
-      if (rlinksStore.onewayIndex.has(linkId)) {
-        selectedLink.value.push(linkId)
-        editorForm.value.push(rlinksStore.reversedrLinksForm(linkId))
-        linkDir.value.push(rlinksStore.rlinkDirection(selectedLink.value, true))
-      }
-    })
-    showDialog.value = true
-  } else if (action.value === 'Edit OD Info') {
+  if (action.value === 'Edit OD Info') {
     selectedLink.value = event.selectedIndex[0]
     editorForm.value = ODStore.linkForm(selectedLink.value)
-    showDialog.value = true
-  } else if (action.value === 'Edit Road Group Info') {
-    const features = rlinksStore.grouprLinks(event.category, event.group)
-    selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
-    const lineAttributes = rlinksStore.rlineAttributes
-    const uneditable = ['index', 'length', 'time', 'a', 'b']
-    editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-    showDialog.value = true
-  } else if (action.value === 'Edit selected Info') {
-    selectedLink.value = rlinksStore.rlinks.features.filter(link => event.selectedIndex.has(link.properties.index))
-    const lineAttributes = rlinksStore.rlineAttributes
-    const uneditable = ['index', 'length', 'time', 'a', 'b']
-    editorForm.value = getGroupForm(selectedLink.value, lineAttributes, uneditable)
-    showDialog.value = true
-  } else if (action.value === 'Edit Visible Road Info') {
-    const features = rlinksStore.visiblerLinks.features
-    selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
-    const lineAttributes = rlinksStore.rlineAttributes
-    const uneditable = ['index', 'length', 'time', 'a', 'b']
-    editorForm.value = getGroupForm(features, lineAttributes, uneditable)
     showDialog.value = true
   } else if (action.value === 'Edit OD Group Info') {
     const features = ODStore.groupLayer(event.category, event.group)
@@ -101,28 +69,6 @@ function actionClick (event) {
     const uneditable = ['index']
     editorForm.value = getGroupForm(features, lineAttributes, uneditable)
     showDialog.value = true
-  } else if (action.value === 'Edit rNode Info') {
-    selectedNode.value = event.selectedFeature.properties
-    // map selected node doesnt not return properties with nanulln value.
-    // we need to get the node in the store with the selected index.
-
-    editorForm.value = rlinksStore.visiblerNodes.features.filter(
-      (node) => node.properties.index === selectedNode.value.index)
-
-    editorForm.value = editorForm.value[0].properties
-    // filter properties to only the one that are editable.
-    const uneditable = ['index', 'route_width']
-    const filtered = Object.keys(editorForm.value)
-      .reduce((obj, key) => {
-        obj[key] = {
-          value: editorForm.value[key],
-          disabled: uneditable.includes(key),
-          placeholder: false,
-        }
-        return obj
-      }, {})
-    editorForm.value = filtered
-    showDialog.value = true
   } else if (action.value === 'Delete OD') {
     selectedIndex.value = event.selectedIndex
     applyAction()
@@ -134,21 +80,6 @@ function applyAction () {
   showDialog.value = false
   deleteDialog.value = false
   switch (action.value) {
-    case 'Edit rLink Info':
-      rlinksStore.editrLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
-      break
-    case 'Edit Road Group Info':
-      rlinksStore.editrGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
-      break
-    case 'Edit selected Info':
-      rlinksStore.editrGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
-      break
-    case 'Edit Visible Road Info':
-      rlinksStore.editrGroupInfo({
-        selectedLinks: rlinksStore.visiblerLinks.features,
-        info: editorForm.value,
-      })
-      break
     case 'Edit OD Group Info':
       ODStore.editGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
       break
@@ -157,9 +88,6 @@ function applyAction () {
         selectedLinks: ODStore.visibleLayer.features,
         info: editorForm.value,
       })
-      break
-    case 'Edit rNode Info':
-      rlinksStore.editrNodeInfo({ selectedNodeId: selectedNode.value.index, info: editorForm.value })
       break
     case 'Edit OD Info':
       ODStore.editLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
@@ -249,7 +177,8 @@ function cancelClone () {
   <section
     class="map-view"
   >
-    <LinksEditDialog v-if="dialogType==='pt'" />
+    <LinksEditDialog v-if="dialogType === 'pt'" />
+    <RoadsEditDialog v-else-if="dialogType === 'road'" />
 
     <EditDialog
       v-model:show-dialog="showDialog"

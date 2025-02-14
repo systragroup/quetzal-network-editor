@@ -13,6 +13,8 @@ import geojson from '@constants/geojson'
 import { useGettext } from 'vue3-gettext'
 import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
 
 const props = defineProps(['map', 'isEditorMode'])
 const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'select'])
@@ -254,11 +256,7 @@ function actionClick (event) {
     emits('clickFeature', { action: 'Delete rLink' })
   } else {
     // edit rlinks info
-    emits('clickFeature', {
-      selectedIndex: event.feature,
-      action: event.action,
-      lngLat: event.coordinates,
-    })
+    openDialog({ action: event.action, selectedArr: Array.from(event.feature), lingering: true, type: 'road' })
   }
   contextMenu.value.showed = false
   deselectAll()
@@ -273,11 +271,8 @@ function contextMenuNode (event) {
 
     if (selectedFeature.value.length > 0) {
       if (hoveredStateId.value?.layerId === 'rnodes') {
-        emits('clickFeature', {
-          selectedFeature: selectedFeature.value[0],
-          action: 'Edit rNode Info',
-          lngLat: event.mapboxEvent.lngLat,
-        })
+        const index = selectedFeature.value[0].properties.index
+        openDialog({ action: 'Edit rNode Info', selectedArr: [index], lingering: true, type: 'road' })
       } else if (hoveredStateId.value?.layerId === 'anchorrNodes') {
         rlinksStore.deleteAnchorrNode({ selectedNode: selectedFeature.value[0].properties })
       }
@@ -335,7 +330,7 @@ function linkRightClick (event) {
       contextMenu.value.feature = cloneDeep(selectedIds)
       contextMenu.value.actions
           = [
-          { name: 'Edit selected Info', text: $gettext('Edit selected Info') },
+          { name: 'Edit Road Group Info', text: $gettext('Edit selected Info') },
           { name: 'Delete Selected', text: $gettext('Delete Selected') },
         ]
     }
@@ -368,7 +363,7 @@ function contextMenuSelection (event) {
     contextMenu.value.feature = cloneDeep(selectedIds)
     contextMenu.value.actions
           = [
-        { name: 'Edit selected Info', text: $gettext('Edit selected Info') },
+        { name: 'Edit Road Group Info', text: $gettext('Edit selected Info') },
         { name: 'Delete Selected', text: $gettext('Delete Selected') },
       ]
   } else {

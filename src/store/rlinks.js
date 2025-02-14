@@ -649,8 +649,9 @@ export const userLinksStore = defineStore('rlinks', {
 
     editrGroupInfo (payload) {
       // edit line info on multiple trips at once.
-      const groupInfo = payload.info
-      const selectedLinks = payload.selectedLinks // observer of this.links
+      const groupInfo = payload.info[0]
+      const selectedIndex = new Set(payload.selectedLinkId)
+      const selectedLinks = this.rlinks.features.filter(link => selectedIndex.has(link.properties.index))
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(groupInfo).filter(key =>
         ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
@@ -684,6 +685,7 @@ export const userLinksStore = defineStore('rlinks', {
 
       this.refreshVisibleRoads()
       this.getFilteredrCat()
+      console.log(selectedLinks)
       this.updateLinks = selectedLinks
     },
 
@@ -692,18 +694,14 @@ export const userLinksStore = defineStore('rlinks', {
   getters: {
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
-    rlinkDirection: (state) => (indexList, reversed = false) => {
-      const links = state.rlinks.features.filter(link => indexList.includes(link.properties.index))
-      const res = []
-      links.forEach(link => {
-        const geom = link.geometry.coordinates
-        if (reversed) {
-          res.push(bearing(geom[geom.length - 1], geom[0]))
-        } else {
-          res.push(bearing(geom[0], geom[geom.length - 1]))
-        }
-      })
-      return res
+    rlinkDirection: (state) => (index, reversed = false) => {
+      const link = state.rlinks.features.filter(link => link.properties.index === index)[0]
+      const geom = link.geometry.coordinates
+      if (reversed) {
+        return bearing(geom[geom.length - 1], geom[0])
+      } else {
+        return bearing(geom[0], geom[geom.length - 1])
+      }
     },
     grouprLinks: (state) => (category, group) => {
       return state.rlinks.features.filter(link => group === link.properties[category])
