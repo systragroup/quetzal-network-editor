@@ -53,7 +53,6 @@ function cancel() {
         <slot />
         <v-spacer />
         <v-btn
-          color="regular"
           @click="cancel"
         >
           {{ $gettext(props.cancelButton) }}

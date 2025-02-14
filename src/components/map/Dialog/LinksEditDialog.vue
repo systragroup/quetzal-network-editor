@@ -3,7 +3,7 @@ import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
 
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { createHash } from 'sha256-uint8array'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
@@ -56,9 +56,9 @@ const rules: any = ({
   ],
 })
 
-watch(showDialog, (val) => {
+onMounted(() => {
   // do not show a notification when dialog is on. sometime its over the confirm button
-  if (val) { store.changeNotification({ text: '', autoClose: true }) }
+  store.changeNotification({ text: '', autoClose: true })
   createForm()
   initialHash.value = hashJson(editorForm.value)
   initialForm.value = cloneDeep(editorForm.value)
@@ -343,7 +343,6 @@ async function handleSimpleDialog(response: boolean) {
     @cancel="handleSimpleDialog(false)"
   >
     <v-btn
-      color="regular"
       @click="showSaveDialog=false"
     >
       {{ $gettext('Cancel') }}
