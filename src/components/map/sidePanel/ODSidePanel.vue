@@ -201,7 +201,6 @@ function showAll () {
                   variant="text"
                   icon=" fas fa-list"
                   class="ma-1"
-                  color="regular"
                   :disabled="false"
                   v-bind="props"
                   @click="propertiesButton(item)"
@@ -220,7 +219,6 @@ function showAll () {
                   icon=" fas fa-trash"
                   class="ma-1"
                   size="small"
-                  color="regular"
 
                   :disabled="false"
                   v-bind="props"

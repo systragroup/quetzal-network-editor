@@ -30,6 +30,7 @@ const emits = defineEmits(['confirmChanges', 'abortChanges', 'edit'])
         <v-btn
           prepend-icon="fas fa-times-circle"
           width="40%"
+          color="regular"
           @click="emits('abortChanges')"
         >
           {{ $gettext("Abort") }}
