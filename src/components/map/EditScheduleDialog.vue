@@ -482,7 +482,6 @@ function handleSimpleDialog(event) {
     @cancel="handleSimpleDialog(false)"
   >
     <v-btn
-      color="regular"
       @click="showSaveDialog=false"
     >
       {{ $gettext('Cancel') }}
