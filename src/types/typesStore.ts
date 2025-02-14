@@ -11,6 +11,13 @@ export type LinksAction = ''
   | 'Extend Line Upward'
   | 'Extend Line Downward'
 
+export type RoadsAction = ''
+  | 'Edit Road Group Info'
+  | 'Edit Visible Road Info'
+  | 'Edit selected Info'
+  | 'Edit rLink Info'
+  | 'Edit rNode Info'
+
 export interface PTFilesPayload {
   path: string
   content: LineStringGeoJson | PointGeoJson

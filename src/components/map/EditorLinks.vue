@@ -172,7 +172,7 @@ function linkRightClick () {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
     const selectedIndex = selectedFeature.value.properties.index
-    openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true })
+    openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
   }
 }
 function actionClick (event) {
@@ -189,7 +189,7 @@ function actionClick (event) {
       break
     case 'Edit Node Info':
       const selectedIndex = event.feature.properties.index
-      openDialog({ action: 'Edit Node Info', selectedArr: [selectedIndex], lingering: true })
+      openDialog({ action: 'Edit Node Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
       break
   }
   contextMenu.value.showed = false
