@@ -5,6 +5,8 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import SidePanelBottom from './SidePanelBottom.vue'
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
 
 const emits = defineEmits(['deleteButton', 'propertiesButton', 'update-tripList'])
 const store = useIndexStore()
@@ -67,21 +69,16 @@ onMounted(() => {
   }
 })
 
-function propertiesButton (value) {
+function propertiesButton (group) {
   // select the TripId and open dialog
-  emits('propertiesButton', {
-    action: 'Edit Road Group Info',
-    lingering: false,
-    category: vmodelSelectedFilter.value,
-    group: value,
-  })
+  const features = rlinksStore.grouprLinks(vmodelSelectedFilter.value, group)
+  const indexList = features.map(link => link.properties.index)
+  openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function editVisible () {
-  emits('propertiesButton', {
-    action: 'Edit Visible Road Info',
-    lingering: false,
-  })
+  const indexList = rlinksStore.visiblerLinks.features.map(link => link.properties.index)
+  openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function deleteButton (obj) {

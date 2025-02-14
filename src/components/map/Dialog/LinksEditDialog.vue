@@ -59,8 +59,8 @@ const rules: any = ({
 onMounted(() => {
   init()
 })
-watch(showDialog, () => {
-  init()
+watch(showDialog, (val) => {
+  if (val) { init() }
 })
 
 function init() {

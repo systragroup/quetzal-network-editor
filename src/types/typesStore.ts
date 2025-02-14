@@ -13,8 +13,6 @@ export type LinksAction = ''
 
 export type RoadsAction = ''
   | 'Edit Road Group Info'
-  | 'Edit Visible Road Info'
-  | 'Edit selected Info'
   | 'Edit rLink Info'
   | 'Edit rNode Info'
 
