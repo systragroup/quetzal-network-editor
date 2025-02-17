@@ -7,8 +7,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 
-const emits = defineEmits(['change-mode'])
-
+const emits = defineEmits(['changeMode', 'confirmChanges', 'abortChanges', 'cloneButton'])
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
@@ -124,24 +123,17 @@ function stopResize () {
                 @confirm-changes="(e) => $emit('confirmChanges',e)"
                 @abort-changes="(e) => $emit('abortChanges',e)"
                 @clone-button="(e) => $emit('cloneButton',e)"
-                @delete-button="(e) => $emit('deleteButton',e)"
-                @properties-button="(e) => $emit('propertiesButton',e)"
-                @schedule-button="(e) => $emit('scheduleButton',e)"
               />
             </template>
 
             <template v-if="loadComponent.road">
               <RoadSidePanel
                 v-show="tab==='road'"
-                @delete-button="(e) => $emit('deleteButton',e)"
-                @properties-button="(e) => $emit('propertiesButton',e)"
               />
             </template>
             <template v-if="loadComponent.od">
               <ODSidePanel
                 v-show="tab==='od'"
-                @delete-button="(e) => $emit('deleteButton',e)"
-                @properties-button="(e) => $emit('propertiesButton',e)"
               />
             </template>
           </div>

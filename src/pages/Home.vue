@@ -3,14 +3,12 @@
 // const Map = defineAsyncComponent(() => import('@comp/map/Map.vue'))
 import SidePanel from '@comp/map/sidePanel/SidePanel.vue'
 import Map from '@comp/map/Map.vue'
-import EditDialog from '@comp/map/EditDialog.vue'
 import LinksEditDialog from '@src/components/map/Dialog/LinksEditDialog.vue'
 import RoadsEditDialog from '@src/components/map/Dialog/RoadsEditDialog.vue'
 import ODEditDialog from '@src/components/map/Dialog/ODEditDialog.vue'
 // only used to force to see translation to vue-gettext
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
-import { userLinksStore } from '@src/store/rlinks'
 
 import { ref, onUnmounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
@@ -21,10 +19,7 @@ const { dialogType } = useForm()
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
-const rlinksStore = userLinksStore()
-const editorForm = ref({})
 const mode = ref('pt')
-const action = ref(null)
 
 onUnmounted(() => {
   linksStore.setEditorTrip(null)
@@ -32,16 +27,12 @@ onUnmounted(() => {
   if (store.cyclewayMode) { store.changeCyclewayMode() }
 })
 
-const showDialog = ref(false)
-
 const cloneDialog = ref(false)
 const deleteDialog = ref(false)
-const tripToDelete = ref(null)
 const message = ref('')
 const cloneObj = ref({ trip: null, name: null, reverse: true, nodes: false })
 const errorMessage = ref(null)
 const lingering = ref(true)
-const linkDir = ref([])
 
 function actionClick (event) {
   lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
@@ -49,7 +40,6 @@ function actionClick (event) {
 
 function applyAction () {
   // click yes on dialog
-  showDialog.value = false
   deleteDialog.value = false
   if (!lingering.value) {
     confirmChanges()
@@ -57,7 +47,6 @@ function applyAction () {
   }
 }
 function cancelAction () {
-  showDialog.value = false
   deleteDialog.value = false
   if (!lingering.value) {
     abortChanges()
@@ -79,12 +68,6 @@ function abortChanges () {
   linksStore.setEditorTrip(null)
   // notification
   store.changeNotification({ text: $gettext('modification aborted'), autoClose: true })
-}
-function deleteButton (selection) {
-  // could be a trip, or a roadLinks group
-  tripToDelete.value = selection.trip
-  message.value = selection.message
-  deleteDialog.value = true
 }
 
 function duplicate () {
@@ -123,15 +106,6 @@ function cancelClone () {
     <LinksEditDialog v-if="dialogType === 'pt'" />
     <RoadsEditDialog v-else-if="dialogType === 'road'" />
     <ODEditDialog v-else-if="dialogType === 'od'" />
-    <EditDialog
-      v-model:show-dialog="showDialog"
-      v-model:editor-form="editorForm"
-      :mode="mode"
-      :action="action"
-      :link-dir="linkDir"
-      @apply-action="applyAction"
-      @cancel-action="cancelAction"
-    />
 
     <v-dialog
       v-model="deleteDialog"
@@ -216,10 +190,7 @@ function cancelClone () {
     <SidePanel
       @confirm-changes="confirmChanges"
       @abort-changes="abortChanges"
-      @delete-button="deleteButton"
       @clone-button="cloneButton"
-      @properties-button="actionClick"
-      @schedule-button="actionClick"
       @change-mode="(e) => mode = e"
     />
     <Map
