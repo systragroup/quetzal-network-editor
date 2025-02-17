@@ -262,17 +262,25 @@ function addPointPT(event) {
 
 function addPointRoad(event) {
   const pointGeom = Object.values(event.mapboxEvent.lngLat)
-  const payload = {
-    nodeIdA: selectedNode.value.id,
-    nodeIdB: hoverId.value, // could be null, a node or a link.
-    geom: pointGeom,
-    layerId: hoverLayer.value,
+  let payload = {}
+  if (hoverLayer.value === 'rlinks') {
+    payload = {
+      nodeIdA: selectedNode.value.id,
+      linksId: hoverId.value, // could be null, a node or a link.
+      geom: pointGeom,
+    }
+  } else {
+    payload = {
+      nodeIdA: selectedNode.value.id,
+      nodeIdB: hoverId.value, // could be null, a node or a link.
+      geom: pointGeom,
+    }
   }
   // this action overwrite payload.nodeIdB to the actual newLink nodeB.
-  rlinksStore.createrLink(payload)
+  const toHover = rlinksStore.createrLink(payload)
   drawMode.value = false
   // then, create a hover (and off hover) to the new node b to continue drawing
-  onHoverRoad({ layerId: 'rnodes', selectedId: [payload.nodeIdB] })
+  onHoverRoad({ layerId: 'rnodes', selectedId: [toHover] })
   offHover()
 }
 

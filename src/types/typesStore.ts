@@ -1,5 +1,5 @@
 import { GroupForm } from './components'
-import { LineStringGeoJson, LineStringFeatures, PointGeoJson } from './geojson'
+import { LineStringGeoJson, LineStringFeatures, PointGeoJson, PointFeatures } from './geojson'
 
 // payloads
 
@@ -16,7 +16,7 @@ export type RoadsAction = ''
   | 'Edit rLink Info'
   | 'Edit rNode Info'
 
-export interface PTFilesPayload {
+export interface FilesPayload {
   path: string
   content: LineStringGeoJson | PointGeoJson
 }
@@ -127,4 +127,91 @@ export interface LinksStore {
   linksAttributesChoices: AttributesChoice
   defaultAttributes: Attributes[]
 
+}
+
+// road
+
+export interface RoadConnectedLinks {
+  a: LineStringFeatures[]
+  b: LineStringFeatures[]
+  visibleLinksList: LineStringFeatures[]
+}
+
+type ShowMethod = 'showAll' | 'hideAll' | 'add' | 'remove'
+
+export interface ChangeVisibleLinks {
+  category: string
+  data: string[]
+  method: ShowMethod
+}
+
+export interface ChangeVisibleNodes {
+  method: ShowMethod
+}
+
+export interface EditRoadPayload {
+  info: GroupForm
+  selectedArr: string[]
+}
+
+export interface SplitRoadPayload {
+  offset: number
+  sliceIndex: number
+  selectedFeature: LineStringFeatures
+}
+export interface AddRoadNodeInlinePayload {
+  lngLat: number[]
+  selectedIndex: string[]
+  nodes: 'anchorrNodes' | 'rnodes'
+}
+
+export interface AnchorRoadPayload {
+  coordinates: number[]
+  sliceIndex: number
+  selectedLink: LineStringFeatures
+}
+
+export interface CreateRlinkPayload {
+  nodeIdA: string
+  nodeIdB?: string // could be null, a node or a link.
+  linksId?: string[]
+  geom: number[]
+}
+
+// road store types
+
+export interface UpdateFeatures {
+  type: 'Feature'
+  id: string
+}
+
+export interface SavedRoadNetwork {
+  rlinks: string
+  rnodes: string
+}
+
+export interface RlinksStore {
+  rlinks: LineStringGeoJson
+  rnodes: PointGeoJson
+  selectedrFilter: string
+  selectedrGroup: string[]
+  filteredrCategory: string[]
+  rlineAttributes: string[]
+  rnodeAttributes: string[]
+  newrNode: PointGeoJson
+  visiblerLinks: LineStringGeoJson
+  visiblerNodes: PointGeoJson
+  connectedLinks: RoadConnectedLinks
+  defaultHighway: string
+  roadSpeed: number
+  rlinksDefaultColor: string
+  rlinksAttributesChoices: AttributesChoice
+  rcstAttributes: string[]
+  rundeletable: string[]
+  reversedAttributes: string[]
+  updateLinks: (UpdateFeatures | LineStringFeatures)[]
+  updateNodes: (UpdateFeatures | PointFeatures)[]
+  editionMode: boolean
+  savedNetwork: SavedRoadNetwork
+  networkWasModified: boolean
 }
