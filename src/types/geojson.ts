@@ -102,14 +102,17 @@ export type GeoJson =
 export type GeoJsonFeature = LineStringFeatures | PointFeatures
 // export Template values
 
-export const basePoint: PointGeoJson = {
-  type: 'FeatureCollection',
-  crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
-  features: [],
+export function basePoint(): PointGeoJson {
+  return {
+    type: 'FeatureCollection',
+    crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
+    features: [],
+  }
 }
-
-export const baseLineString: LineStringGeoJson = {
-  type: 'FeatureCollection',
-  crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
-  features: [],
+export function baseLineString(): LineStringGeoJson {
+  return {
+    type: 'FeatureCollection',
+    crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
+    features: [],
+  }
 }

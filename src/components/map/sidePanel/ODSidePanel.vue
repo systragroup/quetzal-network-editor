@@ -1,8 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import { useIndexStore } from '@src/store/index'
 import { useODStore } from '@src/store/od'
 import { computed, watch, ref } from 'vue'
 import { cloneDeep } from 'lodash'
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
+
+interface DeletePayload {
+  trip: string | string[]
+  message: string
+  group: string
+  action: 'deleteODGroup'
+}
 
 const emits = defineEmits(['deleteButton', 'propertiesButton'])
 const store = useIndexStore()
@@ -23,24 +32,18 @@ watch(vmodelSelectedFilter, (val) => {
   vmodelSelectedCat.value = [] // reset.
 })
 
-function propertiesButton (value) {
-  // select the TripId and open dialog
-  emits('propertiesButton', {
-    action: 'Edit OD Group Info',
-    lingering: false,
-    category: vmodelSelectedFilter.value,
-    group: value,
-  })
+function propertiesButton (group: string) {
+  const features = odStore.groupLayer(vmodelSelectedFilter.value, group)
+  const indexList = features.map(link => link.properties.index)
+  openDialog({ action: 'Edit OD Info', selectedArr: indexList, lingering: false, type: 'od' })
 }
 
 function editVisible () {
-  emits('propertiesButton', {
-    action: 'Edit Visible OD Info',
-    lingering: false,
-  })
+  const indexList = odStore.visibleLayer.features.map(link => link.properties.index)
+  openDialog({ action: 'Edit OD Info', selectedArr: indexList, lingering: false, type: 'od' })
 }
 
-function deleteButton (obj) {
+function deleteButton (obj: DeletePayload) {
   // obj contain trip and message.
   emits('deleteButton', obj)
 }
@@ -222,7 +225,7 @@ function showAll () {
 
                   :disabled="false"
                   v-bind="props"
-                  @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleteODGroup'})"
+                  @click="deleteButton({trip:item, group:selectedFilter, message:item, action:'deleteODGroup'})"
                 />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>

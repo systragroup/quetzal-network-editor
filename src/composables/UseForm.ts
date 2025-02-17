@@ -1,7 +1,7 @@
-import { LinksAction, RoadsAction } from '@src/types/typesStore'
+import { LinksAction, ODAction, RoadsAction } from '@src/types/typesStore'
 import { ref } from 'vue'
 
-type Action = LinksAction | RoadsAction
+type Action = LinksAction | RoadsAction | ODAction
 type ActionType = '' | 'pt' | 'road' | 'od'
 interface OpenFormPayload {
   selectedArr: string[]

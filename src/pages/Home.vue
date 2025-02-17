@@ -5,7 +5,8 @@ import SidePanel from '@comp/map/sidePanel/SidePanel.vue'
 import Map from '@comp/map/Map.vue'
 import EditDialog from '@comp/map/EditDialog.vue'
 import LinksEditDialog from '@src/components/map/Dialog/LinksEditDialog.vue'
-import { getGroupForm } from '@comp/utils/utils.js'
+import RoadsEditDialog from '@src/components/map/Dialog/RoadsEditDialog.vue'
+import ODEditDialog from '@src/components/map/Dialog/ODEditDialog.vue'
 // only used to force to see translation to vue-gettext
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
@@ -17,7 +18,6 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
 import { useForm } from '@src/composables/UseForm'
-import RoadsEditDialog from '@src/components/map/Dialog/RoadsEditDialog.vue'
 const { dialogType } = useForm()
 
 const store = useIndexStore()
@@ -36,7 +36,6 @@ onUnmounted(() => {
 
 const showDialog = ref(false)
 
-const selectedLink = ref(null)
 const selectedIndex = ref(null)
 const cloneDialog = ref(false)
 const deleteDialog = ref(false)
@@ -50,25 +49,7 @@ const linkDir = ref([])
 function actionClick (event) {
   action.value = event.action
   lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
-  if (action.value === 'Edit OD Info') {
-    selectedLink.value = event.selectedIndex[0]
-    editorForm.value = ODStore.linkForm(selectedLink.value)
-    showDialog.value = true
-  } else if (action.value === 'Edit OD Group Info') {
-    const features = ODStore.groupLayer(event.category, event.group)
-    selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
-    const lineAttributes = ODStore.layerAttributes
-    const uneditable = ['index']
-    editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-    showDialog.value = true
-  } else if (action.value === 'Edit Visible OD Info') {
-    const features = ODStore.visibleLayer.features
-    selectedLink.value = features // this is an observer. modification will be applied to it in next commit.
-    const lineAttributes = ODStore.layerAttributes
-    const uneditable = ['index']
-    editorForm.value = getGroupForm(features, lineAttributes, uneditable)
-    showDialog.value = true
-  } else if (action.value === 'Delete OD') {
+  if (action.value === 'Delete OD') {
     selectedIndex.value = event.selectedIndex
     applyAction()
   }
@@ -79,18 +60,6 @@ function applyAction () {
   showDialog.value = false
   deleteDialog.value = false
   switch (action.value) {
-    case 'Edit OD Group Info':
-      ODStore.editGroupInfo({ selectedLinks: selectedLink.value, info: editorForm.value })
-      break
-    case 'Edit Visible OD Info':
-      ODStore.editGroupInfo({
-        selectedLinks: ODStore.visibleLayer.features,
-        info: editorForm.value,
-      })
-      break
-    case 'Edit OD Info':
-      ODStore.editLinkInfo({ selectedLinkId: selectedLink.value, info: editorForm.value })
-      break
     case 'deleteTrip':
       linksStore.deleteTrip(tripToDelete.value)
       break
@@ -98,7 +67,7 @@ function applyAction () {
       rlinksStore.deleterGroup(tripToDelete.value)
       break
     case 'Delete OD':
-      ODStore.deleteOD({ selectedIndex: selectedIndex.value })
+      ODStore.deleteOD(selectedIndex.value)
       break
     case 'deleteODGroup':
       ODStore.deleteGroup(tripToDelete.value)
@@ -178,7 +147,7 @@ function cancelClone () {
   >
     <LinksEditDialog v-if="dialogType === 'pt'" />
     <RoadsEditDialog v-else-if="dialogType === 'road'" />
-
+    <ODEditDialog v-else-if="dialogType === 'od'" />
     <EditDialog
       v-model:show-dialog="showDialog"
       v-model:editor-form="editorForm"

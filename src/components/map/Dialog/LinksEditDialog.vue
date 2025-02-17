@@ -118,7 +118,7 @@ async function submitForm() {
       linksStore.editLineInfo(editorForm.value)
       break
     case 'Edit Group Info':
-      linksStore.editGroupInfo({ groupTripIds: selectedArr.value, info: editorForm.value })
+      linksStore.editGroupInfo({ selectedArray: selectedArr.value, info: editorForm.value })
       break
     case 'Edit Link Info':
       linksStore.editLinkInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
@@ -138,8 +138,8 @@ function quit() {
   }
 }
 
-function saveAndQuit() {
-  submitForm()
+async function saveAndQuit() {
+  await submitForm()
   quit()
 }
 
