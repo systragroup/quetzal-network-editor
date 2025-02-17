@@ -36,7 +36,6 @@ onUnmounted(() => {
 
 const showDialog = ref(false)
 
-const selectedNode = ref(null)
 const selectedLink = ref(null)
 const selectedIndex = ref(null)
 const cloneDialog = ref(false)

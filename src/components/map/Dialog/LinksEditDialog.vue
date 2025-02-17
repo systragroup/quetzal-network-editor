@@ -181,7 +181,7 @@ function change (key: string) {
 
 // add
 
-async function addField (newFieldName: string) {
+function addField (newFieldName: string) {
   if (newFieldName) {
     editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined }
     if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {

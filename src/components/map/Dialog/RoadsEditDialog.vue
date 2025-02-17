@@ -21,9 +21,8 @@ const rlinks = computed(() => rlinksStore.rlinks)
 const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
 const lineAttributes = computed(() => rlinksStore.rlineAttributes)
 const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
-// const nodeAttributes = computed(() => linksStore.nodeAttributes)
-// const tripList = computed(() => linksStore.tripId)
-const exclusionList = computed(() => [])
+const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
+const rcstAttributes = computed(() => rlinksStore.rcstAttributes)
 
 const typesMap = {}
 const attributeNonDeletable = computed(() => rlinksStore.rundeletable)
@@ -116,14 +115,27 @@ function saveAndQuit() {
 }
 
 // add
+function addFieldToLinksForms(newFieldName) {
+  editorForm.value.forEach(form => {
+    // If the form is a reversed one. add the field if its not in rcstAttribute
+    // (ex: route_width, no route_width_r)
+    if (Object.keys(form)[0].endsWith('_r') && !rcstAttributes.value.includes(newFieldName)) {
+      form[newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined }
+    } else {
+      // just a normal link
+      form[newFieldName] = { disabled: false, placeholder: false, value: undefined }
+    }
+  })
+}
 
-async function addField (newFieldName) {
+function addField (newFieldName) {
   if (newFieldName) {
-    editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined }
-    if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
-      // linksStore.addLinksPropertie({ name: newFieldName })
-    } else if (action.value === 'Edit Node Info') {
-      // linksStore.addNodesPropertie({ name: newFieldName })
+    if (['Edit rLink Info', 'Edit Road Group Info'].includes(action.value)) {
+      addFieldToLinksForms(newFieldName)
+      rlinksStore.addLinksPropertie({ name: newFieldName })
+    } else if (action.value === 'Edit rNode Info') {
+      editorForm.value[0][newFieldName] = { disabled: false, placeholder: false, value: undefined }
+      rlinksStore.addNodesPropertie({ name: newFieldName })
     }
   }
 }
@@ -133,11 +145,14 @@ async function addField (newFieldName) {
 const showDeleteOption = ref(false)
 
 function deleteField (field) {
-  delete editorForm.value[field]
-  if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
-    // linksStore.deleteLinksPropertie({ name: field })
-  } else if (action.value === 'Edit Node Info') {
-    // linksStore.deleteNodesPropertie({ name: field })
+  editorForm.value.forEach(form => {
+    delete form[field]
+    delete form[field + '_r']
+  })
+  if (['Edit rLink Info', 'Edit Road Group Info'].includes(action.value)) {
+    rlinksStore.deleteLinksPropertie({ name: field })
+  } else if (action.value === 'Edit rNode Info') {
+    rlinksStore.deleteNodesPropertie({ name: field })
   }
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }
@@ -189,7 +204,7 @@ function ToggleDeleteOption () {
               ref="formRef"
               v-model:editor-form="editorForm[idx]"
               :show-hint="showHint"
-              :show-delete-option="showDeleteOption"
+              :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
               :units="units"
               :rules="rules"
@@ -199,7 +214,7 @@ function ToggleDeleteOption () {
               @delete-field="deleteField"
             />
             <NewFieldForm
-              v-if="index===0"
+              v-if="idx===0"
               :exclusions-list="exclusionList"
               @add-field="addField"
             />
