@@ -36,7 +36,6 @@ onUnmounted(() => {
 
 const showDialog = ref(false)
 
-const selectedIndex = ref(null)
 const cloneDialog = ref(false)
 const deleteDialog = ref(false)
 const tripToDelete = ref(null)
@@ -49,10 +48,6 @@ const linkDir = ref([])
 function actionClick (event) {
   action.value = event.action
   lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
-  if (action.value === 'Delete OD') {
-    selectedIndex.value = event.selectedIndex
-    applyAction()
-  }
 }
 
 function applyAction () {
@@ -65,12 +60,6 @@ function applyAction () {
       break
     case 'deleterGroup':
       rlinksStore.deleterGroup(tripToDelete.value)
-      break
-    case 'Delete OD':
-      ODStore.deleteOD(selectedIndex.value)
-      break
-    case 'deleteODGroup':
-      ODStore.deleteGroup(tripToDelete.value)
       break
   }
   if (!lingering.value) {

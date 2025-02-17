@@ -10,7 +10,6 @@ const { $gettext } = useGettext()
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
 const props = defineProps(['map', 'isODMode', 'isEditorMode'])
-const emit = defineEmits(['clickFeature'])
 const header = geojson
 const ODStore = useODStore()
 const layer = computed(() => { return ODStore.visibleLayer })
@@ -172,10 +171,7 @@ function actionClick (event) {
   if (event.action === 'Edit OD Info') {
     openDialog({ action: 'Edit OD Info', selectedArr: event.feature, lingering: false, type: 'od' })
   } else {
-    emit('clickFeature', {
-      selectedIndex: event.feature,
-      action: event.action,
-    })
+    ODStore.deleteOD(event.feature)
   }
 
   contextMenu.value.showed = false

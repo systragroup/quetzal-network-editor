@@ -107,14 +107,6 @@ export const useODStore = defineStore('od', {
       this.getFilteredCategory()
     },
 
-    deleteGroup (payload: string[]) {
-      const group = payload
-      const cat = this.selectedFilter
-      this.layer.features = this.layer.features.filter(link => link.properties[cat] !== group)
-      this.refreshVisibleLayer()
-      this.getFilteredCategory()
-    },
-
     moveNode (payload: MoveNode) {
       const linkIndex = payload.selectedNode.properties.linkIndex
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
