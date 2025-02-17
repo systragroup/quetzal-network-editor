@@ -11,7 +11,6 @@ import ODEditDialog from '@src/components/map/Dialog/ODEditDialog.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
-import { useODStore } from '@src/store/od'
 
 import { ref, onUnmounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
@@ -23,7 +22,6 @@ const { dialogType } = useForm()
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
-const ODStore = useODStore()
 const editorForm = ref({})
 const mode = ref('pt')
 const action = ref(null)
@@ -46,7 +44,6 @@ const lingering = ref(true)
 const linkDir = ref([])
 
 function actionClick (event) {
-  action.value = event.action
   lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
 }
 
@@ -54,14 +51,6 @@ function applyAction () {
   // click yes on dialog
   showDialog.value = false
   deleteDialog.value = false
-  switch (action.value) {
-    case 'deleteTrip':
-      linksStore.deleteTrip(tripToDelete.value)
-      break
-    case 'deleterGroup':
-      rlinksStore.deleterGroup(tripToDelete.value)
-      break
-  }
   if (!lingering.value) {
     confirmChanges()
     lingering.value = true
@@ -80,7 +69,6 @@ function confirmChanges () {
   linksStore.confirmChanges()
   // put editTrip and action to null.
   linksStore.setEditorTrip(null)
-  action.value = null
   // notification
   store.changeNotification(
     { text: $gettext('modification applied'), autoClose: true, color: 'success' })
@@ -89,7 +77,6 @@ function abortChanges () {
   // unselect a trip for edition. nothing to commit on link here.
   // put editTrip and action to null.
   linksStore.setEditorTrip(null)
-  action.value = null
   // notification
   store.changeNotification({ text: $gettext('modification aborted'), autoClose: true })
 }
@@ -97,7 +84,6 @@ function deleteButton (selection) {
   // could be a trip, or a roadLinks group
   tripToDelete.value = selection.trip
   message.value = selection.message
-  action.value = selection.action
   deleteDialog.value = true
 }
 
