@@ -212,9 +212,11 @@ export const userLinksStore = defineStore('rlinks', {
       this.rlineAttributes = this.rlineAttributes.filter(item => item !== payload.name)
       this.reversedAttributes = this.reversedAttributes.filter(item => item !== payload.name + '_r')
     },
+
     deleteNodesPropertie (payload: NewAttribute) {
       this.rnodes.features.filter(node => delete node.properties[payload.name])
       this.visiblerNodes.features.filter(node => delete node.properties[payload.name])
+      this.rnodeAttributes = this.rnodeAttributes.filter(item => item !== payload.name)
     },
 
     startEditing () {
@@ -383,9 +385,9 @@ export const userLinksStore = defineStore('rlinks', {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedArr, info } = payload
       const selectedNodeId = selectedArr[0]
-      const props = Object.keys(info)
+      const props = Object.keys(info[0])
       const node = this.rnodes.features.filter(node => node.properties.index === selectedNodeId)[0]
-      props.forEach((key) => node.properties[key] = info[key].value)
+      props.forEach((key) => node.properties[key] = info[0][key].value)
       this.updateNodes = [node]
     },
 

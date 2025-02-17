@@ -240,9 +240,11 @@ export const useLinksStore = defineStore('links', {
     deleteEditorLinksPropertie (payload: NewAttribute) {
       this.editorLinks.features.filter(link => delete link.properties[payload.name])
     },
+
     deleteNodesPropertie (payload: NewAttribute) {
       this.nodes.features.filter(node => delete node.properties[payload.name])
       this.editorNodes.features.filter(node => delete node.properties[payload.name])
+      this.nodeAttributes = this.nodeAttributes.filter(item => item !== payload.name)
     },
 
     changeSelectedTrips (payload: string[]) {
