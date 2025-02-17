@@ -150,7 +150,7 @@ export interface ChangeVisibleNodes {
 }
 
 export interface EditRoadPayload {
-  info: GroupForm
+  info: GroupForm[]
   selectedArr: string[]
 }
 

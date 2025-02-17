@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
@@ -8,13 +8,16 @@ import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
-import { useGettext } from 'vue3-gettext'
-const { $gettext } = useGettext()
-const store = useIndexStore()
-const rlinksStore = userLinksStore()
-
 import { useForm } from '@src/composables/UseForm'
 import { getGroupForm } from '@src/components/utils/utils'
+import { GroupForm } from '@src/types/components'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
+
+type Dict = Record<string, string>
+
+const store = useIndexStore()
+const rlinksStore = userLinksStore()
 const { showDialog, action, selectedArr } = useForm()
 
 const rlinks = computed(() => rlinksStore.rlinks)
@@ -28,12 +31,12 @@ const typesMap = {}
 const attributeNonDeletable = computed(() => rlinksStore.rundeletable)
 
 const rules = {}
-const hints = attributesHints
-const units = attributesUnits
+const hints: Dict = attributesHints
+const units: Dict = attributesUnits
 const formRef = ref()
 
 const initialForm = ref({})
-const editorForm = ref({})
+const editorForm = ref<GroupForm[]>([])
 const numLinks = computed(() => { return editorForm.value.length })
 
 const showHint = ref(false)
@@ -54,7 +57,7 @@ function init() {
   showDeleteOption.value = false
 }
 
-const linkDir = ref([])
+const linkDir = ref<number[]>([])
 
 function createForm() {
   switch (action.value) {
@@ -89,7 +92,7 @@ function createForm() {
 }
 
 async function submitForm() {
-  const resp = await Promise.all(formRef.value.map(f => f.validate()))
+  const resp = await Promise.all(formRef.value.map((f: any) => f.validate()))
   if (resp.includes(false)) { return false }
   switch (action.value) {
     case 'Edit rLink Info':
@@ -115,7 +118,7 @@ function saveAndQuit() {
 }
 
 // add
-function addFieldToLinksForms(newFieldName) {
+function addFieldToLinksForms(newFieldName: string) {
   editorForm.value.forEach(form => {
     // If the form is a reversed one. add the field if its not in rcstAttribute
     // (ex: route_width, no route_width_r)
@@ -128,7 +131,7 @@ function addFieldToLinksForms(newFieldName) {
   })
 }
 
-function addField (newFieldName) {
+function addField (newFieldName: string) {
   if (newFieldName) {
     if (['Edit rLink Info', 'Edit Road Group Info'].includes(action.value)) {
       addFieldToLinksForms(newFieldName)
@@ -144,7 +147,7 @@ function addField (newFieldName) {
 
 const showDeleteOption = ref(false)
 
-function deleteField (field) {
+function deleteField (field: string) {
   editorForm.value.forEach(form => {
     delete form[field]
     delete form[field + '_r']
