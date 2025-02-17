@@ -8,7 +8,6 @@ import SidePanelBottom from './SidePanelBottom.vue'
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
 
-const emits = defineEmits(['deleteButton', 'propertiesButton', 'update-tripList'])
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
@@ -82,8 +81,7 @@ function editVisible () {
 }
 
 function deleteButton (obj) {
-  // obj contain trip and message.
-  emits('deleteButton', obj)
+  rlinksStore.deleterGroup(obj)
 }
 
 function showAll () {
@@ -260,7 +258,7 @@ function abortChanges() {
                   size="small"
                   :disabled="false"
                   v-bind="props"
-                  @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleterGroup'})"
+                  @click="deleteButton(item)"
                 />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>

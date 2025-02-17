@@ -14,11 +14,6 @@ const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
 const { $gettext } = useGettext()
 
-interface DeletePayload {
-  trip: string | string[]
-  message: string
-  action: 'deleteTrip'
-}
 interface ClonePayload {
   trip: string | string[]
   message: string
@@ -28,8 +23,6 @@ const emits = defineEmits([
   'confirmChanges',
   'abortChanges',
   'cloneButton',
-  'deleteButton',
-  'scheduleButton',
 ])
 const maxSize = 200
 const store = useIndexStore()
@@ -192,9 +185,9 @@ function cloneButton (obj: ClonePayload) {
   emits('cloneButton', obj)
 }
 
-function deleteButton (obj: DeletePayload) {
+function deleteButton (trips: string[]) {
   // obj contain trip and message.
-  emits('deleteButton', obj)
+  linksStore.deleteTrips(trips)
 }
 
 import { useHighlight } from '../useHighlight'
@@ -402,7 +395,7 @@ function setHighlight(trip: string | null) {
                       class="ma-1"
                       :disabled="editorTrip ? true: false"
                       v-bind="hover"
-                      @click.stop="deleteButton({trip:value.tripId, message:value.name,action:'deleteTrip'})"
+                      @click.stop="deleteButton(value.tripId)"
                     />
                   </template>
                   <span>{{ $gettext("Delete Group") }}</span>
@@ -502,7 +495,7 @@ function setHighlight(trip: string | null) {
                       icon="fas fa-trash"
                       :disabled="editorTrip ? true: false"
                       v-bind="props"
-                      @click="deleteButton({trip:item,message:item,action:'deleteTrip'})"
+                      @click="deleteButton([item])"
                     />
                   </template>
                   <span>{{ $gettext("Delete Line") }}</span>

@@ -973,14 +973,11 @@ export const useLinksStore = defineStore('links', {
       this.setEditorTrip(null)
     },
 
-    deleteTrip (payload: string[]) {
+    deleteTrips (tripList: string[]) {
       // payload = a single trip_id or a list or trips_id
       // if its a list : delete all of them. else: delete single trip
-      if (typeof payload === 'object') {
-        this.links.features = this.links.features.filter(link => !payload.includes(link.properties.trip_id))
-      } else {
-        this.links.features = this.links.features.filter(link => link.properties.trip_id !== payload)
-      }
+      this.links.features = this.links.features.filter(link => !tripList.includes(link.properties.trip_id))
+
       // delete every every nodes not in links
       this.deleteUnusedNodes()
       // get tripId list
