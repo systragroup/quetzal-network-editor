@@ -6,14 +6,6 @@ import { cloneDeep } from 'lodash'
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
 
-interface DeletePayload {
-  trip: string | string[]
-  message: string
-  group: string
-  action: 'deleteODGroup'
-}
-
-const emits = defineEmits(['deleteButton', 'propertiesButton'])
 const store = useIndexStore()
 const odStore = useODStore()
 const filterChoices = computed(() => { return odStore.layerAttributes })
@@ -43,9 +35,10 @@ function editVisible () {
   openDialog({ action: 'Edit OD Info', selectedArr: indexList, lingering: false, type: 'od' })
 }
 
-function deleteButton (obj: DeletePayload) {
-  // obj contain trip and message.
-  emits('deleteButton', obj)
+function deleteButton (group: string) {
+  const features = odStore.groupLayer(vmodelSelectedFilter.value, group)
+  const indexList = features.map(link => link.properties.index)
+  odStore.deleteOD(indexList)
 }
 
 function showAll () {
@@ -225,7 +218,7 @@ function showAll () {
 
                   :disabled="false"
                   v-bind="props"
-                  @click="deleteButton({trip:item, group:selectedFilter, message:item, action:'deleteODGroup'})"
+                  @click="deleteButton(item)"
                 />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>
