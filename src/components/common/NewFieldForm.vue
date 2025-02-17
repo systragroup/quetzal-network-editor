@@ -20,6 +20,8 @@ const newFieldRules = [
   (val: string) => !props.exclusionsList.includes(val) || $gettext('field already exist'),
   (val: string) => val !== '' || $gettext('cannot add empty field'),
   (val: string) => !val?.includes('#') || $gettext('field cannot contain #'),
+  (val: string) => !val?.endsWith('_r') || $gettext('field cannot end with _r'),
+
 ]
 
 async function addField () {

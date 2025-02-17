@@ -181,39 +181,40 @@ export const userLinksStore = defineStore('rlinks', {
       newAttrs = newAttrs.filter(item => !item.endsWith('_r'))
       // if an attribute is not desined in its _r variant. we do not create a _r attrivbute
       // add eeach not _r attributes in the attributes.
-      newAttrs.forEach(item => this.addRoadPropertie({ table: 'rlinks', name: item }))
+      newAttrs.forEach(item => this.addLinksPropertie({ name: item }))
     },
 
-    addRoadPropertie (payload) {
+    addLinksPropertie (payload) {
       // when a new line properties is added (in dataframe page)
-      if (payload.table === 'rlinks') {
-        this.rlinks.features.map(link => link.properties[payload.name] = null)
-        this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
-        this.rlineAttributes.push(payload.name) // could put that at applied. so we can cancel
-        // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
-        if (!this.rcstAttributes.includes(payload.name)) {
-          this.reversedAttributes.push(payload.name + '_r')
-        }
-      } else {
-        this.rnodes.features.map(node => node.properties[payload.name] = null)
-        this.visiblerNodes.features.map(node => node.properties[payload.name] = null)
-        this.rnodeAttributes.push(payload.name)
+      this.rlinks.features.map(link => link.properties[payload.name] = null)
+      this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
+      this.rlineAttributes.push(payload.name) // could put that at applied. so we can cancel
+      // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
+      if (!this.rcstAttributes.includes(payload.name)) {
+        this.reversedAttributes.push(payload.name + '_r')
       }
     },
-    deleteRoadPropertie (payload) {
-      if (payload.table === 'rlinks') {
-        this.rlinks.features.filter(link => delete link.properties[payload.name])
-        this.rlinks.features.filter(link => delete link.properties[payload.name + '_r'])
-        this.visiblerLinks.features.filter(link => delete link.properties[payload.name])
-        this.visiblerLinks.features.filter(link => delete link.properties[payload.name + '_r'])
 
-        this.rlineAttributes = this.rlineAttributes.filter(item => item !== payload.name)
-        this.reversedAttributes = this.reversedAttributes.filter(item => item !== payload.name + '_r')
-      } else {
-        this.rnodes.features.filter(node => delete node.properties[payload.name])
-        this.visiblerNodes.features.filter(node => delete node.properties[payload.name])
-      }
+    addNodesPropertie (payload) {
+      this.rnodes.features.map(node => node.properties[payload.name] = null)
+      this.visiblerNodes.features.map(node => node.properties[payload.name] = null)
+      this.rnodeAttributes.push(payload.name)
     },
+
+    deleteLinksPropertie (payload) {
+      this.rlinks.features.filter(link => delete link.properties[payload.name])
+      this.rlinks.features.filter(link => delete link.properties[payload.name + '_r'])
+      this.visiblerLinks.features.filter(link => delete link.properties[payload.name])
+      this.visiblerLinks.features.filter(link => delete link.properties[payload.name + '_r'])
+
+      this.rlineAttributes = this.rlineAttributes.filter(item => item !== payload.name)
+      this.reversedAttributes = this.reversedAttributes.filter(item => item !== payload.name + '_r')
+    },
+    deleteNodesPropertie (payload) {
+      this.rnodes.features.filter(node => delete node.properties[payload.name])
+      this.visiblerNodes.features.filter(node => delete node.properties[payload.name])
+    },
+
     startEditing () {
       this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
       this.editionMode = true
@@ -228,6 +229,9 @@ export const userLinksStore = defineStore('rlinks', {
       if (this.networkWasModified) {
         this.rlinks = JSON.parse(this.savedNetwork.rlinks)
         this.rnodes = JSON.parse(this.savedNetwork.rnodes)
+        this.getrLinksProperties()
+        this.getrNodesProperties()
+
         this.getFilteredrCat()
         this.refreshVisibleRoads() // nodes are refresh in this method
         this.updateLinks = [] // refresh rlinks
@@ -685,7 +689,6 @@ export const userLinksStore = defineStore('rlinks', {
 
       this.refreshVisibleRoads()
       this.getFilteredrCat()
-      console.log(selectedLinks)
       this.updateLinks = selectedLinks
     },
 
