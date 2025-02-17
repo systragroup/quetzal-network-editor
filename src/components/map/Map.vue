@@ -33,7 +33,6 @@ const props = defineProps({
     default: 'pt',
   },
 })
-const emits = defineEmits(['clickFeature'])
 const store = useIndexStore()
 const mapStore = useMapStore()
 const linksStore = useLinksStore()
@@ -289,11 +288,6 @@ function clickFeature (event) {
   if (['Move rNode', 'Delete rLink'].includes(event.action)) {
     drawMode.value = false
     connectedDrawLink.value = false
-  }
-  // prevent emitting add road node inline when drawmode is on.
-  // we will add the node inlne and create the new link in this component.
-  if (!(event.action === 'Add Road Node Inline' && drawMode.value)) {
-    emits('clickFeature', event)
   }
 }
 

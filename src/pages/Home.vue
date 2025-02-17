@@ -34,10 +34,6 @@ const cloneObj = ref({ trip: null, name: null, reverse: true, nodes: false })
 const errorMessage = ref(null)
 const lingering = ref(true)
 
-function actionClick (event) {
-  lingering.value = (Object.keys(event).includes('lingering')) ? event.lingering : lingering.value
-}
-
 function applyAction () {
   // click yes on dialog
   deleteDialog.value = false
@@ -195,7 +191,6 @@ function cancelClone () {
     />
     <Map
       :mode="mode"
-      @click-feature="actionClick"
     />
   </section>
 </template>
