@@ -16,6 +16,9 @@ export type RoadsAction = ''
   | 'Edit rLink Info'
   | 'Edit rNode Info'
 
+export type ODAction = ''
+  | 'Edit OD Info'
+
 export interface FilesPayload {
   path: string
   content: LineStringGeoJson | PointGeoJson
@@ -88,7 +91,7 @@ export interface StickyNodePayload {
 
 export interface EditGroupPayload {
   info: GroupForm
-  groupTripIds: string[]
+  selectedArray: string[]
 }
 
 export interface EditLinkPayload {
@@ -214,4 +217,20 @@ export interface RlinksStore {
   editionMode: boolean
   savedNetwork: SavedRoadNetwork
   networkWasModified: boolean
+}
+
+// OD store
+
+export interface NewODPayload {
+  index: string
+  lngLat: number[]
+}
+
+export interface ODStore {
+  layer: LineStringGeoJson
+  visibleLayer: LineStringGeoJson
+  layerAttributes: string[]
+  filteredCategory: string[]
+  selectedFilter: string
+  selectedCategory: string[]
 }

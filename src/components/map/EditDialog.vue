@@ -214,7 +214,7 @@ function deleteField (field) {
   } else if (action.value === 'Edit rNode Info') {
     rlinksStore.deleteRoadPropertie({ name: field, table: 'rnodes' })
   } else if (['Edit OD Group Info', 'Edit Visible OD Info'].includes(action.value)) {
-    ODStore.deletePropertie({ name: field })
+    ODStore.deletePropertie(field)
   }
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }

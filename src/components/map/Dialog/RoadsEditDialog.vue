@@ -3,7 +3,6 @@
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { computed, onMounted, ref, watch } from 'vue'
-import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
 import EditForm from '@src/components/common/EditForm.vue'
@@ -35,7 +34,6 @@ const hints: Dict = attributesHints
 const units: Dict = attributesUnits
 const formRef = ref()
 
-const initialForm = ref({})
 const editorForm = ref<GroupForm[]>([])
 const numLinks = computed(() => { return editorForm.value.length })
 
@@ -52,7 +50,6 @@ watch(showDialog, (val) => {
 function init() {
   store.changeNotification({ text: '', autoClose: true })
   createForm()
-  initialForm.value = cloneDeep(editorForm.value)
   showHint.value = false
   showDeleteOption.value = false
 }
@@ -112,8 +109,8 @@ function quit() {
     { text: $gettext('modification applied'), autoClose: true, color: 'success' })
 }
 
-function saveAndQuit() {
-  submitForm()
+async function saveAndQuit() {
+  await submitForm()
   quit()
 }
 

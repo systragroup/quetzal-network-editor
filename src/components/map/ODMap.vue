@@ -7,13 +7,15 @@ import { useODStore } from '@src/store/od'
 import geojson from '@constants/geojson'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
 const props = defineProps(['map', 'isODMode', 'isEditorMode'])
-const emit = defineEmits(['[clickFeature]'])
+const emit = defineEmits(['clickFeature'])
 const header = geojson
 const ODStore = useODStore()
 const layer = computed(() => { return ODStore.visibleLayer })
-const nodes = computed(() => { return ODStore.nodes(layer.value) })
+const nodes = computed(() => { return ODStore.nodes })
+
 const { isODMode, map } = toRefs(props)
 watch(isODMode, (val) => {
   if (val) {
@@ -121,11 +123,10 @@ function onMove (event) {
   // get position and update node position
   // only if dragmode is activated (we just leave the node hovering state.)
   if (dragNode.value && selectedFeature.value) {
-    const click = {
-      selectedFeature: selectedFeature.value,
+    ODStore.moveNode({
+      selectedNode: selectedFeature.value,
       lngLat: Object.values(event.lngLat),
-    }
-    ODStore.moveNode(click)
+    })
     // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
     // this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
     //  booleanContains(this.bbox, node))
@@ -168,12 +169,15 @@ function linkRightClick (event) {
   }
 }
 function actionClick (event) {
-  const click = {
-    selectedIndex: event.feature,
-    action: event.action,
-    lngLat: event.coordinates,
+  if (event.action === 'Edit OD Info') {
+    openDialog({ action: 'Edit OD Info', selectedArr: event.feature, lingering: false, type: 'od' })
+  } else {
+    emit('clickFeature', {
+      selectedIndex: event.feature,
+      action: event.action,
+    })
   }
-  emit('clickFeature', click)
+
   contextMenu.value.showed = false
   contextMenu.value.type = null
 }

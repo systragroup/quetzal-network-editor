@@ -29,16 +29,16 @@ const defaultrUndeletable = ['index', 'a', 'b', 'length', 'route_color', 'oneway
 
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
-    rlinks: baseLineString,
-    rnodes: basePoint,
+    rlinks: baseLineString(),
+    rnodes: basePoint(),
     selectedrFilter: '',
     selectedrGroup: [],
     filteredrCategory: [],
     rlineAttributes: [],
     rnodeAttributes: [],
-    newrNode: basePoint,
-    visiblerLinks: baseLineString,
-    visiblerNodes: basePoint,
+    newrNode: basePoint(),
+    visiblerLinks: baseLineString(),
+    visiblerNodes: basePoint(),
     connectedLinks: { a: [], b: [], visibleLinksList: [] },
     defaultHighway: 'quenedi',
     roadSpeed: 20,
@@ -68,7 +68,7 @@ export const userLinksStore = defineStore('rlinks', {
     loadrLinks (payload: LineStringGeoJson) {
       this.rlinks = cloneDeep(payload)
       if (CRSis4326(this.rlinks)) {
-        this.visiblerLinks = cloneDeep(baseLineString)
+        this.visiblerLinks = baseLineString()
         // limit geometry precision to 6 digit
         this.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
           points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
@@ -83,7 +83,7 @@ export const userLinksStore = defineStore('rlinks', {
     loadrNodes (payload: PointGeoJson) {
       this.rnodes = JSON.parse(JSON.stringify(payload))
       if (CRSis4326(this.rnodes)) {
-        this.visiblerNodes = cloneDeep(basePoint)
+        this.visiblerNodes = basePoint()
         // limit geometry precision to 6 digit
         this.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
           coord => Math.round(Number(coord) * 1000000) / 1000000))
@@ -434,7 +434,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     createNewrNode (geometry: number[]) {
-      const newNode = cloneDeep(basePoint)
+      const newNode = basePoint()
       const nodeProperties: GeoJsonProperties = {}
       this.rnodeAttributes.forEach(key => {
         nodeProperties[key] = null

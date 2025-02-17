@@ -22,18 +22,18 @@ const $gettext = (s: string) => s
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
-    links: baseLineString,
-    nodes: basePoint,
-    visibleNodes: basePoint,
-    editorNodes: basePoint,
-    editorLinks: baseLineString,
+    links: baseLineString(),
+    nodes: basePoint(),
+    visibleNodes: basePoint(),
+    editorNodes: basePoint(),
+    editorLinks: baseLineString(),
     editorTrip: null,
-    defaultLink: baseLineString,
+    defaultLink: baseLineString(),
     tripId: [],
     scheduledTrips: new Set([]),
     selectedTrips: [],
-    newLink: baseLineString,
-    newNode: basePoint,
+    newLink: baseLineString(),
+    newNode: basePoint(),
     connectedLinks: { a: [], b: [], anchor: [] },
     linksDefaultColor: '2196F3',
     lineAttributes: [],
@@ -70,7 +70,7 @@ export const useLinksStore = defineStore('links', {
     },
     loadLinks (payload: LineStringGeoJson) {
       this.links = cloneDeep(payload)
-      this.editorLinks = cloneDeep(baseLineString)
+      this.editorLinks = baseLineString()
       if (CRSis4326(this.links)) {
         // limit geometry precision to 6 digit
         this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
@@ -89,7 +89,7 @@ export const useLinksStore = defineStore('links', {
 
     loadNodes (payload: PointGeoJson) {
       this.nodes = cloneDeep(payload)
-      this.editorNodes = cloneDeep(basePoint)
+      this.editorNodes = basePoint()
       if (CRSis4326(this.nodes)) {
         // limit geometry precision to 6 digit
         this.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
@@ -285,7 +285,7 @@ export const useLinksStore = defineStore('links', {
 
     cloneTrip (payload: CloneTrip) {
       // clone and reversed a trip.
-      const cloned = cloneDeep(baseLineString)
+      const cloned = baseLineString()
       const features = this.links.features.filter(link => link.properties.trip_id === payload.tripId)
       cloned.features = cloneDeep(features)
 
@@ -879,7 +879,7 @@ export const useLinksStore = defineStore('links', {
     editGroupInfo (payload: EditGroupPayload) {
       // edit line info on multiple trips at once.
       const editorGroupInfo = payload.info
-      const groupTripIds = new Set(payload.groupTripIds)
+      const groupTripIds = new Set(payload.selectedArray)
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(editorGroupInfo).filter(key =>
         ((editorGroupInfo[key].value !== '') || !editorGroupInfo[key].placeholder))
@@ -962,8 +962,8 @@ export const useLinksStore = defineStore('links', {
         this.calcLengthTime(link)
       }
 
-      this.newLink = baseLineString
-      this.newNode = basePoint
+      this.newLink = baseLineString()
+      this.newNode = basePoint()
       // get tripId list
       this.getTripId()
       this.getLinksProperties()
@@ -1003,7 +1003,7 @@ export const useLinksStore = defineStore('links', {
       ? state.editorLinks.features.slice(-1)[0].properties.b
       : state.editorNodes.features[0].properties.index,
     anchorNodes: (state) => {
-      const nodes: any = cloneDeep(basePoint)
+      const nodes: any = basePoint()
       state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
         feature => {
           const linkIndex = feature.properties.index
@@ -1018,7 +1018,7 @@ export const useLinksStore = defineStore('links', {
       return nodes
     },
     routeAnchorNodes: (state) => {
-      const nodes: any = cloneDeep(basePoint)
+      const nodes: any = basePoint()
       state.editorLinks.features.forEach(
         feature => {
           const linkIndex = feature.properties.index

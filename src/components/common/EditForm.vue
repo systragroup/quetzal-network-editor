@@ -9,8 +9,8 @@ import MenuSelector from '../utils/MenuSelector.vue'
 interface Props {
   hints: Record<string, string>
   units: Record<string, string>
-  types: Record<string, AttributeTypes >
-  attributesChoices: Record<string, any>
+  types?: Record<string, AttributeTypes >
+  attributesChoices?: Record<string, any>
   attributeNonDeletable: string[]
   rules: any
   showDeleteOption: boolean
