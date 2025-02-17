@@ -251,7 +251,7 @@ const contextMenu = ref({
 
 function actionClick (event) {
   if (['Delete rLink', 'Delete Selected'].includes(event.action)) {
-    rlinksStore.deleterLink({ selectedIndex: event.feature })
+    rlinksStore.deleterLink(event.feature)
     // emit this click to remove the drawlink.
     emits('clickFeature', { action: 'Delete rLink' })
   } else {

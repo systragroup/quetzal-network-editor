@@ -55,6 +55,10 @@ interface GeoJsonGeometryCollection extends GeoJsonGeometry {
 
 // features
 
+export interface GeoJsonProperties {
+  [key: string]: any
+}
+
 export interface PointGeometry {
   type: 'Point'
   coordinates: number[]
@@ -68,13 +72,13 @@ export interface LineStringGeometry {
 export interface PointFeatures {
   type: 'Feature'
   geometry: PointGeometry
-  properties: { [key: string]: any }
+  properties: GeoJsonProperties
 }
 
 export interface LineStringFeatures {
   type: 'Feature'
   geometry: LineStringGeometry
-  properties: { [key: string]: any }
+  properties: GeoJsonProperties
 }
 
 // Geojson

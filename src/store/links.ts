@@ -8,13 +8,13 @@ import { lineString, point as Point } from '@turf/helpers'
 
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
 // eslint-disable-next-line max-len
-import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
+import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, EditNewLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
-  PTFilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
+  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { GroupForm } from '@src/types/components'
@@ -107,7 +107,7 @@ export const useLinksStore = defineStore('links', {
       this.tripId = []
       this.selectedTrips = []
     },
-    loadPTFiles (payload: PTFilesPayload[]) {
+    loadPTFiles (payload: FilesPayload[]) {
       // payload = [{path,content}, ...]
       // get links. check that index are not duplicated, serialize them and then append to project
       // get nodes. check that index are not duplicated, serialize them and then append to project
@@ -482,14 +482,14 @@ export const useLinksStore = defineStore('links', {
         if (action === 'Extend Line Upward') {
           link.properties['departures'] = link.properties['arrivals']
           const diff = link.properties.time
-          const arrivals = link.properties['arrivals'].map((t: number) => secondsTohhmmss(hhmmssToSeconds(t) + diff))
+          const arrivals = link.properties['arrivals'].map((t: string) => secondsTohhmmss(hhmmssToSeconds(t) + diff))
           link.properties['arrivals'] = arrivals
         }
         else if (action === 'Extend Line Downward') {
           link.properties['arrivals'] = link.properties['departures']
           const diff = link.properties.time
           // eslint-disable-next-line max-len
-          const departures = link.properties['departures'].map((t: number) => secondsTohhmmss(hhmmssToSeconds(t) - diff))
+          const departures = link.properties['departures'].map((t: string) => secondsTohhmmss(hhmmssToSeconds(t) - diff))
           link.properties['departures'] = departures
         }
       }
