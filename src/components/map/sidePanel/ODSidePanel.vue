@@ -3,6 +3,8 @@ import { useIndexStore } from '@src/store/index'
 import { useODStore } from '@src/store/od'
 import { computed, watch, ref } from 'vue'
 import { cloneDeep } from 'lodash'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
+
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
 
@@ -35,17 +37,25 @@ function editVisible () {
   openDialog({ action: 'Edit OD Info', selectedArr: indexList, lingering: false, type: 'od' })
 }
 
-function deleteButton (group: string) {
-  const features = odStore.groupLayer(vmodelSelectedFilter.value, group)
-  const indexList = features.map(link => link.properties.index)
-  odStore.deleteOD(indexList)
-}
-
 function showAll () {
   if (vmodelSelectedCat.value.length === filteredCat.value.length) {
     vmodelSelectedCat.value = []
   } else {
     vmodelSelectedCat.value = filteredCat.value
+  }
+}
+
+// delete dialog
+const deleteDialog = ref()
+const deleteMessage = ref('')
+async function deleteButton (group: string, message: string) {
+  // obj contain trip and message.
+  deleteMessage.value = message
+  const resp = await deleteDialog.value.openDialog()
+  if (resp) {
+    const features = odStore.groupLayer(vmodelSelectedFilter.value, group)
+    const indexList = features.map(link => link.properties.index)
+    odStore.deleteOD(indexList)
   }
 }
 
@@ -218,7 +228,7 @@ function showAll () {
 
                   :disabled="false"
                   v-bind="props"
-                  @click="deleteButton(item)"
+                  @click="deleteButton(item, item)"
                 />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>
@@ -234,6 +244,13 @@ function showAll () {
         <v-spacer />
       </v-list-item>
     </v-card>
+    <PromiseDialog
+      ref="deleteDialog"
+      :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
+      body=""
+      :confirm-button="$gettext('Delete')"
+      confirm-color="primary"
+    />
   </section>
 </template>
 <style lang="scss" scoped>

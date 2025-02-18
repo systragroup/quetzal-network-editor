@@ -5,6 +5,8 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import SidePanelBottom from './SidePanelBottom.vue'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
+
 import { useForm } from '@src/composables/UseForm'
 import { ShowMethod } from '@src/types/typesStore'
 const { openDialog } = useForm()
@@ -100,10 +102,15 @@ function abortChanges() {
   rlinksStore.cancelEdition()
 }
 
-// delete
-function deleteButton (obj: string) {
-  console.log(obj)
-  rlinksStore.deleterGroup(obj)
+// delete dialog
+const deleteDialog = ref()
+const deleteMessage = ref('')
+async function deleteButton (group: string, message: string) {
+  // obj contain trip and message.
+  deleteMessage.value = message
+  const resp = await deleteDialog.value.openDialog()
+  if (resp) { rlinksStore.deleterGroup(group)
+  }
 }
 
 </script>
@@ -261,7 +268,7 @@ function deleteButton (obj: string) {
                   size="small"
                   :disabled="false"
                   v-bind="props"
-                  @click="deleteButton(item)"
+                  @click="deleteButton(item, item)"
                 />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>
@@ -319,6 +326,13 @@ function deleteButton (obj: string) {
         <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
       </v-tooltip>
     </SidePanelBottom>
+    <PromiseDialog
+      ref="deleteDialog"
+      :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
+      body=""
+      :confirm-button="$gettext('Delete')"
+      confirm-color="primary"
+    />
   </section>
 </template>
 <style lang="scss" scoped>
