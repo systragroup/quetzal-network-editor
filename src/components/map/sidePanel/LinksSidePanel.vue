@@ -36,7 +36,7 @@ function showAll () {
   }
 }
 
-const tripId = computed(() => { return linksStore.tripId })
+const tripId = computed(() => { return linksStore.tripList })
 
 watch(tripId, (newVal, oldVal) => {
   if (newVal.length < oldVal.length) {
@@ -181,7 +181,7 @@ async function cloneButton (tripId: string) {
   cloneOptions.value.name = tripId + ' copy'
   const resp = await cloneDialog.value.openDialog()
   if (resp) {
-    if (linksStore.tripId.includes(cloneOptions.value.name)) {
+    if (linksStore.tripList.includes(cloneOptions.value.name)) {
       store.changeNotification({ text: $gettext('Cannot duplicate: trip_id already exist'),
         autoClose: true, color: 'error' })
     } else {

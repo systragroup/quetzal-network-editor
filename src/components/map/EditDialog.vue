@@ -222,7 +222,7 @@ function deleteField (field) {
 function save() {
   if (action.value == 'Edit Line Info') {
     if ((editorForm.value.trip_id.value !== linksStore.editorTrip)
-      && linksStore.tripId.includes(editorForm.value.trip_id.value)) {
+      && linksStore.tripList.includes(editorForm.value.trip_id.value)) {
       // reset all. just like abortChanges but without the abort changes notification
       store.changeNotification({
         text: $gettext('Cannot apply modification. Trip_id already exist'),

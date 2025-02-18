@@ -11,13 +11,15 @@ import { serializer, CRSis4326 } from '@comp/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
+import { GroupForm } from '@src/types/components'
+
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, EditNewLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
   FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
-import { GroupForm } from '@src/types/components'
+
 const $gettext = (s: string) => s
 
 export const useLinksStore = defineStore('links', {
@@ -29,7 +31,7 @@ export const useLinksStore = defineStore('links', {
     editorLinks: baseLineString(),
     editorTrip: null,
     defaultLink: baseLineString(),
-    tripId: [],
+    tripList: [],
     scheduledTrips: new Set([]),
     selectedTrips: [],
     newLink: baseLineString(),
@@ -80,7 +82,7 @@ export const useLinksStore = defineStore('links', {
         this.getTripId()
 
         // set all trips visible
-        this.changeSelectedTrips(this.tripId)
+        this.changeSelectedTrips(this.tripList)
 
         this.getLinksProperties()
         this.calcSpeed()
@@ -104,7 +106,7 @@ export const useLinksStore = defineStore('links', {
       this.links.features = []
       this.nodes.features = []
       this.editorTrip = null
-      this.tripId = []
+      this.tripList = []
       this.selectedTrips = []
     },
     loadPTFiles (payload: FilesPayload[]) {
@@ -144,7 +146,7 @@ export const useLinksStore = defineStore('links', {
       this.applyPropertiesTypes(this.links)
       this.getLinksProperties()
       this.getTripId()
-      this.changeSelectedTrips(this.tripId)
+      this.changeSelectedTrips(this.tripList)
       this.calcSpeed()
       this.fixAllRoutingList()
     },
@@ -397,7 +399,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     getTripId () {
-      this.tripId = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
+      this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
       this.scheduledTrips = new Set(this.links.features.filter(l =>
         Array.isArray(l.properties.arrivals)).map(item => item.properties.trip_id))
     },
@@ -913,7 +915,7 @@ export const useLinksStore = defineStore('links', {
       // find index of soon to be deleted links
       let index = 0 // if new Trip, index will be 0.
       if (this.editorTrip) {
-        if (this.tripId.includes(this.editorTrip)) {
+        if (this.tripList.includes(this.editorTrip)) {
           index = this.links.features.findIndex(link => link.properties.trip_id === this.editorTrip)
         }
       }
