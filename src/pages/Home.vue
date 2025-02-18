@@ -28,7 +28,6 @@ onUnmounted(() => {
 })
 
 const cloneDialog = ref(false)
-const deleteDialog = ref(false)
 const message = ref('')
 const cloneObj = ref({ trip: null, name: null, reverse: true, nodes: false })
 const errorMessage = ref(null)
@@ -36,14 +35,12 @@ const lingering = ref(true)
 
 function applyAction () {
   // click yes on dialog
-  deleteDialog.value = false
   if (!lingering.value) {
     confirmChanges()
     lingering.value = true
   }
 }
 function cancelAction () {
-  deleteDialog.value = false
   if (!lingering.value) {
     abortChanges()
     lingering.value = true
@@ -52,11 +49,8 @@ function cancelAction () {
 function confirmChanges () {
   // confirm changes on sidePanel, this overwrite Links in store.
   linksStore.confirmChanges()
-  // put editTrip and action to null.
-  linksStore.setEditorTrip(null)
   // notification
-  store.changeNotification(
-    { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+  store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' })
 }
 function abortChanges () {
   // unselect a trip for edition. nothing to commit on link here.
@@ -102,38 +96,6 @@ function cancelClone () {
     <LinksEditDialog v-if="dialogType === 'pt'" />
     <RoadsEditDialog v-else-if="dialogType === 'road'" />
     <ODEditDialog v-else-if="dialogType === 'od'" />
-
-    <v-dialog
-      v-model="deleteDialog"
-      scrollable
-      persistent
-      max-width="20rem"
-    >
-      <v-card max-height="55rem">
-        <v-card-title class="text-h5">
-          {{ $gettext("Delete") + ' '+ message + '?' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="cancelAction"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-
-          <v-btn
-            color="success"
-            variant="text"
-            @click="applyAction"
-          >
-            {{ $gettext("Save") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <v-dialog
       v-model="cloneDialog"
@@ -184,8 +146,6 @@ function cancelClone () {
     </v-dialog>
 
     <SidePanel
-      @confirm-changes="confirmChanges"
-      @abort-changes="abortChanges"
       @clone-button="cloneButton"
       @change-mode="(e) => mode = e"
     />

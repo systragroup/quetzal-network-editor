@@ -19,10 +19,8 @@ interface ClonePayload {
   message: string
 }
 
-const emits = defineEmits([
-  'confirmChanges',
-  'abortChanges',
-  'cloneButton',
+const emits = defineEmits(['cloneButton',
+
 ])
 const maxSize = 200
 const store = useIndexStore()
@@ -173,11 +171,12 @@ function createNewLine () {
 }
 
 function confirmChanges() {
-  emits('confirmChanges')
-}
+  linksStore.confirmChanges()
+  store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' }) }
 
 function abortChanges () {
-  emits('abortChanges')
+  linksStore.setEditorTrip(null)
+  store.changeNotification({ text: $gettext('modification aborted'), autoClose: true })
 }
 
 // add dialogs here

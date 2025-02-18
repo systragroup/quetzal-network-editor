@@ -7,7 +7,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 
-const emits = defineEmits(['changeMode', 'confirmChanges', 'abortChanges', 'cloneButton'])
+const emits = defineEmits(['changeMode'])
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
@@ -120,8 +120,6 @@ function stopResize () {
             <template v-if="loadComponent.pt">
               <LinksSidePanel
                 v-show="tab==='pt'"
-                @confirm-changes="(e) => $emit('confirmChanges',e)"
-                @abort-changes="(e) => $emit('abortChanges',e)"
                 @clone-button="(e) => $emit('cloneButton',e)"
               />
             </template>
