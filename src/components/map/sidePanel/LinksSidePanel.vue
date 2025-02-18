@@ -9,6 +9,8 @@ import { useGettext } from 'vue3-gettext'
 import { useRouting } from '@src/components/utils/routing/routing.js'
 import { userLinksStore } from '@src/store/rlinks'
 import SidePanelBottom from './SidePanelBottom.vue'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
+
 const rlinksStore = userLinksStore()
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
@@ -184,9 +186,17 @@ function cloneButton (obj: ClonePayload) {
   emits('cloneButton', obj)
 }
 
-function deleteButton (trips: string[]) {
+// delete dialog
+const deleteDialog = ref()
+const deleteMessage = ref('')
+async function deleteButton (trips: string[], message: string) {
   // obj contain trip and message.
-  linksStore.deleteTrips(trips)
+  deleteMessage.value = message
+  const resp = await deleteDialog.value.openDialog()
+  if (resp) {
+    linksStore.deleteTrips(trips)
+  }
+  deleteMessage.value = ''
 }
 
 import { useHighlight } from '../useHighlight'
@@ -394,7 +404,7 @@ function setHighlight(trip: string | null) {
                       class="ma-1"
                       :disabled="editorTrip ? true: false"
                       v-bind="hover"
-                      @click.stop="deleteButton(value.tripId)"
+                      @click.stop="deleteButton(value.tripId, value.name)"
                     />
                   </template>
                   <span>{{ $gettext("Delete Group") }}</span>
@@ -494,7 +504,7 @@ function setHighlight(trip: string | null) {
                       icon="fas fa-trash"
                       :disabled="editorTrip ? true: false"
                       v-bind="props"
-                      @click="deleteButton([item])"
+                      @click="deleteButton([item], item)"
                     />
                   </template>
                   <span>{{ $gettext("Delete Line") }}</span>
@@ -572,6 +582,13 @@ function setHighlight(trip: string | null) {
       </v-btn>
     </SidePanelBottom>
   </section>
+  <PromiseDialog
+    ref="deleteDialog"
+    :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
+    body=""
+    :confirm-button="$gettext('Delete')"
+    confirm-color="primary"
+  />
 </template>
 <style lang="scss" scoped>
 
