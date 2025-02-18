@@ -1,6 +1,10 @@
 ## [6.2.x] (2025-xx-xx)
 ### Refactor
-* Links Store in TypeScript
+* Links, rLinks and OD Store in TypeScript
+* Move all actions done in Home.vue
+* New Editor Dialogs for links,rlinks and OD.
+* New PromiseDialog for deletion and Cloning.
+* SidePanels In TS, with more direct store mutation and no emits.
 
 ### Changes
 * remove changeBounds when click on a link
