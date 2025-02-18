@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { toRaw, ref, onMounted, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
@@ -6,6 +6,7 @@ import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import SidePanelBottom from './SidePanelBottom.vue'
 import { useForm } from '@src/composables/UseForm'
+import { ShowMethod } from '@src/types/typesStore'
 const { openDialog } = useForm()
 
 const store = useIndexStore()
@@ -15,8 +16,8 @@ const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
 const localSelectedTrip = ref(cloneDeep(selectedrGoup.value))
 
 watch(localSelectedTrip, (newVal, oldVal) => {
-  let changes = ''
-  let method = 'add'
+  let changes: string | string[] = ''
+  let method: ShowMethod = 'add'
   if (JSON.stringify(newVal) === JSON.stringify(filteredCat.value)) {
     changes = newVal
     method = 'showAll'
@@ -32,7 +33,7 @@ watch(localSelectedTrip, (newVal, oldVal) => {
     changes = newVal.filter(item => !oldVal.includes(item))
     method = 'add'
   }
-  if (changes !== '') {
+  if (typeof changes !== 'string') {
     rlinksStore.changeVisibleRoads({ category: vmodelSelectedFilter.value, data: changes, method })
   }
 })
@@ -68,7 +69,7 @@ onMounted(() => {
   }
 })
 
-function propertiesButton (group) {
+function propertiesButton (group: string) {
   // select the TripId and open dialog
   const features = rlinksStore.grouprLinks(vmodelSelectedFilter.value, group)
   const indexList = features.map(link => link.properties.index)
@@ -78,10 +79,6 @@ function propertiesButton (group) {
 function editVisible () {
   const indexList = rlinksStore.visiblerLinks.features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
-}
-
-function deleteButton (obj) {
-  rlinksStore.deleterGroup(obj)
 }
 
 function showAll () {
@@ -101,6 +98,12 @@ function confirmChanges() {
 }
 function abortChanges() {
   rlinksStore.cancelEdition()
+}
+
+// delete
+function deleteButton (obj: string) {
+  console.log(obj)
+  rlinksStore.deleterGroup(obj)
 }
 
 </script>
