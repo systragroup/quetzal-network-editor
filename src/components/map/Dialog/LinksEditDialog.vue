@@ -133,8 +133,7 @@ function quit() {
   showSchedule.value = false
   if (!lingering.value) {
     linksStore.confirmChanges()
-    store.changeNotification(
-      { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+    store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' })
   }
 }
 
