@@ -140,7 +140,7 @@ export interface RoadConnectedLinks {
   visibleLinksList: LineStringFeatures[]
 }
 
-type ShowMethod = 'showAll' | 'hideAll' | 'add' | 'remove'
+export type ShowMethod = 'showAll' | 'hideAll' | 'add' | 'remove'
 
 export interface ChangeVisibleLinks {
   category: string

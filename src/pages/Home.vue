@@ -31,34 +31,6 @@ const cloneDialog = ref(false)
 const message = ref('')
 const cloneObj = ref({ trip: null, name: null, reverse: true, nodes: false })
 const errorMessage = ref(null)
-const lingering = ref(true)
-
-function applyAction () {
-  // click yes on dialog
-  if (!lingering.value) {
-    confirmChanges()
-    lingering.value = true
-  }
-}
-function cancelAction () {
-  if (!lingering.value) {
-    abortChanges()
-    lingering.value = true
-  }
-}
-function confirmChanges () {
-  // confirm changes on sidePanel, this overwrite Links in store.
-  linksStore.confirmChanges()
-  // notification
-  store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' })
-}
-function abortChanges () {
-  // unselect a trip for edition. nothing to commit on link here.
-  // put editTrip and action to null.
-  linksStore.setEditorTrip(null)
-  // notification
-  store.changeNotification({ text: $gettext('modification aborted'), autoClose: true })
-}
 
 function duplicate () {
   if (linksStore.tripId.includes(cloneObj.value.name)) {
