@@ -7,11 +7,31 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 
-const emits = defineEmits(['changeMode'])
+const tab = defineModel({ type: String, default: 'pt' })
+
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 
+const tcEditionMode = computed(() => linksStore.editorTrip !== null)
+const disableTabs = computed(() => tcEditionMode.value || rlinksStore.editionMode)
+
+onMounted(() => {
+  // default Tab when loading page.
+  if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
+    tab.value = 'road'
+  } else {
+    tab.value = 'pt'
+  }
+})
+
+// Active a v-if once. So the component is loaded when click, and stay loaded for next click.
+const loadComponent = ref({ pt: false, road: false, od: false })
+watch(tab, (val) => {
+  loadComponent.value[val] = true
+}, { immediate: true })
+
+// left panel show
 const showLeftPanel = computed(() => { return store.showLeftPanel })
 const showLeftPanelContent = ref(true)
 watch(showLeftPanel, (val) => {
@@ -25,27 +45,7 @@ watch(showLeftPanel, (val) => {
   }
 })
 
-const tcEditionMode = computed(() => linksStore.editorTrip !== null)
-const disableTabs = computed(() => tcEditionMode.value || rlinksStore.editionMode)
-
-const tab = ref()
-onMounted(() => {
-  rlinksStore.editionMode = false
-  // default Tab when loading page.
-  if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
-    tab.value = 'road'
-  } else {
-    tab.value = 'pt'
-  }
-})
-
-// Active a v-if once. So the component is loaded when click, and stay loaded for next click.
-const loadComponent = ref({ pt: false, road: false, od: false })
-watch(tab, (val) => {
-  emits('change-mode', val)
-  loadComponent.value[val] = true
-})
-
+// resize
 const leftPanelDiv = ref(null)
 const isResizing = ref(false)
 const windowOffest = ref(0)
@@ -118,21 +118,14 @@ function stopResize () {
               </v-tab>
             </v-tabs>
             <template v-if="loadComponent.pt">
-              <LinksSidePanel
-                v-show="tab==='pt'"
-                @clone-button="(e) => $emit('cloneButton',e)"
-              />
+              <LinksSidePanel v-show="tab==='pt'" />
             </template>
 
             <template v-if="loadComponent.road">
-              <RoadSidePanel
-                v-show="tab==='road'"
-              />
+              <RoadSidePanel v-show="tab==='road'" />
             </template>
             <template v-if="loadComponent.od">
-              <ODSidePanel
-                v-show="tab==='od'"
-              />
+              <ODSidePanel v-show="tab==='od'" />
             </template>
           </div>
         </div>
