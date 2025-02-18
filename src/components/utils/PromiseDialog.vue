@@ -6,10 +6,6 @@ const props = defineProps({
     type: String,
     default: 'Title',
   },
-  body: {
-    type: String,
-    default: 'Body',
-  },
   confirmColor: {
     type: String,
     default: 'success',
@@ -46,6 +42,7 @@ defineExpose({ openDialog })
 </script>
 <template>
   <v-dialog
+    v-if="showDialog"
     v-model="showDialog"
     persistent
     max-width="350"
@@ -59,10 +56,10 @@ defineExpose({ openDialog })
         </span>
       </v-card-text>
       <v-card-text class="text-h6">
-        {{ props.body }}
+        <slot />
       </v-card-text>
       <v-card-actions>
-        <slot />
+        <slot name="action" />
         <v-spacer />
         <v-btn
           @click="resolveDialog(false)"

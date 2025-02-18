@@ -16,14 +16,6 @@ const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
 const { $gettext } = useGettext()
 
-interface ClonePayload {
-  trip: string | string[]
-  message: string
-}
-
-const emits = defineEmits(['cloneButton',
-
-])
 const maxSize = 200
 const store = useIndexStore()
 const linksStore = useLinksStore()
@@ -182,8 +174,26 @@ function abortChanges () {
 }
 
 // add dialogs here
-function cloneButton (obj: ClonePayload) {
-  emits('cloneButton', obj)
+const cloneDialog = ref()
+const cloneOptions = ref({ name: '', reverse: true, nodes: false, message: '' })
+async function cloneButton (tripId: string) {
+  cloneOptions.value.message = tripId
+  cloneOptions.value.name = tripId + ' copy'
+  const resp = await cloneDialog.value.openDialog()
+  if (resp) {
+    if (linksStore.tripId.includes(cloneOptions.value.name)) {
+      store.changeNotification({ text: $gettext('Cannot duplicate: trip_id already exist'),
+        autoClose: true, color: 'error' })
+    } else {
+      linksStore.cloneTrip({
+        tripId: tripId,
+        name: cloneOptions.value.name,
+        cloneNodes: cloneOptions.value.nodes,
+        reverse: cloneOptions.value.reverse,
+      })
+      store.changeNotification({ text: $gettext('Trip Duplicated'),
+        autoClose: true, color: 'success' }) }
+  }
 }
 
 // delete dialog
@@ -195,6 +205,8 @@ async function deleteButton (trips: string[], message: string) {
   const resp = await deleteDialog.value.openDialog()
   if (resp) { linksStore.deleteTrips(trips) }
 }
+
+// Highlight
 
 import { useHighlight } from '../useHighlight'
 import { LinksAction } from '@src/types/typesStore'
@@ -482,7 +494,7 @@ function setHighlight(trip: string | null) {
                       class="ma-1"
                       :disabled="editorTrip ? true: false"
                       v-bind="props"
-                      @click="cloneButton({trip:item,message:item})"
+                      @click="cloneButton(item)"
                     />
                   </template>
                   <span>{{ $gettext("Duplicate and reverse") }}</span>
@@ -581,10 +593,28 @@ function setHighlight(trip: string | null) {
     <PromiseDialog
       ref="deleteDialog"
       :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
-      body=""
       :confirm-button="$gettext('Delete')"
       confirm-color="primary"
     />
+    <PromiseDialog
+      ref="cloneDialog"
+      :title=" $gettext('Duplicate %{sc}?', { sc: cloneOptions.message }) "
+      :confirm-button="$gettext('duplicate')"
+      confirm-color="primary"
+    >
+      <v-text-field
+        v-model="cloneOptions.name"
+        :label="$gettext('New name')"
+      />
+      <v-checkbox-btn
+        v-model="cloneOptions.reverse"
+        :label="$gettext('reverse')"
+      />
+      <v-checkbox-btn
+        v-model="cloneOptions.nodes"
+        :label="$gettext('duplicate nodes')"
+      />
+    </PromiseDialog>
   </section>
 </template>
 <style lang="scss" scoped>

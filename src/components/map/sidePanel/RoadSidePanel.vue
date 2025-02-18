@@ -329,7 +329,6 @@ async function deleteButton (group: string, message: string) {
     <PromiseDialog
       ref="deleteDialog"
       :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
-      body=""
       :confirm-button="$gettext('Delete')"
       confirm-color="primary"
     />
