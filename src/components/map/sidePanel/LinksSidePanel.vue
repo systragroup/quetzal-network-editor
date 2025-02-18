@@ -193,10 +193,7 @@ async function deleteButton (trips: string[], message: string) {
   // obj contain trip and message.
   deleteMessage.value = message
   const resp = await deleteDialog.value.openDialog()
-  if (resp) {
-    linksStore.deleteTrips(trips)
-  }
-  deleteMessage.value = ''
+  if (resp) { linksStore.deleteTrips(trips) }
 }
 
 import { useHighlight } from '../useHighlight'
@@ -581,14 +578,14 @@ function setHighlight(trip: string | null) {
         {{ !isRouted? 'all': 'none' }}
       </v-btn>
     </SidePanelBottom>
+    <PromiseDialog
+      ref="deleteDialog"
+      :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
+      body=""
+      :confirm-button="$gettext('Delete')"
+      confirm-color="primary"
+    />
   </section>
-  <PromiseDialog
-    ref="deleteDialog"
-    :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
-    body=""
-    :confirm-button="$gettext('Delete')"
-    confirm-color="primary"
-  />
 </template>
 <style lang="scss" scoped>
 
