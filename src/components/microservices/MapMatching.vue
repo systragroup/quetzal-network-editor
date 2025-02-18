@@ -113,7 +113,7 @@ async function start () {
 
 function getApproxTimer () {
   // same as in the python function. to decide the number of machine.
-  const num_trips = linksStore.tripId.length
+  const num_trips = linksStore.tripList.length
   let tot_num_iteration = num_trips / 6
   function get_num_machine(num_it, target_it = 20, choices = [12, 8, 4, 2, 1]) {
     // return the number of machine (in choices) required to have target_it per machine

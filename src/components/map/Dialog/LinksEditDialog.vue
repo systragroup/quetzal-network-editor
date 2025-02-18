@@ -32,7 +32,7 @@ const { showDialog, action, selectedArr, lingering } = useForm()
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const nodeAttributes = computed(() => linksStore.nodeAttributes)
-const tripList = computed(() => linksStore.tripId)
+const tripList = computed(() => linksStore.tripList)
 const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features[0]))
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 
