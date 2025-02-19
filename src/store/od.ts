@@ -128,7 +128,6 @@ export const useODStore = defineStore('od', {
       this.layerAttributes.forEach((key) => linkProperties[key] = null)
       linkProperties.index = payload.index
       linkProperties.name = payload.index
-      // linkProperties.route_color = this.rlinksDefaultColor
       const linkFeature: LineStringFeatures = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       this.layer.features.push(linkFeature)
 

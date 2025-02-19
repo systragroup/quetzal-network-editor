@@ -37,7 +37,6 @@ export const useLinksStore = defineStore('links', {
     newLink: baseLineString(),
     newNode: basePoint(),
     connectedLinks: { a: [], b: [], anchor: [] },
-    linksDefaultColor: '2196F3',
     lineAttributes: [],
     nodeAttributes: [],
     linksAttributesChoices: {},
@@ -46,21 +45,20 @@ export const useLinksStore = defineStore('links', {
       { name: 'a', type: 'String' },
       { name: 'b', type: 'String' },
       { name: 'trip_id', type: 'String' },
-      { name: 'route_id', type: 'String' },
-      { name: 'agency_id', type: 'String' },
-      { name: 'route_short_name', type: 'String' },
-      { name: 'route_type', type: 'String' },
-      { name: 'route_color', type: 'String' },
+      { name: 'route_id', type: 'String', value: 'Q1' },
+      { name: 'agency_id', type: 'String', value: 'QUENEDI' },
+      { name: 'route_short_name', type: 'String', value: 'Q1' },
+      { name: 'route_type', type: 'String', value: 'quenedi' },
+      { name: 'route_color', type: 'String', value: '2196F3' },
       { name: 'length', type: 'Number' }, // float
       { name: 'time', type: 'Number' }, // float
-      { name: 'speed', type: 'Number' }, // float
-      { name: 'headway', type: 'Number' }, // float
-      { name: 'route_width', type: 'Number' }, // float
-      { name: 'pickup_type', type: 'Number' }, // float
-      { name: 'drop_off_type', type: 'Number' }, // int
+      { name: 'speed', type: 'Number', value: 20 }, // float
+      { name: 'headway', type: 'Number', value: 600 }, // float
+      { name: 'route_width', type: 'Number', value: 3 }, // float
+      { name: 'pickup_type', type: 'Number', value: 0 }, // float
+      { name: 'drop_off_type', type: 'Number', value: 0 }, // int
       { name: 'link_sequence', type: 'Number' }, // int
-      { name: 'direction_id', type: 'Number' }, // int
-      // { name: 'anchors', type: 'Array' }, // list
+      { name: 'direction_id', type: 'Number', value: 0 }, // int
     ],
   }),
 
@@ -373,27 +371,14 @@ export const useLinksStore = defineStore('links', {
 
     getDefaultLink () {
       // empty trip, when its a newLine. those are the default Values.
-      const defaultValue: any = {
-        agency_id: 'QUENEDI',
-        route_id: 'Q1',
-        route_short_name: 'Q1',
-        route_type: 'quenedi',
-        route_color: this.linksDefaultColor,
-        route_width: 3,
-        headway: 600,
-        pickup_type: 0,
-        drop_off_type: 0,
-        direction_id: 0,
-        speed: 20,
-      }
-      const props = this.lineAttributes.reduce((dict: any, key) => {
-        dict[key] = defaultValue[key]
+      const properties = this.lineAttributes.reduce((dict: any, key) => {
+        dict[key] = this.defaultAttributes.filter(el => el.name === key)[0].value
         return dict
       }, {})
 
-      props.trip_id = this.editorTrip
+      properties.trip_id = this.editorTrip
       const linkGeometry: LineStringGeometry = { coordinates: [[0, 0], [0, 0]], type: 'LineString' }
-      this.defaultLink.features[0] = { properties: props, geometry: linkGeometry, type: 'Feature' }
+      this.defaultLink.features[0] = { properties: properties, geometry: linkGeometry, type: 'Feature' }
     },
 
     getTripId () {
