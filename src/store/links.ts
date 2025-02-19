@@ -862,6 +862,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     confirmChanges () { // apply change to Links
+      this.fixRoutingList()
       this.applyPropertiesTypes(this.editorLinks)
 
       // find index of soon to be deleted links
@@ -923,6 +924,21 @@ export const useLinksStore = defineStore('links', {
       this.getTripId()
       this.getLinksProperties()
       this.setEditorTrip(null)
+    },
+
+    fixRoutingList() {
+      let lastVisited = ''
+      this.editorLinks.features.forEach(link => {
+        let ls: undefined | string[] = link.properties.road_link_list
+        if (ls && ls.length > 0) {
+          const firstRoad = ls[0]
+          const lastRoad = ls.slice(-1)[0]
+          if (firstRoad === lastVisited) {
+            link.properties.road_link_list = ls.slice(1)
+          }
+          lastVisited = lastRoad
+        }
+      })
     },
 
     deleteTrips (tripList: string[]) {
