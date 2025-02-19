@@ -69,6 +69,7 @@ export interface SelectedLink {
 export interface SplitLinkPayload extends SelectedLink {
   offset: number
   sliceIndex: number
+  newNode: PointGeoJson
 }
 
 export interface AddNodeInlinePayload extends SelectedLink {
@@ -121,8 +122,6 @@ export interface LinksStore {
   tripList: string[]
   scheduledTrips: Set<string>
   selectedTrips: string[]
-  newLink: LineStringGeoJson
-  newNode: PointGeoJson
   connectedLinks: ConnectedLinks
   lineAttributes: string[]
   nodeAttributes: string[]
