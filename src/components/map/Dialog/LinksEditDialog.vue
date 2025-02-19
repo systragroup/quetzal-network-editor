@@ -77,9 +77,12 @@ function createForm() {
   let features = []
   switch (action.value) {
     case 'Edit Line Info':
-      features = linksStore.editorLinks.features.length === 0
-        ? cloneDeep(linksStore.defaultLink.features)
-        : linksStore.editorLinks.features
+      if (linksStore.editorLinks.features.length === 0) {
+        linksStore.getDefaultLink()
+        features = cloneDeep(linksStore.newLink.features)
+      } else {
+        features = linksStore.editorLinks.features
+      }
       disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
       if (isSchedule.value) { disabled = [...disabled, 'speed'] }
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
