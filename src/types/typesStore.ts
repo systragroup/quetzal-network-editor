@@ -118,7 +118,6 @@ export interface LinksStore {
   editorNodes: PointGeoJson
   editorLinks: LineStringGeoJson
   editorTrip: string | null
-  defaultLink: LineStringGeoJson
   tripList: string[]
   scheduledTrips: Set<string>
   selectedTrips: string[]

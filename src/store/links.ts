@@ -30,10 +30,9 @@ export const useLinksStore = defineStore('links', {
     editorNodes: basePoint(),
     editorLinks: baseLineString(),
     editorTrip: null,
-    defaultLink: baseLineString(),
     tripList: [],
-    scheduledTrips: new Set([]),
     selectedTrips: [],
+    scheduledTrips: new Set([]),
     newLink: baseLineString(),
     newNode: basePoint(),
     connectedLinks: { a: [], b: [], anchor: [] },
@@ -50,15 +49,15 @@ export const useLinksStore = defineStore('links', {
       { name: 'route_short_name', type: 'String', value: 'Q1' },
       { name: 'route_type', type: 'String', value: 'quenedi' },
       { name: 'route_color', type: 'String', value: '2196F3' },
-      { name: 'length', type: 'Number' }, // float
-      { name: 'time', type: 'Number' }, // float
-      { name: 'speed', type: 'Number', value: 20 }, // float
-      { name: 'headway', type: 'Number', value: 600 }, // float
-      { name: 'route_width', type: 'Number', value: 3 }, // float
-      { name: 'pickup_type', type: 'Number', value: 0 }, // float
-      { name: 'drop_off_type', type: 'Number', value: 0 }, // int
-      { name: 'link_sequence', type: 'Number' }, // int
-      { name: 'direction_id', type: 'Number', value: 0 }, // int
+      { name: 'length', type: 'Number' },
+      { name: 'time', type: 'Number' },
+      { name: 'speed', type: 'Number', value: 20 },
+      { name: 'headway', type: 'Number', value: 600 },
+      { name: 'route_width', type: 'Number', value: 3 },
+      { name: 'pickup_type', type: 'Number', value: 0 },
+      { name: 'drop_off_type', type: 'Number', value: 0 },
+      { name: 'link_sequence', type: 'Number' },
+      { name: 'direction_id', type: 'Number', value: 0 },
     ],
   }),
 
@@ -380,7 +379,8 @@ export const useLinksStore = defineStore('links', {
 
       properties.trip_id = this.editorTrip
       const linkGeometry: LineStringGeometry = { coordinates: [[0, 0], [0, 0]], type: 'LineString' }
-      this.defaultLink.features[0] = { properties: properties, geometry: linkGeometry, type: 'Feature' }
+      this.newLink = baseLineString()
+      this.newLink.features = [{ properties: properties, geometry: linkGeometry, type: 'Feature' }]
     },
 
     getTripId () {
@@ -404,7 +404,8 @@ export const useLinksStore = defineStore('links', {
       // if there is no link to copy, create one. (new Line)
       if (tempLink.length === 0) {
         // copy Line properties.
-        const linkProperties = cloneDeep(this.defaultLink.features[0].properties)
+        this.getDefaultLink()
+        const linkProperties = cloneDeep(this.newLink.features[0].properties)
         // set default links values
         const defaultValue: any = {
           index: 'link_' + short.generate(),
@@ -823,9 +824,6 @@ export const useLinksStore = defineStore('links', {
       // add new line info to each links of each trips.
       this.editorLinks.features.forEach(
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
-
-      // update default Link. this is necessary when we draw a new Trip. default info must be store here
-      props.forEach((key) => this.defaultLink.features[0].properties[key] = payload[key].value)
 
       // apply speed (get time on each link for the new speed.)
       if (props.includes('speed')) {
