@@ -106,6 +106,7 @@ export type AttributeTypes = 'String' | 'Number'
 export interface Attributes {
   name: string
   type: AttributeTypes
+  value?: string | number
 }
 
 export type AttributesChoice = Record<string, (string | number)[]>
@@ -124,7 +125,6 @@ export interface LinksStore {
   newLink: LineStringGeoJson
   newNode: PointGeoJson
   connectedLinks: ConnectedLinks
-  linksDefaultColor: string
   lineAttributes: string[]
   nodeAttributes: string[]
   linksAttributesChoices: AttributesChoice

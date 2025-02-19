@@ -54,11 +54,7 @@ export const useIndexStore = defineStore('store', {
       this.alert = payload
     },
     changeDarkMode (payload) {
-      const links = useLinksStore()
-      const rlinks = userLinksStore()
       this.darkMode = payload
-      rlinks.rlinksDefaultColor = this.darkMode ? '2196F3' : '7EBAAC' //  its the primary color.
-      links.linksDefaultColor = this.darkMode ? '2196F3' : 'B5E0D6' //  its the primary color.
       const mapStore = useMapStore()
       const style = this.darkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11'
       mapStore.changeMapStyle(style)
