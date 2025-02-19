@@ -14,7 +14,7 @@ import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
-  CloneTrip, EditGroupPayload, EditLinkPayload, EditNewLinkPayload, LinksAction,
+  CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
   FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures,
@@ -56,7 +56,7 @@ export const useLinksStore = defineStore('links', {
       { name: 'route_width', type: 'Number', value: 3 },
       { name: 'pickup_type', type: 'Number', value: 0 },
       { name: 'drop_off_type', type: 'Number', value: 0 },
-      { name: 'link_sequence', type: 'Number' },
+      { name: 'link_sequence', type: 'Number', value: 0 },
       { name: 'direction_id', type: 'Number', value: 0 },
     ],
   }),
@@ -370,17 +370,18 @@ export const useLinksStore = defineStore('links', {
       this.editorNodes.features = cloneDeep(features)
     },
 
-    getDefaultLink () {
+    getDefaultLink (): LineStringGeoJson {
       // empty trip, when its a newLine. those are the default Values.
-      const properties = this.lineAttributes.reduce((dict: any, key) => {
-        dict[key] = this.defaultAttributes.filter(el => el.name === key)[0].value
+      const properties = this.lineAttributes.reduce((dict: Record<string, any>, key: string) => {
+        dict[key] = this.defaultAttributes.filter(el => el.name === key)[0]?.value
         return dict
       }, {})
 
       properties.trip_id = this.editorTrip
       const linkGeometry: LineStringGeometry = { coordinates: [[0, 0], [0, 0]], type: 'LineString' }
-      this.newLink = baseLineString()
-      this.newLink.features = [{ properties: properties, geometry: linkGeometry, type: 'Feature' }]
+      const link = baseLineString()
+      link.features = [{ properties: properties, geometry: linkGeometry, type: 'Feature' }]
+      return link
     },
 
     getTripId () {
@@ -389,56 +390,35 @@ export const useLinksStore = defineStore('links', {
         Array.isArray(l.properties.arrivals)).map(item => item.properties.trip_id))
     },
 
-    setNewLink (payload: NewLinkPayload) {
+    createNewLink (payload: NewLinkPayload) {
       // copy editor links geoJSON, only take first (or last) link.
       // delete some properties like id and index.
-      const uncopiedPropeties = {
-        index: null,
-        length: null,
-        time: null,
-        pickup_type: 0,
-        drop_off_type: 0,
-      }
       // create link
       let tempLink = cloneDeep(this.editorLinks.features)
       // if there is no link to copy, create one. (new Line)
       if (tempLink.length === 0) {
-        // copy Line properties.
-        this.getDefaultLink()
-        const linkProperties = cloneDeep(this.newLink.features[0].properties)
-        // set default links values
-        const defaultValue: any = {
-          index: 'link_' + short.generate(),
-          a: this.editorNodes.features[0].properties.index,
-          b: this.editorNodes.features[0].properties.index,
-          length: null,
-          time: null,
-          pickup_type: 0,
-          drop_off_type: 0,
-          link_sequence: 0,
-        }
-        Object.keys(defaultValue).forEach((key) => {
-          linkProperties[key] = defaultValue[key]
-        })
+        const defaultLink = this.getDefaultLink()
+        const linkProperties = cloneDeep(defaultLink.features[0].properties)
+        linkProperties.a = this.editorNodes.features[0].properties.index
+        linkProperties.b = this.editorNodes.features[0].properties.index
+
         const geom = cloneDeep(this.editorNodes.features[0].geometry.coordinates)
         const linkGeometry: LineStringGeometry = {
           coordinates: [geom, geom],
           type: 'LineString',
         }
-        const linkFeature: LineStringFeatures = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
-        tempLink = [linkFeature]
+
+        tempLink = [{ geometry: linkGeometry, properties: linkProperties, type: 'Feature' }]
       }
+      // Take last link or first link
 
       if (payload.action === 'Extend Line Upward') {
-        // Take last link and copy properties
-        // eslint-disable-next-line no-var
-        var features = tempLink[tempLink.length - 1]
-        Object.assign(features.properties, uncopiedPropeties)
-        // sequence +1
+        const features = tempLink[tempLink.length - 1]
         features.properties.link_sequence = features.properties.link_sequence + 1
         // replace node a by b and delete node a
         features.properties.a = features.properties.b
-        features.geometry.coordinates[0] = cloneDeep(features.geometry.coordinates.slice(-1)[0])
+        const firstPoint = cloneDeep(features.geometry.coordinates.slice(-1)[0])
+        features.geometry.coordinates = [firstPoint, payload.geom]
         // new node index (hash)
         const nodeCopyId = features.properties.a
         this.setNewNode({ nodeCopyId, coordinates: payload.geom })
@@ -447,15 +427,12 @@ export const useLinksStore = defineStore('links', {
         features.properties.index = 'link_' + short.generate()
         this.newLink.features[0] = features
       } else if (payload.action === 'Extend Line Downward') {
-        // Take first link and copy properties
-        // eslint-disable-next-line no-var, no-redeclare
-        var features = tempLink[0]
-        Object.assign(features.properties, uncopiedPropeties)
-        // sequence + 1
+        const features = tempLink[0]
         features.properties.link_sequence = features.properties.link_sequence - 1
         //  replace node b by a and delete node b
         features.properties.b = features.properties.a
-        features.geometry.coordinates[1] = cloneDeep(features.geometry.coordinates[0])
+        const lastPoint = cloneDeep(features.geometry.coordinates[0])
+        features.geometry.coordinates = [payload.geom, lastPoint]
         // new node index (hash)
         const nodeCopyId = features.properties.b
         this.setNewNode({ nodeCopyId, coordinates: payload.geom })
@@ -501,33 +478,18 @@ export const useLinksStore = defineStore('links', {
     },
 
     setNewNode (payload: NewNodePayload) {
-      const uncopiedPropeties: Record<string, any> = {}
-      this.nodeAttributes.forEach(key => {
-        uncopiedPropeties[key] = null
-      })
       // Copy specified node
       const tempNode = cloneDeep(this.editorNodes)
       const features = tempNode.features.filter(node => node.properties.index === payload.nodeCopyId)[0]
-      Object.assign(features.properties, uncopiedPropeties)
       features.properties.index = 'node_' + short.generate()
       features.geometry.coordinates = payload.coordinates
       this.newNode.features[0] = features
     },
 
-    editNewLink (payload: EditNewLinkPayload) {
-      this.newNode.features[0].geometry.coordinates = payload.geom
-      if (payload.action === 'Extend Line Upward') {
-        this.newLink.features[0].geometry.coordinates = [this.newLink.features[0].geometry.coordinates[0], payload.geom]
-      } else {
-        this.newLink.features[0].geometry.coordinates = [payload.geom, this.newLink.features[0].geometry.coordinates[1]]
-      }
-    },
-
     applyNewLink (payload: NewLinkPayload) {
       // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
-      this.setNewLink(payload)
-      this.editNewLink({ geom: payload.geom, action: payload.action })
+      this.createNewLink(payload)
       this.calcLengthTime(this.newLink.features[0])
       this.calcSchedule(this.newLink, payload.action)
 

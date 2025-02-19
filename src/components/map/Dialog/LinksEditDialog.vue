@@ -78,8 +78,8 @@ function createForm() {
   switch (action.value) {
     case 'Edit Line Info':
       if (linksStore.editorLinks.features.length === 0) {
-        linksStore.getDefaultLink()
-        features = cloneDeep(linksStore.newLink.features)
+        const newLink = linksStore.getDefaultLink()
+        features = cloneDeep(newLink.features)
       } else {
         features = linksStore.editorLinks.features
       }
