@@ -149,7 +149,7 @@ defineExpose({
 </template>
 <style lang="scss" scoped>
 .form{
-  margin: 1rem;
+  margin: 0.2rem;
 }
 .box{
   max-height:100%;

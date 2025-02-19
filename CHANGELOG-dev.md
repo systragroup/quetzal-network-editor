@@ -1,13 +1,19 @@
-## [6.2.x] (2025-xx-xx)
+## [6.2.d] (2025-02-19)
 ### Refactor
 * Links, rLinks and OD Store in TypeScript
 * Move all actions done in Home.vue
 * New Editor Dialogs for links,rlinks and OD.
 * New PromiseDialog for deletion and Cloning.
 * SidePanels In TS, with more direct store mutation and no emits.
+* Cleaning links store. remove newLink, newNode, defautLink
 
 ### Changes
 * remove changeBounds when click on a link
+* remove default link color changes on darkMode
+* Routing list: remove duplicated in road_link_list on apply.
+
+### Bug Fixes
+* sticky node was doing weird geometry sometime on the links.
 
 ## [6.2.c] (2025-01-15)
 ### Changes
