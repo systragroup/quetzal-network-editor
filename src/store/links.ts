@@ -928,6 +928,21 @@ export const useLinksStore = defineStore('links', {
       this.setEditorTrip(null)
     },
 
+    fixRoutingList() {
+      let lastVisited = ''
+      this.editorLinks.features.forEach(link => {
+        let ls: undefined | string[] = link.properties.road_link_list
+        if (ls && ls.length > 0) {
+          const firstRoad = ls[0]
+          const lastRoad = ls.slice(-1)[0]
+          if (firstRoad === lastVisited) {
+            link.properties.road_link_list = ls.slice(1)
+          }
+          lastVisited = lastRoad
+        }
+      })
+    },
+
     deleteTrips (tripList: string[]) {
       // payload = a single trip_id or a list or trips_id
       // if its a list : delete all of them. else: delete single trip
