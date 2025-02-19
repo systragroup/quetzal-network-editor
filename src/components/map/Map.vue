@@ -245,17 +245,19 @@ function addPointPT(event) {
     ? 'Extend Line Upward'
     : 'Extend Line Downward'
   const pointGeom = Object.values(event.mapboxEvent.lngLat)
-
   if (drawMode.value && !anchorMode.value && !hoverId.value) {
     linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
   } else if (connectedDrawLink.value && hoverLayer.value === 'stickyNodes' && hoverId.value) {
     // reuse a existing node. create the link and simulate a move event with useStickyNode()
     linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
-    const newNode = linksStore.newNode.features[0].properties.index
+    const newNode = linksStore.editorNodes.features.slice(-1)[0].properties.index
     useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
   }
   if (store.routingMode) {
-    routeLink(linksStore.newLink.features[0])
+    const newLinkFeature = action === 'Extend Line Upward'
+      ? linksStore.editorLinks.features.slice(-1)[0]
+      : linksStore.editorLinks.features[0]
+    routeLink(newLinkFeature)
   }
 }
 
