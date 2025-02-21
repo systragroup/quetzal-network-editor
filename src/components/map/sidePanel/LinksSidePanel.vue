@@ -208,7 +208,7 @@ async function deleteButton (trips: string[], message: string) {
 
 // Highlight
 
-import { useHighlight } from '../useHighlight'
+import { useHighlight } from '../../../composables/useHighlight'
 import { LinksAction } from '@src/types/typesStore'
 const { setHighlightTrip } = useHighlight()
 function setHighlight(trip: string | null) {

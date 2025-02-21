@@ -12,6 +12,7 @@ import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, 
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
+import { linksDefaultProperties } from '@src/constants/properties'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
@@ -26,7 +27,6 @@ export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
     links: baseLineString(),
     nodes: basePoint(),
-    visibleNodes: basePoint(),
     editorNodes: basePoint(),
     editorLinks: baseLineString(),
     editorTrip: null,
@@ -37,34 +37,12 @@ export const useLinksStore = defineStore('links', {
     lineAttributes: [],
     nodeAttributes: [],
     linksAttributesChoices: {},
-    defaultAttributes: [
-      { name: 'index', type: 'String' },
-      { name: 'a', type: 'String' },
-      { name: 'b', type: 'String' },
-      { name: 'trip_id', type: 'String' },
-      { name: 'route_id', type: 'String', value: 'Q1' },
-      { name: 'agency_id', type: 'String', value: 'QUENEDI' },
-      { name: 'route_short_name', type: 'String', value: 'Q1' },
-      { name: 'route_type', type: 'String', value: 'quenedi' },
-      { name: 'route_color', type: 'String', value: '2196F3' },
-      { name: 'length', type: 'Number' },
-      { name: 'time', type: 'Number' },
-      { name: 'speed', type: 'Number', value: 20 },
-      { name: 'headway', type: 'Number', value: 600 },
-      { name: 'route_width', type: 'Number', value: 3 },
-      { name: 'pickup_type', type: 'Number', value: 0 },
-      { name: 'drop_off_type', type: 'Number', value: 0 },
-      { name: 'link_sequence', type: 'Number', value: 0 },
-      { name: 'direction_id', type: 'Number', value: 0 },
-    ],
+    defaultAttributes: linksDefaultProperties,
+    visibleNodes: basePoint(),
   }),
 
   actions: {
-    initLinks () {
-      this.linksAttributesChoices = {}
-      this.lineAttributes = []
-      this.nodeAttributes = []
-    },
+
     loadLinks (payload: LineStringGeoJson) {
       this.links = cloneDeep(payload)
       this.editorLinks = baseLineString()
@@ -95,14 +73,7 @@ export const useLinksStore = defineStore('links', {
         this.getNodesProperties()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
-    unloadFiles () {
-      // when we reload files (some were already loaded.)
-      this.links.features = []
-      this.nodes.features = []
-      this.editorTrip = null
-      this.tripList = []
-      this.selectedTrips = []
-    },
+
     loadPTFiles (payload: FilesPayload[]) {
       // payload = [{path,content}, ...]
       // get links. check that index are not duplicated, serialize them and then append to project

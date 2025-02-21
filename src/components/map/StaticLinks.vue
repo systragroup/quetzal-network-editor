@@ -160,7 +160,7 @@ function editLineProperties (selectedTrip) {
   openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false, type: 'pt' })
 }
 
-import { useHighlight } from './useHighlight'
+import { useHighlight } from '../../composables/useHighlight'
 const { highlightTrip, setHighlightTrip } = useHighlight()
 
 function contextMenuClick(trip) {

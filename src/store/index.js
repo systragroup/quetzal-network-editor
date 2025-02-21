@@ -208,13 +208,6 @@ export const useIndexStore = defineStore('store', {
       this.visibleRasters = payload
     },
 
-    initLinks () {
-      const links = useLinksStore()
-      links.initLinks()
-      links.loadLinks(geojson)
-      links.loadNodes(geojson)
-    },
-
     initrLinks () {
       const rlinks = userLinksStore()
       rlinks.initrLinks()
@@ -228,7 +221,8 @@ export const useIndexStore = defineStore('store', {
     },
 
     initNetworks () {
-      this.initLinks()
+      const links = useLinksStore()
+      links.$reset()
       this.initrLinks()
       this.initOD()
       this.visibleRasters = []
