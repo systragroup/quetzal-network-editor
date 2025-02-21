@@ -40,11 +40,10 @@ export const userLinksStore = defineStore('rlinks', {
     selectedrFilter: '',
     selectedrGroup: [],
     filteredrCategory: [],
-    linksDefaultAttributes: cloneDeep(rlinksDefaultProperties),
-    // rlineAttributes: [],
+    linksAttributes: cloneDeep(rlinksDefaultProperties),
+    reversedAttributes: [],
 
     rnodeAttributes: [],
-
     connectedLinks: { a: [], b: [], visibleLinksList: [] },
     defaultHighway: 'quenedi',
     roadSpeed: 20,
@@ -53,7 +52,7 @@ export const userLinksStore = defineStore('rlinks', {
     // those are the list of attributes we do not want to duplicated with _r.
     rcstAttributes: defaultrCstAttributes,
     rundeletable: defaultrUndeletable,
-    reversedAttributes: [],
+
     updateLinks: [],
     updateNodes: [],
 
@@ -155,7 +154,7 @@ export const userLinksStore = defineStore('rlinks', {
       })
       header = new Set([...header].filter(key => !key.endsWith('_r')))
       const newAttrs = getDifference(header, this.rlineAttributes)
-      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
+      newAttrs.forEach(attr => this.linksAttributes.push({ name: attr, type: 'String' }))
 
       const selectedFilter = header.has('highway') ? 'highway' : this.rlineAttributes[0]
       this.changeSelectedrFilter(selectedFilter)
@@ -191,7 +190,7 @@ export const userLinksStore = defineStore('rlinks', {
       // when a new line properties is added (in dataframe page)
       this.rlinks.features.map(link => link.properties[payload.name] = null)
       this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
-      this.linksDefaultAttributes.push({ name: payload.name, type: 'String' })
+      this.linksAttributes.push({ name: payload.name, type: 'String' })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
       if (!this.rcstAttributes.includes(payload.name)) {
         this.reversedAttributes.push(payload.name + '_r')
@@ -210,7 +209,7 @@ export const userLinksStore = defineStore('rlinks', {
       this.visiblerLinks.features.filter(link => delete link.properties[payload.name])
       this.visiblerLinks.features.filter(link => delete link.properties[payload.name + '_r'])
 
-      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
+      this.linksAttributes = this.linksAttributes.filter(item => item.name !== payload.name)
 
       this.reversedAttributes = this.reversedAttributes.filter(item => item !== payload.name + '_r')
     },
@@ -563,7 +562,7 @@ export const userLinksStore = defineStore('rlinks', {
       const rnodeA = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdA)[0]
       const rnodeB = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdB)[0]
 
-      const linkProperties = this.linksDefaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
+      const linkProperties = this.linksAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
         dict[attr.name] = attr.value
         return dict
       }, {})
@@ -714,10 +713,10 @@ export const userLinksStore = defineStore('rlinks', {
   },
 
   getters: {
-    rattributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
-    rlineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
-    hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
+    rattributeType: (state) => (name: string) => state.linksAttributes.filter(att => att.name === name)[0]?.type,
+    rlineAttributes: (state) => state.linksAttributes.map(attr => attr.name),
+    hasCycleway: (state) => state.linksAttributes.map(attr => attr.name).includes('cycleway'),
     rlinkDirection: (state) => (index: string, reversed = false) => {
       const link = state.rlinks.features.filter(link => link.properties.index === index)[0]
       const geom = link.geometry.coordinates
@@ -742,7 +741,7 @@ export const userLinksStore = defineStore('rlinks', {
 
       // filter properties to only the one that are editable.
       const form: GroupForm = {}
-      state.linksDefaultAttributes.map(attr => attr.name).forEach(key => {
+      state.linksAttributes.map(attr => attr.name).forEach(key => {
         form[key] = {
           value: editorForm[key],
           disabled: uneditable.includes(key),
