@@ -12,6 +12,7 @@ import { getDirection, getForm, getGroupForm } from '@src/components/utils/utils
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
+import { rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -26,10 +27,8 @@ const lineAttributes = computed(() => rlinksStore.rlineAttributes)
 const reversedAttributes = computed(() => rlinksStore.reversedAttributes)
 const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
-const rcstAttributes = computed(() => rlinksStore.rcstAttributes)
-
 const typesMap = {}
-const attributeNonDeletable = computed(() => rlinksStore.rundeletable)
+const attributeNonDeletable = computed(() => rlinksDefaultProperties.map(el => el.name))
 
 const rules = {}
 const hints: Dict = attributesHints
@@ -79,7 +78,6 @@ function createForm() {
       })
       break
     case 'Edit Road Group Info':
-
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
       disabled = ['index', 'length', 'time', 'a', 'b']
       editorForm.value = [getGroupForm(features, lineAttributes.value, disabled)]
@@ -128,7 +126,7 @@ function addFieldToLinksForms(newFieldName: string) {
   editorForm.value.forEach(form => {
     // If the form is a reversed one. add the field if its not in rcstAttribute
     // (ex: route_width, no route_width_r)
-    if (Object.keys(form)[0].endsWith('_r') && !rcstAttributes.value.includes(newFieldName)) {
+    if (Object.keys(form)[0].endsWith('_r') && !rlinksConstantProperties.includes(newFieldName)) {
       form[newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined }
     } else {
       // just a normal link

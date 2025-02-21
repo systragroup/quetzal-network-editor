@@ -195,19 +195,13 @@ export interface RlinksStore {
   selectedrFilter: string
   selectedrGroup: string[]
   filteredrCategory: string[]
-  linksAttributes: Attributes[]
-
-  rnodeAttributes: string[]
+  linksDefaultAttributes: Attributes[]
+  nodesDefaultAttributes: Attributes[]
   newrNode: PointGeoJson
   visiblerLinks: LineStringGeoJson
   visiblerNodes: PointGeoJson
   connectedLinks: RoadConnectedLinks
-  defaultHighway: string
-  roadSpeed: number
-  rlinksDefaultColor: string
   rlinksAttributesChoices: AttributesChoice
-  rcstAttributes: string[]
-  rundeletable: string[]
   updateLinks: (UpdateFeatures | LineStringFeatures)[]
   updateNodes: (UpdateFeatures | PointFeatures)[]
   editionMode: boolean

@@ -36,5 +36,25 @@ export const rlinksDefaultProperties: Attributes[] = [
   { name: 'length', type: 'Number' },
   { name: 'time', type: 'Number' },
   { name: 'speed', type: 'Number', value: 20 },
+  { name: 'highway', type: 'String', value: 'quenedi' },
   { name: 'oneway', type: 'String', value: '0' },
+]
+
+export const rnodesDefaultProperties: Attributes[] = [
+  { name: 'index', type: 'String' },
+]
+
+// do not reversed those ones
+export const rlinksConstantProperties = [
+  'a',
+  'b',
+  'index',
+  'length',
+  'route_color',
+  'oneway',
+  'route_width',
+  'highway',
+  'cycleway',
+  'cycleway_reverse',
+  'incline',
 ]

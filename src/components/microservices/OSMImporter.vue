@@ -4,9 +4,7 @@ import { highwayList } from '@constants/highway.js'
 import MapSelector from './MapSelector.vue'
 import { useOSMStore } from '@src/store/OSMImporter'
 import { userLinksStore } from '@src/store/rlinks'
-import { useIndexStore } from '@src/store/index'
 
-const store = useIndexStore()
 const runOSM = useOSMStore()
 const rlinksStore = userLinksStore()
 const showOverwriteDialog = ref(false)
@@ -51,7 +49,7 @@ function importOSM () {
 }
 
 function applyOverwriteDialog () {
-  store.initrLinks()
+  rlinksStore.$reset()
   showOverwriteDialog.value = false
   importOSM()
 }

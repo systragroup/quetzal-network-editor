@@ -51,9 +51,8 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     const nodes = await s3.readJson(bucket.value, callID.value.concat('/nodes_final.geojson'))
     linksStore.appendNewNodes(nodes)
     if (parameters.value.ptMetrics) {
-      const store = useIndexStore()
-      store.initrLinks()
       const rlinksStore = userLinksStore()
+      rlinksStore.$reset()
       const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
       const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
       rlinksStore.loadrLinks(rlinks)

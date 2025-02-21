@@ -208,13 +208,6 @@ export const useIndexStore = defineStore('store', {
       this.visibleRasters = payload
     },
 
-    initrLinks () {
-      const rlinks = userLinksStore()
-      rlinks.initrLinks()
-      rlinks.loadrLinks(geojson)
-      rlinks.loadrNodes(geojson)
-    },
-
     initOD () {
       const odStore = useODStore()
       odStore.loadLayer(geojson)
@@ -222,8 +215,9 @@ export const useIndexStore = defineStore('store', {
 
     initNetworks () {
       const links = useLinksStore()
+      const rlinks = userLinksStore()
       links.$reset()
-      this.initrLinks()
+      rlinks.$reset()
       this.initOD()
       this.visibleRasters = []
       this.styles = []
@@ -247,10 +241,9 @@ export const useIndexStore = defineStore('store', {
 
     applySettings (payload) {
       const rlinksStore = userLinksStore()
-      rlinksStore.roadSpeed = Number(payload.roadSpeed)
+      rlinksStore.ChangeDefaultValues({ highway: payload.defaultHighway, speed: Number(payload.roadSpeed) })
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent
-      rlinksStore.defaultHighway = payload.defaultHighway
       this.outputName = payload.outputName
     },
 
