@@ -13,7 +13,7 @@ import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
-import { getGroupForm, isScheduleTrip } from '@src/components/utils/utils.ts'
+import { getGroupForm, isScheduleTrip } from '@src/components/utils/utils'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>

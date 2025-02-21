@@ -16,7 +16,7 @@ import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import geojson from '@constants/geojson'
-import { deleteUnusedNodes } from '../components/utils/utils.js'
+import { deleteUnusedNodes } from '../components/utils/utils'
 const $gettext = (s) => s
 
 const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }

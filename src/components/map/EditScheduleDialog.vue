@@ -5,7 +5,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
 import { cloneDeep } from 'lodash'
-import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils.js'
+import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils'
 import { createHash } from 'sha256-uint8array'
 
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
@@ -331,7 +331,6 @@ function handleSimpleDialog(event) {
                       icon="fas fa-trash"
                       size="small"
                       class="ma-1"
-                      color="regular"
                       :disabled="listOfTrips.length === 1"
                       @click.stop="deleteTrip(key)"
                     />

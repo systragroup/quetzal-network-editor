@@ -8,7 +8,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 import bearing from '@turf/bearing'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils.js'
+import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
