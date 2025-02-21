@@ -123,7 +123,6 @@ export interface LinksStore {
   scheduledTrips: Set<string>
   selectedTrips: string[]
   connectedLinks: ConnectedLinks
-  lineAttributes: string[]
   nodeAttributes: string[]
   linksAttributesChoices: AttributesChoice
   defaultAttributes: Attributes[]

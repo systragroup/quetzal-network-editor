@@ -1,5 +1,5 @@
 <script setup>
-import { unzipCalendar } from '@comp/utils/utils.js'
+import { unzipCalendar } from '@comp/utils/utils'
 import DatePicker from '@comp/utils/DatePicker.vue'
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'

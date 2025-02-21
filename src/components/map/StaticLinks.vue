@@ -3,7 +3,7 @@
 import { MglGeojsonLayer, MglPopup, MglImageLayer } from 'vue-mapbox3'
 import mapboxgl from 'mapbox-gl'
 import { cloneDeep } from 'lodash'
-import { deleteUnusedNodes } from '@comp/utils/utils.js'
+import { deleteUnusedNodes } from '@comp/utils/utils'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'

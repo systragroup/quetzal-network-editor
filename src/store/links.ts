@@ -8,7 +8,7 @@ import { lineString, point as Point } from '@turf/helpers'
 
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
 // eslint-disable-next-line max-len
-import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, getDifference } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
@@ -17,7 +17,8 @@ import { linksDefaultProperties } from '@src/constants/properties'
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
-  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
+  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
+  Attributes } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 
@@ -34,7 +35,6 @@ export const useLinksStore = defineStore('links', {
     selectedTrips: [],
     scheduledTrips: new Set([]),
     connectedLinks: { a: [], b: [], anchor: [] },
-    lineAttributes: [],
     nodeAttributes: [],
     linksAttributesChoices: {},
     defaultAttributes: linksDefaultProperties,
@@ -128,11 +128,8 @@ export const useLinksStore = defineStore('links', {
       this.links.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
-      // header.delete('index')
-      // add all default attributes
-      const defaultAttributes = this.defaultAttributes.map(attr => attr.name)
-      defaultAttributes.forEach(att => header.add(att))
-      this.lineAttributes = Array.from(header)
+      const newAttrs = getDifference(header, this.lineAttributes)
+      newAttrs.forEach(attr => this.defaultAttributes.push({ name: attr, type: 'String' }))
     },
 
     getNodesProperties () {
@@ -183,7 +180,7 @@ export const useLinksStore = defineStore('links', {
       // eslint-disable-next-line no-return-assign
       Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
       const attrs = Object.keys(this.linksAttributesChoices) // all attrbutes in attributesChoices
-      const newAttrs = attrs.filter(item => !this.lineAttributes.includes(item)) // ones not in rlinks
+      const newAttrs = getDifference(attrs, this.lineAttributes)
       newAttrs.forEach(item => this.addLinksPropertie({ name: item }))
     },
 
@@ -191,7 +188,7 @@ export const useLinksStore = defineStore('links', {
       // when a new line properties is added (in dataframe page)
       this.links.features.map(link => link.properties[payload.name] = null)
       this.editorLinks.features.map(link => link.properties[payload.name] = null)
-      this.lineAttributes.push(payload.name)
+      this.defaultAttributes.push({ name: payload.name, type: 'String' })
     },
 
     addNodesPropertie (payload: NewAttribute) {
@@ -203,7 +200,7 @@ export const useLinksStore = defineStore('links', {
     deleteLinksPropertie (payload: NewAttribute) {
       this.links.features.filter(link => delete link.properties[payload.name])
       this.editorLinks.features.filter(link => delete link.properties[payload.name])
-      this.lineAttributes = this.lineAttributes.filter(item => item !== payload.name)
+      this.defaultAttributes = this.defaultAttributes.filter(item => item.name !== payload.name)
     },
     deleteEditorLinksPropertie (payload: NewAttribute) {
       this.editorLinks.features.filter(link => delete link.properties[payload.name])
@@ -339,8 +336,8 @@ export const useLinksStore = defineStore('links', {
 
     getDefaultLink (): LineStringGeoJson {
       // empty trip, when its a newLine. those are the default Values.
-      const properties = this.lineAttributes.reduce((dict: Record<string, any>, key: string) => {
-        dict[key] = this.defaultAttributes.filter(el => el.name === key)[0]?.value
+      const properties = this.defaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
+        dict[attr.name] = attr.value
         return dict
       }, {})
 
@@ -984,5 +981,6 @@ export const useLinksStore = defineStore('links', {
     },
     // this return the attribute type, of undefined.
     attributeType: (state) => (name: string) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
+    lineAttributes: (state) => state.defaultAttributes.map(attr => attr.name),
   },
 })

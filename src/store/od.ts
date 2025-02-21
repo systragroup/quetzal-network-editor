@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 
 import { point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent } from '@comp/utils/utils.js'
+import { IndexAreDifferent } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODStore } from '@src/types/typesStore'
