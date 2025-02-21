@@ -157,11 +157,13 @@ export interface SplitRoadPayload {
   offset: number
   sliceIndex: number
   selectedFeature: LineStringFeatures
+  newNode: PointGeoJson
 }
 export interface AddRoadNodeInlinePayload {
   lngLat: number[]
   selectedIndex: string[]
   nodes: 'anchorrNodes' | 'rnodes'
+
 }
 
 export interface AnchorRoadPayload {
@@ -197,7 +199,6 @@ export interface RlinksStore {
   filteredrCategory: string[]
   linksDefaultAttributes: Attributes[]
   nodesDefaultAttributes: Attributes[]
-  newrNode: PointGeoJson
   visiblerLinks: LineStringGeoJson
   visiblerNodes: PointGeoJson
   connectedLinks: RoadConnectedLinks
