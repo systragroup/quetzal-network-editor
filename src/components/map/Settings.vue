@@ -59,12 +59,12 @@ export default {
       // value are init with this function.
       // we want to get the value each time we show the settings.
       // if not, Cancel will not work as the state here and in the store will differ.
-      roadSpeed.value.value = rlinksStore.roadSpeed
+      roadSpeed.value.value = rlinksStore.linksAttributes.filter(el => el.name == 'speed')[0].value
       linksPopupContent.value.choices = linksStore.lineAttributes
       linksPopupContent.value.value = store.linksPopupContent
       roadsPopupContent.value.choices = rlinksStore.rlineAttributes
       roadsPopupContent.value.value = store.roadsPopupContent
-      defaultHighway.value.value = rlinksStore.defaultHighway
+      defaultHighway.value.value = rlinksStore.linksAttributes.filter(el => el.name == 'highway')[0].value
       outputName.value.value = store.outputName
     }
     const shake = ref(false)
