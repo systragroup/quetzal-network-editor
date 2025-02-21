@@ -14,6 +14,7 @@ import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
 import { getGroupForm, isScheduleTrip } from '@src/components/utils/utils'
+import { linksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -37,7 +38,7 @@ const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 
 const typesMap = computed(() => Object.fromEntries(linksStore.defaultAttributes.map(attr => [attr.name, attr.type])))
-const attributeNonDeletable = computed(() => linksStore.defaultAttributes.map(el => el.name))
+const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
 
 const formRef = ref()
 
