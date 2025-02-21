@@ -230,6 +230,7 @@ export const userLinksStore = defineStore('rlinks', {
         item => item.properties[this.selectedrFilter])))
       this.filteredrCategory = val
     },
+
     splitOneway () {
       if (this.rlineAttributes.includes('oneway')) {
         this.rlinks.features.forEach(link => {
@@ -240,17 +241,24 @@ export const userLinksStore = defineStore('rlinks', {
           }
         })
 
-        this.rlinks.features.forEach(link => {
-          if (link.properties.oneway === '0') {
-            this.reversedAttributes.forEach(rattr => {
-              if (!link.properties[rattr]) {
-                link.properties[rattr] = link.properties[rattr.slice(0, -2)] }
-            })
-          }
+        // add reversed attributes
+        const reversedAttributes = this.rlineAttributes.filter(
+          attr => !rlinksConstantProperties.includes(attr)).map(
+          attr => attr + '_r')
+        const newAttrs = reversedAttributes.filter(el => !this.reversedAttributes.includes(el))
+        newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
+
+        const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
+        toSplit.forEach(link => {
+          this.reversedAttributes.forEach(rattr => {
+            if (!link.properties[rattr]) {
+              link.properties[rattr] = link.properties[rattr.slice(0, -2)] }
+          })
         },
         )
       }
     },
+
     ChangeDefaultValues(payload: Record<string, any>) {
       Object.keys(payload).forEach(key => {
         this.linksDefaultAttributes.filter(el => el.name === key)[0].value = payload[key]
