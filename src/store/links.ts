@@ -28,17 +28,19 @@ export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
     links: baseLineString(),
     nodes: basePoint(),
-    editorNodes: basePoint(),
-    editorLinks: baseLineString(),
+    visibleNodes: basePoint(),
+
     editorTrip: null,
+    editorLinks: baseLineString(),
+    editorNodes: basePoint(),
+
     tripList: [],
     selectedTrips: [],
-    scheduledTrips: new Set([]),
     connectedLinks: { a: [], b: [], anchor: [] },
+
+    linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: {},
-    defaultAttributes: cloneDeep(linksDefaultProperties),
-    visibleNodes: basePoint(),
   }),
 
   actions: {
@@ -129,7 +131,7 @@ export const useLinksStore = defineStore('links', {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       const newAttrs = getDifference(header, this.lineAttributes)
-      newAttrs.forEach(attr => this.defaultAttributes.push({ name: attr, type: 'String' }))
+      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
     },
 
     getNodesProperties () {
@@ -183,7 +185,7 @@ export const useLinksStore = defineStore('links', {
       // when a new line properties is added (in dataframe page)
       this.links.features.map(link => link.properties[payload.name] = null)
       this.editorLinks.features.map(link => link.properties[payload.name] = null)
-      this.defaultAttributes.push({ name: payload.name, type: 'String' })
+      this.linksDefaultAttributes.push({ name: payload.name, type: 'String' })
     },
 
     addNodesPropertie (payload: NewAttribute) {
@@ -195,7 +197,7 @@ export const useLinksStore = defineStore('links', {
     deleteLinksPropertie (payload: NewAttribute) {
       this.links.features.filter(link => delete link.properties[payload.name])
       this.editorLinks.features.filter(link => delete link.properties[payload.name])
-      this.defaultAttributes = this.defaultAttributes.filter(item => item.name !== payload.name)
+      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
     },
     deleteEditorLinksPropertie (payload: NewAttribute) {
       this.editorLinks.features.filter(link => delete link.properties[payload.name])
@@ -331,7 +333,7 @@ export const useLinksStore = defineStore('links', {
 
     getDefaultLink (): LineStringGeoJson {
       // empty trip, when its a newLine. those are the default Values.
-      const properties = this.defaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
+      const properties = this.linksDefaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
         dict[attr.name] = attr.value
         return dict
       }, {})
@@ -345,8 +347,8 @@ export const useLinksStore = defineStore('links', {
 
     getTripId () {
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
-      this.scheduledTrips = new Set(this.links.features.filter(l =>
-        Array.isArray(l.properties.arrivals)).map(item => item.properties.trip_id))
+      // this.scheduledTrips = new Set(this.links.features.filter(l =>
+      //   Array.isArray(l.properties.arrivals)).map(item => item.properties.trip_id))
     },
 
     createNewLink (payload: NewLinkPayload) {
@@ -770,7 +772,7 @@ export const useLinksStore = defineStore('links', {
       // New line
       if (this.editorLinks.features.length === 0) {
         props.forEach((key: string) => {
-          const attr = this.defaultAttributes.filter(el => el.name === key)[0]
+          const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
           attr.value = payload[key].value
         },
 
@@ -924,7 +926,7 @@ export const useLinksStore = defineStore('links', {
       this.getTripId()
     },
     applyPropertiesTypes (links: LineStringGeoJson) {
-      for (const attr of this.defaultAttributes) {
+      for (const attr of this.linksDefaultAttributes) {
         for (const link of links.features) {
           link.properties[attr.name] = attr.type === 'String'
             ? String(link.properties[attr.name])
@@ -984,8 +986,8 @@ export const useLinksStore = defineStore('links', {
       return lineString(geom)
     },
     // this return the attribute type, of undefined.
-    attributeType: (state) => (name: string) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
-    lineAttributes: (state) => state.defaultAttributes.map(attr => attr.name),
+    attributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(attr => attr.name === name)[0]?.type,
+    lineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),
     nodeAttributes: (state) => state.nodesDefaultAttributes.map(attr => attr.name),
   },
 })

@@ -37,7 +37,7 @@ const tripList = computed(() => linksStore.tripList)
 const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features[0]))
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 
-const typesMap = computed(() => Object.fromEntries(linksStore.defaultAttributes.map(attr => [attr.name, attr.type])))
+const typesMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
 const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
 
 const formRef = ref()
