@@ -37,5 +37,4 @@ export const rlinksDefaultProperties: Attributes[] = [
   { name: 'time', type: 'Number' },
   { name: 'speed', type: 'Number', value: 20 },
   { name: 'oneway', type: 'String', value: '0' },
-
 ]

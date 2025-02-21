@@ -8,9 +8,10 @@ import attributesUnits from '@constants/units.js'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
-import { getGroupForm } from '@src/components/utils/utils'
+import { getDirection, getForm, getGroupForm } from '@src/components/utils/utils'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
+import { LineStringFeatures } from '@src/types/geojson'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -22,6 +23,7 @@ const { showDialog, action, selectedArr } = useForm()
 const rlinks = computed(() => rlinksStore.rlinks)
 const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
 const lineAttributes = computed(() => rlinksStore.rlineAttributes)
+const reversedAttributes = computed(() => rlinksStore.reversedAttributes)
 const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
 const rcstAttributes = computed(() => rlinksStore.rcstAttributes)
@@ -57,30 +59,37 @@ function init() {
 const linkDir = ref<number[]>([])
 
 function createForm() {
+  let disabled: string[] = []
+  let features: LineStringFeatures[] = []
+  const selectedSet = new Set(selectedArr.value)
   switch (action.value) {
     case 'Edit rLink Info':
-      editorForm.value = selectedArr.value.map(linkId => rlinksStore.rlinksForm(linkId))
-      linkDir.value = selectedArr.value.map(linkId => rlinksStore.rlinkDirection(linkId))
-      selectedArr.value.forEach(linkId => {
-        if (rlinksStore.onewayIndex.has(linkId)) {
-          selectedArr.value.push(linkId)
-          editorForm.value.push(rlinksStore.reversedrLinksForm(linkId))
-          linkDir.value.push(rlinksStore.rlinkDirection(linkId, true))
-        }
+      // editorForm.value = selectedArr.value.map(linkId => rlinksStore.rlinksForm(linkId))
+      features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
+      disabled = ['a', 'b', 'index']
+      editorForm.value = features.map(feature => getForm(feature, lineAttributes.value, disabled))
+      linkDir.value = features.map(feature => getDirection(feature.geometry.coordinates))
+      console.log(features)
+      features = features.filter(el => el.properties.oneway == '0')
+      features.forEach(feature => {
+        const linkId = feature.properties.index
+        selectedArr.value.push(linkId)
+        editorForm.value.push(getForm(feature, reversedAttributes.value, disabled))
+        linkDir.value.push(getDirection(feature.geometry.coordinates))
       })
       break
     case 'Edit Road Group Info':
-      const selectedSet = new Set(selectedArr.value)
-      const features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      const disabled = ['index', 'length', 'time', 'a', 'b']
+
+      features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
+      disabled = ['index', 'length', 'time', 'a', 'b']
       editorForm.value = [getGroupForm(features, lineAttributes.value, disabled)]
       break
 
     case 'Edit rNode Info':
       const selectedNode = selectedArr.value[0]
-      const nodesFeatures = rlinksStore.visiblerNodes.features.filter((node) => node.properties.index === selectedNode)
-      const nodesDisabled = ['index', 'route_width']
-      editorForm.value = [getGroupForm(nodesFeatures, rnodeAttributes.value, nodesDisabled)]
+      const nodeFeatures = rlinksStore.visiblerNodes.features.filter((node) => node.properties.index === selectedNode)
+      disabled = ['index', 'route_width']
+      editorForm.value = [getGroupForm(nodeFeatures, rnodeAttributes.value, disabled)]
 
       break
       // map selected node doesnt not return properties with nanulln value.

@@ -1,4 +1,5 @@
 const $gettext = (s: string) => s
+import bearing from '@turf/bearing'
 
 import { GroupForm } from '@src/types/components'
 import { GeoJson, GeoJsonFeature, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
@@ -14,6 +15,27 @@ export function getGroupForm (features: GeoJsonFeature[], lineAttributes: string
     }
   })
   return form
+}
+
+export function getForm (feature: GeoJsonFeature, lineAttributes: string[], uneditable: string[]) {
+  // filter properties to only the one that are editable.
+  const form: GroupForm = {}
+  lineAttributes.forEach(key => {
+    form[key] = {
+      value: feature.properties[key],
+      disabled: uneditable.includes(key),
+      placeholder: false,
+    }
+  })
+  return form
+}
+
+export function getDirection(geom: number[][], reversed = false) {
+  if (reversed) {
+    return bearing(geom[geom.length - 1], geom[0])
+  } else {
+    return bearing(geom[0], geom[geom.length - 1])
+  }
 }
 
 export function isScheduleTrip(link: GeoJsonFeature | undefined) {

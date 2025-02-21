@@ -196,6 +196,7 @@ export interface RlinksStore {
   selectedrGroup: string[]
   filteredrCategory: string[]
   linksAttributes: Attributes[]
+
   rnodeAttributes: string[]
   newrNode: PointGeoJson
   visiblerLinks: LineStringGeoJson
@@ -207,7 +208,6 @@ export interface RlinksStore {
   rlinksAttributesChoices: AttributesChoice
   rcstAttributes: string[]
   rundeletable: string[]
-  reversedAttributes: string[]
   updateLinks: (UpdateFeatures | LineStringFeatures)[]
   updateNodes: (UpdateFeatures | PointFeatures)[]
   editionMode: boolean
