@@ -11,8 +11,8 @@ import { IndexAreDifferent, deleteUnusedNodes, getDifference } from '@comp/utils
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
-import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes, AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes,
-  CreateRlinkPayload,
+import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes,
+  AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes, CreateRlinkPayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, RlinksStore,
   SelectedNode, SplitRoadPayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures,
@@ -28,7 +28,6 @@ export const userLinksStore = defineStore('rlinks', {
     rnodes: basePoint(),
     visiblerLinks: baseLineString(),
     visiblerNodes: basePoint(),
-    newrNode: basePoint(),
 
     selectedrFilter: '',
     selectedrGroup: [],
@@ -428,13 +427,13 @@ export const userLinksStore = defineStore('rlinks', {
       // Copy specified node
       const nodeFeatures: PointFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
       newNode.features = [nodeFeatures]
-      this.newrNode = newNode
-      this.rnodes.features.push(this.newrNode.features[0])
+      this.rnodes.features.push(newNode.features[0])
       // dont duplicate nodes. Sometime, if quenedi road are hidden we need to happen.
       const lastIndex = this.visiblerNodes.features.slice(-1)[0].properties.index
-      if (lastIndex !== this.newrNode.features[0].properties.index) {
-        this.visiblerNodes.features.push(this.newrNode.features[0])
+      if (lastIndex !== newNode.features[0].properties.index) {
+        this.visiblerNodes.features.push(newNode.features[0])
       }
+      return newNode
     },
     splitrLink (payload: SplitRoadPayload) {
       // changing link1 change editorLinks as it is an observer.
@@ -443,11 +442,13 @@ export const userLinksStore = defineStore('rlinks', {
       const toDelete = cloneDeep(link1.properties.index)
       // distance du point (entre 0 et 1) sur le lien original
       const ratio = payload.offset
+      const sliceIndex = payload.sliceIndex
+      const newNode = payload.newNode
 
-      link1.properties.b = this.newrNode.features[0].properties.index
+      link1.properties.b = newNode.features[0].properties.index
       link1.geometry.coordinates = [
-        ...link1.geometry.coordinates.slice(0, payload.sliceIndex),
-        this.newrNode.features[0].geometry.coordinates,
+        ...link1.geometry.coordinates.slice(0, sliceIndex),
+        newNode.features[0].geometry.coordinates,
       ]
 
       link1.properties.index = 'rlink_' + short.generate() // link1.properties.index+ '-1'
@@ -456,10 +457,10 @@ export const userLinksStore = defineStore('rlinks', {
       if (link1.properties.length_r) link1.properties.length_r = link1.properties.length
       if (link1.properties.time_r) link1.properties.time_r = link1.properties.time
 
-      link2.properties.a = this.newrNode.features[0].properties.index
+      link2.properties.a = newNode.features[0].properties.index
       link2.geometry.coordinates = [
-        this.newrNode.features[0].geometry.coordinates,
-        ...link2.geometry.coordinates.slice(payload.sliceIndex),
+        newNode.features[0].geometry.coordinates,
+        ...link2.geometry.coordinates.slice(sliceIndex),
       ]
       link2.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.length = link2.properties.length * (1 - ratio)
@@ -479,6 +480,7 @@ export const userLinksStore = defineStore('rlinks', {
       // selectedLink : list of links index
       // lngLat : object wit click geometry
       // nodes : str. name of node to add (rnode, anchorrNodeS)
+      let newNode = basePoint()
       const selectedFeatures = this.visiblerLinks.features
         .filter((link) => payload.selectedIndex.includes(link.properties.index))
       // for loop. for each selectedc links add the node and split.
@@ -493,11 +495,10 @@ export const userLinksStore = defineStore('rlinks', {
 
         if (payload.nodes === 'rnodes') {
           // only add one node, takes the first one.
-          if (i === 0) {
-            this.createNewrNode(snapped.geometry.coordinates)
-          }
-          this.splitrLink({ selectedFeature: selectedFeatures[i], offset, sliceIndex })
-          this.updateNodes = [this.newrNode.features[0]]
+          if (i === 0) { newNode = this.createNewrNode(snapped.geometry.coordinates) }
+
+          this.splitrLink({ selectedFeature: selectedFeatures[i], offset, sliceIndex, newNode })
+          this.updateNodes = [newNode.features[0]]
 
         // Anchor Nodes
         } else {
@@ -508,6 +509,7 @@ export const userLinksStore = defineStore('rlinks', {
           })
         }
       }
+      return newNode
     },
 
     addAnchorrNode (payload: AnchorRoadPayload) {
@@ -532,11 +534,11 @@ export const userLinksStore = defineStore('rlinks', {
       // else if: clicked no where: create a node
       if (linksId) {
         // create a node inline and then the new link
-        this.addRoadNodeInline({ selectedIndex: linksId, lngLat: geom, nodes: 'rnodes' })
-        nodeIdB = this.newrNode.features[0].properties.index
+        const newNode = this.addRoadNodeInline({ selectedIndex: linksId, lngLat: geom, nodes: 'rnodes' })
+        nodeIdB = newNode.features[0].properties.index
       } else if (!nodeIdB) {
-        this.createNewrNode(geom)
-        nodeIdB = this.newrNode.features[0].properties.index
+        const newNode = this.createNewrNode(geom)
+        nodeIdB = newNode.features[0].properties.index
       }
 
       const rnodeA = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdA)[0]
