@@ -4,19 +4,20 @@ import { defineStore } from 'pinia'
 
 import { point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent } from '@comp/utils/utils'
+import { getDifference, IndexAreDifferent } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
-import { EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODStore } from '@src/types/typesStore'
-import { baseLineString, basePoint, GeoJsonProperties,
-  LineStringFeatures, LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
+import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODStore } from '@src/types/typesStore'
+import { baseLineString, basePoint, LineStringFeatures,
+  LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
+import { ODDefaultProperties } from '@src/constants/properties'
 const $gettext = (s: string) => s
 
 export const useODStore = defineStore('od', {
   state: (): ODStore => ({
     layer: baseLineString(),
     visibleLayer: baseLineString(),
-    layerAttributes: [], // all the available attributes (columns in pandas)
+    defaultAttributes: ODDefaultProperties,
     filteredCategory: [], // all possible category (to be in selectedCat)
     selectedFilter: '', // ex: highway
     selectedCategory: [], // ex: [motorway, residential] visible one.
@@ -76,14 +77,10 @@ export const useODStore = defineStore('od', {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
       // add all default attributes
-      const defaultAttributes = [
-        'index', 'name']
-      defaultAttributes.forEach(att => header.add(att))
-      this.layerAttributes = Array.from(header)
+      const newAttrs = getDifference(header, this.layerAttributes)
+      newAttrs.forEach(attr => this.defaultAttributes.push({ name: attr, type: 'String' }))
+
       this.selectedFilter = 'name'
-      // set all visible
-      // this.selectedCategory = Array.from(new Set(this.layer.features.map(
-      //  item => item.properties[this.selectedFilter])))
     },
 
     refreshVisibleLayer () {
@@ -123,9 +120,12 @@ export const useODStore = defineStore('od', {
         type: 'LineString',
       }
 
-      const linkProperties: GeoJsonProperties = {}
       // set default links values
-      this.layerAttributes.forEach((key) => linkProperties[key] = null)
+      const linkProperties = this.defaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
+        dict[attr.name] = attr.value
+        return dict
+      }, {})
+
       linkProperties.index = payload.index
       linkProperties.name = payload.index
       const linkFeature: LineStringFeatures = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
@@ -162,18 +162,19 @@ export const useODStore = defineStore('od', {
       // when a new line properties is added (in dataframe page)
       this.layer.features.map(link => link.properties[name] = null)
       this.visibleLayer.features.map(link => link.properties[name] = null)
-      this.layerAttributes.push(name)
+      this.defaultAttributes.push({ name: name, type: 'String' })
     },
     deletePropertie (name: string) {
       // when a link property is deleted
       this.layer.features.filter(link => delete link.properties[name])
       this.visibleLayer.features.filter(link => delete link.properties[name])
-      this.layerAttributes = this.layerAttributes.filter(item => item !== name)
+      this.defaultAttributes = this.defaultAttributes.filter(item => item.name !== name)
     },
   },
 
   getters: {
     layerIsEmpty: (state) => state.layer.features.length === 0,
+    layerAttributes: (state) => state.defaultAttributes.map(el => el.name),
     groupLayer: (state) => (category: string, group: string) => {
       return state.layer.features.filter(link => group === link.properties[category])
     },
