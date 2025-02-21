@@ -155,7 +155,7 @@ function importGTFS () {
 }
 
 function applyOverwriteDialog () {
-  store.initLinks()
+  linksStore.$reset()
   showOverwriteDialog.value = false
   importGTFS()
 }
