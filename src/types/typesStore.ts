@@ -195,7 +195,7 @@ export interface RlinksStore {
   selectedrFilter: string
   selectedrGroup: string[]
   filteredrCategory: string[]
-  linksDefaultAttributes: Attributes[]
+  linksAttributes: Attributes[]
   rnodeAttributes: string[]
   newrNode: PointGeoJson
   visiblerLinks: LineStringGeoJson
