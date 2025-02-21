@@ -29,15 +29,15 @@ export const useLinksStore = defineStore('links', {
     links: baseLineString(),
     nodes: basePoint(),
     visibleNodes: basePoint(),
-
+    // Edition of a trip
     editorTrip: null,
     editorLinks: baseLineString(),
     editorNodes: basePoint(),
-
+    // filters
     tripList: [],
     selectedTrips: [],
     connectedLinks: { a: [], b: [], anchor: [] },
-
+    // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: {},
