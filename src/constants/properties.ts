@@ -58,3 +58,8 @@ export const rlinksConstantProperties = [
   'cycleway_reverse',
   'incline',
 ]
+
+export const ODDefaultProperties: Attributes[] = [
+  { name: 'index', type: 'String' },
+  { name: 'name', type: 'String' },
+]

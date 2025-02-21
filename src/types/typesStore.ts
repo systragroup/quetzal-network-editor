@@ -220,7 +220,7 @@ export interface NewODPayload {
 export interface ODStore {
   layer: LineStringGeoJson
   visibleLayer: LineStringGeoJson
-  layerAttributes: string[]
+  defaultAttributes: Attributes[]
   filteredCategory: string[]
   selectedFilter: string
   selectedCategory: string[]
