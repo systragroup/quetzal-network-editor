@@ -21,7 +21,6 @@ const openMenu = ref(false)
       <v-btn
         variant="text"
         :icon="openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down'"
-        color="regular"
         size="x-small"
         v-bind="props"
       />

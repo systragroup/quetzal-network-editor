@@ -6,7 +6,6 @@ import { defineStore } from 'pinia'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
-import bearing from '@turf/bearing'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, getDifference } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
@@ -19,7 +18,6 @@ import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes, AttributesChoi
 import { baseLineString, basePoint, GeoJsonProperties,
   LineStringFeatures,
   LineStringGeoJson, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
-import { GroupForm } from '@src/types/components'
 import { rlinksDefaultProperties } from '@src/constants/properties'
 const $gettext = (s: string) => s
 
@@ -41,7 +39,6 @@ export const userLinksStore = defineStore('rlinks', {
     selectedrGroup: [],
     filteredrCategory: [],
     linksAttributes: cloneDeep(rlinksDefaultProperties),
-    reversedAttributes: [],
 
     rnodeAttributes: [],
     connectedLinks: { a: [], b: [], visibleLinksList: [] },
@@ -64,7 +61,6 @@ export const userLinksStore = defineStore('rlinks', {
   actions: {
     initrLinks () {
       this.rlinksAttributesChoices = {}
-      this.reversedAttributes = []
       this.rnodeAttributes = []
       this.rcstAttributes = cloneDeep(defaultrCstAttributes)
       this.rundeletable = cloneDeep(defaultrUndeletable)
@@ -143,7 +139,6 @@ export const userLinksStore = defineStore('rlinks', {
         coord => Math.round(Number(coord) * 1000000) / 1000000))
 
       payload.features.forEach(node => this.rnodes.features.push(node))
-      this.splitOneway()
       this.getrNodesProperties()
     },
 
@@ -152,7 +147,6 @@ export const userLinksStore = defineStore('rlinks', {
       this.rlinks.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
-      header = new Set([...header].filter(key => !key.endsWith('_r')))
       const newAttrs = getDifference(header, this.rlineAttributes)
       newAttrs.forEach(attr => this.linksAttributes.push({ name: attr, type: 'String' }))
 
@@ -193,7 +187,7 @@ export const userLinksStore = defineStore('rlinks', {
       this.linksAttributes.push({ name: payload.name, type: 'String' })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
       if (!this.rcstAttributes.includes(payload.name)) {
-        this.reversedAttributes.push(payload.name + '_r')
+        this.linksAttributes.push({ name: payload.name + '_r', type: 'String' })
       }
     },
 
@@ -210,8 +204,7 @@ export const userLinksStore = defineStore('rlinks', {
       this.visiblerLinks.features.filter(link => delete link.properties[payload.name + '_r'])
 
       this.linksAttributes = this.linksAttributes.filter(item => item.name !== payload.name)
-
-      this.reversedAttributes = this.reversedAttributes.filter(item => item !== payload.name + '_r')
+      this.linksAttributes = this.linksAttributes.filter(item => item.name !== payload.name + '_r')
     },
 
     deleteNodesPropertie (payload: NewAttribute) {
@@ -266,14 +259,12 @@ export const userLinksStore = defineStore('rlinks', {
             link.properties.oneway = '0'
           }
         })
-        // const oneways = this.rlinks.features.filter(link => !link.properties.oneway)
-        this.reversedAttributes = this.rlineAttributes.filter(
-          attr => !this.rcstAttributes.includes(attr)).map(
-          attr => attr + '_r')
+
         this.rlinks.features.forEach(link => {
           if (link.properties.oneway === '0') {
-            this.reversedAttributes.forEach(attr => {
-              if (!link.properties[attr]) link.properties[attr] = link.properties[attr.slice(0, -2)]
+            this.reversedAttributes.forEach(rattr => {
+              if (!link.properties[rattr]) {
+                link.properties[rattr] = link.properties[rattr.slice(0, -2)] }
             })
           }
         },
@@ -715,56 +706,12 @@ export const userLinksStore = defineStore('rlinks', {
   getters: {
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     rattributeType: (state) => (name: string) => state.linksAttributes.filter(att => att.name === name)[0]?.type,
-    rlineAttributes: (state) => state.linksAttributes.map(attr => attr.name),
+    rlineAttributes: (state) => state.linksAttributes.filter(el => !el.name.endsWith('_r')).map(el => el.name),
+    reversedAttributes: (state) => state.linksAttributes.filter(el => el.name.endsWith('_r')).map(el => el.name),
     hasCycleway: (state) => state.linksAttributes.map(attr => attr.name).includes('cycleway'),
-    rlinkDirection: (state) => (index: string, reversed = false) => {
-      const link = state.rlinks.features.filter(link => link.properties.index === index)[0]
-      const geom = link.geometry.coordinates
-      if (reversed) {
-        return bearing(geom[geom.length - 1], geom[0])
-      } else {
-        return bearing(geom[0], geom[geom.length - 1])
-      }
-    },
     grouprLinks: (state) => (category: string, group: string) => {
       return state.rlinks.features.filter(link => group === link.properties[category])
     },
-    onewayIndex: (state) => {
-      return new Set(state.rlinks.features.filter(
-        link => link.properties.oneway === '0').map(
-        link => link.properties.index))
-    },
-    rlinksForm: (state) => (linkIndex: string) => {
-      const uneditable = ['a', 'b', 'index']
-      const editorForm = state.visiblerLinks.features.filter(
-        (link) => link.properties.index === linkIndex)[0].properties
 
-      // filter properties to only the one that are editable.
-      const form: GroupForm = {}
-      state.linksAttributes.map(attr => attr.name).forEach(key => {
-        form[key] = {
-          value: editorForm[key],
-          disabled: uneditable.includes(key),
-          placeholder: false,
-        }
-      })
-      return form
-    },
-    reversedrLinksForm: (state) => (linkIndex: string) => {
-      const uneditable = ['a', 'b', 'index']
-      const editorForm = state.visiblerLinks.features.filter(
-        (link) => link.properties.index === linkIndex)[0].properties
-
-      // filter properties to only the one that are editable.
-      const form: GroupForm = {}
-      state.reversedAttributes.forEach(key => {
-        form[key] = {
-          value: editorForm[key],
-          disabled: uneditable.includes(key),
-          placeholder: false,
-        }
-      })
-      return form
-    },
   },
 })
