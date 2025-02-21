@@ -26,3 +26,16 @@ export const nodesDefaultProperties: Attributes[] = [
   { name: 'stop_code', type: 'String' },
   { name: 'stop_name', type: 'String' },
 ]
+
+export const rlinksDefaultProperties: Attributes[] = [
+  { name: 'index', type: 'String' },
+  { name: 'a', type: 'String' },
+  { name: 'b', type: 'String' },
+  { name: 'route_color', type: 'String', value: '2196F3' },
+  { name: 'route_width', type: 'Number', value: 1 },
+  { name: 'length', type: 'Number' },
+  { name: 'time', type: 'Number' },
+  { name: 'speed', type: 'Number', value: 20 },
+  { name: 'oneway', type: 'String', value: '0' },
+
+]

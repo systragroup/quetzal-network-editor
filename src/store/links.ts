@@ -1010,7 +1010,7 @@ export const useLinksStore = defineStore('links', {
       return lineString(geom)
     },
     // this return the attribute type, of undefined.
-    attributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(attr => attr.name === name)[0]?.type,
+    attributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
     lineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),
     nodeAttributes: (state) => state.nodesDefaultAttributes.map(attr => attr.name),
   },

@@ -8,11 +8,11 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 import bearing from '@turf/bearing'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes } from '@comp/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, getDifference } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
-import { AddRoadNodeInlinePayload, AnchorRoadPayload, AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes,
+import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes, AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes,
   CreateRlinkPayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, RlinksStore,
   SelectedNode, SplitRoadPayload } from '@src/types/typesStore'
@@ -20,7 +20,7 @@ import { baseLineString, basePoint, GeoJsonProperties,
   LineStringFeatures,
   LineStringGeoJson, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { GroupForm } from '@src/types/components'
-
+import { rlinksDefaultProperties } from '@src/constants/properties'
 const $gettext = (s: string) => s
 
 // eslint-disable-next-line max-len
@@ -31,14 +31,20 @@ export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
     rnodes: basePoint(),
+
+    visiblerLinks: baseLineString(),
+    visiblerNodes: basePoint(),
+
+    newrNode: basePoint(),
+
     selectedrFilter: '',
     selectedrGroup: [],
     filteredrCategory: [],
-    rlineAttributes: [],
+    linksDefaultAttributes: cloneDeep(rlinksDefaultProperties),
+    // rlineAttributes: [],
+
     rnodeAttributes: [],
-    newrNode: basePoint(),
-    visiblerLinks: baseLineString(),
-    visiblerNodes: basePoint(),
+
     connectedLinks: { a: [], b: [], visibleLinksList: [] },
     defaultHighway: 'quenedi',
     roadSpeed: 20,
@@ -50,6 +56,7 @@ export const userLinksStore = defineStore('rlinks', {
     reversedAttributes: [],
     updateLinks: [],
     updateNodes: [],
+
     editionMode: false,
     savedNetwork: { rlinks: '', rnodes: '' },
     networkWasModified: false, // update in Roadlinks.vue when map is updated (updateLinks and others are watch)
@@ -58,7 +65,6 @@ export const userLinksStore = defineStore('rlinks', {
   actions: {
     initrLinks () {
       this.rlinksAttributesChoices = {}
-      this.rlineAttributes = []
       this.reversedAttributes = []
       this.rnodeAttributes = []
       this.rcstAttributes = cloneDeep(defaultrCstAttributes)
@@ -143,23 +149,18 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     getrLinksProperties () {
-      const header: Set<string> = new Set([])
+      let header: Set<string> = new Set([])
       this.rlinks.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => { if (!key.endsWith('_r')) header.add(key) })
+        Object.keys(element.properties).forEach(key => header.add(key))
       })
-      // header.delete('index')
-      // add all default attributes
+      header = new Set([...header].filter(key => !key.endsWith('_r')))
+      const newAttrs = getDifference(header, this.rlineAttributes)
+      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
 
-      const defaultAttributes = ['index', 'a', 'b', 'route_color']
-      defaultAttributes.forEach(att => header.add(att))
-      this.rlineAttributes.forEach(att => header.add(att))
-      this.rlineAttributes = Array.from(header)
-      if (header.has('highway')) {
-        this.selectedrFilter = 'highway'
-      } else {
-        this.selectedrFilter = this.rlineAttributes[0]
-      }
+      const selectedFilter = header.has('highway') ? 'highway' : this.rlineAttributes[0]
+      this.changeSelectedrFilter(selectedFilter)
     },
+
     getrNodesProperties () {
       const header: Set<string> = new Set([])
       this.rnodes.features.forEach(element => {
@@ -190,7 +191,7 @@ export const userLinksStore = defineStore('rlinks', {
       // when a new line properties is added (in dataframe page)
       this.rlinks.features.map(link => link.properties[payload.name] = null)
       this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
-      this.rlineAttributes.push(payload.name) // could put that at applied. so we can cancel
+      this.linksDefaultAttributes.push({ name: payload.name, type: 'String' })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
       if (!this.rcstAttributes.includes(payload.name)) {
         this.reversedAttributes.push(payload.name + '_r')
@@ -209,7 +210,8 @@ export const userLinksStore = defineStore('rlinks', {
       this.visiblerLinks.features.filter(link => delete link.properties[payload.name])
       this.visiblerLinks.features.filter(link => delete link.properties[payload.name + '_r'])
 
-      this.rlineAttributes = this.rlineAttributes.filter(item => item !== payload.name)
+      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
+
       this.reversedAttributes = this.reversedAttributes.filter(item => item !== payload.name + '_r')
     },
 
@@ -561,9 +563,11 @@ export const userLinksStore = defineStore('rlinks', {
       const rnodeA = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdA)[0]
       const rnodeB = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdB)[0]
 
-      const linkProperties: GeoJsonProperties = {}
-      // set default links values
-      this.rlineAttributes.forEach((key) => linkProperties[key] = null)
+      const linkProperties = this.linksDefaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
+        dict[attr.name] = attr.value
+        return dict
+      }, {})
+
       linkProperties.index = 'rlink_' + short.generate()
       linkProperties.a = nodeIdA
       linkProperties.b = nodeIdB
@@ -710,8 +714,10 @@ export const userLinksStore = defineStore('rlinks', {
   },
 
   getters: {
+    rattributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
+    rlineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
-    hasCycleway: (state) => state.rlineAttributes.includes('cycleway'),
+    hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
     rlinkDirection: (state) => (index: string, reversed = false) => {
       const link = state.rlinks.features.filter(link => link.properties.index === index)[0]
       const geom = link.geometry.coordinates
@@ -736,7 +742,7 @@ export const userLinksStore = defineStore('rlinks', {
 
       // filter properties to only the one that are editable.
       const form: GroupForm = {}
-      state.rlineAttributes.forEach(key => {
+      state.linksDefaultAttributes.map(attr => attr.name).forEach(key => {
         form[key] = {
           value: editorForm[key],
           disabled: uneditable.includes(key),
