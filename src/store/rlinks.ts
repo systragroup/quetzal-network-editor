@@ -28,21 +28,19 @@ export const userLinksStore = defineStore('rlinks', {
     rnodes: basePoint(),
     visiblerLinks: baseLineString(),
     visiblerNodes: basePoint(),
-
-    selectedrFilter: '',
-    selectedrGroup: [],
-    filteredrCategory: [],
-
+    // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(rlinksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(rnodesDefaultProperties),
     rlinksAttributesChoices: {},
+    // Filter
+    selectedrFilter: '',
+    selectedrGroup: [],
+    filteredrCategory: [],
     connectedLinks: { a: [], b: [], visibleLinksList: [] },
-
-    // those are the list of attributes we do not want to duplicated with _r.
-
+    // to tell mapbox what to dynamicly update
     updateLinks: [],
     updateNodes: [],
-
+    // to Cancel edition
     editionMode: false,
     savedNetwork: { rlinks: '', rnodes: '' },
     networkWasModified: false, // update in Roadlinks.vue when map is updated (updateLinks and others are watch)
