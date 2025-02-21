@@ -20,3 +20,9 @@ export const linksDefaultProperties: Attributes[] = [
   { name: 'link_sequence', type: 'Number', value: 0 },
   { name: 'direction_id', type: 'Number', value: 0 },
 ]
+
+export const nodesDefaultProperties: Attributes[] = [
+  { name: 'index', type: 'String' },
+  { name: 'stop_code', type: 'String' },
+  { name: 'stop_name', type: 'String' },
+]

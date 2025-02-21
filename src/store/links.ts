@@ -12,7 +12,7 @@ import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, 
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
-import { linksDefaultProperties } from '@src/constants/properties'
+import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
@@ -35,9 +35,9 @@ export const useLinksStore = defineStore('links', {
     selectedTrips: [],
     scheduledTrips: new Set([]),
     connectedLinks: { a: [], b: [], anchor: [] },
-    nodeAttributes: [],
+    nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: {},
-    defaultAttributes: linksDefaultProperties,
+    defaultAttributes: cloneDeep(linksDefaultProperties),
     visibleNodes: basePoint(),
   }),
 
@@ -137,13 +137,8 @@ export const useLinksStore = defineStore('links', {
       this.nodes.features.forEach(element => {
         Object.keys(element.properties).forEach(key => header.add(key))
       })
-      // add all default attributes
-      const defaultAttributes = [
-        'index',
-        'stop_code',
-        'stop_name']
-      defaultAttributes.forEach(att => header.add(att))
-      this.nodeAttributes = Array.from(header)
+      const newAttrs = getDifference(header, this.nodeAttributes)
+      newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: 'String' }))
     },
     calcSpeed () {
       // calc length, time, speed.
@@ -194,7 +189,7 @@ export const useLinksStore = defineStore('links', {
     addNodesPropertie (payload: NewAttribute) {
       this.nodes.features.map(node => node.properties[payload.name] = null)
       this.editorNodes.features.map(node => node.properties[payload.name] = null)
-      this.nodeAttributes.push(payload.name)
+      this.nodesDefaultAttributes.push({ name: payload.name, type: 'String' })
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
@@ -209,7 +204,7 @@ export const useLinksStore = defineStore('links', {
     deleteNodesPropertie (payload: NewAttribute) {
       this.nodes.features.filter(node => delete node.properties[payload.name])
       this.editorNodes.features.filter(node => delete node.properties[payload.name])
-      this.nodeAttributes = this.nodeAttributes.filter(item => item !== payload.name)
+      this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
     },
 
     changeSelectedTrips (payload: string[]) {
@@ -428,7 +423,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     createNewNode (geometry: number[]) {
-      const nodeProperties: any = {}
+      const nodeProperties: Record<string, any> = {}
       this.nodeAttributes.forEach(key => {
         nodeProperties[key] = null
       })
@@ -759,7 +754,7 @@ export const useLinksStore = defineStore('links', {
       // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
       const props = Object.keys(payload).filter(key =>
         ((payload[key].value !== '') || !payload[key].placeholder) && (!payload[key].disabled))
-      // add new line info to each links of each trips.
+
       this.editorLinks.features.forEach(
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
 
@@ -770,6 +765,15 @@ export const useLinksStore = defineStore('links', {
             const time = features.properties.length / payload.speed.value * 3.6
             features.properties.time = Number((time).toFixed(0))
           },
+        )
+      }
+      // New line
+      if (this.editorLinks.features.length === 0) {
+        props.forEach((key: string) => {
+          const attr = this.defaultAttributes.filter(el => el.name === key)[0]
+          attr.value = payload[key].value
+        },
+
         )
       }
     },
@@ -982,5 +986,6 @@ export const useLinksStore = defineStore('links', {
     // this return the attribute type, of undefined.
     attributeType: (state) => (name: string) => state.defaultAttributes.filter(attr => attr.name === name)[0]?.type,
     lineAttributes: (state) => state.defaultAttributes.map(attr => attr.name),
+    nodeAttributes: (state) => state.nodesDefaultAttributes.map(attr => attr.name),
   },
 })
