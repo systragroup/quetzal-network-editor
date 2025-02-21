@@ -120,12 +120,11 @@ export interface LinksStore {
   editorLinks: LineStringGeoJson
   editorTrip: string | null
   tripList: string[]
-  scheduledTrips: Set<string>
   selectedTrips: string[]
   connectedLinks: ConnectedLinks
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
-  defaultAttributes: Attributes[]
+  linksDefaultAttributes: Attributes[]
 
 }
 
