@@ -9,7 +9,7 @@ import { useODStore } from './od'
 import { useRunStore } from './run'
 import { useOSMStore } from './OSMImporter'
 import { useGTFSStore } from './GTFSImporter'
-import { useMapStore } from './map.js'
+import { useMapStore } from './map'
 
 import { infoSerializer, stylesSerializer } from '../components/utils/serializer'
 import { useUserStore } from './user.js'

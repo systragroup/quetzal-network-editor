@@ -225,3 +225,17 @@ export interface ODStore {
   selectedFilter: string
   selectedCategory: string[]
 }
+
+// map store
+
+export interface MapPositionPayload {
+  mapCenter: number[]
+  mapZoom: number
+}
+
+export interface MapStore {
+  mapCenter: number[]
+  mapStyle: string
+  mapZoom: number
+  key: string
+}

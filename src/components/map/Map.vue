@@ -3,7 +3,7 @@ import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
-import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef } from 'vue'
+import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef, onMounted } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -42,7 +42,13 @@ const rlinksStore = userLinksStore()
 const map = shallowRef(null)
 const mapIsLoaded = ref(false)
 
+onMounted(() => {
+  fitBounds()
+})
+
 function fitBounds() {
+  console.time('bounds')
+  // for empty (new) project, do not fit bounds around the links geometries.
   const bounds = new Mapbox.LngLatBounds()
   // only use first and last point. seems to bug when there is anchor...
   if (linksStore.links.features.length > 0) {
@@ -56,13 +62,15 @@ function fitBounds() {
         link.geometry.coordinates[link.geometry.coordinates.length - 1]])
     })
   }
+  console.timeEnd('bounds')
+  console.time('fit')
+  mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
+  console.timeEnd('fit')
+}
 
-  // for empty (new) project, do not fit bounds around the links geometries.
-  if (Object.keys(bounds).length !== 0) {
-    map.value.fitBounds(bounds, {
-      padding: 100,
-    })
-  }
+function onMapLoaded (event) {
+  if (map.value) mapIsLoaded.value = false
+  map.value = event.map
   map.value.loadImage(arrowImage, function (err, image) {
     if (err) {
       console.error('err image', err)
@@ -70,12 +78,6 @@ function fitBounds() {
     }
     map.value.addImage('arrow', image, { sdf: true })
   })
-}
-
-function onMapLoaded (event) {
-  if (map.value) mapIsLoaded.value = false
-  map.value = event.map
-  fitBounds()
   event.map.dragRotate.disable()
   mapIsLoaded.value = true
 }
