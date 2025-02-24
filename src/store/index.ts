@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
-import { toRaw } from 'vue'
 import { useLinksStore } from './links'
 import { userLinksStore } from './rlinks'
 import { useODStore } from './od'
@@ -16,70 +15,77 @@ import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import { deleteUnusedNodes } from '../components/utils/utils'
-const $gettext = (s) => s
+import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
+  Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
+const $gettext = (s: string) => s
 
 const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
 
-export const useIndexStore = defineStore('store', {
+export const useIndexStore = defineStore('index', {
 
-  state: () => ({
-    notification: { autoClose: true },
+  state: (): IndexStore => ({
+    // general
+    notification: { text: 'true' },
     alert: {},
     darkMode: false,
     isMobile: false,
     loading: false,
+    // edition params
     showLeftPanel: true,
     anchorMode: false,
     stickyMode: false,
     routingMode: false,
+    cyclewayMode: false,
+    // general viz
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
-    cyclewayMode: false,
     outputName: 'output',
-    importPoly: null,
+    // Project specific
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     projectInfo: { description: '' },
     otherFiles: [], // [{path, content}]
     attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
+    // microservices
+    importPoly: null,
   }),
 
   actions: {
-    changeNotification (payload) {
+    changeNotification (payload: Notification) {
       this.notification = payload
     },
-    changeAlert (payload) {
+    changeAlert (payload: Error) {
       /// payload {name,message}, or just alert
       this.alert = payload
     },
-    changeDarkMode (payload) {
+    changeDarkMode (payload: boolean) {
       this.darkMode = payload
       const mapStore = useMapStore()
       const style = this.darkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11'
       mapStore.changeMapStyle(style)
     },
-    changeMobile (payload) {
+    changeMobile (payload: boolean) {
       this.isMobile = payload
     },
-    changeLoading (payload) {
+    changeLoading (payload: boolean) {
       this.loading = payload
     },
     changeLeftPanel () {
       this.showLeftPanel = !this.showLeftPanel
     },
-    setAnchorMode (payload) {
+    setAnchorMode (payload: boolean) {
       this.anchorMode = payload
     },
     changeAnchorMode () {
       this.anchorMode = !this.anchorMode
     },
-    setStickyMode(payload) {
+    setStickyMode(payload: boolean) {
       this.stickyMode = payload
     },
     changeStickyMode () {
       this.stickyMode = !this.stickyMode
     },
-    setRoutingMode(payload) {
+    setRoutingMode(payload: boolean) {
       this.routingMode = payload
     },
     changeRoutingMode () {
@@ -89,7 +95,7 @@ export const useIndexStore = defineStore('store', {
       this.cyclewayMode = !this.cyclewayMode
     },
 
-    loadFiles (payload) {
+    loadFiles (payload: FileFormat[]) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() || null })
 
       const linksStore = useLinksStore()
@@ -150,11 +156,11 @@ export const useIndexStore = defineStore('store', {
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
       } catch (err) {
-        this.changeAlert(err)
+        this.changeAlert(err as Error)
       }
     },
 
-    loadOtherFiles (payload) {
+    loadOtherFiles (payload: FileFormat[]) {
       // payload = [{path, content}]. transform to [{path,content,name,extension}]
       // if a file is updated with the same path (already exist). remove it
       const newPaths = payload.map(file => file.path)
@@ -171,12 +177,12 @@ export const useIndexStore = defineStore('store', {
       this.otherFiles = this.otherFiles.filter(file => !file.path.startsWith('outputs/'))
     },
 
-    deleteotherFiles (paths) {
+    deleteotherFiles (paths: string[]) {
       // list of paths
       this.otherFiles = this.otherFiles.filter(file => !paths.includes(file.path))
     },
 
-    async getOtherFile (name, extension) {
+    async getOtherFile (name: string, extension: string) {
       const files = this.otherFiles.filter(file => file.name === name)
       const file = files.filter(file => file.extension === extension)[0]
       // if its null. fetch it!
@@ -190,7 +196,7 @@ export const useIndexStore = defineStore('store', {
       return file.content
     },
 
-    loadAttributesChoices (payload) {
+    loadAttributesChoices (payload: GlobalAttributesChoice) {
       const links = useLinksStore()
       const rlinks = userLinksStore()
       // eslint-disable-next-line no-return-assign
@@ -201,7 +207,7 @@ export const useIndexStore = defineStore('store', {
       rlinks.loadrLinksAttributesChoices(payload.road)
     },
 
-    setVisibleRasters (payload) {
+    setVisibleRasters (payload: string[]) {
       // payload.forEach(el => arr.push({ item: el }))
       // this.visibleRasters = new Set(payload)
       this.visibleRasters = payload
@@ -214,15 +220,8 @@ export const useIndexStore = defineStore('store', {
       links.$reset()
       rlinks.$reset()
       od.$reset()
-      this.visibleRasters = []
-      this.styles = []
-      this.projectInfo = { description: '' }
-      this.attributesChoices = structuredClone(toRaw(defaultAttributesChoices))
-      this.loadAttributesChoices(defaultAttributesChoices)
-      this.otherFiles = []
-      this.cyclewayMode = false
-
       this.initOtherStores()
+      this.$reset()
     },
 
     initOtherStores() {
@@ -234,7 +233,7 @@ export const useIndexStore = defineStore('store', {
       runGTFSStore.clean()
     },
 
-    applySettings (payload) {
+    applySettings (payload: SettingsPayload) {
       const rlinksStore = userLinksStore()
       rlinksStore.ChangeDefaultValues({ highway: payload.defaultHighway, speed: Number(payload.roadSpeed) })
       this.linksPopupContent = payload.linksPopupContent
@@ -242,16 +241,16 @@ export const useIndexStore = defineStore('store', {
       this.outputName = payload.outputName
     },
 
-    changeOutputName (payload) {
+    changeOutputName (payload: string) {
       this.outputName = payload
     },
 
-    loadStyles (payload) {
+    loadStyles (payload: Style[]) {
       const json = stylesSerializer(payload)
       this.styles = json
     },
 
-    addStyle (payload) {
+    addStyle (payload: Style) {
       // payload: styling for results {name,layer, displaySettings:{...}}
       const names = this.styles.map(el => el.name)
       const idx = names.indexOf(payload.name)
@@ -262,17 +261,17 @@ export const useIndexStore = defineStore('store', {
       }
     },
 
-    deleteStyle (payload) {
+    deleteStyle (name: string) {
       // payload = name of the preset to delete
-      this.styles = this.styles.filter(el => el.name !== payload)
+      this.styles = this.styles.filter(el => el.name !== name)
     },
 
-    loadInfo (payload) {
+    loadInfo (payload: ProjectInfo) {
       const json = infoSerializer(payload)
       this.projectInfo = json
     },
 
-    saveImportPoly (payload) {
+    saveImportPoly (payload: ImportPoly) {
       this.importPoly = payload
     },
 
@@ -381,7 +380,7 @@ export const useIndexStore = defineStore('store', {
         })
     },
 
-    async exportToS3 (payload) {
+    async exportToS3 (payload: string) {
       // payload = 'inputs'. only export inputs
       // else no payload to export all.
       const linksStore = useLinksStore()
@@ -518,7 +517,7 @@ export const useIndexStore = defineStore('store', {
       if (!rlinks.rlinksIsEmpty) {
         availableLayers.push(...['rlinks', 'rnodes'])
       }
-      if (!od.layerIsEmpty === 0) {
+      if (!od.layerIsEmpty) {
         availableLayers.push('od')
       }
       state.otherFiles.filter(file => file.extension === 'geojson').forEach(file => {

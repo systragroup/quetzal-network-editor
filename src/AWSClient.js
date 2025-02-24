@@ -181,7 +181,7 @@ async function deleteObject (bucket, key) {
   return s3Client.deleteObject(deleteParams)
 }
 
-async function putObject (bucket, key, body = '') {
+async function putObject (bucket, key, body) {
   const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
   // if a json. already a string (we pass json.stringify()).

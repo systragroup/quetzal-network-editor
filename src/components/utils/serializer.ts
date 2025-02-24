@@ -2,6 +2,7 @@
 const $gettext = (s: string) => s
 import { GeoJson } from '@src/types/geojson'
 import { indexAreUnique, dropDuplicatesIndex } from './utils'
+import { ProjectInfo, Style } from '@src/types/typesStore'
 
 export function CRSis4326(geojson: GeoJson) {
   const arr = ['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326', 'urn:ogc:def:crs:EPSG:4326']
@@ -76,7 +77,7 @@ export function paramsSerializer (json: JSON) {
   return json
 }
 
-export function stylesSerializer (json: JSON) {
+export function stylesSerializer (json: Style[]) {
   if (!Array.isArray(json)) {
     // eslint-disable-next-line max-len
     const err = new Error($gettext('styles.json should be an array of object with at least [{name:,layer:}]'))
@@ -94,7 +95,7 @@ export function stylesSerializer (json: JSON) {
   return json
 }
 
-export function infoSerializer (json: JSON) {
+export function infoSerializer (json: ProjectInfo) {
   const keys = Object.keys(json)
   if (!keys.includes('description')) {
     const err = new Error($gettext('info.json should be of the form {description: ""}'))

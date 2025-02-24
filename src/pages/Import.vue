@@ -348,7 +348,6 @@ function loadNetwork (files) {
         <v-card-actions>
           <v-spacer />
           <v-btn
-            color="regular"
             @click="showDialog = !showDialog"
           >
             {{ $gettext("No") }}
