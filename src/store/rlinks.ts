@@ -18,6 +18,7 @@ import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes,
 import { baseLineString, basePoint, LineStringFeatures,
   LineStringGeoJson, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties, rlinksDefaultProperties } from '@src/constants/properties'
+import { simplifyGeometry } from '@src/components/utils/spatial'
 const $gettext = (s: string) => s
 
 // eslint-disable-next-line max-len
@@ -52,8 +53,7 @@ export const userLinksStore = defineStore('rlinks', {
       if (CRSis4326(this.rlinks)) {
         this.visiblerLinks = baseLineString()
         // limit geometry precision to 6 digit
-        this.rlinks.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-          points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+        simplifyGeometry(this.rlinks)
         this.filteredrCategory = []
         this.selectedrGroup = []
         this.getrLinksProperties()
@@ -67,8 +67,7 @@ export const userLinksStore = defineStore('rlinks', {
       if (CRSis4326(this.rnodes)) {
         this.visiblerNodes = basePoint()
         // limit geometry precision to 6 digit
-        this.rnodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-          coord => Math.round(Number(coord) * 1000000) / 1000000))
+        simplifyGeometry(this.rnodes)
 
         this.getrNodesProperties()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
@@ -104,8 +103,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     appendNewrLinks (payload: LineStringGeoJson) {
       // append new links and node to the project (import page)
-      payload.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-        points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+      simplifyGeometry(payload)
       // remove links with a == b
       payload.features = payload.features.filter(link => link.properties.a !== link.properties.b)
       payload.features.forEach(link => this.rlinks.features.push(link))
@@ -116,8 +114,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     appendNewrNodes (payload: PointGeoJson) {
       // append new links and node to the project (import page)
-      payload.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-        coord => Math.round(Number(coord) * 1000000) / 1000000))
+      simplifyGeometry(payload)
 
       payload.features.forEach(node => this.rnodes.features.push(node))
       this.getrNodesProperties()
