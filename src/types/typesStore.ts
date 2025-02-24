@@ -185,6 +185,7 @@ export interface LinksStore {
   editorLinks: LineStringGeoJson
   editorTrip: string | null
   period: string | null
+  periodChoices: string[]
   tripList: string[]
   selectedTrips: string[]
   connectedLinks: ConnectedLinks

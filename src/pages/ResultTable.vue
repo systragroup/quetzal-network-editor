@@ -1,6 +1,6 @@
 <script>
 import s3 from '../AWSClient'
-import { csvJSON } from '../components/utils/utils'
+import { csvJSON } from '../components/utils/io'
 import { ref, onMounted, toRaw } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'

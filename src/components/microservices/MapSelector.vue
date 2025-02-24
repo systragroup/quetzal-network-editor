@@ -155,7 +155,7 @@ function addNode (event) {
 }
 
 // Loading and uploading a geojson
-import { readFileAsText } from '@comp/utils/utils'
+import { readFileAsText } from '@comp/utils/io'
 import { serializer } from '@comp/utils/serializer'
 import saveAs from 'file-saver'
 

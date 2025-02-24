@@ -9,6 +9,7 @@ import { lineString, point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
 // eslint-disable-next-line max-len
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, getDifference } from '@comp/utils/utils'
+import { simplifyGeometry } from '@src/components/utils/spatial'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
@@ -33,6 +34,10 @@ export const useLinksStore = defineStore('links', {
     editorTrip: null,
     editorLinks: baseLineString(),
     editorNodes: basePoint(),
+    // periods
+    period: null, // variant
+    periodChoices: [],
+
     // filters
     tripList: [],
     selectedTrips: [],
@@ -50,8 +55,7 @@ export const useLinksStore = defineStore('links', {
       this.editorLinks = baseLineString()
       if (CRSis4326(this.links)) {
         // limit geometry precision to 6 digit
-        this.links.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-          points => points.map(coord => Math.round(coord * 1000000) / 1000000)))
+        simplifyGeometry(this.links)
 
         this.applyPropertiesTypes(this.links)
         this.getTripId()
@@ -69,8 +73,7 @@ export const useLinksStore = defineStore('links', {
       this.editorNodes = basePoint()
       if (CRSis4326(this.nodes)) {
         // limit geometry precision to 6 digit
-        this.nodes.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-          coord => Math.round(Number(coord) * 1000000) / 1000000))
+        simplifyGeometry(this.nodes)
 
         this.getNodesProperties()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
@@ -105,8 +108,7 @@ export const useLinksStore = defineStore('links', {
 
     appendNewLinks (payload: LineStringGeoJson) {
       // append new links to the project. payload = links geojson file
-      payload.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-        points => points.map(coord => Math.round(Number(coord) * 1000000) / 1000000)))
+      simplifyGeometry(payload)
 
       // this.links.features.push(...payload.links.features) will crash with large array (stack size limit)
       payload.features.forEach(link => this.links.features.push(link))
@@ -118,8 +120,7 @@ export const useLinksStore = defineStore('links', {
     },
     appendNewNodes (payload: PointGeoJson) {
       // append new nodes to the project. payload = nodes geojson file
-      payload.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-        coord => Math.round(Number(coord) * 1000000) / 1000000))
+      simplifyGeometry(payload)
 
       payload.features.forEach(node => this.nodes.features.push(node))
       this.getNodesProperties()
