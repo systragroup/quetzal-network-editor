@@ -112,13 +112,13 @@ async function submitForm() {
 }
 function quit() {
   showDialog.value = false
-  store.changeNotification(
-    { text: $gettext('modification applied'), autoClose: true, color: 'success' })
 }
 
 async function saveAndQuit() {
   await submitForm()
-  quit()
+  showDialog.value = false
+  store.changeNotification(
+    { text: $gettext('modification applied'), autoClose: true, color: 'success' })
 }
 
 // add

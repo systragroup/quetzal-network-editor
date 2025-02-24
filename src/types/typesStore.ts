@@ -1,6 +1,71 @@
 import { GroupForm } from './components'
 import { LineStringGeoJson, LineStringFeatures, PointGeoJson, PointFeatures } from './geojson'
 
+// indexStore
+
+export interface Notification {
+  text: string
+  autoClose?: boolean
+  color?: string
+  type?: string
+}
+export interface ImportPoly {
+  freeForm: boolean
+  poly: any
+}
+export interface Style {
+  name: string
+  layer: string
+  displaySettings: Record<string, any>
+}
+export interface ProjectInfo {
+  description: string
+}
+export interface FileFormat {
+  path: string
+  content: any
+}
+
+export interface OtherFiles extends FileFormat {
+  name: string
+  extension: string
+}
+
+export interface GlobalAttributesChoice {
+  pt: AttributesChoice
+  road: AttributesChoice
+}
+
+export interface SettingsPayload {
+  defaultHighway: string
+  roadSpeed: number
+  linksPopupContent: string[]
+  roadsPopupContent: string[]
+  outputName: string
+}
+
+export interface IndexStore {
+  notification: Notification
+  alert: Error | unknown
+  darkMode: boolean
+  isMobile: boolean
+  loading: boolean
+  showLeftPanel: boolean
+  anchorMode: boolean
+  stickyMode: boolean
+  routingMode: boolean
+  linksPopupContent: string[]
+  roadsPopupContent: string[]
+  cyclewayMode: boolean
+  outputName: string
+  importPoly: ImportPoly | null
+  visibleRasters: string[]
+  styles: Style[]
+  projectInfo: ProjectInfo
+  otherFiles: OtherFiles[]
+  attributesChoices: GlobalAttributesChoice
+}
+
 // payloads
 
 export type LinksAction = ''
@@ -119,6 +184,7 @@ export interface LinksStore {
   editorNodes: PointGeoJson
   editorLinks: LineStringGeoJson
   editorTrip: string | null
+  period: string | null
   tripList: string[]
   selectedTrips: string[]
   connectedLinks: ConnectedLinks
