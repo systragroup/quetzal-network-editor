@@ -47,7 +47,6 @@ onMounted(() => {
 })
 
 function fitBounds() {
-  console.time('bounds')
   // for empty (new) project, do not fit bounds around the links geometries.
   const bounds = new Mapbox.LngLatBounds()
   // only use first and last point. seems to bug when there is anchor...
@@ -62,10 +61,7 @@ function fitBounds() {
         link.geometry.coordinates[link.geometry.coordinates.length - 1]])
     })
   }
-  console.timeEnd('bounds')
-  console.time('fit')
   mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
-  console.timeEnd('fit')
 }
 
 function onMapLoaded (event) {

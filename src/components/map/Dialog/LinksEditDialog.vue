@@ -4,7 +4,6 @@ import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, onMounted, ref, watch } from 'vue'
-import { createHash } from 'sha256-uint8array'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import attributesUnits from '@constants/units.js'
@@ -13,15 +12,11 @@ import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
-import { getGroupForm, isScheduleTrip } from '@src/components/utils/utils'
+import { getGroupForm, isScheduleTrip, hash } from '@src/components/utils/utils'
 import { linksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
-
-function hashJson(body: Record<string, any>) {
-  return createHash().update(JSON.stringify(body)).digest('hex')
-}
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
@@ -40,6 +35,7 @@ const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 const typesMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
 const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
 
+console.log(linksStore.linksDefaultAttributes.map(el => el.name))
 const formRef = ref()
 
 const initialHash = ref()
@@ -67,7 +63,7 @@ watch(showDialog, (val) => {
 function init() {
   store.changeNotification({ text: '', autoClose: true })
   createForm()
-  initialHash.value = hashJson(editorForm.value)
+  initialHash.value = hash(JSON.stringify(editorForm.value))
   initialForm.value = cloneDeep(editorForm.value)
   showHint.value = false
   showDeleteOption.value = false
@@ -238,7 +234,7 @@ function toggleSchedule() {
 
 const showSaveDialog = ref(false)
 function toggle() {
-  if (hashJson(editorForm.value) == initialHash.value) {
+  if (hash(JSON.stringify(editorForm.value)) == initialHash.value) {
     toggleSchedule()
   } else {
     showSaveDialog.value = true
