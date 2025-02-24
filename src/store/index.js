@@ -15,7 +15,6 @@ import { infoSerializer, stylesSerializer } from '../components/utils/serializer
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
-import geojson from '@constants/geojson'
 import { deleteUnusedNodes } from '../components/utils/utils'
 const $gettext = (s) => s
 
@@ -208,17 +207,13 @@ export const useIndexStore = defineStore('store', {
       this.visibleRasters = payload
     },
 
-    initOD () {
-      const odStore = useODStore()
-      odStore.loadLayer(geojson)
-    },
-
     initNetworks () {
       const links = useLinksStore()
       const rlinks = userLinksStore()
+      const od = useODStore()
       links.$reset()
       rlinks.$reset()
-      this.initOD()
+      od.$reset()
       this.visibleRasters = []
       this.styles = []
       this.projectInfo = { description: '' }
