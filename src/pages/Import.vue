@@ -18,6 +18,7 @@ import { useUserStore } from '@src/store/user'
 import axios from 'axios'
 
 import { useGettext } from 'vue3-gettext'
+import { useODStore } from '@src/store/od'
 const { $gettext } = useGettext()
 
 const store = useIndexStore()
@@ -216,7 +217,8 @@ function loadNetwork (files) {
   // OD are overwrite. if a file is imported. just initOD.
   const ODFiles = files.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
   if (ODFiles.length > 0) {
-    store.initOD()
+    const ODStore = useODStore()
+    ODStore.$reset()
   }
   store.loadFiles(files)
   filesAdded.value = true
@@ -293,7 +295,7 @@ function loadNetwork (files) {
           <v-divider vertical />
           <v-col class="center-col">
             <FileLoader
-              @filesLoaded="(files) => loadNetwork(files)"
+              @files-loaded="(files) => loadNetwork(files)"
             />
             <v-divider />
             <Info />
@@ -326,7 +328,7 @@ function loadNetwork (files) {
 
           <v-col class="right-col">
             <FilesList
-              @filesLoaded="(files) => loadNetwork(files)"
+              @files-loaded="(files) => loadNetwork(files)"
             />
           </v-col>
         </v-row>

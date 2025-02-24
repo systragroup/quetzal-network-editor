@@ -233,6 +233,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     splitOneway () {
       if (this.rlineAttributes.includes('oneway')) {
+        // make sure oneway is '1' or '0'
         this.rlinks.features.forEach(link => {
           if ([true, 'true', '1', 1].includes(link.properties.oneway)) {
             link.properties.oneway = '1'
@@ -248,6 +249,7 @@ export const userLinksStore = defineStore('rlinks', {
         const newAttrs = reversedAttributes.filter(el => !this.reversedAttributes.includes(el))
         newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
 
+        // split oneway
         const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
         toSplit.forEach(link => {
           this.reversedAttributes.forEach(rattr => {
