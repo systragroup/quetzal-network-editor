@@ -1,5 +1,6 @@
 import { GroupForm } from '@src/types/components'
 import { GeoJson, GeoJsonFeature, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
+import { createHash } from 'sha256-uint8array'
 
 // Links Used in all
 
@@ -78,6 +79,10 @@ export function getDifference<T>(A: Set<T> | T[], B: Set<T> | T[]): T[] {
   let arrA = Array.isArray(A) ? A : Array.from(A)
   let setB = Array.isArray(B) ? new Set(B) : B
   return arrA.filter(i => !setB.has(i))
+}
+
+export function hash(body: string) {
+  return createHash().update(body).digest('hex')
 }
 
 // serializer

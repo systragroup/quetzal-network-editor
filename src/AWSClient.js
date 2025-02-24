@@ -7,7 +7,7 @@ import { Upload } from '@aws-sdk/lib-storage'
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
-import { createHash } from 'sha256-uint8array'
+import { hash } from './components/utils/utils'
 
 const USERPOOL_ID = import.meta.env.VITE_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
@@ -186,7 +186,7 @@ async function putObject (bucket, key, body) {
   const oldChecksum = await getChecksum(bucket, key)
   // if a json. already a string (we pass json.stringify()).
   // so only apply string to bytesArray. json.stringify crash with large array...
-  const newChecksum = createHash().update(body).digest('hex')
+  const newChecksum = hash(body)
   if (oldChecksum !== newChecksum) {
     const params = {
       Bucket: bucket,
@@ -202,7 +202,7 @@ async function putObject (bucket, key, body) {
 
 function uploadObject (bucket, key, body = '') {
   const userStore = useUserStore()
-  const checksum = createHash().update(body).digest('hex')
+  const checksum = hash(body)
   const params = {
     Bucket: bucket,
     Key: key,

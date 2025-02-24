@@ -5,8 +5,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
 import { cloneDeep } from 'lodash'
-import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss } from '@comp/utils/utils'
-import { createHash } from 'sha256-uint8array'
+import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, hash } from '@comp/utils/utils'
 
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
@@ -24,9 +23,6 @@ const tripKey = ref(0)
 const startTime = ref('08:00:00')
 
 const initialHash = ref()
-function hashJson(body) {
-  return createHash().update(JSON.stringify(body)).digest('hex')
-}
 
 function toSchedule(links) {
   let currentTime = hhmmssToSeconds(startTime.value)
@@ -40,7 +36,7 @@ function toSchedule(links) {
 watch(showSchedule, (val) => {
   if (val) { store.changeNotification({ text: '', autoClose: true })
     links.value = cloneDeep(linksStore.editorLinks)
-    initialHash.value = hashJson(links.value)
+    initialHash.value = hash(JSON.stringify(links.value))
     tripKey.value = 0
     if (!isScheduleTrip(links.value.features[0])) {
       // arrivals are undefined. Probably a headway based trip
@@ -247,7 +243,7 @@ function onMouseLeaveTripList() {
 
 const showSaveDialog = ref(false)
 function toggle() {
-  if (hashJson(links.value) == initialHash.value) {
+  if (hash(JSON.stringify(links.value)) == initialHash.value) {
     emit('toggle')
   } else {
     showSaveDialog.value = true
