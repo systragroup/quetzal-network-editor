@@ -1,6 +1,6 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable no-return-assign */
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
@@ -61,7 +61,7 @@ export const useLinksStore = defineStore('links', {
         this.getTripId()
 
         // set all trips visible
-        this.changeSelectedTrips(this.tripList)
+        this.selectedTrips = this.tripList
 
         this.getLinksProperties()
         this.calcSpeed()
@@ -116,10 +116,27 @@ export const useLinksStore = defineStore('links', {
       this.applyPropertiesTypes(this.links)
       this.getLinksProperties()
       this.getTripId()
-      this.changeSelectedTrips(this.tripList)
+      this.selectedTrips = this.tripList
+      // this.getVariants()
+      // this.applyVariant()
       this.calcSpeed()
       this.fixAllRoutingList()
     },
+
+    getVariants() {
+      const properties = Object.keys(this.links.features[0].properties)
+      const variants = properties.map(name => name.split('#')).filter(el => el.length > 1)
+      console.log(Array.from(new Set(variants.map(el => el[0]))))
+      this.periodChoices = Array.from(new Set(variants.map(el => el[1])))
+      if (this.periodChoices.length > 0) {
+        this.period = this.periodChoices[0]
+      }
+    },
+    applyVariant() {
+      const properties = this.lineAttributes.filter(name => name.endsWith(`#${this.period}`))
+      console.log(properties)
+    },
+
     appendNewNodes (payload: PointGeoJson) {
       // append new nodes to the project. payload = nodes geojson file
       simplifyGeometry(payload)
@@ -186,35 +203,30 @@ export const useLinksStore = defineStore('links', {
 
     addLinksPropertie (payload: NewAttribute) {
       // when a new line properties is added (in dataframe page)
-      this.links.features.map(link => link.properties[payload.name] = null)
-      this.editorLinks.features.map(link => link.properties[payload.name] = null)
+      this.links.features.forEach(link => link.properties[payload.name] = null)
+      this.editorLinks.features.forEach(link => link.properties[payload.name] = null)
       this.linksDefaultAttributes.push({ name: payload.name, type: 'String' })
     },
 
     addNodesPropertie (payload: NewAttribute) {
-      this.nodes.features.map(node => node.properties[payload.name] = null)
-      this.editorNodes.features.map(node => node.properties[payload.name] = null)
+      this.nodes.features.forEach(node => node.properties[payload.name] = null)
+      this.editorNodes.features.forEach(node => node.properties[payload.name] = null)
       this.nodesDefaultAttributes.push({ name: payload.name, type: 'String' })
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
-      this.links.features.filter(link => delete link.properties[payload.name])
-      this.editorLinks.features.filter(link => delete link.properties[payload.name])
+      this.links.features.forEach(link => delete link.properties[payload.name])
+      this.editorLinks.features.forEach(link => delete link.properties[payload.name])
       this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
     },
     deleteEditorLinksPropertie (payload: NewAttribute) {
-      this.editorLinks.features.filter(link => delete link.properties[payload.name])
+      this.editorLinks.features.forEach(link => delete link.properties[payload.name])
     },
 
     deleteNodesPropertie (payload: NewAttribute) {
-      this.nodes.features.filter(node => delete node.properties[payload.name])
-      this.editorNodes.features.filter(node => delete node.properties[payload.name])
+      this.nodes.features.forEach(node => delete node.properties[payload.name])
+      this.editorNodes.features.forEach(node => delete node.properties[payload.name])
       this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
-    },
-
-    changeSelectedTrips (payload: string[]) {
-      // trips list of visible trip_id.
-      this.selectedTrips = payload
     },
 
     setEditorTrip (selectedTrip: string | null) {
@@ -1016,3 +1028,7 @@ export const useLinksStore = defineStore('links', {
     nodeAttributes: (state) => state.nodesDefaultAttributes.map(attr => attr.name),
   },
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useLinksStore, import.meta.hot))
+}
