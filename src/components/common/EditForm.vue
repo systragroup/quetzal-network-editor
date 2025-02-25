@@ -10,7 +10,7 @@ interface Props {
   hints: Record<string, string>
   units: Record<string, string>
   types?: Record<string, AttributeTypes >
-  attributesChoices?: Record<string, any>
+  attributesChoices?: Record<string, any[]>
   attributeNonDeletable: string[]
   rules: any
   showDeleteOption: boolean
@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   hints: () => ({} as Record<string, string>),
   units: () => ({} as Record<string, string>),
   types: () => ({} as Record<string, AttributeTypes>),
-  attributesChoices: () => ({} as Record<string, any>),
+  attributesChoices: () => ({} as Record<string, any[]>),
   rules: () => {},
   attributeNonDeletable: () => [],
   showHint: false,
@@ -125,8 +125,9 @@ defineExpose({
             v-slot:append-inner
           >
             <MenuSelector
-              v-model:value="item.value"
+              v-model="item.value"
               :items="attributesChoices[key]"
+              size="small"
             />
           </template>
           <template
