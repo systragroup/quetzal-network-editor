@@ -19,9 +19,11 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
   FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
-  Attributes } from '@src/types/typesStore'
-import { baseLineString, basePoint, LineStringFeatures,
+  Attributes,
+  NonEmptyArray } from '@src/types/typesStore'
+import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
+import { initLengthTimeSpeed, calcLengthTime } from '@src/components/utils/network'
 
 const $gettext = (s: string) => s
 
@@ -34,10 +36,9 @@ export const useLinksStore = defineStore('links', {
     editorTrip: null,
     editorLinks: baseLineString(),
     editorNodes: basePoint(),
-    // periods
-    period: null, // variant
-    periodChoices: [],
-
+    // variant (periods)
+    variant: '',
+    variantChoice: [''], // should never be empty.
     // filters
     tripList: [],
     selectedTrips: [],
@@ -64,7 +65,7 @@ export const useLinksStore = defineStore('links', {
         this.selectedTrips = this.tripList
 
         this.getLinksProperties()
-        this.calcSpeed()
+        initLengthTimeSpeed(this.links, this.variantChoice)
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
@@ -112,27 +113,42 @@ export const useLinksStore = defineStore('links', {
 
       // this.links.features.push(...payload.links.features) will crash with large array (stack size limit)
       payload.features.forEach(link => this.links.features.push(link))
-      this.applyPropertiesTypes(this.links)
       this.getLinksProperties()
       this.getTripId()
       this.selectedTrips = this.tripList
-      // this.getVariants()
-      // this.applyVariant()
-      this.calcSpeed()
+      this.getVariants()
+      initLengthTimeSpeed(this.links, this.variantChoice)
+      this.applyPropertiesTypes(this.links)
     },
 
     getVariants() {
-      const properties = Object.keys(this.links.features[0].properties)
-      const variants = properties.map(name => name.split('#')).filter(el => el.length > 1)
-      console.log(Array.from(new Set(variants.map(el => el[0]))))
-      this.periodChoices = Array.from(new Set(variants.map(el => el[1])))
-      if (this.periodChoices.length > 0) {
-        this.period = this.periodChoices[0]
-      }
-    },
-    applyVariant() {
-      const properties = this.lineAttributes.filter(name => name.endsWith(`#${this.period}`))
-      console.log(properties)
+      // set default values to Variant attributes (ex: headway#AM has the default value of headway)
+      const variantAttributes = this.linksDefaultAttributes.filter(el => el.name.includes('#'))
+      variantAttributes.forEach(attr => {
+        const defaultName = attr.name.split('#')[0]
+        const defaultAttribute = this.linksDefaultAttributes.filter(el => el.name === defaultName)[0]
+        if (defaultAttribute) {
+          attr.value = defaultAttribute.value
+          attr.type = defaultAttribute.type
+        }
+      })
+      // get List of variants
+      // variantsChoice Cannot be empty. if none its ['']. This way,everyfunction will works
+      // ex: variantsChoice.forEach(variant => links.properties[`speed${variant}`])
+      // [`speed${variant}`] will be ['speed'] if no variants.
+      const variants = variantAttributes.map(el => el.name.split('#'))
+      const variantChoice = Array.from(new Set(variants.map(el => '#' + el[1]))) as NonEmptyArray<string>
+      this.variantChoice = variantChoice.length > 0 ? variantChoice as NonEmptyArray<string> : ['']
+
+      this.variant = this.variantChoice[0]
+
+      // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
+
+      const toDelete = new Set(variants.map(el => el[0]))
+      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(el => !toDelete.has(el.name))
+
+      // console.log(this.variantChoice)
+      // console.log(this.linksDefaultAttributes.map(el => el.name))
     },
 
     appendNewNodes (payload: PointGeoJson) {
@@ -159,36 +175,6 @@ export const useLinksStore = defineStore('links', {
       })
       const newAttrs = getDifference(header, this.nodeAttributes)
       newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: 'String' }))
-    },
-    calcSpeed () {
-      // calc length, time, speed.
-      this.links.features.forEach(link => {
-        // calc length from geometry length
-        const distance = length(link)
-        link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-        // if speed is provided. calc time with it
-        if (link.properties.speed) {
-          const time = distance / link.properties.speed * 3600
-          link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
-          // if no speed but time is provided. calc speed with it.
-        } else if (link.properties.time) {
-          const speed = link.properties.length / link.properties.time * 3.6
-          link.properties.speed = Number((speed).toFixed(6))
-          // no time or speed. fix speed to 20kmh and calc time with this.
-        } else {
-          const speed = 20 // kmh
-          link.properties.speed = speed
-          const time = distance / speed * 3600 // secs
-          link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
-        }
-      })
-    },
-
-    calcLengthTime(link: LineStringFeatures) {
-      const distance = length(link)
-      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
-      const time = distance / link.properties.speed * 3600 // 20kmh hard code speed. time in secs
-      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
     },
 
     loadLinksAttributesChoices (payload: AttributesChoice) {
@@ -467,7 +453,7 @@ export const useLinksStore = defineStore('links', {
       // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
       const { newLink, newNode } = this.createNewLink(payload)
-      this.calcLengthTime(newLink.features[0])
+      calcLengthTime(newLink.features[0])
       this.calcSchedule(newLink, payload.action)
       this.editorNodes.features.push(newNode.features[0])
       if (payload.action === 'Extend Line Upward') {
@@ -509,7 +495,7 @@ export const useLinksStore = defineStore('links', {
         const speed1 = Number(link1.properties.speed)
         const speed2 = Number(link2.properties.speed)
         link1.properties.speed = Number((speed1 * time1 + speed2 * time2) / (time1 + time2)).toFixed(6)
-        this.calcLengthTime(link1)
+        calcLengthTime(link1)
 
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = this.editorLinks.features.findIndex(
@@ -644,7 +630,7 @@ export const useLinksStore = defineStore('links', {
       const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
-      this.calcLengthTime(link)
+      calcLengthTime(link)
       // return the modified link (used for Routing)
       return link
     },
@@ -680,11 +666,11 @@ export const useLinksStore = defineStore('links', {
       // update links geometry.
       this.connectedLinks.b.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-        this.calcLengthTime(link)
+        calcLengthTime(link)
       })
       this.connectedLinks.a.forEach(link => {
         link.geometry.coordinates[0] = geom
-        this.calcLengthTime(link)
+        calcLengthTime(link)
       })
     },
 
@@ -696,7 +682,7 @@ export const useLinksStore = defineStore('links', {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
       // update time and distance
-      this.calcLengthTime(link)
+      calcLengthTime(link)
     },
 
     moveRoutingAnchor (payload: MoveNode) {
@@ -721,13 +707,13 @@ export const useLinksStore = defineStore('links', {
         (link) => {
           link.properties.a = stickyIndex
           link.geometry.coordinates[0] = geom
-          this.calcLengthTime(link)
+          calcLengthTime(link)
         })
       this.editorLinks.features.filter(link => link.properties.b === newNodeIndex).forEach(
         (link) => {
           link.properties.b = stickyIndex
           link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-          this.calcLengthTime(link)
+          calcLengthTime(link)
         })
     },
 
@@ -893,7 +879,7 @@ export const useLinksStore = defineStore('links', {
           this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
           ...link.geometry.coordinates.slice(1),
         ]
-        this.calcLengthTime(link)
+        calcLengthTime(link)
       }
       // same for nodes b
       const linksB = this.links.features.filter(
@@ -904,7 +890,7 @@ export const useLinksStore = defineStore('links', {
           ...link.geometry.coordinates.slice(0, -1),
           this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
         ]
-        this.calcLengthTime(link)
+        calcLengthTime(link)
       }
 
       // get tripId list

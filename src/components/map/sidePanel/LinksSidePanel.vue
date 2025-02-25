@@ -9,7 +9,7 @@ import { useRouting } from '@src/components/utils/routing/routing.js'
 import { userLinksStore } from '@src/store/rlinks'
 import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
-
+import MenuSelector from '@src/components/utils/MenuSelector.vue'
 const rlinksStore = userLinksStore()
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
@@ -18,8 +18,14 @@ const { $gettext } = useGettext()
 const maxSize = 200
 const store = useIndexStore()
 const linksStore = useLinksStore()
-const editorTrip = computed(() => { return linksStore.editorTrip })
-const tripList = computed(() => { return linksStore.tripList })
+const selectedVariant = computed({
+  get: () => linksStore.variant,
+  set: (val) => linksStore.variant = val,
+})
+const variantChoices = computed(() => linksStore.variantChoice)
+
+const editorTrip = computed(() => linksStore.editorTrip)
+const tripList = computed(() => linksStore.tripList)
 
 const selectedTrips = computed({
   get: () => linksStore.selectedTrips,
@@ -260,8 +266,15 @@ function setHighlight(trip: string | null) {
       </span>
 
       <v-spacer />
-
-      <v-spacer />
+      <MenuSelector
+        v-if="variantChoices.length>1"
+        v-model="selectedVariant"
+        :items="variantChoices"
+        :icon-open="'fas fa-calendar-minus'"
+        :icon-close="'fas fa-calendar-minus'"
+        :button-style="{color: 'white'}"
+      />
+      <v-spacer v-else />
       <v-menu
         open-on-hover
         close-delay="100"
@@ -273,7 +286,6 @@ function setHighlight(trip: string | null) {
             icon="fas fa-download"
             class="ma-2"
             :style="{color: 'white'}"
-
             v-bind="props"
           />
         </template>
