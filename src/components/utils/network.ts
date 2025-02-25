@@ -30,7 +30,7 @@ export function initLengthTimeSpeed(links: LineStringGeoJson, variants: NonEmpty
   })
 }
 
-export function calcLengthTime(linkFeature: LineStringFeatures, variants: NonEmptyArray<string> = ['']) {
+export function calcLengthTime(linkFeature: LineStringFeatures, variants: NonEmptyArray<string>) {
   // get length (geom)
   // get time from speed and geom
   const distance = length(linkFeature) // Km
