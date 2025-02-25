@@ -32,6 +32,7 @@ watch(isEditorMode, (val) => {
 
 watch(mode, (val) => {
   val !== 'pt' ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
+  contextMenu.value.showed = false
 })
 
 const links = computed(() => { return linksStore.links })
@@ -139,16 +140,18 @@ function selectLine (e) {
 }
 
 function rightClick (event) {
-  let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
-  selectedTrips = Array.from(new Set(selectedTrips))
-  leaveLink(event)
-  if (selectedTrips.length === 1) {
-    editLineProperties(selectedTrips[0])
-  } else {
-    contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
-    contextMenu.value.showed = true
-    contextMenu.value.action = 'editProperties'
-    contextMenu.value.features = selectedTrips
+  if (mode.value === 'pt') {
+    let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
+    selectedTrips = Array.from(new Set(selectedTrips))
+    leaveLink(event)
+    if (selectedTrips.length === 1) {
+      editLineProperties(selectedTrips[0])
+    } else {
+      contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+      contextMenu.value.showed = true
+      contextMenu.value.action = 'editProperties'
+      contextMenu.value.features = selectedTrips
+    }
   }
 }
 
