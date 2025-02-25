@@ -176,6 +176,7 @@ export interface Attributes {
 }
 
 export type AttributesChoice = Record<string, (string | number)[]>
+export type NonEmptyArray<T> = [T, ...T[]]
 
 export interface LinksStore {
   links: LineStringGeoJson
@@ -184,8 +185,8 @@ export interface LinksStore {
   editorNodes: PointGeoJson
   editorLinks: LineStringGeoJson
   editorTrip: string | null
-  period: string | null
-  periodChoices: string[]
+  variant: string
+  variantChoice: NonEmptyArray<string>
   tripList: string[]
   selectedTrips: string[]
   connectedLinks: ConnectedLinks
