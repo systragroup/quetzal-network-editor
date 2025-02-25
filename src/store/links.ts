@@ -8,7 +8,7 @@ import { lineString, point as Point } from '@turf/helpers'
 
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
 // eslint-disable-next-line max-len
-import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, getDifference } from '@comp/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage } from '@comp/utils/utils'
 import { simplifyGeometry } from '@src/components/utils/spatial'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
@@ -453,7 +453,7 @@ export const useLinksStore = defineStore('links', {
       // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
       const { newLink, newNode } = this.createNewLink(payload)
-      calcLengthTime(newLink.features[0])
+      calcLengthTime(newLink.features[0], this.variantChoice)
       this.calcSchedule(newLink, payload.action)
       this.editorNodes.features.push(newNode.features[0])
       if (payload.action === 'Extend Line Upward') {
@@ -471,31 +471,37 @@ export const useLinksStore = defineStore('links', {
       // changing link1 change editorLinks as it is an observer.
       const link1 = this.editorLinks.features.filter(link => link.properties.b === nodeIndex)[0] // link is extented
       const link2 = this.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0] // link is deleted
-      // if the last or first node is selected, there is only one link. The node and the link are deleted.
-      if (!link1) {
-        this.editorLinks.features = this.editorLinks.features.filter(
-          link => link.properties.index !== link2.properties.index)
-        // a link was remove, link_sequence -1
+
+      if (nodeIndex == this.firstNodeId)
+      {
+        this.editorLinks.features = this.editorLinks.features.filter(link => link.properties.a !== nodeIndex)
         this.editorLinks.features.forEach(link => link.properties.link_sequence -= 1)
-      } else if (!link2) {
-        this.editorLinks.features = this.editorLinks.features.filter(
-          link => link.properties.index !== link1.properties.index)
+      }
+      else if (nodeIndex == this.lastNodeId)
+      {
+        this.editorLinks.features = this.editorLinks.features.filter(link => link.properties.b !== nodeIndex)
         // the node is inbetween 2 links. 1 link is deleted, and the other is extented.
-      } else {
+      }
+      else
+      {
         link1.geometry.coordinates = [
           ...link1.geometry.coordinates.slice(0, -1),
           ...link2.geometry.coordinates.slice(1)]
         link1.properties.b = link2.properties.b
+
         if (isScheduleTrip(link1)) {
           link1.properties.arrivals = link2.properties.arrivals
         }
         // weighed average for speed. this help to have round value of speed (ex both 20kmh, at the end 20kmh)
-        const time1 = Number(link1.properties.time)
-        const time2 = Number(link2.properties.time)
-        const speed1 = Number(link1.properties.speed)
-        const speed2 = Number(link2.properties.speed)
-        link1.properties.speed = Number((speed1 * time1 + speed2 * time2) / (time1 + time2)).toFixed(6)
-        calcLengthTime(link1)
+        const links = [link1, link2]
+
+        this.variantChoice.forEach(v => {
+          const speedList = links.map(link => link.properties[`speed${v}`])
+          const timeList = links.map(link => link.properties[`time${v}`])
+          link1.properties[`speed${v}`] = weightedAverage(speedList, timeList)
+        })
+
+        calcLengthTime(link1, this.variantChoice)
 
         // find removed link index. drop everylinks link_sequence after by 1
         const featureIndex = this.editorLinks.features.findIndex(
@@ -630,7 +636,7 @@ export const useLinksStore = defineStore('links', {
       const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
-      calcLengthTime(link)
+      calcLengthTime(link, this.variantChoice)
       // return the modified link (used for Routing)
       return link
     },
@@ -666,11 +672,11 @@ export const useLinksStore = defineStore('links', {
       // update links geometry.
       this.connectedLinks.b.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-        calcLengthTime(link)
+        calcLengthTime(link, this.variantChoice)
       })
       this.connectedLinks.a.forEach(link => {
         link.geometry.coordinates[0] = geom
-        calcLengthTime(link)
+        calcLengthTime(link, this.variantChoice)
       })
     },
 
@@ -682,7 +688,7 @@ export const useLinksStore = defineStore('links', {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
       // update time and distance
-      calcLengthTime(link)
+      calcLengthTime(link, this.variantChoice)
     },
 
     moveRoutingAnchor (payload: MoveNode) {
@@ -707,13 +713,13 @@ export const useLinksStore = defineStore('links', {
         (link) => {
           link.properties.a = stickyIndex
           link.geometry.coordinates[0] = geom
-          calcLengthTime(link)
+          calcLengthTime(link, this.variantChoice)
         })
       this.editorLinks.features.filter(link => link.properties.b === newNodeIndex).forEach(
         (link) => {
           link.properties.b = stickyIndex
           link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-          calcLengthTime(link)
+          calcLengthTime(link, this.variantChoice)
         })
     },
 
@@ -879,7 +885,7 @@ export const useLinksStore = defineStore('links', {
           this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
           ...link.geometry.coordinates.slice(1),
         ]
-        calcLengthTime(link)
+        calcLengthTime(link, this.variantChoice)
       }
       // same for nodes b
       const linksB = this.links.features.filter(
@@ -890,7 +896,7 @@ export const useLinksStore = defineStore('links', {
           ...link.geometry.coordinates.slice(0, -1),
           this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
         ]
-        calcLengthTime(link)
+        calcLengthTime(link, this.variantChoice)
       }
 
       // get tripId list
