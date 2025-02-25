@@ -35,7 +35,6 @@ const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 const typesMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
 const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
 
-console.log(linksStore.linksDefaultAttributes.map(el => el.name))
 const formRef = ref()
 
 const initialHash = ref()

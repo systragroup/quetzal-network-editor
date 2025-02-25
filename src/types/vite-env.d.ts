@@ -4,4 +4,5 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: any
+  readonly hot: any
 }

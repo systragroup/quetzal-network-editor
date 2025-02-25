@@ -107,6 +107,7 @@ defineExpose({
           :units="units[key]"
           :suffix="units[key]"
           :rules="rules[key]"
+          :precision="null"
           :prepend-inner-icon="['length','speed','time'].includes(key) ? 'fas fa-calculator' : '' "
           :label="String(key)"
           @change="change(key)"

@@ -4,7 +4,6 @@ import short from 'short-uuid'
 import { ref, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
-import { cloneDeep } from 'lodash'
 import { useGettext } from 'vue3-gettext'
 import { useRouting } from '@src/components/utils/routing/routing.js'
 import { userLinksStore } from '@src/store/rlinks'
@@ -20,32 +19,29 @@ const maxSize = 200
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const editorTrip = computed(() => { return linksStore.editorTrip })
+const tripList = computed(() => { return linksStore.tripList })
 
-const selectedTrips = computed(() => { return linksStore.selectedTrips })
-const localSelectedTrip = ref(cloneDeep(selectedTrips.value))
-
-watch(localSelectedTrip, (val) => {
-  linksStore.changeSelectedTrips(val)
+const selectedTrips = computed({
+  get: () => linksStore.selectedTrips,
+  set: (val) => linksStore.selectedTrips = val,
 })
 
 function showAll () {
-  if (localSelectedTrip.value.length === tripId.value.length) {
-    localSelectedTrip.value = []
+  if (selectedTrips.value.length === tripList.value.length) {
+    selectedTrips.value = []
   } else {
-    localSelectedTrip.value = tripId.value
+    selectedTrips.value = tripList.value
   }
 }
 
-const tripId = computed(() => { return linksStore.tripList })
-
-watch(tripId, (newVal, oldVal) => {
+watch(tripList, (newVal, oldVal) => {
   if (newVal.length < oldVal.length) {
     // if a trip is deleted. we remove it, no remapping.
-    localSelectedTrip.value = localSelectedTrip.value.filter((trip) => newVal.includes(trip))
+    selectedTrips.value = selectedTrips.value.filter((trip) => newVal.includes(trip))
   } else if (newVal.length > oldVal.length) {
     // if a trip is added, we add it!
     const newTrip = newVal.filter(item => !oldVal.includes(item))[0]
-    localSelectedTrip.value = [...localSelectedTrip.value, newTrip]
+    selectedTrips.value = [...selectedTrips.value, newTrip]
   } else {
     // if a trip name changes.
     // update localSelectedTrip v-model when a trip_id is changed.
@@ -54,7 +50,7 @@ watch(tripId, (newVal, oldVal) => {
       function (key, i) {
         dict[key] = newVal[i]
       })
-    localSelectedTrip.value = localSelectedTrip.value.map((trip) => dict[trip])
+    selectedTrips.value = selectedTrips.value.map((trip) => dict[trip])
   }
 })
 // filters (route_type)
@@ -72,9 +68,6 @@ function toggleGroup (e: Group) {
   if (e.isOpen) {
     ShowGroupList.value.add(e.key)
   } else {
-    // dont remove them. its not a bottleeck to have unused one.
-    // it can be tricky with the animation and bouble click...
-    // nextTick(() => { ShowGroupList.value.delete(e.key) })
   }
 }
 
@@ -128,11 +121,11 @@ const classifiedTripId = computed(() => {
 
 function showGroup (val: string[]) {
   // at least one value is selected in the group : uncheck all
-  if (val.some(value => localSelectedTrip.value.includes(value))) {
-    localSelectedTrip.value = localSelectedTrip.value.filter(trip => !val.includes(trip))
+  if (val.some(value => selectedTrips.value.includes(value))) {
+    selectedTrips.value = selectedTrips.value.filter(trip => !val.includes(trip))
     // none are selected : select All.
   } else {
-    localSelectedTrip.value = Array.from(new Set([...localSelectedTrip.value, ...val]))
+    selectedTrips.value = Array.from(new Set([...selectedTrips.value, ...val]))
   }
 }
 
@@ -166,7 +159,9 @@ function createNewLine () {
 
 function confirmChanges() {
   linksStore.confirmChanges()
-  store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' }) }
+  linksStore.setEditorTrip(null)
+  store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' })
+}
 
 function abortChanges () {
   linksStore.setEditorTrip(null)
@@ -230,7 +225,7 @@ function setHighlight(trip: string | null) {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="localSelectedTrip.length === tripId.length ? 'fa-eye fa' : 'fa-eye-slash fa' "
+            :icon="selectedTrips.length === tripList.length ? 'fa-eye fa' : 'fa-eye-slash fa' "
             class="ma-2 "
             :style="{color: 'white'}"
 
@@ -238,7 +233,7 @@ function setHighlight(trip: string | null) {
             @click="showAll()"
           />
         </template>
-        <span>{{ localSelectedTrip.length === tripId.length? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ selectedTrips.length === tripList.length? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         location="bottom"
@@ -251,9 +246,9 @@ function setHighlight(trip: string | null) {
             class="ma-2"
             :style="{color: 'white'}"
 
-            :disabled="localSelectedTrip.length===0? true: false"
+            :disabled="selectedTrips.length===0? true: false"
             v-bind="props"
-            @click="propertiesButton(localSelectedTrip,'Edit Group Info')"
+            @click="propertiesButton(selectedTrips,'Edit Group Info')"
           />
         </template>
         <span>{{ $gettext("Edit Visibles Properties") }}</span>
@@ -365,7 +360,7 @@ function setHighlight(trip: string | null) {
                   <template v-slot:activator="{ props:hover }">
                     <v-btn
                       variant="text"
-                      :icon="value.tripId.some(val => localSelectedTrip.includes(val))
+                      :icon="value.tripId.some(val => selectedTrips.includes(val))
                         ? 'fa-eye fa' :
                           'fa-eye-slash fa' "
 
@@ -374,7 +369,7 @@ function setHighlight(trip: string | null) {
                     />
                   </template>
                   <span>
-                    {{ value.tripId.some(val => localSelectedTrip.includes(val))
+                    {{ value.tripId.some(val => selectedTrips.includes(val))
                       ? $gettext("Hide All"):
                         $gettext("Show All") }}
                   </span>
@@ -436,7 +431,7 @@ function setHighlight(trip: string | null) {
                 @mouseleave="setHighlight(null)"
               >
                 <v-checkbox
-                  v-model="localSelectedTrip"
+                  v-model="selectedTrips"
                   class="ml-4 mr-2"
                   :true-icon="'fa-eye fa'"
                   :false-icon="'fa-eye-slash fa'"

@@ -2,12 +2,12 @@
 <script setup>
 import { MglGeojsonLayer, MglPopup, MglImageLayer } from 'vue-mapbox3'
 import mapboxgl from 'mapbox-gl'
-import { cloneDeep } from 'lodash'
 import { deleteUnusedNodes } from '@comp/utils/utils'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
-import geojson from '@constants/geojson'
+import { useHighlight } from '../../composables/useHighlight'
+import { baseLineString, basePoint } from '@src/types/geojson'
 
 const props = defineProps(['map', 'isEditorMode', 'mode'])
 const store = useIndexStore()
@@ -33,49 +33,25 @@ watch(isEditorMode, (val) => {
 watch(mode, (val) => {
   val !== 'pt' ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
 })
+
 const links = computed(() => { return linksStore.links })
 const nodes = computed(() => { return linksStore.nodes })
 const selectedPopupContent = computed(() => { return store.linksPopupContent })
-const showedTrips = computed(() => { return linksStore.selectedTrips })
+const showedTrips = computed(() => new Set(linksStore.selectedTrips))
 watch(showedTrips, () => { setHiddenFeatures() })
 
-const visibleNodes = ref(cloneDeep(geojson))
-const visibleLinks = ref(cloneDeep(geojson))
+const visibleNodes = ref(basePoint())
+const visibleLinks = ref(baseLineString())
+
 const selectedFeatures = ref([])
-const popup = ref(null)
 
 onMounted(() => {
   setHiddenFeatures()
 })
 
-function enterLink (event) {
-  event.map.getCanvas().style.cursor = 'pointer'
-  selectedFeatures.value = event.mapboxEvent.features
-
-  if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
-  if (selectedPopupContent.value.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
-    // if multiple map element under the mouse. show them all in the popup
-    let htmlContent = []
-    selectedFeatures.value.forEach(feature => {
-      const text = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties[prop]}</b>`)
-      htmlContent.push(...text)
-    })
-    htmlContent = htmlContent.join('<br> ')
-    popup.value = new mapboxgl.Popup({ closeButton: false })
-      .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-      .setHTML(`<p>${htmlContent}</p>`)
-      .addTo(event.map)
-  }
-}
-function leaveLink (event) {
-  selectedFeatures.value = []
-  if (popup.value?.isOpen()) popup.value.remove()
-  event.map.getCanvas().style.cursor = ''
-}
 function setHiddenFeatures () {
   // get visible links and nodes.
-  const showedTripsSet = new Set(showedTrips.value)
-  visibleLinks.value.features = links.value.features.filter(link => showedTripsSet.has(link.properties.trip_id))
+  visibleLinks.value.features = links.value.features.filter(link => showedTrips.value.has(link.properties.trip_id))
   visibleNodes.value.features = deleteUnusedNodes(visibleNodes.value, visibleLinks.value)
 
   // get all unique width
@@ -101,11 +77,35 @@ function setHiddenFeatures () {
     visibleNodes.value.features.push(...newNodes)
   })
   linksStore.setVisibleNodes(visibleNodes.value)
-
   map.value.getSource('links').setData(visibleLinks.value)
   map.value.getSource('nodes').setData(visibleNodes.value)
+}
 
-  // const endTime = performance.now()
+const popup = ref(null)
+
+function enterLink (event) {
+  event.map.getCanvas().style.cursor = 'pointer'
+  selectedFeatures.value = event.mapboxEvent.features
+
+  if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
+  if (selectedPopupContent.value.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+    // if multiple map element under the mouse. show them all in the popup
+    let htmlContent = []
+    selectedFeatures.value.forEach(feature => {
+      const text = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties[prop]}</b>`)
+      htmlContent.push(...text)
+    })
+    htmlContent = htmlContent.join('<br> ')
+    popup.value = new mapboxgl.Popup({ closeButton: false })
+      .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+      .setHTML(`<p>${htmlContent}</p>`)
+      .addTo(event.map)
+  }
+}
+function leaveLink (event) {
+  selectedFeatures.value = []
+  if (popup.value?.isOpen()) popup.value.remove()
+  event.map.getCanvas().style.cursor = ''
 }
 
 function selectLine (e) {
@@ -160,7 +160,6 @@ function editLineProperties (selectedTrip) {
   openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false, type: 'pt' })
 }
 
-import { useHighlight } from '../../composables/useHighlight'
 const { highlightTrip, setHighlightTrip } = useHighlight()
 
 function contextMenuClick(trip) {
@@ -176,7 +175,7 @@ function contextMenuClick(trip) {
   }
 }
 watch(highlightTrip, (trip) => {
-  const highlightLinks = cloneDeep(geojson)
+  const highlightLinks = baseLineString()
   highlightLinks.features = visibleLinks.value.features.filter(el => el.properties.trip_id === trip)
   map.value.getSource('highlightLink').setData(highlightLinks)
 })
@@ -248,7 +247,7 @@ watch(highlightTrip, (trip) => {
       :reactive="false"
       :source="{
         type: 'geojson',
-        data: geojson,
+        data: baseLineString(),
         promoteId: 'index',
       }"
       layer-id="highlightLink"
