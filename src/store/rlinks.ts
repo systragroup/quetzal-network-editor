@@ -7,7 +7,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes, getDifference } from '@comp/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, getDifference, round } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
@@ -566,9 +566,9 @@ export const userLinksStore = defineStore('rlinks', {
       const distance = length(linkGeometry)
       const speed = Number(linkProperties.speed)
       const time = distance / speed * 3600 // 20kmh hard code speed. time in secs
-      linkProperties.length = Number((distance * 1000).toFixed(0)) // metres
-      linkProperties.time = Number(time.toFixed(0)) // rounded to 0 decimals
-      linkProperties.speed = Number(speed) // rounded to 0 decimals
+      linkProperties.length = round(distance * 1000, 0) // metres
+      linkProperties.time = round(time, 0)
+      linkProperties.speed = round(speed, 0)
       if (this.rlineAttributes.includes('oneway')) {
         linkProperties.oneway = '0'
         this.reversedAttributes.forEach(
@@ -623,14 +623,14 @@ export const userLinksStore = defineStore('rlinks', {
         link.geometry.coordinates = [...link.geometry.coordinates.slice(0, -1), payload.lngLat]
         // update time and distance
         const distance = length(link)
-        link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+        link.properties.length = round(distance * 1000, 0) // metres
         // const time = distance / this.roadSpeed * 3600 // 20kmh hard code speed. time in secs
         const time = distance / link.properties.speed * 3600
-        link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        link.properties.time = round(time, 0)
         // add reverse direction time and length if it exist on the link
         if (link.properties.time_r) {
           const rtime = distance / link.properties.speed_r * 3600
-          link.properties.time_r = Number(rtime.toFixed(0)) // rounded to 0 decimals
+          link.properties.time_r = round(rtime, 0) // rounded to 0 decimals
         }
         if (link.properties.length_r) link.properties.length_r = link.properties.length
       })
@@ -638,14 +638,14 @@ export const userLinksStore = defineStore('rlinks', {
         link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
         // update time and distance
         const distance = length(link)
-        link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+        link.properties.length = round(distance * 1000, 0) // metres
         // const time = distance / this.roadSpeed * 3600 // 20kmh hard code speed. time in secs
         const time = distance / link.properties.speed * 3600
-        link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+        link.properties.time = round(time, 0) // rounded to 0 decimals
         // add reverse direction time and length if it exist on the link
         if (link.properties.time_r) {
           const rtime = distance / link.properties.speed_r * 3600
-          link.properties.time_r = Number(rtime.toFixed(0)) // rounded to 0 decimals
+          link.properties.time_r = round(rtime, 0) // rounded to 0 decimals
         }
         if (link.properties.length_r) link.properties.length_r = link.properties.length
       })
@@ -662,9 +662,9 @@ export const userLinksStore = defineStore('rlinks', {
 
       // update time and distance
       const distance = length(link)
-      link.properties.length = Number((distance * 1000).toFixed(0)) // metres
+      link.properties.length = round(distance * 1000, 0) // metres
       const time = distance / Number(link.properties.speed) * 3600
-      link.properties.time = Number(time.toFixed(0)) // rounded to 0 decimals
+      link.properties.time = round(time, 0)
       this.updateLinks = [link]
     },
     deleteAnchorrNode (payload: SelectedNode) {

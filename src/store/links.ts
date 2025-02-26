@@ -7,10 +7,11 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-// eslint-disable-next-line max-len
-import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage } from '@comp/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
+  hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage, round } from '@comp/utils/utils'
 import { simplifyGeometry } from '@src/components/utils/spatial'
 import { cloneDeep } from 'lodash'
+
 import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
 import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties'
@@ -770,7 +771,7 @@ export const useLinksStore = defineStore('links', {
         this.editorLinks.features.forEach(
           (features) => {
             const time = features.properties.length / payload.speed.value * 3.6
-            features.properties.time = Number((time).toFixed(0))
+            features.properties.time = round(time, 0)
           },
         )
       }
@@ -828,7 +829,7 @@ export const useLinksStore = defineStore('links', {
         tempLinks.forEach(
           (features) => {
             const time = features.properties.length / editorGroupInfo.speed.value * 3.6
-            features.properties.time = Number((time).toFixed(0))
+            features.properties.time = round(time, 0)
           },
         )
       }

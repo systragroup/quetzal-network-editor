@@ -88,7 +88,11 @@ export function hash(body: string) {
 export function weightedAverage(values: number[], weights: number[]) {
   const weightedSum = values.reduce((sum, val, i) => sum + val * weights[i], 0)
   const totalWeight = weights.reduce((sum, w) => sum + w, 0)
-  return Number(weightedSum / totalWeight).toFixed(6)
+  return round(weightedSum / totalWeight, 6)
+}
+
+export function round(value: number, precision: number = 0) {
+  Number((value).toFixed(precision))
 }
 
 // serializer
