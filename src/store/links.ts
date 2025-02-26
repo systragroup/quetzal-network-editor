@@ -485,6 +485,7 @@ export const useLinksStore = defineStore('links', {
       }
       else
       {
+        // merge link2 on link1 then delete link2
         link1.geometry.coordinates = [
           ...link1.geometry.coordinates.slice(0, -1),
           ...link2.geometry.coordinates.slice(1)]
@@ -493,58 +494,53 @@ export const useLinksStore = defineStore('links', {
         if (isScheduleTrip(link1)) {
           link1.properties.arrivals = link2.properties.arrivals
         }
-        // weighed average for speed. this help to have round value of speed (ex both 20kmh, at the end 20kmh)
         const links = [link1, link2]
-
         this.variantChoice.forEach(v => {
           const speedList = links.map(link => link.properties[`speed${v}`])
           const timeList = links.map(link => link.properties[`time${v}`])
+          // weighed average for speed. this help to have round value of speed (ex both 20kmh, at the end 20kmh)
           link1.properties[`speed${v}`] = weightedAverage(speedList, timeList)
         })
 
         calcLengthTime(link1, this.variantChoice)
 
+        const toDeleteIndex = link2.properties.index
         // find removed link index. drop everylinks link_sequence after by 1
-        const featureIndex = this.editorLinks.features.findIndex(
-          link => link.properties.index === link2.properties.index)
-        this.editorLinks.features.slice(featureIndex).forEach(
-          link => link.properties.link_sequence -= 1)
+        const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === toDeleteIndex)
+        this.editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence -= 1)
         // delete link2
         this.editorLinks.features = this.editorLinks.features.filter(
-          link => link.properties.index !== link2.properties.index)
-        // return modified link index (undefined if first or last node is deleted)
+          link => link.properties.index !== toDeleteIndex)
+        // return modified link (undefined if first or last node is deleted)
         return link1
       }
     },
 
     splitLink (payload: SplitLinkPayload) {
       const linkIndex = payload.selectedLink.index
+      const sliceIndex = payload.sliceIndex
+      const ratio = payload.offset // point distance (entre 0 et 1) on the original link
       const newNode = payload.newNode.features[0]
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
-      // changing link1 change editorLinks as it is an observer.
       const link1 = this.editorLinks.features[featureIndex] // this link is extented
       const link2 = cloneDeep(link1)
-      // distance du point (entre 0 et 1) sur le lien original
-      const ratio = payload.offset
+      link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
 
       link1.properties.b = newNode.properties.index
       link1.geometry.coordinates = [
-        ...link1.geometry.coordinates.slice(0, payload.sliceIndex),
+        ...link1.geometry.coordinates.slice(0, sliceIndex),
         newNode.geometry.coordinates,
       ]
-
-      link1.properties.index = 'link_' + short.generate() // link1.properties.index+ '-1'
-      link1.properties.length = link1.properties.length * ratio
-      link1.properties.time = link1.properties.time * ratio
 
       link2.properties.a = newNode.properties.index
       link2.geometry.coordinates = [
         newNode.geometry.coordinates,
-        ...link2.geometry.coordinates.slice(payload.sliceIndex),
+        ...link2.geometry.coordinates.slice(sliceIndex),
       ]
-      link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
-      link2.properties.length = link2.properties.length * (1 - ratio)
-      link2.properties.time = link2.properties.time * (1 - ratio)
+
+      // new Geom. calc length and time with speed.
+      calcLengthTime(link1, this.variantChoice)
+      calcLengthTime(link2, this.variantChoice)
 
       if (isScheduleTrip(link1)) {
         const departures = link1.properties.departures.map((el: string) => hhmmssToSeconds(el))
@@ -555,17 +551,13 @@ export const useLinksStore = defineStore('links', {
           link2.properties.departures[i] = secondsTohhmmss(midPoint)
         }
       }
-
+      // add new node and link
       this.editorLinks.features.splice(featureIndex + 1, 0, link2)
       this.editorNodes.features.push(newNode)
 
-      // add +1 to every link sequence afer link1
-      const seq = link1.properties.link_sequence
-      // everything after link1 except link2
-      this.editorLinks.features.filter(link => link.properties.link_sequence > seq).forEach(
-        link => link.properties.link_sequence += 1)
-      // add link2 sequence after.
-      link2.properties.link_sequence += 1
+      // add +1 to every link sequence after link1
+      // this assume the links are in order. which is the case (set qhen set editorTrip)
+      this.editorLinks.features.slice(featureIndex + 1).forEach(link => link.properties.link_sequence += 1)
     },
 
     addNodeInline (payload: AddNodeInlinePayload) {
@@ -724,37 +716,20 @@ export const useLinksStore = defineStore('links', {
         })
     },
 
-    cutLineFromNode (payload: SelectedNode) {
-      // Filter links from selected line
+    cutLineAfterNode (payload: SelectedNode) {
       const nodeId = payload.selectedNode.index
-      this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-
-      let toDelete: Record<string, any>[] = []
-      for (const [i, link] of this.editorLinks.features.entries()) {
-        if (link.properties.b === nodeId) {
-          toDelete = this.editorLinks.features.slice(i + 1)
-          break
-        }
-      }
-      // Delete links
-      this.editorLinks.features = this.editorLinks.features.filter(item => !toDelete.includes(item))
+      const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
+      // Delete links (assuming order)
+      this.editorLinks.features = this.editorLinks.features.slice(0, featureIndex)
       this.getEditorNodes(this.editorNodes)
     },
 
-    cutLineAtNode (payload: SelectedNode) {
+    cutLineBeforeNode (payload: SelectedNode) {
       // Filter links from selected line
       const nodeId = payload.selectedNode.index
-      this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-
-      let toDelete: Record<string, any>[] = []
-      for (const [i, link] of this.editorLinks.features.entries()) {
-        if (link.properties.a === nodeId) {
-          toDelete = this.editorLinks.features.slice(0, i)
-          break
-        }
-      }
-      // Delete links
-      this.editorLinks.features = this.editorLinks.features.filter(item => !toDelete.includes(item))
+      const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
+      // Delete links (assuming order)
+      this.editorLinks.features = this.editorLinks.features.slice(featureIndex)
       this.getEditorNodes(this.editorNodes)
     },
 
@@ -922,15 +897,11 @@ export const useLinksStore = defineStore('links', {
     },
 
     deleteTrips (tripList: string[]) {
-      // payload = a single trip_id or a list or trips_id
-      // if its a list : delete all of them. else: delete single trip
       this.links.features = this.links.features.filter(link => !tripList.includes(link.properties.trip_id))
-
-      // delete every every nodes not in links
       this.deleteUnusedNodes()
-      // get tripId list
       this.getTripId()
     },
+
     applyPropertiesTypes (links: LineStringGeoJson) {
       for (const attr of this.linksDefaultAttributes) {
         for (const link of links.features) {

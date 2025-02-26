@@ -1,5 +1,5 @@
 import { GroupForm } from './components'
-import { LineStringGeoJson, LineStringFeatures, PointGeoJson, PointFeatures } from './geojson'
+import { LineStringGeoJson, LineStringFeatures, PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
 
 // indexStore
 
@@ -124,11 +124,11 @@ export interface NewNodePayload {
 }
 
 export interface SelectedNode {
-  selectedNode: { [key: string]: any }
+  selectedNode: GeoJsonProperties
 }
 
 export interface SelectedLink {
-  selectedLink: { [key: string]: any }
+  selectedLink: GeoJsonProperties
 }
 
 export interface SplitLinkPayload extends SelectedLink {
