@@ -178,10 +178,10 @@ function linkRightClick () {
 function actionClick (event) {
   switch (event.action) {
     case 'Cut Before Node':
-      linksStore.cutLineAtNode({ selectedNode: event.feature.properties })
+      linksStore.cutLineBeforeNode({ selectedNode: event.feature.properties })
       break
     case 'Cut After Node':
-      linksStore.cutLineFromNode({ selectedNode: event.feature.properties })
+      linksStore.cutLineAfterNode({ selectedNode: event.feature.properties })
       break
     case 'Delete Stop':
       const modLink = linksStore.deleteNode({ selectedNode: event.feature.properties })

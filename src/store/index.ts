@@ -238,7 +238,7 @@ export const useIndexStore = defineStore('index', {
       rlinksStore.ChangeDefaultValues({ highway: payload.defaultHighway, speed: Number(payload.roadSpeed) })
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent
-      this.outputName = payload.outputName
+      this.changeOutputName(payload.outputName)
     },
 
     changeOutputName (payload: string) {
