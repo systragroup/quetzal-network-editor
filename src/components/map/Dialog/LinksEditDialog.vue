@@ -12,7 +12,7 @@ import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
-import { getGroupForm, isScheduleTrip, hash } from '@src/components/utils/utils'
+import { getGroupForm, isScheduleTrip, hash, round } from '@src/components/utils/utils'
 import { linksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
@@ -154,24 +154,24 @@ function cancel() {
 function change (key: string) {
   switch (key) {
     case 'speed':
-      editorForm.value.speed.value = Number(editorForm.value.speed.value).toFixed(6)
+      editorForm.value.speed.value = round(editorForm.value.speed.value, 6)
       const time = editorForm.value.length.value / editorForm.value.speed.value * 3.6
       if (!editorForm.value.time.placeholder) {
-        editorForm.value.time.value = Number(time.toFixed(0))
+        editorForm.value.time.value = round(time, 0)
       }
       break
     case 'time':
-      editorForm.value.time.value = Number(editorForm.value.time.value).toFixed(0)
+      editorForm.value.time.value = round(editorForm.value.time.value, 0)
       const speed = editorForm.value.length.value / editorForm.value.time.value * 3.6
       if (!editorForm.value.speed.placeholder) {
-        editorForm.value.speed.value = Number(speed.toFixed(6))
+        editorForm.value.speed.value = round(speed, 6)
       }
       break
     case 'length':
-      editorForm.value.length.value = Number(editorForm.value.length.value).toFixed(0)
+      editorForm.value.length.value = round(editorForm.value.length.value, 0)
       const time2 = editorForm.value.length.value / editorForm.value.speed.value * 3.6
       if (!editorForm.value.placeholder) {
-        editorForm.value.time.value = Number(time2.toFixed(0))
+        editorForm.value.time.value = round(time2, 0)
       }
       break
   }
