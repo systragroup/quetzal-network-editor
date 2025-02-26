@@ -31,8 +31,8 @@ export function initLengthTimeSpeed(links: LineStringGeoJson, variants: NonEmpty
 }
 
 export function calcLengthTime(linkFeature: LineStringFeatures, variants: NonEmptyArray<string>) {
-  // get length (geom)
-  // get time from speed and geom
+  // get length (geom) then round
+  // get time from speed and geom (not rounded)
   const distance = length(linkFeature) // Km
   linkFeature.properties.length = round(distance * 1000, 0) // metres
   variants.forEach(v => {
