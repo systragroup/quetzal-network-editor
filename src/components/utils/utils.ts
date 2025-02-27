@@ -104,7 +104,7 @@ export function weightedAverage(values: number[], weights: number[]) {
 }
 
 export function round(value: number, precision: number = 0): number {
-  return Number((value).toFixed(precision))
+  return Number(value?.toFixed(precision)) || 0
 }
 
 // serializer
