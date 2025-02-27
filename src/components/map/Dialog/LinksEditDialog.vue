@@ -93,7 +93,9 @@ function createForm() {
       // link is clicked on the map
       const selectedLink = selectedArr.value[0]
       features = linksStore.editorLinks.features.filter((link) => link.properties.index === selectedLink)
-      disabled = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
+      disabled = ['a', 'b', 'index', 'length', 'link_sequence', 'trip_id', 'headway', 'anchors',
+        'departures', 'arrivals', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
+      ]
       if (isSchedule.value) { disabled = [...disabled, ...['speed', 'time']] }
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
@@ -254,8 +256,8 @@ async function handleSimpleDialog(response: boolean) {
   <v-dialog
     v-model="showDialog"
     scrollable
-    persistent
     :max-width="'30rem'"
+    @keydown.enter="saveAndQuit"
   >
     <v-card
       max-height="55rem"

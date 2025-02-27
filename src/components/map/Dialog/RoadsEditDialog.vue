@@ -183,8 +183,8 @@ function ToggleDeleteOption () {
   <v-dialog
     v-model="showDialog"
     scrollable
-    persistent
     :max-width="`${30*numLinks}rem`"
+    @keydown.enter="saveAndQuit"
   >
     <v-card
       max-height="55rem"
