@@ -72,7 +72,7 @@ async function saveAndQuit() {
 // add
 function addField (newFieldName: string) {
   if (newFieldName) {
-    editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined }
+    editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
     odStore.addPropertie(newFieldName)
   }
 }

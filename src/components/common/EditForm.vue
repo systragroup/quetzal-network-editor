@@ -96,6 +96,7 @@ defineExpose({
         />
         <component
           :is="types[key]=== 'Number' ? 'v-number-input' : 'v-text-field'"
+          v-if="item.show"
           v-model="item.value"
           control-variant="stacked"
           :hint="showHint? hints[key]: ''"
