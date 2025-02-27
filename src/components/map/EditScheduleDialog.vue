@@ -262,6 +262,7 @@ function handleSimpleDialog(event) {
 </script>
 <template>
   <v-dialog
+    v-if="showSchedule"
     v-model="showSchedule"
     scrollable
     persistent

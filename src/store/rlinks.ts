@@ -7,7 +7,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes, getDifference, round } from '@comp/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference, round } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
@@ -381,10 +381,8 @@ export const userLinksStore = defineStore('rlinks', {
       const groupInfo = info[0]
       const selectedIndex = new Set(selectedArr)
       const selectedLinks = this.rlinks.features.filter(link => selectedIndex.has(link.properties.index))
-      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
-      const props = Object.keys(groupInfo).filter(key =>
-        ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
-
+      // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
+      const props = getModifiedKeys(groupInfo)
       // if we change everything to 2 way. init links thats were one way with thoses values (ex:speed_r = speed)
       if (groupInfo.oneway?.value === '0') {
         const linksToSplit = selectedLinks.filter(link => link.properties.oneway === '1')

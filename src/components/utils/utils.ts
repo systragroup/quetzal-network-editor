@@ -9,7 +9,7 @@ export function getGroupForm (features: GeoJsonFeature[], lineAttributes: string
   lineAttributes.forEach(key => {
     const val = new Set(features.map(link => link.properties[key]))
     form[key] = {
-      value: val.size > 1 ? '' : [...val][0],
+      value: val.size > 1 ? undefined : [...val][0],
       disabled: uneditable.includes(key),
       placeholder: val.size > 1,
     }
@@ -28,6 +28,18 @@ export function getForm (feature: GeoJsonFeature, lineAttributes: string[], uned
     }
   })
   return form
+}
+
+export function getModifiedKeys(form: GroupForm) {
+  // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
+  return Object.keys(form).filter(key => {
+    if (!form[key].placeholder) {
+      return true
+    } else if (form[key].value !== undefined && form[key].value !== null && form[key].value !== '') {
+      return true
+    }
+  },
+  )
 }
 
 export function isScheduleTrip(link: GeoJsonFeature | undefined) {

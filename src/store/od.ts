@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 
 import { point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { getDifference, IndexAreDifferent } from '@comp/utils/utils'
+import { getModifiedKeys, getDifference, IndexAreDifferent } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODStore } from '@src/types/typesStore'
@@ -147,9 +147,8 @@ export const useODStore = defineStore('od', {
       const selectedSet = new Set(payload.selectedArray)
       const features = this.layer.features.filter(el => selectedSet.has(el.properties.index))
 
-      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
-      const props = Object.keys(groupInfo).filter(key =>
-        ((groupInfo[key].value !== '') || !groupInfo[key].placeholder))
+      // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
+      const props = getModifiedKeys(groupInfo)
 
       features.forEach(
         (feature) => props.forEach((key) => feature.properties[key] = groupInfo[key].value))

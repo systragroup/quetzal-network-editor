@@ -12,6 +12,7 @@ import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
+import DialogHeader from './DialogHeader.vue'
 import { getGroupForm, isScheduleTrip, hash, round } from '@src/components/utils/utils'
 import { linksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
@@ -259,21 +260,20 @@ async function handleSimpleDialog(response: boolean) {
     :max-width="'30rem'"
     @keydown.enter="saveAndQuit"
   >
-    <v-card
-      max-height="55rem"
-    >
-      <v-card-title class="text-h5">
-        {{ $gettext("Edit Properties") }}
-        <v-btn
-          v-if="showScheduleButton"
-          variant="text"
-          class="pl-auto"
-          prepend-icon="fas fa-clock"
-          @click="toggle"
-        >
-          {{ isSchedule? $gettext("Edit Schedule"): $gettext("Create Schedule") }}
-        </v-btn>
-      </v-card-title>
+    <v-card max-height="55rem">
+      <DialogHeader>
+        <template v-slot:title>
+          <v-btn
+            v-if="showScheduleButton"
+            variant="text"
+            class="pl-auto"
+            prepend-icon="fas fa-clock"
+            @click="toggle"
+          >
+            {{ isSchedule? $gettext("Edit Schedule"): $gettext("Create Schedule") }}
+          </v-btn>
+        </template>
+      </DialogHeader>
       <v-divider />
       <v-card-text>
         <EditForm
