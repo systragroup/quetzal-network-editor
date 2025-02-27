@@ -8,7 +8,8 @@ import { lineString, point as Point } from '@turf/helpers'
 
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
-  hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage, round } from '@comp/utils/utils'
+  hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage, round,
+  getModifiedKeys } from '@comp/utils/utils'
 import { simplifyGeometry } from '@src/components/utils/spatial'
 import { cloneDeep } from 'lodash'
 
@@ -123,7 +124,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     getVariants() {
-      // set default values to Variant attributes (ex: headway#AM has the default value of headway)
+      // set values to Variant attributes (ex: headway#AM has the default value of headway)
       const variantAttributes = this.linksDefaultAttributes.filter(el => el.name.includes('#'))
       variantAttributes.forEach(attr => {
         const defaultName = attr.name.split('#')[0]
@@ -137,19 +138,15 @@ export const useLinksStore = defineStore('links', {
       // variantsChoice Cannot be empty. if none its ['']. This way,everyfunction will works
       // ex: variantsChoice.forEach(variant => links.properties[`speed${variant}`])
       // [`speed${variant}`] will be ['speed'] if no variants.
-      const variants = variantAttributes.map(el => el.name.split('#'))
-      const variantChoice = Array.from(new Set(variants.map(el => '#' + el[1]))) as NonEmptyArray<string>
+      const variantTuple = variantAttributes.map(el => el.name.split('#'))
+      const variantChoice = Array.from(new Set(variantTuple.map(el => '#' + el[1])))
       this.variantChoice = variantChoice.length > 0 ? variantChoice as NonEmptyArray<string> : ['']
-
       this.variant = this.variantChoice[0]
 
       // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
 
-      const toDelete = new Set(variants.map(el => el[0]))
+      const toDelete = new Set(variantTuple.map(el => el[0]))
       this.linksDefaultAttributes = this.linksDefaultAttributes.filter(el => !toDelete.has(el.name))
-
-      // console.log(this.variantChoice)
-      // console.log(this.linksDefaultAttributes.map(el => el.name))
     },
 
     appendNewNodes (payload: PointGeoJson) {
@@ -734,10 +731,8 @@ export const useLinksStore = defineStore('links', {
     },
 
     editLineInfo (payload: GroupForm) {
-      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
-      const props = Object.keys(payload).filter(key =>
-        ((payload[key].value !== '') || !payload[key].placeholder) && (!payload[key].disabled))
-
+      // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
+      const props = getModifiedKeys(payload)
       this.editorLinks.features.forEach(
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
 
@@ -792,9 +787,8 @@ export const useLinksStore = defineStore('links', {
       // edit line info on multiple trips at once.
       const editorGroupInfo = payload.info
       const groupTripIds = new Set(payload.selectedArray)
-      // get only keys that are not unmodified multipled Values (value=='' and placeholder==true)
-      const props = Object.keys(editorGroupInfo).filter(key =>
-        ((editorGroupInfo[key].value !== '') || !editorGroupInfo[key].placeholder))
+      // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
+      const props = getModifiedKeys(editorGroupInfo)
       // add new line info to each links of each trips.
       const tempLinks = this.links.features.filter(link => groupTripIds.has(link.properties.trip_id))
       tempLinks.forEach(
