@@ -132,6 +132,7 @@ export const useLinksStore = defineStore('links', {
         if (defaultAttribute) {
           attr.value = defaultAttribute.value
           attr.type = defaultAttribute.type
+          attr.units = defaultAttribute.units
         }
       })
       // get List of variants

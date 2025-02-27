@@ -6,7 +6,6 @@ import { useLinksStore } from '@src/store/links'
 import { computed, onMounted, ref, watch } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
-import attributesUnits from '@constants/units.js'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
@@ -34,6 +33,7 @@ const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 
 const typesMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
+const unitsMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
 
 const formRef = ref()
@@ -44,7 +44,6 @@ const editorForm = ref<GroupForm>({})
 
 const showHint = ref(false)
 const hints: Dict = attributesHints
-const units: Dict = attributesUnits
 
 const rules: any = ({
   trip_id: [
@@ -294,7 +293,7 @@ async function handleSimpleDialog(response: boolean) {
           :show-hint="showHint"
           :show-delete-option="showDeleteOption"
           :hints="hints"
-          :units="units"
+          :units="unitsMap"
           :rules="rules"
           :attribute-non-deletable="attributeNonDeletable"
           :attributes-choices="attributesChoices"

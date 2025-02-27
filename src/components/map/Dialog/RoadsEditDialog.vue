@@ -4,7 +4,6 @@ import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { computed, onMounted, ref, watch } from 'vue'
 import attributesHints from '@constants/hints.js'
-import attributesUnits from '@constants/units.js'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
@@ -28,12 +27,12 @@ const lineAttributes = computed(() => rlinksStore.rlineAttributes)
 const reversedAttributes = computed(() => rlinksStore.reversedAttributes)
 const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
-const typesMap = {}
+const typesMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
+const unitsMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 const attributeNonDeletable = computed(() => rlinksDefaultProperties.map(el => el.name))
 
 const rules = {}
 const hints: Dict = attributesHints
-const units: Dict = attributesUnits
 const formRef = ref()
 
 const editorForm = ref<GroupForm[]>([])
@@ -214,7 +213,7 @@ function ToggleDeleteOption () {
               :show-hint="showHint"
               :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
-              :units="units"
+              :units="unitsMap"
               :rules="rules"
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"

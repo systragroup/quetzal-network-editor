@@ -3,7 +3,6 @@ import { useIndexStore } from '@src/store/index'
 import { useODStore } from '@src/store/od'
 import { computed, onMounted, ref, watch } from 'vue'
 import attributesHints from '@constants/hints.js'
-import attributesUnits from '@constants/units.js'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
@@ -25,7 +24,6 @@ const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 const attributeNonDeletable = ref(['index'])
 const rules = {}
 const hints: Dict = attributesHints
-const units: Dict = attributesUnits
 const formRef = ref()
 
 const editorForm = ref<GroupForm>({})
@@ -123,7 +121,6 @@ function ToggleDeleteOption () {
           :show-hint="showHint"
           :show-delete-option="showDeleteOption"
           :hints="hints"
-          :units="units"
           :rules="rules"
           :attribute-non-deletable="attributeNonDeletable"
           @delete-field="deleteField"

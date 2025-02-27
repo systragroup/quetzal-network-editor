@@ -172,6 +172,7 @@ export type AttributeTypes = 'String' | 'Number'
 export interface Attributes {
   name: string
   type: AttributeTypes
+  units?: string
   value?: string | number
 }
 
