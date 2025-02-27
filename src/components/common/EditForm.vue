@@ -108,9 +108,9 @@ defineExpose({
           :suffix="units[key]"
           :rules="rules[key]"
           :precision="null"
-          :prepend-inner-icon="['length','speed','time'].includes(key) ? 'fas fa-calculator' : '' "
+          :prepend-inner-icon="['length','speed','time'].includes(key.split('#')[0]) ? 'fas fa-calculator' : '' "
           :label="String(key)"
-          @change="change(key)"
+          @update:model-value="change(key)"
         >
           <template
             v-if="key==='route_color'"
@@ -155,7 +155,6 @@ defineExpose({
 }
 .box{
   max-height:100%;
-  padding:0.5rem;
   box-shadow:0;
   overflow-y: auto;
 }
