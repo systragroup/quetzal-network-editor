@@ -128,10 +128,10 @@ function addFieldToLinksForms(newFieldName: string) {
     // If the form is a reversed one. add the field if its not in rcstAttribute
     // (ex: route_width, no route_width_r)
     if (Object.keys(form)[0].endsWith('_r') && !rlinksConstantProperties.includes(newFieldName)) {
-      form[newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined }
+      form[newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined, show: true }
     } else {
       // just a normal link
-      form[newFieldName] = { disabled: false, placeholder: false, value: undefined }
+      form[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
     }
   })
 }
@@ -142,7 +142,7 @@ function addField (newFieldName: string) {
       addFieldToLinksForms(newFieldName)
       rlinksStore.addLinksPropertie({ name: newFieldName })
     } else if (action.value === 'Edit rNode Info') {
-      editorForm.value[0][newFieldName] = { disabled: false, placeholder: false, value: undefined }
+      editorForm.value[0][newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
       rlinksStore.addNodesPropertie({ name: newFieldName })
     }
   }

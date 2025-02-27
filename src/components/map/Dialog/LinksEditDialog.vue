@@ -109,6 +109,16 @@ function createForm() {
   }
 }
 
+const selectedVariant = computed(() => linksStore.variant)
+watch(selectedVariant, () => getFilteredKeys())
+
+function getFilteredKeys() {
+  // set show true or false for selected variuant
+  const keys = Object.keys(editorForm.value)
+  const keysToKeep = new Set(keys.filter(k => k.includes(selectedVariant.value) || !k.includes('#')))
+  keys.forEach(key => { editorForm.value[key].show = keysToKeep.has(key) })
+}
+
 async function submitForm() {
   const resp = await formRef.value.validate()
   if (!resp) { return false }
@@ -157,7 +167,7 @@ function cancel() {
 function change (key: string) {
   const name = key.split('#')[0]
   let v = key.split('#')[1]
-  if (v) { v = '#' + v }
+  v = v ? `#${v}` : ''
   switch (name) {
     case 'speed':
       editorForm.value[`speed${v}`].value = round(editorForm.value[`speed${v}`].value, 6)
@@ -187,7 +197,7 @@ function change (key: string) {
 
 function addField (newFieldName: string) {
   if (newFieldName) {
-    editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined }
+    editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
     if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
       linksStore.addLinksPropertie({ name: newFieldName })
     } else if (action.value === 'Edit Node Info') {
@@ -269,7 +279,6 @@ async function handleSimpleDialog(response: boolean) {
           <v-btn
             v-if="showScheduleButton"
             variant="text"
-            class="pl-auto"
             prepend-icon="fas fa-clock"
             @click="toggle"
           >

@@ -1,4 +1,4 @@
-import { GroupForm } from '@src/types/components'
+import { FormFormat, GroupForm } from '@src/types/components'
 import { GeoJson, GeoJsonFeature, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
 import { createHash } from 'sha256-uint8array'
 
@@ -8,11 +8,13 @@ export function getGroupForm (features: GeoJsonFeature[], lineAttributes: string
   const form: GroupForm = {}
   lineAttributes.forEach(key => {
     const val = new Set(features.map(link => link.properties[key]))
-    form[key] = {
+    const test: FormFormat = {
       value: val.size > 1 ? undefined : [...val][0],
       disabled: uneditable.includes(key),
+      show: true,
       placeholder: val.size > 1,
     }
+    form[key] = test
   })
   return form
 }
@@ -24,6 +26,7 @@ export function getForm (feature: GeoJsonFeature, lineAttributes: string[], uned
     form[key] = {
       value: feature.properties[key],
       disabled: uneditable.includes(key),
+      show: true,
       placeholder: false,
     }
   })

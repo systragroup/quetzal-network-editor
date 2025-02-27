@@ -10,7 +10,7 @@ const selectedVariant = computed({
   get: () => linksStore.variant,
   set: (val) => linksStore.variant = val,
 })
-const variantChoices = computed(() => [$gettext('all variants'), ...linksStore.variantChoice])
+const variantChoices = computed(() => ['', ...linksStore.variantChoice])
 
 </script>
 <template>
