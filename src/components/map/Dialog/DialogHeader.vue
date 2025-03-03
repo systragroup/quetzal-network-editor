@@ -6,12 +6,14 @@ const { $gettext } = useGettext()
 
 const linksStore = useLinksStore()
 
-const selectedVariant = computed({
-  get: () => linksStore.variant,
-  set: (val) => linksStore.variant = val,
-})
 const variantChoices = computed(() => ['', ...linksStore.variantChoice])
 
+const PrefixesChoice = computed(() => {
+  const prefixes = linksStore.lineAttributes.map(el => el.split('#')[0])
+  return ['', ...new Set(prefixes)]
+})
+const prefix = defineModel<string>('prefix', { default: '' })
+const variant = defineModel<string>('variant', { default: '' })
 </script>
 <template>
   <v-card-title class="text-h5">
@@ -20,8 +22,8 @@ const variantChoices = computed(() => ['', ...linksStore.variantChoice])
   </v-card-title>
   <div class="filter-container">
     <v-select
-      :model-value="'all parameters'"
-      :items="['all parameters']"
+      v-model="prefix"
+      :items="PrefixesChoice"
       :style="{'flex':1.3}"
       prepend-inner-icon="fas fa-filter"
       :label="$gettext('property')"
@@ -31,7 +33,7 @@ const variantChoices = computed(() => ['', ...linksStore.variantChoice])
       color="secondarydark"
     />
     <v-select
-      v-model="selectedVariant"
+      v-model="variant"
       :items="variantChoices"
       :style="{'flex':1.3}"
       prepend-inner-icon="fas fa-filter"
