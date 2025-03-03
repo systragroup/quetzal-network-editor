@@ -3,7 +3,7 @@ import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
 
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import { cloneDeep } from 'lodash'
 import attributesHints from '@constants/hints.js'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
@@ -108,16 +108,6 @@ function createForm() {
   }
 }
 
-const selectedVariant = computed(() => linksStore.variant)
-watch(selectedVariant, () => getFilteredKeys())
-
-function getFilteredKeys() {
-  // set show true or false for selected variuant
-  const keys = Object.keys(editorForm.value)
-  const keysToKeep = new Set(keys.filter(k => k.includes(selectedVariant.value) || !k.includes('#')))
-  keys.forEach(key => { editorForm.value[key].show = keysToKeep.has(key) })
-}
-
 async function submitForm() {
   const resp = await formRef.value.validate()
   if (!resp) { return false }
@@ -161,37 +151,6 @@ function cancel() {
   }
 }
 
-// computed speed, time, length. for individual links only.
-
-function change (key: string) {
-  const name = key.split('#')[0]
-  let v = key.split('#')[1]
-  v = v ? `#${v}` : ''
-  switch (name) {
-    case 'speed':
-      editorForm.value[`speed${v}`].value = round(editorForm.value[`speed${v}`].value, 6)
-      const time = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
-      if (!editorForm.value[`time${v}`].placeholder) {
-        editorForm.value[`time${v}`].value = round(time, 0)
-      }
-      break
-    case 'time':
-      editorForm.value[`time${v}`].value = round(editorForm.value[`time${v}`].value, 0)
-      const speed = editorForm.value.length.value / editorForm.value[`time${v}`].value * 3.6
-      if (!editorForm.value[`speed${v}`].placeholder) {
-        editorForm.value[`speed${v}`].value = round(speed, 6)
-      }
-      break
-    case 'length':
-      editorForm.value.length.value = round(editorForm.value.length.value, 0)
-      const time2 = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
-      if (!editorForm.value.placeholder) {
-        editorForm.value[`time${v}`].value = round(time2, 0)
-      }
-      break
-  }
-}
-
 // add
 
 function addField (newFieldName: string) {
@@ -231,6 +190,53 @@ function ToggleDeleteOption () {
     store.changeNotification({ text: '', autoClose: true })
   }
 }
+
+// computed speed, time, length. for individual links only.
+
+function change (key: string) {
+  const name = key.split('#')[0]
+  let v = key.split('#')[1]
+  v = v ? `#${v}` : ''
+  switch (name) {
+    case 'speed':
+      editorForm.value[`speed${v}`].value = round(editorForm.value[`speed${v}`].value, 6)
+      const time = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
+      if (!editorForm.value[`time${v}`].placeholder) {
+        editorForm.value[`time${v}`].value = round(time, 0)
+      }
+      break
+    case 'time':
+      editorForm.value[`time${v}`].value = round(editorForm.value[`time${v}`].value, 0)
+      const speed = editorForm.value.length.value / editorForm.value[`time${v}`].value * 3.6
+      if (!editorForm.value[`speed${v}`].placeholder) {
+        editorForm.value[`speed${v}`].value = round(speed, 6)
+      }
+      break
+    case 'length':
+      editorForm.value.length.value = round(editorForm.value.length.value, 0)
+      const time2 = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
+      if (!editorForm.value.placeholder) {
+        editorForm.value[`time${v}`].value = round(time2, 0)
+      }
+      break
+  }
+}
+
+// variant and Attr prefix selector
+
+const selectedVariant = computed({
+  get: () => linksStore.variant,
+  set: (val) => linksStore.variant = val,
+})
+const selectedPrefix = ref<string>('')
+
+watchEffect(() => {
+  // set show true or false for selected variant
+  const keys = Object.keys(editorForm.value)
+  const filteredKeys = keys.filter(k => k.startsWith(selectedPrefix.value))
+  const keysToKeep = new Set(filteredKeys.filter(k => k.includes(selectedVariant.value) || !k.includes('#')))
+  keys.forEach(key => { editorForm.value[key].show = keysToKeep.has(key) })
+})
 
 // schedule
 
@@ -273,7 +279,10 @@ async function handleSimpleDialog(response: boolean) {
     @keydown.enter="saveAndQuit"
   >
     <v-card max-height="55rem">
-      <DialogHeader>
+      <DialogHeader
+        v-model:variant="selectedVariant"
+        v-model:prefix="selectedPrefix"
+      >
         <template v-slot:title>
           <v-btn
             v-if="showScheduleButton"
