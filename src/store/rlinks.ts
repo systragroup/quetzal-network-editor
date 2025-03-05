@@ -19,6 +19,7 @@ import { baseLineString, basePoint, LineStringFeatures,
   LineStringGeoJson, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties, rlinksDefaultProperties } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/components/utils/spatial'
+import { addDefaultValuesToVariants, getBaseAttributesWithVariants, getVariantsChoices } from '@src/components/utils/network'
 const $gettext = (s: string) => s
 
 // eslint-disable-next-line max-len
@@ -29,6 +30,9 @@ export const userLinksStore = defineStore('rlinks', {
     rnodes: basePoint(),
     visiblerLinks: baseLineString(),
     visiblerNodes: basePoint(),
+    // variant (periods)
+    variant: '',
+    variantChoice: [''], // should never be empty.
     // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(rlinksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(rnodesDefaultProperties),
@@ -109,13 +113,21 @@ export const userLinksStore = defineStore('rlinks', {
       payload.features.forEach(link => this.rlinks.features.push(link))
       this.getrLinksProperties()
       this.splitOneway()
+      this.getVariants()
+      console.log(this.variantChoice)
       this.getFilteredrCat()
+    },
+    getVariants() {
+      this.variantChoice = getVariantsChoices(this.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')))
+      addDefaultValuesToVariants(this.linksDefaultAttributes)
+      // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
+      const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
+      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(el => !toDelete.has(el.name))
     },
 
     appendNewrNodes (payload: PointGeoJson) {
       // append new links and node to the project (import page)
       simplifyGeometry(payload)
-
       payload.features.forEach(node => this.rnodes.features.push(node))
       this.getrNodesProperties()
     },
