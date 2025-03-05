@@ -8,7 +8,7 @@ import { lineString, point as Point } from '@turf/helpers'
 
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
-  hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage, round,
+  hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage,
   getModifiedKeys } from '@comp/utils/utils'
 import { simplifyGeometry } from '@src/components/utils/spatial'
 import { cloneDeep } from 'lodash'
@@ -20,7 +20,8 @@ import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/p
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
-  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
+  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
+  NonEmptyArray } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTime,
@@ -703,12 +704,10 @@ export const useLinksStore = defineStore('links', {
         (features) => props.forEach((key) => features.properties[key] = payload[key].value))
 
       // apply speed (get time on each link for the new speed.)
-      if (props.includes('speed')) {
-        this.editorLinks.features.forEach(
-          (features) => {
-            const time = features.properties.length / payload.speed.value * 3.6
-            features.properties.time = round(time, 0)
-          },
+      const modifiedSpeeds = this.variantChoice.filter(v => props.includes(`speed${v}`))
+      if (modifiedSpeeds.length > 0) {
+        this.editorLinks.features.forEach(link =>
+          calcLengthTime(link, modifiedSpeeds as NonEmptyArray<string>),
         )
       }
       // New line
@@ -761,12 +760,11 @@ export const useLinksStore = defineStore('links', {
       tempLinks.forEach(
         (features) => props.forEach((key) => features.properties[key] = editorGroupInfo[key].value))
       // apply speed (get time on each link for the new speed.)
-      if (props.includes('speed')) {
-        tempLinks.forEach(
-          (features) => {
-            const time = features.properties.length / editorGroupInfo.speed.value * 3.6
-            features.properties.time = round(time, 0)
-          },
+      // apply speed (get time on each link for the new speed.)
+      const modifiedSpeeds = this.variantChoice.filter(v => props.includes(`speed${v}`))
+      if (modifiedSpeeds.length > 0) {
+        tempLinks.forEach(link =>
+          calcLengthTime(link, modifiedSpeeds as NonEmptyArray<string>),
         )
       }
       // get tripId list
