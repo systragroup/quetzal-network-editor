@@ -263,6 +263,8 @@ export interface SavedRoadNetwork {
 export interface RlinksStore {
   rlinks: LineStringGeoJson
   rnodes: PointGeoJson
+  variant: string
+  variantChoice: NonEmptyArray<string>
   selectedrFilter: string
   selectedrGroup: string[]
   filteredrCategory: string[]

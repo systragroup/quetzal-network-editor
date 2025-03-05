@@ -20,12 +20,11 @@ import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/p
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
-  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
-  Attributes,
-  NonEmptyArray } from '@src/types/typesStore'
+  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload, Attributes } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
-import { initLengthTimeSpeed, calcLengthTime } from '@src/components/utils/network'
+import { initLengthTimeSpeed, calcLengthTime,
+  getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants } from '@src/components/utils/network'
 
 const $gettext = (s: string) => s
 
@@ -124,29 +123,10 @@ export const useLinksStore = defineStore('links', {
     },
 
     getVariants() {
-      // set values to Variant attributes (ex: headway#AM has the default value of headway)
-      const variantAttributes = this.linksDefaultAttributes.filter(el => el.name.includes('#'))
-      variantAttributes.forEach(attr => {
-        const defaultName = attr.name.split('#')[0]
-        const defaultAttribute = this.linksDefaultAttributes.filter(el => el.name === defaultName)[0]
-        if (defaultAttribute) {
-          attr.value = defaultAttribute.value
-          attr.type = defaultAttribute.type
-          attr.units = defaultAttribute.units
-        }
-      })
-      // get List of variants
-      // variantsChoice Cannot be empty. if none its ['']. This way,everyfunction will works
-      // ex: variantsChoice.forEach(variant => links.properties[`speed${variant}`])
-      // [`speed${variant}`] will be ['speed'] if no variants.
-      const variantTuple = variantAttributes.map(el => el.name.split('#'))
-      const variantChoice = Array.from(new Set(variantTuple.map(el => '#' + el[1])))
-      this.variantChoice = variantChoice.length > 0 ? variantChoice as NonEmptyArray<string> : ['']
-      this.variant = this.variantChoice[0]
-
+      this.variantChoice = getVariantsChoices(this.linksDefaultAttributes)
+      addDefaultValuesToVariants(this.linksDefaultAttributes)
       // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
-
-      const toDelete = new Set(variantTuple.map(el => el[0]))
+      const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
       this.linksDefaultAttributes = this.linksDefaultAttributes.filter(el => !toDelete.has(el.name))
     },
 
