@@ -244,6 +244,7 @@ watchEffect(() => {
 
 const showScheduleButton = computed(() =>
   linksStore.editorNodes.features.length !== 0
+  && linksStore.variantChoice.length === 1 // no schedule if periods
   && action.value === 'Edit Line Info',
 )
 

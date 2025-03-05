@@ -79,6 +79,7 @@
     "@types/lodash": "^4.17.14",
     "@types/mapbox-gl": "^3.4.1",
     "@types/turf": "^3.5.32",
+    "typescript": "^5.8.2",
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.14.0",
     "@vitejs/plugin-vue": "^5.2.1",
