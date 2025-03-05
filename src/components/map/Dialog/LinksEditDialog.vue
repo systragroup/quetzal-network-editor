@@ -22,6 +22,7 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 
 import { useForm } from '@src/composables/UseForm'
+import { getDefaultLink } from '@src/components/utils/network'
 const { showDialog, action, selectedArr, lingering } = useForm()
 
 // const links = computed(() => linksStore.links)
@@ -74,8 +75,9 @@ function createForm() {
   switch (action.value) {
     case 'Edit Line Info':
       if (linksStore.editorLinks.features.length === 0) {
-        const newLink = linksStore.getDefaultLink()
+        const newLink = getDefaultLink(linksStore.linksDefaultAttributes)
         features = cloneDeep(newLink.features)
+        features[0].properties.trip_id = linksStore.editorTrip
       } else {
         features = linksStore.editorLinks.features
       }

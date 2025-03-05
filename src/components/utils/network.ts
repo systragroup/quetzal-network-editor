@@ -1,4 +1,4 @@
-import { LineStringFeatures, LineStringGeoJson } from '@src/types/geojson'
+import { baseLineString, LineStringFeatures, LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
 import { Attributes, NonEmptyArray } from '@src/types/typesStore'
 import length from '@turf/length'
 import { round } from './utils'
@@ -39,6 +39,19 @@ export function calcLengthTime(linkFeature: LineStringFeatures, variants: NonEmp
     const time = distance / Number(linkFeature.properties[`speed${v}`]) * secPerHour // secs (m / km/h) * secPerHour
     linkFeature.properties[`time${v}`] = round(time, 0) // rounded to 0 decimals
   })
+}
+
+export function getDefaultLink (defaultAttributes: Attributes[]): LineStringGeoJson {
+  // empty trip, when its a newLine. those are the default Values.
+  const properties = defaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
+    dict[attr.name] = attr.value
+    return dict
+  }, {})
+
+  const linkGeometry: LineStringGeometry = { coordinates: [[0, 0], [0, 0]], type: 'LineString' }
+  const link = baseLineString()
+  link.features = [{ properties: properties, geometry: linkGeometry, type: 'Feature' }]
+  return link
 }
 
 export function getVariantsChoices(attributes: Attributes[]): NonEmptyArray<string> {
