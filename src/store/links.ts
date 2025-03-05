@@ -20,11 +20,12 @@ import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/p
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
-  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload, Attributes } from '@src/types/typesStore'
+  FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTime,
-  getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants } from '@src/components/utils/network'
+  getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
+  getDefaultLink } from '@src/components/utils/network'
 
 const $gettext = (s: string) => s
 
@@ -204,8 +205,6 @@ export const useLinksStore = defineStore('links', {
 
       // get the corresponding nodes
       this.getEditorNodes(this.nodes)
-
-      this.getDefaultLink()
     },
 
     editEditorLinksInfo (payload: Record<string, any>) {
@@ -309,20 +308,6 @@ export const useLinksStore = defineStore('links', {
       this.editorNodes.features = cloneDeep(features)
     },
 
-    getDefaultLink (): LineStringGeoJson {
-      // empty trip, when its a newLine. those are the default Values.
-      const properties = this.linksDefaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
-        dict[attr.name] = attr.value
-        return dict
-      }, {})
-
-      properties.trip_id = this.editorTrip
-      const linkGeometry: LineStringGeometry = { coordinates: [[0, 0], [0, 0]], type: 'LineString' }
-      const link = baseLineString()
-      link.features = [{ properties: properties, geometry: linkGeometry, type: 'Feature' }]
-      return link
-    },
-
     getTripId () {
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
       // this.scheduledTrips = new Set(this.links.features.filter(l =>
@@ -337,7 +322,7 @@ export const useLinksStore = defineStore('links', {
       let newNode = basePoint()
       // if there is no link to copy, create one. (new Line)
       if (newLink.features.length === 0) {
-        newLink = this.getDefaultLink()
+        newLink = getDefaultLink(this.linksDefaultAttributes)// trip_id already set in linksDefaultAttributes
         const linkProperties = cloneDeep(newLink.features[0].properties)
         linkProperties.a = this.editorNodes.features[0].properties.index
         linkProperties.b = this.editorNodes.features[0].properties.index
@@ -727,6 +712,7 @@ export const useLinksStore = defineStore('links', {
         )
       }
       // New line
+      // change LinksDefault values. so drawing a link uses those inputed values
       if (this.editorLinks.features.length === 0) {
         props.forEach((key: string) => {
           const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
