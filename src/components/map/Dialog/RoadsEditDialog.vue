@@ -68,7 +68,6 @@ function createForm() {
       disabled = ['a', 'b', 'index']
       editorForm.value = features.map(feature => getForm(feature, lineAttributes.value, disabled))
       linkDir.value = features.map(feature => getDirection(feature.geometry.coordinates))
-      console.log(features)
       features = features.filter(el => el.properties.oneway == '0')
       features.forEach(feature => {
         const linkId = feature.properties.index

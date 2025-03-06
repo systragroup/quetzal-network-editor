@@ -230,7 +230,15 @@ const selectedVariant = computed({
   get: () => linksStore.variant,
   set: (val) => linksStore.variant = val,
 })
+
 const selectedPrefix = ref<string>('')
+
+const variantChoices = computed(() => linksStore.variantChoice)
+
+const prefixesChoice = computed(() => {
+  const prefixes = linksStore.lineAttributes.map(el => el.split('#')[0])
+  return Array.from(new Set(prefixes))
+})
 
 watchEffect(() => {
   // set show true or false for selected variant
@@ -278,13 +286,15 @@ async function handleSimpleDialog(response: boolean) {
   <v-dialog
     v-model="showDialog"
     scrollable
-    :max-width="'30rem'"
+    max-width="30rem"
     @keydown.enter="saveAndQuit"
   >
-    <v-card max-height="55rem">
+    <v-card>
       <DialogHeader
         v-model:variant="selectedVariant"
         v-model:prefix="selectedPrefix"
+        :variant-choices="variantChoices"
+        :prefixes-choice="prefixesChoice"
       >
         <template v-slot:title>
           <v-btn

@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { useLinksStore } from '@src/store/links'
-import { computed } from 'vue'
+import { toRefs } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
+interface Props {
+  variantChoices: string[]
+  prefixesChoice: string[]
+}
 
-const linksStore = useLinksStore()
-
-const variantChoices = computed(() => ['', ...linksStore.variantChoice])
-
-const PrefixesChoice = computed(() => {
-  const prefixes = linksStore.lineAttributes.map(el => el.split('#')[0])
-  return ['', ...new Set(prefixes)]
+const props = withDefaults(defineProps<Props>(), {
+  variantChoices: () => [],
+  prefixesChoice: () => [],
 })
+
+const { variantChoices, prefixesChoice } = toRefs(props)
+
 const prefix = defineModel<string>('prefix', { default: '' })
 const variant = defineModel<string>('variant', { default: '' })
 </script>
@@ -23,7 +25,7 @@ const variant = defineModel<string>('variant', { default: '' })
   <div class="filter-container">
     <v-select
       v-model="prefix"
-      :items="PrefixesChoice"
+      :items="['',...prefixesChoice]"
       :style="{'flex':1.3}"
       prepend-inner-icon="fas fa-filter"
       :label="$gettext('property')"
@@ -33,8 +35,9 @@ const variant = defineModel<string>('variant', { default: '' })
       color="secondarydark"
     />
     <v-select
+      v-if="variantChoices.length>1"
       v-model="variant"
-      :items="variantChoices"
+      :items="['',...variantChoices]"
       :style="{'flex':1.3}"
       prepend-inner-icon="fas fa-filter"
       :label="$gettext('variant')"
