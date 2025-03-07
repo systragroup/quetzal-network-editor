@@ -64,7 +64,6 @@ function saveMapPosition () {
 function onMapLoaded (event) {
   if (map.value) mapIsLoaded.value = false
   map.value = event.map
-  fitBounds()
   map.value.loadImage(arrowImage, function (err, image) {
     if (err) {
       console.error('err image', err)
@@ -102,11 +101,7 @@ function fitBounds () {
   }
 
   // for empty (new) project, do not fit bounds around the links geometries.
-  if (Object.keys(bounds).length !== 0 && map.value) {
-    map.value.fitBounds(bounds, {
-      padding: 100,
-    })
-  }
+  mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
 }
 
 import { useMapResize } from '@src/composables/useMapResize.js'
