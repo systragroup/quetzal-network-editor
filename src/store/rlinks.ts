@@ -1,25 +1,26 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable array-callback-return */
 /* eslint-disable no-return-assign */
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference, round } from '@comp/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
 import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes,
   AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes, CreateRlinkPayload,
-  EditRoadPayload, FilesPayload, MoveNode, NewAttribute, RlinksStore,
+  EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NonEmptyArray, RlinksStore,
   SelectedNode, SplitRoadPayload } from '@src/types/typesStore'
-import { baseLineString, basePoint, LineStringFeatures,
-  LineStringGeoJson, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
+import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
+  PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties, rlinksDefaultProperties } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/components/utils/spatial'
-import { addDefaultValuesToVariants, getBaseAttributesWithVariants, getVariantsChoices } from '@src/components/utils/network'
+import { addDefaultValuesToVariants, calcLengthTime, getBaseAttributesWithVariants,
+  getDefaultLink, getVariantsChoices } from '@src/components/utils/network'
 const $gettext = (s: string) => s
 
 // eslint-disable-next-line max-len
@@ -114,9 +115,10 @@ export const userLinksStore = defineStore('rlinks', {
       this.getrLinksProperties()
       this.splitOneway()
       this.getVariants()
-      console.log(this.variantChoice)
       this.getFilteredrCat()
+      console.log(this.variantChoice)
     },
+
     getVariants() {
       this.variantChoice = getVariantsChoices(this.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')))
       addDefaultValuesToVariants(this.linksDefaultAttributes)
@@ -134,8 +136,8 @@ export const userLinksStore = defineStore('rlinks', {
 
     getrLinksProperties () {
       let header: Set<string> = new Set([])
-      this.rlinks.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
+      this.rlinks.features.forEach(feat => {
+        Object.keys(feat.properties).forEach(key => header.add(key))
       })
       const newAttrs = getDifference(header, this.rlineAttributes)
       newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
@@ -170,7 +172,6 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     addLinksPropertie (payload: NewAttribute) {
-      // when a new line properties is added (in dataframe page)
       this.rlinks.features.map(link => link.properties[payload.name] = null)
       this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
       this.linksDefaultAttributes.push({ name: payload.name, type: 'String' })
@@ -207,11 +208,13 @@ export const userLinksStore = defineStore('rlinks', {
       this.editionMode = true
       this.networkWasModified = false
     },
+
     saveEdition() {
       this.savedNetwork = { rlinks: '', rnodes: '' }
       this.editionMode = false
       this.networkWasModified = false
     },
+
     cancelEdition() {
       if (this.networkWasModified) {
         this.rlinks = JSON.parse(this.savedNetwork.rlinks)
@@ -329,6 +332,7 @@ export const userLinksStore = defineStore('rlinks', {
         item => item.properties[cat]))
       this.selectedrGroup = Array.from(possibleGroups).filter(x => group.has(x))
     },
+
     getVisiblerNodes (payload: ChangeVisibleNodes) {
       // payload contain nodes. this.nodes or this.editorNodes
       // find the nodes in the editor links
@@ -355,24 +359,39 @@ export const userLinksStore = defineStore('rlinks', {
       }
     },
 
+    initReversePropertiesOnLink(link: LineStringFeatures) {
+      this.reversedAttributes.forEach(
+        (rkey) => {
+          link.properties[rkey] = link.properties[rkey.slice(0, -2)] },
+      )
+    },
+
+    deleteReversePropertiesOnLink(link: LineStringFeatures) {
+      this.reversedAttributes.forEach(
+        (rkey) => delete link.properties[rkey])
+    },
+
     editrLinkInfo (payload: EditRoadPayload) {
       // get selected link in editorLinks and modify the changes attributes.
       const tempList = []
       const { selectedArr, info } = payload
       for (let i = 0; i < selectedArr.length; i++) {
-        const props = Object.keys(info[i])
+        const formData = info[i]
+        const props = Object.keys(formData)
         const link = this.visiblerLinks.features.filter((link) => link.properties.index === selectedArr[i])[0]
-        // if we change a one way to a 2 way, copy one way properties to the reverse one.
-        if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '0')) {
-          this.reversedAttributes.forEach(
-            (rkey) => link.properties[rkey] = info[i][rkey.slice(0, -2)].value)
-        } else if ((info[i].oneway?.value !== link.properties.oneway) && (info[i].oneway?.value === '1')) {
-          this.reversedAttributes.forEach(
-            (rkey) => delete link.properties[rkey])
-        }
+        const onewayValue = formData.oneway?.value
+        const onewayChanged = onewayValue !== link.properties.oneway
         // applied all properties.
-        props.forEach((key) => link.properties[key] = info[i][key].value)
+        props.forEach((key) => link.properties[key] = formData[key].value)
         tempList.push(link)
+
+        // if we change a one way to a 2 way, copy oneway properties to the reverse one.
+        if (onewayChanged && onewayValue === '0') {
+          this.initReversePropertiesOnLink(link)
+        // if we change from 2way to oneway delete _r attrs
+        } else if (onewayChanged && onewayValue === '1') {
+          this.deleteReversePropertiesOnLink(link)
+        }
       }
       this.updateLinks = [...tempList]
     },
@@ -381,9 +400,10 @@ export const userLinksStore = defineStore('rlinks', {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedArr, info } = payload
       const selectedNodeId = selectedArr[0]
-      const props = Object.keys(info[0])
+      const formData = info[0]
+      const props = Object.keys(formData)
       const node = this.rnodes.features.filter(node => node.properties.index === selectedNodeId)[0]
-      props.forEach((key) => node.properties[key] = info[0][key].value)
+      props.forEach((key) => node.properties[key] = formData[key].value)
       this.updateNodes = [node]
     },
 
@@ -393,32 +413,22 @@ export const userLinksStore = defineStore('rlinks', {
       const groupInfo = info[0]
       const selectedIndex = new Set(selectedArr)
       const selectedLinks = this.rlinks.features.filter(link => selectedIndex.has(link.properties.index))
+      const onewayValue = groupInfo.oneway?.value
+
       // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
       const props = getModifiedKeys(groupInfo)
-      // if we change everything to 2 way. init links thats were one way with thoses values (ex:speed_r = speed)
-      if (groupInfo.oneway?.value === '0') {
-        const linksToSplit = selectedLinks.filter(link => link.properties.oneway === '1')
-        linksToSplit.forEach(link => {
-          this.reversedAttributes.forEach(
-            (rkey) => link.properties[rkey] = link.properties[rkey.slice(0, -2)])
-        })
-        // delete reverse attribute for links going from 2 ways to one way
-      } else if (groupInfo.oneway?.value === '1') {
-        const linksToSplit = selectedLinks.filter(link => link.properties.oneway === '0')
-        linksToSplit.forEach(link => {
-          this.reversedAttributes.forEach(
-            (rkey) => delete link.properties[rkey])
-        })
+      selectedLinks.forEach((features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
+      // change all reversed values too.
+      if (onewayValue === '0') {
+        selectedLinks.forEach(link => this.initReversePropertiesOnLink(link))
+      } else if (onewayValue === '1') {
+        selectedLinks.forEach(link => this.deleteReversePropertiesOnLink(link))
       }
-
-      // this is an oberver. modification will be applied to this.links.
-      selectedLinks.forEach(
-        (features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
-      //  apply the group modification to the reverse links too (ex: speed = 10 and speed_r = 10)
-      if (this.rlineAttributes.includes('oneway')) {
-        const reversedProps = this.reversedAttributes.filter(rkey => props.includes(rkey.slice(0, -2)))
-        selectedLinks.filter(link => link.properties.oneway === '0').forEach(
-          (features) => reversedProps.forEach((rkey) => features.properties[rkey] = groupInfo[rkey.slice(0, -2)].value),
+      // // apply speed (get time on each link for the new speed.)
+      const modifiedSpeeds = this.variantChoice.filter(v => props.includes(`speed${v}`))
+      if (modifiedSpeeds.length > 0) {
+        selectedLinks.forEach(link =>
+          calcLengthTime(link, modifiedSpeeds as NonEmptyArray<string>),
         )
       }
 
@@ -450,38 +460,39 @@ export const userLinksStore = defineStore('rlinks', {
       }
       return newNode
     },
+
     splitrLink (payload: SplitRoadPayload) {
       // changing link1 change editorLinks as it is an observer.
+
+      // distance du point (entre 0 et 1) sur le lien original
+      const sliceIndex = payload.sliceIndex
+      const newNode = payload.newNode.features[0]
+
       const link1 = payload.selectedFeature
       const link2 = cloneDeep(link1)
       const toDelete = cloneDeep(link1.properties.index)
-      // distance du point (entre 0 et 1) sur le lien original
-      const ratio = payload.offset
-      const sliceIndex = payload.sliceIndex
-      const newNode = payload.newNode
 
-      link1.properties.b = newNode.features[0].properties.index
+      link1.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
+      link2.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
+
+      link1.properties.b = newNode.properties.index
       link1.geometry.coordinates = [
         ...link1.geometry.coordinates.slice(0, sliceIndex),
-        newNode.features[0].geometry.coordinates,
+        newNode.geometry.coordinates,
       ]
 
-      link1.properties.index = 'rlink_' + short.generate() // link1.properties.index+ '-1'
-      link1.properties.length = link1.properties.length * ratio
-      link1.properties.time = link1.properties.time * ratio
-      if (link1.properties.length_r) link1.properties.length_r = link1.properties.length
-      if (link1.properties.time_r) link1.properties.time_r = link1.properties.time
-
-      link2.properties.a = newNode.features[0].properties.index
+      link2.properties.a = newNode.properties.index
       link2.geometry.coordinates = [
-        newNode.features[0].geometry.coordinates,
+        newNode.geometry.coordinates,
         ...link2.geometry.coordinates.slice(sliceIndex),
       ]
-      link2.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
-      link2.properties.length = link2.properties.length * (1 - ratio)
-      link2.properties.time = link2.properties.time * (1 - ratio)
-      if (link2.properties.length_r) link2.properties.length_r = link2.properties.length
-      if (link2.properties.time_r) link2.properties.time_r = link2.properties.time
+
+      calcLengthTime(link1, this.variantChoice)
+      calcLengthTime(link2, this.variantChoice)
+      if (link1.properties.time_r) {
+        calcLengthTime(link1, ['_r'])
+        calcLengthTime(link2, ['_r'])
+      }
 
       this.visiblerLinks.features.push(link2)
       // update actual rlinks and rnodes
@@ -542,8 +553,10 @@ export const userLinksStore = defineStore('rlinks', {
       // 2) click on a node. create a link between node a and b
       // 3) click on a link. create node inline b then create link a to b.
       // create a node if we click on the map (case 1)
-      const { nodeIdA, geom, linksId } = payload
-      let { nodeIdB } = payload
+      const nodeIdA = payload.nodeIdA
+      const geom = payload.geom
+      const linksId = payload.linksId
+      let nodeIdB = payload.nodeIdB
 
       // clicked on a link. create node and split link
       // else if: clicked no where: create a node
@@ -558,38 +571,25 @@ export const userLinksStore = defineStore('rlinks', {
 
       const rnodeA = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdA)[0]
       const rnodeB = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdB)[0]
+      const newLink = getDefaultLink(this.linksDefaultAttributes)
+      const linkFeature = newLink.features[0]
+      const linkGeometry = linkFeature.geometry
 
-      const linkProperties = this.linksDefaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
-        dict[attr.name] = attr.value
-        return dict
-      }, {})
-
-      linkProperties.index = 'rlink_' + short.generate()
-      linkProperties.a = nodeIdA
-      linkProperties.b = nodeIdB
+      linkFeature.properties.index = 'rlink_' + short.generate()
+      linkFeature.properties.a = nodeIdA
+      linkFeature.properties.b = nodeIdB
       // add length, speed, time now that we have a geometry.
-      // any here as the turf length function will complaint
-      const linkGeometry: any = {
-        coordinates: [rnodeA.geometry.coordinates, rnodeB.geometry.coordinates],
-        type: 'LineString',
-      }
-      const distance = length(linkGeometry)
-      const speed = Number(linkProperties.speed)
-      const time = distance / speed * 3600 // 20kmh hard code speed. time in secs
-      linkProperties.length = round(distance * 1000, 0) // metres
-      linkProperties.time = round(time, 0)
-      linkProperties.speed = round(speed, 0)
+      linkGeometry.coordinates = [rnodeA.geometry.coordinates, rnodeB.geometry.coordinates]
+      calcLengthTime(newLink.features[0], this.variantChoice)
       if (this.rlineAttributes.includes('oneway')) {
-        linkProperties.oneway = '0'
-        this.reversedAttributes.forEach(
-          (rkey) => linkProperties[rkey] = linkProperties[rkey.slice(0, -2)])
+        linkFeature.properties.oneway = '0'
+        this.initReversePropertiesOnLink(linkFeature)
       }
 
-      const linkFeature: LineStringFeatures = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       this.rlinks.features.push(linkFeature)
 
       // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
-      const newLinkGroup = linkProperties[this.selectedrFilter]
+      const newLinkGroup = linkFeature.properties[this.selectedrFilter]
       if (!this.filteredrCategory.includes(newLinkGroup)) {
         this.filteredrCategory.push(newLinkGroup)
       }
@@ -625,43 +625,23 @@ export const userLinksStore = defineStore('rlinks', {
       const newNode = this.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0]
       newNode.geometry.coordinates = payload.lngLat
 
-      // changing links
-
-      // update links geometry. check if exist first (if we take the first|last node there is only 1 link)
+      // changing links geometry, time, length
       this.connectedLinks.b.forEach(link => {
-        // note: props are unchanged. even tho the length change, the time and length are unchanged.
         link.geometry.coordinates = [...link.geometry.coordinates.slice(0, -1), payload.lngLat]
-        // update time and distance
-        const distance = length(link)
-        link.properties.length = round(distance * 1000, 0) // metres
-        // const time = distance / this.roadSpeed * 3600 // 20kmh hard code speed. time in secs
-        const time = distance / link.properties.speed * 3600
-        link.properties.time = round(time, 0)
-        // add reverse direction time and length if it exist on the link
-        if (link.properties.time_r) {
-          const rtime = distance / link.properties.speed_r * 3600
-          link.properties.time_r = round(rtime, 0) // rounded to 0 decimals
-        }
-        if (link.properties.length_r) link.properties.length_r = link.properties.length
+        calcLengthTime(link, this.variantChoice)
+        if (link.properties.time_r) { calcLengthTime(link, ['_r']) }
       })
+
       this.connectedLinks.a.forEach(link => {
         link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
-        // update time and distance
-        const distance = length(link)
-        link.properties.length = round(distance * 1000, 0) // metres
-        // const time = distance / this.roadSpeed * 3600 // 20kmh hard code speed. time in secs
-        const time = distance / link.properties.speed * 3600
-        link.properties.time = round(time, 0) // rounded to 0 decimals
-        // add reverse direction time and length if it exist on the link
-        if (link.properties.time_r) {
-          const rtime = distance / link.properties.speed_r * 3600
-          link.properties.time_r = round(rtime, 0) // rounded to 0 decimals
-        }
-        if (link.properties.length_r) link.properties.length_r = link.properties.length
+        calcLengthTime(link, this.variantChoice)
+        if (link.properties.time_r) { calcLengthTime(link, ['_r']) }
       })
+
       this.updateLinks = [...this.connectedLinks.visibleLinksList]
       this.updateNodes = [newNode]
     },
+
     moverAnchor (payload: MoveNode) {
       const linkIndex = payload.selectedNode.properties.linkIndex
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
@@ -670,11 +650,7 @@ export const userLinksStore = defineStore('rlinks', {
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
-      // update time and distance
-      const distance = length(link)
-      link.properties.length = round(distance * 1000, 0) // metres
-      const time = distance / Number(link.properties.speed) * 3600
-      link.properties.time = round(time, 0)
+      calcLengthTime(link, this.variantChoice)
       this.updateLinks = [link]
     },
     deleteAnchorrNode (payload: SelectedNode) {
@@ -683,8 +659,11 @@ export const userLinksStore = defineStore('rlinks', {
       const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+
+      calcLengthTime(link, this.variantChoice)
       this.updateLinks = [link]
     },
+
     deleterLink (selectedIndexes: string[]) {
       const linkArr = new Set(selectedIndexes)
       this.rlinks.features = this.rlinks.features.filter(link => !linkArr.has(link.properties.index))
@@ -694,12 +673,14 @@ export const userLinksStore = defineStore('rlinks', {
       this.getVisiblerNodes({ method: 'remove' })
       this.getFilteredrCat()
     },
+
     deleterGroup (group: string) {
       const cat = this.selectedrFilter
       const filtered = this.rlinks.features.filter(link => link.properties[cat] === group)
       const selectedIndex = filtered.map(link => link.properties.index)
       this.deleterLink(selectedIndex)
     },
+
     deleteUnusedrNodes () {
       // delete every every nodes not in links
       this.rnodes.features = deleteUnusedNodes(this.rnodes, this.rlinks)
@@ -720,3 +701,7 @@ export const userLinksStore = defineStore('rlinks', {
 
   },
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(userLinksStore, import.meta.hot))
+}

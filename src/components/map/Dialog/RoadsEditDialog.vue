@@ -97,9 +97,11 @@ function createForm() {
 async function submitForm() {
   const resp = await Promise.all(formRef.value.map((f: any) => f.validate()))
   if (resp.includes(false)) { return false }
+  console.log(action.value)
   switch (action.value) {
     case 'Edit rLink Info':
       rlinksStore.editrLinkInfo({ selectedArr: selectedArr.value, info: editorForm.value })
+      break
     case 'Edit Road Group Info':
       rlinksStore.editrGroupInfo({ selectedArr: selectedArr.value, info: editorForm.value })
       break

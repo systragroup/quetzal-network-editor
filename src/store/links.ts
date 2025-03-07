@@ -726,13 +726,8 @@ export const useLinksStore = defineStore('links', {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedIndex, info } = payload
       const props = Object.keys(info)
-      this.editorLinks.features.filter(
-        function (link) {
-          if (link.properties.index === selectedIndex) {
-            props.forEach((key) => link.properties[key] = info[key].value)
-          }
-        },
-      )
+      const link = this.editorLinks.features.filter(link => link.properties.index === selectedIndex)[0]
+      props.forEach(key => link.properties[key] = info[key].value)
     },
 
     editNodeInfo (payload: EditLinkPayload) {
@@ -757,9 +752,7 @@ export const useLinksStore = defineStore('links', {
       const props = getModifiedKeys(editorGroupInfo)
       // add new line info to each links of each trips.
       const tempLinks = this.links.features.filter(link => groupTripIds.has(link.properties.trip_id))
-      tempLinks.forEach(
-        (features) => props.forEach((key) => features.properties[key] = editorGroupInfo[key].value))
-      // apply speed (get time on each link for the new speed.)
+      tempLinks.forEach(features => props.forEach((key) => features.properties[key] = editorGroupInfo[key].value))
       // apply speed (get time on each link for the new speed.)
       const modifiedSpeeds = this.variantChoice.filter(v => props.includes(`speed${v}`))
       if (modifiedSpeeds.length > 0) {
