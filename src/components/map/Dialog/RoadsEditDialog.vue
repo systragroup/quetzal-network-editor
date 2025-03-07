@@ -13,6 +13,7 @@ import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
 import { rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
+import { round } from 'lodash'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -178,6 +179,36 @@ function ToggleDeleteOption () {
   }
 }
 
+function change (key: string, idx: number) {
+  const name = key.split('#')[0]
+  let v = key.split('#')[1]
+  v = v ? `#${v}` : ''
+  const formData = editorForm.value[idx]
+  switch (name) {
+    case 'speed':
+      formData[`speed${v}`].value = round(formData[`speed${v}`].value, 6)
+      const time = formData.length.value / formData[`speed${v}`].value * 3.6
+      if (!formData[`time${v}`].placeholder) {
+        formData[`time${v}`].value = round(time, 0)
+      }
+      break
+    case 'time':
+      formData[`time${v}`].value = round(formData[`time${v}`].value, 0)
+      const speed = formData.length.value / formData[`time${v}`].value * 3.6
+      if (!formData[`speed${v}`].placeholder) {
+        formData[`speed${v}`].value = round(speed, 6)
+      }
+      break
+    case 'length':
+      formData.length.value = round(formData.length.value, 0)
+      const time2 = formData.length.value / formData[`speed${v}`].value * 3.6
+      if (!formData.placeholder) {
+        formData[`time${v}`].value = round(time2, 0)
+      }
+      break
+  }
+}
+
 </script>
 <template>
   <v-dialog
@@ -219,6 +250,7 @@ function ToggleDeleteOption () {
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"
               :types="typesMap"
+              @change="(key)=>change(key,idx)"
               @delete-field="deleteField"
             />
             <NewFieldForm
