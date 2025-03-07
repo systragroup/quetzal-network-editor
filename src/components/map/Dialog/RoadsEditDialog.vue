@@ -2,7 +2,7 @@
 
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import attributesHints from '@constants/hints.js'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
@@ -14,6 +14,7 @@ import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
 import { rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
 import { round } from 'lodash'
+import DialogHeader from './DialogHeader.vue'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -209,6 +210,36 @@ function change (key: string, idx: number) {
   }
 }
 
+// variant and Attr prefix selector
+
+const selectedVariant = computed({
+  get: () => rlinksStore.variant,
+  set: (val) => rlinksStore.variant = val,
+})
+
+const selectedPrefix = ref<string>('')
+
+const variantChoices = computed(() => rlinksStore.variantChoice)
+
+const prefixesChoice = computed(() => {
+  const prefixes = rlinksStore.rlineAttributes.map(el => el.split('#')[0])
+  return Array.from(new Set(prefixes))
+})
+
+watchEffect(() => {
+  // set show true or false for selected variant
+  editorForm.value.forEach(formData => {
+    const keys = Object.keys(formData)
+    let filteredKeys = keys
+    if (selectedPrefix.value !== '') {
+      filteredKeys = keys.filter(k => (k.split('#')[0] === selectedPrefix.value)
+      || (k.split('#')[0] === selectedPrefix.value + '_r'))
+    }
+    const keysToKeep = new Set(filteredKeys.filter(k => k.includes(selectedVariant.value) || !k.includes('#')))
+    keys.forEach(key => { formData[key].show = keysToKeep.has(key) })
+  })
+})
+
 </script>
 <template>
   <v-dialog
@@ -220,9 +251,12 @@ function change (key: string, idx: number) {
     <v-card
       max-height="55rem"
     >
-      <v-card-title class="text-h5">
-        {{ $gettext("Edit Properties") }}
-      </v-card-title>
+      <DialogHeader
+        v-model:variant="selectedVariant"
+        v-model:prefix="selectedPrefix"
+        :variant-choices="variantChoices"
+        :prefixes-choice="prefixesChoice"
+      />
       <v-divider />
       <v-card-text class="container">
         <v-row>

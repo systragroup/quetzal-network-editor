@@ -243,7 +243,10 @@ const prefixesChoice = computed(() => {
 watchEffect(() => {
   // set show true or false for selected variant
   const keys = Object.keys(editorForm.value)
-  const filteredKeys = keys.filter(k => k.startsWith(selectedPrefix.value))
+  let filteredKeys = keys
+  if (selectedPrefix.value !== '') {
+    filteredKeys = keys.filter(k => k.split('#')[0] === selectedPrefix.value)
+  }
   const keysToKeep = new Set(filteredKeys.filter(k => k.includes(selectedVariant.value) || !k.includes('#')))
   keys.forEach(key => { editorForm.value[key].show = keysToKeep.has(key) })
 })
