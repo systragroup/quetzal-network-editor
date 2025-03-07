@@ -373,10 +373,8 @@ export const useIndexStore = defineStore('index', {
           }
         }
       }
-      zip.generateAsync({ type: 'blob' })
-        .then((content) => {
-          // see FileSaver.js
-          saveAs(content, `${this.outputName}.zip`)
+      zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
+        .then((content) => { saveAs(content, `${this.outputName}.zip`)
         })
     },
 

@@ -1,3 +1,10 @@
+## [7.0.a] (xxx-xx-xx)
+### Features
+* Variants on road
+
+### Changes
+* export as zip: add compression.
+
 ## [6.2.d] (2025-02-19)
 ### Refactor
 * Links, rLinks and OD Store in TypeScript
