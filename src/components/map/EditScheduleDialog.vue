@@ -5,7 +5,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useTheme } from 'vuetify'
 import { cloneDeep } from 'lodash'
-import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, hash } from '@comp/utils/utils'
+import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, hash } from '@src/utils/utils'
 
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 

@@ -1,5 +1,5 @@
 <script setup>
-import { readFileAsText, readFileAsBytes } from '@comp/utils/io'
+import { readFileAsText, readFileAsBytes } from '@src/utils/io'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref } from 'vue'
 import { useGettext } from 'vue3-gettext'

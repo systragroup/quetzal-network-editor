@@ -12,7 +12,7 @@ import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
 import DialogHeader from './DialogHeader.vue'
-import { getGroupForm, isScheduleTrip, hash, round } from '@src/components/utils/utils'
+import { getGroupForm, isScheduleTrip, hash, round } from '@src/utils/utils'
 import { linksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
@@ -22,7 +22,7 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 
 import { useForm } from '@src/composables/UseForm'
-import { getDefaultLink } from '@src/components/utils/network'
+import { getDefaultLink } from '@src/utils/network'
 const { showDialog, action, selectedArr, lingering } = useForm()
 
 // const links = computed(() => linksStore.links)

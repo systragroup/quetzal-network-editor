@@ -369,7 +369,7 @@ function applyStickyNode() {
   }
 }
 
-import { useRouting } from '@src/components/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.js'
 const { routeLink } = useRouting()
 
 </script>

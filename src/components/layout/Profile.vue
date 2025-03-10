@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
 
-import { generatePassword } from '../utils/passwords'
+import { generatePassword } from '@src/utils/passwords'
 import auth from '@src/auth'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'

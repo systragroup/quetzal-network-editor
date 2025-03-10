@@ -1,7 +1,7 @@
 <!-- eslint-disable no-case-declarations -->
 <script setup>
-import { serializer } from '@comp/utils/serializer'
-import { readFileAsText } from '@comp/utils/io'
+import { serializer } from '@src/utils/serializer'
+import { readFileAsText } from '@src/utils/io'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
