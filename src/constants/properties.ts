@@ -71,3 +71,6 @@ export const ODDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
   { name: 'name', type: 'String' },
 ]
+
+export const tcDefaultAttributesChoices = { }
+export const roadDefaultAttributesChoices = { oneway: ['0', '1'] }

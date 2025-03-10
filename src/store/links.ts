@@ -15,7 +15,7 @@ import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
-import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties'
+import { linksDefaultProperties, nodesDefaultProperties, tcDefaultAttributesChoices } from '@src/constants/properties'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
@@ -49,7 +49,7 @@ export const useLinksStore = defineStore('links', {
     // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
-    linksAttributesChoices: {},
+    linksAttributesChoices: cloneDeep(tcDefaultAttributesChoices),
   }),
 
   actions: {
@@ -885,6 +885,9 @@ export const useLinksStore = defineStore('links', {
     attributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
     lineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),
     nodeAttributes: (state) => state.nodesDefaultAttributes.map(attr => attr.name),
+
+    attributesChoicesChanged: (state) =>
+      JSON.stringify(state.linksAttributesChoices) !== JSON.stringify(tcDefaultAttributesChoices),
   },
 })
 
