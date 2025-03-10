@@ -2,7 +2,7 @@
 <script setup>
 
 import { ref, computed, nextTick } from 'vue'
-import { useResult } from '@comp/results/results.js'
+import { useResult } from '@comp/results/results'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
@@ -24,7 +24,7 @@ const rlinksStore = userLinksStore()
 const ODStore = useODStore()
 const store = useIndexStore()
 const {
-  visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures, matSelectedIndex, changeOD,
+  visibleLayer, nanLayer, type, loadLayer, displaySettings, hasOD, odFeatures, matSelectedIndex, changeOD,
   isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter,
   filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
 } = useResult()
@@ -50,24 +50,24 @@ const selectedLayer = ref('')
 async function changeLayer (layer, preset = null) {
   switch (layer) {
     case 'links':
-      await loadLayer(linksStore.links, null, preset)
+      loadLayer(linksStore.links, null, preset)
       break
     case 'rlinks':
-      await loadLayer(rlinksStore.rlinks, null, preset)
+      loadLayer(rlinksStore.rlinks, null, preset)
       break
     case 'nodes':
-      await loadLayer(linksStore.nodes, null, preset)
+      loadLayer(linksStore.nodes, null, preset)
       break
     case 'rnodes':
-      await loadLayer(rlinksStore.rnodes, null, preset)
+      loadLayer(rlinksStore.rnodes, null, preset)
       break
     case 'od':
-      await loadLayer(ODStore.layer, null, preset)
+      loadLayer(ODStore.layer, null, preset)
       break
     default:
       const data = await store.getOtherFile(layer, 'geojson')
       const matrix = await store.getOtherFile(layer, 'json')
-      await loadLayer(data, matrix, preset)
+      loadLayer(data, matrix, preset)
       break
   }
   selectedLayer.value = layer
@@ -135,7 +135,7 @@ async function createPreset (event) {
     }
 
     // if its an OD preset. save the selected index.
-    if (ODfeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
+    if (odFeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
       style.selectedIndex = matSelectedIndex.value
     }
 
@@ -210,11 +210,11 @@ function featureClicked (event) {
       :extrusion="displaySettings.extrusion"
       :labels="displaySettings.labels"
       :links="visibleLayer"
-      :nan-links="NaNLayer"
+      :nan-links="nanLayer"
       :selected-feature="displaySettings.selectedFeature"
       :opacity="displaySettings.opacity"
       :offset="displaySettings.offset"
-      @selectClick="featureClicked"
+      @select-click="featureClicked"
     >
       <div class="legend">
         <MapLegend

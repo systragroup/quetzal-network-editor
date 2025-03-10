@@ -4,11 +4,45 @@ import { useIndexStore } from '@src/store/index'
 import { CRSis4326 } from '@src/utils/serializer'
 import chroma from 'chroma-js'
 import seedrandom from 'seedrandom'
-import geojson from '@constants/geojson'
-const $gettext = s => s
+import { baseLineString, GeoJson } from '@src/types/geojson'
+const $gettext = (s: string) => s
 
-const defaultSettings = {
-  selectedFeature: null,
+export type FeatureName = string
+
+export type MatrixData = Record<FeatureName, Record<string, string>>
+
+export interface Preset {
+  layer: string
+  name: string
+  displaySettings: DisplaySettings
+  selectedFilter?: string
+  selectedCategory?: string[]
+  selectedIndex?: string
+}
+
+export interface DisplaySettings {
+  maxWidth: number
+  minWidth: number
+  numStep: number
+  scale: 'linear' | 'sqrt' | 'log' | 'exp' | 'quad'
+  fixScale: boolean
+  minVal: number
+  maxVal: number
+  cmap: string
+  opacity: number
+  offset: boolean
+  showNaN: boolean
+  reverseColor: boolean
+  extrusion: boolean
+  padding: [number, number]
+  selectedFeature: string
+  labels: string
+
+  [key: string]: number | string | boolean | number[]
+}
+
+const defaultSettings: DisplaySettings = {
+  selectedFeature: '',
   maxWidth: 10,
   minWidth: 1,
   numStep: 100,
@@ -23,14 +57,15 @@ const defaultSettings = {
   reverseColor: false,
   extrusion: false,
   padding: [0, 100],
-  labels: null,
+  labels: '',
 }
 
-function isHexColor (variable) {
+function isHexColor (variable: string) {
   const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/i
   return hexRegex.test(variable)
 }
-function remap (val, minVal, maxVal, reverse, scale, isWidth) {
+function remap (val: number | string, minVal: number, maxVal: number,
+  reverse: boolean, scale: string, isWidth: boolean) {
   // if String. classify with random number
   if (typeof (val) === 'string') {
     if (isWidth) {
@@ -121,25 +156,26 @@ function remap (val, minVal, maxVal, reverse, scale, isWidth) {
 export function useResult () {
   // state encapsulated and managed by the composable
   const store = useIndexStore()
-  const layer = ref(geojson)
-  const visibleLayer = ref(geojson)
-  const NaNLayer = ref(geojson)
-  const type = ref('LineString')
-  const attributes = ref([])
-  const displaySettings = ref(cloneDeep(defaultSettings))
-  const selectedFilter = ref('')
-  const selectedCategory = ref([])
 
-  const hasOD = ref(false)
-  const mat = ref({})
-  const ODfeatures = ref([])
-  const matAvailableIndex = ref({})
-  const matSelectedIndex = ref({})
+  const layer = ref<GeoJson>(baseLineString())
+  const visibleLayer = ref<GeoJson>(baseLineString())
+  const nanLayer = ref<GeoJson>(baseLineString())
+  const type = ref('LineString')
+  const attributes = ref<string[]>([])
+  const displaySettings = ref(cloneDeep(defaultSettings))
+  const selectedFilter = ref<string>('')
+  const selectedCategory = ref<string[]>([])
+
+  const hasOD = ref<boolean>(false)
+  const mat = ref<MatrixData>({})
+  const odFeatures = ref<string[]>([])
+  const matAvailableIndex = ref<Record<FeatureName, string[]>>({})
+  const matSelectedIndex = ref<FeatureName>('')
 
   function reset () {
-    layer.value = cloneDeep(geojson)
-    visibleLayer.value = cloneDeep(geojson)
-    NaNLayer.value = cloneDeep(geojson)
+    layer.value = baseLineString()
+    visibleLayer.value = baseLineString()
+    nanLayer.value = baseLineString()
     type.value = 'LineString'
     attributes.value = []
     displaySettings.value = cloneDeep(defaultSettings)
@@ -148,12 +184,12 @@ export function useResult () {
 
     hasOD.value = false
     mat.value = {}
-    ODfeatures.value = []
+    odFeatures.value = []
     matAvailableIndex.value = {}
-    matSelectedIndex.value = null
+    matSelectedIndex.value = ''
   }
 
-  function loadLayer (data, matData, preset = null) {
+  function loadLayer (data: GeoJson, matData: MatrixData | null, preset: Preset | null = null) {
     reset()
     const settings = preset?.displaySettings
     // Maybe. serializer. but we should do it in import. not here...
@@ -166,24 +202,29 @@ export function useResult () {
     if (type.value !== 'Polygon') { displaySettings.value.extrusion = false }
 
     hasOD.value = (typeof matData === 'object' && matData !== null)
-    if (hasOD.value) { addMatrix(matData) }
+    if (hasOD.value) { addMatrix(matData as MatrixData) }
 
     if (CRSis4326(layer.value)) {
       // apply settings
       getLinksProperties()
-      if (attributes.value.includes(settings?.selectedFeature)) {
-        displaySettings.value.selectedFeature = settings?.selectedFeature
-      } else {
-        displaySettings.value.selectedFeature = null
-      }
-      if (attributes.value.includes(preset?.selectedFilter)) {
-        // if preset contain a filter. apply it if it exist.
-        changeSelectedFilter(preset.selectedFilter)
-        // if there is a list of cat. apply them, else its everything
-        if (Object.keys(preset).includes('selectedCategory')) {
-          selectedCategory.value = preset.selectedCategory
+      if (settings?.selectedFeature) {
+        if (attributes.value.includes(settings.selectedFeature)) {
+          displaySettings.value.selectedFeature = settings.selectedFeature
+        } else {
+          displaySettings.value.selectedFeature = ''
         }
       }
+      if (preset?.selectedFilter) {
+        if (attributes.value.includes(preset.selectedFilter)) {
+          // if preset contain a filter. apply it if it exist.
+          changeSelectedFilter(preset.selectedFilter)
+          // if there is a list of cat. apply them, else its everything
+          if (preset?.selectedCategory) {
+            selectedCategory.value = preset.selectedCategory
+          }
+        }
+      }
+
       if (settings != null) {
         applySettings(settings, true)
       }
@@ -195,22 +236,20 @@ export function useResult () {
           autoClose: true, color: 'warning' })
     }
   }
-  function addMatrix (matData) {
+
+  function addMatrix (matData: MatrixData) {
     // payload is a matrix
     Object.keys(matData).forEach(key => { mat.value[key + ' (OD)'] = matData[key] })
-    ODfeatures.value = Object.keys(mat.value)
+    odFeatures.value = Object.keys(mat.value)
     // force index to string
-    // eslint-disable-next-line no-return-assign
     layer.value.features.forEach(zone => zone.properties.index = String(zone.properties.index))
     // if init with nothing, do nothing.
     if (layer.value.features.length > 0) {
-      ODfeatures.value.forEach(
+      odFeatures.value.forEach(
         prop => {
           // get all clickable indexes
           matAvailableIndex.value[prop] = Object.keys(mat.value[prop])
-          // for each properties in matrix, init the zones to null.
           layer.value.features.forEach(
-            // eslint-disable-next-line no-return-assign
             zone => zone.properties[prop] = null,
           )
         },
@@ -218,23 +257,24 @@ export function useResult () {
     }
   }
 
-  function isIndexAvailable (index) {
+  function isIndexAvailable (index: string) {
     // check if the selected index (from preset) is in the selected property (and if the selected property is an OD)
     const selectedProperty = displaySettings.value.selectedFeature
-
-    if (ODfeatures.value.includes(selectedProperty)) {
+    if (selectedProperty && odFeatures.value.includes(selectedProperty)) {
       return matAvailableIndex.value[selectedProperty].includes(index)
-    } else { return false }
+    } else {
+      return false
+    }
   }
-  function changeOD (index) {
+
+  function changeOD (index: string) {
     const selectedProperty = displaySettings.value.selectedFeature
-    if (ODfeatures.value.includes(selectedProperty) && hasOD.value) {
+    if (selectedProperty && odFeatures.value.includes(selectedProperty) && hasOD.value) {
       matSelectedIndex.value = index
       const row = mat.value[selectedProperty][matSelectedIndex.value]
       // apply new value to each zone. (zone_1 is selected, apply time to zone_1 to every zone)
       // if there is no data, put null (ex: sparse matrix)
       layer.value.features.forEach(
-        // eslint-disable-next-line no-return-assign
         zone => zone.properties[selectedProperty] = row ? row[zone.properties.index] : null)
     }
     refreshVisibleLinks()
@@ -242,7 +282,7 @@ export function useResult () {
   }
 
   function getLinksProperties () {
-    const attrs = new Set([])
+    const attrs: Set<string> = new Set([])
     layer.value.features.forEach(element => {
       Object.keys(element.properties).forEach(key => attrs.add(key))
     })
@@ -254,6 +294,7 @@ export function useResult () {
     selectedCategory.value = Array.from(new Set(layer.value.features.map(
       item => item.properties[selectedFilter.value])))
   }
+
   function refreshVisibleLinks () {
     const group = new Set(selectedCategory.value)
     const cat = selectedFilter.value
@@ -261,7 +302,7 @@ export function useResult () {
     visibleLayer.value.features = layer.value.features.filter(link => group.has(link.properties[cat]))
     if (!displaySettings.value.showNaN) {
       // keep track of NaN links to display them when we have a polygon
-      NaNLayer.value.features = visibleLayer.value.features.filter(link => !link.properties[key])
+      nanLayer.value.features = visibleLayer.value.features.filter(link => !link.properties[key])
       const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
       if (allNaN && hasOD.value && Object.keys(matAvailableIndex.value).includes(key)) {
         // keep visible links as we want to show clickable links
@@ -282,7 +323,7 @@ export function useResult () {
       link => link.properties[key]).map(
       link => link.properties[key])
     if (!displaySettings.value.fixScale) {
-      const arrayMinMax = (arr) =>
+      const arrayMinMax = (arr: number[]) =>
         arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
           Number.POSITIVE_INFINITY,
           Number.NEGATIVE_INFINITY,
@@ -303,11 +344,12 @@ export function useResult () {
         link.properties.display_width = (maxWidth - minWidth) * val + minWidth
       },
     )
+
     let pad = cloneDeep(displaySettings.value.padding)
     pad = [pad[0] / 100, 1 - pad[1] / 100]
-    pad = displaySettings.value.reverseColor ? pad.reverse() : pad
+    if (displaySettings.value.reverseColor) pad.reverse()
     const chromaScale = chroma.scale(cmap).padding(pad)
-      .domain([0, 1], scale).classes(numStep)
+      .domain([0, 1], 0, scale).classes(numStep)
 
     visibleLayer.value.features.forEach(
       link => {
@@ -338,18 +380,19 @@ export function useResult () {
         { text: $gettext('Clickable element in green'), autoClose: true, color: 'success' })
     }
   }
-  function changeSelectedFilter (payload) {
+  function changeSelectedFilter (payload: string) {
     selectedFilter.value = payload
     // set all visible
     selectedCategory.value = Array.from(new Set(layer.value.features.map(
       item => item.properties[selectedFilter.value])))
     refreshVisibleLinks()
   }
-  function changeSelectedCategory (payload) {
+  function changeSelectedCategory (payload: string[]) {
+    console.log(payload)
     selectedCategory.value = payload
     refreshVisibleLinks()
   }
-  function applySettings (payload, skip = false) {
+  function applySettings (payload: DisplaySettings, skip = false) {
     const keys = Object.keys(payload)
     // apply all payload settings to state.displaySettings
     for (const key of keys) {
@@ -373,7 +416,8 @@ export function useResult () {
     const arr = []
     let pad = displaySettings.value.padding
     pad = [pad[0] / 100, 1 - pad[1] / 100]
-    pad = displaySettings.value.reverseColor ? pad.reverse() : pad
+    if (displaySettings.value.reverseColor) pad.reverse()
+
     const chromaScale = chroma.scale(displaySettings.value.cmap).padding(pad)
       .domain([0, 1]).classes(displaySettings.value.numStep)
     for (let i = 0; i < 100; i++) {
@@ -388,12 +432,12 @@ export function useResult () {
     type,
     attributes,
     visibleLayer,
-    NaNLayer,
+    nanLayer,
     displaySettings,
     selectedFilter,
     selectedCategory,
     hasOD,
-    ODfeatures,
+    odFeatures,
     matAvailableIndex,
     matSelectedIndex,
     changeOD,

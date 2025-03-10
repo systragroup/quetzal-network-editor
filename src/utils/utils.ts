@@ -1,10 +1,10 @@
 import { FormFormat, GroupForm } from '@src/types/components'
-import { GeoJson, GeoJsonFeature, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
+import { GeoJson, GeoJsonFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
 import { createHash } from 'sha256-uint8array'
 
 // Links Used in all
 
-export function getGroupForm (features: GeoJsonFeature[], lineAttributes: string[], uneditable: string[]) {
+export function getGroupForm (features: GeoJsonFeatures[], lineAttributes: string[], uneditable: string[]) {
   const form: GroupForm = {}
   lineAttributes.forEach(key => {
     const val = new Set(features.map(link => link.properties[key]))
@@ -19,7 +19,7 @@ export function getGroupForm (features: GeoJsonFeature[], lineAttributes: string
   return form
 }
 
-export function getForm (feature: GeoJsonFeature, lineAttributes: string[], uneditable: string[]) {
+export function getForm (feature: GeoJsonFeatures, lineAttributes: string[], uneditable: string[]) {
   // filter properties to only the one that are editable.
   const form: GroupForm = {}
   lineAttributes.forEach(key => {
@@ -45,7 +45,7 @@ export function getModifiedKeys(form: GroupForm) {
   )
 }
 
-export function isScheduleTrip(link: GeoJsonFeature | undefined) {
+export function isScheduleTrip(link: GeoJsonFeatures | undefined) {
   if (link == undefined) { return false }
   return (link.properties.arrivals !== undefined)
 }
