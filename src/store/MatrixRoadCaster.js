@@ -50,10 +50,13 @@ export const useMRCStore = defineStore('runMRC', () => {
 
   async function ApplyResults () {
     const rlinksStore = userLinksStore()
+    rlinksStore.$reset()
     const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
-    rlinksStore.loadrLinks(rlinks)
     const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
-    rlinksStore.loadrNodes(rnodes)
+    rlinksStore.loadRoadFiles([
+      { path: 'inputs/road/links.geojson', content: rlinks },
+      { path: 'inputs/road/nodes.geojson', content: rnodes },
+    ])
   }
 
   async function getOutputs() {

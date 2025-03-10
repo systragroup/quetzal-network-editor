@@ -6,7 +6,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 
-import { serializer, CRSis4326 } from '@comp/utils/serializer'
+import { serializer } from '@comp/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
   hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage,
   getModifiedKeys } from '@comp/utils/utils'
@@ -53,36 +53,9 @@ export const useLinksStore = defineStore('links', {
   }),
 
   actions: {
-
-    loadLinks (payload: LineStringGeoJson) {
-      this.links = cloneDeep(payload)
-      this.editorLinks = baseLineString()
-      if (CRSis4326(this.links)) {
-        // limit geometry precision to 6 digit
-        simplifyGeometry(this.links)
-
-        this.applyPropertiesTypes(this.links)
-        this.getTripId()
-
-        // set all trips visible
-        this.selectedTrips = this.tripList
-
-        this.getLinksProperties()
-        initLengthTimeSpeed(this.links, this.variantChoice)
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
-    },
-
-    loadNodes (payload: PointGeoJson) {
-      this.nodes = cloneDeep(payload)
-      this.editorNodes = basePoint()
-      if (CRSis4326(this.nodes)) {
-        // limit geometry precision to 6 digit
-        simplifyGeometry(this.nodes)
-
-        this.getNodesProperties()
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
-    },
-
+    //
+    // io
+    //
     loadPTFiles (payload: FilesPayload[]) {
       // payload = [{path,content}, ...]
       // get links. check that index are not duplicated, serialize them and then append to project
@@ -113,11 +86,9 @@ export const useLinksStore = defineStore('links', {
     appendNewLinks (payload: LineStringGeoJson) {
       // append new links to the project. payload = links geojson file
       simplifyGeometry(payload)
-
-      // this.links.features.push(...payload.links.features) will crash with large array (stack size limit)
       payload.features.forEach(link => this.links.features.push(link))
       this.getLinksProperties()
-      this.getTripId()
+      this.getTripList()
       this.selectedTrips = this.tripList
       this.getVariants()
       initLengthTimeSpeed(this.links, this.variantChoice)
@@ -163,7 +134,7 @@ export const useLinksStore = defineStore('links', {
       Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
       const attrs = Object.keys(this.linksAttributesChoices) // all attrbutes in attributesChoices
       const newAttrs = getDifference(attrs, this.lineAttributes)
-      newAttrs.forEach(item => this.addLinksPropertie({ name: item }))
+      newAttrs.forEach(attr => this.addLinksPropertie({ name: attr }))
     },
 
     addLinksPropertie (payload: NewAttribute) {
@@ -301,18 +272,17 @@ export const useLinksStore = defineStore('links', {
       // push cloned links and nodes
       this.links.features.push(...cloned.features)
 
-      this.getTripId()
+      this.getTripList()
     },
+
     getEditorNodes (nodes: PointGeoJson) {
       // payload contain nodes. this.nodes or this.editorNodes
       const features = deleteUnusedNodes(nodes, this.editorLinks) // return nodes in links
       this.editorNodes.features = cloneDeep(features)
     },
 
-    getTripId () {
+    getTripList () {
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
-      // this.scheduledTrips = new Set(this.links.features.filter(l =>
-      //   Array.isArray(l.properties.arrivals)).map(item => item.properties.trip_id))
     },
 
     createNewLink (payload: NewLinkPayload) {
@@ -389,6 +359,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     createNewNode (geometry: number[]) {
+      // only used to create the first node of a new Line
       const nodeProperties: Record<string, any> = {}
       this.nodeAttributes.forEach(key => {
         nodeProperties[key] = null
@@ -437,18 +408,13 @@ export const useLinksStore = defineStore('links', {
       const link1 = this.editorLinks.features.filter(link => link.properties.b === nodeIndex)[0] // link is extented
       const link2 = this.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0] // link is deleted
 
-      if (nodeIndex == this.firstNodeId)
-      {
+      if (nodeIndex == this.firstNodeId) {
         this.editorLinks.features = this.editorLinks.features.filter(link => link.properties.a !== nodeIndex)
         this.editorLinks.features.forEach(link => link.properties.link_sequence -= 1)
-      }
-      else if (nodeIndex == this.lastNodeId)
-      {
+      } else if (nodeIndex == this.lastNodeId) {
         this.editorLinks.features = this.editorLinks.features.filter(link => link.properties.b !== nodeIndex)
         // the node is inbetween 2 links. 1 link is deleted, and the other is extented.
-      }
-      else
-      {
+      } else {
         // merge link2 on link1 then delete link2
         link1.geometry.coordinates = [
           ...link1.geometry.coordinates.slice(0, -1),
@@ -761,8 +727,9 @@ export const useLinksStore = defineStore('links', {
         )
       }
       // get tripId list
-      this.getTripId()
+      this.getTripList()
     },
+
     deleteUnusedNodes () {
       // delete every every nodes not in links
       this.nodes.features = deleteUnusedNodes(this.nodes, this.links)
@@ -828,7 +795,7 @@ export const useLinksStore = defineStore('links', {
       }
 
       // get tripId list
-      this.getTripId()
+      this.getTripList()
       this.getLinksProperties()
       this.setEditorTrip(null)
     },
@@ -851,7 +818,7 @@ export const useLinksStore = defineStore('links', {
     deleteTrips (tripList: string[]) {
       this.links.features = this.links.features.filter(link => !tripList.includes(link.properties.trip_id))
       this.deleteUnusedNodes()
-      this.getTripId()
+      this.getTripList()
     },
 
     applyPropertiesTypes (links: LineStringGeoJson) {

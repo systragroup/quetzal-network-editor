@@ -6,7 +6,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
-import { serializer, CRSis4326 } from '@comp/utils/serializer'
+import { serializer } from '@comp/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference } from '@comp/utils/utils'
 import { cloneDeep } from 'lodash'
 
@@ -53,31 +53,9 @@ export const userLinksStore = defineStore('rlinks', {
   }),
 
   actions: {
-    loadrLinks (payload: LineStringGeoJson) {
-      this.rlinks = cloneDeep(payload)
-      if (CRSis4326(this.rlinks)) {
-        this.visiblerLinks = baseLineString()
-        // limit geometry precision to 6 digit
-        simplifyGeometry(this.rlinks)
-        this.filteredrCategory = []
-        this.selectedrGroup = []
-        this.getrLinksProperties()
-        this.splitOneway()
-        // set all trips visible
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
-    },
-
-    loadrNodes (payload: PointGeoJson) {
-      this.rnodes = JSON.parse(JSON.stringify(payload))
-      if (CRSis4326(this.rnodes)) {
-        this.visiblerNodes = basePoint()
-        // limit geometry precision to 6 digit
-        simplifyGeometry(this.rnodes)
-
-        this.getrNodesProperties()
-      } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
-    },
-
+    //
+    // IO
+    //
     loadRoadFiles (payload: FilesPayload[]) {
       // payload = [{path,content},...]
       // get rlinks. check that index are not duplicated, serialize them and then append to project
