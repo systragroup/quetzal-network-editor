@@ -1,19 +1,27 @@
 <!-- eslint-disable no-case-declarations -->
-<script setup>
+<script setup lang="ts">
 import MapLegend from '@comp/utils/MapLegend.vue'
 import { onBeforeUnmount, toRefs, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
-import { useResult } from '@comp/results/results.js'
+import { Preset, useResult } from '@comp/results/results'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 import { useTheme } from 'vuetify'
+import { Map } from 'mapbox-gl'
 const theme = useTheme()
 // set visibility. to render or not by fetching the data.
 // we need to create all the statics link (even without the data)
 // for the correct z-order. if not, they are drawn over the links.
+interface Props {
+  preset: Preset
+  map: Map
+  order: number
+  visibleRasters: string[]
+}
 
-const props = defineProps(['preset', 'map', 'order', 'visibleRasters'])
+// const props = defineProps(['preset', 'map', 'order', 'visibleRasters'])
+const props = defineProps<Props>()
 const { preset, map, order: zorder, visibleRasters } = toRefs(props)
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
@@ -31,27 +39,27 @@ const opacity = preset.value.displaySettings.opacity
 const offsetValue = preset.value.displaySettings.offset ? -1 : 1
 const labels = preset.value.displaySettings.labels
 
-async function changeLayer (layer, preset = null) {
+async function changeLayer (layer: string, preset: Preset | null = null) {
   switch (layer) {
     case 'links':
-      await loadLayer(linksStore.links, null, preset)
+      loadLayer(linksStore.links, null, preset)
       break
     case 'rlinks':
-      await loadLayer(rlinksStore.rlinks, null, preset)
+      loadLayer(rlinksStore.rlinks, null, preset)
       break
     case 'nodes':
-      await loadLayer(linksStore.nodes, null, preset)
+      loadLayer(linksStore.nodes, null, preset)
       break
     case 'rnodes':
-      await loadLayer(rlinksStore.rnodes, null, preset)
+      loadLayer(rlinksStore.rnodes, null, preset)
       break
     case 'od':
-      await loadLayer(ODStore.layer, null, preset)
+      loadLayer(ODStore.layer, null, preset)
       break
     default:
       const data = await store.getOtherFile(layer, 'geojson')
       const matrix = await store.getOtherFile(layer, 'json')
-      await loadLayer(data, matrix, preset)
+      loadLayer(data, matrix, preset)
       break
   }
 }
@@ -60,13 +68,14 @@ onMounted(async () => {
   await changeLayer(preset.value.layer, preset.value)
 
   // if its an OD. click on the selected index.
-  if (Object.keys(preset.value).includes('selectedIndex') && isIndexAvailable(preset.value.selectedIndex)) {
+  if (preset.value?.selectedIndex && isIndexAvailable(preset.value.selectedIndex)) {
     changeOD(preset.value.selectedIndex)
-    store.changeNotification({})
+    store.changeNotification({ text: '' })
   }
   // simplify it
   visibleLayer.value.features = visibleLayer.value.features.map(obj => {
     return {
+      type: 'Feature',
       geometry: obj.geometry,
       properties: {
         display_color: obj.properties.display_color,
@@ -83,7 +92,7 @@ onMounted(async () => {
 function addLayer () {
   map.value.addSource(sourceId, {
     type: 'geojson',
-    data: visibleLayer.value
+    data: visibleLayer.value as any
     ,
   })
 
@@ -165,7 +174,11 @@ function moveLayer () {
   // and place it under the closest one. if none are loaded (or first) place on top.
   // ex: order: 1,2,3,4. only 1,2 are loaded when 4 is mounted. place 4 under 2. it works because
   // when 3 will mount. it will go under 2 => 1,2,3,4.
-  const layersList = map.value.getStyle().layers.map(layer => layer.id)
+  const styles = map.value.getStyle()
+  if (!styles) {
+    return
+  }
+  const layersList = styles.layers.map(layer => layer.id)
   const index = visibleRasters.value.indexOf(name)
   let previousLayers = visibleRasters.value.map(layer => layer + '-layer').splice(0, index)
   previousLayers = previousLayers.filter(layer => layersList.includes(layer))

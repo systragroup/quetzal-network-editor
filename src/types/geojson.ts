@@ -25,30 +25,15 @@ interface GeoJsonGeometry {
   coordinates: any // Use appropriate types for stricter validation if needed
 }
 
-interface GeoJsonMultiPoint extends GeoJsonGeometry {
-  type: 'MultiPoint'
-  coordinates: [number, number][]
-}
+// interface GeoJsonPolygon extends GeoJsonGeometry {
+//   type: 'Polygon'
+//   coordinates: [number, number][][] // Array of LinearRing coordinate arrays
+// }
 
-interface GeoJsonMultiLineString extends GeoJsonGeometry {
-  type: 'MultiLineString'
-  coordinates: [number, number][][]
-}
-
-interface GeoJsonPolygon extends GeoJsonGeometry {
-  type: 'Polygon'
-  coordinates: [number, number][][] // Array of LinearRing coordinate arrays
-}
-
-interface GeoJsonMultiPolygon extends GeoJsonGeometry {
-  type: 'MultiPolygon'
-  coordinates: [number, number][][][]
-}
-
-interface GeoJsonGeometryCollection extends GeoJsonGeometry {
-  type: 'GeometryCollection'
-  geometries: GeoJsonGeometry[]
-}
+// interface GeoJsonMultiPolygon extends GeoJsonGeometry {
+//   type: 'MultiPolygon'
+//   coordinates: [number, number][][][]
+// }
 
 // My Geojson types
 //
@@ -81,6 +66,12 @@ export interface LineStringFeatures {
   properties: GeoJsonProperties
 }
 
+export interface GeoJsonFeatures {
+  type: 'Feature'
+  geometry: GeoJsonGeometry
+  properties: GeoJsonProperties
+}
+
 // Geojson
 
 export interface LineStringGeoJson {
@@ -95,11 +86,12 @@ export interface PointGeoJson {
   crs?: GeoJsonCRS // Optional CRS
 }
 
-export type GeoJson =
-  | LineStringGeoJson
-  | PointGeoJson
+export interface GeoJson {
+  type: 'FeatureCollection'
+  features: GeoJsonFeatures[]
+  crs?: GeoJsonCRS // Optional CRS
+}
 
-export type GeoJsonFeature = LineStringFeatures | PointFeatures
 // export Template values
 
 export function basePoint(): PointGeoJson {

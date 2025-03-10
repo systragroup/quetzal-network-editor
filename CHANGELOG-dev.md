@@ -1,7 +1,12 @@
+
+
 ## [7.0.a] (xxx-xx-xx)
 6.2 is changed to 7.0.0 as there are many changes.
 ### Features
-* **TypeScript (WIP)** on Links, Road and OD stores. some utils and components too.
+* **TypeScript (WIP)** 
+    * Links, Road and OD stores. 
+    * Results (composable)
+    * Utils and components too.
 
 * **Variants** on TC networks (ex: speed#AM, speed#PM, etc)
 * **WIP Variants** on Road (to finish with variants on _r)
