@@ -91,10 +91,9 @@ export const userLinksStore = defineStore('rlinks', {
       payload.features = payload.features.filter(link => link.properties.a !== link.properties.b)
       payload.features.forEach(link => this.rlinks.features.push(link))
       this.getrLinksProperties()
-      this.splitOneway()
       this.getVariants()
-      this.getFilteredrCat()
-      console.log(this.variantChoice)
+      this.initOneways()
+      this.initSelectedrFilter()
     },
 
     getVariants() {
@@ -113,15 +112,23 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     getrLinksProperties () {
-      let header: Set<string> = new Set([])
+      const header: Set<string> = new Set([])
       this.rlinks.features.forEach(feat => {
         Object.keys(feat.properties).forEach(key => header.add(key))
       })
       const newAttrs = getDifference(header, this.rlineAttributes)
       newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
 
-      const selectedFilter = header.has('highway') ? 'highway' : this.rlineAttributes[0]
-      this.changeSelectedrFilter(selectedFilter)
+      this.createReversedProperties()
+    },
+
+    createReversedProperties() {
+      // add reversed attributes
+      const toReverse = this.rlineAttributes.filter(attr => !rlinksConstantProperties.includes(attr))
+      const reversedAttributes = toReverse.map(attr => attr + '_r')
+      const newAttrs = getDifference(reversedAttributes, this.reversedAttributes)
+
+      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
     },
 
     getrNodesProperties () {
@@ -200,7 +207,7 @@ export const userLinksStore = defineStore('rlinks', {
         this.getrLinksProperties()
         this.getrNodesProperties()
 
-        this.getFilteredrCat()
+        this.initSelectedrFilter()
         this.refreshVisibleRoads() // nodes are refresh in this method
         this.updateLinks = [] // refresh rlinks
       }
@@ -213,15 +220,20 @@ export const userLinksStore = defineStore('rlinks', {
       this.selectedrFilter = payload
       this.getFilteredrCat()
     },
+
+    initSelectedrFilter() {
+      const selectedFilter = this.rlineAttributes.includes('highway') ? 'highway' : this.rlineAttributes[0]
+      this.changeSelectedrFilter(selectedFilter)
+    },
+
     getFilteredrCat () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(this.rlinks.features.map(
-        item => item.properties[this.selectedrFilter])))
+      const val = Array.from(new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter])))
       this.filteredrCategory = val
     },
 
-    splitOneway () {
+    initOneways () {
       if (this.rlineAttributes.includes('oneway')) {
         // make sure oneway is '1' or '0'
         this.rlinks.features.forEach(link => {
@@ -232,22 +244,11 @@ export const userLinksStore = defineStore('rlinks', {
           }
         })
 
-        // add reversed attributes
-        const reversedAttributes = this.rlineAttributes.filter(
-          attr => !rlinksConstantProperties.includes(attr)).map(
-          attr => attr + '_r')
-        const newAttrs = reversedAttributes.filter(el => !this.reversedAttributes.includes(el))
-        newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
-
-        // split oneway
-        const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
-        toSplit.forEach(link => {
-          this.reversedAttributes.forEach(rattr => {
-            if (!link.properties[rattr]) {
-              link.properties[rattr] = link.properties[rattr.slice(0, -2)] }
-          })
-        },
-        )
+        // init _r values on oneway
+        // const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
+        // toSplit.forEach(link => {
+        //  this.initReversePropertiesOnLink(link)
+        // })
       }
     },
 
@@ -338,9 +339,8 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     initReversePropertiesOnLink(link: LineStringFeatures) {
-      this.reversedAttributes.forEach(
-        (rkey) => {
-          link.properties[rkey] = link.properties[rkey.slice(0, -2)] },
+      this.reversedAttributes.forEach((rkey) => {
+        link.properties[rkey] = link.properties[rkey.slice(0, -2)] },
       )
     },
 
@@ -468,8 +468,8 @@ export const userLinksStore = defineStore('rlinks', {
       calcLengthTime(link1, this.variantChoice)
       calcLengthTime(link2, this.variantChoice)
       if (link1.properties.time_r) {
-        calcLengthTime(link1, ['_r'])
-        calcLengthTime(link2, ['_r'])
+        calcLengthTime(link1, this.reversedVariantChoice)
+        calcLengthTime(link2, this.reversedVariantChoice)
       }
 
       this.visiblerLinks.features.push(link2)
@@ -607,13 +607,13 @@ export const userLinksStore = defineStore('rlinks', {
       this.connectedLinks.b.forEach(link => {
         link.geometry.coordinates = [...link.geometry.coordinates.slice(0, -1), payload.lngLat]
         calcLengthTime(link, this.variantChoice)
-        if (link.properties.time_r) { calcLengthTime(link, ['_r']) }
+        if (link.properties.time_r) { calcLengthTime(link, this.reversedVariantChoice) }
       })
 
       this.connectedLinks.a.forEach(link => {
         link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
         calcLengthTime(link, this.variantChoice)
-        if (link.properties.time_r) { calcLengthTime(link, ['_r']) }
+        if (link.properties.time_r) { calcLengthTime(link, this.reversedVariantChoice) }
       })
 
       this.updateLinks = [...this.connectedLinks.visibleLinksList]
@@ -629,6 +629,7 @@ export const userLinksStore = defineStore('rlinks', {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
       calcLengthTime(link, this.variantChoice)
+      if (link.properties.time_r) calcLengthTime(link, this.reversedVariantChoice)
       this.updateLinks = [link]
     },
     deleteAnchorrNode (payload: SelectedNode) {
@@ -639,6 +640,7 @@ export const userLinksStore = defineStore('rlinks', {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
       calcLengthTime(link, this.variantChoice)
+      if (link.properties.time_r) calcLengthTime(link, this.reversedVariantChoice)
       this.updateLinks = [link]
     },
 
@@ -671,6 +673,7 @@ export const userLinksStore = defineStore('rlinks', {
     rattributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
     rlineAttributes: (state) => state.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')).map(el => el.name),
     reversedAttributes: (state) => state.linksDefaultAttributes.filter(el => el.name.endsWith('_r')).map(el => el.name),
+    reversedVariantChoice: (state) => state.variantChoice.map(v => v + '_r') as NonEmptyArray<string>,
     hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
     rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
     grouprLinks: (state) => (category: string, group: string) => {
