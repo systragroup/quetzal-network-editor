@@ -7,7 +7,7 @@ import { Upload } from '@aws-sdk/lib-storage'
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
-import { hash } from './components/utils/utils'
+import { hash } from '@src/utils/utils'
 
 const USERPOOL_ID = import.meta.env.VITE_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
