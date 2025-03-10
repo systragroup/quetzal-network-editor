@@ -17,7 +17,8 @@ import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes,
   SelectedNode, SplitRoadPayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
   PointGeoJson, PointGeometry } from '@src/types/geojson'
-import { rlinksConstantProperties, rnodesDefaultProperties, rlinksDefaultProperties } from '@src/constants/properties'
+import { rlinksConstantProperties, rnodesDefaultProperties,
+  rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
 import { addDefaultValuesToVariants, calcLengthTime, getBaseAttributesWithVariants,
   getDefaultLink, getVariantsChoices } from '@src/utils/network'
@@ -37,7 +38,7 @@ export const userLinksStore = defineStore('rlinks', {
     // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(rlinksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(rnodesDefaultProperties),
-    rlinksAttributesChoices: {},
+    rlinksAttributesChoices: cloneDeep(roadDefaultAttributesChoices),
     // Filter
     selectedrFilter: '',
     selectedrGroup: [],
@@ -679,7 +680,8 @@ export const userLinksStore = defineStore('rlinks', {
     grouprLinks: (state) => (category: string, group: string) => {
       return state.rlinks.features.filter(link => group === link.properties[category])
     },
-
+    attributesChoicesChanged: (state) =>
+      JSON.stringify(state.rlinksAttributesChoices) !== JSON.stringify(roadDefaultAttributesChoices),
   },
 })
 

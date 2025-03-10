@@ -63,7 +63,6 @@ export interface IndexStore {
   styles: Style[]
   projectInfo: ProjectInfo
   otherFiles: OtherFiles[]
-  attributesChoices: GlobalAttributesChoice
 }
 
 // payloads

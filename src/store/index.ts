@@ -19,8 +19,6 @@ import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
   Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
 const $gettext = (s: string) => s
 
-const defaultAttributesChoices = { pt: {}, road: { oneway: ['0', '1'] } }
-
 export const useIndexStore = defineStore('index', {
 
   state: (): IndexStore => ({
@@ -45,7 +43,6 @@ export const useIndexStore = defineStore('index', {
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     projectInfo: { description: '' },
     otherFiles: [], // [{path, content}]
-    attributesChoices: defaultAttributesChoices, // { pt: {}, road: { oneway: ['0', '1'] } }
     // microservices
     importPoly: null,
   }),
@@ -199,11 +196,7 @@ export const useIndexStore = defineStore('index', {
     loadAttributesChoices (payload: GlobalAttributesChoice) {
       const links = useLinksStore()
       const rlinks = userLinksStore()
-      // eslint-disable-next-line no-return-assign
-      Object.keys(payload.pt).forEach(key => this.attributesChoices.pt[key] = payload.pt[key])
       links.loadLinksAttributesChoices(payload.pt)
-      // eslint-disable-next-line no-return-assign
-      Object.keys(payload.road).forEach(key => this.attributesChoices.road[key] = payload.road[key])
       rlinks.loadrLinksAttributesChoices(payload.road)
     },
 
@@ -354,8 +347,9 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
           zip.file('info.json', blob)
         }
-        if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
-          const blob = new Blob([JSON.stringify(this.attributesChoices)], { type: 'application/json' })
+        if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged) {
+          const attributesChoices = { pt: linksStore.linksAttributesChoices, road: rlinksStore.rlinksAttributesChoices }
+          const blob = new Blob([JSON.stringify(attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
 
@@ -416,8 +410,9 @@ export const useIndexStore = defineStore('index', {
         await s3.putObject(bucket, paths.info, JSON.stringify(this.projectInfo))
       }
       // save attributes choices if changed
-      if (JSON.stringify(this.attributesChoices) !== JSON.stringify(defaultAttributesChoices)) {
-        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(this.attributesChoices))
+      if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged) {
+        const attributesChoices = { pt: linksStore.linksAttributesChoices, road: rlinksStore.rlinksAttributesChoices }
+        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(attributesChoices))
       }
       // save PT
       if (linksStore.links.features.length > 0) {
