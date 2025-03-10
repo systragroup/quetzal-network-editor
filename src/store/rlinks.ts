@@ -6,8 +6,8 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
-import { serializer } from '@comp/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference } from '@comp/utils/utils'
+import { serializer } from '@src/utils/serializer'
+import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
@@ -18,9 +18,9 @@ import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes,
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
   PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties, rlinksDefaultProperties } from '@src/constants/properties'
-import { simplifyGeometry } from '@src/components/utils/spatial'
+import { simplifyGeometry } from '@src/utils/spatial'
 import { addDefaultValuesToVariants, calcLengthTime, getBaseAttributesWithVariants,
-  getDefaultLink, getVariantsChoices } from '@src/components/utils/network'
+  getDefaultLink, getVariantsChoices } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 // eslint-disable-next-line max-len

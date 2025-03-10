@@ -6,7 +6,7 @@ import attributesHints from '@constants/hints.js'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
-import { getGroupForm } from '@src/components/utils/utils'
+import { getGroupForm } from '@src/utils/utils'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()

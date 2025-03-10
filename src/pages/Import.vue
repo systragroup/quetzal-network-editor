@@ -2,7 +2,7 @@
 <script setup>
 import router from '@src/router/index'
 import s3 from '@src/AWSClient'
-import { extractZip, unzip } from '@comp/utils/io'
+import { extractZip, unzip } from '@src/utils/io'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
 import Info from '@comp/import/Info.vue'

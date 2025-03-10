@@ -6,11 +6,11 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 
-import { serializer } from '@comp/utils/serializer'
+import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
   hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage,
-  getModifiedKeys } from '@comp/utils/utils'
-import { simplifyGeometry } from '@src/components/utils/spatial'
+  getModifiedKeys } from '@src/utils/utils'
+import { simplifyGeometry } from '@src/utils/spatial'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
@@ -26,7 +26,7 @@ import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTime,
   getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
-  getDefaultLink } from '@src/components/utils/network'
+  getDefaultLink } from '@src/utils/network'
 
 const $gettext = (s: string) => s
 

@@ -3,8 +3,8 @@
 import { defineStore } from 'pinia'
 
 import { point as Point } from '@turf/helpers'
-import { serializer, CRSis4326 } from '@comp/utils/serializer'
-import { getModifiedKeys, getDifference, IndexAreDifferent } from '@comp/utils/utils'
+import { serializer, CRSis4326 } from '@src/utils/serializer'
+import { getModifiedKeys, getDifference, IndexAreDifferent } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODStore } from '@src/types/typesStore'

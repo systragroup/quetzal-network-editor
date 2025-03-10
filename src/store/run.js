@@ -1,4 +1,4 @@
-import { paramsSerializer } from '@src/components/utils/serializer'
+import { paramsSerializer } from '@src/utils/serializer'
 import s3 from '@src/AWSClient'
 import { defineStore } from 'pinia'
 import { useIndexStore } from './index'

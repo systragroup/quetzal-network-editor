@@ -10,11 +10,11 @@ import { useOSMStore } from './OSMImporter'
 import { useGTFSStore } from './GTFSImporter'
 import { useMapStore } from './map'
 
-import { infoSerializer, stylesSerializer } from '../components/utils/serializer'
+import { infoSerializer, stylesSerializer } from '@src/utils/serializer'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
-import { deleteUnusedNodes } from '../components/utils/utils'
+import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
   Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
 const $gettext = (s: string) => s

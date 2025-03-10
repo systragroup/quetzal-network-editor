@@ -7,7 +7,7 @@ import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { csvJSON } from '../utils/io'
+import { csvJSON } from '@src/utils/io'
 import MapSelector from './MapSelector.vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()

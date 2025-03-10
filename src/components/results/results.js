@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash'
 import { ref, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
-import { CRSis4326 } from '@comp/utils/serializer'
+import { CRSis4326 } from '@src/utils/serializer'
 import chroma from 'chroma-js'
 import seedrandom from 'seedrandom'
 import geojson from '@constants/geojson'
