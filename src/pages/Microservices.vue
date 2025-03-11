@@ -70,11 +70,8 @@ export default {
     <v-window class="layout">
       <OSMImporter v-if="tab==='OSM importer' " />
       <GTFSZipImporter v-else-if="tab==='GTFS importer' && subtab==='Zip importer'" />
-
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
-
       <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
-
       <MapMatching v-else-if="tab==='MapMatching'" />
     </v-window>
   </section>

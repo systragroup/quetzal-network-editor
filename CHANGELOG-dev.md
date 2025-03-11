@@ -2,14 +2,17 @@
 
 ## [7.0.a] (xxx-xx-xx)
 6.2 is changed to 7.0.0 as there are many changes.
+The update of SCSS also create some artefact that were corrected while refactoring.
+for that reason, it's difficult to release a version 6.2 without issues.
+
 ### Features
 * **TypeScript (WIP)** 
     * Links, Road and OD stores. 
     * Results (composable)
-    * Utils and components too.
+    * Utils and some components too.
 
 * **Variants** on TC networks (ex: speed#AM, speed#PM, etc)
-* **WIP Variants** on Road (to finish with variants on _r)
+* **Variants** on Roads (ex: speed#AM, speed#PM, speed#AM_r, speed#PM_r, etc)
 
 * **Dialogs** reworked. Can filter properties and/or variants. Added number-inputs
 
@@ -20,14 +23,14 @@
 
 ### Changes
 * Enter on Edit Dialog and escape to confirm/cancel
-* Speed-time-length dynamic calculation on roadLinks
-* export as zip: add compression.
+* Speed-time-length dynamic calculation on roadLinks (except reversed direction _r)
+* Export as zip: add compression.
 * Change NavigationDrawer Looks and feels
 * Maps are now not under the left panel and resize well.
-* Map auto center on network, no more fly from Montreal.
+* Maps auto center on network, no more fly from Montreal.
 * remove changeBounds when click on a link
 * remove default link color changes on darkMode
-* New Trips properties entered overwrite defaults values for next trip created.
+* New Trips properties entered overwrite defaults values for next trip creation.
 * Routing list: remove duplicated in road_link_list on apply.
 
 ### Bug Fixes
