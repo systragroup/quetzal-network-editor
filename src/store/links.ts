@@ -92,6 +92,7 @@ export const useLinksStore = defineStore('links', {
       this.selectedTrips = this.tripList
       this.getVariants()
       initLengthTimeSpeed(this.links, this.variantChoice)
+      this.getLinksProperties()
       this.applyPropertiesTypes(this.links)
     },
 
