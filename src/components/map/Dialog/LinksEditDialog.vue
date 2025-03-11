@@ -203,21 +203,21 @@ function change (key: string) {
     case 'speed':
       editorForm.value[`speed${v}`].value = round(editorForm.value[`speed${v}`].value, 6)
       const time = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
-      if (!editorForm.value[`time${v}`].placeholder) {
+      if (editorForm.value[`time${v}`] && !editorForm.value[`time${v}`].placeholder) {
         editorForm.value[`time${v}`].value = round(time, 0)
       }
       break
     case 'time':
       editorForm.value[`time${v}`].value = round(editorForm.value[`time${v}`].value, 0)
       const speed = editorForm.value.length.value / editorForm.value[`time${v}`].value * 3.6
-      if (!editorForm.value[`speed${v}`].placeholder) {
+      if (editorForm.value[`speed${v}`] && !editorForm.value[`speed${v}`].placeholder) {
         editorForm.value[`speed${v}`].value = round(speed, 6)
       }
       break
     case 'length':
       editorForm.value.length.value = round(editorForm.value.length.value, 0)
       const time2 = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
-      if (!editorForm.value.placeholder) {
+      if (editorForm.value[`time${v}`] && !editorForm.value[`time${v}`].placeholder) {
         editorForm.value[`time${v}`].value = round(time2, 0)
       }
       break

@@ -1,6 +1,6 @@
 
 
-## [7.0.a] (xxx-xx-xx)
+## [7.0.a] (2025-03-11)
 6.2 is changed to 7.0.0 as there are many changes.
 The update of SCSS also create some artefact that were corrected while refactoring.
 for that reason, it's difficult to release a version 6.2 without issues.
