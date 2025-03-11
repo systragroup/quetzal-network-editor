@@ -64,6 +64,7 @@ function isHexColor (variable: string) {
   const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/i
   return hexRegex.test(variable)
 }
+
 function remap (val: number | string, minVal: number, maxVal: number,
   reverse: boolean, scale: string, isWidth: boolean) {
   // if String. classify with random number
@@ -154,22 +155,19 @@ function remap (val: number | string, minVal: number, maxVal: number,
 
 // by convention, composable function names start with "use"
 export function useResult () {
-  // state encapsulated and managed by the composable
-  const store = useIndexStore()
-
-  const layer = ref<GeoJson>(baseLineString())
-  const visibleLayer = ref<GeoJson>(baseLineString())
+  const layer = ref<GeoJson>(baseLineString()) // pointer to the selected data
+  const visibleLayer = ref<GeoJson>(baseLineString()) // actual values displayed
   const nanLayer = ref<GeoJson>(baseLineString())
   const type = ref('LineString')
-  const attributes = ref<string[]>([])
   const displaySettings = ref(cloneDeep(defaultSettings))
-  const selectedFilter = ref<string>('')
-  const selectedCategory = ref<string[]>([])
+
+  const attributes = ref<string[]>([]) // list of properties names
+  const selectedFilter = ref<string>('') // selected filter (property name) ex: route_type
+  const selectedCategory = ref<string[]>([]) // sellected values of that property ex: [bus,metro]
 
   const hasOD = ref<boolean>(false)
-  const mat = ref<MatrixData>({})
-  const odFeatures = ref<string[]>([])
-  const matAvailableIndex = ref<Record<FeatureName, string[]>>({})
+  const mat = ref<MatrixData>({}) // mat
+  const matAvailableIndex = ref<Record<FeatureName, string[]>>({}) // list of clickable index.
   const matSelectedIndex = ref<FeatureName>('')
 
   function reset () {
@@ -177,90 +175,81 @@ export function useResult () {
     visibleLayer.value = baseLineString()
     nanLayer.value = baseLineString()
     type.value = 'LineString'
-    attributes.value = []
     displaySettings.value = cloneDeep(defaultSettings)
+
+    attributes.value = []
     selectedFilter.value = ''
     selectedCategory.value = []
 
     hasOD.value = false
     mat.value = {}
-    odFeatures.value = []
     matAvailableIndex.value = {}
     matSelectedIndex.value = ''
   }
 
   function loadLayer (data: GeoJson, matData: MatrixData | null, preset: Preset | null = null) {
     reset()
-    const settings = preset?.displaySettings
-    // Maybe. serializer. but we should do it in import. not here...
-    // file.content = serializer(file.content, file.path, null, false)
-    layer.value = cloneDeep(data)
+    layer.value = data
+    // Handle type
     type.value = layer.value.features[0]?.geometry.type
-    // change Multipolygon to polygon type. just as they the same for mapbox and the app.
-    type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value
-    // extrusion only for polygon right now. set to false if not a polygon
+    type.value = type.value === 'MultiPolygon' ? 'Polygon' : type.value // Multipolygon is polygon type.
     if (type.value !== 'Polygon') { displaySettings.value.extrusion = false }
 
+    // handle OD
     hasOD.value = (typeof matData === 'object' && matData !== null)
     if (hasOD.value) { addMatrix(matData as MatrixData) }
 
-    if (CRSis4326(layer.value)) {
-      // apply settings
-      getLinksProperties()
-      if (settings?.selectedFeature) {
-        if (attributes.value.includes(settings.selectedFeature)) {
-          displaySettings.value.selectedFeature = settings.selectedFeature
-        } else {
-          displaySettings.value.selectedFeature = ''
-        }
+    getLayerProperties() // TODO remove on static
+    if (preset?.selectedFilter && attributes.value.includes(preset.selectedFilter)) {
+      // if preset contain a filter. apply it if it exist.
+      changeSelectedFilter(preset.selectedFilter)
+      // if there is a list of cat. apply them, else its everything
+      if (preset?.selectedCategory) {
+        selectedCategory.value = preset.selectedCategory
       }
-      if (preset?.selectedFilter) {
-        if (attributes.value.includes(preset.selectedFilter)) {
-          // if preset contain a filter. apply it if it exist.
-          changeSelectedFilter(preset.selectedFilter)
-          // if there is a list of cat. apply them, else its everything
-          if (preset?.selectedCategory) {
-            selectedCategory.value = preset.selectedCategory
-          }
-        }
-      }
+    }
 
-      if (settings != null) {
-        applySettings(settings, true)
-      }
-      refreshVisibleLinks()
-      updateSelectedFeature()
-    } else {
+    const settings = preset?.displaySettings
+    if (settings) { applySettings(settings) }
+
+    refreshVisibleLinks()
+    updateSelectedFeature()
+
+    if (!CRSis4326(layer.value)) {
+      const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('invalid or missing CRS. use CRS84 / EPSG:4326'),
           autoClose: true, color: 'warning' })
     }
   }
 
-  function addMatrix (matData: MatrixData) {
-    // payload is a matrix
-    Object.keys(matData).forEach(key => { mat.value[key + ' (OD)'] = matData[key] })
-    odFeatures.value = Object.keys(mat.value)
-    // force index to string
-    layer.value.features.forEach(zone => zone.properties.index = String(zone.properties.index))
-    // if init with nothing, do nothing.
-    if (layer.value.features.length > 0) {
-      odFeatures.value.forEach(
-        prop => {
-          // get all clickable indexes
-          matAvailableIndex.value[prop] = Object.keys(mat.value[prop])
-          layer.value.features.forEach(
-            zone => zone.properties[prop] = null,
-          )
-        },
-      )
+  function applySettings (payload: DisplaySettings) {
+    const keys = Object.keys(payload)
+    // apply all payload settings to state.displaySettings
+    for (const key of keys) {
+      displaySettings.value[key] = payload[key]
     }
+  }
+  // OD stuff
+
+  const attributesWithOD = computed(() => Object.keys(mat.value))
+
+  function addMatrix (payload: MatrixData) {
+    Object.keys(payload).forEach(key => { mat.value[`${key} (OD)`] = payload[key] })
+    // force index to string
+    layer.value.features.forEach(feat => feat.properties.index = String(feat.properties.index))
+    attributesWithOD.value.forEach(attr => {
+      // get all clickable indexes
+      matAvailableIndex.value[attr] = Object.keys(mat.value[attr])
+      // init all values in layer to null
+      layer.value.features.forEach(feat => feat.properties[attr] = null)
+    })
   }
 
   function isIndexAvailable (index: string) {
     // check if the selected index (from preset) is in the selected property (and if the selected property is an OD)
     const selectedProperty = displaySettings.value.selectedFeature
-    if (selectedProperty && odFeatures.value.includes(selectedProperty)) {
+    if (selectedProperty && attributesWithOD.value.includes(selectedProperty)) {
       return matAvailableIndex.value[selectedProperty].includes(index)
     } else {
       return false
@@ -269,49 +258,59 @@ export function useResult () {
 
   function changeOD (index: string) {
     const selectedProperty = displaySettings.value.selectedFeature
-    if (selectedProperty && odFeatures.value.includes(selectedProperty) && hasOD.value) {
+    if (selectedProperty && attributesWithOD.value.includes(selectedProperty) && hasOD.value) {
       matSelectedIndex.value = index
       const row = mat.value[selectedProperty][matSelectedIndex.value]
       // apply new value to each zone. (zone_1 is selected, apply time to zone_1 to every zone)
       // if there is no data, put null (ex: sparse matrix)
       layer.value.features.forEach(
-        zone => zone.properties[selectedProperty] = row ? row[zone.properties.index] : null)
+        feat => feat.properties[selectedProperty] = row ? row[feat.properties.index] : null)
     }
     refreshVisibleLinks()
     updateSelectedFeature()
   }
 
-  function getLinksProperties () {
-    const attrs: Set<string> = new Set([])
-    layer.value.features.forEach(element => {
-      Object.keys(element.properties).forEach(key => attrs.add(key))
-    })
-    attributes.value = Array.from(attrs)
-    attributes.value = attributes.value.filter(attr => !['display_width', 'display_color'].includes(attr))
+  // Layer manipulation
 
-    // eslint-disable-next-line max-len
-    selectedFilter.value = attrs.has('route_type') ? 'route_type' : attrs.has('highway') ? 'highway' : attributes.value[0]
-    selectedCategory.value = Array.from(new Set(layer.value.features.map(
-      item => item.properties[selectedFilter.value])))
+  function simplifyLayer() {
+    const key = displaySettings.value.selectedFeature
+    const label = displaySettings.value.labels
+    visibleLayer.value.features = visibleLayer.value.features.map(feat => {
+      return {
+        type: 'Feature',
+        geometry: feat.geometry,
+        properties: {
+          [key]: feat.properties[key],
+          [label]: feat.properties[label],
+          index: feat.properties?.index, // index for OD
+        },
+      }
+    })
+  }
+
+  function getNaNLayer() {
+    // keep track of NaN links to display them when we have a polygon
+    if (!displaySettings.value.showNaN) {
+      const key = displaySettings.value.selectedFeature
+      nanLayer.value.features = visibleLayer.value.features.filter(link => !link.properties[key])
+      const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
+      if (!(allNaN && hasOD.value && Object.keys(matAvailableIndex.value).includes(key))) {
+      // remove NaN from links
+        visibleLayer.value.features = visibleLayer.value.features.filter(link => link.properties[key])
+      }
+    } else {
+      nanLayer.value = baseLineString()
+    }
   }
 
   function refreshVisibleLinks () {
     const group = new Set(selectedCategory.value)
     const cat = selectedFilter.value
-    const key = displaySettings.value.selectedFeature
     visibleLayer.value.features = layer.value.features.filter(link => group.has(link.properties[cat]))
-    if (!displaySettings.value.showNaN) {
-      // keep track of NaN links to display them when we have a polygon
-      nanLayer.value.features = visibleLayer.value.features.filter(link => !link.properties[key])
-      const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
-      if (allNaN && hasOD.value && Object.keys(matAvailableIndex.value).includes(key)) {
-        // keep visible links as we want to show clickable links
-      } else {
-        // remove NaN from links
-        visibleLayer.value.features = visibleLayer.value.features.filter(link => link.properties[key])
-      }
-    }
+    simplifyLayer()
+    if (type.value === 'Polygon') getNaNLayer()
   }
+
   function updateSelectedFeature () {
     const key = displaySettings.value.selectedFeature
     const maxWidth = displaySettings.value.maxWidth
@@ -319,9 +318,11 @@ export function useResult () {
     const scale = displaySettings.value.scale
     const numStep = displaySettings.value.numStep
     const cmap = displaySettings.value.cmap
+
     const featureArr = visibleLayer.value.features.filter(
       link => link.properties[key]).map(
       link => link.properties[key])
+
     if (!displaySettings.value.fixScale) {
       const arrayMinMax = (arr: number[]) =>
         arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
@@ -376,33 +377,39 @@ export function useResult () {
             link.properties.display_color = '#4CAF50'
           }
         })
+      const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('Clickable element in green'), autoClose: true, color: 'success' })
     }
   }
+
+  // filtering
+
+  function getLayerProperties () {
+    // get all Properties, and set the filter
+    const attrs: Set<string> = new Set([])
+    layer.value.features.forEach(element => {
+      Object.keys(element.properties).forEach(key => attrs.add(key))
+    })
+    attributes.value = Array.from(attrs)
+    attributes.value = attributes.value.filter(attr => !['display_width', 'display_color'].includes(attr))
+    // eslint-disable-next-line max-len
+    selectedFilter.value = attrs.has('route_type') ? 'route_type' : attrs.has('highway') ? 'highway' : attributes.value[0]
+    selectedCategory.value = Array.from(new Set(layer.value.features.map(
+      item => item.properties[selectedFilter.value])))
+  }
+
   function changeSelectedFilter (payload: string) {
     selectedFilter.value = payload
     // set all visible
     selectedCategory.value = Array.from(new Set(layer.value.features.map(
       item => item.properties[selectedFilter.value])))
-    refreshVisibleLinks()
   }
+
   function changeSelectedCategory (payload: string[]) {
-    console.log(payload)
     selectedCategory.value = payload
-    refreshVisibleLinks()
   }
-  function applySettings (payload: DisplaySettings, skip = false) {
-    const keys = Object.keys(payload)
-    // apply all payload settings to state.displaySettings
-    for (const key of keys) {
-      displaySettings.value[key] = payload[key]
-    }
-    if (!skip) {
-      refreshVisibleLinks()
-      updateSelectedFeature()
-    }
-  }
+
   const filteredCategory = computed(() => {
     // for a given filter (key) get array of unique value
     // e.g. get ['bus','subway'] for route_type
@@ -411,6 +418,8 @@ export function useResult () {
     val = val.sort((a, b) => a - b)
     return val
   })
+
+  // colorScale component (on bottom of map)
 
   const colorScale = computed(() => {
     const arr = []
@@ -437,13 +446,13 @@ export function useResult () {
     selectedFilter,
     selectedCategory,
     hasOD,
-    odFeatures,
+    attributesWithOD,
     matAvailableIndex,
     matSelectedIndex,
     changeOD,
     isIndexAvailable,
     loadLayer,
-    getLinksProperties,
+    getLayerProperties,
     refreshVisibleLinks,
     updateSelectedFeature,
     changeSelectedFilter,

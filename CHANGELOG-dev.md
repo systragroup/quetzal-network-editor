@@ -37,6 +37,8 @@
 * Preset when filtering were not properly rendered.
 * sticky node was doing weird geometry sometime on the links.
 
+### performances
+* Results layer loads faster (no more cloneDeep)
 
 ## [6.2.d] (2025-02-19)
 ### Refactor

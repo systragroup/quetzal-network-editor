@@ -196,8 +196,8 @@ function moveLayerOnTop () {
   // move layer on top. top depend on which map is loaded and with layer (rlinks or links)
   if (map.value.getLayer('results')) {
     map.value.moveLayer(layerId, 'results')
-  } else if (map.value.getLayer('staticrLinks')) {
-    map.value.moveLayer(layerId, 'staticrLinks')
+  } else if (map.value.getLayer('rlinks')) {
+    map.value.moveLayer(layerId, 'rlinks')
   } else if (map.value.getLayer('links')) {
     map.value.moveLayer(layerId, 'links')
   }
