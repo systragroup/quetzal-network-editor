@@ -1,5 +1,4 @@
 <script setup>
-import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
@@ -13,7 +12,7 @@ import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import ODMap from './ODMap.vue'
 import { useIndexStore } from '@src/store/index'
-import { useMapStore } from '../../store/map'
+import { useMapStore } from '@src/store/map'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
@@ -48,19 +47,9 @@ onMounted(() => {
 
 function fitBounds() {
   // for empty (new) project, do not fit bounds around the links geometries.
-  const bounds = new Mapbox.LngLatBounds()
   // only use first and last point. seems to bug when there is anchor...
-  if (linksStore.links.features.length > 0) {
-    linksStore.links.features.forEach(link => {
-      bounds.extend([link.geometry.coordinates[0],
-        link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-    })
-  } else {
-    rlinksStore.rlinks.features.forEach(link => {
-      bounds.extend([link.geometry.coordinates[0],
-        link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-    })
-  }
+  const layer = linksStore.linksIsEmpty ? rlinksStore.rlinks : linksStore.links
+  const bounds = mapStore.getBounds(layer)
   mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
 }
 

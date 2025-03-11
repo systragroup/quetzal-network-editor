@@ -21,6 +21,9 @@ export interface Style {
 export interface ProjectInfo {
   description: string
 }
+
+export type FileSource = 'local' | 'cloud'
+
 export interface FileFormat {
   path: string
   content: any

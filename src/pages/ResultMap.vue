@@ -1,6 +1,6 @@
 <script setup>
 
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useResult } from '@comp/results/results'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
@@ -184,6 +184,18 @@ function featureClicked (event) {
     mapRef.value.update()
   }
 }
+
+import { useMapStore } from '@src/store/map'
+const mapStore = useMapStore()
+
+onMounted(() => {
+  // if we visit result first in the app (map is still in mtl)
+  // try to recenter on links oor rlink
+  if (mapStore.initalPosition) {
+    const layer = linksStore.linksIsEmpty ? rlinksStore.rlinks : linksStore.links
+    mapRef.value.fitBounds(layer)
+  }
+})
 
 </script>
 <template>

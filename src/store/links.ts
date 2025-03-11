@@ -21,7 +21,8 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
   FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
-  NonEmptyArray } from '@src/types/typesStore'
+  NonEmptyArray,
+  FileSource } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTime,
@@ -56,7 +57,7 @@ export const useLinksStore = defineStore('links', {
     //
     // io
     //
-    loadPTFiles (payload: FilesPayload[]) {
+    loadPTFiles (payload: FilesPayload[], source: FileSource) {
       // payload = [{path,content}, ...]
       // get links. check that index are not duplicated, serialize them and then append to project
       // get nodes. check that index are not duplicated, serialize them and then append to project
@@ -65,7 +66,8 @@ export const useLinksStore = defineStore('links', {
         const currentType = file.content.features[0].geometry.type
         if (currentType === 'LineString') {
           if (IndexAreDifferent(file.content, this.links)) {
-            this.appendNewLinks(serializer(file.content, file.path, currentType))
+            const formatFile = source === 'local' // if from cloud, we can skip formatting
+            this.appendNewLinks(serializer(file.content, file.path, currentType), formatFile)
           } else {
             const err = new Error($gettext(' there is duplicated index, ') + file.path)
             err.name = 'ImportError'
@@ -83,17 +85,19 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
-    appendNewLinks (payload: LineStringGeoJson) {
+    appendNewLinks (payload: LineStringGeoJson, format: boolean = true) {
       // append new links to the project. payload = links geojson file
-      simplifyGeometry(payload)
       payload.features.forEach(link => this.links.features.push(link))
       this.getLinksProperties()
       this.getTripList()
       this.selectedTrips = this.tripList
       this.getVariants()
-      initLengthTimeSpeed(this.links, this.variantChoice)
-      this.getLinksProperties()
-      this.applyPropertiesTypes(this.links)
+      if (format) {
+        simplifyGeometry(payload)
+        initLengthTimeSpeed(this.links, this.variantChoice)
+        this.getLinksProperties()
+        this.applyPropertiesTypes(this.links)
+      }
     },
 
     getVariants() {
@@ -113,20 +117,20 @@ export const useLinksStore = defineStore('links', {
     },
 
     getLinksProperties () {
-      const header: Set<string> = new Set([])
-      this.links.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
+      const keys: Set<string> = new Set([])
+      this.links.features.forEach(feature => {
+        Object.keys(feature.properties).forEach(key => keys.add(key))
       })
-      const newAttrs = getDifference(header, this.lineAttributes)
+      const newAttrs = getDifference(keys, this.lineAttributes)
       newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
     },
 
     getNodesProperties () {
-      const header: Set<string> = new Set([])
-      this.nodes.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
+      const keys: Set<string> = new Set([])
+      this.nodes.features.forEach(feature => {
+        Object.keys(feature.properties).forEach(key => keys.add(key))
       })
-      const newAttrs = getDifference(header, this.nodeAttributes)
+      const newAttrs = getDifference(keys, this.nodeAttributes)
       newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: 'String' }))
     },
 

@@ -8,7 +8,6 @@ import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
 import { useHighlight } from '../../composables/useHighlight'
 import { baseLineString, basePoint } from '@src/types/geojson'
-
 const props = defineProps(['map', 'isEditorMode', 'mode'])
 const store = useIndexStore()
 const linksStore = useLinksStore()

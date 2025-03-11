@@ -6,7 +6,7 @@ import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer, MglImag
 import arrowImage from '@static/arrow.png'
 import { useIndexStore } from '@src/store/index'
 import { useMapStore } from '../../store/map'
-import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef } from 'vue'
+import { ref, computed, onBeforeUnmount, watch, toRefs, shallowRef, onMounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -52,6 +52,9 @@ onBeforeUnmount(() => {
   if (map.value) { saveMapPosition() }
   if (map.value?.getLayer('arrow')) { map.value.removeLayer('arrow') }
 })
+onMounted(() => {
+  fitBounds(links.value)
+})
 
 function saveMapPosition () {
   const center = map.value.getCenter()
@@ -78,29 +81,8 @@ function onMapLoaded (event) {
   }
   mapIsLoaded.value = true
 }
-function fitBounds () {
-  const bounds = new mapboxgl.LngLatBounds()
-  // only use first and last point. seems to bug when there is anchor...
-  if ((['Polygon']).includes(layerType.value)) {
-    links.value.features.forEach(link => {
-      try { // try, so NaN will not crash
-        if (link.geometry.type === 'Polygon') {
-          bounds.extend([link.geometry.coordinates[0][0],
-            link.geometry.coordinates[0][link.geometry.coordinates.length - 1]])
-        } else {
-          bounds.extend([link.geometry.coordinates[0][0][0],
-            link.geometry.coordinates[0][0][link.geometry.coordinates.length - 1]])
-        }
-      } catch (err) { }
-    })
-  } else {
-    links.value.features.forEach(link => {
-      bounds.extend([link.geometry.coordinates[0],
-        link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-    })
-  }
-
-  // for empty (new) project, do not fit bounds around the links geometries.
+function fitBounds (layer) {
+  const bounds = mapStore.getBounds(layer)
   mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
 }
 
@@ -110,7 +92,7 @@ const { canvasDiv } = useMapResize(map)
 const selectedLinks = ref([])
 const popup = ref(null)
 
-defineExpose({ update })
+defineExpose({ update, fitBounds })
 function update () {
   // childComponentRef.value.update()
   // update map like that as the mapbox watcher is slower.
@@ -125,7 +107,7 @@ function update () {
 
 // as the component is reRender when a layer changes type (ex point to line.) this is only
 // trigger when we changes layer of the same time. doing this. the map is not reloaded and we need to FitBounds.
-watch(selectedLayer, () => fitBounds())
+watch(selectedLayer, () => fitBounds(links.value))
 
 const offsetValue = computed(() => { return offset.value ? -1 : 1 })
 
