@@ -15,7 +15,7 @@ import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import { deleteUnusedNodes } from '@src/utils/utils'
-import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
+import { FileFormat, FileSource, GlobalAttributesChoice, ImportPoly, IndexStore,
   Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
 const $gettext = (s: string) => s
 
@@ -92,7 +92,7 @@ export const useIndexStore = defineStore('index', {
       this.cyclewayMode = !this.cyclewayMode
     },
 
-    loadFiles (payload: FileFormat[]) {
+    loadFiles (payload: FileFormat[], source: FileSource) {
       // payload: res.push({ path: inputs/pt/links.geojson, content: Array() || null })
 
       const linksStore = useLinksStore()
@@ -142,7 +142,7 @@ export const useIndexStore = defineStore('index', {
           err.name = 'ImportError'
           throw err
         }
-        linksStore.loadPTFiles(ptFiles)
+        linksStore.loadPTFiles(ptFiles, source)
         rlinksStore.loadRoadFiles(roadFiles)
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.getLocalParameters(paramFile.content)

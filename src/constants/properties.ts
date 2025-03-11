@@ -74,3 +74,5 @@ export const ODDefaultProperties: Attributes[] = [
 
 export const tcDefaultAttributesChoices = { }
 export const roadDefaultAttributesChoices = { oneway: ['0', '1'] }
+
+export const mapDefaultCenter = () => [-73.570337, 45.498310]

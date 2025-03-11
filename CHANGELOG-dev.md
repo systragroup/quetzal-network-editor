@@ -1,4 +1,14 @@
 
+## [7.0.b] (2025-03-11)
+### Changes
+* When visiting result map center on links or rlinks if its the first page loaded.
+ (map is still on its inital position of montreal) 
+* fitBounds in now a global function for any geometry type.
+* Do not compute speed, length time, simplifyGeometry and apply data types on TC links if they are loaded from the cloud. this speedup the loading time
+
+ ### Bug Fixes
+
+* fix bug introduced in routing (calcLengthTime)
 
 ## [7.0.a] (2025-03-11)
 6.2 is changed to 7.0.0 as there are many changes.
