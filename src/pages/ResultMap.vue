@@ -24,23 +24,28 @@ const rlinksStore = userLinksStore()
 const ODStore = useODStore()
 const store = useIndexStore()
 const {
-  visibleLayer, nanLayer, type, loadLayer, displaySettings, hasOD, odFeatures, matSelectedIndex, changeOD,
-  isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter,
+  visibleLayer, nanLayer, type, loadLayer, displaySettings, hasOD, attributesWithOD, matSelectedIndex, changeOD,
+  isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings,
+  changeSelectedFilter, refreshVisibleLinks,
   filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
 } = useResult()
 
 const mapRef = ref() //  we update the map with this ref
 function updateSettings (payload) {
   applySettings(payload)
+  refreshVisibleLinks()
+  updateSelectedFeature()
   nextTick(() => mapRef.value.update())
 }
 function updateSelectedFilter (val) {
   changeSelectedFilter(val)
+  refreshVisibleLinks()
   updateSelectedFeature()
   nextTick(() => mapRef.value.update())
 }
 function updateSelectedCategory (val) {
   changeSelectedCategory(val)
+  refreshVisibleLinks()
   updateSelectedFeature()
   nextTick(() => mapRef.value.update())
 }
@@ -135,7 +140,7 @@ async function createPreset (event) {
     }
 
     // if its an OD preset. save the selected index.
-    if (odFeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
+    if (attributesWithOD.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
       style.selectedIndex = matSelectedIndex.value
     }
 

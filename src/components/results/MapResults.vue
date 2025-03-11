@@ -39,9 +39,9 @@ const mapStyle = computed(() => { return mapStore.mapStyle })
 watch(mapStyle, () => {
   if (map.value) {
     if (map.value.getLayer('arrow')) map.value.removeLayer('arrow')
-    if (map.value.getLayer('links')) map.value.removeLayer('links')
-    if (map.value.getLayer('zones')) map.value.removeLayer('zones')
-    if (map.value.getLayer('nodes')) map.value.removeLayer('nodes')
+    if (map.value.getLayer('results')) map.value.removeLayer('results')
+    if (map.value.getLayer('labels')) map.value.removeLayer('labels')
+    if (map.value.getLayer('NaNresults')) map.value.removeLayer('NaNresults')
     mapIsLoaded.value = false
     saveMapPosition()
   }
@@ -117,7 +117,7 @@ function update () {
   if (mapIsLoaded.value) {
     map.value.getSource('results').setData(links.value)
     map.value.getSource('NaNresults')?.setData(nanLinks.value)
-    if (!labels.value) {
+    if (labels.value !== '') {
       if (map.value.getLayer('labels')) map.value.removeLayer('labels')
     }
   }
@@ -361,7 +361,7 @@ function zoneLeave (event) {
         @contextmenu="selectClick"
       />
       <MglSymbolLayer
-        v-if="labels!==null"
+        v-if="labels!==''"
         type="symbol"
         source-id="results"
         source="links"
