@@ -15,7 +15,7 @@ export interface Preset {
   layer: string
   name: string
   displaySettings: DisplaySettings
-  selectedFilter?: string
+  selectedFilter: string
   selectedCategory?: string[]
   selectedIndex?: string
 }

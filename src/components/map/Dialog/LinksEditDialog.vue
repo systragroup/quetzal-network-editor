@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import EditScheduleDialog from '@comp/map/EditScheduleDialog.vue'
+import EditScheduleDialog from '@src/components/map/Dialog/EditScheduleDialog.vue'
 
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'

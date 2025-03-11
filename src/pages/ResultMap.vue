@@ -1,4 +1,3 @@
-<!-- eslint-disable no-case-declarations -->
 <script setup>
 
 import { ref, computed, nextTick } from 'vue'
@@ -17,6 +16,7 @@ import LayerSelector from '@comp/utils/LayerSelector.vue'
 import StyleSelector from '@comp/utils/StyleSelector.vue'
 import StaticLayer from '@comp/utils/StaticLayer.vue'
 import { useGettext } from 'vue3-gettext'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 const { $gettext } = useGettext()
 
 const linksStore = useLinksStore()
@@ -85,12 +85,6 @@ const availableLayers = computed(() => store.availableLayers)
 const visibleRasters = computed(() => store.visibleRasters)
 const availableStyles = computed(() => store.styles)
 
-const presetToDelete = ref('')
-const showDeleteDialog = ref(false)
-const showPresetDialog = ref(false)
-const inputName = ref('')
-const tempDisplaySettings = ref({})
-
 async function changePreset (preset) {
   selectedPreset.value = preset.name
   if (availableLayers.value.includes(preset.layer)) {
@@ -109,26 +103,21 @@ async function changePreset (preset) {
   mapRef.value.update()
 }
 
-function clickDeletePreset (event) {
-  // open a dialog to make sure we want to delete
-  presetToDelete.value = event.name
-  showDeleteDialog.value = true
-}
+// preset creation
 
-function clickSavePreset (event) {
+const presetDialog = ref()
+const inputName = ref('')
+
+async function savePreset (preset) {
   // open a dialog to chose the name and accept
-  tempDisplaySettings.value = event
+  const tempDisplaySettings = preset
   inputName.value = selectedPreset.value
-  showPresetDialog.value = true
-}
-async function createPreset (event) {
-  const resp = await event
-  if (resp.valid) {
-    showPresetDialog.value = false
+  const resp = await presetDialog.value.openDialog()
+  if (resp) {
     const style = {
       name: cloneDeep(inputName.value),
       layer: cloneDeep(selectedLayer.value),
-      displaySettings: cloneDeep(tempDisplaySettings.value),
+      displaySettings: cloneDeep(tempDisplaySettings),
       selectedFilter: cloneDeep(selectedFilter.value),
     }
 
@@ -140,8 +129,8 @@ async function createPreset (event) {
     }
 
     // if its an OD preset. save the selected index.
-    if (attributesWithOD.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
-      style.selectedIndex = matSelectedIndex.value
+    if (attributesWithOD.value.includes(tempDisplaySettings.selectedFeature) && hasOD.value) {
+      style.selectedIndex = cloneDeep(matSelectedIndex.value)
     }
 
     store.addStyle(style)
@@ -161,18 +150,27 @@ async function createPreset (event) {
   }
 }
 
-function deletePreset () {
-  store.deleteStyle(presetToDelete.value)
-  showDeleteDialog.value = false
-  if (presetToDelete.value === selectedPreset.value) {
+// delete preset
+
+const deleteDialog = ref()
+
+async function deleteButton (preset) {
+  const presetToDelete = preset.name
+  // obj contain trip and message.
+  const resp = await deleteDialog.value.openDialog()
+  if (resp) {
+    store.deleteStyle(presetToDelete)
+    if (presetToDelete === selectedPreset.value) {
     // if it was selected. unselect it
-    selectedPreset.value = null
+      selectedPreset.value = null
+    }
+    store.changeNotification(
+      { text: $gettext('Preset deleted'), autoClose: true, color: 'success' })
+    presetToDelete.value = ''
   }
-  store.changeNotification(
-    { text: $gettext('Preset deleted'), autoClose: true, color: 'success' })
-  presetToDelete.value = ''
 }
 
+// show values dialog
 const showDialog = ref(false)
 const formData = ref([])
 function featureClicked (event) {
@@ -203,7 +201,7 @@ function featureClicked (event) {
       @update-selected-filter="updateSelectedFilter"
       @select-layer="changeLayer"
       @select-preset="changePreset"
-      @delete-preset="clickDeletePreset"
+      @delete-preset="deleteButton"
     />
     <MapResults
       v-if="visibleLayer.features"
@@ -236,7 +234,7 @@ function featureClicked (event) {
           :feature-choices="attributes"
           :type="type"
           @submit="updateSettings"
-          @save-preset="clickSavePreset"
+          @save-preset="savePreset"
         />
         <StyleSelector />
 
@@ -300,85 +298,23 @@ function featureClicked (event) {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="showPresetDialog"
-      persistent
-      max-width="400"
-      @keydown.esc="showPresetDialog=false"
+    <PromiseDialog
+      ref="presetDialog"
+      :title="$gettext('Create or modify preset')"
     >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Create or modify preset") }}
-        </v-card-title>
-        <v-form
-          validate-on="submit lazy"
-          @submit.prevent="createPreset"
-        >
-          <v-card-text>
-            <v-container>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="inputName"
-                  autofocus
-                  :rules="[value => !!value || 'Required.']"
-                  :label="$gettext('name')"
-                />
-              </v-col>
-            </v-container>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-
-            <v-btn
-              color="grey"
-              variant="text"
-              @click="showPresetDialog=false"
-            >
-              {{ $gettext("Cancel") }}
-            </v-btn>
-
-            <v-btn
-              color="green-darken-1"
-              variant="text"
-              type="submit"
-            >
-              {{ $gettext("ok") }}
-            </v-btn>
-          </v-card-actions>
-        </v-form>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      v-model="showDeleteDialog"
-      persistent
-      max-width="400"
-      @keydown.esc="showDeleteDialog=false"
-      @keydown.enter="deletePreset"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Delete") + ' ' + presetToDelete + ' ?' }}
-        </v-card-title>
-        <v-card-actions>
-          <v-spacer />
-
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="showDeleteDialog=false"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="text"
-            @click="deletePreset"
-          >
-            {{ $gettext("delete") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <v-text-field
+        v-model="inputName"
+        autofocus
+        :rules="[value => !!value || 'Required.']"
+        :label="$gettext('name')"
+      />
+    </PromiseDialog>
+    <PromiseDialog
+      ref="deleteDialog"
+      :title=" $gettext('Delete %{name}?', { name: selectedPreset }) "
+      :confirm-button="$gettext('Delete')"
+      confirm-color="error"
+    />
   </section>
 </template>
 <style lang="scss" scoped>
