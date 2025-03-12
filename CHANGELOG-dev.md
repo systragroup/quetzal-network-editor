@@ -1,5 +1,12 @@
 ## [7.0.c] (2025-03-12)
 ### Changes
+
+ ### Bug Fixes
+ * Results map: show all layer properties on click. If no index: don't show nothing... 
+
+
+## [7.0.c] (2025-03-12)
+### Changes
 * Change speed-time calculation to "timeVariant". so we can have variants without having it on speed and time. (ex: headway#am,speed,time)
 
 ## [7.0.b] (2025-03-11)

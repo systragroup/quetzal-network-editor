@@ -24,7 +24,7 @@ const rlinksStore = userLinksStore()
 const ODStore = useODStore()
 const store = useIndexStore()
 const {
-  visibleLayer, nanLayer, type, loadLayer, displaySettings, hasOD, attributesWithOD, matSelectedIndex, changeOD,
+  layer, visibleLayer, nanLayer, type, loadLayer, displaySettings, hasOD, attributesWithOD, matSelectedIndex, changeOD,
   isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings,
   changeSelectedFilter, refreshVisibleLinks,
   filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
@@ -175,8 +175,15 @@ const showDialog = ref(false)
 const formData = ref([])
 function featureClicked (event) {
   if (event.action === 'featureClick') {
-    formData.value = event.feature
-    showDialog.value = true
+    const index = event.feature.index
+    if (index) {
+      formData.value = layer.value.features.filter(el => el.properties.index === index)[0].properties
+      showDialog.value = true
+    } else {
+      // formData.value = event.feature
+      store.changeNotification({ text: $gettext('Layer have no index. Cannot show properties'),
+        autoClose: true, color: 'warning' })
+    }
     // OD click.
   } else {
     // will verify in this function if hasOD and the selected feature is an OD.

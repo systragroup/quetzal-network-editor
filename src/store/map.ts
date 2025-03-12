@@ -50,11 +50,10 @@ export const useMapStore = defineStore('mapStore', {
         mapWidth = window.innerWidth
         mapHeight = window.innerHeight
       }
-
       const zoomLng = Math.log2((mapWidth * 360) / (lngDiff * WORLD_DIM.width))
       const zoomLat = Math.log2((mapHeight * 170) / (latDiff * WORLD_DIM.height)) // Approx. for Mercator
 
-      this.mapZoom = Math.min(zoomLng, zoomLat) // Use the smaller zoom to fit both dimensions
+      this.mapZoom = Math.min(zoomLng, zoomLat) || 16// Use the smaller zoom to fit both dimensions
     },
 
     getBounds(geojson: GeoJson) {
@@ -73,7 +72,7 @@ export const useMapStore = defineStore('mapStore', {
             } else if (type === 'MultiPolygon') {
               bounds.extend(coords[0][0][0])
             }
-          } catch {}
+          } catch { console.log('error getting bounds') }
         }
       })
       return bounds
