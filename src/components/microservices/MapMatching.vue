@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useMapMatchingStore } from '@src/store/MapMatching'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
@@ -8,73 +8,76 @@ import { useUserStore } from '@src/store/user'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
+import { FormData } from '@src/types/components'
 const { $gettext } = useGettext()
 
 const runMapMatching = useMapMatchingStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
 
-const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
-const running = computed(() => { return runMapMatching.running })
-const status = computed(() => { return runMapMatching.status })
-const error = computed(() => { return runMapMatching.error })
-const errorMessage = computed(() => { return runMapMatching.errorMessage })
-const timer = computed(() => { return runMapMatching.timer })
-const callID = computed(() => { return runMapMatching.callID })
-const bucket = computed(() => { return runMapMatching.bucket })
+const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
+const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
+const running = computed(() => runMapMatching.running)
+const status = computed(() => runMapMatching.status)
+const error = computed(() => runMapMatching.error)
+const errorMessage = computed(() => runMapMatching.errorMessage)
+const timer = computed(() => runMapMatching.timer)
+const callID = computed(() => runMapMatching.callID)
+const bucket = computed(() => runMapMatching.bucket)
+const storeParameters = computed(() => runMapMatching.parameters)
+
 const showHint = ref(false)
 // dont use for now.
 // need to change Step function payload if we add parameters.
-const parameters = ref([
+const parameters = ref<FormData[]>([
   {
-    name: 'SIGMA',
-    text: 'Sigma',
-    value: runMapMatching.parameters.SIGMA,
-    type: 'Number',
+    key: 'SIGMA',
+    label: 'Sigma',
+    value: null,
+    type: 'number',
     units: 'meters',
     hint: 'emission probablity constant. the bigger it \
     is the further away a stops can be from roads.',
   },
   {
-    name: 'BETA',
-    text: 'beta',
-    value: runMapMatching.parameters.BETA,
-    type: 'Number',
+    key: 'BETA',
+    label: 'beta',
+    value: null,
+    type: 'number',
     units: 'meters',
     hint: 'transition probablity constant. The smaller the smaller  \
     the difference between the as-the-crow and routing distance can be (if use difference is true)',
   },
   {
-    name: 'POWER',
-    text: 'power',
-    value: runMapMatching.parameters.POWER,
-    type: 'Number',
+    key: 'POWER',
+    label: 'power',
+    value: null,
+    type: 'number',
     units: 'meters',
     hint: 'Power used in the Emission Probability',
   },
   {
-    name: 'DIFF',
-    text: 'Use difference',
-    value: runMapMatching.parameters.DIFF,
-    type: 'Boolean',
+    key: 'DIFF',
+    label: 'Use difference',
+    value: null,
+    type: 'boolean',
     units: 'bool',
     hint: 'If False, act_dist is ignore in the transition probability. This change the emission to only \
     consider the shortest path between nodes. ',
   },
   {
-    name: 'ptMetrics',
-    text: 'Add indicators on road links',
-    value: runMapMatching.parameters.ptMetrics,
-    type: 'Boolean',
+    key: 'ptMetrics',
+    label: 'Add indicators on road links',
+    value: null,
+    type: 'boolean',
     units: 'bool',
     hint: 'Add PT metrics to road links (ex: number of trips & number of lines)',
   },
   {
-    name: 'keepTime',
-    text: 'keep time',
-    value: runMapMatching.parameters.keepTime,
-    type: 'Boolean',
+    key: 'keepTime',
+    label: 'keep time',
+    value: true,
+    type: 'boolean',
     units: 'bool',
     hint: 'if true. keep time and calculate speed. if false. keep speed and calcule time',
   }])
@@ -82,6 +85,7 @@ const parameters = ref([
 onMounted(() => {
   // remove nonExistant routeType from v-model selection (was deleted, or scen changed.)
   runMapMatching.exclusions = runMapMatching.exclusions.filter(el => routeTypeList.value.includes(el))
+  parameters.value.forEach(param => param.value = storeParameters.value[param.key])
 })
 
 onBeforeUnmount(() => {
@@ -94,9 +98,9 @@ async function start () {
   runMapMatching.setCallID()
   getApproxTimer()
   await exportFiles()
-  const params = { exclusions: runMapMatching.exclusions }
+  const params: Record<string, any> = { exclusions: runMapMatching.exclusions }
   parameters.value.forEach(item => {
-    params[item.name] = item.value
+    params[item.key] = item.value
   })
   const inputs = {
     scenario_path_S3: callID.value,
@@ -105,7 +109,7 @@ async function start () {
       params: params,
     },
     metadata: {
-      user_email: userStore.cognitoInfo.email,
+      user_email: userStore.cognitoInfo?.email,
     },
   }
   runMapMatching.startExecution(inputs)
@@ -115,7 +119,7 @@ function getApproxTimer () {
   // same as in the python function. to decide the number of machine.
   const num_trips = linksStore.tripList.length
   let tot_num_iteration = num_trips / 6
-  function get_num_machine(num_it, target_it = 20, choices = [12, 8, 4, 2, 1]) {
+  function get_num_machine(num_it: number, target_it = 20, choices = [12, 8, 4, 2, 1]) {
     // return the number of machine (in choices) required to have target_it per machine
     let num_machine = Math.floor(num_it / target_it)
     let best_diff = 100
@@ -159,7 +163,7 @@ async function exportFiles() {
 
   try {
     await Promise.all(promises)
-  } catch (err) {
+  } catch (err: any) {
     const store = useIndexStore()
     store.changeAlert(err)
   }
@@ -203,7 +207,6 @@ function stopRun () { runMapMatching.stopExecution() }
           density="compact"
           width="50rem"
           variant="outlined"
-          text
           type="error"
         >
           {{ $gettext("There as been an error Mapmatching. \
@@ -246,13 +249,13 @@ function stopRun () { runMapMatching.stopExecution() }
         class="items"
       >
         <v-switch
-          v-if="item.type==='Boolean'"
+          v-if="item.type==='boolean'"
           v-model="item.value"
           class="pr-2"
           color="primary"
           :disabled="running"
-          :label="$gettext(item.text)"
-          :hint="showHint? $gettext(item.hint): ''"
+          :label="$gettext(item.label)"
+          :hint="showHint? $gettext(item.hint as string): ''"
           :persistent-hint="showHint"
         />
         <v-text-field
@@ -260,9 +263,9 @@ function stopRun () { runMapMatching.stopExecution() }
           v-model="item.value"
           :type="item.type"
           :disabled="running"
-          :label="$gettext(item.text)"
+          :label="$gettext(item.label)"
           :suffix="item.units"
-          :hint="showHint? $gettext(item.hint): ''"
+          :hint="showHint? $gettext(item.hint as string): ''"
           :persistent-hint="showHint"
           required
           @wheel="()=>{}"
