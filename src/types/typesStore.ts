@@ -312,3 +312,22 @@ export interface MapStore {
   mapZoom: number
   key: string
 }
+
+// Microservices
+
+// MapMAthcing
+
+export interface MapMatchingParams {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  SIGMA: number
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  BETA: number
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  POWER: number
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  DIFF: boolean
+  ptMetrics: boolean
+  keepTime: boolean
+
+  [key: string]: number | boolean
+}

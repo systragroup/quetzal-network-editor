@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { v4 as uuid } from 'uuid'
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
@@ -7,19 +8,21 @@ import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
 import { userLinksStore } from './rlinks'
+import { MapMatchingParams } from '@src/types/typesStore'
+import { FormData } from '@src/types/components'
 
 export const useMapMatchingStore = defineStore('runMapMatching', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-mapmatching-api')
-  const bucket = ref('quetzal-api-bucket')
-  const callID = ref('')
+  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-mapmatching-api')
+  const bucket = ref<string>('quetzal-api-bucket')
+  const callID = ref<string>('')
   function setCallID() { callID.value = uuid() }
-
+  const timer = ref<number>(0)
   const exclusions = ref([])
 
   const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI(stateMachineArn.value)
 
-  const parameters = ref({
+  const parameters = ref<MapMatchingParams>({
     SIGMA: 4.02,
     BETA: 3,
     POWER: 2,
@@ -27,7 +30,9 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     ptMetrics: true,
     keepTime: true,
   })
-  function saveParams (payload) { payload.forEach(param => parameters.value[param.name] = param.value) }
+
+  function saveParams (payload: FormData[]) {
+    payload.forEach(param => parameters.value[param.key] = param.value) }
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {
@@ -51,7 +56,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     linksStore.loadPTFiles([
       { path: 'inputs/pt/links.geojson', content: links },
       { path: 'inputs/pt/nodes.geojson', content: nodes },
-    ])
+    ], 'local')
     if (parameters.value.ptMetrics) {
       const rlinksStore = userLinksStore()
       rlinksStore.$reset()
@@ -91,6 +96,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     error,
     errorMessage,
     parameters,
+    timer,
     saveParams,
     setCallID,
     startExecution,
