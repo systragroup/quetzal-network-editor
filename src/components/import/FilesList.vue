@@ -8,8 +8,10 @@ const { $gettext } = useGettext()
 const emit = defineEmits(['filesLoaded'])
 
 const store = useIndexStore()
-const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })
-const outputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('output')) })
+const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('inputs')) })
+const outputFiles = computed(() => { return store.otherFiles.filter(file =>
+  file.path.startsWith('outputs/') || file.path.startsWith('microservices/')) })
+
 function isViz (file, otherFiles) {
   // check to put the little logo if a json has a geojson associated with
   if (file.extension === 'geojson') {
