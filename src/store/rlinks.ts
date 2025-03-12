@@ -93,6 +93,7 @@ export const userLinksStore = defineStore('rlinks', {
       payload.features.forEach(link => this.rlinks.features.push(link))
       this.getrLinksProperties()
       this.getVariants()
+      this.deleteNonVariantAttributes()
       this.initOneways()
       this.initSelectedrFilter()
     },
@@ -100,9 +101,12 @@ export const userLinksStore = defineStore('rlinks', {
     getVariants() {
       this.variantChoice = getVariantsChoices(this.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')))
       addDefaultValuesToVariants(this.linksDefaultAttributes)
+    },
+
+    deleteNonVariantAttributes() {
       // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
       const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
-      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(el => !toDelete.has(el.name))
+      toDelete.forEach(attr => this.deleteLinksPropertie({ name: attr }))
     },
 
     appendNewrNodes (payload: PointGeoJson) {
@@ -404,7 +408,7 @@ export const userLinksStore = defineStore('rlinks', {
         selectedLinks.forEach(link => this.deleteReversePropertiesOnLink(link))
       }
       // // apply speed (get time on each link for the new speed.)
-      const modifiedSpeeds = this.variantChoice.filter(v => props.includes(`speed${v}`))
+      const modifiedSpeeds = this.timeVariants.filter(v => props.includes(`speed${v}`))
       if (modifiedSpeeds.length > 0) {
         selectedLinks.forEach(link =>
           calcLengthTime(link, modifiedSpeeds as NonEmptyArray<string>),
@@ -466,11 +470,11 @@ export const userLinksStore = defineStore('rlinks', {
         ...link2.geometry.coordinates.slice(sliceIndex),
       ]
 
-      calcLengthTime(link1, this.variantChoice)
-      calcLengthTime(link2, this.variantChoice)
+      calcLengthTime(link1, this.timeVariants)
+      calcLengthTime(link2, this.timeVariants)
       if (link1.properties.time_r) {
-        calcLengthTime(link1, this.reversedVariantChoice)
-        calcLengthTime(link2, this.reversedVariantChoice)
+        calcLengthTime(link1, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
+        calcLengthTime(link2, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
       }
 
       this.visiblerLinks.features.push(link2)
@@ -559,7 +563,7 @@ export const userLinksStore = defineStore('rlinks', {
       linkFeature.properties.b = nodeIdB
       // add length, speed, time now that we have a geometry.
       linkGeometry.coordinates = [rnodeA.geometry.coordinates, rnodeB.geometry.coordinates]
-      calcLengthTime(newLink.features[0], this.variantChoice)
+      calcLengthTime(newLink.features[0], this.timeVariants)
       if (this.rlineAttributes.includes('oneway')) {
         linkFeature.properties.oneway = '0'
         this.initReversePropertiesOnLink(linkFeature)
@@ -607,14 +611,16 @@ export const userLinksStore = defineStore('rlinks', {
       // changing links geometry, time, length
       this.connectedLinks.b.forEach(link => {
         link.geometry.coordinates = [...link.geometry.coordinates.slice(0, -1), payload.lngLat]
-        calcLengthTime(link, this.variantChoice)
-        if (link.properties.time_r) { calcLengthTime(link, this.reversedVariantChoice) }
+        calcLengthTime(link, this.timeVariants)
+        if (link.properties.time_r) {
+          calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>) }
       })
 
       this.connectedLinks.a.forEach(link => {
         link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
-        calcLengthTime(link, this.variantChoice)
-        if (link.properties.time_r) { calcLengthTime(link, this.reversedVariantChoice) }
+        calcLengthTime(link, this.timeVariants)
+        if (link.properties.time_r) {
+          calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>) }
       })
 
       this.updateLinks = [...this.connectedLinks.visibleLinksList]
@@ -629,8 +635,10 @@ export const userLinksStore = defineStore('rlinks', {
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
-      calcLengthTime(link, this.variantChoice)
-      if (link.properties.time_r) calcLengthTime(link, this.reversedVariantChoice)
+      calcLengthTime(link, this.timeVariants)
+      if (link.properties.time_r) {
+        calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
+      }
       this.updateLinks = [link]
     },
     deleteAnchorrNode (payload: SelectedNode) {
@@ -640,8 +648,10 @@ export const userLinksStore = defineStore('rlinks', {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
-      calcLengthTime(link, this.variantChoice)
-      if (link.properties.time_r) calcLengthTime(link, this.reversedVariantChoice)
+      calcLengthTime(link, this.timeVariants)
+      if (link.properties.time_r) {
+        calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
+      }
       this.updateLinks = [link]
     },
 
@@ -674,7 +684,12 @@ export const userLinksStore = defineStore('rlinks', {
     rattributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
     rlineAttributes: (state) => state.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')).map(el => el.name),
     reversedAttributes: (state) => state.linksDefaultAttributes.filter(el => el.name.endsWith('_r')).map(el => el.name),
-    reversedVariantChoice: (state) => state.variantChoice.map(v => v + '_r') as NonEmptyArray<string>,
+    timeVariants: (state) => {
+      const attrs = new Set(state.linksDefaultAttributes.map(attr => attr.name))
+      const timeVariants = state.variantChoice.filter(v => attrs.has(`time${v}`) || attrs.has(`speed${v}`))
+      return (timeVariants.length > 0 ? timeVariants : ['']) as NonEmptyArray<string>
+    },
+
     hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
     rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
     grouprLinks: (state) => (category: string, group: string) => {
