@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import s3 from '../AWSClient'
@@ -101,7 +101,6 @@ export const useIndexStore = defineStore('index', {
       const runStore = useRunStore()
       try {
         let otherFiles = []
-        let outputFiles = []
         const ptFiles = payload.filter(el => el.path.startsWith('inputs/pt/') && el.path.endsWith('.geojson'))
         otherFiles = payload.filter(el => !ptFiles.includes(el))
 
@@ -126,7 +125,9 @@ export const useIndexStore = defineStore('index', {
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
 
-        outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
+        const outputFiles = otherFiles.filter(el =>
+          el.path.startsWith('outputs/') || el.path.startsWith('microservices/'))
+
         otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
         // at this point. nothing is used in otherFiles.
 
@@ -522,3 +523,7 @@ export const useIndexStore = defineStore('index', {
 
   },
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useIndexStore, import.meta.hot))
+}
