@@ -51,7 +51,7 @@ export const useIndexStore = defineStore('index', {
     changeNotification (payload: Notification) {
       this.notification = payload
     },
-    changeAlert (payload: Error) {
+    changeAlert (payload: unknown) {
       /// payload {name,message}, or just alert
       this.alert = payload
     },

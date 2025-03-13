@@ -10,6 +10,7 @@ import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
 import { FormData } from '@src/types/components'
 import SimpleForm from '../common/SimpleForm.vue'
+import { RunInputs } from '@src/types/api'
 const { $gettext } = useGettext()
 
 const runMapMatching = useMapMatchingStore()
@@ -116,7 +117,7 @@ async function start () {
   getApproxTimer()
   await exportFiles()
   const params = runMapMatching.parameters
-  const inputs = {
+  const inputs: RunInputs = {
     scenario_path_S3: callID.value,
     launcher_arg: {
       training_folder: '/tmp',
@@ -177,7 +178,7 @@ async function exportFiles() {
 
   try {
     await Promise.all(promises)
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.log('err')
     const store = useIndexStore()
     store.changeAlert(err)

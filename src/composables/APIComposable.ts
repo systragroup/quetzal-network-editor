@@ -1,24 +1,25 @@
 import { useIndexStore } from '@src/store/index'
 import { ref } from 'vue'
 import { useClient } from '@src/axiosClient.js'
+import { ErrorMessage, RunInputs, RunPayload, Status } from '@src/types/api'
 const { quetzalClient } = useClient()
 
-export function useAPI (arn) {
-  const stateMachineArn = ref(arn)
-  const status = ref('')
-  const running = ref(false)
-  const executionArn = ref('')
-  const error = ref(false)
-  const errorMessage = ref('')
-  const pollFreq = 4000
-  const timer = ref(0)
+export function useAPI (arn: string) {
+  const stateMachineArn = ref<string>(arn)
+  const status = ref<Status>('')
+  const running = ref<boolean>(false)
+  const executionArn = ref<string>('')
+  const error = ref<boolean>(false)
+  const errorMessage = ref<ErrorMessage>({})
+  const pollFreq: number = 4000
+  const timer = ref<number>(0)
 
   function cleanRun () {
     running.value = false
     executionArn.value = ''
     error.value = false
   }
-  function terminateExecution (payload) {
+  function terminateExecution (payload: ErrorMessage) {
     running.value = false
     error.value = true
     timer.value = 0
@@ -31,19 +32,19 @@ export function useAPI (arn) {
     executionArn.value = ''
   }
 
-  async function startExecution (input) {
+  async function startExecution (input: RunInputs) {
     running.value = true
     error.value = false
-    let data = {
+    const data: RunPayload = {
       input: JSON.stringify(input),
       stateMachineArn: stateMachineArn.value,
     }
 
     try {
-      const response = await quetzalClient.post('', data = JSON.stringify(data))
+      const response = await quetzalClient.post('', data)
       executionArn.value = response.data.executionArn
       pollExecution()
-    } catch (err) {
+    } catch (err: unknown) {
       const store = useIndexStore()
       store.changeAlert(err)
       running.value = false
@@ -56,7 +57,7 @@ export function useAPI (arn) {
       let data = { executionArn: executionArn.value }
       timer.value = timer.value - pollFreq / 1000
       try {
-        const response = await quetzalClient.post('/describe', data = JSON.stringify(data))
+        const response = await quetzalClient.post('/describe', data)
         status.value = response.data.status
         console.log(status.value)
         if (status.value === 'SUCCEEDED') {
@@ -69,7 +70,7 @@ export function useAPI (arn) {
         else if (status.value !== 'RUNNING') {
           clearInterval(intervalId)
         }
-      } catch (err) {
+      } catch (err: unknown) {
         const store = useIndexStore()
         store.changeAlert(err)
       }
@@ -79,9 +80,9 @@ export function useAPI (arn) {
   async function stopExecution () {
     let data = { executionArn: executionArn.value }
     try {
-      const response = await quetzalClient.post('/abort', data = JSON.stringify(data))
+      const response = await quetzalClient.post('/abort', data)
       terminateExecution(response.data)
-    } catch (err) {
+    } catch (err: unknown) {
       const store = useIndexStore()
       store.changeAlert(err)
     }
