@@ -1,16 +1,23 @@
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import { useIndexStore } from './index'
 
 import s3 from '@src/AWSClient'
 import auth from '../auth'
 import { useClient } from '@src/axiosClient.js'
+import { CognitoInfo, InfoPreview, Scenario, UserStore } from '@src/types/typesStore'
 const { quetzalClient } = useClient()
 
-const $gettext = s => s
+const $gettext = (s: string) => s
 
 export const useUserStore = defineStore('userStore', {
-  state: () => ({
-    cognitoInfo: {},
+  state: (): UserStore => ({
+    cognitoInfo: {
+      email: '',
+      exp: 0,
+      auth_time: 0,
+      family_name: '',
+      given_name: '',
+    },
     cognitoGroup: '',
     bucketListStore: [],
     idToken: '',
@@ -19,8 +26,6 @@ export const useUserStore = defineStore('userStore', {
     signinTime: 0,
     loginTime: 0,
     loggedIn: false,
-    loadingState: true,
-    errorLoadingState: false,
     scenariosList: [],
     model: null,
     scenario: null,
@@ -36,36 +41,21 @@ export const useUserStore = defineStore('userStore', {
     setLoggedIn () {
       this.loggedIn = true
     },
-    setLoggedOut () {
-      this.cognitoInfo = {}
-      this.cognitoGroup = ''
-      this.bucketListStore = []
-      this.idToken = ''
-      this.signinTime = 0
-      this.loggedIn = false
-      this.loadingState = true
-      this.errorLoadingState = false
-      this.scenariosList = []
-      this.model = null
-      this.scenario = null
-      this.infoPreview = null
-      this.protected = false
-    },
-    setCognitoInfo (payload) {
+    setCognitoInfo (payload: CognitoInfo) {
       this.signinTime = payload.auth_time
       this.cognitoInfo = payload
       this.loginTime = Math.floor(Date.now() / 1000)
     },
-    setCognitoGroup (payload) {
+    setCognitoGroup (payload: string) {
       this.cognitoGroup = payload
     },
-    setBucketList (payload) {
+    setBucketList (payload: string[]) {
       this.bucketListStore = payload
     },
-    setIdToken (payload) {
+    setIdToken (payload: string) {
       this.idToken = payload
     },
-    setScenariosList (payload) {
+    setScenariosList (payload: Scenario[]) {
       this.scenariosList = payload
       // change email when promise resolve. fetching email il slow. so we lazy load them
       this.scenariosList.forEach((scen) => {
@@ -73,27 +63,28 @@ export const useUserStore = defineStore('userStore', {
           err => console.log(err))
       })
     },
-    setModel (payload) {
+    setModel (payload: string) {
       this.model = payload
     },
-    setScenario (payload) {
+    setScenario (payload: Scenario) {
+      // {just scenario and protected}
       const store = useIndexStore()
       this.scenario = payload.scenario
       this.protected = payload.protected
       store.changeOutputName(payload.scenario)
     },
-    setInfoPreview(payload) {
+    setInfoPreview(payload: InfoPreview | null) {
       this.infoPreview = payload
     },
-    async getScenario (payload) {
-      const res = await s3.getScenario(payload.model)
+    async getScenario (model: string) {
+      const res = await s3.getScenario(model)
       this.setScenariosList(res)
     },
     async getBucketList () {
       try {
         const resp = await quetzalClient.get('buckets/')
         this.setBucketList(resp.data)
-      } catch (err) {
+      } catch (err: any) {
         const store = useIndexStore()
         store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
       }
@@ -103,7 +94,7 @@ export const useUserStore = defineStore('userStore', {
       // re login using the refresh token. (if ID token is expired)
       // IF the refresh token is expired, log out.
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
-      if (currentTime > this.loginTime + this.idExpTime) {
+      if (this.loginTime > 0 && currentTime > this.loginTime + this.idExpTime) {
         await auth.login()
         await s3.login()
       }
@@ -124,3 +115,6 @@ export const useUserStore = defineStore('userStore', {
     bucketList: (state) => state.bucketListStore ? state.bucketListStore : [],
   },
 })
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useUserStore, import.meta.hot))
+}

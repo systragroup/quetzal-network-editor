@@ -313,6 +313,47 @@ export interface MapStore {
   key: string
 }
 
+//
+
+// userStore
+
+export interface CognitoInfo {
+  email: string
+  exp: number
+  auth_time: number
+  family_name: string
+  given_name: string
+}
+export interface Scenario {
+  lastModified: string
+  model: string
+  protected: boolean
+  scenario: string
+  timestamp: number
+  userEmail: string
+  userEmailPromise: Promise<string>
+}
+export interface InfoPreview {
+  description: string
+}
+
+export interface UserStore {
+  cognitoInfo: CognitoInfo
+  cognitoGroup: string
+  bucketListStore: string[]
+  idToken: string
+  refreshExpTime: number
+  idExpTime: number
+  signinTime: number
+  loginTime: number
+  loggedIn: boolean
+  scenariosList: Scenario[]
+  model: null | string
+  scenario: null | string
+  infoPreview: InfoPreview | null
+  protected: boolean
+}
+
 // Microservices
 
 // MapMAthcing

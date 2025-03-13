@@ -22,7 +22,7 @@ Amplify.configure({
 async function logout () {
   signOut()
   const userStore = useUserStore()
-  userStore.setLoggedOut()
+  userStore.$reset()
 }
 
 async function login () {
