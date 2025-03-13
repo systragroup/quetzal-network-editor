@@ -13,11 +13,13 @@ export interface FormOption {
   continue: boolean
 }
 
+export type SimpleFormType = 'number' | 'string' | 'boolean' | 'select'
+
 export interface FormData {
   key: string
   label: string
   value: any
-  type: 'number' | 'string' | 'boolean' | 'datetime' | 'time' | 'date'
+  type: SimpleFormType
   units?: string
   precision?: number
   disabled?: boolean

@@ -9,6 +9,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
 import { FormData } from '@src/types/components'
+import SimpleForm from '../common/SimpleForm.vue'
 const { $gettext } = useGettext()
 
 const runMapMatching = useMapMatchingStore()
@@ -26,16 +27,26 @@ const callID = computed(() => runMapMatching.callID)
 const bucket = computed(() => runMapMatching.bucket)
 const storeParameters = computed(() => runMapMatching.parameters)
 
-const showHint = ref(false)
-// dont use for now.
-// need to change Step function payload if we add parameters.
+const routeTypeList = computed(() =>
+  Array.from(new Set(linksStore.links.features.map(link => link.properties.route_type))))
+
 const parameters = ref<FormData[]>([
+  {
+    key: 'exclusions',
+    label: 'route_type exclusion',
+    value: null,
+    items: routeTypeList.value,
+    type: 'select',
+    multiple: true,
+    hint: 'routes type to not mapmatch (ex subway are not on roads)',
+  },
   {
     key: 'SIGMA',
     label: 'Sigma',
     value: null,
     type: 'number',
     units: 'meters',
+    rules: ['required'],
     hint: 'emission probablity constant. the bigger it \
     is the further away a stops can be from roads.',
   },
@@ -45,6 +56,7 @@ const parameters = ref<FormData[]>([
     value: null,
     type: 'number',
     units: 'meters',
+    rules: ['required'],
     hint: 'transition probablity constant. The smaller the smaller  \
     the difference between the as-the-crow and routing distance can be (if use difference is true)',
   },
@@ -53,7 +65,7 @@ const parameters = ref<FormData[]>([
     label: 'power',
     value: null,
     type: 'number',
-    units: 'meters',
+    rules: ['required'],
     hint: 'Power used in the Emission Probability',
   },
   {
@@ -62,6 +74,7 @@ const parameters = ref<FormData[]>([
     value: null,
     type: 'boolean',
     units: 'bool',
+    rules: ['required'],
     hint: 'If False, act_dist is ignore in the transition probability. This change the emission to only \
     consider the shortest path between nodes. ',
   },
@@ -84,7 +97,7 @@ const parameters = ref<FormData[]>([
 
 onMounted(() => {
   // remove nonExistant routeType from v-model selection (was deleted, or scen changed.)
-  runMapMatching.exclusions = runMapMatching.exclusions.filter(el => routeTypeList.value.includes(el))
+  storeParameters.value.exclusions = storeParameters.value.exclusions.filter(el => routeTypeList.value.includes(el))
   parameters.value.forEach(param => param.value = storeParameters.value[param.key])
 })
 
@@ -92,16 +105,17 @@ onBeforeUnmount(() => {
   runMapMatching.saveParams(parameters.value)
 })
 
+const formRef = ref()
+
 async function start () {
+  const resp = await formRef.value.validate()
+  if (!resp) { return }
   const userStore = useUserStore()
   runMapMatching.running = true
   runMapMatching.setCallID()
   getApproxTimer()
   await exportFiles()
-  const params: Record<string, any> = { exclusions: runMapMatching.exclusions }
-  parameters.value.forEach(item => {
-    params[item.key] = item.value
-  })
+  const params = runMapMatching.parameters
   const inputs = {
     scenario_path_S3: callID.value,
     launcher_arg: {
@@ -164,13 +178,11 @@ async function exportFiles() {
   try {
     await Promise.all(promises)
   } catch (err: any) {
+    console.log('err')
     const store = useIndexStore()
     store.changeAlert(err)
   }
 }
-
-const routeTypeList = computed(() =>
-  Array.from(new Set(linksStore.links.features.map(link => link.properties.route_type))))
 
 function stopRun () { runMapMatching.stopExecution() }
 
@@ -201,105 +213,54 @@ function stopRun () { runMapMatching.stopExecution() }
       </v-card-subtitle>
 
       <v-spacer />
-      <v-card-subtitle>
+      <div>
         <v-alert
           v-if="error"
           density="compact"
-          width="50rem"
           variant="outlined"
+          :title="$gettext('There as been an error Mapmatching. Please try again. If the problem persist, contact us.')"
           type="error"
         >
-          {{ $gettext("There as been an error Mapmatching. \
-            Please try again. If the problem persist, contact us.") }}
-          <p
-            v-for="key in Object.keys(errorMessage)"
-            :key="key"
-          >
-            <b>{{ key }}: </b>{{ errorMessage[key] }}
-          </p>
+          <div class="alert">
+            <p
+              v-for="key in Object.keys(errorMessage)"
+              :key="key"
+            >
+              <b>{{ key }}: </b> <br>
+              {{ errorMessage[key] }}
+            </p>
+          </div>
         </v-alert>
-      </v-card-subtitle>
+      </div>
       <v-divider />
 
-      <v-spacer />
-      <v-select
-        v-model="runMapMatching.exclusions"
-        :items="routeTypeList"
-        :disabled="running"
-        :hint="showHint? $gettext('routes type to not mapmatch (ex subway are not on roads)'): ''"
-        label="route_type exclusion"
-        variant="outlined"
-        multiple
+      <SimpleForm
+        ref="formRef"
+        v-model="parameters"
       >
-        <template v-slot:selection="{ item, index }">
-          <v-chip v-if="index < 2">
-            <span>{{ item.title }}</span>
-          </v-chip>
-          <span
-            v-if="index === 2"
-            class="text-grey text-caption align-self-center"
+        <v-card-actions>
+          <v-btn
+            variant="outlined"
+            color="success"
+            :loading="running"
+            :disabled="running || (rlinksIsEmpty || linksIsEmpty)"
+            @click="start"
           >
-            (+{{ runMapMatching.exclusions.length - 2 }} others)
-          </span>
-        </template>
-      </v-select>
-      <div
-        v-for="(item, key) in parameters"
-        :key="key"
-        class="items"
-      >
-        <v-switch
-          v-if="item.type==='boolean'"
-          v-model="item.value"
-          class="pr-2"
-          color="primary"
-          :disabled="running"
-          :label="$gettext(item.label)"
-          :hint="showHint? $gettext(item.hint as string): ''"
-          :persistent-hint="showHint"
-        />
-        <v-text-field
-          v-else
-          v-model="item.value"
-          :type="item.type"
-          :disabled="running"
-          :label="$gettext(item.label)"
-          :suffix="item.units"
-          :hint="showHint? $gettext(item.hint as string): ''"
-          :persistent-hint="showHint"
-          required
-          @wheel="()=>{}"
-        />
-      </div>
-      <v-card-actions>
-        <v-btn
-          variant="outlined"
-          color="success"
-          :loading="running"
-          :disabled="running || (rlinksIsEmpty || linksIsEmpty)"
-          @click="start"
-        >
-          {{ $gettext("Process") }}
-        </v-btn>
-        <v-btn
-          v-show="running && status === 'RUNNING'"
-          color="grey"
-          variant="text"
-          @click="stopRun()"
-        >
-          {{ $gettext("Abort") }}
-        </v-btn>
-        <v-card-text v-show="running">
-          ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
-        </v-card-text>
-        <v-spacer />
-        <v-btn
-          size="small"
-          @click="showHint = !showHint"
-        >
-          <v-icon>far fa-question-circle small</v-icon>
-        </v-btn>
-      </v-card-actions>
+            {{ $gettext("Process") }}
+          </v-btn>
+          <v-btn
+            v-show="running && status === 'RUNNING'"
+            color="grey"
+            variant="text"
+            @click="stopRun()"
+          >
+            {{ $gettext("Abort") }}
+          </v-btn>
+          <v-card-text v-show="running">
+            ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
+          </v-card-text>
+        </v-card-actions>
+      </SimpleForm>
     </v-card>
   </section>
 </template>
@@ -321,4 +282,9 @@ function stopRun () { runMapMatching.stopExecution() }
 .items {
   margin-bottom:0.3rem;
 }
+.alert{
+  max-height: 10rem;
+  overflow-y: auto;
+}
+
 </style>

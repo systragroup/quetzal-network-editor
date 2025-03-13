@@ -18,7 +18,6 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
   const callID = ref<string>('')
   function setCallID() { callID.value = uuid() }
   const timer = ref<number>(0)
-  const exclusions = ref([])
 
   const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI(stateMachineArn.value)
 
@@ -29,6 +28,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     DIFF: true,
     ptMetrics: true,
     keepTime: true,
+    exclusions: [],
   })
 
   function saveParams (payload: FormData[]) {
@@ -90,7 +90,6 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     stateMachineArn,
     bucket,
     callID,
-    exclusions,
     status,
     running,
     error,
