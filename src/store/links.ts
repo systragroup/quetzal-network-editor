@@ -833,9 +833,11 @@ export const useLinksStore = defineStore('links', {
     applyPropertiesTypes (links: LineStringGeoJson) {
       for (const attr of this.linksDefaultAttributes) {
         for (const link of links.features) {
-          link.properties[attr.name] = attr.type === 'String'
-            ? String(link.properties[attr.name])
-            : Number(link.properties[attr.name])
+          if (attr.type === 'String') {
+            link.properties[attr.name] = String(link.properties[attr.name])
+          } else if (attr.type === 'Number') {
+            link.properties[attr.name] = Number(link.properties[attr.name])
+          }
         }
       }
     },
