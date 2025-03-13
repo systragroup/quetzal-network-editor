@@ -32,7 +32,7 @@ watch(localModel, async () => {
 
 async function getScenario() {
   loading.value = true
-  await userStore.getScenario({ model: localModel.value })
+  await userStore.getScenario(localModel.value)
   loading.value = false
 }
 
