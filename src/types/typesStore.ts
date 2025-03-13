@@ -328,6 +328,7 @@ export interface MapMatchingParams {
   DIFF: boolean
   ptMetrics: boolean
   keepTime: boolean
+  exclusions: string[]
 
-  [key: string]: number | boolean
+  [key: string]: number | boolean | string[]
 }
