@@ -10,6 +10,7 @@ import { useGettext } from 'vue3-gettext'
 import { FormData } from '@src/types/components'
 import SimpleForm from '../common/SimpleForm.vue'
 import { RunInputs } from '@src/types/api'
+import Warning from '../utils/Warning.vue'
 const { $gettext } = useGettext()
 
 const runMapMatching = useMapMatchingStore()
@@ -213,25 +214,10 @@ function stopRun () { runMapMatching.stopExecution() }
       </v-card-subtitle>
 
       <v-spacer />
-      <div>
-        <v-alert
-          v-if="error"
-          density="compact"
-          variant="outlined"
-          :title="$gettext('There as been an error Mapmatching. Please try again. If the problem persist, contact us.')"
-          type="error"
-        >
-          <div class="alert">
-            <p
-              v-for="key in Object.keys(errorMessage)"
-              :key="key"
-            >
-              <b>{{ key }}: </b> <br>
-              {{ errorMessage[key] }}
-            </p>
-          </div>
-        </v-alert>
-      </div>
+      <Warning
+        v-model="error"
+        :messages="errorMessage"
+      />
       <v-divider />
 
       <SimpleForm

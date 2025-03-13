@@ -92,7 +92,7 @@ onMounted(async () => {
     el.index = idx
   })
   gtfsList.value = gtfsList.value.filter(el => el.bbox)
-  gtfsList.value = gtfsList.value.filter(el => el['urls.latest'].length > 0)
+  gtfsList.value = gtfsList.value.filter(el => el['urls.latest']?.length > 0)
   gtfsList.value.sort((a, b) => {
     if (a['location.country_code'] < b['location.country_code']) return -1
     if (a['location.country_code'] > b['location.country_code']) return 1

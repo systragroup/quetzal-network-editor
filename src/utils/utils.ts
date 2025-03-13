@@ -47,7 +47,7 @@ export function getModifiedKeys(form: GroupForm) {
 
 export function isScheduleTrip(link: GeoJsonFeatures | undefined) {
   if (link == undefined) { return false }
-  return (link.properties.arrivals !== undefined)
+  return Array.isArray(link.properties.arrivals)
 }
 
 export function IndexAreDifferent (geojsonA: GeoJson, geojsonB: GeoJson) {
