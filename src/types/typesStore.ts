@@ -1,4 +1,4 @@
-import { GroupForm } from './components'
+import { GroupForm, IsoTimeStringTZ, TimeString } from './components'
 import { LineStringGeoJson, LineStringFeatures, PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
 
 // indexStore
@@ -167,7 +167,12 @@ export interface EditLinkPayload {
   selectedIndex: string
 }
 
-// store values
+export interface SchedulePayload {
+  departures: TimeString[]
+  arrivals: TimeString[]
+
+  [key: string]: TimeString[]
+}
 
 export type AttributeTypes = 'String' | 'Number'
 
@@ -374,14 +379,12 @@ export interface MapMatchingParams {
   [key: string]: number | boolean | string[]
 }
 
-export type IsoTimeString = string
-
 export interface MatrixRoadCasterParams {
   callID: string
   api: 'google' | 'here'
   num_zones: number
   train_size: number
-  date_time: IsoTimeString
+  date_time: IsoTimeStringTZ
   ff_time_col: string
   max_speed: number
   num_cores: number
