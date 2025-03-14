@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch, toRaw, computed } from 'vue'
 import ScheduleChart from '@comp/utils/ScheduleChart.vue'
 import { useIndexStore } from '@src/store/index'
@@ -8,6 +8,7 @@ import { cloneDeep } from 'lodash'
 import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, hash } from '@src/utils/utils'
 
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
+import { baseLineString, LineStringGeoJson } from '@src/types/geojson'
 
 const showSchedule = defineModel({ type: Boolean })
 
@@ -17,14 +18,15 @@ const theme = useTheme()
 const store = useIndexStore()
 const linksStore = useLinksStore()
 
-const links = ref()
+const links = ref<LineStringGeoJson>(baseLineString())
 const nodes = computed(() => linksStore.editorNodes)
 const tripKey = ref(0)
 const startTime = ref('08:00:00')
 
 const initialHash = ref()
+type TimeString = string
 
-function toSchedule(links) {
+function toSchedule(links: LineStringGeoJson) {
   let currentTime = hhmmssToSeconds(startTime.value)
   links.features.forEach(f => {
     f.properties.departures = [secondsTohhmmss(currentTime)]
@@ -57,7 +59,6 @@ const labelsChoices = computed(() => {
 const label = ref('index')
 
 // List of Trip
-
 const listOfTrips = computed(() => {
   const list = datasets.value.map(d => { return { title: d.data[0].x } })
   return list
@@ -74,7 +75,7 @@ function cancelNewTrip() {
   startTime.value = '08:00:00'
 }
 
-function findInsertIndex(arr, num) {
+function findInsertIndex(arr: number[], num: number) {
   // return index to insert
   // ex: arr = [8,10,12,16] & num = 9 => return 1. if smaller return 0 if larger return len(arr)
   const index = arr.findIndex(element => element >= num)
@@ -84,7 +85,7 @@ function findInsertIndex(arr, num) {
 
 function createNewTrip() {
   showDialog.value = false
-  const departuresList = links.value.features[0].properties.departures.map(el => hhmmssToSeconds(el))
+  const departuresList = links.value.features[0].properties.departures.map((el: TimeString) => hhmmssToSeconds(el))
   const startTimeSecs = hhmmssToSeconds(startTime.value)
   // get the position to append the new Ttrip (if we add 9h to [8h, 10h], we have [8h, 9h, 10h])
   const index = findInsertIndex(departuresList, startTimeSecs)
@@ -103,7 +104,7 @@ function createNewTrip() {
   buildChartDataset()
 }
 
-function deleteTrip(val) {
+function deleteTrip(val: number) {
   links.value.features.forEach(f => f.properties.departures.splice(val, 1))
   links.value.features.forEach(f => f.properties.arrivals.splice(val, 1))
   if (tripKey.value === listOfTrips.value.length - 1) {
@@ -124,23 +125,28 @@ const formErrorKey = computed(() => {
       scheduleErrorKey.push(i)
     }
   }
-  return scheduleErrorKey.map(e => {
+  return scheduleErrorKey.map((e: number) => {
     return {
-      key: parseInt(e / 2),
+      key: Math.floor(e / 2),
       departure: (e % 2 === 0),
     }
   })
 })
 
+interface Schedule {
+  departures: TimeString[]
+  arrivals: TimeString[]
+}
+
 function applyChanges() {
-  let payload = []
+  let schedules: Schedule[] = []
   links.value.features.forEach(f => {
-    payload.push({
+    schedules.push({
       departures: toRaw(f.properties['departures']),
       arrivals: toRaw(f.properties['arrivals']),
     })
   })
-  linksStore.editEditorLinksInfo(payload)
+  linksStore.editEditorLinksInfo(schedules)
 }
 
 function saveAndQuit() {
@@ -160,9 +166,29 @@ function cancel() {
 }
 
 // Chart Dataset
-const datasets = ref([])
+interface Data {
+  x: TimeString
+  y: any
+}
+
+interface Dataset {
+  backgroundColor: string
+  borderColor: string
+  borderWidth: number
+  data: Data[]
+  id: number
+  pointRadius: number[]
+}
+
+interface StackedData {
+  x: TimeString[]
+  y: any[]
+}
+
+const datasets = ref<Dataset[]>([])
+
 function buildChartDataset() {
-  let stackedData = []
+  let stackedData: StackedData[] = []
   links.value.features.forEach(f => {
     stackedData.push({
       x: f.properties.departures,
@@ -173,7 +199,6 @@ function buildChartDataset() {
       y: f.properties.b,
     })
   })
-
   let datas = []
   for (let i = 0; i < stackedData[0].x.length; i++) {
     // Node
@@ -200,13 +225,13 @@ function buildChartDataset() {
       pointRadius: pointRadius,
     })
   }
-
   datasets.value = datas
 }
 
 // Node Hover from Schedule
 const nodeHover = ref()
-function mouseoverSchedule(key, type) {
+
+function mouseoverSchedule(key: number, type: string) {
   nodeHover.value = 2 * key
   if (type == 'arrivals') { nodeHover.value++ }
   const ttrip = datasets.value.filter(el => el.id === tripKey.value)[0]
@@ -219,14 +244,14 @@ function mouseleaveSchedule() {
   nodeHover.value = undefined
 }
 
-function onClickTripList(val) {
+function onClickTripList(val: number) {
   tripKey.value = val
   buildChartDataset()
 }
 
 // Trip Hover from List
 const tripHover = ref()
-function onMouseOverTripList(val) {
+function onMouseOverTripList(val: number) {
   tripHover.value = val
   const ttrip = datasets.value.filter(el => el.id === tripHover.value)[0]
   ttrip.borderWidth = 4
@@ -249,7 +274,7 @@ function toggle() {
     showSaveDialog.value = true
   }
 }
-function handleSimpleDialog(event) {
+function handleSimpleDialog(event: boolean) {
   showSaveDialog.value = false
   if (event) {
     applyChanges()
