@@ -79,6 +79,7 @@ defineExpose({ openDialog })
         <v-form
           ref="formRef"
           validate-on="submit lazy"
+          @submit.prevent="confirm"
         >
           <slot />
         </v-form>

@@ -75,7 +75,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     const res = []
     for (const file of filesList) {
       let name = file.split('/').slice(-1)
-      name = 'outputs/' + name
+      name = 'microservices/' + name
       const content = await s3.readBytes(bucket.value, file)
       res.push({ path: name, content: content })
     }
