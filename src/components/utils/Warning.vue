@@ -4,11 +4,17 @@ import { toRefs } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 interface Props {
-  messages: ErrorMessage
+  show: boolean
+  messages?: ErrorMessage | string
+  type?: 'error' | 'success' | 'info' | 'warning' | undefined
+  title?: string
 }
-const props = defineProps<Props>()
-const { messages } = toRefs(props)
-const show = defineModel<boolean>()
+const props = withDefaults(defineProps<Props>(), {
+  type: 'error',
+  messages: '',
+  title: 'There as been an error. Please try again. If the problem persist, contact us.',
+})
+const { show, messages, type, title } = toRefs(props)
 
 </script>
 <template>
@@ -17,12 +23,16 @@ const show = defineModel<boolean>()
       v-if="show"
       density="compact"
       variant="outlined"
-      :title="$gettext('There as been an error. Please try again. If the problem persist, contact us.')"
-      type="error"
+      :title="$gettext(title)"
+      :type="type"
     >
       <div class="alert">
+        <P v-if="typeof(messages)==='string'">
+          {{ messages }}
+        </P>
         <p
           v-for="key in Object.keys(messages)"
+          v-else
           :key="key"
         >
           <b>{{ key }}: </b> <br>
