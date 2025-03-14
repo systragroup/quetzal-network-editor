@@ -22,11 +22,11 @@ const show = defineModel<boolean>()
     >
       <div class="alert">
         <p
-          v-for="key, mess in Object.keys(messages)"
+          v-for="key in Object.keys(messages)"
           :key="key"
         >
           <b>{{ key }}: </b> <br>
-          {{ mess }}
+          {{ messages[key] }}
         </p>
       </div>
     </v-alert>

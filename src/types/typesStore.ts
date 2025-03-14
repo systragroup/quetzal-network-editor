@@ -356,7 +356,7 @@ export interface UserStore {
 
 // Microservices
 
-// MapMAthcing
+// MapMatching
 
 export interface MapMatchingParams {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -372,4 +372,22 @@ export interface MapMatchingParams {
   exclusions: string[]
 
   [key: string]: number | boolean | string[]
+}
+
+export type IsoTimeString = string
+
+export interface MatrixRoadCasterParams {
+  callID: string
+  api: 'google' | 'here'
+  num_zones: number
+  train_size: number
+  date_time: IsoTimeString
+  ff_time_col: string
+  max_speed: number
+  num_cores: number
+  num_random_od: number
+  use_zone: false
+  hereApiKey: string
+
+  [key: string]: number | boolean | string
 }

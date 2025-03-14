@@ -5,9 +5,12 @@ import { ref } from 'vue'
 import { FormData, SimpleFormType } from '@src/types/components'
 
 const editorForm = defineModel<FormData[]>()
+const emits = defineEmits(['change'])
 
 const shake = ref(false)
 const formRef = ref()
+const showHint = ref(false)
+
 async function validate() {
   const resp = await formRef.value.validate()
   if (!resp.valid) {
@@ -18,9 +21,9 @@ async function validate() {
   return resp.valid
 }
 
-function getRules(arr: string[] | undefined) {
+function getRules(arr: (string | Function)[] | undefined) {
   if (arr === undefined) { return [] }
-  else { return arr.map(r => rules[r]) }
+  else { return arr.map((r) => typeof (r) === 'string' ? rules[r] : r) }
 }
 
 const rules: Record<string, any> = {
@@ -29,7 +32,10 @@ const rules: Record<string, any> = {
   nonNegative: (v: number) => v >= 0 || $gettext('Should be larger or equal to 0'),
   longerThanZero: (v: string) => v.length > 0 || $gettext('Should not be empty'),
 }
-const showHint = ref(false)
+
+function change(item: FormData) {
+  emits('change', item)
+}
 
 defineExpose({
   validate,
@@ -61,40 +67,36 @@ function typeMap(type: SimpleFormType) {
         class="form"
       >
         <slot
-          name="item"
+          :name="item.key"
           :item="item"
-        />
-        <component
-          :is="typeMap(item.type)"
-          v-model="item.value"
-          control-variant="stacked"
-          :hint="showHint? item.hint: ''"
-          :density="item.type==='boolean'?'compact':'default'"
-          :persistent-hint="showHint"
-          :variant="item.disabled? 'underlined': 'filled'"
-          :disabled="item.disabled"
-          :units="item.units"
-          color="primary"
-          :precision="item.precision === undefined? null : item.precision"
-          :suffix="item.units"
-          :items="item.items"
-          :rules="getRules(item.rules)"
-          :label="$gettext(item.label)"
-          :multiple="item.multiple"
-        />
+          :show-hint="showHint"
+          :get-rules="getRules"
+          @update:model-value="change(item)"
+        >
+          <component
+            :is="typeMap(item.type)"
+            v-model="item.value"
+            control-variant="stacked"
+            :hint="showHint? item.hint: ''"
+            :density="item.type==='boolean'? 'compact': 'default'"
+            :persistent-hint="showHint"
+            :variant="item.disabled? 'underlined': 'filled'"
+            :disabled="item.disabled"
+            :units="item.units"
+            color="primary"
+            :precision="item.precision === undefined? null : item.precision"
+            :suffix="item.units"
+            :items="item.items"
+            :rules="getRules(item.rules)"
+            :label="$gettext(item.label)"
+            :multiple="item.multiple"
+            @update:model-value="change(item)"
+          />
+        </slot>
       </div>
+
       <v-card-actions>
         <slot />
-        <!--
-        <v-btn
-          color="success"
-          variant="elevated"
-          value="create"
-          type="submit"
-        >
-          {{ $gettext('Process') }}
-        </v-btn>
-         -->
         <v-spacer />
         <v-btn
           size="small"
