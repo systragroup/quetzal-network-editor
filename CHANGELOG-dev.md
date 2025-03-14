@@ -1,5 +1,4 @@
-## [7.0.d] (2025-03-xx)
-
+## [7.0.d] (2025-03-14)
 ### Changes
 
 * Add microservices/ folder at root (with inputs/ outputs/). microservices outputs are store there. [#582](https://github.com/systragroup/quetzal-network-editor/issues/582)
