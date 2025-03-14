@@ -224,7 +224,7 @@ const showPassword = ref(false)
         <p> {{ $gettext('3) Interpolate every other OD time with an hybrid Machine learning model') }}</p>
         <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
         <Warning
-          v-model="error"
+          :show="error"
           :messages="errorMessage"
         />
 

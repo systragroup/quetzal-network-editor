@@ -11,6 +11,7 @@ import { FormData } from '@src/types/components'
 import SimpleForm from '../common/SimpleForm.vue'
 import { RunInputs } from '@src/types/api'
 import Warning from '../utils/Warning.vue'
+import Markdown from '../utils/Markdown.vue'
 const { $gettext } = useGettext()
 
 const runMapMatching = useMapMatchingStore()
@@ -186,6 +187,16 @@ async function exportFiles() {
 }
 
 function stopRun () { runMapMatching.stopExecution() }
+const mdString = `
+$E = \\frac{1}{2} \\times (\\frac{d_{proj}}{\\sigma} )^{P}$ \n
+$T = |d_{dijkstra} - d_{acf}^{*}|$ \n
+$P = E+T$ \n
+\\* $d_{acf} = 0$ if use difference is false \n 
+*Hidden Markov Map Matching Through Noise and Sparseness* \n
+*Paul Newson and John Krumm 2009*
+`
+
+const showWarning = computed(() => rlinksIsEmpty.value || linksIsEmpty.value)
 
 </script>
 <template>
@@ -196,26 +207,15 @@ function stopRun () { runMapMatching.stopExecution() }
       <v-card-title>
         {{ $gettext("Match PT network on road network") }}
       </v-card-title>
-      <v-card-subtitle v-if="rlinksIsEmpty || linksIsEmpty">
-        {{ $gettext("need a road and a PT network") }}
-      </v-card-subtitle>
-
-      <v-spacer />
-      <p class="pl-4">
-        Emission = 0.5 x ( dist_to_road / SIGMA ) ^ POWER <br>
-        Transition = 1 / BETA x | dijkstra_dist - acf_dist* | <br>
-        Probablity = Emission + Transition <br>
-        * If use difference is true. Else acf_dist = 0 <br>
-      </p>
-      <v-spacer />
-      <v-card-subtitle>
-        Hidden Markov Map Matching Through Noise and Sparseness <br>
-        Paul Newson and John Krumm 2009
-      </v-card-subtitle>
-
-      <v-spacer />
       <Warning
-        v-model="error"
+        :show="showWarning"
+        :title="$gettext('need a road and a PT network')"
+        type="warning"
+      />
+
+      <Markdown :source="mdString" />
+      <Warning
+        :show="error"
         :messages="errorMessage"
       />
       <v-divider />
