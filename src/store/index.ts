@@ -445,7 +445,8 @@ export const useIndexStore = defineStore('index', {
       const filesToExcludes = Object.values(paths) // list of all files (that are not others.)
       filesOnCloud = filesOnCloud.filter(path => !filesToExcludes.includes(path))
       filesOnCloud = filesOnCloud.map(file => file.slice(scen.length)) // remove scen name from file)
-      filesOnCloud = filesOnCloud.filter(path => path.startsWith('outputs/') || path.startsWith('inputs/'))
+      filesOnCloud = filesOnCloud.filter(path =>
+        path.startsWith('outputs/') || path.startsWith('inputs/') || path.startsWith('microservices/'))
       const localOtherFiles = this.otherFiles.map(el => el.path)
       for (const file of filesOnCloud) {
         if (!localOtherFiles.includes(file)) {
@@ -457,7 +458,7 @@ export const useIndexStore = defineStore('index', {
       // if payload === inputs. only export inputs/ files.
       let otherFiles = this.otherFiles
       if (payload === 'inputs') {
-        otherFiles = otherFiles.filter(file => !file.path.startsWith('outputs/'))
+        otherFiles = otherFiles.filter(file => file.path.startsWith('inputs/'))
       }
       for (const file of otherFiles) {
         // if others file loaded from S3 )

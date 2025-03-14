@@ -17,7 +17,8 @@ export async function unzip (file: File) {
 
 function checkPaths (paths: string[]) {
   // check that the zip files contains with inputs/ or outputs/ (as root folders.)
-  const test = paths.filter(path => path.startsWith('inputs/') || path.startsWith('outputs/'))
+  const test = paths.filter(path =>
+    path.startsWith('inputs/') || path.startsWith('outputs/') || path.startsWith('microservices/'))
   if (test.length === 0) {
     const err = new Error($gettext(' root folders should be inputs/ and outputs/. not: ') + paths[0])
     err.name = 'ImportError'
