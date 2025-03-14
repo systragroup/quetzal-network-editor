@@ -6,13 +6,18 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
 import { useAPI } from '../composables/APIComposable'
 import { useGettext } from 'vue3-gettext'
+import { MatrixRoadCasterParams } from '@src/types/typesStore'
+import { FormData } from '@src/types/components'
 
 export const useMRCStore = defineStore('runMRC', () => {
   const { $gettext } = useGettext()
   const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-matrixroadcaster-api')
   const bucket = ref('quetzal-api-bucket')
   const callID = ref('')
-  function setCallID() { callID.value = uuid() }
+  function setCallID() {
+    callID.value = uuid()
+    parameters.value.callID = callID.value
+  }
 
   const { error, running, errorMessage, status, timer,
     startExecution, stopExecution, cleanRun } = useAPI(stateMachineArn.value)
@@ -31,7 +36,7 @@ export const useMRCStore = defineStore('runMRC', () => {
     }
   })
 
-  const parameters = ref({
+  const parameters = ref<MatrixRoadCasterParams>({
     callID: '',
     api: 'google',
     num_zones: 100,
@@ -46,7 +51,12 @@ export const useMRCStore = defineStore('runMRC', () => {
   })
   const zoneFile = ref('')
 
-  function setParameters (payload) { parameters.value = payload }
+  function saveParams (payload: FormData[]) {
+    payload.forEach(param => saveParam(param)) }
+
+  function saveParam(payload: FormData) {
+    parameters.value[payload.key] = payload.value
+  }
 
   async function ApplyResults () {
     const rlinksStore = userLinksStore()
@@ -91,6 +101,7 @@ export const useMRCStore = defineStore('runMRC', () => {
     cleanRun,
     parameters,
     zoneFile,
-    setParameters,
+    saveParams,
+    saveParam,
   }
 })

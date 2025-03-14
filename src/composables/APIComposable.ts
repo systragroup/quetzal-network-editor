@@ -2,6 +2,7 @@ import { useIndexStore } from '@src/store/index'
 import { ref } from 'vue'
 import { useClient } from '@src/axiosClient.js'
 import { ErrorMessage, RunInputs, RunPayload, Status } from '@src/types/api'
+import { MatrixRoadCasterParams } from '@src/types/typesStore'
 const { quetzalClient } = useClient()
 
 export function useAPI (arn: string) {
@@ -32,7 +33,7 @@ export function useAPI (arn: string) {
     executionArn.value = ''
   }
 
-  async function startExecution (input: RunInputs) {
+  async function startExecution (input: RunInputs | MatrixRoadCasterParams) {
     running.value = true
     error.value = false
     const data: RunPayload = {
