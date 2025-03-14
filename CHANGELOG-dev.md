@@ -1,13 +1,24 @@
-## [7.0.c] (2025-03-12)
+## [7.0.d] (2025-03-xx)
 ### Changes
+* Add microservices/ folder at root (with inputs/ outputs/). microservices outputs are store there. [#582](https://github.com/systragroup/quetzal-network-editor/issues/582)
 
  ### Bug Fixes
- * Results map: show all layer properties on click. If no index: don't show nothing... 
+ * ScheduleEditor had a bug where departures and arrival list were not store as array: [#583](https://github.com/systragroup/quetzal-network-editor/issues/583)
+
+ ### Refactoring
+ * UseAPI composable in TS
+ * MapMatching MicroService (store and component) in TS
+ * MatrixRoadCaster MicroService (store and component) in TS
+ * UserStore in TS
 
 
 ## [7.0.c] (2025-03-12)
 ### Changes
 * Change speed-time calculation to "timeVariant". so we can have variants without having it on speed and time. (ex: headway#am,speed,time)
+
+ ### Bug Fixes
+ * Results map: show all layer properties on click. If no index: don't show nothing... 
+
 
 ## [7.0.b] (2025-03-11)
 ### Changes
