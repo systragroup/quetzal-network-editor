@@ -22,7 +22,8 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
   FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
   NonEmptyArray,
-  FileSource } from '@src/types/typesStore'
+  FileSource,
+  SchedulePayload } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTime,
@@ -188,7 +189,7 @@ export const useLinksStore = defineStore('links', {
       this.getEditorNodes(this.nodes)
     },
 
-    editEditorLinksInfo (payload: Record<string, any>) {
+    editEditorLinksInfo (payload: SchedulePayload[]) {
       if (this.editorLinks.features.length === payload.length) {
         for (let i = 0; i < payload.length; i++) {
           let keys = Object.keys(payload[i])

@@ -9,8 +9,30 @@ import { isScheduleTrip, hhmmssToSeconds, secondsTohhmmss, hash } from '@src/uti
 
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 import { baseLineString, LineStringGeoJson } from '@src/types/geojson'
+import { TimeString } from '@src/types/components'
+import { SchedulePayload } from '@src/types/typesStore'
 
-const showSchedule = defineModel({ type: Boolean })
+// Chart Dataset
+interface Data {
+  x: TimeString
+  y: any
+}
+
+interface Dataset {
+  backgroundColor: string
+  borderColor: string
+  borderWidth: number
+  data: Data[]
+  id: number
+  pointRadius: number[]
+}
+
+interface StackedData {
+  x: TimeString[]
+  y: any[]
+}
+
+const showSchedule = defineModel<boolean>()
 
 const emit = defineEmits(['applyAction', 'cancelAction', 'toggle'])
 
@@ -24,7 +46,6 @@ const tripKey = ref(0)
 const startTime = ref('08:00:00')
 
 const initialHash = ref()
-type TimeString = string
 
 function toSchedule(links: LineStringGeoJson) {
   let currentTime = hhmmssToSeconds(startTime.value)
@@ -133,13 +154,8 @@ const formErrorKey = computed(() => {
   })
 })
 
-interface Schedule {
-  departures: TimeString[]
-  arrivals: TimeString[]
-}
-
 function applyChanges() {
-  let schedules: Schedule[] = []
+  let schedules: SchedulePayload[] = []
   links.value.features.forEach(f => {
     schedules.push({
       departures: toRaw(f.properties['departures']),
@@ -163,26 +179,6 @@ function ConvertToFrequencyTrip() {
 
 function cancel() {
   emit('cancelAction')
-}
-
-// Chart Dataset
-interface Data {
-  x: TimeString
-  y: any
-}
-
-interface Dataset {
-  backgroundColor: string
-  borderColor: string
-  borderWidth: number
-  data: Data[]
-  id: number
-  pointRadius: number[]
-}
-
-interface StackedData {
-  x: TimeString[]
-  y: any[]
 }
 
 const datasets = ref<Dataset[]>([])

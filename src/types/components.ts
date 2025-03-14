@@ -29,5 +29,10 @@ export interface FormData {
   multiple?: boolean
   items?: any[] | string | undefined
   error?: boolean
-
 }
+
+export type TimeString = string // HH:MM:SS
+
+export type IsoTimeString = string // 2025-03-14T15:28:54Z
+
+export type IsoTimeStringTZ = string // 2024-12-13T08:00:00-04:00'
