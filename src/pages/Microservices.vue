@@ -25,18 +25,38 @@ const subtab = ref('Zip importer')
       align-tabs="center"
     >
       <v-tab value="OSM importer">
+        <v-icon
+          icon="fas fa-car"
+          class="mr-1"
+        />
         OSM importer
       </v-tab>
       <v-tab value="GTFS importer">
+        <v-icon
+          icon="fas fa-train-subway"
+          class="mr-1"
+        />
         GTFS importer
       </v-tab>
       <v-tab value="Matrix Road Caster">
+        <v-icon
+          icon="fas fa-road"
+          class="mr-1"
+        />
         Matrix Road Caster
       </v-tab>
       <v-tab value="MapMatching">
+        <v-icon
+          icon="fas fa-route"
+          class="mr-1"
+        />
         MapMatching
       </v-tab>
       <v-tab value="Transit">
+        <v-icon
+          icon="fas fa-bus"
+          class="mr-1"
+        />
         Transit
       </v-tab>
     </v-tabs>
@@ -52,12 +72,20 @@ const subtab = ref('Zip importer')
         :disabled="GTFSrunning"
         value="Zip importer"
       >
+        <v-icon
+          icon="fas fa-file-archive"
+          class="mr-1"
+        />
         Zip importer
       </v-tab>
       <v-tab
         :disabled="GTFSrunning"
         value="Web importer"
       >
+        <v-icon
+          icon="fas fa-cloud"
+          class="mr-1"
+        />
         Web importer
       </v-tab>
     </v-tabs>
