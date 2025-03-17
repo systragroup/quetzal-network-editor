@@ -33,12 +33,31 @@ const population = computed(() => indexStore.otherFiles.filter(file => file.path
 
 const filesMissing = computed(() => linksIsEmpty.value)
 
+const general = ref<FormData[]>([
+  {
+    key: 'step_size',
+    label: $gettext('Population mesh size (0.001 ~100m)'),
+    value: null,
+    type: 'number',
+    units: 'degree',
+    hint: 'Population is created from zones as a mesh of point with this distance',
+    rules: ['required', 'nonNegative'],
+  },
+  {
+    key: 'use_road_network',
+    label: $gettext('use road network'),
+    value: null,
+    type: 'boolean',
+    hint: 'Use road network nodes to compute population mesh (population is distributed on road nodes.)',
+    rules: ['required', 'nonNegative'],
+  },
+])
+
 const footpaths = ref<FormData[]>([
   {
     key: 'max_length',
     label: $gettext('Footpaths max length'),
     value: null,
-    disabled: false,
     type: 'number',
     units: 'metres',
     hint: 'as the crow flight walking speed',
@@ -48,7 +67,6 @@ const footpaths = ref<FormData[]>([
     key: 'speed',
     label: $gettext('Footpaths speed'),
     value: null,
-    disabled: false,
     units: 'km/h',
     type: 'number',
     hint: 'max length for a footpath (walk distance between stations)',
@@ -58,7 +76,6 @@ const footpaths = ref<FormData[]>([
     key: 'n_ntlegs',
     label: $gettext('Footpaths number of connection'),
     value: null,
-    disabled: false,
     type: 'number',
     hint: 'number of connection between the origin (or destination) and the footpaths',
     rules: ['required', 'largerThanZero'],
@@ -67,7 +84,7 @@ const footpaths = ref<FormData[]>([
 
 const catchmentRadius = ref<FormData[]>([])
 
-const parameters = computed(() => [...catchmentRadius.value, ...footpaths.value])
+const parameters = computed(() => [...general.value, ...catchmentRadius.value, ...footpaths.value])
 
 function createCatchmentRadius(key: string): FormData {
   return {
@@ -97,11 +114,16 @@ function initCatchmentRadius() {
     if (!catchmentKeys.has(key)) delete storeParameters.value.catchment_radius[key] })
 }
 
+function initGeneral() {
+  general.value.forEach(param => param.value = storeParameters.value.general[param.key])
+}
+
 function initFootpaths() {
   footpaths.value.forEach(param => param.value = storeParameters.value.footpaths[param.key])
 }
 
 onMounted(() => {
+  initGeneral()
   initFootpaths()
   initCatchmentRadius()
 })
@@ -111,7 +133,11 @@ onBeforeUnmount(() => {
 })
 
 function saveParams() {
-  runTransit.saveParams({ footpaths: footpaths.value, catchment_radius: catchmentRadius.value })
+  runTransit.saveParams({
+    general: general.value,
+    footpaths: footpaths.value,
+    catchment_radius: catchmentRadius.value,
+  })
 }
 
 const formRef = ref()
@@ -139,6 +165,8 @@ async function start () {
 }
 
 async function exportFiles() {
+  const userStore = useUserStore()
+
   const promises = []
   try {
     promises.push(s3.putObject(
@@ -159,6 +187,9 @@ async function exportFiles() {
     }
 
     if (population.value) {
+      if (population.value.content == null && userStore.model !== null) {
+        population.value.content = await s3.readJson(userStore.model, userStore.scenario + '/' + population.value.path)
+      }
       promises.push(s3.putObject(
         bucket.value,
         callID.value.concat('/inputs/population.geojson'),

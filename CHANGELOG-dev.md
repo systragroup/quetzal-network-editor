@@ -1,3 +1,10 @@
+## [7.0.f] (2025-03-17)
+### Changes
+* Transit microservice updated with new params (use road and step_size)
+
+### Bug Fixes
+* transit microservice. need to download population if on s3 first
+
 ## [7.0.e] (2025-03-17)
 ### Features
 * New Transit Microservice

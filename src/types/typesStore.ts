@@ -396,6 +396,11 @@ export interface MatrixRoadCasterParams {
 }
 
 // Transit
+export interface GeneralTransitParams {
+  step_size: number
+  use_road_network: boolean
+  [key: string]: number | boolean
+}
 
 export interface FootPaths {
   max_length: number
@@ -406,8 +411,7 @@ export interface FootPaths {
 export type CatchmentRadius = Record<string, number> // {bus:500, subway:800, rail:1000}
 
 export interface TransitParams {
+  general: GeneralTransitParams
   catchment_radius: CatchmentRadius
   footpaths: FootPaths
-
-  [key: string]: CatchmentRadius | FootPaths
 }
