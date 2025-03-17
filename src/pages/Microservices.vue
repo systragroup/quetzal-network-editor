@@ -8,6 +8,7 @@ const MatrixRoadCaster = defineAsyncComponent(() => import('@comp/microservices/
 const GTFSWebImporter = defineAsyncComponent(() => import('@comp/microservices/GTFSWebImporter.vue'))
 const GTFSZipImporter = defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue'))
 const MapMatching = defineAsyncComponent(() => import('@comp/microservices/MapMatching.vue'))
+const Transit = defineAsyncComponent(() => import('@comp/microservices/Transit.vue'))
 const runGTFS = useGTFSStore()
 const GTFSrunning = computed(() => { return runGTFS.running })
 
@@ -51,6 +52,9 @@ const subtab = ref('Zip importer')
         />
         MapMatching
       </v-tab>
+      <v-tab value="Transit">
+        Transit
+      </v-tab>
     </v-tabs>
     <v-tabs
       v-if="tab==='GTFS importer'"
@@ -87,6 +91,7 @@ const subtab = ref('Zip importer')
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
       <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
       <MapMatching v-else-if="tab==='MapMatching'" />
+      <Transit v-else-if="tab==='Transit'" />
     </v-window>
   </section>
 </template>
