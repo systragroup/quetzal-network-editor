@@ -5,13 +5,14 @@ import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { ref, computed, onMounted, onBeforeUnmount, toRaw } from 'vue'
 import s3 from '@src/AWSClient'
-import { useGettext } from 'vue3-gettext'
 import { FormData } from '@src/types/components'
 import SimpleForm from '../common/SimpleForm.vue'
 import { RunInputs } from '@src/types/api'
 import Warning from '../utils/Warning.vue'
 import { useODStore } from '@src/store/od'
 import Markdown from '../utils/Markdown.vue'
+import { useGettext } from 'vue3-gettext'
+
 const { $gettext } = useGettext()
 const indexStore = useIndexStore()
 const runTransit = useTransitStore()
