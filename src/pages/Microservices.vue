@@ -1,28 +1,19 @@
-<script>
+<script setup>
 
 import { ref, computed, defineAsyncComponent } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import OSMImporter from '@comp/microservices/OSMImporter.vue'
 
-export default {
-  // eslint-disable-next-line vue/multi-word-component-names
-  name: 'Microservices',
-  components: {
-    OSMImporter,
-    MatrixRoadCaster: defineAsyncComponent(() => import('@comp/microservices/MatrixRoadCaster.vue')),
-    GTFSWebImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSWebImporter.vue')),
-    GTFSZipImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue')),
-    MapMatching: defineAsyncComponent(() => import('@comp/microservices/MapMatching.vue')),
-  },
-  setup () {
-    const runGTFS = useGTFSStore()
-    const tab = ref('OSM importer')
-    const subtab = ref('Zip importer')
-    const GTFSrunning = computed(() => { return runGTFS.running })
+const MatrixRoadCaster = defineAsyncComponent(() => import('@comp/microservices/MatrixRoadCaster.vue'))
+const GTFSWebImporter = defineAsyncComponent(() => import('@comp/microservices/GTFSWebImporter.vue'))
+const GTFSZipImporter = defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue'))
+const MapMatching = defineAsyncComponent(() => import('@comp/microservices/MapMatching.vue'))
+const Transit = defineAsyncComponent(() => import('@comp/microservices/Transit.vue'))
+const runGTFS = useGTFSStore()
+const GTFSrunning = computed(() => { return runGTFS.running })
 
-    return { tab, subtab, GTFSrunning }
-  },
-}
+const tab = ref('OSM importer')
+const subtab = ref('Zip importer')
 
 </script>
 <template>
@@ -44,6 +35,9 @@ export default {
       </v-tab>
       <v-tab value="MapMatching">
         MapMatching
+      </v-tab>
+      <v-tab value="Transit">
+        Transit
       </v-tab>
     </v-tabs>
     <v-tabs
@@ -73,6 +67,7 @@ export default {
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
       <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
       <MapMatching v-else-if="tab==='MapMatching'" />
+      <Transit v-else-if="tab==='Transit'" />
     </v-window>
   </section>
 </template>

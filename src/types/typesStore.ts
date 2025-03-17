@@ -394,3 +394,20 @@ export interface MatrixRoadCasterParams {
 
   [key: string]: number | boolean | string
 }
+
+// Transit
+
+export interface FootPaths {
+  max_length: number
+  speed: number
+  n_ntlegs: number
+  [key: string]: number
+}
+export type CatchmentRadius = Record<string, number> // {bus:500, subway:800, rail:1000}
+
+export interface TransitParams {
+  catchment_radius: CatchmentRadius
+  footpaths: FootPaths
+
+  [key: string]: CatchmentRadius | FootPaths
+}
