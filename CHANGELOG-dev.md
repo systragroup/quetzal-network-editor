@@ -1,9 +1,10 @@
-## [7.0.e] (2025-03-xx)
+## [7.0.e] (2025-03-17)
 ### Features
 * New Transit Microservice
 
 ### Changes
 * Microservices. add Markdown and ajust css a bit 
+* Add math to markdown.
 
 ### Bug Fixes
 * result map bug: layer was not loading
