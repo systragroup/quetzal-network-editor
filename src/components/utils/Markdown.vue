@@ -34,7 +34,7 @@ defineProps({
 <style lang="scss" scoped>
 
 .markdown{
-padding: 2rem;
+padding: 1rem;
 width:100%;
 }
 

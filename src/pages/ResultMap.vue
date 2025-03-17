@@ -76,7 +76,7 @@ async function changeLayer (layer, preset = null) {
       break
   }
   selectedLayer.value = layer
-  mapRef.value.update()
+  nextTick(() => mapRef.value.update())
 }
 
 const selectedPreset = ref(null)
