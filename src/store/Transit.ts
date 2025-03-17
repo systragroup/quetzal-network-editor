@@ -19,6 +19,10 @@ export const useTransitStore = defineStore('runTransit', () => {
   const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI(stateMachineArn.value)
 
   const parameters = ref<TransitParams>({
+    general: {
+      step_size: 0.001,
+      use_road_network: false,
+    },
     catchment_radius: {},
     footpaths: {
       max_length: 1000,
@@ -28,10 +32,14 @@ export const useTransitStore = defineStore('runTransit', () => {
   })
 
   interface SaveParams {
+    general: FormData[]
     footpaths: FormData[]
     catchment_radius: FormData[]
+
   }
+
   function saveParams (payload: SaveParams) {
+    payload.general.forEach(param => parameters.value.general[param.key] = param.value)
     payload.footpaths.forEach(param => parameters.value.footpaths[param.key] = param.value)
     payload.catchment_radius.forEach(param => parameters.value.catchment_radius[param.key] = param.value)
   }
