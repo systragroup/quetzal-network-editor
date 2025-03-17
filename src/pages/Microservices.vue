@@ -53,6 +53,10 @@ const subtab = ref('Zip importer')
         MapMatching
       </v-tab>
       <v-tab value="Transit">
+        <v-icon
+          icon="fas fa-bus"
+          class="mr-1"
+        />
         Transit
       </v-tab>
     </v-tabs>
