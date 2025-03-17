@@ -83,7 +83,7 @@ function typeMap(type: SimpleFormType) {
             :variant="item.disabled? 'underlined': 'filled'"
             :disabled="item.disabled"
             :units="item.units"
-            color="primary"
+            :color="item.type==='boolean'? 'primary': undefined"
             :precision="item.precision === undefined? null : item.precision"
             :suffix="item.units"
             :items="item.items"

@@ -10,6 +10,7 @@ import { useGettext } from 'vue3-gettext'
 import { FormData } from '@src/types/components'
 import Warning from '../utils/Warning.vue'
 import SimpleForm from '../common/SimpleForm.vue'
+import Markdown from '../utils/Markdown.vue'
 const { $gettext } = useGettext()
 
 const runMRC = useMRCStore()
@@ -209,99 +210,96 @@ function futureRule(v: string) {
   return (isGoogle.value && (Date.parse(v) > Date.now())) || $gettext('datetime must be in the future') }
 
 const showPassword = ref(false)
+const mdString = $gettext(`
+# ML Matrix Road Caster
+  1) Find n zones centroids using a Kmean clustering on the nodes or use your own zoning.
+  2) Call the Google or Here Matrix API on random OD ( around 1% is sufficient )
+  3) Interpolate every other OD time with an hybrid Machine learning model
+  4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') 
+`)
 
 </script>
 <template>
-  <v-row class="ma-0 pa-2 background">
-    <v-col>
-      <v-card class="card">
-        <v-card-title class="subtitle">
-          {{ $gettext('ML Matrix Road Caster') }}
-        </v-card-title>
-        <p> {{ $gettext('1) Find n zones centroids using a Kmean clustering on the nodes') }}</p>
-        <p> {{ $gettext('   or import and use your own zoning.') }}</p>
-        <p> {{ $gettext('2) Call the Here Matrix API on random OD ( around 1% is sufficient )') }}</p>
-        <p> {{ $gettext('3) Interpolate every other OD time with an hybrid Machine learning model') }}</p>
-        <p> {{ $gettext('4) ajust the speed on the road network to match the routing time with the OD time using an iterative algorithm') }}</p>
-        <Warning
-          :show="error"
-          :messages="errorMessage"
+  <v-card class="card">
+    <Markdown :source="mdString" />
+    <Warning
+      :show="error"
+      :messages="errorMessage"
+    />
+
+    <SimpleForm
+      ref="formRef"
+      v-model="parameters"
+      @change="change"
+    >
+      <template #use_zone="{item, showHint}">
+        <div class="zone-row">
+          <v-switch
+            v-model="item.value"
+            class="pr-2"
+            color="primary"
+            variant="underlined"
+            :label="$gettext(item.label)"
+            :hint="showHint? item.hint: ''"
+            :persistent-hint="showHint"
+            @change="change(item)"
+          />
+          <v-select
+            v-model="selectedZoneFile"
+            :items="otherFiles"
+            :disabled="!useZone"
+            @change="change(item)"
+          />
+        </div>
+      </template>
+      <template #hereApiKey="{item, showHint,getRules}">
+        <v-text-field
+          v-model="item.value"
+          :type="showPassword ? 'text' : 'password'"
+          :append-icon="showPassword ? 'fas fa-eye' : 'fas fa-eye-slash'"
+          :label="$gettext(item.label)"
+          :suffix="item.units"
+          :hint="showHint? item.hint: ''"
+          :persistent-hint="showHint"
+          :rules="getRules(item.rules)"
+          @click:append="showPassword = !showPassword"
+          @change="change(item)"
         />
+      </template>
 
-        <SimpleForm
-          ref="formRef"
-          v-model="parameters"
-          @change="change"
+      <v-card-actions>
+        <v-btn
+          variant="outlined"
+          color="success"
+          :loading="running"
+          @click="start"
         >
-          <template #use_zone="{item, showHint}">
-            <div class="zone-row">
-              <v-switch
-                v-model="item.value"
-                class="pr-2"
-                color="primary"
-                variant="underlined"
-                :label="$gettext(item.label)"
-                :hint="showHint? item.hint: ''"
-                :persistent-hint="showHint"
-                @change="change(item)"
-              />
-              <v-select
-                v-model="selectedZoneFile"
-                :items="otherFiles"
-                :disabled="!useZone"
-                @change="change(item)"
-              />
-            </div>
-          </template>
-          <template #hereApiKey="{item, showHint,getRules}">
-            <v-text-field
-              v-model="item.value"
-              :type="showPassword ? 'text' : 'password'"
-              :append-icon="showPassword ? 'fas fa-eye' : 'fas fa-eye-slash'"
-              :label="$gettext(item.label)"
-              :suffix="item.units"
-              :hint="showHint? item.hint: ''"
-              :persistent-hint="showHint"
-              :rules="getRules(item.rules)"
-              @click:append="showPassword = !showPassword"
-              @change="change(item)"
-            />
-          </template>
-
-          <v-card-actions>
-            <v-btn
-              variant="outlined"
-              color="success"
-              :loading="running"
-              @click="start"
-            >
-              {{ $gettext("Process") }}
-            </v-btn>
-            <v-btn
-              v-show="running && status === 'RUNNING'"
-              color="grey"
-              variant="text"
-              @click="stopRun()"
-            >
-              {{ $gettext("Abort") }}
-            </v-btn>
-            <v-card-text v-show="running">
-              ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
-            </v-card-text>
-          </v-card-actions>
-        </SimpleForm>
-      </v-card>
-    </v-col>
-  </v-row>
+          {{ $gettext("Process") }}
+        </v-btn>
+        <v-btn
+          v-show="running && status === 'RUNNING'"
+          color="grey"
+          variant="text"
+          @click="stopRun()"
+        >
+          {{ $gettext("Abort") }}
+        </v-btn>
+        <v-card-text v-show="running">
+          ~ {{ timer>0? Math.ceil(timer/60): $gettext('less than 1') }}{{ $gettext(' minutes remaining') }}
+        </v-card-text>
+      </v-card-actions>
+    </SimpleForm>
+  </v-card>
 </template>
 <style lang="scss" scoped>
 
 .card {
-  height: 85vh;
-  width:50vw;
-  overflow-y: auto;
-  padding: 2.5rem;
   background-color: rgb(var(--v-theme-lightergrey));
+  margin:1rem;
+  max-height: 85vh;
+  width: 50rem;
+  overflow-y: auto;
+  padding: 2rem;
 }
 .zone-row {
   display:flex;

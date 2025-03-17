@@ -188,6 +188,7 @@ async function exportFiles() {
 
 function stopRun () { runMapMatching.stopExecution() }
 const mdString = `
+# Match PT network on road network
 $E = \\frac{1}{2} \\times (\\frac{d_{proj}}{\\sigma} )^{P}$ \n
 $T = |d_{dijkstra} - d_{acf}^{*}|$ \n
 $P = E+T$ \n
@@ -204,16 +205,12 @@ const showWarning = computed(() => rlinksIsEmpty.value || linksIsEmpty.value)
     <v-card
       class="card"
     >
-      <v-card-title>
-        {{ $gettext("Match PT network on road network") }}
-      </v-card-title>
+      <Markdown :source="mdString" />
       <Warning
         :show="showWarning"
         :title="$gettext('need a road and a PT network')"
         type="warning"
       />
-
-      <Markdown :source="mdString" />
       <Warning
         :show="error"
         :messages="errorMessage"
@@ -256,9 +253,9 @@ const showWarning = computed(() => rlinksIsEmpty.value || linksIsEmpty.value)
   background-color: rgb(var(--v-theme-lightergrey));
   margin:1rem;
   max-height: 85vh;
-  width: 40rem;
+  width: 50rem;
   overflow-y: auto;
-  padding: 2.5rem;
+  padding: 2rem;
 }
 .freeform-button {
   position: absolute;

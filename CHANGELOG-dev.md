@@ -1,3 +1,10 @@
+## [7.0.e] (2025-03-xx)
+### Changes
+* Microservices. add Markdown and ajust css a bit 
+
+### Bug Fixes
+* result map bug: layer was not loading
+
 ## [7.0.d] (2025-03-14)
 ### Changes
 
