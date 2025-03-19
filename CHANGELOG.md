@@ -1,3 +1,7 @@
+## [6.1.5] (2025-03-19)
+### Bug Fixes
+* gtfs importer zip button invisible
+
 ## [6.1.3] (2024-12-09)
 ### Bug Fixes
 * Change New password Regex for more special characters
