@@ -206,6 +206,7 @@ function stopResize () {
                   variant="outlined"
                   control-variant="stacked"
                   :type="item.type"
+                  :precision="item.precision === undefined? null : item.precision"
                   :label="$gettext(item.text)"
                   :precision="null"
                   :suffix="item.units"

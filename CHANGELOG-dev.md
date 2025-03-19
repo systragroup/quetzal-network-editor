@@ -1,3 +1,8 @@
+## [7.0.g] (2025-03-19)
+update packages
+### Bug Fixes
+* v-number-input was forcing int in param form (run page)
+
 ## [7.0.f] (2025-03-17)
 ### Changes
 * Transit microservice updated with new params (use road and step_size)
