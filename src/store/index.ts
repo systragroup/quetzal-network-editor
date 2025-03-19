@@ -23,7 +23,7 @@ export const useIndexStore = defineStore('index', {
 
   state: (): IndexStore => ({
     // general
-    notification: { text: 'true' },
+    notification: { text: '' },
     alert: {},
     darkMode: false,
     isMobile: false,
