@@ -207,6 +207,7 @@ function stopResize () {
                   control-variant="stacked"
                   :type="item.type"
                   :label="$gettext(item.text)"
+                  :precision="null"
                   :suffix="item.units"
                   hide-details
                   :rules="item.rules.map((rule) => rules[rule])"
