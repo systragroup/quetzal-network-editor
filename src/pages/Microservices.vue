@@ -1,28 +1,18 @@
-<script>
+<script setup>
 
 import { ref, computed, defineAsyncComponent } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import OSMImporter from '@comp/microservices/OSMImporter.vue'
 
-export default {
-  // eslint-disable-next-line vue/multi-word-component-names
-  name: 'Microservices',
-  components: {
-    OSMImporter,
-    MatrixRoadCaster: defineAsyncComponent(() => import('@comp/microservices/MatrixRoadCaster.vue')),
-    GTFSWebImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSWebImporter.vue')),
-    GTFSZipImporter: defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue')),
-    MapMatching: defineAsyncComponent(() => import('@comp/microservices/MapMatching.vue')),
-  },
-  setup () {
-    const runGTFS = useGTFSStore()
-    const tab = ref('OSM importer')
-    const subtab = ref('Zip importer')
-    const GTFSrunning = computed(() => { return runGTFS.running })
+const MatrixRoadCaster = defineAsyncComponent(() => import('@comp/microservices/MatrixRoadCaster.vue'))
+const GTFSWebImporter = defineAsyncComponent(() => import('@comp/microservices/GTFSWebImporter.vue'))
+const GTFSZipImporter = defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue'))
+const MapMatching = defineAsyncComponent(() => import('@comp/microservices/MapMatching.vue'))
+const runGTFS = useGTFSStore()
+const GTFSrunning = computed(() => { return runGTFS.running })
 
-    return { tab, subtab, GTFSrunning }
-  },
-}
+const tab = ref('OSM importer')
+const subtab = ref('Zip importer')
 
 </script>
 <template>
@@ -34,15 +24,31 @@ export default {
       align-tabs="center"
     >
       <v-tab value="OSM importer">
+        <v-icon
+          icon="fas fa-car"
+          class="mr-1"
+        />
         OSM importer
       </v-tab>
       <v-tab value="GTFS importer">
+        <v-icon
+          icon="fas fa-train-subway"
+          class="mr-1"
+        />
         GTFS importer
       </v-tab>
       <v-tab value="Matrix Road Caster">
+        <v-icon
+          icon="fas fa-road"
+          class="mr-1"
+        />
         Matrix Road Caster
       </v-tab>
       <v-tab value="MapMatching">
+        <v-icon
+          icon="fas fa-route"
+          class="mr-1"
+        />
         MapMatching
       </v-tab>
     </v-tabs>
@@ -58,23 +64,28 @@ export default {
         :disabled="GTFSrunning"
         value="Zip importer"
       >
+        <v-icon
+          icon="fas fa-file-archive"
+          class="mr-1"
+        />
         Zip importer
       </v-tab>
       <v-tab
         :disabled="GTFSrunning"
         value="Web importer"
       >
+        <v-icon
+          icon="fas fa-cloud"
+          class="mr-1"
+        />
         Web importer
       </v-tab>
     </v-tabs>
     <v-window class="layout">
       <OSMImporter v-if="tab==='OSM importer' " />
       <GTFSZipImporter v-else-if="tab==='GTFS importer' && subtab==='Zip importer'" />
-
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
-
       <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
-
       <MapMatching v-else-if="tab==='MapMatching'" />
     </v-window>
   </section>
@@ -83,12 +94,11 @@ export default {
 .layout {
   position: absolute;
   width:100%;
-  height: 100%;
+  height: 95%;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: rgb(var(--v-theme-background));
-
 }
 .layout-overlay {
   height: 100%;
@@ -98,10 +108,8 @@ export default {
 }
 .tabs{
   background-color: rgb(var(--v-theme-background));
-
 }
 .subtabs{
   border-top: 1px solid  rgb(var(--v-theme-background));
-
 }
 </style>
