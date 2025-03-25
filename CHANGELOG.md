@@ -1,3 +1,8 @@
+## [6.1.6] (2025-03-25)
+### Bug Fixes
+* Microservice page not showing tabs sometime.
+* Securities updates
+
 ## [6.1.5] (2025-03-19)
 ### Bug Fixes
 * gtfs importer zip button invisible
