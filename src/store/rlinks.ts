@@ -122,7 +122,7 @@ export const userLinksStore = defineStore('rlinks', {
         Object.keys(feat.properties).forEach(key => header.add(key))
       })
       const newAttrs = getDifference(header, this.rlineAttributes)
-      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
+      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
 
       this.createReversedProperties()
     },
@@ -133,7 +133,7 @@ export const userLinksStore = defineStore('rlinks', {
       const reversedAttributes = toReverse.map(attr => attr + '_r')
       const newAttrs = getDifference(reversedAttributes, this.reversedAttributes)
 
-      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
+      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
     getrNodesProperties () {
@@ -143,7 +143,7 @@ export const userLinksStore = defineStore('rlinks', {
       })
       // add all default attributes
       const newAttrs = getDifference(header, this.rnodeAttributes)
-      newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: 'String' }))
+      newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
     loadrLinksAttributesChoices (payload: AttributesChoice) {
@@ -164,17 +164,17 @@ export const userLinksStore = defineStore('rlinks', {
     addLinksPropertie (payload: NewAttribute) {
       this.rlinks.features.map(link => link.properties[payload.name] = null)
       this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
-      this.linksDefaultAttributes.push({ name: payload.name, type: 'String' })
+      this.linksDefaultAttributes.push({ name: payload.name, type: undefined })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
       if (!rlinksConstantProperties.includes(payload.name)) {
-        this.linksDefaultAttributes.push({ name: payload.name + '_r', type: 'String' })
+        this.linksDefaultAttributes.push({ name: payload.name + '_r', type: undefined })
       }
     },
 
     addNodesPropertie (payload: NewAttribute) {
       this.rnodes.features.map(node => node.properties[payload.name] = null)
       this.visiblerNodes.features.map(node => node.properties[payload.name] = null)
-      this.nodesDefaultAttributes.push({ name: payload.name, type: 'String' })
+      this.nodesDefaultAttributes.push({ name: payload.name, type: undefined })
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
@@ -681,7 +681,6 @@ export const userLinksStore = defineStore('rlinks', {
 
   getters: {
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
-    rattributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
     rlineAttributes: (state) => state.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')).map(el => el.name),
     reversedAttributes: (state) => state.linksDefaultAttributes.filter(el => el.name.endsWith('_r')).map(el => el.name),
     timeVariants: (state) => {

@@ -127,7 +127,7 @@ export const useLinksStore = defineStore('links', {
         Object.keys(feature.properties).forEach(key => keys.add(key))
       })
       const newAttrs = getDifference(keys, this.lineAttributes)
-      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: 'String' }))
+      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
     getNodesProperties () {
@@ -136,7 +136,7 @@ export const useLinksStore = defineStore('links', {
         Object.keys(feature.properties).forEach(key => keys.add(key))
       })
       const newAttrs = getDifference(keys, this.nodeAttributes)
-      newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: 'String' }))
+      newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
     loadLinksAttributesChoices (payload: AttributesChoice) {
@@ -151,13 +151,13 @@ export const useLinksStore = defineStore('links', {
       // when a new line properties is added (in dataframe page)
       this.links.features.forEach(link => link.properties[payload.name] = null)
       this.editorLinks.features.forEach(link => link.properties[payload.name] = null)
-      this.linksDefaultAttributes.push({ name: payload.name, type: 'String' })
+      this.linksDefaultAttributes.push({ name: payload.name, type: undefined })
     },
 
     addNodesPropertie (payload: NewAttribute) {
       this.nodes.features.forEach(node => node.properties[payload.name] = null)
       this.editorNodes.features.forEach(node => node.properties[payload.name] = null)
-      this.nodesDefaultAttributes.push({ name: payload.name, type: 'String' })
+      this.nodesDefaultAttributes.push({ name: payload.name, type: undefined })
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
@@ -803,7 +803,6 @@ export const useLinksStore = defineStore('links', {
         ]
         calcLengthTime(link, this.timeVariants)
       }
-
       // get tripId list
       this.getTripList()
       this.getLinksProperties()
@@ -894,7 +893,6 @@ export const useLinksStore = defineStore('links', {
       return lineString(geom)
     },
     // this return the attribute type, of undefined.
-    attributeType: (state) => (name: string) => state.linksDefaultAttributes.filter(att => att.name === name)[0]?.type,
     lineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),
     nodeAttributes: (state) => state.nodesDefaultAttributes.map(attr => attr.name),
     timeVariants: (state) => {
