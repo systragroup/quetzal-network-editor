@@ -576,6 +576,7 @@ function setHighlight(trip: string | null) {
       <v-btn
         v-if="store.routingMode"
         class="ml-2"
+        color="regular"
         append-icon="fas fa-road"
         @click="toggleRouting"
       >
