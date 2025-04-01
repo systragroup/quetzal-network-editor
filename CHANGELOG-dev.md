@@ -1,3 +1,7 @@
+## [7.0.i] (2025-04-01)
+### Bug Fixes
+* Could not delete scenarios
+
 ## [7.0.h] (2025-03-27)
 ### Bug Fixes
 * road_link_list was converted to a string (must be a list)

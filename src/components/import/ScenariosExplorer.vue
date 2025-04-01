@@ -189,7 +189,7 @@ async function deleteScenario (name) {
   const resp = await deleteDialog.value.openDialog()
   if (!resp) return
   try {
-    this.store.changeLoading(true)
+    store.changeLoading(true)
     await s3.deleteFolder(localModel.value, scenarioToDelete.value + '/')
     await getScenario()
     store.changeNotification({ text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
