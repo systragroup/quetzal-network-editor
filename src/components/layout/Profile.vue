@@ -19,7 +19,6 @@ const cognitoInfo = computed(() => userStore.cognitoInfo)
 const initial = computed(() => (cognitoInfo.value?.given_name[0] + cognitoInfo.value?.family_name[0]).toUpperCase())
 
 import { useClient } from '@src/axiosClient.js'
-const { quetzalClient } = useClient()
 
 onMounted(async () => {
   if (await auth.isUserSignedIn()) {
@@ -73,6 +72,7 @@ watch(selectedGroup, async (_, oldVal) => {
 
 async function listGroup () {
   try {
+    const { quetzalClient } = useClient()
     const resp = await quetzalClient.get('listGroups/')
     groups.value = resp.data
   } catch (err) {
@@ -81,6 +81,7 @@ async function listGroup () {
 }
 async function listUser (group) {
   try {
+    const { quetzalClient } = useClient()
     const resp = await quetzalClient.get(`listUser/${group}/`)
     users.value = resp.data
   } catch (err) {
@@ -101,6 +102,7 @@ const rules = {
 }
 async function createUser () {
   try {
+    const { quetzalClient } = useClient()
     await quetzalClient.post(`createUser/${selectedGroup.value}/`, userForm.value)
     store.changeNotification(
       { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
@@ -112,6 +114,7 @@ async function createUser () {
 
 async function deleteUser (username) {
   try {
+    const { quetzalClient } = useClient()
     await quetzalClient.post('deleteUser/', { username })
     store.changeNotification({ text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
   } catch (err) {
