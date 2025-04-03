@@ -341,7 +341,6 @@ function stopResize () {
 }
 .categorie-info{
   padding-bottom: 1rem;
-  opacity: var(--v-medium-emphasis-opacity);
   white-space: pre-line;
   font-size: small;
 }
@@ -349,7 +348,6 @@ function stopResize () {
   margin-bottom:1.2rem;
 }
 .custom-hint{
-  opacity: var(--v-medium-emphasis-opacity);
   margin-left: 0.2rem;
   width:100%;
   min-height: 1.5rem;

@@ -1,6 +1,6 @@
 import { paramsSerializer } from '@src/utils/serializer'
 import s3 from '@src/AWSClient'
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import { useIndexStore } from './index'
 import { useUserStore } from './user'
 import audioFile from '@static/samsung-washing-machine-melody-made-with-Voicemod-technology.mp3'
@@ -241,6 +241,7 @@ export const useRunStore = defineStore('run', {
         launcher_arg: {
           training_folder: '/tmp',
           params: paramsDict,
+          period: ['AM', 'PM'],
         },
         metadata: {
           user_email: userStore.cognitoInfo.email,
@@ -349,3 +350,6 @@ export const useRunStore = defineStore('run', {
 
   },
 })
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useRunStore, import.meta.hot))
+}

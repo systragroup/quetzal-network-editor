@@ -5,7 +5,6 @@ import s3 from '@src/AWSClient'
 import auth from '../auth'
 import { useClient } from '@src/axiosClient.js'
 import { CognitoInfo, InfoPreview, Scenario, UserStore } from '@src/types/typesStore'
-const { quetzalClient } = useClient()
 
 const $gettext = (s: string) => s
 
@@ -82,6 +81,7 @@ export const useUserStore = defineStore('userStore', {
     },
     async getBucketList () {
       try {
+        const { quetzalClient } = useClient()
         const resp = await quetzalClient.get('buckets/')
         this.setBucketList(resp.data)
       } catch (err: any) {
