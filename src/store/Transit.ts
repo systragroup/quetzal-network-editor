@@ -16,7 +16,7 @@ export const useTransitStore = defineStore('runTransit', () => {
   const callID = ref<string>('')
   function setCallID() { callID.value = uuid() }
   const timer = ref<number>(0)
-  const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI(stateMachineArn.value)
+  const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI()
 
   const parameters = ref<TransitParams>({
     general: {

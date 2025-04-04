@@ -22,6 +22,7 @@ const odStore = useODStore()
 // const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const odIsEmpty = computed(() => odStore.layerIsEmpty)
+const stateMachineArn = computed(() => runTransit.stateMachineArn)
 const running = computed(() => runTransit.running)
 const status = computed(() => runTransit.status)
 const error = computed(() => runTransit.error)
@@ -161,7 +162,7 @@ async function start () {
       user_email: userStore.cognitoInfo?.email,
     },
   }
-  runTransit.startExecution(inputs)
+  runTransit.startExecution(stateMachineArn.value, inputs)
 }
 
 async function exportFiles() {

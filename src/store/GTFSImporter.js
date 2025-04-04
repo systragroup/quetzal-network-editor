@@ -16,7 +16,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   function setCallID() { callID.value = uuid() }
 
   const { error, running, errorMessage, status, timer,
-    startExecution, stopExecution, cleanRun } = useAPI(stateMachineArn.value)
+    startExecution, stopExecution, cleanRun } = useAPI()
 
   function clean() {
     UploadedGTFS.value = []
