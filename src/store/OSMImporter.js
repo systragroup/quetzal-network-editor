@@ -14,7 +14,7 @@ export const useOSMStore = defineStore('runOSM', () => {
   function setCallID() { callID.value = uuid() }
 
   const { error, running, errorMessage, status,
-    startExecution, stopExecution, cleanRun } = useAPI(stateMachineArn.value)
+    startExecution, stopExecution, cleanRun } = useAPI()
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {

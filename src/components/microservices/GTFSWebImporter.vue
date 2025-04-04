@@ -21,11 +21,12 @@ const gtfsList = ref([])
 const availableGTFS = ref([])
 const showHint = ref(false)
 const selectedGTFS = ref(runGTFS.selectedGTFS)
-const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
-const callID = computed(() => { return runGTFS.callID })
-const running = computed(() => { return runGTFS.running })
-const error = computed(() => { return runGTFS.error })
-const errorMessage = computed(() => { return runGTFS.errorMessage })
+const stateMachineArn = computed(() => runGTFS.stateMachineArn)
+const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
+const callID = computed(() => runGTFS.callID)
+const running = computed(() => runGTFS.running)
+const error = computed(() => runGTFS.error)
+const errorMessage = computed(() => runGTFS.errorMessage)
 
 onBeforeUnmount(() => {
   runGTFS.saveParams(parameters.value)
@@ -148,7 +149,7 @@ function importGTFS () {
     parameters.value.forEach(item => {
       inputs[item.name] = item.value
     })
-    runGTFS.startExecution(inputs)
+    runGTFS.startExecution(stateMachineArn.value, inputs)
   } else {
     showOverwriteDialog.value = true
   }

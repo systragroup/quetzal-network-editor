@@ -19,7 +19,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
   function setCallID() { callID.value = uuid() }
   const timer = ref<number>(0)
 
-  const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI(stateMachineArn.value)
+  const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI()
 
   const parameters = ref<MapMatchingParams>({
     SIGMA: 4.02,

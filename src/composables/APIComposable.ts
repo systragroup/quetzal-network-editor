@@ -5,8 +5,7 @@ import { ErrorMessage, RunInputs, RunPayload, Status } from '@src/types/api'
 import { MatrixRoadCasterParams } from '@src/types/typesStore'
 const { quetzalClient } = useClient()
 
-export function useAPI (arn: string) {
-  const stateMachineArn = ref<string>(arn)
+export function useAPI () {
   const status = ref<Status>('')
   const running = ref<boolean>(false)
   const executionArn = ref<string>('')
@@ -20,11 +19,15 @@ export function useAPI (arn: string) {
     executionArn.value = ''
     error.value = false
   }
-  function terminateExecution (payload: ErrorMessage) {
+  function terminateExecution (payload: string) {
     running.value = false
     error.value = true
     timer.value = 0
-    errorMessage.value = payload
+    try {
+      errorMessage.value = JSON.parse(payload)
+    } catch {
+      errorMessage.value = { error: payload }
+    }
     executionArn.value = ''
   }
 
@@ -33,12 +36,12 @@ export function useAPI (arn: string) {
     executionArn.value = ''
   }
 
-  async function startExecution (input: RunInputs | MatrixRoadCasterParams) {
+  async function startExecution (stateMachineArn: string, input: RunInputs | MatrixRoadCasterParams) {
     running.value = true
     error.value = false
     const data: RunPayload = {
       input: JSON.stringify(input),
-      stateMachineArn: stateMachineArn.value,
+      stateMachineArn: stateMachineArn,
     }
 
     try {
@@ -65,8 +68,8 @@ export function useAPI (arn: string) {
           succeedExecution()
           clearInterval(intervalId)
         } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(status.value)) {
-          terminateExecution(JSON.parse(response.data.cause))
           clearInterval(intervalId)
+          terminateExecution(response.data.cause)
         }
         else if (status.value !== 'RUNNING') {
           clearInterval(intervalId)
@@ -98,5 +101,6 @@ export function useAPI (arn: string) {
     startExecution,
     cleanRun,
     stopExecution,
+    pollExecution,
   }
 }

@@ -14,13 +14,14 @@ import Markdown from '../utils/Markdown.vue'
 const { $gettext } = useGettext()
 
 const runMRC = useMRCStore()
-const running = computed(() => { return runMRC.running })
-const error = computed(() => { return runMRC.error })
-const errorMessage = computed(() => { return runMRC.errorMessage })
-const bucket = computed(() => { return runMRC.bucket })
-const callID = computed(() => { return runMRC.callID })
-const timer = computed(() => { return runMRC.timer })
-const status = computed(() => { return runMRC.status })
+const stateMachineArn = computed(() => runMRC.stateMachineArn)
+const running = computed(() => runMRC.running)
+const error = computed(() => runMRC.error)
+const errorMessage = computed(() => runMRC.errorMessage)
+const bucket = computed(() => runMRC.bucket)
+const callID = computed(() => runMRC.callID)
+const timer = computed(() => runMRC.timer)
+const status = computed(() => runMRC.status)
 const storeParameters = computed(() => runMRC.parameters)
 
 const selectedZoneFile = ref(runMRC.zoneFile)
@@ -193,7 +194,7 @@ async function start () {
   runMRC.saveParams(parameters.value)
   getApproxTimer()
   await exportFiles()
-  runMRC.startExecution(storeParameters.value)
+  runMRC.startExecution(stateMachineArn.value, storeParameters.value)
 }
 
 function stopRun () { runMRC.stopExecution() }

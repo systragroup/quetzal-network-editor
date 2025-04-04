@@ -20,7 +20,7 @@ export const useMRCStore = defineStore('runMRC', () => {
   }
 
   const { error, running, errorMessage, status, timer,
-    startExecution, stopExecution, cleanRun } = useAPI(stateMachineArn.value)
+    startExecution, stopExecution, cleanRun } = useAPI()
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {
