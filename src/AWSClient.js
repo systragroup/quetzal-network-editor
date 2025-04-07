@@ -91,11 +91,19 @@ async function listFiles (bucket, prefix) {
   }
 }
 
-async function listFilesWithTime (bucket, prefix) {
-  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
+async function getSimulationLogs (bucket, scenario) {
+  const prefix = scenario + '/logs/'
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params)
-  return response.Contents?.map(item => { return { name: item.Key, time: item.LastModified } }) || []
+  const logList = []
+  if (response.Contents) {
+    const files = response.Contents.key.filter(file => file.endsWith('.txt'))
+    for (const file of files) {
+      const bytes = await readBytes(bucket, file.name)
+      logList.push({ name: file.name, text: new TextDecoder().decode(bytes), time: file.time })
+    }
+  }
+  return logList
 }
 
 async function getImagesURL (bucket, key) {
@@ -319,7 +327,7 @@ export default {
   readJson,
   readBytes,
   listFiles,
-  listFilesWithTime,
+  getSimulationLogs,
   copyFolder,
   deleteFolder,
   deleteObject,

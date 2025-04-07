@@ -359,6 +359,50 @@ export interface UserStore {
   protected: boolean
 }
 
+// Run
+
+export interface RunLog {
+  name: string
+  time: Date
+  text: string
+}
+
+export interface Step {
+  name: string
+  tasks: string[]
+}
+
+export interface ParamsInfo {
+  info: string
+  model?: string | string[]
+}
+
+export type ParamsType = 'Number' | 'String' | 'Boolean'
+
+export interface SingleParam {
+  name: string
+  text: string
+  value: any
+  type: ParamsType
+  precision?: number
+  units?: string
+  hint?: string
+  rules?: string[]
+  multiple?: boolean
+  items?: any[] | '$scenarios'
+}
+
+export interface CategoryParam {
+  category: string
+  model?: string | string[]
+  info?: string
+  params: SingleParam[]
+}
+
+export type Params = (ParamsInfo | CategoryParam)[]
+
+export type PayloadParams = Record<string, Record<string, any>>
+
 // Microservices
 
 // MapMatching

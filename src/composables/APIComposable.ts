@@ -5,12 +5,14 @@ import { ErrorMessage, RunInputs, RunPayload, Status } from '@src/types/api'
 import { MatrixRoadCasterParams } from '@src/types/typesStore'
 const { quetzalClient } = useClient()
 
-export function useAPI () {
+export function useAPI (params = { withHistory: false }) {
+  const withHistory = ref(params.withHistory)
   const status = ref<Status>('')
   const running = ref<boolean>(false)
   const executionArn = ref<string>('')
   const error = ref<boolean>(false)
   const errorMessage = ref<ErrorMessage>({})
+  const history = ref<string[]>([])
   const pollFreq: number = 4000
   const timer = ref<number>(0)
 
@@ -19,6 +21,7 @@ export function useAPI () {
     executionArn.value = ''
     error.value = false
   }
+
   function terminateExecution (payload: string) {
     running.value = false
     error.value = true
@@ -78,6 +81,7 @@ export function useAPI () {
         const store = useIndexStore()
         store.changeAlert(err)
       }
+      if (withHistory.value) { getHistory() }
     }, pollFreq)
   }
 
@@ -92,15 +96,31 @@ export function useAPI () {
     }
   }
 
+  async function getHistory () {
+    try {
+      let data = { executionArn: executionArn.value, includeExecutionData: false, reverseOrder: true }
+      const response = await quetzalClient.post('/history', JSON.stringify(data))
+      const arr = []
+      for (const event of response.data.events) {
+        if (['TaskStateEntered'].includes(event.type)) {
+          arr.push(event.stateEnteredEventDetails.name)
+        }
+      }
+      history.value = arr
+    } catch { }
+  }
+
   return {
     running,
     error,
     status,
     errorMessage,
     timer,
+    history,
     startExecution,
     cleanRun,
     stopExecution,
     pollExecution,
+    getHistory,
   }
 }

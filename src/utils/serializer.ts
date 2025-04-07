@@ -2,7 +2,7 @@
 const $gettext = (s: string) => s
 import { GeoJson } from '@src/types/geojson'
 import { indexAreUnique, dropDuplicatesIndex } from './utils'
-import { ProjectInfo, Style } from '@src/types/typesStore'
+import { Params, ProjectInfo, Style } from '@src/types/typesStore'
 
 export function CRSis4326(geojson: GeoJson) {
   const arr = ['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326', 'urn:ogc:def:crs:EPSG:4326']
@@ -53,13 +53,13 @@ export function serializer (geojson: GeoJson, name: string, type: string | null 
   return geojson
 }
 
-export function paramsSerializer (json: JSON) {
+export function paramsSerializer (json: Params) {
   if (!Array.isArray(json)) {
     const err = new Error($gettext('params.json should be an array of object [{category: , params: }, ...]'))
     err.name = 'ImportError'
     throw err
   }
-  const params = json.filter(item => !item?.info)
+  const params = json.filter(item => Object.keys(item).includes('category'))
   const contains = (a: any, b: any) => [...b].every(value => a.has(value))
   const expectedKeys = new Set(['category', 'params'])
   params.forEach(el => {

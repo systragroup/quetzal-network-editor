@@ -176,3 +176,14 @@ export function getPerfectMatches(geojsonA: GeoJson, geojsonB: GeoJson, indexes:
 export function remap(value: any, dict: any) {
   return value in dict ? dict[value] : value
 }
+
+// others
+
+export function includesOrEqual<T>(a: T | T[], b: T) {
+  // to check list and string.f
+  if (Array.isArray(a)) {
+    return a.includes(b)
+  } else {
+    return a === b
+  }
+}

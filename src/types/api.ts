@@ -18,6 +18,7 @@ export interface RunInputs {
   metadata: RunMetadata
   authorization?: string
   choice?: string
+  variants?: string[]
 }
 
 export interface RunPayload {
