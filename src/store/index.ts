@@ -146,7 +146,7 @@ export const useIndexStore = defineStore('index', {
         linksStore.loadPTFiles(ptFiles, source)
         rlinksStore.loadRoadFiles(roadFiles)
         ODStore.loadODFiles(ODFiles)
-        if (paramFile) runStore.getLocalParameters(paramFile.content)
+        if (paramFile) runStore.loadParameters(paramFile.content)
         if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }

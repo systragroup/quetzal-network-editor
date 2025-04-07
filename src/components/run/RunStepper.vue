@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 
 import Logs from '@comp/run/Logs.vue'
 import { computed, ref, watch, onMounted } from 'vue'
@@ -17,14 +17,18 @@ const avalaibleStepFunctions = computed(() => {
   const modelsSet = runStore.availableModels
   return runStore.avalaibleStepFunctions.filter(el => modelsSet.has(el))
 })
-const stepFunction = ref(runStore.selectedStepFunction)
-const running = computed(() => { return runStore.running })
-const currentStep = computed(() => { return runStore.currentStep })
-const error = computed(() => { return runStore.error })
-const errorMessage = computed(() => { return runStore.errorMessage })
-const synchronized = computed(() => { return runStore.synchronized })
-const isProtected = computed(() => { return userStore.protected })
-const modelIsLoaded = computed(() => { return userStore.model !== null })
+const stepFunction = computed({
+  get: () => runStore.selectedStepFunction,
+  set: (v) => runStore.selectedStepFunction = v,
+})
+
+const running = computed(() => runStore.running)
+const currentStep = computed(() => runStore.currentStep)
+const error = computed(() => runStore.error)
+const errorMessage = computed(() => runStore.errorMessage)
+const isProtected = computed(() => userStore.protected)
+const modelIsLoaded = computed(() => userStore.model !== null)
+console.log(modelIsLoaded.value)
 
 const endSignal = ref(runStore.endSignal)
 watch(endSignal, () => runStore.changeEndSignal(endSignal.value))
@@ -32,13 +36,13 @@ watch(endSignal, () => runStore.changeEndSignal(endSignal.value))
 onMounted(async () => {
   if (modelIsLoaded.value) {
     await runStore.getSteps()
-    await runStore.GetRunningExecution()
+    await runStore.getRunningExecution()
   }
 })
 watch(avalaibleStepFunctions, (val) => {
   if (modelIsLoaded.value) {
     if (!val.includes(stepFunction.value)) {
-      runStore.setSelectedStepFunction(val[0])
+      stepFunction.value = val[0]
       runStore.getSteps()
     }
   }
@@ -47,18 +51,17 @@ watch(avalaibleStepFunctions, (val) => {
 watch(stepFunction, async (val) => {
   if (modelIsLoaded.value) {
     if (avalaibleStepFunctions.value.includes(val)) {
-      runStore.setSelectedStepFunction(val)
+      stepFunction.value = val
       runStore.getSteps()
     } else {
       stepFunction.value = avalaibleStepFunctions.value[0]
-      runStore.setSelectedStepFunction(avalaibleStepFunctions.value[0])
       runStore.getSteps()
     }
   }
 })
 
 async function run() {
-  const wasRunning = await runStore.GetRunningExecution()
+  const wasRunning = await runStore.getRunningExecution()
   if (wasRunning) {
     store.changeNotification(
       { text: $gettext('could not start and save. This scenario was already launch by another user.'),
@@ -66,15 +69,14 @@ async function run() {
     return
   }
   try {
-    const userStore = useUserStore()
     runStore.initExecution() // start the stepper at first step
     await store.exportToS3('inputs')
     await store.deleteOutputsOnS3()
     await store.deleteLogsOnS3()
     store.deleteOutputs()
-    runStore.startExecution({ scenario: userStore.scenario })
+    runStore.start()
   } catch (err) {
-    runStore.terminateExecution()
+    runStore.stopExecution()
     console.log(err)
     store.changeAlert(err)
   }
@@ -89,43 +91,32 @@ async function run() {
       </v-card-title>
       <Logs :disabled="running || !modelIsLoaded" />
     </div>
+    <v-tabs
+      v-if="avalaibleStepFunctions.length>1"
+      v-model="stepFunction"
+      show-arrows
+      bg-color="lightgrey"
+      color="success"
+      fixed-tabs
+    >
+      <v-tab
+        v-for="tab in avalaibleStepFunctions"
+        :key="tab"
+        :value="tab"
+        :disabled="running || !modelIsLoaded"
+      >
+        {{ tab }}
+      </v-tab>
+    </v-tabs>
 
     <v-stepper
       v-model="currentStep"
       class="stepper"
     >
-      <v-tabs
-        v-if="avalaibleStepFunctions.length>1"
-        v-model="stepFunction"
-        show-arrows
-        bg-color="lightgrey"
-        color="success"
-        fixed-tabs
-      >
-        <v-tab
-          v-for="tab in avalaibleStepFunctions"
-          :key="tab"
-          :value="tab"
-          :disabled="running || !modelIsLoaded"
-        >
-          {{ tab }}
-        </v-tab>
-      </v-tabs>
-      <v-alert
-        v-if="!synchronized"
-        density="compact"
-        variant="outlined"
-        text
-        type="warning"
-      >
-        {{ $gettext("Results are not synchronized with latest modifications. \
-            Please relauch simulation to update results.") }}
-      </v-alert>
       <v-alert
         v-if="error"
         density="compact"
         variant="outlined"
-        text
         type="error"
       >
         {{ $gettext("Simulation ended with an execution error or have been aborted. \
@@ -141,7 +132,6 @@ async function run() {
         v-if="isProtected"
         density="compact"
         variant="outlined"
-        text
         type="error"
       >
         {{ $gettext("This scenario is protected. You can not run simulation.") }}
@@ -175,9 +165,7 @@ async function run() {
           color="success"
           hide-details
         >
-          <template
-            v-slot:prepend
-          >
+          <template v-slot:prepend>
             <span> {{ $gettext('End signal') }}</span>
           </template>
         </v-switch>
@@ -192,7 +180,7 @@ async function run() {
           <v-stepper-item
             v-if="!error"
             :complete="currentStep > i+1"
-            :color="currentStep >= i+1?'primary':'regular'"
+            :color="currentStep >= i+1?'primary':undefined"
             :title="step.name"
             :value="i+1"
             compact
