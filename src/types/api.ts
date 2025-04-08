@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-export type Status = 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'TIMED_OUT' | 'ABORTED' | 'PENDING_REDRIVE' | ''
+// FINISHED set manually. ex: we want to download result on SUCCEEDED, then something.
+export type StepFunctionStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'TIMED_OUT' | 'ABORTED' | 'PENDING_REDRIVE'
+export type Status = StepFunctionStatus | '' | 'FINISHED'
 
 export type ErrorMessage = Record<string, string>
 

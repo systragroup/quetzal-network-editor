@@ -97,10 +97,10 @@ async function getSimulationLogs (bucket, scenario) {
   const response = await s3Client.listObjectsV2(params)
   const logList = []
   if (response.Contents) {
-    const files = response.Contents.key.filter(file => file.endsWith('.txt'))
+    const files = response.Contents.filter(file => file.Key.endsWith('.txt'))
     for (const file of files) {
-      const bytes = await readBytes(bucket, file.name)
-      logList.push({ name: file.name, text: new TextDecoder().decode(bytes), time: file.time })
+      const bytes = await readBytes(bucket, file.Key)
+      logList.push({ name: file.Key, text: new TextDecoder().decode(bytes), time: file.LastModified })
     }
   }
   return logList
