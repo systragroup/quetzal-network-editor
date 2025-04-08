@@ -13,13 +13,17 @@ export function useAPI (params = { withHistory: false }) {
   const error = ref<boolean>(false)
   const errorMessage = ref<ErrorMessage>({})
   const history = ref<string[]>([])
-  const pollFreq: number = 4000
   const timer = ref<number>(0)
+  const pollFreq: number = 4000
 
   function cleanRun () {
+    status.value = ''
     running.value = false
     executionArn.value = ''
     error.value = false
+    errorMessage.value = {}
+    history.value = []
+    timer.value = 0
   }
 
   function terminateExecution (payload: string) {
@@ -110,6 +114,25 @@ export function useAPI (params = { withHistory: false }) {
     } catch { }
   }
 
+  async function getRunningExecution(stateMachineArn: string, scenario: string) {
+    // get Running model (on another pc start polling it if there is one)
+    // return true if there is a model running (usefull to check before running.)
+    try {
+      if (!running.value) {
+        const resp = await quetzalClient.post(`model/running/${stateMachineArn}/${scenario}/`)
+        if (resp.data !== '') {
+          cleanRun()
+          executionArn.value = resp.data
+          status.value = 'RUNNING'
+          running.value = true
+          if (withHistory.value) { getHistory() }
+          pollExecution()
+          return true
+        } else { return false }
+      } else { return false }
+    } catch { return false }
+  }
+
   return {
     running,
     error,
@@ -122,5 +145,6 @@ export function useAPI (params = { withHistory: false }) {
     stopExecution,
     pollExecution,
     getHistory,
+    getRunningExecution,
   }
 }

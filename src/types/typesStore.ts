@@ -377,6 +377,14 @@ export interface ParamsInfo {
   model?: string | string[]
 }
 
+export interface ParamsVariants {
+  variants: string[]
+  choices: string[]
+  multiple?: boolean
+  label?: string
+  model?: string | string[]
+}
+
 export type ParamsType = 'Number' | 'String' | 'Boolean'
 
 export interface SingleParam {
@@ -399,7 +407,7 @@ export interface CategoryParam {
   params: SingleParam[]
 }
 
-export type Params = (ParamsInfo | CategoryParam)[]
+export type Params = (ParamsInfo | CategoryParam | ParamsVariants)[]
 
 export type PayloadParams = Record<string, Record<string, any>>
 

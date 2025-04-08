@@ -1,12 +1,12 @@
 <script setup lang="ts">
-
+import audioFile from '@static/samsung-washing-machine-melody-made-with-Voicemod-technology.mp3'
 import Logs from '@comp/run/Logs.vue'
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, watch, onMounted, ref } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
 import { useGettext } from 'vue3-gettext'
-
+import Warning from '../utils/Warning.vue'
 const { $gettext } = useGettext()
 const store = useIndexStore()
 const runStore = useRunStore()
@@ -22,23 +22,23 @@ const stepFunction = computed({
   set: (v) => runStore.selectedStepFunction = v,
 })
 
+const variants = computed(() => runStore.variants)
 const running = computed(() => runStore.running)
+const status = computed(() => runStore.status)
 const currentStep = computed(() => runStore.currentStep)
 const error = computed(() => runStore.error)
 const errorMessage = computed(() => runStore.errorMessage)
+
 const isProtected = computed(() => userStore.protected)
 const modelIsLoaded = computed(() => userStore.model !== null)
-console.log(modelIsLoaded.value)
-
-const endSignal = ref(runStore.endSignal)
-watch(endSignal, () => runStore.changeEndSignal(endSignal.value))
 
 onMounted(async () => {
   if (modelIsLoaded.value) {
     await runStore.getSteps()
-    await runStore.getRunningExecution()
+    await runStore.checkRunningExecution()
   }
 })
+
 watch(avalaibleStepFunctions, (val) => {
   if (modelIsLoaded.value) {
     if (!val.includes(stepFunction.value)) {
@@ -61,7 +61,7 @@ watch(stepFunction, async (val) => {
 })
 
 async function run() {
-  const wasRunning = await runStore.getRunningExecution()
+  const wasRunning = await runStore.checkRunningExecution()
   if (wasRunning) {
     store.changeNotification(
       { text: $gettext('could not start and save. This scenario was already launch by another user.'),
@@ -82,12 +82,29 @@ async function run() {
   }
 }
 
+// audio
+
+const endSignal = ref(true)
+watch(status, (v) => { if (v === 'FINISHED') playAudio() })
+
+function playAudio() {
+  if (endSignal.value) {
+    const audio = new Audio(audioFile)
+    audio.play()
+    // Stop the audio after 2 seconds
+    setTimeout(function () {
+      audio.pause()
+      audio.currentTime = 0
+    }, 5000)
+  }
+}
+
 </script>
 <template>
   <v-card class="card">
     <div class="title-container">
       <v-card-title class="subtitle">
-        {{ $gettext('Scenario Simulation') }}
+        {{ $gettext('Simulation') }}
       </v-card-title>
       <Logs :disabled="running || !modelIsLoaded" />
     </div>
@@ -113,29 +130,18 @@ async function run() {
       v-model="currentStep"
       class="stepper"
     >
-      <v-alert
-        v-if="error"
-        density="compact"
-        variant="outlined"
-        type="error"
-      >
-        {{ $gettext("Simulation ended with an execution error or have been aborted. \
-            Please relauch simulation. If the problem persist, contact us.") }}
-        <p
-          v-for="key in Object.keys(errorMessage)"
-          :key="key"
-        >
-          <b>{{ key }}: </b>{{ errorMessage[key] }}
-        </p>
-      </v-alert>
-      <v-alert
-        v-if="isProtected"
-        density="compact"
-        variant="outlined"
-        type="error"
-      >
-        {{ $gettext("This scenario is protected. You can not run simulation.") }}
-      </v-alert>
+      <Warning
+        :show="error"
+        :title="$gettext('Simulation ended with an execution error or have been aborted. \
+        Please relauch simulation. If the problem persist, contact us.')"
+        :messages="errorMessage"
+      />
+      <Warning
+        :show="isProtected"
+        :title="$gettext('This scenario is protected')"
+        :messages="$gettext(' You cannot run simulation.')"
+      />
+
       <div class="buttons-row ma-2">
         <v-btn
           :loading="running"
@@ -154,7 +160,6 @@ async function run() {
         >
           {{ $gettext("Abort") }}
         </v-btn>
-
         <v-switch
           v-model="endSignal"
           class="switch"
@@ -162,14 +167,25 @@ async function run() {
           false-icon="fas fa-volume-xmark"
           true-icon="fas fa-volume-high"
           inset
+          :label="$gettext('End signal')"
           color="success"
           hide-details
         >
-          <template v-slot:prepend>
-            <span> {{ $gettext('End signal') }}</span>
-          </template>
+          <template v-slot:prepend />
         </v-switch>
       </div>
+      <v-select
+        v-if="variants"
+        v-model="variants.variants"
+        class="ma-2"
+        :label="variants.label||'variants'"
+        chips
+        :disabled="running"
+        :items="variants.choices"
+        :multiple="variants.multiple"
+        :hide-details="true"
+      />
+
       <div
         v-if="modelIsLoaded"
       >
@@ -180,17 +196,18 @@ async function run() {
           <v-stepper-item
             v-if="!error"
             :complete="currentStep > i+1"
-            :color="currentStep >= i+1?'primary':undefined"
+            :color="currentStep >= i+1? 'primary': undefined"
             :title="step.name"
             :value="i+1"
-            compact
             :step="i+1"
           />
           <v-stepper-item
             v-else
             :complete="currentStep > i+1"
+            :color="currentStep >= i+1? 'primary': undefined"
             :title="step.name"
             :value="i+1"
+            :rules="[() => !(currentStep===i+1)]"
             :step="i+1"
           />
         </div>
@@ -199,47 +216,15 @@ async function run() {
   </v-card>
 </template>
 <style lang="scss" scoped>
-.section{
-  height: 100%; /* or any fixed height */
-  position: relative;
-  display:flex;
-}
-.background {
-  background-color: rgb(var(--v-theme-background));
-  height: 100%;
-  padding: 1rem;
-  padding-bottom: 4rem;
-  overflow: auto;
-}
 .card {
   height: 100%;
   overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
 }
-.v-card__text {
-  max-height: 80%;
-}
-.row {
-  height: calc(100% - 38px)
-}
-.col {
-  max-height: 100%;
-}
-.title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 3.5em;
-  color: $primary !important;
-  font-weight: bold;
-}
+
 .subtitle {
   font-size: 2em;
-  color:rgb(var(--v-theme-secondary-dark));
   font-weight: bold;
-  margin: 10px;
-  margin-left: 0;
 }
 .stepper{
   background-color:rgb(var(--v-theme-mediumgrey)) ;
@@ -253,6 +238,7 @@ async function run() {
 }
 .switch{
   margin-left:auto;
+
   padding-right:0.5rem;
 }
 .title-container{

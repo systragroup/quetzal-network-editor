@@ -22,15 +22,9 @@ import RunStepper from '@src/components/run/RunStepper.vue'
   display:flex;
 }
 .col {
-  background-color: rgb(var(--v-theme-background));
   height: 100%;
   padding: 1rem;
   overflow: auto;
-}
-.card {
-  height: 100%;
-  overflow-y: hidden;
-  background-color: rgb(var(--v-theme-lightergrey));
 }
 
 </style>
