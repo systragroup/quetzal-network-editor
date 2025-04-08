@@ -1,3 +1,8 @@
+## [6.1.7] (2025-04-08)
+### Bug Fixes
+* road_link_list duplicated (first == last) deleted on import
+
+
 ## [6.1.6] (2025-03-25)
 ### Bug Fixes
 * Microservice page not showing tabs sometime.

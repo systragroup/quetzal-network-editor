@@ -79,6 +79,7 @@ export const useLinksStore = defineStore('links', {
 
         this.getLinksProperties()
         this.calcSpeed()
+        this.fixAllRoutingList()
       } else { alert('invalid CRS. use CRS84 / EPSG:4326') }
     },
 
@@ -141,7 +142,9 @@ export const useLinksStore = defineStore('links', {
       this.getTripId()
       this.changeSelectedTrips(this.tripId)
       this.calcSpeed()
+      this.fixAllRoutingList()
     },
+
     appendNewNodes (payload) {
       // append new nodes to the project. payload = nodes geojson file
       payload.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
@@ -896,6 +899,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     confirmChanges () { // apply change to Links
+      this.fixRoutingList(this.editorLinks.features)
       this.applyPropertiesTypes(this.editorLinks)
 
       // find index of soon to be deleted links
@@ -980,6 +984,28 @@ export const useLinksStore = defineStore('links', {
         }
       }
     },
+
+    fixAllRoutingList() {
+      const groups = Object.values(Object.groupBy(this.links.features, item => item.properties.trip_id))
+      groups.forEach(features => this.fixRoutingList(features))
+    },
+
+    fixRoutingList(features) {
+      let lastVisited = ''
+      features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+      features.forEach(link => {
+        let ls = link.properties.road_link_list
+        if (ls && ls.length > 0) {
+          const firstRoad = ls[0]
+          const lastRoad = ls.slice(-1)[0]
+          if (firstRoad === lastVisited) {
+            link.properties.road_link_list = ls.slice(1)
+          }
+          lastVisited = lastRoad
+        }
+      })
+    },
+
   },
 
   getters: {
