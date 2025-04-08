@@ -235,7 +235,7 @@ export function useResult () {
   const attributesWithOD = computed(() => Object.keys(mat.value))
 
   function addMatrix (payload: MatrixData) {
-    Object.keys(payload).forEach(key => { mat.value[`${key} (OD)`] = payload[key] })
+    Object.keys(payload).forEach(key => { mat.value[`${key} (Interactive)`] = payload[key] })
     // force index to string
     layer.value.features.forEach(feat => feat.properties.index = String(feat.properties.index))
     attributesWithOD.value.forEach(attr => {
