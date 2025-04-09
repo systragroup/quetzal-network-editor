@@ -1,50 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch, nextTick } from 'vue'
 import { useRunStore } from '@src/store/run'
-import { useUserStore } from '@src/store/user'
 import { useGettext } from 'vue3-gettext'
-import { SingleParam } from '@src/types/typesStore'
+import ParamInput from './ParamInput.vue'
 const { $gettext } = useGettext()
 const runStore = useRunStore()
-const userStore = useUserStore()
 
 const parameters = computed(() => runStore.filteredParameters)
 const info = computed(() => runStore.selectedInfo)
-
-const scenariosList = computed(() => { return userStore.scenariosList })
-const activeScenario = computed(() => { return userStore.scenario })
-
-function removeDeletedScenarios () {
-  // for $scenario field: remove selected scenario if not in the scen list anymore.
-  for (const cat of parameters.value) {
-    for (const item of cat.params) {
-      if (item.items === '$scenarios') {
-        const scenarios = scenariosList.value.map(el => el.scenario)
-        if (Array.isArray(item.value)) {
-          item.value = item.value.filter(name => scenarios.includes(name))
-        } else {
-          item.value = scenarios.includes(item.value) ? item.value : ''
-        }
-      }
-    }
-  }
-}
-
-onMounted(() => {
-  removeDeletedScenarios()
-})
-
-function getItems(item: SingleParam): any[] | undefined {
-  // give all scenario as items choice.
-  // else return items in the json (item.items)
-  if (item.items === '$scenarios') {
-    return scenariosList.value.map(
-      el => el.scenario).filter(
-      scen => scen !== activeScenario.value)
-  } else {
-    return item.items
-  }
-}
 
 // Hints and edition
 
@@ -86,7 +49,7 @@ onMounted(() => {
   }
 })
 
-// Show all or colapse panels
+// Show all or collapse panels
 
 function reset () {
   runStore.resetParameters()
@@ -102,13 +65,7 @@ function expandAll () {
   }
 }
 
-type Rules = Record<string, any>
-
-const rules: Rules = {
-  required: (v: any) => v != null || $gettext('Required'),
-  largerThanZero: (v: number) => v > 0 || $gettext('should be larger than 0'),
-  nonNegative: (v: number) => v >= 0 || $gettext('should be larger or equal to 0'),
-}
+const showEdit = ref(false)
 
 </script>
 <template>
@@ -159,52 +116,11 @@ const rules: Rules = {
                 :key="itemKey"
                 class="param-list"
               >
-                <v-switch
-                  v-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
-                  v-model="item.value"
-                  color="primary"
-                  density="compact"
-                  class="pl-2"
-                  hide-details
-                  :label="$gettext(item.text)"
-                  :persistent-hint="showHint"
-                />
-                <v-number-input
-                  v-else-if="item.type == 'Number'"
-                  v-model="item.value"
-                  variant="outlined"
-                  control-variant="stacked"
-                  :type="item.type"
-                  :precision="item.precision === undefined? null : item.precision"
-                  :label="$gettext(item.text)"
-                  :suffix="item.units"
-                  hide-details
-                  :rules="item.rules?.map((str) => rules[str])"
-                />
-                <v-text-field
-                  v-else-if="typeof item.items === 'undefined' "
-                  v-model="item.value"
-                  variant="outlined"
-                  hide-details
-                  :type="item.type"
-                  :label="$gettext(item.text)"
-                  :suffix="item.units"
-                  :rules="item.rules?.map((rule) => rules[rule])"
+                <ParamInput
+                  :item="item"
+                  :show-hint="showHint"
                 />
 
-                <v-select
-                  v-else
-                  v-model="item.value"
-                  variant="outlined"
-                  hide-details
-                  :type="item.type"
-                  :multiple="item?.multiple"
-                  :items="getItems(item)"
-                  :label="$gettext(item.text)"
-                  :suffix="item.units"
-                  :rules="item.rules?.map((rule) => rules[rule])"
-                  @update:model-value="removeDeletedScenarios()"
-                />
                 <v-fade-transition>
                   <div
                     v-if="showHint"
@@ -242,6 +158,13 @@ const rules: Rules = {
       </v-btn>
 
       <v-spacer />
+      <v-btn
+        prepend-icon="fas fa-plus"
+        variant="text"
+        @click="showEdit = !showEdit"
+      >
+        {{ $gettext("Manage") }}
+      </v-btn>
       <v-btn
         variant="text"
         @click="expandAll"
