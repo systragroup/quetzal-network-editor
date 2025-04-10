@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { fileURLToPath, URL } from 'node:url'
 
 /// <reference types="vitest" />
@@ -41,7 +42,9 @@ export default defineConfig(({ mode }) => {
         'vuetify/lib/components/VExpansionPanel/index.mjs',
         'vuetify/lib/components/VCheckbox/index.mjs',
         'vuetify/lib/components/VVirtualScroll/index.mjs',
-        'vuetify/lib/components/VColorPicker/index.mjs'],
+        'vuetify/lib/components/VColorPicker/index.mjs',
+        'vuetify/lib/components/transitions/index.mjs',
+        'vuetify/lib/components/VToolbar/index.mjs'],
     },
     base: basePath,
     plugins: [

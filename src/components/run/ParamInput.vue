@@ -55,50 +55,35 @@ function removeDeletedScenarios (item: SingleParam) {
 }
 onMounted(() => removeDeletedScenarios(item.value))
 
+const component = computed(() => {
+  if (item.value.items !== undefined) {
+    return 'v-select'
+  } else if (item.value.type === undefined) {
+    return 'v-text-field'
+  } else if (item.value.type.toLocaleLowerCase() === 'boolean') {
+    return 'v-switch'
+  } else if (item.value.type.toLowerCase() === 'number') {
+    return 'v-number-input'
+  } else {
+    return 'v-text-field'
+  }
+})
+
 </script>
 <template>
-  <v-switch
-    v-if="typeof item.items === 'undefined' && typeof item.value == 'boolean'"
+  <component
+    :is="component"
     v-model="item.value"
     color="primary"
-    density="compact"
-    class="pl-2"
-    hide-details
-    :label="$gettext(item.text)"
-    :persistent-hint="showHint"
-  />
-  <v-number-input
-    v-else-if="item.type == 'Number'"
-    v-model="item.value"
     variant="outlined"
     control-variant="stacked"
-    :type="item.type"
+    hide-details
     :precision="item.precision === undefined? null : item.precision"
     :label="$gettext(item.text)"
-    :suffix="item.units"
-    hide-details
+    :suffix="item.units? item.units:undefined"
+    :persistent-hint="showHint"
+    :type="item.type"
     :rules="item.rules?.map((str) => rules[str])"
-  />
-  <v-text-field
-    v-else-if="typeof item.items === 'undefined' "
-    v-model="item.value"
-    variant="outlined"
-    hide-details
-    :type="item.type"
-    :label="$gettext(item.text)"
-    :suffix="item.units"
-    :rules="item.rules?.map((rule) => rules[rule])"
-  />
-
-  <v-select
-    v-else
-    v-model="item.value"
-    variant="outlined"
-    hide-details
-    :type="item.type"
-    :label="$gettext(item.text)"
-    :suffix="item.units"
-    :rules="item.rules?.map((rule) => rules[rule])"
     :multiple="item?.multiple"
     :items="getItems(item)"
     @update:model-value="removeDeletedScenarios(item)"
