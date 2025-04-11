@@ -11,14 +11,12 @@ const activeScenario = computed(() => { return userStore.scenario })
 
 interface Props {
   item: SingleParam
-  showHint: boolean
 }
 
 // Define props with default values
 const props = withDefaults(defineProps<Props>(), {
-  showHint: false,
 })
-const { showHint, item } = toRefs(props)
+const { item } = toRefs(props)
 
 // const emits = defineEmits(['change'])
 
@@ -61,13 +59,22 @@ const component = computed(() => {
   } else if (item.value.type === undefined) {
     return 'v-text-field'
   } else if (item.value.type.toLocaleLowerCase() === 'boolean') {
-    return 'v-switch'
+    return 'v-switch' // v-checkbox
   } else if (item.value.type.toLowerCase() === 'number') {
     return 'v-number-input'
   } else {
     return 'v-text-field'
   }
 })
+
+// function getItemLabel(label: string) {
+//   return label.split('#')[0]
+// }
+
+function getItemVariant(label: string) {
+  return label.split('#')[1]
+}
+// const isVariant = computed(() => item.value.text.includes('#'))
 
 </script>
 <template>
@@ -77,17 +84,31 @@ const component = computed(() => {
     color="primary"
     variant="outlined"
     control-variant="stacked"
+    inset
     hide-details
-    :precision="item.precision === undefined? null : item.precision"
-    :label="$gettext(item.text)"
-    :suffix="item.units? item.units:undefined"
-    :persistent-hint="showHint"
+    :precision="item.precision === undefined ? null : item.precision"
+    :label="item.text"
+    :prefix="getItemVariant(item.text)"
+    :suffix="item.units ? item.units : undefined"
     :type="item.type"
     :rules="item.rules?.map((str) => rules[str])"
     :multiple="item?.multiple"
     :items="getItems(item)"
     @update:model-value="removeDeletedScenarios(item)"
-  />
+  >
+    <template
+      v-if="$slots.prepend"
+      v-slot:prepend
+    >
+      <slot name="prepend" />
+    </template>
+    <template
+      v-if="$slots.append"
+      v-slot:append
+    >
+      <slot name="append" />
+    </template>
+  </component>
 </template>
 <style lang="scss" scoped>
 
