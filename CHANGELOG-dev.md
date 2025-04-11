@@ -1,3 +1,17 @@
+## [7.0.j] (2025-04-11)
+### Features
+* add variants selection to params (in step function)
+* add MapState to stepfunction definition
+* add variants (posibility) to each params.
+* Can edit and create variants for each param.
+
+### Changes
+* Change (OD) in results column to (interactive) for properties with a json (clickable on the map)
+
+### Refactoring
+* Run store in TS and using the useApi composable
+* Run pages refactored to multiple components
+
 ## [7.0.i] (2025-04-01)
 ### Bug Fixes
 * Could not delete scenarios
@@ -5,7 +19,6 @@
 ## [7.0.h] (2025-03-27)
 ### Bug Fixes
 * road_link_list was converted to a string (must be a list)
-
 
 ## [7.0.g] (2025-03-19)
 update packages
