@@ -86,10 +86,10 @@ const showEdit = ref(false)
 const variants = computed(() => runStore.variants)
 
 function getItemVariant(item: SingleParam) {
-  return item.text.split('#')[1]
+  return item.name.split('#')[1]
 }
 
-function isVariant(item: SingleParam) { return item.text.includes('#') }
+function isVariant(item: SingleParam) { return item.name.includes('#') }
 
 type AvailableVariants = Record<string, Record<string, string[]>>
 const availableVariants = computed(() => {
@@ -98,7 +98,7 @@ const availableVariants = computed(() => {
   const dict: AvailableVariants = {}
   parameters.value.map(el => el.category)
   parameters.value.forEach(el => {
-    const names = el.params.map(p => p.text)
+    const names = el.params.map(p => p.name)
     const grouped = Object.groupBy(names, (str) => str.split('#')[0]) as Record<string, string[]>
     Object.keys(grouped).forEach(key => {
       const usedVariants = grouped[key].slice(1).map((str: string) => str.split('#')[1])
@@ -111,21 +111,23 @@ const availableVariants = computed(() => {
 
 function getVariantsChoices(group: CategoryParam, item: SingleParam) {
   const cat = group.category
-  const name = item.text.split('#')[0]
+  const name = item.name.split('#')[0]
   // add the actual selected variant to the list
   return availableVariants.value[cat][name]
 }
 
 function changeItemVariant(variant: string, item: SingleParam) {
+  item.name = item.name.split('#')[0] + `#${variant}`
   item.text = item.text.split('#')[0] + `#${variant}`
 }
 
 function addItem(group: CategoryParam, item: SingleParam) {
   const copy = cloneDeep(item)
   const cat = group.category
-  const name = item.text
+  const name = item.name
   const v = availableVariants.value[cat][name][0]
   if (v) { // else. all variants there
+    copy.name = copy.name + `#${v}`
     copy.text = copy.text + `#${v}`
     const position = group.params.indexOf(item)
     group.params.splice(position + 1, 0, copy)

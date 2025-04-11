@@ -88,7 +88,7 @@ function getItemVariant(label: string) {
     hide-details
     :precision="item.precision === undefined ? null : item.precision"
     :label="item.text"
-    :prefix="getItemVariant(item.text)"
+    :prefix="getItemVariant(item.name)"
     :suffix="item.units ? item.units : undefined"
     :type="item.type"
     :rules="item.rules?.map((str) => rules[str])"
