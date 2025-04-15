@@ -189,10 +189,10 @@ async function exportFiles() {
 function stopRun () { runMapMatching.stopExecution() }
 const mdString = `
 # Match PT network on road network
-$E = \\frac{1}{2} \\times (\\frac{d_{proj}}{\\sigma} )^{P}$ \n
-$T = |d_{dijkstra} - d_{acf}^{*}|$ \n
-$P = E+T$ \n
+$Probability = Emission + Transmission$ , or\n 
+$Probability = \\frac{1}{2} (\\frac{d_{proj}}{\\sigma} )^{power} + \\frac{1}{\\beta} |d_{dijkstra} - d_{acf}^{*}|$ \n 
 \\* $d_{acf} = 0$ if use difference is false \n 
+
 *Hidden Markov Map Matching Through Noise and Sparseness* \n
 *Paul Newson and John Krumm 2009*
 `
