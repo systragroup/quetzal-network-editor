@@ -1,3 +1,16 @@
+## [7.0.k] (2025-04-15)
+### changes
+* add back PT links formatting on load. (remove option to skip)
+* add fixRoutingList on load (was added to 6.1.7)
+* add default _r values if none on load. No overwrite. but if oneway==0 (its 2 way) and we habe no {prop}_r. apply prop to it.
+
+### Bug Fixes
+* fix mapmatching equation
+
+### Optimization
+* apply properties type optimized
+* simplify geometry optimized a bit
+
 ## [7.0.j] (2025-04-11)
 ### Features
 * add variants selection to params (in step function)
