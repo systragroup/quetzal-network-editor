@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import s3 from '../AWSClient'
 import Markdown from '@comp/utils/Markdown.vue'
 import { ref, onMounted, computed } from 'vue'
@@ -8,11 +8,13 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
 // Function to convert Blob to Data URL using a Promise
-function readBlobAsDataURL (blob) {
+function readBlobAsDataURL (blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = (event) => {
-      resolve(event.target.result)
+      if (event.target) {
+        resolve(event.target.result as string)
+      }
     }
     reader.onerror = (error) => {
       reject(error)
@@ -30,7 +32,11 @@ onMounted(() => {
   width.value = isMobile.value ? 100 : 50
 })
 
-const imgs = ref([])
+interface Img {
+  name: string
+  src: string
+}
+const imgs = ref<Img[]>([])
 const message = ref('')
 const mdString = ref('')
 
@@ -71,7 +77,7 @@ function replaceSrc() {
   // if true. insert its src in the MD string. and remove it from the imgs list.
   // then any unfound imgs will be display at the end (no duplicates)
   if (mdString.value.length > 0) {
-    const toDelete = []
+    const toDelete: Img[] = []
     for (const img of imgs.value) {
       if (mdString.value.includes(img.name)) {
         mdString.value = mdString.value.replace(img.name, img.src)
