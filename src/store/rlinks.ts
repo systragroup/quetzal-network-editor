@@ -234,7 +234,8 @@ export const userLinksStore = defineStore('rlinks', {
     getFilteredrCat () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
-      const val = Array.from(new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter])))
+      // replace undefined with null here. the filter will not work if undefined.
+      const val = Array.from(new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter] || null)))
       this.filteredrCategory = val
     },
 
