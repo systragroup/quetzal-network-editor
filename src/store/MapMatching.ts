@@ -56,7 +56,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     linksStore.loadPTFiles([
       { path: 'inputs/pt/links.geojson', content: links },
       { path: 'inputs/pt/nodes.geojson', content: nodes },
-    ], 'local')
+    ])
     if (parameters.value.ptMetrics) {
       const rlinksStore = userLinksStore()
       rlinksStore.$reset()

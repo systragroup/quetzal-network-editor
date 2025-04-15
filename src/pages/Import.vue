@@ -99,7 +99,7 @@ async function readZip (event) {
       return
     }
     const files = await extractZip(zfiles[0])
-    loadNetwork(files, 'local')
+    loadNetwork(files)
   } catch (err) {
     store.changeLoading(false)
     store.changeAlert(err)
@@ -144,7 +144,7 @@ async function loadFilesFromS3 () {
         res.push({ path: name, content: null })
       }
     }
-    loadNetwork(res, 'cloud')
+    loadNetwork(res)
   } catch (err) {
     store.changeAlert(err)
     store.changeLoading(false)
@@ -190,7 +190,7 @@ async function loadExample (filesToLoads) {
       res.push({ path: 'outputs/zones.json', content })
     }
 
-    loadNetwork(res, 'local')
+    loadNetwork(res)
   } catch {
     store.changeLoading(false)
     store.changeAlert({
@@ -202,7 +202,7 @@ async function loadExample (filesToLoads) {
 
 const { handleConflict, filesAddedNotification } = useConflicts()
 
-function loadNetwork (files, source) {
+function loadNetwork (files) {
   // source: local or cloud
   // HERE: check if duplicated index.
   let infoPT
@@ -221,7 +221,7 @@ function loadNetwork (files, source) {
     const ODStore = useODStore()
     ODStore.$reset()
   }
-  store.loadFiles(files, source)
+  store.loadFiles(files)
   filesAdded.value = true
   store.changeLoading(false)
   filesAddedNotification(infoPT, infoRoad)
@@ -296,7 +296,7 @@ function loadNetwork (files, source) {
           <v-divider vertical />
           <v-col class="center-col">
             <FileLoader
-              @files-loaded="(files) => loadNetwork(files, 'local')"
+              @files-loaded="(files) => loadNetwork(files)"
             />
             <v-divider />
             <Info />
@@ -329,7 +329,7 @@ function loadNetwork (files, source) {
 
           <v-col class="right-col">
             <FilesList
-              @files-loaded="(files) => loadNetwork(files, 'local')"
+              @files-loaded="(files) => loadNetwork(files)"
             />
           </v-col>
         </v-row>
