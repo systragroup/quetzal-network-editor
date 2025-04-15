@@ -1,5 +1,6 @@
 import { LineStringGeoJson, PointGeoJson, GeoJson } from '@src/types/geojson'
 import bearing from '@turf/bearing'
+import { round } from './utils'
 
 function isLineStringGeoJson(geojson: GeoJson): geojson is LineStringGeoJson {
   return geojson.features[0].geometry.type === 'LineString'
@@ -8,10 +9,10 @@ function isLineStringGeoJson(geojson: GeoJson): geojson is LineStringGeoJson {
 export function simplifyGeometry<T extends LineStringGeoJson | PointGeoJson>(geojson: T) {
   if (isLineStringGeoJson(geojson)) {
     geojson.features.forEach(link => link.geometry.coordinates = link.geometry.coordinates.map(
-      points => points.map(coord => Math.round(coord * 1000000) / 1000000)))
+      points => points.map(coord => round(coord, 6))))
   } else {
     geojson.features.forEach(node => node.geometry.coordinates = node.geometry.coordinates.map(
-      coord => Math.round(Number(coord) * 1000000) / 1000000))
+      coord => round(coord, 6)))
   }
 }
 

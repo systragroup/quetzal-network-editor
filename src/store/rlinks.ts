@@ -178,18 +178,18 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
-      this.rlinks.features.filter(link => delete link.properties[payload.name])
-      this.rlinks.features.filter(link => delete link.properties[payload.name + '_r'])
-      this.visiblerLinks.features.filter(link => delete link.properties[payload.name])
-      this.visiblerLinks.features.filter(link => delete link.properties[payload.name + '_r'])
+      this.rlinks.features.forEach(link => delete link.properties[payload.name])
+      this.rlinks.features.forEach(link => delete link.properties[payload.name + '_r'])
+      this.visiblerLinks.features.forEach(link => delete link.properties[payload.name])
+      this.visiblerLinks.features.forEach(link => delete link.properties[payload.name + '_r'])
 
       this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
       this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name + '_r')
     },
 
     deleteNodesPropertie (payload: NewAttribute) {
-      this.rnodes.features.filter(node => delete node.properties[payload.name])
-      this.visiblerNodes.features.filter(node => delete node.properties[payload.name])
+      this.rnodes.features.forEach(node => delete node.properties[payload.name])
+      this.visiblerNodes.features.forEach(node => delete node.properties[payload.name])
       this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
     },
 
@@ -249,12 +249,11 @@ export const userLinksStore = defineStore('rlinks', {
             link.properties.oneway = '0'
           }
         })
-
-        // init _r values on oneway
-        // const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
-        // toSplit.forEach(link => {
-        //  this.initReversePropertiesOnLink(link)
-        // })
+        const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
+        // this function only apply the non _r val if it doesnt exist.
+        toSplit.forEach(link => {
+          this.initReversePropertiesOnLink(link)
+        })
       }
     },
 
@@ -346,7 +345,10 @@ export const userLinksStore = defineStore('rlinks', {
 
     initReversePropertiesOnLink(link: LineStringFeatures) {
       this.reversedAttributes.forEach((rkey) => {
-        link.properties[rkey] = link.properties[rkey.slice(0, -2)] },
+        if (!link.properties[rkey]) {
+          link.properties[rkey] = link.properties[rkey.slice(0, -2)]
+        }
+      },
       )
     },
 

@@ -22,9 +22,10 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   LinksStore, MoveNode, NewAttribute, NewLinkPayload, NewNodePayload,
   FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
   NonEmptyArray,
-  FileSource,
-  SchedulePayload } from '@src/types/typesStore'
+  SchedulePayload,
+  AttributeTypes } from '@src/types/typesStore'
 import { baseLineString, basePoint,
+  LineStringFeatures,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTime,
   getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
@@ -58,7 +59,7 @@ export const useLinksStore = defineStore('links', {
     //
     // io
     //
-    loadPTFiles (payload: FilesPayload[], source: FileSource) {
+    loadPTFiles (payload: FilesPayload[]) {
       // payload = [{path,content}, ...]
       // get links. check that index are not duplicated, serialize them and then append to project
       // get nodes. check that index are not duplicated, serialize them and then append to project
@@ -67,8 +68,7 @@ export const useLinksStore = defineStore('links', {
         const currentType = file.content.features[0].geometry.type
         if (currentType === 'LineString') {
           if (IndexAreDifferent(file.content, this.links)) {
-            const formatFile = source === 'local' // if from cloud, we can skip formatting
-            this.appendNewLinks(serializer(file.content, file.path, currentType), formatFile)
+            this.appendNewLinks(serializer(file.content, file.path, currentType))
           } else {
             const err = new Error($gettext(' there is duplicated index, ') + file.path)
             err.name = 'ImportError'
@@ -86,19 +86,20 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
-    appendNewLinks (payload: LineStringGeoJson, format: boolean = true) {
+    appendNewLinks (payload: LineStringGeoJson) {
       // append new links to the project. payload = links geojson file
       payload.features.forEach(link => this.links.features.push(link))
       this.getLinksProperties()
       this.getTripList()
       this.selectedTrips = this.tripList
       this.getVariants()
-      if (format) {
-        simplifyGeometry(payload)
-        initLengthTimeSpeed(this.links, this.timeVariants)
-        this.getLinksProperties()
-        this.applyPropertiesTypes(this.links)
-      }
+      // format
+      simplifyGeometry(payload)
+      this.applyPropertiesTypes(this.links)
+      initLengthTimeSpeed(this.links, this.timeVariants)
+      this.getLinksProperties()
+      this.fixAllRoutingList()
+
       this.deleteNonVariantAttributes()
     },
 
@@ -809,10 +810,16 @@ export const useLinksStore = defineStore('links', {
       this.setEditorTrip(null)
     },
 
-    fixRoutingList() {
+    fixAllRoutingList() {
+      const groups = Object.values(Object.groupBy(this.links.features, item => item.properties.trip_id))
+      groups.forEach(features => this.fixRoutingList(features as LineStringFeatures[]))
+    },
+
+    fixRoutingList(features: LineStringFeatures[]) {
       let lastVisited = ''
-      this.editorLinks.features.forEach(link => {
-        let ls: undefined | string[] = link.properties.road_link_list
+      features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+      features.forEach(link => {
+        let ls = link.properties.road_link_list
         if (ls && ls.length > 0) {
           const firstRoad = ls[0]
           const lastRoad = ls.slice(-1)[0]
@@ -830,35 +837,21 @@ export const useLinksStore = defineStore('links', {
       this.getTripList()
     },
 
-    applyPropertiesTypes (links: LineStringGeoJson) {
-      for (const attr of this.linksDefaultAttributes) {
-        for (const link of links.features) {
-          if (attr.type === 'String') {
-            link.properties[attr.name] = String(link.properties[attr.name])
-          } else if (attr.type === 'Number') {
-            link.properties[attr.name] = Number(link.properties[attr.name])
-          }
-        }
-      }
-    },
+    applyPropertiesTypes(links: LineStringGeoJson) {
+      const attrMap: Record<string, AttributeTypes> = {}
+      this.linksDefaultAttributes.forEach(attr => {
+        attrMap[attr.name] = attr.type
+      })
 
-    fixAllRoutingList() {
-      const groups = Object.values(Object.groupBy(this.links.features, item => item.properties.trip_id))
-      groups.forEach(features => this.fixRoutingList(features))
-    },
-
-    fixRoutingList(features) {
-      let lastVisited = ''
-      features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-      features.forEach(link => {
-        let ls = link.properties.road_link_list
-        if (ls && ls.length > 0) {
-          const firstRoad = ls[0]
-          const lastRoad = ls.slice(-1)[0]
-          if (firstRoad === lastVisited) {
-            link.properties.road_link_list = ls.slice(1)
+      links.features.forEach(link => {
+        const props = link.properties
+        for (const key in attrMap) {
+          const type = attrMap[key]
+          if (type === 'Number') {
+            props[key] = Number(props[key])
+          } else if (type === 'String') {
+            props[key] = String(props[key])
           }
-          lastVisited = lastRoad
         }
       })
     },
