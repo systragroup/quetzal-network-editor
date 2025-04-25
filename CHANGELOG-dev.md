@@ -1,3 +1,7 @@
+## [7.0.l] (2025-04-25)
+### changes
+* stops have a lower opacity if drop_off and pickup is not 0, and not one or the other.
+
 ## [7.0.k] (2025-04-15)
 ### changes
 * add back PT links formatting on load. (remove option to skip)
