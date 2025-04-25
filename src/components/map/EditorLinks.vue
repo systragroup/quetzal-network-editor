@@ -57,15 +57,15 @@ watch(editorLinks, (links) => {
 function setNodesPickupDropOff() {
   // get nodes with dropOff and pickup not 0. mark them as stop:false.
   // this change their opacity.
-  const linksa = editorLinks.value.features.filter(el => Number(el.properties.pickup_type) !== 0)
-  const nodesArra = linksa.map(el => el.properties.a)
-  const linksb = editorLinks.value.features.filter(el => Number(el.properties.drop_off_type) !== 0)
-  const nodesArrb = linksb.map(el => el.properties.b)
-  const nodesSet = new Set([...nodesArra, ...nodesArrb])
+  const linksA = editorLinks.value.features.filter(el => Number(el.properties.pickup_type) !== 0)
+  const nodesA = linksA.map(el => el.properties.a)
+  const linksB = editorLinks.value.features.filter(el => Number(el.properties.drop_off_type) !== 0)
+  const nodesB = new Set(linksB.map(el => el.properties.b))
+  const intersection = new Set([...nodesA].filter(x => nodesB.has(x)))
   let otherNodes = editorNodes.value.features.map(node => node.properties.index)
-  otherNodes = otherNodes.filter(node => !nodesSet.has(node))
+  otherNodes = otherNodes.filter(node => !intersection.has(node))
   otherNodes.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: true }))
-  nodesSet.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: false }))
+  intersection.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: false }))
 }
 
 const selectedFeature = ref(null)
