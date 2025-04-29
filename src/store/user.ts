@@ -101,11 +101,13 @@ export const useUserStore = defineStore('userStore', {
       if (currentTime > this.signinTime + this.refreshExpTime) {
         auth.logout()
         const store = useIndexStore()
-        store.changeAlert({
-          type: 'warning',
-          name: $gettext('sign out'),
-          message: $gettext('your session has expired. Please sign in again'),
-        })
+        if (this.signinTime > 0) {
+          store.changeAlert({
+            type: 'warning',
+            name: $gettext('sign out'),
+            message: $gettext('your session has expired. Please sign in again'),
+          })
+        }
       }
     },
 
