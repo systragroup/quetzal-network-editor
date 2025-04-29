@@ -1,3 +1,10 @@
+## [7.0.m] (2025-04-29)
+### Features
+* password reset
+
+### changes
+* change the login component to add password reset. auth store now in TS.
+
 ## [7.0.l] (2025-04-25)
 ### changes
 * stops have a lower opacity if drop_off and pickup is not 0, and not one or the other.
