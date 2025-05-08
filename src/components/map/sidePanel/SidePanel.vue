@@ -184,13 +184,8 @@ width:0;
   font-size: 1.1em;
   margin-bottom: 10px;
 }
-.trip-list {
-  height: height;
-  padding-left:20px
-}
 .scrollable {
    overflow-y:scroll;
-
 }
 .drawer-list-item {
   padding: 0 13px !important;

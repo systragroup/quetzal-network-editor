@@ -348,6 +348,5 @@ function applyOverwriteDialog () {
   padding:2rem;
   position: relative;
   right: 0;
-  align-items: right;
 }
 </style>

@@ -156,7 +156,7 @@ defineExpose({
 }
 .box{
   max-height:100%;
-  box-shadow:0;
+  box-shadow: none;
   overflow-y: auto;
 }
 .shake {

@@ -109,14 +109,11 @@ function typeMap(type: SimpleFormType) {
   </div>
 </template>
 <style lang="scss" scoped>
-.form{
-}
 .box{
   max-height:100%;
   padding:0.5rem;
-  box-shadow:0;
+  box-shadow: none;
 }
-
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
   transform: translate3d(0, 0, 0);

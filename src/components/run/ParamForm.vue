@@ -299,7 +299,6 @@ function deleteItem(group: CategoryParam, item: SingleParam) {
   overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
 }
-
 .expansion{
   max-height:100%;
   overflow:hidden auto;

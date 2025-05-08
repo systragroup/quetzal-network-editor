@@ -221,7 +221,6 @@ function playAudio() {
   overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
 }
-
 .subtitle {
   font-size: 2em;
   font-weight: bold;
@@ -238,7 +237,6 @@ function playAudio() {
 }
 .switch{
   margin-left:auto;
-
   padding-right:0.5rem;
 }
 .title-container{
@@ -247,5 +245,4 @@ function playAudio() {
   align-items: center;
   flex-direction: row;
 }
-
 </style>

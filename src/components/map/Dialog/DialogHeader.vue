@@ -52,7 +52,7 @@ const variant = defineModel<string>('variant', { default: '' })
 
 .filter-container{
   display: flex;
-  padding:0 1rem 0.5rem 1rem;
+  padding:0 1rem 0.5rem;
   gap:1rem;
   flex-direction:row
 }
