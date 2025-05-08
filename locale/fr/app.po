@@ -124,7 +124,7 @@ msgid "An error occur fetching example on github"
 msgstr ""
 "Une erreur s'est produite lors de la récupération de l'exemple sur github"
 
-#: src/components/import/ScenariosExplorer.vue:375
+#: src/components/import/ScenariosExplorer.vue:365
 msgid "Any unsaved changes to %{sc} will be lost"
 msgstr "Toutes les modifications non enregistrées à %{sc} seront perdues"
 
@@ -192,11 +192,11 @@ msgstr ""
 "Impossible de filtrer par ce champ puisqu'il crée {res} groupes sur un "
 "maximum de %{maxSize}"
 
-#: src/components/import/ScenariosExplorer.vue:128
+#: src/components/import/ScenariosExplorer.vue:118
 msgid "cannot have / in name"
 msgstr "Interdit d'avoir / dans le nom"
 
-#: src/components/import/ScenariosExplorer.vue:129
+#: src/components/import/ScenariosExplorer.vue:119
 msgid "cannot have # in name"
 msgstr "interdit d'avoir # dans le nom"
 
@@ -248,7 +248,7 @@ msgstr "confirmer mot de passe"
 msgid "convert"
 msgstr "convertir"
 
-#: src/components/import/ScenariosExplorer.vue:388
+#: src/components/import/ScenariosExplorer.vue:378
 msgid "Copy %{sc}?"
 msgstr "Copier %{sc}?"
 
@@ -263,7 +263,7 @@ msgstr ""
 msgid "create"
 msgstr "Créer"
 
-#: src/components/import/ScenariosExplorer.vue:389
+#: src/components/import/ScenariosExplorer.vue:379
 msgid "Create"
 msgstr "Créer"
 
@@ -319,7 +319,7 @@ msgstr ""
 msgid "delete"
 msgstr "Supprimer "
 
-#: src/components/import/ScenariosExplorer.vue:381
+#: src/components/import/ScenariosExplorer.vue:371
 #: src/components/map/sidePanel/LinksSidePanel.vue:589
 #: src/components/map/sidePanel/ODSidePanel.vue:250
 #: src/components/map/sidePanel/RoadSidePanel.vue:332
@@ -331,7 +331,7 @@ msgstr "Supprimer "
 msgid "Delete %{name}?"
 msgstr "Supprimer %{name}?"
 
-#: src/components/import/ScenariosExplorer.vue:380
+#: src/components/import/ScenariosExplorer.vue:370
 #: src/components/map/sidePanel/LinksSidePanel.vue:588
 #: src/components/map/sidePanel/ODSidePanel.vue:249
 #: src/components/map/sidePanel/RoadSidePanel.vue:331
@@ -757,7 +757,7 @@ msgstr "longueur de la géometrie (lineString) du liens (mètres)"
 msgid "List of Trips"
 msgstr "Liste des départs"
 
-#: src/components/import/ScenariosExplorer.vue:370
+#: src/components/import/ScenariosExplorer.vue:360
 msgid "Load %{sc} ?"
 msgstr "Charger %{sc}?"
 
@@ -842,8 +842,8 @@ msgstr "Valeurs multiples"
 msgid "Must be logged in"
 msgstr "Doit être connecté"
 
-#: src/components/import/ScenariosExplorer.vue:268
-#: src/components/import/ScenariosExplorer.vue:397
+#: src/components/import/ScenariosExplorer.vue:258
+#: src/components/import/ScenariosExplorer.vue:387
 #: src/components/microservices/GTFSZipImporter.vue:186
 #: src/pages/ResultMap.vue:328
 msgid "name"
@@ -884,18 +884,18 @@ msgstr "Nouveau mot de passe"
 msgid "New road links Highway property name"
 msgstr "Type de route (Highway) des nouveux liens routiers"
 
-#: src/components/import/ScenariosExplorer.vue:358
+#: src/components/import/ScenariosExplorer.vue:348
 msgid "new scenario"
 msgstr "Nouveau scénario"
 
-#: src/components/import/ScenariosExplorer.vue:388
+#: src/components/import/ScenariosExplorer.vue:378
 msgid "New Scenario"
 msgstr "Nouveau Scénario"
 
-#: src/components/import/ScenariosExplorer.vue:373
+#: src/components/import/ScenariosExplorer.vue:363
 #: src/components/map/Dialog/EditScheduleDialog.vue:497
 #: src/components/map/Dialog/LinksEditDialog.vue:383
-#: src/components/microservices/GTFSWebImporter.vue:304
+#: src/components/microservices/GTFSWebImporter.vue:303
 #: src/components/microservices/GTFSZipImporter.vue:249
 #: src/components/microservices/OSMImporter.vue:146 src/pages/Import.vue:354
 msgid "No"
@@ -954,7 +954,7 @@ msgstr "Autres Intrants"
 msgid "Outputs"
 msgstr "Extrants"
 
-#: src/components/microservices/GTFSWebImporter.vue:296
+#: src/components/microservices/GTFSWebImporter.vue:295
 #: src/components/microservices/GTFSZipImporter.vue:241
 msgid "Overwrite current PT network ?"
 msgstr "Écraser le réseau TC ?"
@@ -987,7 +987,7 @@ msgstr ""
 msgid "password must match"
 msgstr "le mot de passe doit correspondre"
 
-#: src/components/import/ScenariosExplorer.vue:127
+#: src/components/import/ScenariosExplorer.vue:117
 msgid "Please enter a name"
 msgstr "entrer un nom s.v.p"
 
@@ -1021,7 +1021,7 @@ msgstr "Préréglages"
 msgid "Process"
 msgstr "Lancer"
 
-#: src/components/import/ScenariosExplorer.vue:130
+#: src/components/import/ScenariosExplorer.vue:120
 msgid "project already exist"
 msgstr "le project existe déjà"
 
@@ -1175,11 +1175,11 @@ msgstr "Échelle"
 msgid "scale min"
 msgstr "Échelle"
 
-#: src/components/import/ScenariosExplorer.vue:153
+#: src/components/import/ScenariosExplorer.vue:143
 msgid "Scenario created"
 msgstr "Scénario créé"
 
-#: src/components/import/ScenariosExplorer.vue:205
+#: src/components/import/ScenariosExplorer.vue:195
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
@@ -1191,11 +1191,11 @@ msgstr "Scénario sauvegardé"
 msgid "Scenario Settings"
 msgstr "Paramètres de simulation"
 
-#: src/components/import/ScenariosExplorer.vue:144
+#: src/components/import/ScenariosExplorer.vue:134
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
-#: src/components/import/ScenariosExplorer.vue:253
+#: src/components/import/ScenariosExplorer.vue:243
 #: src/components/map/sidePanel/LinksSidePanel.vue:326
 msgid "search"
 msgstr "recherche"
@@ -1357,7 +1357,7 @@ msgstr "mot de passe temporaire"
 msgid "the name of the exported zip file"
 msgstr "Le nom du fichier .zip à l'export."
 
-#: src/components/import/ScenariosExplorer.vue:384
+#: src/components/import/ScenariosExplorer.vue:374
 msgid "The scenario will be permanently deleted"
 msgstr "Le scénario sera supprimé définitivement"
 
@@ -1428,7 +1428,7 @@ msgstr "indéfini"
 msgid "Unload all files ?"
 msgstr "Décharger tous les fichiers ?"
 
-#: src/components/import/ScenariosExplorer.vue:370
+#: src/components/import/ScenariosExplorer.vue:360
 msgid "Unload Scenario?"
 msgstr "Décharger le scénario?"
 
@@ -1477,10 +1477,10 @@ msgstr "Largeur à afficher sur la carte"
 msgid "with %{index}?"
 msgstr "avec %{index}?"
 
-#: src/components/import/ScenariosExplorer.vue:372
+#: src/components/import/ScenariosExplorer.vue:362
 #: src/components/map/Dialog/EditScheduleDialog.vue:496
 #: src/components/map/Dialog/LinksEditDialog.vue:382
-#: src/components/microservices/GTFSWebImporter.vue:311
+#: src/components/microservices/GTFSWebImporter.vue:310
 #: src/components/microservices/GTFSZipImporter.vue:256
 #: src/components/microservices/OSMImporter.vue:153 src/pages/Import.vue:361
 msgid "Yes"

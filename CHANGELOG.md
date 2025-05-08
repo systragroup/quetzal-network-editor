@@ -1,3 +1,89 @@
+## [7.0.0] (2025-05-08)
+Major Release with A lot of code refactoring, TypeScript added and variants (periods)
+### Features
+
+* **TypeScript**  added. almost all stores in TS.
+* **Variants**
+    * **TC** networks (ex: speed#AM, speed#PM, etc)
+    * **Roads** (ex: speed#AM, speed#PM, speed#AM_r, speed#PM_r, etc)
+    * **parameters**  ex: (n_tleg_#AM) and chosing period in the step function. Can also edit and create variant params
+    * **Dialogs** Can filter properties and/or variants. Added number-inputs
+
+* **Project Description and Note**: new info.json at the root of a project.  Display info when hovering and editable for a selected project. info.json = {description: ""}
+* **New Transit Microservice**
+* **MapState (parallel)** support for stepfunction definition
+* **Speed-time-length** dynamic calculation on roadLinks (except reversed direction _r)
+* **Highligh PT**: from the left panel.
+* **Password reset**
+
+
+### Changes
+
+* Maps auto center on network, no more fly from Montreal.
+* When visiting result map: center on links or rlinks if its the first page loaded.
+* Map (and result map) are now not under the left panel and resize well.
+* remove changeBounds when click on a link
+* remove default link color changes on darkMode
+* stops have a lower opacity if drop_off and pickup is not 0, and not one or the other.
+* Change (OD) in results column to (interactive) for properties with a json (clickable on the map)
+
+* New Trips properties entered overwrite defaults values for next trip creation.
+* Change speed-time calculation to "timeVariant". so we can have variants without having it on speed and time. (ex: headway#am,speed,time)
+* Routing list: remove duplicated in road_link_list on apply.
+
+* Change NavigationDrawer Looks and feels
+* Enter on Edit Dialog and escape to confirm/cancel
+* Export as zip: add compression.
+* Add microservices/ folder at root (with inputs/ outputs/). microservices outputs are store there. [#582](https://github.com/systragroup/quetzal-network-editor/issues/582)
+* Microservices : descritpion is a markdown with Math and ajust css a bit 
+
+
+### performances
+
+* Results layer loads faster (no more cloneDeep)
+* apply properties type optimized
+* simplify geometry optimized a bit
+
+
+### Refactor
+
+* All stores in TypeScript (except OSMImporter)
+* UseAPI composable in TS
+* RunStore using UseAPI composable
+* Cleaning links store. remove newLink, newNode, defautLink
+* Cleaning rlink store
+* Move all actions done in Home.vue
+* New Editor Dialogs for links, rlinks and OD.
+* New PromiseDialog for deletion and Cloning.
+* SidePanels In TS, with more direct store mutation and no emits.
+* MapMatching MicroService (store and component) in TS
+* MatrixRoadCaster MicroService (store and component) in TS
+* EditScheduleDialog.vue in TS
+* Run pages refactored to multiple components in TS
+* update SCSS. @import was deprecated
+* fitBounds in now a global function for any geometry type.
+* change the login component to add password reset and TS
+
+
+
+### Bug Fixes
+* v-number-input was forcing int in param form (run page)
+
+* Right click on links show hovered list and not a new mapbox request under the mouse
+* sticky node was doing weird geometry sometime on the links.
+* close popup on edition trip (could have a popup and select trip on left panel before)
+
+* Preset when filtering were not properly rendered.
+* Results map: show all layer properties on click. If no index: don't show nothing...
+* result map bug: layer was not loading
+
+* ScheduleEditor had a bug where departures and arrival list were not store as array: [#583](https://github.com/systragroup/quetzal-network-editor/issues/583)
+* road_link_list was converted to a string (must be a list)
+* add fixRoutingList on load (was added to 6.1.7)
+* add default _r values if none on load. No overwrite. but if oneway==0 (its 2 way) and we habe no {prop}_r. apply prop to it.
+
+
+
 ## [6.1.7] (2025-04-08)
 ### Bug Fixes
 * road_link_list duplicated (first == last) deleted on import

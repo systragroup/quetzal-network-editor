@@ -82,7 +82,7 @@ msgstr ""
 msgid "An error occur fetching example on github"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:375
+#: src/components/import/ScenariosExplorer.vue:365
 msgid "Any unsaved changes to %{sc} will be lost"
 msgstr ""
 
@@ -147,11 +147,11 @@ msgstr ""
 msgid "Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:128
+#: src/components/import/ScenariosExplorer.vue:118
 msgid "cannot have / in name"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:129
+#: src/components/import/ScenariosExplorer.vue:119
 msgid "cannot have # in name"
 msgstr ""
 
@@ -203,7 +203,7 @@ msgstr ""
 msgid "convert"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:388
+#: src/components/import/ScenariosExplorer.vue:378
 msgid "Copy %{sc}?"
 msgstr ""
 
@@ -215,7 +215,7 @@ msgstr ""
 msgid "create"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:389
+#: src/components/import/ScenariosExplorer.vue:379
 msgid "Create"
 msgstr ""
 
@@ -271,7 +271,7 @@ msgstr ""
 msgid "delete"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:381
+#: src/components/import/ScenariosExplorer.vue:371
 #: src/components/map/sidePanel/LinksSidePanel.vue:589
 #: src/components/map/sidePanel/ODSidePanel.vue:250
 #: src/components/map/sidePanel/RoadSidePanel.vue:332
@@ -283,7 +283,7 @@ msgstr ""
 msgid "Delete %{name}?"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:380
+#: src/components/import/ScenariosExplorer.vue:370
 #: src/components/map/sidePanel/LinksSidePanel.vue:588
 #: src/components/map/sidePanel/ODSidePanel.vue:249
 #: src/components/map/sidePanel/RoadSidePanel.vue:331
@@ -693,7 +693,7 @@ msgstr ""
 msgid "List of Trips"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:370
+#: src/components/import/ScenariosExplorer.vue:360
 msgid "Load %{sc} ?"
 msgstr ""
 
@@ -774,8 +774,8 @@ msgstr ""
 msgid "Must be logged in"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:268
-#: src/components/import/ScenariosExplorer.vue:397
+#: src/components/import/ScenariosExplorer.vue:258
+#: src/components/import/ScenariosExplorer.vue:387
 #: src/components/microservices/GTFSZipImporter.vue:186
 #: src/pages/ResultMap.vue:328
 msgid "name"
@@ -816,18 +816,18 @@ msgstr ""
 msgid "New road links Highway property name"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:358
+#: src/components/import/ScenariosExplorer.vue:348
 msgid "new scenario"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:388
+#: src/components/import/ScenariosExplorer.vue:378
 msgid "New Scenario"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:373
+#: src/components/import/ScenariosExplorer.vue:363
 #: src/components/map/Dialog/EditScheduleDialog.vue:497
 #: src/components/map/Dialog/LinksEditDialog.vue:383
-#: src/components/microservices/GTFSWebImporter.vue:304
+#: src/components/microservices/GTFSWebImporter.vue:303
 #: src/components/microservices/GTFSZipImporter.vue:249
 #: src/components/microservices/OSMImporter.vue:146
 #: src/pages/Import.vue:354
@@ -889,7 +889,7 @@ msgstr ""
 msgid "Outputs"
 msgstr ""
 
-#: src/components/microservices/GTFSWebImporter.vue:296
+#: src/components/microservices/GTFSWebImporter.vue:295
 #: src/components/microservices/GTFSZipImporter.vue:241
 msgid "Overwrite current PT network ?"
 msgstr ""
@@ -922,7 +922,7 @@ msgstr ""
 msgid "password must match"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:127
+#: src/components/import/ScenariosExplorer.vue:117
 msgid "Please enter a name"
 msgstr ""
 
@@ -956,7 +956,7 @@ msgstr ""
 msgid "Process"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:130
+#: src/components/import/ScenariosExplorer.vue:120
 msgid "project already exist"
 msgstr ""
 
@@ -1112,11 +1112,11 @@ msgstr ""
 msgid "scale min"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:153
+#: src/components/import/ScenariosExplorer.vue:143
 msgid "Scenario created"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:205
+#: src/components/import/ScenariosExplorer.vue:195
 msgid "Scenario deleted"
 msgstr ""
 
@@ -1128,11 +1128,11 @@ msgstr ""
 msgid "Scenario Settings"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:144
+#: src/components/import/ScenariosExplorer.vue:134
 msgid "Scenario successfully copied"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:253
+#: src/components/import/ScenariosExplorer.vue:243
 #: src/components/map/sidePanel/LinksSidePanel.vue:326
 msgid "search"
 msgstr ""
@@ -1286,7 +1286,7 @@ msgstr ""
 msgid "the name of the exported zip file"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:384
+#: src/components/import/ScenariosExplorer.vue:374
 msgid "The scenario will be permanently deleted"
 msgstr ""
 
@@ -1345,7 +1345,7 @@ msgstr ""
 msgid "Unload all files ?"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:370
+#: src/components/import/ScenariosExplorer.vue:360
 msgid "Unload Scenario?"
 msgstr ""
 
@@ -1395,10 +1395,10 @@ msgstr ""
 msgid "with %{index}?"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:372
+#: src/components/import/ScenariosExplorer.vue:362
 #: src/components/map/Dialog/EditScheduleDialog.vue:496
 #: src/components/map/Dialog/LinksEditDialog.vue:382
-#: src/components/microservices/GTFSWebImporter.vue:311
+#: src/components/microservices/GTFSWebImporter.vue:310
 #: src/components/microservices/GTFSZipImporter.vue:256
 #: src/components/microservices/OSMImporter.vue:153
 #: src/pages/Import.vue:361
