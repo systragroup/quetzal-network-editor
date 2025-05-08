@@ -1,5 +1,6 @@
 const $gettext = (s: string) => s
 import JSZip from 'jszip'
+import Papa from 'papaparse'
 
 export async function unzip (file: File) {
   // unzip a file and return a json (solo json zipped)
@@ -69,7 +70,7 @@ export async function unzipCalendar (file: File) {
     const tfile = zip.file('calendar.txt')
     if (tfile) {
       const bytes = await tfile.async('uint8array')
-      const content = csvJSON(bytes)
+      const content = parseCSV(bytes)
       return content
     }
   }
@@ -77,30 +78,25 @@ export async function unzipCalendar (file: File) {
   return {}
 }
 
-// https://stackoverflow.com/questions/27979002/convert-csv-data-into-json-format-using-javascript
-export function csvJSON(bytes: Uint8Array, quoteChar = '"', delimiter = ',') {
-  // this version will read columns with lists.
-  const text = new TextDecoder().decode(bytes)
-  var rows = text.split('\n')
-  var headers = rows[0].split(',')
+export function parseCSV(bytes: Uint8Array) {
+  const str = new TextDecoder().decode(bytes)
+  const jsonData = Papa.parse(str, {
+    header: true,
+    skipEmptyLines: true,
+  })
+  return jsonData.data
+}
 
-  const regex = new RegExp(`\\s*(${quoteChar})?(.*?)\\1\\s*(?:${delimiter}|$)`, 'gs')
-
-  const match = (line: any) => [...line.matchAll(regex)]
-    .map(m => m[2])
-    .slice(0, -1)
-
-  var lines = text.split('\n')
-  const heads = headers ?? match(lines.shift())
-  lines = lines.slice(1)
-
-  return lines.map(line => {
-    return match(line).reduce((acc, cur, i) => {
-      // replace blank matches with `null`
-      const val = cur.length <= 0 ? null : Number(cur) || cur
-      const key = heads[i] ?? `{i}`
-      return { ...acc, [key]: val }
-    }, {})
+export function WorkerParseCSV(bytes: Uint8Array): Promise<any[]> {
+  const str = new TextDecoder().decode(bytes)
+  return new Promise((resolve, reject) => {
+    Papa.parse(str, {
+      header: true,
+      skipEmptyLines: true,
+      worker: true,
+      complete: (result) => resolve(result.data),
+      error: (err: unknown) => reject(err),
+    })
   })
 }
 
