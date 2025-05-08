@@ -103,12 +103,11 @@ const subtab = ref('Zip importer')
 .layout {
   position: absolute;
   width:100%;
-  height: 100%;
+  height: 95%;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: rgb(var(--v-theme-background));
-
 }
 .layout-overlay {
   height: 100%;
@@ -118,10 +117,8 @@ const subtab = ref('Zip importer')
 }
 .tabs{
   background-color: rgb(var(--v-theme-background));
-
 }
 .subtabs{
   border-top: 1px solid  rgb(var(--v-theme-background));
-
 }
 </style>

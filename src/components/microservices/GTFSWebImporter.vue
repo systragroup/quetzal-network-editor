@@ -279,7 +279,6 @@ function applyOverwriteDialog () {
             icon="fa-solid fa-download"
             size="small"
             :href="item['urls.latest']"
-            :style="{color: 'white'}"
           />
         </ul>
       </div>

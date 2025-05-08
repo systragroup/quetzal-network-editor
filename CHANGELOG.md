@@ -1,3 +1,17 @@
+## [6.1.7] (2025-04-08)
+### Bug Fixes
+* road_link_list duplicated (first == last) deleted on import
+
+
+## [6.1.6] (2025-03-25)
+### Bug Fixes
+* Microservice page not showing tabs sometime.
+* Securities updates
+
+## [6.1.5] (2025-03-19)
+### Bug Fixes
+* gtfs importer zip button invisible
+
 ## [6.1.3] (2024-12-09)
 ### Bug Fixes
 * Change New password Regex for more special characters
