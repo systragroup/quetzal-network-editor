@@ -1,13 +1,24 @@
 <script setup lang="ts">
 import s3 from '../AWSClient'
-import { csvJSON } from '@src/utils/io'
 import { ref, onMounted, toRaw, computed } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { useWebWorkerFn } from '@vueuse/core'
 import { orderBy } from 'lodash'
 import { OtherFiles } from '@src/types/typesStore'
-const { workerFn: csvJSONWorker } = useWebWorkerFn(csvJSON)
+import Papa from 'papaparse'
+
+function parse(bytes: Uint8Array): Promise<any[]> {
+  const str = new TextDecoder().decode(bytes)
+  return new Promise((resolve, reject) => {
+    Papa.parse(str, {
+      header: true,
+      skipEmptyLines: true,
+      worker: true,
+      complete: (result) => resolve(result.data),
+      error: (err: unknown) => reject(err),
+    })
+  })
+}
 
 interface Header {
   title: string
@@ -47,10 +58,11 @@ async function getFiles () {
 
 async function processCSV(file: OtherFiles) {
   const name = file.path.slice(0, -4)
+  console.time('papa')
   const data = (file.content !== null)
-    ? await csvJSONWorker(file.content.buffer)
+    ? await parse(file.content.buffer)
     : [{ too_large: `cannot display, more than ${limit} mb` }]
-
+  console.timeEnd('papa')
   const headers = Object.keys(data[0]).map(val => { return { title: val, key: val, width: '1%' } })
   tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
   skeletons.value -= 1
@@ -62,12 +74,11 @@ onMounted(async () => {
     await getFiles()
     store.changeLoading(false)
   } catch (err) {
-    console.error(err)
+    store.changeAlert(err)
     store.changeLoading(false)
     skeletons.value = 0
   }
   for (const file of csvFiles.value) {
-    // const name = file.path.split('/').splice(-1)[0].slice(0, -4)
     await processCSV(file)
   }
 })
@@ -103,7 +114,7 @@ async function loadItems ({ key, page, itemsPerPage, sortBy }: any) {
       <v-data-table-server
         :items-per-page="numItems"
         :headers="table.headers"
-        :height="table.items.length >= 10 ? '36rem':'auto'"
+        class="fill-height"
         :items-length="table.totalItems"
         fixed-header
         fixed-footer
@@ -121,7 +132,7 @@ async function loadItems ({ key, page, itemsPerPage, sortBy }: any) {
       </v-data-table-server>
     </div>
     <div
-      v-if="skeletons>0"
+      v-if="skeletons > 0"
       class="card elevation-3"
     >
       <v-skeleton-loader
@@ -148,12 +159,10 @@ async function loadItems ({ key, page, itemsPerPage, sortBy }: any) {
   height:100%;
   margin: 10px;
   background-color:rgb(var(--v-theme-lightergrey));
-
 }
 .custom-title {
   height:3rem;
-  align-content: center  !important;
-
+  justify-content: center;
 }
 
 </style>
