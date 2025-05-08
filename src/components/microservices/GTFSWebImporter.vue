@@ -7,7 +7,7 @@ import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { csvJSON } from '@src/utils/io'
+import { parseCSV } from '@src/utils/io'
 import MapSelector from './MapSelector.vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -109,7 +109,7 @@ async function fetchCSV () {
       store.changeAlert({ name: 'Network error', message: 'cannot fetch GTFS list' })
     }
     const data = await response.arrayBuffer()
-    const json = csvJSON(data)
+    const json = parseCSV(data)
     return json
   } catch (err) {
     store.changeAlert(err)

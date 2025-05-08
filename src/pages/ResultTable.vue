@@ -5,20 +5,7 @@ import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { orderBy } from 'lodash'
 import { OtherFiles } from '@src/types/typesStore'
-import Papa from 'papaparse'
-
-function parse(bytes: Uint8Array): Promise<any[]> {
-  const str = new TextDecoder().decode(bytes)
-  return new Promise((resolve, reject) => {
-    Papa.parse(str, {
-      header: true,
-      skipEmptyLines: true,
-      worker: true,
-      complete: (result) => resolve(result.data),
-      error: (err: unknown) => reject(err),
-    })
-  })
-}
+import { WorkerParseCSV } from '@src/utils/io'
 
 interface Header {
   title: string
@@ -58,11 +45,12 @@ async function getFiles () {
 
 async function processCSV(file: OtherFiles) {
   const name = file.path.slice(0, -4)
-  console.time('papa')
-  const data = (file.content !== null)
-    ? await parse(file.content.buffer)
-    : [{ too_large: `cannot display, more than ${limit} mb` }]
-  console.timeEnd('papa')
+  let data = []
+  if (file.content === null) {
+    data = [{ too_large: `cannot display, more than ${limit} mb` }]
+  } else {
+    data = await WorkerParseCSV(file.content.buffer)
+  }
   const headers = Object.keys(data[0]).map(val => { return { title: val, key: val, width: '1%' } })
   tables.value.push({ headers, items: data.slice(0, numItems.value), data, name, totalItems: data.length })
   skeletons.value -= 1
