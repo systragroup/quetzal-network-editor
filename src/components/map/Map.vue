@@ -1,24 +1,23 @@
 <script setup>
-import Mapbox from 'mapbox-gl'
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
-import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef } from 'vue'
+import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef, onMounted } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
-import Linestring from 'turf-linestring'
+import { lineString } from '@turf/helpers'
 import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
 import ODMap from './ODMap.vue'
 import { useIndexStore } from '@src/store/index'
+import { useMapStore } from '@src/store/map'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
-const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
 // Filter links from selected line
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -33,8 +32,8 @@ const props = defineProps({
     default: 'pt',
   },
 })
-const emits = defineEmits(['clickFeature'])
 const store = useIndexStore()
+const mapStore = useMapStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 
@@ -42,27 +41,21 @@ const rlinksStore = userLinksStore()
 const map = shallowRef(null)
 const mapIsLoaded = ref(false)
 
-function fitBounds() {
-  const bounds = new Mapbox.LngLatBounds()
-  // only use first and last point. seems to bug when there is anchor...
-  if (linksStore.links.features.length > 0) {
-    linksStore.links.features.forEach(link => {
-      bounds.extend([link.geometry.coordinates[0],
-        link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-    })
-  } else {
-    rlinksStore.rlinks.features.forEach(link => {
-      bounds.extend([link.geometry.coordinates[0],
-        link.geometry.coordinates[link.geometry.coordinates.length - 1]])
-    })
-  }
+onMounted(() => {
+  fitBounds()
+})
 
+function fitBounds() {
   // for empty (new) project, do not fit bounds around the links geometries.
-  if (Object.keys(bounds).length !== 0) {
-    map.value.fitBounds(bounds, {
-      padding: 100,
-    })
-  }
+  // only use first and last point. seems to bug when there is anchor...
+  const layer = linksStore.linksIsEmpty ? rlinksStore.rlinks : linksStore.links
+  const bounds = mapStore.getBounds(layer)
+  mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
+}
+
+function onMapLoaded (event) {
+  if (map.value) mapIsLoaded.value = false
+  map.value = event.map
   map.value.loadImage(arrowImage, function (err, image) {
     if (err) {
       console.error('err image', err)
@@ -70,27 +63,21 @@ function fitBounds() {
     }
     map.value.addImage('arrow', image, { sdf: true })
   })
-}
-
-function onMapLoaded (event) {
-  if (map.value) mapIsLoaded.value = false
-  map.value = event.map
-  fitBounds()
   event.map.dragRotate.disable()
   mapIsLoaded.value = true
 }
 
-const showLeftPanel = computed(() => { return store.showLeftPanel })
-watch(showLeftPanel, () => { setTimeout(() => map.value.resize(), 250) })
+import { useMapResize } from '@src/composables/useMapResize.js'
+const { canvasDiv } = useMapResize(map)
 
-const mapStyle = computed(() => { return store.mapStyle })
+const mapStyle = computed(() => { return mapStore.mapStyle })
 watch(mapStyle, () => { saveMapPosition() })
 onBeforeUnmount(() => { saveMapPosition() })
 
 function saveMapPosition () {
   try {
     const center = map.value.getCenter()
-    store.saveMapPosition({
+    mapStore.saveMapPosition({
       mapCenter: [center.lng, center.lat],
       mapZoom: map.value.getZoom(),
     })
@@ -111,7 +98,7 @@ const editorTrip = computed(() => linksStore.editorTrip)
 const isEditorMode = computed(() => editorTrip.value !== null)
 
 // DrakLink
-const drawLink = ref(Linestring([]))
+const drawLink = ref(lineString([[0, 0], [0, 0]]))
 const drawMode = ref(false)
 const connectedDrawLink = ref(false)
 
@@ -149,17 +136,7 @@ watch(editorTrip, (val) => {
   store.setStickyMode(false)
   store.setRoutingMode(false)
   connectedDrawLink.value = false
-  if (val) {
-    if (linksStore.changeBounds) {
-      const bounds = new Mapbox.LngLatBounds()
-      editorNodes.value.features.forEach(node => {
-        bounds.extend(node.geometry.coordinates)
-      })
-      map.value.fitBounds(bounds, {
-        padding: 200,
-      })
-    }
-  } else { drawMode.value = false }
+  if (!val) { drawMode.value = false }
 })
 
 watch(isEditorMode, (val) => {
@@ -206,8 +183,15 @@ const selectedNode = ref({ id: null, layerId: null })
 const hoverId = ref(null)
 const hoverLayer = ref(null)
 
-const firstNode = computed(() => { return linksStore.firstNode })
-const lastNode = computed(() => { return linksStore.lastNode })
+const firstNodeId = computed(() => { return linksStore.firstNodeId })
+const lastNodeId = computed(() => { return linksStore.lastNodeId })
+
+const firstNode = computed(() =>
+  editorNodes.value.features.filter((node) => node.properties.index === firstNodeId.value)[0],
+)
+const lastNode = computed(() =>
+  editorNodes.value.features.filter((node) => node.properties.index === lastNodeId.value)[0],
+)
 // when the first or last node change (delete or new) change the value of those nodes.
 watch(firstNode, (val) => {
   if (editorTrip.value && val) {
@@ -248,33 +232,43 @@ function addPointPT(event) {
     ? 'Extend Line Upward'
     : 'Extend Line Downward'
   const pointGeom = Object.values(event.mapboxEvent.lngLat)
-
   if (drawMode.value && !anchorMode.value && !hoverId.value) {
     linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
   } else if (connectedDrawLink.value && hoverLayer.value === 'stickyNodes' && hoverId.value) {
     // reuse a existing node. create the link and simulate a move event with useStickyNode()
     linksStore.applyNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
-    const newNode = linksStore.newNode.properties.index
+    const newNode = linksStore.editorNodes.features.slice(-1)[0].properties.index
     useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
   }
   if (store.routingMode) {
-    routeLink(linksStore.newLink)
+    const newLinkFeature = action === 'Extend Line Upward'
+      ? linksStore.editorLinks.features.slice(-1)[0]
+      : linksStore.editorLinks.features[0]
+    routeLink(newLinkFeature)
   }
 }
 
 function addPointRoad(event) {
   const pointGeom = Object.values(event.mapboxEvent.lngLat)
-  const payload = {
-    nodeIdA: selectedNode.value.id,
-    nodeIdB: hoverId.value, // could be null, a node or a link.
-    geom: pointGeom,
-    layerId: hoverLayer.value,
+  let payload = {}
+  if (hoverLayer.value === 'rlinks') {
+    payload = {
+      nodeIdA: selectedNode.value.id,
+      linksId: hoverId.value, // could be null, a node or a link.
+      geom: pointGeom,
+    }
+  } else {
+    payload = {
+      nodeIdA: selectedNode.value.id,
+      nodeIdB: hoverId.value, // could be null, a node or a link.
+      geom: pointGeom,
+    }
   }
   // this action overwrite payload.nodeIdB to the actual newLink nodeB.
-  rlinksStore.createrLink(payload)
+  const toHover = rlinksStore.createrLink(payload)
   drawMode.value = false
   // then, create a hover (and off hover) to the new node b to continue drawing
-  onHoverRoad({ layerId: 'rnodes', selectedId: [payload.nodeIdB] })
+  onHoverRoad({ layerId: 'rnodes', selectedId: [toHover] })
   offHover()
 }
 
@@ -283,11 +277,6 @@ function clickFeature (event) {
   if (['Move rNode', 'Delete rLink'].includes(event.action)) {
     drawMode.value = false
     connectedDrawLink.value = false
-  }
-  // prevent emitting add road node inline when drawmode is on.
-  // we will add the node inlne and create the new link in this component.
-  if (!(event.action === 'Add Road Node Inline' && drawMode.value)) {
-    emits('clickFeature', event)
   }
 }
 
@@ -369,7 +358,7 @@ function applyStickyNode() {
   }
 }
 
-import { useRouting } from '@src/components/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.js'
 const { routeLink } = useRouting()
 
 </script>
@@ -380,104 +369,107 @@ const { routeLink } = useRouting()
     :body="$gettext('with %{index}?', { index: stickyNodeId }) "
     @confirm="applyStickyNode"
   />
-  <MglMap
-    :key="mapStyle"
-    :style="{'width': '100%'}"
-    :access-token="mapboxPublicKey"
-    :map-style="mapStyle"
-    :center="store.mapCenter"
-    :zoom="store.mapZoom"
-    @load="onMapLoaded"
-    @mousemove="draw"
-    @mouseout="resetDraw('out')"
-    @mouseenter="resetDraw('in')"
-    @click="addPoint"
-    @mousedown="clickStopDraw"
+  <div
+    ref="canvasDiv"
+    class="map"
   >
-    <div
-      v-if="mapIsLoaded"
-      :style="{'display':'flex'}"
+    <MglMap
+      :key="mapStyle"
+      :access-token="mapStore.key"
+      :map-style="mapStyle"
+      :center="mapStore.mapCenter"
+      :zoom="mapStore.mapZoom"
+      @load="onMapLoaded"
+      @mousemove="draw"
+      @mouseout="resetDraw('out')"
+      @mouseenter="resetDraw('in')"
+      @click="addPoint"
+      @mousedown="clickStopDraw"
     >
-      <Settings />
-      <StyleSelector />
-      <LayerSelector
-        v-if="rasterFiles.length>0"
-        :choices="rasterFiles"
-        :available-layers="availableLayers"
-        :map="map"
+      <div
+        v-if="mapIsLoaded"
+        :style="{'display':'flex'}"
+      >
+        <Settings />
+        <StyleSelector />
+        <LayerSelector
+          v-if="rasterFiles.length>0"
+          :choices="rasterFiles"
+          :available-layers="availableLayers"
+          :map="map"
+        />
+      </div>
+      <MglScaleControl position="bottom-right" />
+      <MglNavigationControl
+        position="bottom-right"
+        :visualize-pitch="true"
       />
-    </div>
-    <MglScaleControl position="bottom-right" />
-    <MglNavigationControl
-      position="bottom-right"
-      :visualize-pitch="true"
-    />
-    <div
-      v-for="file in rasterFiles"
-      :key="file.name"
-    >
-      <StaticLayer
-        v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)"
+      <div
+        v-for="file in rasterFiles"
         :key="file.name"
-        :map="map"
-        :preset="file"
-        :order="visibleRasters.indexOf(file.name)"
-        :visible-rasters="visibleRasters"
-      />
-    </div>
-    <template v-if="mapIsLoaded && !rlinksIsEmpty">
-      <RoadLinks
+      >
+        <StaticLayer
+          v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)"
+          :key="file.name"
+          :map="map"
+          :preset="file"
+          :order="visibleRasters.indexOf(file.name)"
+          :visible-rasters="visibleRasters"
+        />
+      </div>
+      <template v-if="mapIsLoaded && !rlinksIsEmpty">
+        <RoadLinks
+          :map="map"
+          :is-editor-mode="isEditorMode"
+          @select="drawMode = false"
+          v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+        />
+      </template>
+      <StaticLinks
         :map="map"
         :is-editor-mode="isEditorMode"
-        @select="drawMode = false"
-        v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
+        :mode="mode"
       />
-    </template>
-    <StaticLinks
-      :map="map"
-      :is-editor-mode="isEditorMode"
-      :mode="mode"
-      @rightClick="(e) => emits('clickFeature',e)"
-    />
-    <template v-if="mapIsLoaded">
-      <EditorLinks
+      <template v-if="mapIsLoaded">
+        <EditorLinks
+          :map="map"
+          v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover,onHoverSticky:onHoverSticky, offHover:offHover,clickFeature: clickFeature, useStickyNode:useStickyNode}"
+        />
+      </template>
+      <ODMap
         :map="map"
-        v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover,onHoverSticky:onHoverSticky, offHover:offHover,clickFeature: clickFeature, useStickyNode:useStickyNode}"
+        :is-editor-mode="isEditorMode"
+        :is-o-d-mode="mode==='od'"
+        @click-feature="clickFeature"
       />
-    </template>
-    <ODMap
-      :map="map"
-      :is-editor-mode="isEditorMode"
-      :is-o-d-mode="mode==='od'"
-      @clickFeature="clickFeature"
-    />
 
-    <MglGeojsonLayer
-      v-show="drawMode"
-      source-id="drawLink"
-      :source="{
-        type: 'geojson',
-        data:drawLink,
-        buffer: 0,
-        generateId: true,
-      }"
-      layer-id="drawLink"
-      :layer="{
-        type: 'line',
-        minzoom: 2,
-        paint: {
-          'line-opacity': 1,
-          'line-color': $vuetify.theme.current.colors.linksprimary,
-          'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
-          'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
+      <MglGeojsonLayer
+        v-show="drawMode"
+        source-id="drawLink"
+        :source="{
+          type: 'geojson',
+          data:drawLink,
+          buffer: 0,
+          generateId: true,
+        }"
+        layer-id="drawLink"
+        :layer="{
+          type: 'line',
+          minzoom: 2,
+          paint: {
+            'line-opacity': 1,
+            'line-color': $vuetify.theme.current.colors.linksprimary,
+            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
+            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
 
-        }
-      }"
-    />
-  </MglMap>
+          }
+        }"
+      />
+    </MglMap>
+  </div>
 </template>
 <style lang="scss" scoped>
-.map-view {
+.map{
   width: 100%;
 }
 .my-custom-dialog {

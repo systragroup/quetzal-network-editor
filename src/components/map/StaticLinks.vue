@@ -2,70 +2,56 @@
 <script setup>
 import { MglGeojsonLayer, MglPopup, MglImageLayer } from 'vue-mapbox3'
 import mapboxgl from 'mapbox-gl'
-import { cloneDeep } from 'lodash'
-import { deleteUnusedNodes } from '@comp/utils/utils.js'
+import { deleteUnusedNodes } from '@src/utils/utils'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
-import geojson from '@constants/geojson'
-
+import { useHighlight } from '../../composables/useHighlight'
+import { baseLineString, basePoint } from '@src/types/geojson'
 const props = defineProps(['map', 'isEditorMode', 'mode'])
-const emits = defineEmits(['rightClick', 'onHover', 'offHover'])
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const { map, isEditorMode, mode } = toRefs(props)
 
+const contextMenu = ref({
+  coordinates: [0, 0],
+  showed: false,
+  features: [],
+})
+
 // immediate necessary to trigger this (add doubleClick) when component is remounted (changing there for example)
 watch(isEditorMode, (val) => {
-  val ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
+  if (val) {
+    contextMenu.value.showed = false
+    map.value.off('dblclick', selectLine)
+  } else {
+    map.value.on('dblclick', selectLine)
+  }
 }, { immediate: true })
 
 watch(mode, (val) => {
   val !== 'pt' ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
+  contextMenu.value.showed = false
 })
+
 const links = computed(() => { return linksStore.links })
 const nodes = computed(() => { return linksStore.nodes })
 const selectedPopupContent = computed(() => { return store.linksPopupContent })
-const showedTrips = computed(() => { return linksStore.selectedTrips })
+const showedTrips = computed(() => new Set(linksStore.selectedTrips))
 watch(showedTrips, () => { setHiddenFeatures() })
 
-const visibleNodes = ref(cloneDeep(geojson))
-const visibleLinks = ref(cloneDeep(geojson))
+const visibleNodes = ref(basePoint())
+const visibleLinks = ref(baseLineString())
+
 const selectedFeatures = ref([])
-const popup = ref(null)
 
 onMounted(() => {
   setHiddenFeatures()
 })
 
-function enterLink (event) {
-  event.map.getCanvas().style.cursor = 'pointer'
-  selectedFeatures.value = event.mapboxEvent.features
-
-  if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
-  if (selectedPopupContent.value.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
-    // if multiple map element under the mouse. show them all in the popup
-    let htmlContent = []
-    selectedFeatures.value.forEach(feature => {
-      const text = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties[prop]}</b>`)
-      htmlContent.push(...text)
-    })
-    htmlContent = htmlContent.join('<br> ')
-    popup.value = new mapboxgl.Popup({ closeButton: false })
-      .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-      .setHTML(`<p>${htmlContent}</p>`)
-      .addTo(event.map)
-  }
-}
-function leaveLink (event) {
-  selectedFeatures.value = []
-  if (popup.value?.isOpen()) popup.value.remove()
-  event.map.getCanvas().style.cursor = ''
-}
 function setHiddenFeatures () {
   // get visible links and nodes.
-  const showedTripsSet = new Set(showedTrips.value)
-  visibleLinks.value.features = links.value.features.filter(link => showedTripsSet.has(link.properties.trip_id))
+  visibleLinks.value.features = links.value.features.filter(link => showedTrips.value.has(link.properties.trip_id))
   visibleNodes.value.features = deleteUnusedNodes(visibleNodes.value, visibleLinks.value)
 
   // get all unique width
@@ -91,18 +77,36 @@ function setHiddenFeatures () {
     visibleNodes.value.features.push(...newNodes)
   })
   linksStore.setVisibleNodes(visibleNodes.value)
-
   map.value.getSource('links').setData(visibleLinks.value)
   map.value.getSource('nodes').setData(visibleNodes.value)
-
-  // const endTime = performance.now()
 }
 
-const contextMenu = ref({
-  coordinates: [0, 0],
-  showed: false,
-  features: [],
-})
+const popup = ref(null)
+
+function enterLink (event) {
+  event.map.getCanvas().style.cursor = 'pointer'
+  selectedFeatures.value = event.mapboxEvent.features
+
+  if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
+  if (selectedPopupContent.value.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
+    // if multiple map element under the mouse. show them all in the popup
+    let htmlContent = []
+    selectedFeatures.value.forEach(feature => {
+      const text = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties[prop]}</b>`)
+      htmlContent.push(...text)
+    })
+    htmlContent = htmlContent.join('<br> ')
+    popup.value = new mapboxgl.Popup({ closeButton: false })
+      .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
+      .setHTML(`<p>${htmlContent}</p>`)
+      .addTo(event.map)
+  }
+}
+function leaveLink (event) {
+  selectedFeatures.value = []
+  if (popup.value?.isOpen()) popup.value.remove()
+  event.map.getCanvas().style.cursor = ''
+}
 
 function selectLine (e) {
   if (mode.value === 'pt') {
@@ -121,7 +125,7 @@ function selectLine (e) {
     }
     // do nothing if nothing is clicked (clicking on map, not on a link)
     if (selectedFeatures.value.length == 1) {
-      linksStore.setEditorTrip({ tripId: selectedFeatures.value[0].properties.trip_id, changeBounds: false })
+      linksStore.setEditorTrip(selectedFeatures.value[0].properties.trip_id)
       store.changeNotification({ text: '', autoClose: true })
     } else if (selectedFeatures.value.length > 1) {
       let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
@@ -135,23 +139,30 @@ function selectLine (e) {
 }
 
 function rightClick (event) {
-  leaveLink(event)
-  let selectedTrips = event.mapboxEvent.features.map(el => el.properties.trip_id)
-  selectedTrips = Array.from(new Set(selectedTrips))
-  if (selectedTrips.length === 1) {
-    editLineProperties(selectedTrips[0])
-  } else {
-    contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
-    contextMenu.value.showed = true
-    contextMenu.value.action = 'editProperties'
-    contextMenu.value.features = selectedTrips
+  if (mode.value === 'pt') {
+    let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
+    selectedTrips = Array.from(new Set(selectedTrips))
+    leaveLink(event)
+    if (selectedTrips.length === 1) {
+      editLineProperties(selectedTrips[0])
+    } else {
+      contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+      contextMenu.value.showed = true
+      contextMenu.value.action = 'editProperties'
+      contextMenu.value.features = selectedTrips
+    }
   }
 }
 
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
+
 function editLineProperties (selectedTrip) {
-  linksStore.setEditorTrip({ tripId: selectedTrip, changeBounds: false })
-  emits('rightClick', { action: 'Edit Line Info', lingering: false })
+  linksStore.setEditorTrip(selectedTrip)
+  openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false, type: 'pt' })
 }
+
+const { highlightTrip, setHighlightTrip } = useHighlight()
 
 function contextMenuClick(trip) {
   if (contextMenu.value.action === 'editProperties') {
@@ -160,16 +171,16 @@ function contextMenuClick(trip) {
     setHighlightTrip(null)
   }
   else if (contextMenu.value.action === 'editTrip') {
-    linksStore.setEditorTrip({ tripId: trip, changeBounds: false })
+    linksStore.setEditorTrip(trip)
     contextMenu.value.showed = false
     setHighlightTrip(null)
   }
 }
-function setHighlightTrip(event) {
-  const highlightLinks = cloneDeep(geojson)
-  highlightLinks.features = visibleLinks.value.features.filter(el => el.properties.trip_id === event)
+watch(highlightTrip, (trip) => {
+  const highlightLinks = baseLineString()
+  highlightLinks.features = visibleLinks.value.features.filter(el => el.properties.trip_id === trip)
   map.value.getSource('highlightLink').setData(highlightLinks)
-}
+})
 
 </script>
 <template>
@@ -238,7 +249,7 @@ function setHighlightTrip(event) {
       :reactive="false"
       :source="{
         type: 'geojson',
-        data: geojson,
+        data: baseLineString(),
         promoteId: 'index',
       }"
       layer-id="highlightLink"

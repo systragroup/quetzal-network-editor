@@ -1,14 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 
-defineProps({
-  items: { type: Array, default: () => [] },
-  // eslint-disable-next-line vue/require-prop-types
-  value: { default: () => null },
-})
-defineEmits(['update:value'])
-const openMenu = ref(false)
+interface Props {
+  items: any[]
+  buttonStyle?: Record<string, string>
+  iconOpen?: string
+  iconClose?: string
+  size?: string
+}
 
+withDefaults(defineProps<Props>(), {
+  items: () => [],
+  iconOpen: 'fas fa-chevron-down',
+  iconClose: 'fas fa-chevron-left',
+  buttonStyle: () => ({} as Record<string, string>),
+  size: 'default',
+})
+
+const value = defineModel<any>({ default: undefined })
+const openMenu = ref(false)
 </script>
 <template>
   <v-menu
@@ -17,13 +27,13 @@ const openMenu = ref(false)
     location="bottom"
     transition="slide-y-transition"
   >
-    <template v-slot:activator="{ props }">
+    <template v-slot:activator="{ props:slotProps }">
       <v-btn
         variant="text"
-        :icon="openMenu ? 'fas fa-chevron-left' : 'fas fa-chevron-down'"
-        color="regular"
-        size="x-small"
-        v-bind="props"
+        :icon="openMenu ? iconClose: iconOpen"
+        :style="buttonStyle"
+        :size="size"
+        v-bind="slotProps"
       />
     </template>
 
@@ -34,7 +44,7 @@ const openMenu = ref(false)
         v-for="(val,key) in items"
         :key="key"
         :class="{ 'is-active': val === value}"
-        @click="()=>$emit('update:value',val)"
+        @click="() => value = value === val ? undefined : val"
       >
         <v-list-item-title>
           {{ val }}
@@ -46,7 +56,7 @@ const openMenu = ref(false)
 <style lang="scss" scoped>
 .is-active{
   opacity:1;
-  background-color:var(--v-primary-base);
+  background-color:rgb(var(--v-theme-primary));
 
 }
 </style>

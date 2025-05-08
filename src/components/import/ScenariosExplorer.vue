@@ -4,11 +4,11 @@ import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
-import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 
 import { computed, ref, watch, onMounted } from 'vue'
 
 import { useGettext } from 'vue3-gettext'
+import PromiseDialog from '../utils/PromiseDialog.vue'
 const { $gettext } = useGettext()
 
 const emits = defineEmits(['load', 'unload'])
@@ -24,13 +24,17 @@ const projectIsEmpty = computed(() => store.projectIsEmpty)
 const model = computed(() => { return userStore.model }) // globaly selected Model
 const localModel = ref(model.value)
 
-watch(localModel, async (val) => {
+watch(localModel, async () => {
   // when we click on a tab (model), fetch the scenario list.
   userStore.setScenariosList([])
-  loading.value = true
-  await userStore.getScenario({ model: val })
-  loading.value = false
+  await getScenario()
 })
+
+async function getScenario() {
+  loading.value = true
+  await userStore.getScenario(localModel.value)
+  loading.value = false
+}
 
 const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
 const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
@@ -41,9 +45,7 @@ onMounted(async () => {
   if (modelScen.value !== 0) {
     document.getElementById(modelScen.value).scrollIntoView()
     // also. go fetch the scenario List if DB changed.
-    loading.value = true
-    await userStore.getScenario({ model: localModel.value })
-    loading.value = false
+    await getScenario()
   }
 })
 const localScen = ref(scenario.value) // locally selected scen. need to cancel selection for example.
@@ -74,7 +76,7 @@ function selectScenario (e, val) {
     if (projectIsEmpty.value && !scenario.value) {
       loadProject()
     } else {
-      showDialog.value = true
+      showSelectDialog()
     }
   }
 }
@@ -107,10 +109,9 @@ const scenariosList = computed(() => {
   })
 })
 
-const copyDialog = ref(false)
+const copyDialog = ref()
 const input = ref('')
 const selectedScenario = ref(null)
-const copyLoading = ref(false)
 
 const rules = ref({
   required: v => v !== '' || $gettext('Please enter a name'),
@@ -119,11 +120,13 @@ const rules = ref({
   noDuplicated: v => !scenariosList.value.map(p => p.scenario).includes(v) || $gettext('project already exist'),
 })
 
-async function createProject (event) {
-  const resp = await event
-  if (resp.valid) {
+async function createProject (selected) {
+  selectedScenario.value = selected
+  input.value = selected ? selected + ' copy' : ''
+  const resp = await copyDialog.value.openDialog()
+  if (resp) {
     try {
-      copyLoading.value = true
+      store.changeLoading(true)
       if (selectedScenario.value) {
         // this is a copy
         await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value, false)
@@ -142,26 +145,27 @@ async function createProject (event) {
       selectScenario(null, { model: localModel.value, scenario: input.value, protected: false })
     } catch (err) {
       store.changeAlert(err)
+    } finally {
+      input.value = ''
       selectedScenario.value = null
-      copyLoading.value = false }
-    copyLoading.value = false
-    closeCopy()
-    loading.value = true
-    userStore.getScenario({ model: localModel.value }).then(() => { loading.value = false })
-      .catch((err) => { store.changeAlert(err); loading.value = false })
+      store.changeLoading(false)
+      await getScenario()
+    }
   }
 }
 
-function closeCopy () {
-  copyDialog.value = false
-  input.value = ''
-  selectedScenario.value = null
+// select project when 1 is already loaded
+const selectDialog = ref()
+
+async function showSelectDialog () {
+  const resp = await selectDialog.value.openDialog()
+  if (resp) {
+    applySelectDialog()
+  } else {
+    cancelSelectDialog()
+  }
 }
-
-const showDialog = ref(false)
-
-function applyDialog () {
-  showDialog.value = false
+function applySelectDialog () {
   if (modelScen.value === localModel.value + localScen.value) {
     userStore.unloadProject()
     emits('unload')
@@ -169,29 +173,39 @@ function applyDialog () {
     loadProject()
   }
 }
-function cancelDialog () {
+
+function cancelSelectDialog () {
   // reset vmodel back to loaded scenario
   modelScen.value = model.value + scenario.value
   localScen.value = scenario.value
-  showDialog.value = false
 }
 
-const deleteDialog = ref(false)
+// Delete dialog
+const deleteDialog = ref()
 const scenarioToDelete = ref('')
 
-function deleteScenario () {
-  deleteDialog.value = false
-  s3.deleteFolder(localModel.value, scenarioToDelete.value + '/').then(() => {
-    deleteDialog.value = false
-    userStore.getScenario({ model: localModel.value })
-    store.changeNotification(
-      { text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
-  }).catch((err) => {
-    deleteDialog.value = false
-    console.error(err)
-    store.changeNotification(
-      { text: $gettext('An error occured'), autoClose: true, color: 'error' })
-  })
+async function deleteScenario (name) {
+  scenarioToDelete.value = name
+  const resp = await deleteDialog.value.openDialog()
+  if (!resp) return
+  try {
+    store.changeLoading(true)
+    await s3.deleteFolder(localModel.value, scenarioToDelete.value + '/')
+    await getScenario()
+    store.changeNotification({ text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
+  } catch (err) {
+    store.changeAlert(err)
+  } finally {
+    store.changeLoading(false)
+  }
+}
+
+async function mouseOn(val) {
+  const info = await val.info
+  userStore.setInfoPreview(info)
+}
+async function mouseOff() {
+  userStore.setInfoPreview(null)
 }
 
 </script>
@@ -287,7 +301,9 @@ function deleteScenario () {
         class="list-item"
         :class="{'is-active': modelScen === scen.model + scen.scenario}"
         lines="two"
-        @click="(e)=>{selectScenario(e,scen)}"
+        @click="(e)=>selectScenario(e,scen)"
+        @mouseenter="mouseOn(scen)"
+        @mouseleave="mouseOff()"
       >
         <v-list-item-title class="name-wrap">
           {{ scen.scenario }}
@@ -300,17 +316,15 @@ function deleteScenario () {
             icon="fas fa-copy"
             class="ma-1"
             size="small"
-            color="regular"
-            @click.stop="()=>{copyDialog=true; selectedScenario=scen.scenario; input = scen.scenario +' copy'}"
+            @click.stop="createProject(scen.scenario)"
           />
           <v-btn
             variant="text"
             :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
             :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
             class="ma-1"
-            color="regular"
             size="small"
-            @click.stop="()=>{deleteDialog=true; scenarioToDelete=scen.scenario;}"
+            @click.stop="deleteScenario(scen.scenario)"
           />
         </template>
       </v-list-item>
@@ -329,7 +343,7 @@ function deleteScenario () {
         class="mt-2"
         prepend-icon="fa-solid fa-cloud-arrow-up"
 
-        @click="()=>{copyDialog=true; selectedScenario=null; input = ''}"
+        @click="createProject(null)"
       >
         {{ $gettext('new scenario') }}
       </v-btn>
@@ -341,78 +355,38 @@ function deleteScenario () {
     </div>
   </div>
 
-  <SimpleDialog
-    v-if="showDialog"
-    v-model="showDialog"
+  <PromiseDialog
+    ref="selectDialog"
     :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{sc} ?', {sc: localScen})"
-    :body="$gettext('Any unsaved changes to %{sc} will be lost', {sc: scenario})"
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
-    @confirm="applyDialog"
-    @cancel="cancelDialog"
-  />
+  >
+    {{ $gettext('Any unsaved changes to %{sc} will be lost', {sc: scenario}) }}
+  </PromiseDialog>
 
-  <SimpleDialog
-    v-model="deleteDialog"
-    :title=" $gettext('Delete %{sc}?', { sc: scenarioToDelete }) "
-    :body="$gettext('The scenario will be permanently deleted')"
+  <PromiseDialog
+    ref="deleteDialog"
+    :title="$gettext('Delete %{sc}?', { sc: scenarioToDelete })"
     :confirm-button="$gettext('Delete')"
     confirm-color="error"
-    @confirm="deleteScenario"
-  />
-  <v-dialog
-    v-if="copyDialog"
-    v-model="copyDialog"
-    persistent
-    max-width="290"
   >
-    <v-card>
-      <v-form
-        ref="form"
-        class="form"
-        @submit.prevent="createProject"
-      >
-        <v-card-text>
-          <span class="text-h5">
-            <strong>
-              {{ selectedScenario? $gettext("copy") +' '+ selectedScenario : $gettext('New Scenario') }}
-            </strong>
-          </span>
-        </v-card-text>
-        <v-card-text>
-          <v-text-field
-            v-model="input"
-            variant="underlined"
-            autofocus
-            :rules="[rules.required,rules.noSlash,rules.noHash,rules.noDuplicated]"
-            :label="$gettext('name')"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-
-          <v-btn
-            color="grey"
-            variant="text"
-            :disabled="copyLoading"
-            @click="closeCopy"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-
-          <v-btn
-            color="green-darken-1"
-            variant="text"
-            :loading="copyLoading"
-            type="submit"
-          >
-            {{ $gettext("ok") }}
-          </v-btn>
-        </v-card-actions>
-      </v-form>
-    </v-card>
-  </v-dialog>
+    {{ $gettext('The scenario will be permanently deleted') }}
+  </PromiseDialog>
+  <PromiseDialog
+    ref="copyDialog"
+    :title="selectedScenario? $gettext('Copy %{sc}?', { sc: selectedScenario }): $gettext('New Scenario')"
+    :confirm-button="$gettext('Create')"
+    confirm-color="primary"
+  >
+    <v-text-field
+      v-model="input"
+      variant="underlined"
+      autofocus
+      :rules="[rules.required,rules.noSlash,rules.noHash,rules.noDuplicated]"
+      :label="$gettext('name')"
+    />
+  </PromiseDialog>
 </template>
 <style lang="scss" scoped>
 

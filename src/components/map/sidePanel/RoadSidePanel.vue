@@ -1,12 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { toRaw, ref, onMounted, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import SidePanelBottom from './SidePanelBottom.vue'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
-const emits = defineEmits(['deleteButton', 'propertiesButton', 'update-tripList'])
+import { useForm } from '@src/composables/UseForm'
+import { ShowMethod } from '@src/types/typesStore'
+const { openDialog } = useForm()
+
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
@@ -14,8 +18,8 @@ const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
 const localSelectedTrip = ref(cloneDeep(selectedrGoup.value))
 
 watch(localSelectedTrip, (newVal, oldVal) => {
-  let changes = ''
-  let method = 'add'
+  let changes: string | string[] = ''
+  let method: ShowMethod = 'add'
   if (JSON.stringify(newVal) === JSON.stringify(filteredCat.value)) {
     changes = newVal
     method = 'showAll'
@@ -31,7 +35,7 @@ watch(localSelectedTrip, (newVal, oldVal) => {
     changes = newVal.filter(item => !oldVal.includes(item))
     method = 'add'
   }
-  if (changes !== '') {
+  if (typeof changes !== 'string') {
     rlinksStore.changeVisibleRoads({ category: vmodelSelectedFilter.value, data: changes, method })
   }
 })
@@ -67,26 +71,16 @@ onMounted(() => {
   }
 })
 
-function propertiesButton (value) {
+function propertiesButton (group: string) {
   // select the TripId and open dialog
-  emits('propertiesButton', {
-    action: 'Edit Road Group Info',
-    lingering: false,
-    category: vmodelSelectedFilter.value,
-    group: value,
-  })
+  const features = rlinksStore.grouprLinks(vmodelSelectedFilter.value, group)
+  const indexList = features.map(link => link.properties.index)
+  openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function editVisible () {
-  emits('propertiesButton', {
-    action: 'Edit Visible Road Info',
-    lingering: false,
-  })
-}
-
-function deleteButton (obj) {
-  // obj contain trip and message.
-  emits('deleteButton', obj)
+  const indexList = rlinksStore.visiblerLinks.features.map(link => link.properties.index)
+  openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function showAll () {
@@ -106,6 +100,17 @@ function confirmChanges() {
 }
 function abortChanges() {
   rlinksStore.cancelEdition()
+}
+
+// delete dialog
+const deleteDialog = ref()
+const deleteMessage = ref('')
+async function deleteButton (group: string, message: string) {
+  // obj contain trip and message.
+  deleteMessage.value = message
+  const resp = await deleteDialog.value.openDialog()
+  if (resp) { rlinksStore.deleterGroup(group)
+  }
 }
 
 </script>
@@ -263,7 +268,7 @@ function abortChanges() {
                   size="small"
                   :disabled="false"
                   v-bind="props"
-                  @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleterGroup'})"
+                  @click="deleteButton(item, item)"
                 />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>
@@ -321,6 +326,12 @@ function abortChanges() {
         <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
       </v-tooltip>
     </SidePanelBottom>
+    <PromiseDialog
+      ref="deleteDialog"
+      :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
+      :confirm-button="$gettext('Delete')"
+      confirm-color="primary"
+    />
   </section>
 </template>
 <style lang="scss" scoped>

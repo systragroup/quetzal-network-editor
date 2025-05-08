@@ -13,7 +13,7 @@ const userStore = useUserStore()
 
 const showRail = defineModel({ type: Boolean, default: false })
 
-import { useCheckMobile } from '@comp/utils/useCheckMobile'
+import { useCheckMobile } from '@src/composables/useCheckMobile'
 const { isMobile } = useCheckMobile()
 watch(isMobile, (val) => {
   store.changeMobile(val)
@@ -140,13 +140,6 @@ function handleChangeLanguage(lang) {
 </template>
 
 <style lang="scss" scoped>
-
-// display: flex;
-//  align-items: center;
-//  justify-content: space-between;
-//  height: 100% !important;
-//  width: 100%;
-
 .app-toolbar {
   z-index: 100;
   padding-right: 1rem !important;
@@ -189,7 +182,7 @@ function handleChangeLanguage(lang) {
 }
 
 /* on mobile */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .app-name {
     display:none
   }
@@ -197,8 +190,8 @@ function handleChangeLanguage(lang) {
     display:none
   }
   .img-style{
-  max-width:6rem;
-  min-width:0rem;
+  max-width: 6rem;
+  min-width: 0;
 }
 }
 </style>

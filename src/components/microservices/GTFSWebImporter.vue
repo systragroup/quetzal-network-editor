@@ -2,12 +2,12 @@
 import bboxPolygon from '@turf/bbox-polygon'
 import booleanContains from '@turf/boolean-contains'
 import booleanIntersects from '@turf/boolean-intersects'
-import Polygon from 'turf-polygon'
+import { polygon } from '@turf/helpers'
 import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { csvJSON } from '../utils/utils.js'
+import { csvJSON } from '@src/utils/io'
 import MapSelector from './MapSelector.vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -21,11 +21,12 @@ const gtfsList = ref([])
 const availableGTFS = ref([])
 const showHint = ref(false)
 const selectedGTFS = ref(runGTFS.selectedGTFS)
-const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
-const callID = computed(() => { return runGTFS.callID })
-const running = computed(() => { return runGTFS.running })
-const error = computed(() => { return runGTFS.error })
-const errorMessage = computed(() => { return runGTFS.errorMessage })
+const stateMachineArn = computed(() => runGTFS.stateMachineArn)
+const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
+const callID = computed(() => runGTFS.callID)
+const running = computed(() => runGTFS.running)
+const error = computed(() => runGTFS.error)
+const errorMessage = computed(() => runGTFS.errorMessage)
 
 onBeforeUnmount(() => {
   runGTFS.saveParams(parameters.value)
@@ -92,7 +93,7 @@ onMounted(async () => {
     el.index = idx
   })
   gtfsList.value = gtfsList.value.filter(el => el.bbox)
-  gtfsList.value = gtfsList.value.filter(el => el['urls.latest'].length > 0)
+  gtfsList.value = gtfsList.value.filter(el => el['urls.latest']?.length > 0)
   gtfsList.value.sort((a, b) => {
     if (a['location.country_code'] < b['location.country_code']) return -1
     if (a['location.country_code'] > b['location.country_code']) return 1
@@ -129,7 +130,7 @@ function getAvaileGTFS () {
     const g = poly.value.geometry
     lPoly = bboxPolygon([g[1], g[0], g[3], g[2]])
   } else {
-    lPoly = Polygon([poly.value.geometry])
+    lPoly = polygon([poly.value.geometry])
   }
   availableGTFS.value = gtfsList.value.filter(
     el => (booleanContains(lPoly, el.bbox) || booleanIntersects(lPoly, el.bbox)))
@@ -148,14 +149,14 @@ function importGTFS () {
     parameters.value.forEach(item => {
       inputs[item.name] = item.value
     })
-    runGTFS.startExecution(inputs)
+    runGTFS.startExecution(stateMachineArn.value, inputs)
   } else {
     showOverwriteDialog.value = true
   }
 }
 
 function applyOverwriteDialog () {
-  store.initLinks()
+  linksStore.$reset()
   showOverwriteDialog.value = false
   importGTFS()
 }

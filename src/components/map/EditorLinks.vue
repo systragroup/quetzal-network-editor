@@ -4,7 +4,8 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, toRefs, ref, watch, onMounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
-
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
 import geojson from '@constants/geojson'
 
 const { $gettext } = useGettext()
@@ -56,15 +57,15 @@ watch(editorLinks, (links) => {
 function setNodesPickupDropOff() {
   // get nodes with dropOff and pickup not 0. mark them as stop:false.
   // this change their opacity.
-  const linksa = editorLinks.value.features.filter(el => Number(el.properties.pickup_type) !== 0)
-  const nodesArra = linksa.map(el => el.properties.a)
-  const linksb = editorLinks.value.features.filter(el => Number(el.properties.drop_off_type) !== 0)
-  const nodesArrb = linksb.map(el => el.properties.b)
-  const nodesSet = new Set([...nodesArra, ...nodesArrb])
+  const linksA = editorLinks.value.features.filter(el => Number(el.properties.pickup_type) !== 0)
+  const nodesA = linksA.map(el => el.properties.a)
+  const linksB = editorLinks.value.features.filter(el => Number(el.properties.drop_off_type) !== 0)
+  const nodesB = new Set(linksB.map(el => el.properties.b))
+  const intersection = new Set([...nodesA].filter(x => nodesB.has(x)))
   let otherNodes = editorNodes.value.features.map(node => node.properties.index)
-  otherNodes = otherNodes.filter(node => !nodesSet.has(node))
+  otherNodes = otherNodes.filter(node => !intersection.has(node))
   otherNodes.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: true }))
-  nodesSet.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: false }))
+  intersection.forEach(node => map.value.setFeatureState({ source: 'editorNodes', id: node }, { stop: false }))
 }
 
 const selectedFeature = ref(null)
@@ -74,7 +75,7 @@ const isSticking = computed(() => { return stickyStateId.value !== null && hover
 const keepHovering = ref(false)
 const dragNode = ref(false)
 
-import { useRouting } from '@src/components/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.js'
 const { routeLink } = useRouting()
 const routeAnchorLine = computed(() => {
   if (anchorMode.value && routingMode.value) {
@@ -166,38 +167,29 @@ function contextMenuAnchor() {
   }
 }
 
-function linkRightClick (event) {
+function linkRightClick () {
   if (hoveredStateId.value.layerId === 'editorLinks') {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     selectedFeature.value = features.filter(item => item.id === hoveredStateId.value.id)[0]
-    const click = {
-      selectedFeature: selectedFeature.value,
-      action: 'Edit Link Info',
-      lngLat: event.mapboxEvent.lngLat,
-      lingering: true,
-    }
-    emits('clickFeature', click)
+    const selectedIndex = selectedFeature.value.properties.index
+    openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
   }
 }
 function actionClick (event) {
   switch (event.action) {
     case 'Cut Before Node':
-      linksStore.cutLineAtNode({ selectedNode: event.feature.properties })
+      linksStore.cutLineBeforeNode({ selectedNode: event.feature.properties })
       break
     case 'Cut After Node':
-      linksStore.cutLineFromNode({ selectedNode: event.feature.properties })
+      linksStore.cutLineAfterNode({ selectedNode: event.feature.properties })
       break
     case 'Delete Stop':
       const modLink = linksStore.deleteNode({ selectedNode: event.feature.properties })
       if (store.routingMode && modLink) { routeLink(modLink) }
       break
-    default:
-      // edit node info
-      emits('clickFeature', {
-        selectedFeature: event.feature,
-        action: event.action,
-        lngLat: event.coordinates,
-      })
+    case 'Edit Node Info':
+      const selectedIndex = event.feature.properties.index
+      openDialog({ action: 'Edit Node Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
       break
   }
   contextMenu.value.showed = false

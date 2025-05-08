@@ -1,6 +1,6 @@
 <script setup>
 import { MglGeojsonLayer } from 'vue-mapbox3'
-import Polygon from 'turf-polygon'
+import { polygon } from '@turf/helpers'
 import geojson from '@constants/geojson'
 import { onMounted, onUnmounted, toRefs, ref } from 'vue'
 
@@ -38,7 +38,7 @@ function onMove (event) {
   // poly.value = bboxPolygon([p1.value.lnglat.lng, p1.value.lnglat.lat, p2.value.lnglat.lng, p2.value.lnglat.lat])
   const p3 = map.value.unproject([p2.value.point.x, p1.value.point.y])
   const p4 = map.value.unproject([p1.value.point.x, p2.value.point.y])
-  poly.value = Polygon([[
+  poly.value = polygon([[
     [p1.value.lnglat.lng, p1.value.lnglat.lat],
     [p3.lng, p3.lat],
     [p2.value.lnglat.lng, p2.value.lnglat.lat],

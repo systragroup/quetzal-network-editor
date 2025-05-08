@@ -6,13 +6,15 @@ import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import mapboxgl from 'mapbox-gl'
-import Point from 'turf-point'
+import { point as Point } from '@turf/helpers'
 import short from 'short-uuid'
 
 import geojson from '@constants/geojson'
 import { useGettext } from 'vue3-gettext'
 import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
 
 const props = defineProps(['map', 'isEditorMode'])
 const emits = defineEmits(['clickFeature', 'onHover', 'offHover', 'select'])
@@ -66,8 +68,8 @@ function queryAnchor() {
     feature => {
       const linkIndex = feature.properties.index
       feature.geometry.coordinates.slice(1, -1).forEach(
-        (point, idx) => nodes.features.push(Point(
-          point,
+        (pt, idx) => nodes.features.push(Point(
+          pt,
           { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
         ),
         ),
@@ -249,16 +251,12 @@ const contextMenu = ref({
 
 function actionClick (event) {
   if (['Delete rLink', 'Delete Selected'].includes(event.action)) {
-    rlinksStore.deleterLink({ selectedIndex: event.feature })
+    rlinksStore.deleterLink(event.feature)
     // emit this click to remove the drawlink.
     emits('clickFeature', { action: 'Delete rLink' })
   } else {
     // edit rlinks info
-    emits('clickFeature', {
-      selectedIndex: event.feature,
-      action: event.action,
-      lngLat: event.coordinates,
-    })
+    openDialog({ action: event.action, selectedArr: Array.from(event.feature), lingering: true, type: 'road' })
   }
   contextMenu.value.showed = false
   deselectAll()
@@ -273,11 +271,8 @@ function contextMenuNode (event) {
 
     if (selectedFeature.value.length > 0) {
       if (hoveredStateId.value?.layerId === 'rnodes') {
-        emits('clickFeature', {
-          selectedFeature: selectedFeature.value[0],
-          action: 'Edit rNode Info',
-          lngLat: event.mapboxEvent.lngLat,
-        })
+        const index = selectedFeature.value[0].properties.index
+        openDialog({ action: 'Edit rNode Info', selectedArr: [index], lingering: true, type: 'road' })
       } else if (hoveredStateId.value?.layerId === 'anchorrNodes') {
         rlinksStore.deleteAnchorrNode({ selectedNode: selectedFeature.value[0].properties })
       }
@@ -335,7 +330,7 @@ function linkRightClick (event) {
       contextMenu.value.feature = cloneDeep(selectedIds)
       contextMenu.value.actions
           = [
-          { name: 'Edit selected Info', text: $gettext('Edit selected Info') },
+          { name: 'Edit Road Group Info', text: $gettext('Edit selected Info') },
           { name: 'Delete Selected', text: $gettext('Delete Selected') },
         ]
     }
@@ -368,7 +363,7 @@ function contextMenuSelection (event) {
     contextMenu.value.feature = cloneDeep(selectedIds)
     contextMenu.value.actions
           = [
-        { name: 'Edit selected Info', text: $gettext('Edit selected Info') },
+        { name: 'Edit Road Group Info', text: $gettext('Edit selected Info') },
         { name: 'Delete Selected', text: $gettext('Delete Selected') },
       ]
   } else {

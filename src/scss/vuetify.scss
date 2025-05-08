@@ -1,8 +1,10 @@
+@use "sds-design-system/color-shades";
+
 .v-application--wrap {
   flex-direction: row;
 }
 .theme--light.v-application {
-  color: $secondary;
+  color: color-shades.$secondary;
 }
 .v-theme--light.v-icon {
   opacity:80%
@@ -19,22 +21,22 @@
   z-index: 200;
 }
 .v-btn.primary > span {
-  color: $secondary !important;
+  color: color-shades.$secondary !important;
 }
 .v-snack__wrapper {
   margin: 20px;
 }
 .v-snack__content {
-  color: $secondary !important;
+  color: color-shades.$secondary !important;
 }
 .snackbar-error > .v-snackbar__wrapper {
-  border-bottom: 5px solid $error-red !important;
+  border-bottom: 5px solid color-shades.$error-red !important;
 }
 .snackbar-warning > .v-snackbar__wrapper {
-  border-bottom: 5px solid $warning-orange !important;
+  border-bottom: 5px solid color-shades.$warning-orange !important;
 }
 .snackbar-positive > .v-snackbar__wrapper {
-  border-bottom: 5px solid $success-green !important;
+  border-bottom: 5px solid color-shades.$success-green !important;
 }
 .v-card__subtitle, .v-card__text, .v-card__title {
   padding: 0;

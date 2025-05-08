@@ -1,15 +1,15 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
 
-import { generatePassword } from '@src/components/utils/utils'
+import { generatePassword } from '@src/utils/passwords'
 import auth from '@src/auth'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { computed, ref, watch, onMounted, defineAsyncComponent } from 'vue'
+import { computed, ref, watch, onBeforeMount, defineAsyncComponent } from 'vue'
 import { useGettext } from 'vue3-gettext'
 
-const Signin = defineAsyncComponent(() => import('./Signin.vue'))
+const Login = defineAsyncComponent(() => import('../login/Login.vue'))
 const { $gettext } = useGettext()
 const store = useIndexStore()
 const userStore = useUserStore()
@@ -19,14 +19,10 @@ const cognitoInfo = computed(() => userStore.cognitoInfo)
 const initial = computed(() => (cognitoInfo.value?.given_name[0] + cognitoInfo.value?.family_name[0]).toUpperCase())
 
 import { useClient } from '@src/axiosClient.js'
-const { quetzalClient } = useClient()
 
-onMounted(async () => {
-  if (await auth.isUserSignedIn()) {
-    await auth.login()
-    await s3.login()
-    userStore.getBucketList()
-  }
+onBeforeMount(async () => {
+  const isLogged = await auth.isUserSignedIn()
+  signin(isLogged)
 })
 
 const ui = ref(false)
@@ -73,6 +69,7 @@ watch(selectedGroup, async (_, oldVal) => {
 
 async function listGroup () {
   try {
+    const { quetzalClient } = useClient()
     const resp = await quetzalClient.get('listGroups/')
     groups.value = resp.data
   } catch (err) {
@@ -81,6 +78,7 @@ async function listGroup () {
 }
 async function listUser (group) {
   try {
+    const { quetzalClient } = useClient()
     const resp = await quetzalClient.get(`listUser/${group}/`)
     users.value = resp.data
   } catch (err) {
@@ -101,9 +99,10 @@ const rules = {
 }
 async function createUser () {
   try {
+    const { quetzalClient } = useClient()
     await quetzalClient.post(`createUser/${selectedGroup.value}/`, userForm.value)
     store.changeNotification(
-      { text: $gettext('User created! please share the temporary password'), autoClose: true, color: 'success' })
+      { text: $gettext('User created!'), autoClose: true, color: 'success' })
   } catch (err) {
     store.changeAlert(
       { name: 'Cognito Client error', message: err.response.data.detail })
@@ -112,6 +111,7 @@ async function createUser () {
 
 async function deleteUser (username) {
   try {
+    const { quetzalClient } = useClient()
     await quetzalClient.post('deleteUser/', { username })
     store.changeNotification({ text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
   } catch (err) {
@@ -262,7 +262,7 @@ function deleteUserButton (user) {
       :close-on-content-click="false"
       location="bottom"
       offset="8"
-      :persistent="false"
+      :persistent="true"
     >
       <template v-slot:activator="{ props }">
         <v-btn
@@ -274,7 +274,7 @@ function deleteUserButton (user) {
         </v-btn>
       </template>
       <component
-        :is="Signin"
+        :is="Login"
         v-if="ui"
         @signin="signin"
       />
@@ -314,7 +314,7 @@ function deleteUserButton (user) {
           v-else-if="action === 'createUser'"
           class="text-h8"
         >
-          {{ $gettext('create a new user in your user group. Please shared the temporary password with him/her as the invitation email could be blocked by the organization') }}
+          {{ $gettext('create a new user in your user group') }}
         </v-card-text>
         <v-card-text
           v-else-if="action === 'deleteUser'"
@@ -362,7 +362,6 @@ function deleteUserButton (user) {
           <v-card-actions>
             <v-spacer />
             <v-btn
-              color="regular"
               @click="()=>showDialog = !showDialog"
             >
               {{ $gettext("cancel") }}

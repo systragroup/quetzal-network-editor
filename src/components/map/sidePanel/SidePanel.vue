@@ -7,31 +7,16 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 
-const emits = defineEmits(['change-mode'])
+const tab = defineModel({ type: String, default: 'pt' })
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 
-const showLeftPanel = computed(() => { return store.showLeftPanel })
-const showLeftPanelContent = ref(true)
-watch(showLeftPanel, (val) => {
-  if (val) {
-    // Leave time for animation to end (.fade-enter-active css rule)
-    setTimeout(() => {
-      showLeftPanelContent.value = true
-    }, 500)
-  } else {
-    showLeftPanelContent.value = false
-  }
-})
-
 const tcEditionMode = computed(() => linksStore.editorTrip !== null)
 const disableTabs = computed(() => tcEditionMode.value || rlinksStore.editionMode)
 
-const tab = ref()
 onMounted(() => {
-  rlinksStore.editionMode = false
   // default Tab when loading page.
   if (linksStore.links.features.length === 0 && !store.projectIsEmpty) {
     tab.value = 'road'
@@ -43,10 +28,24 @@ onMounted(() => {
 // Active a v-if once. So the component is loaded when click, and stay loaded for next click.
 const loadComponent = ref({ pt: false, road: false, od: false })
 watch(tab, (val) => {
-  emits('change-mode', val)
   loadComponent.value[val] = true
+}, { immediate: true })
+
+// left panel show
+const showLeftPanel = computed(() => { return store.showLeftPanel })
+const showLeftPanelContent = ref(true)
+watch(showLeftPanel, (val) => {
+  if (val) {
+    // Leave time for animation to end (.fade-enter-active css rule)
+    setTimeout(() => {
+      showLeftPanelContent.value = true
+    }, 200)
+  } else {
+    showLeftPanelContent.value = false
+  }
 })
 
+// resize
 const leftPanelDiv = ref(null)
 const isResizing = ref(false)
 const windowOffest = ref(0)
@@ -75,10 +74,13 @@ function stopResize () {
 </script>
 <template>
   <section
-    ref="leftPanelDiv"
     :class="showLeftPanel ? 'left-panel elevation-4' : 'left-panel-close'"
-    :style="{ width:showLeftPanel? width + 'px' : '0px' }"
+    :style="{ width: showLeftPanel? width + 'px ' : '0px' }"
   >
+    <div
+      class="resizable-handle"
+      @mousedown="startResize"
+    />
     <div
       class="left-panel-toggle-btn elevation-4"
       @click="store.changeLeftPanel()"
@@ -90,16 +92,12 @@ function stopResize () {
         {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
       </v-icon>
     </div>
-    <div
-      class="resizable-handle"
-      @mousedown="startResize"
-    />
     <transition name="fade">
       <div
         v-show="showLeftPanelContent"
-        id="left-panel"
-        ref="leftPanel"
+        ref="leftPanelDiv"
         class="left-panel-content"
+        :style="{ width: width + 'px'}"
       >
         <div>
           <div :style="{'margin-top': '20px','margin-bottom': '20px','margin-right':'20px'}">
@@ -120,30 +118,14 @@ function stopResize () {
               </v-tab>
             </v-tabs>
             <template v-if="loadComponent.pt">
-              <LinksSidePanel
-                v-show="tab==='pt'"
-                @confirmChanges="(e) => $emit('confirmChanges',e)"
-                @abortChanges="(e) => $emit('abortChanges',e)"
-                @cloneButton="(e) => $emit('cloneButton',e)"
-                @deleteButton="(e) => $emit('deleteButton',e)"
-                @propertiesButton="(e) => $emit('propertiesButton',e)"
-                @scheduleButton="(e) => $emit('scheduleButton',e)"
-              />
+              <LinksSidePanel v-show="tab==='pt'" />
             </template>
 
             <template v-if="loadComponent.road">
-              <RoadSidePanel
-                v-show="tab==='road'"
-                @deleteButton="(e) => $emit('deleteButton',e)"
-                @propertiesButton="(e) => $emit('propertiesButton',e)"
-              />
+              <RoadSidePanel v-show="tab==='road'" />
             </template>
             <template v-if="loadComponent.od">
-              <ODSidePanel
-                v-show="tab==='od'"
-                @deleteButton="(e) => $emit('deleteButton',e)"
-                @propertiesButton="(e) => $emit('propertiesButton',e)"
-              />
+              <ODSidePanel v-show="tab==='od'" />
             </template>
           </div>
         </div>
@@ -156,7 +138,6 @@ function stopResize () {
   height: 100%;
   background-color:rgb(var(--v-theme-primarydark));
   transition: 0.3s;
-  position: absolute;
   display:flex;
   z-index: 20;
 }
@@ -168,9 +149,9 @@ width:0;
   width: 5px;
   height: 100%;
   background-color: rgb(var(--v-theme-background));
-  position: absolute;
-  right: 0;
-  top: 0;
+  left:100%;
+  display: flex;
+  position: relative;
   cursor: col-resize; /* Use the col-resize cursor for horizontal resizing */
 }
 .left-panel-content {
@@ -203,13 +184,8 @@ width:0;
   font-size: 1.1em;
   margin-bottom: 10px;
 }
-.trip-list {
-  height: height;
-  padding-left:20px
-}
 .scrollable {
    overflow-y:scroll;
-
 }
 .drawer-list-item {
   padding: 0 13px !important;

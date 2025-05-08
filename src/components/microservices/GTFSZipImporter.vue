@@ -1,5 +1,5 @@
 <script setup>
-import { unzipCalendar } from '@comp/utils/utils.js'
+import { unzipCalendar } from '@src/utils/io'
 import DatePicker from '@comp/utils/DatePicker.vue'
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
@@ -13,13 +13,14 @@ const linksStore = useLinksStore()
 const store = useIndexStore()
 const showOverwriteDialog = ref(false)
 const showHint = ref(false)
-const linksIsEmpty = computed(() => { return linksStore.linksIsEmpty })
-const callID = computed(() => { return runGTFS.callID })
-const UploadedGTFS = computed(() => { return runGTFS.UploadedGTFS })
-const running = computed(() => { return runGTFS.running })
-const error = computed(() => { return runGTFS.error })
-const errorMessage = computed(() => { return runGTFS.errorMessage })
-const isUploading = computed(() => { return UploadedGTFS.value.filter(item => item.progress < 100).length > 0 })
+const stateMachineArn = computed(() => runGTFS.stateMachineArn)
+const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
+const callID = computed(() => runGTFS.callID)
+const UploadedGTFS = computed(() => runGTFS.UploadedGTFS)
+const running = computed(() => runGTFS.running)
+const error = computed(() => runGTFS.error)
+const errorMessage = computed(() => runGTFS.errorMessage)
+const isUploading = computed(() => UploadedGTFS.value.filter(item => item.progress < 100).length > 0)
 
 onBeforeUnmount(() => {
   runGTFS.saveParams(parameters.value)
@@ -95,14 +96,14 @@ function importGTFS () {
     parameters.value.forEach(item => {
       inputs[item.name] = item.value
     })
-    runGTFS.startExecution(inputs)
+    runGTFS.startExecution(stateMachineArn.value, inputs)
   } else {
     showOverwriteDialog.value = true
   }
 }
 
 function applyOverwriteDialog () {
-  store.initLinks()
+  linksStore.$reset()
   showOverwriteDialog.value = false
   importGTFS()
 }
@@ -347,6 +348,5 @@ function applyOverwriteDialog () {
   padding:2rem;
   position: relative;
   right: 0;
-  align-items: right;
 }
 </style>

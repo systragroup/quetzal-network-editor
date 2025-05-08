@@ -2,9 +2,10 @@
 <script setup>
 import router from '@src/router/index'
 import s3 from '@src/AWSClient'
-import { extractZip, unzip } from '@comp/utils/utils.js'
+import { extractZip, unzip } from '@src/utils/io'
 import FileLoader from '@comp/import/FileLoader.vue'
 import FilesList from '@comp/import/FilesList.vue'
+import Info from '@comp/import/Info.vue'
 import ScenariosExplorer from '@comp/import/ScenariosExplorer.vue'
 import { useConflicts } from '@comp/import/conflicts.js'
 
@@ -17,6 +18,7 @@ import { useUserStore } from '@src/store/user'
 import axios from 'axios'
 
 import { useGettext } from 'vue3-gettext'
+import { useODStore } from '@src/store/od'
 const { $gettext } = useGettext()
 
 const store = useIndexStore()
@@ -126,6 +128,9 @@ async function loadFilesFromS3 () {
       } else if (name === 'styles.json') {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
+      } else if (name === 'info.json') {
+        const content = await s3.readJson(model, file)
+        res.push({ path: name, content })
       } else if (name === 'attributesChoices.json') {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
@@ -198,6 +203,7 @@ async function loadExample (filesToLoads) {
 const { handleConflict, filesAddedNotification } = useConflicts()
 
 function loadNetwork (files) {
+  // source: local or cloud
   // HERE: check if duplicated index.
   let infoPT
   let infoRoad
@@ -212,7 +218,8 @@ function loadNetwork (files) {
   // OD are overwrite. if a file is imported. just initOD.
   const ODFiles = files.filter(el => el.path.startsWith('inputs/od/') && el.path.endsWith('.geojson'))
   if (ODFiles.length > 0) {
-    store.initOD()
+    const ODStore = useODStore()
+    ODStore.$reset()
   }
   store.loadFiles(files)
   filesAdded.value = true
@@ -289,8 +296,10 @@ function loadNetwork (files) {
           <v-divider vertical />
           <v-col class="center-col">
             <FileLoader
-              @filesLoaded="(files) => loadNetwork(files)"
+              @files-loaded="(files) => loadNetwork(files)"
             />
+            <v-divider />
+            <Info />
             <div class="button-row">
               <v-tooltip
                 location="bottom"
@@ -318,9 +327,9 @@ function loadNetwork (files) {
           </v-col>
           <v-divider vertical />
 
-          <v-col class="left-col">
+          <v-col class="right-col">
             <FilesList
-              @filesLoaded="(files) => loadNetwork(files)"
+              @files-loaded="(files) => loadNetwork(files)"
             />
           </v-col>
         </v-row>
@@ -340,7 +349,6 @@ function loadNetwork (files) {
         <v-card-actions>
           <v-spacer />
           <v-btn
-            color="regular"
             @click="showDialog = !showDialog"
           >
             {{ $gettext("No") }}
@@ -359,35 +367,45 @@ function loadNetwork (files) {
 </template>
 <style lang="scss" scoped>
 .layout {
-  padding: 4rem 2rem;
+  padding: 1rem 2rem;
   height:100%;
   display: flex;
   flex-flow: row;
   justify-content: center;
   align-items: start;
-  overflow-y: auto;
 }
 .section{
-  height: 100vh; /* or any fixed height */
+  height: 100%; /* or any fixed height */
   position: relative;
 }
 .center-col{
   display: flex;
   flex-direction: column;
   width:28rem;
+  margin-bottom: 0.2rem;
   padding:0.5rem;
 
 }
 .left-col{
   display: flex;
-  height:80vh;
+  height:calc(100vh - 100px);
   flex-direction: column;
   width:28rem;
   padding:0.5rem;
 }
+.right-col{
+  display: flex;
+  height: calc(100vh - 100px);
+  flex-direction: column;
+  width: 28rem;
+  padding: 0.5rem 0.5rem 4.2rem;
+}
 .card {
-  overflow-y:hidden;
+  overflow-y:auto;
   padding: 20px;
+  height:100%;
+  width:100%;
+  max-width: 100rem;
   background-color: rgb(var(--v-theme-lightergrey));
 
 }

@@ -1,10 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import { useIndexStore } from '@src/store/index'
 import { useODStore } from '@src/store/od'
 import { computed, watch, ref } from 'vue'
 import { cloneDeep } from 'lodash'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
-const emits = defineEmits(['deleteButton', 'propertiesButton'])
+import { useForm } from '@src/composables/UseForm'
+const { openDialog } = useForm()
+
 const store = useIndexStore()
 const odStore = useODStore()
 const filterChoices = computed(() => { return odStore.layerAttributes })
@@ -23,26 +26,15 @@ watch(vmodelSelectedFilter, (val) => {
   vmodelSelectedCat.value = [] // reset.
 })
 
-function propertiesButton (value) {
-  // select the TripId and open dialog
-  emits('propertiesButton', {
-    action: 'Edit OD Group Info',
-    lingering: false,
-    category: vmodelSelectedFilter.value,
-    group: value,
-  })
+function propertiesButton (group: string) {
+  const features = odStore.groupLayer(vmodelSelectedFilter.value, group)
+  const indexList = features.map(link => link.properties.index)
+  openDialog({ action: 'Edit OD Info', selectedArr: indexList, lingering: false, type: 'od' })
 }
 
 function editVisible () {
-  emits('propertiesButton', {
-    action: 'Edit Visible OD Info',
-    lingering: false,
-  })
-}
-
-function deleteButton (obj) {
-  // obj contain trip and message.
-  emits('deleteButton', obj)
+  const indexList = odStore.visibleLayer.features.map(link => link.properties.index)
+  openDialog({ action: 'Edit OD Info', selectedArr: indexList, lingering: false, type: 'od' })
 }
 
 function showAll () {
@@ -50,6 +42,20 @@ function showAll () {
     vmodelSelectedCat.value = []
   } else {
     vmodelSelectedCat.value = filteredCat.value
+  }
+}
+
+// delete dialog
+const deleteDialog = ref()
+const deleteMessage = ref('')
+async function deleteButton (group: string, message: string) {
+  // obj contain trip and message.
+  deleteMessage.value = message
+  const resp = await deleteDialog.value.openDialog()
+  if (resp) {
+    const features = odStore.groupLayer(vmodelSelectedFilter.value, group)
+    const indexList = features.map(link => link.properties.index)
+    odStore.deleteOD(indexList)
   }
 }
 
@@ -201,7 +207,6 @@ function showAll () {
                   variant="text"
                   icon=" fas fa-list"
                   class="ma-1"
-                  color="regular"
                   :disabled="false"
                   v-bind="props"
                   @click="propertiesButton(item)"
@@ -220,11 +225,10 @@ function showAll () {
                   icon=" fas fa-trash"
                   class="ma-1"
                   size="small"
-                  color="regular"
 
                   :disabled="false"
                   v-bind="props"
-                  @click="deleteButton({trip:item,group:selectedFilter,message:item,action:'deleteODGroup'})"
+                  @click="deleteButton(item, item)"
                 />
               </template>
               <span>{{ $gettext("Delete Line") }}</span>
@@ -240,6 +244,12 @@ function showAll () {
         <v-spacer />
       </v-list-item>
     </v-card>
+    <PromiseDialog
+      ref="deleteDialog"
+      :title=" $gettext('Delete %{sc}?', { sc: deleteMessage }) "
+      :confirm-button="$gettext('Delete')"
+      confirm-color="primary"
+    />
   </section>
 </template>
 <style lang="scss" scoped>

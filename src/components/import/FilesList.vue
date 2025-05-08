@@ -1,5 +1,5 @@
 <script setup>
-import { readFileAsText, readFileAsBytes } from '@comp/utils/utils.js'
+import { readFileAsText, readFileAsBytes } from '@src/utils/io'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref } from 'vue'
 import { useGettext } from 'vue3-gettext'
@@ -8,8 +8,10 @@ const { $gettext } = useGettext()
 const emit = defineEmits(['filesLoaded'])
 
 const store = useIndexStore()
-const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('input')) })
-const outputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('output')) })
+const inputFiles = computed(() => { return store.otherFiles.filter(file => file.path.startsWith('inputs')) })
+const outputFiles = computed(() => { return store.otherFiles.filter(file =>
+  file.path.startsWith('outputs/') || file.path.startsWith('microservices/')) })
+
 function isViz (file, otherFiles) {
   // check to put the little logo if a json has a geojson associated with
   if (file.extension === 'geojson') {
@@ -206,11 +208,11 @@ function deleteFile (file) {
 </template>
 <style lang="scss" scoped>
 .files-container{
-  height: calc(50% - 35px );
+  height:50%;
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
   display: flex;
-  margin: 10px 0 0;
+  margin: 0.5rem 0 0;
   flex-direction: column;
 }
 .title-box {

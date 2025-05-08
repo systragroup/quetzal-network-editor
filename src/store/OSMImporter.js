@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid'
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { userLinksStore } from '@src/store/rlinks'
-import { useAPI } from './APIComposable'
+import { useAPI } from '../composables/APIComposable'
 import router from '@src/router/index'
 import { highwayColor, highwayWidth } from '@constants/highway.js'
 import s3 from '@src/AWSClient'
@@ -14,7 +14,7 @@ export const useOSMStore = defineStore('runOSM', () => {
   function setCallID() { callID.value = uuid() }
 
   const { error, running, errorMessage, status,
-    startExecution, stopExecution, cleanRun } = useAPI(stateMachineArn.value)
+    startExecution, stopExecution, cleanRun } = useAPI()
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {

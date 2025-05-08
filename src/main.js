@@ -3,7 +3,6 @@ import App from './App.vue'
 import router from './router'
 import { createGettext } from 'vue3-gettext'
 import { createPinia } from 'pinia'
-
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
@@ -45,7 +44,8 @@ function selectBestLanguage (browserLangs, supportedLangs) {
 }
 
 const app = createApp(App)
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 // app.component('VueDatePicker', VueDatePicker)
 app.component('FontAwesomeIcon', FontAwesomeIcon)
@@ -66,6 +66,7 @@ const vuetify = createVuetify({
       light: {
         dark: false,
         colors: {
+          regular: '#FFFFFF',
           primary: '#B5E0D6',
           primarydark: '#7EBAAC',
           secondary: '#2C3E4E',
@@ -83,11 +84,13 @@ const vuetify = createVuetify({
           accentlight: '#8f99a2',
           linksprimary: '#7EBAAC',
           linkssecondary: '#B5E0D6',
+          hover: '#f6f6f7',
         },
       },
       dark: {
         dark: true,
         colors: {
+          regular: '#212121',
           primary: '#2196F3',
           primarydark: '#191919',
           secondary: '#263238',
@@ -105,6 +108,7 @@ const vuetify = createVuetify({
           accentlight: '#8f99a2',
           linksprimary: '#2196F3',
           linkssecondary: '#90CAF9',
+          hover: '#2a2a2a',
 
         },
       },

@@ -1,12 +1,11 @@
 import axios from 'axios'
 import { useUserStore } from '@src/store/user'
-const backURL = import.meta.env.VITE_BACK_URL
 
 export function useClient () {
 // Add a request interceptor
 
   const quetzalClient = axios.create({
-    baseURL: backURL,
+    baseURL: import.meta.env.VITE_BACK_URL,
     withCredentials: false,
     headers: {
       'Accept': '*/*',

@@ -7,7 +7,7 @@ import { Upload } from '@aws-sdk/lib-storage'
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
-import { createHash } from 'sha256-uint8array'
+import { hash } from '@src/utils/utils'
 
 const USERPOOL_ID = import.meta.env.VITE_COGNITO_USERPOOL_ID
 const IDENTITY_POOL_ID = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
@@ -91,11 +91,19 @@ async function listFiles (bucket, prefix) {
   }
 }
 
-async function listFilesWithTime (bucket, prefix) {
-  if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
+async function getSimulationLogs (bucket, scenario) {
+  const prefix = scenario + '/logs/'
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params)
-  return response.Contents?.map(item => { return { name: item.Key, time: item.LastModified } }) || []
+  const logList = []
+  if (response.Contents) {
+    const files = response.Contents.filter(file => file.Key.endsWith('.txt'))
+    for (const file of files) {
+      const bytes = await readBytes(bucket, file.Key)
+      logList.push({ name: file.Key, text: new TextDecoder().decode(bytes), time: file.LastModified })
+    }
+  }
+  return logList
 }
 
 async function getImagesURL (bucket, key) {
@@ -181,12 +189,12 @@ async function deleteObject (bucket, key) {
   return s3Client.deleteObject(deleteParams)
 }
 
-async function putObject (bucket, key, body = '') {
+async function putObject (bucket, key, body) {
   const userStore = useUserStore()
   const oldChecksum = await getChecksum(bucket, key)
   // if a json. already a string (we pass json.stringify()).
   // so only apply string to bytesArray. json.stringify crash with large array...
-  const newChecksum = createHash().update(body).digest('hex')
+  const newChecksum = hash(body)
   if (oldChecksum !== newChecksum) {
     const params = {
       Bucket: bucket,
@@ -202,7 +210,7 @@ async function putObject (bucket, key, body = '') {
 
 function uploadObject (bucket, key, body = '') {
   const userStore = useUserStore()
-  const checksum = createHash().update(body).digest('hex')
+  const checksum = hash(body)
   const params = {
     Bucket: bucket,
     Key: key,
@@ -211,6 +219,19 @@ function uploadObject (bucket, key, body = '') {
   }
   const resp = new Upload({ client: s3Client, params })
   return resp
+}
+
+async function readInfo (bucket, key) {
+  try {
+    const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
+    // const params = { Bucket: bucket, Key: key }
+    const response = await s3Client.getObject(params) // await the promise
+    const str = await response.Body.transformToString('utf-8')
+    const fileContent = JSON.parse(str.trim())
+    return fileContent
+  } catch (err) {
+    return { description: '' }
+  }
 }
 
 async function getScenario (bucket) {
@@ -252,6 +273,8 @@ async function getScenario (bucket) {
       console.log(err)
       return 'idns-canada@systra.com'
     })
+    const infoPromise = readInfo(bucket, `${scen}/info.json`).then(resp => resp).catch(() => {})
+
     scenList.push({
       model: bucket,
       scenario: scen,
@@ -259,6 +282,7 @@ async function getScenario (bucket) {
       timestamp,
       userEmail: '...',
       userEmailPromise,
+      info: infoPromise,
       protected: isLocked,
     })
   }
@@ -303,7 +327,7 @@ export default {
   readJson,
   readBytes,
   listFiles,
-  listFilesWithTime,
+  getSimulationLogs,
   copyFolder,
   deleteFolder,
   deleteObject,

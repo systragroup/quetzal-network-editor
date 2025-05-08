@@ -4,18 +4,17 @@ import { highwayList } from '@constants/highway.js'
 import MapSelector from './MapSelector.vue'
 import { useOSMStore } from '@src/store/OSMImporter'
 import { userLinksStore } from '@src/store/rlinks'
-import { useIndexStore } from '@src/store/index'
 
-const store = useIndexStore()
 const runOSM = useOSMStore()
 const rlinksStore = userLinksStore()
 const showOverwriteDialog = ref(false)
 const poly = ref(null)
 
-const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
-const running = computed(() => { return runOSM.running })
-const error = computed(() => { return runOSM.error })
-const errorMessage = computed(() => { return runOSM.errorMessage })
+const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
+const stateMachineArn = computed(() => runOSM.stateMachineArn)
+const running = computed(() => runOSM.running)
+const error = computed(() => runOSM.error)
+const errorMessage = computed(() => runOSM.errorMessage)
 
 function getBBOX (val) {
   poly.value = val
@@ -44,14 +43,14 @@ function importOSM () {
       }
     }
 
-    runOSM.startExecution(input)
+    runOSM.startExecution(stateMachineArn.value, input)
   } else {
     showOverwriteDialog.value = true
   }
 }
 
 function applyOverwriteDialog () {
-  store.initrLinks()
+  rlinksStore.$reset()
   showOverwriteDialog.value = false
   importOSM()
 }

@@ -1,5 +1,5 @@
 import { useGettext } from 'vue3-gettext'
-import { getMatchingAttr, getPerfectMatches, remap, deleteUnusedNodes } from '@comp/utils/utils.js'
+import { getMatchingAttr, getPerfectMatches, remap, deleteUnusedNodes } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import distance from '@turf/distance'

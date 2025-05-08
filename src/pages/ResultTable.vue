@@ -1,6 +1,6 @@
 <script>
 import s3 from '../AWSClient'
-import { csvJSON } from '../components/utils/utils.js'
+import { csvJSON } from '@src/utils/io'
 import { ref, onMounted, toRaw } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
@@ -129,6 +129,7 @@ export default {
 
 .layout {
   background-color:rgb(var(--v-theme-white));
+  color:rgb(var(--v-theme-black));
   display: flex;
   height: 100%;
   align-items: center;

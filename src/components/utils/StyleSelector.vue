@@ -1,8 +1,7 @@
 <script setup>
-import { useIndexStore } from '@src/store/index'
 import { ref, computed } from 'vue'
-
-const store = useIndexStore()
+import { useMapStore } from '../../store/map'
+const mapStore = useMapStore()
 const show = ref(false)
 const styles = [
   { name: 'Standard', url: 'mapbox://styles/mapbox/standard' },
@@ -13,10 +12,10 @@ const styles = [
   { name: 'Satelite Streets', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
   { name: 'Dark', url: 'mapbox://styles/mapbox/dark-v11' }]
 
-const mapStyle = computed(() => store.mapStyle)
+const mapStyle = computed(() => mapStore.mapStyle)
 // const selectedOpacity = ref(0)
 function changeMapStyle (event) {
-  store.changeMapStyle(event)
+  mapStore.changeMapStyle(event)
 }
 
 </script>

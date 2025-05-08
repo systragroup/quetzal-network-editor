@@ -104,7 +104,6 @@ async function handleClickMenuItem (route) {
 
     default:
       router.push(route.path)
-      showRail.value = false
       break
   }
 }
@@ -118,8 +117,8 @@ async function handleClickMenuItem (route) {
       class="drawer elevation-4"
       :rail="!showRail"
       rail-width="50"
-      temporary
-      :permanent="!showRail"
+      width="150"
+      permanent
     >
       <v-list
         class="app-menu"
@@ -133,10 +132,9 @@ async function handleClickMenuItem (route) {
             :class="[$route.name=== item.name ? 'app-menu-item-selected' : '']"
             :style="{marginTop: item.margin}"
             :disabled="(item.name === 'Save') && ((!scenario) || (isProtected))"
-
             @click="handleClickMenuItem(item)"
           >
-            <template v-slot:prepend>
+            <div class="row">
               <v-badge
                 v-if="(item.loading)"
                 color="rgba(0, 0, 0, 0)"
@@ -150,7 +148,7 @@ async function handleClickMenuItem (route) {
                   />
                 </template>
                 <v-icon
-                  class="icon"
+                  class="app-menu-icon"
                   size="small"
                 >
                   {{ item.icon }}
@@ -162,7 +160,7 @@ async function handleClickMenuItem (route) {
                 icon="fa-solid fa-exclamation"
               >
                 <v-icon
-                  class="icon"
+                  class="app-menu-icon"
                   size="small"
                 >
                   {{ item.icon }}
@@ -170,15 +168,15 @@ async function handleClickMenuItem (route) {
               </v-badge>
               <v-icon
                 v-else
-                class="icon"
+                class="app-menu-icon"
                 size="small"
               >
                 {{ item.icon }}
               </v-icon>
-            </template>
-            <v-list-item-title class="app-menu-item-title">
-              {{ $gettext(item.title) }}
-            </v-list-item-title>
+              <v-list-item-title class="app-menu-item-title">
+                {{ $gettext(item.title) }}
+              </v-list-item-title>
+            </div>
           </v-list-item>
         </template>
         <div
@@ -192,14 +190,67 @@ async function handleClickMenuItem (route) {
   </div>
 </template>
 <style lang="scss" scoped>
-.app-menu{
+.drawer {
+  background-color: rgb(var(--v-theme-secondary));
+}
+.app-menu {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
   padding-top:1rem;
+
+}
+.app-menu-icon {
+  opacity: 1 !important;
+  color: white;
+  margin-left:13px;
+}
+.drawer-header {
+  width: 100%;
+  height: 50px;
+  border-bottom: 1px solid white;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  cursor: pointer;
+}
+.app-menu-item {
+  padding: 0 !important;
+  justify-content: flex-start !important;
+  flex: 0;
+}
+.app-menu-list-item:hover {
+  background-color: white;
+}
+.app-menu-item-title {
+  color: white;
+  align-items: center;
+  font-size: small;
+  white-space: normal; /* Allow text to wrap */
+  overflow: visible;  /* Prevent clipping */
+  text-overflow: unset; /* Disable ellipses */
+}
+.app-menu-item-selected {
+  background-color:  rgb(var(--v-theme-secondarydarkfix));
+}
+.divider{
+  color:white;
+  margin:0.5rem;
+}
+.row{
+  display: flex;
+  gap:16px;
+  padding-top:5px;
+  align-items: center;
+  padding-bottom:5px;
+
 }
 .version-number {
-  justify-content: center ;
+  justify-content: left ;
   display: flex;
+  padding-left: 10px;
   color:white !important;
-  margin-bottom: 0.5rem;
   margin-top:1rem;
 
 }

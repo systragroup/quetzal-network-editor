@@ -1,7 +1,9 @@
 <script setup>
 import MarkdownIt from 'markdown-it'
-
+import mdKatex from 'markdown-it-katex'
+import 'katex/dist/katex.min.css'
 const markdown = new MarkdownIt()
+markdown.use(mdKatex)
 
 markdown.renderer.rules.image = function (tokens, idx) {
   const token = tokens[idx]
@@ -32,7 +34,7 @@ defineProps({
 <style lang="scss" scoped>
 
 .markdown{
-padding: 2rem;
+padding: 1rem;
 width:100%;
 }
 

@@ -42,7 +42,6 @@ async function downloadLogs() {
         v-show="hasLogs"
         :disabled="disabled"
         class="log-button"
-        color="regular"
         variant="outlined"
         prepend-icon="fas fa-file-lines"
         append-icon="fas fa-caret-down"

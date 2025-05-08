@@ -1,8 +1,7 @@
-<!-- eslint-disable no-case-declarations -->
 <script setup>
 
-import { ref, computed, nextTick } from 'vue'
-import { useResult } from '@comp/results/results.js'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { useResult } from '@comp/results/results'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
@@ -17,6 +16,7 @@ import LayerSelector from '@comp/utils/LayerSelector.vue'
 import StyleSelector from '@comp/utils/StyleSelector.vue'
 import StaticLayer from '@comp/utils/StaticLayer.vue'
 import { useGettext } from 'vue3-gettext'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 const { $gettext } = useGettext()
 
 const linksStore = useLinksStore()
@@ -24,54 +24,59 @@ const rlinksStore = userLinksStore()
 const ODStore = useODStore()
 const store = useIndexStore()
 const {
-  visibleLayer, NaNLayer, type, loadLayer, displaySettings, hasOD, ODfeatures, matSelectedIndex, changeOD,
-  isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings, changeSelectedFilter,
+  layer, visibleLayer, nanLayer, type, loadLayer, displaySettings, hasOD, attributesWithOD, matSelectedIndex, changeOD,
+  isIndexAvailable, selectedCategory, selectedFilter, attributes, applySettings,
+  changeSelectedFilter, refreshVisibleLinks,
   filteredCategory, updateSelectedFeature, changeSelectedCategory, colorScale,
 } = useResult()
 
 const mapRef = ref() //  we update the map with this ref
 function updateSettings (payload) {
   applySettings(payload)
+  refreshVisibleLinks()
+  updateSelectedFeature()
   nextTick(() => mapRef.value.update())
 }
 function updateSelectedFilter (val) {
   changeSelectedFilter(val)
+  refreshVisibleLinks()
   updateSelectedFeature()
   nextTick(() => mapRef.value.update())
 }
 function updateSelectedCategory (val) {
   changeSelectedCategory(val)
+  refreshVisibleLinks()
   updateSelectedFeature()
   nextTick(() => mapRef.value.update())
 }
 
 const selectedLayer = ref('')
 
-async function changeLayer (layer, settings = null) {
-  selectedLayer.value = layer
+async function changeLayer (layer, preset = null) {
   switch (layer) {
     case 'links':
-      await loadLayer(linksStore.links, null, settings)
+      loadLayer(linksStore.links, null, preset)
       break
     case 'rlinks':
-      await loadLayer(rlinksStore.rlinks, null, settings)
+      loadLayer(rlinksStore.rlinks, null, preset)
       break
     case 'nodes':
-      await loadLayer(linksStore.nodes, null, settings)
+      loadLayer(linksStore.nodes, null, preset)
       break
     case 'rnodes':
-      await loadLayer(rlinksStore.rnodes, null, settings)
+      loadLayer(rlinksStore.rnodes, null, preset)
       break
     case 'od':
-      await loadLayer(ODStore.layer, null, settings)
+      loadLayer(ODStore.layer, null, preset)
       break
     default:
       const data = await store.getOtherFile(layer, 'geojson')
       const matrix = await store.getOtherFile(layer, 'json')
-      await loadLayer(data, matrix, settings)
+      loadLayer(data, matrix, preset)
       break
   }
-  mapRef.value.update()
+  selectedLayer.value = layer
+  nextTick(() => mapRef.value.update())
 }
 
 const selectedPreset = ref(null)
@@ -80,36 +85,11 @@ const availableLayers = computed(() => store.availableLayers)
 const visibleRasters = computed(() => store.visibleRasters)
 const availableStyles = computed(() => store.styles)
 
-const presetToDelete = ref('')
-const showDeleteDialog = ref(false)
-const showPresetDialog = ref(false)
-const inputName = ref('')
-const tempDisplaySettings = ref({})
-
 async function changePreset (preset) {
   selectedPreset.value = preset.name
   if (availableLayers.value.includes(preset.layer)) {
     // change layer if it exist
-    await changeLayer(preset.layer, preset.displaySettings)
-    if (attributes.value.includes(preset?.selectedFilter)) {
-      // if preset contain a filter. apply it if it exist.
-      changeSelectedFilter(preset.selectedFilter)
-      // if there is a list of cat. apply them, else its everything
-      if (Object.keys(preset).includes('selectedCategory')) {
-        changeSelectedCategory(preset.selectedCategory)
-      }
-      // else it will show all
-    } else {
-      // if the filter is in the preset but not the the layer. just put a warning.
-      if (Object.keys(preset).includes('selectedFilter')) {
-        store.changeNotification(
-          {
-            text: preset.selectedFilter + ' ' + $gettext('filter does not exist. use default one'),
-            autoClose: true,
-            color: 'error',
-          })
-      }
-    }
+    await changeLayer(preset.layer, preset)
   } else {
     store.changeNotification(
       { text: $gettext('Preset Layer does not exist'), autoClose: true, color: 'error' })
@@ -123,26 +103,21 @@ async function changePreset (preset) {
   mapRef.value.update()
 }
 
-function clickDeletePreset (event) {
-  // open a dialog to make sure we want to delete
-  presetToDelete.value = event.name
-  showDeleteDialog.value = true
-}
+// preset creation
 
-function clickSavePreset (event) {
+const presetDialog = ref()
+const inputName = ref('')
+
+async function savePreset (preset) {
   // open a dialog to chose the name and accept
-  tempDisplaySettings.value = event
+  const tempDisplaySettings = preset
   inputName.value = selectedPreset.value
-  showPresetDialog.value = true
-}
-async function createPreset (event) {
-  const resp = await event
-  if (resp.valid) {
-    showPresetDialog.value = false
+  const resp = await presetDialog.value.openDialog()
+  if (resp) {
     const style = {
       name: cloneDeep(inputName.value),
       layer: cloneDeep(selectedLayer.value),
-      displaySettings: cloneDeep(tempDisplaySettings.value),
+      displaySettings: cloneDeep(tempDisplaySettings),
       selectedFilter: cloneDeep(selectedFilter.value),
     }
 
@@ -154,8 +129,8 @@ async function createPreset (event) {
     }
 
     // if its an OD preset. save the selected index.
-    if (ODfeatures.value.includes(tempDisplaySettings.value.selectedFeature) && hasOD.value) {
-      style.selectedIndex = matSelectedIndex.value
+    if (attributesWithOD.value.includes(tempDisplaySettings.selectedFeature) && hasOD.value) {
+      style.selectedIndex = cloneDeep(matSelectedIndex.value)
     }
 
     store.addStyle(style)
@@ -175,24 +150,40 @@ async function createPreset (event) {
   }
 }
 
-function deletePreset () {
-  store.deleteStyle(presetToDelete.value)
-  showDeleteDialog.value = false
-  if (presetToDelete.value === selectedPreset.value) {
+// delete preset
+
+const deleteDialog = ref()
+
+async function deleteButton (preset) {
+  const presetToDelete = preset.name
+  // obj contain trip and message.
+  const resp = await deleteDialog.value.openDialog()
+  if (resp) {
+    store.deleteStyle(presetToDelete)
+    if (presetToDelete === selectedPreset.value) {
     // if it was selected. unselect it
-    selectedPreset.value = null
+      selectedPreset.value = null
+    }
+    store.changeNotification(
+      { text: $gettext('Preset deleted'), autoClose: true, color: 'success' })
+    presetToDelete.value = ''
   }
-  store.changeNotification(
-    { text: $gettext('Preset deleted'), autoClose: true, color: 'success' })
-  presetToDelete.value = ''
 }
 
+// show values dialog
 const showDialog = ref(false)
 const formData = ref([])
 function featureClicked (event) {
   if (event.action === 'featureClick') {
-    formData.value = event.feature
-    showDialog.value = true
+    const index = event.feature.index
+    if (index) {
+      formData.value = layer.value.features.filter(el => el.properties.index === index)[0].properties
+      showDialog.value = true
+    } else {
+      // formData.value = event.feature
+      store.changeNotification({ text: $gettext('Layer have no index. Cannot show properties'),
+        autoClose: true, color: 'warning' })
+    }
     // OD click.
   } else {
     // will verify in this function if hasOD and the selected feature is an OD.
@@ -200,6 +191,18 @@ function featureClicked (event) {
     mapRef.value.update()
   }
 }
+
+import { useMapStore } from '@src/store/map'
+const mapStore = useMapStore()
+
+onMounted(() => {
+  // if we visit result first in the app (map is still in mtl)
+  // try to recenter on links oor rlink
+  if (mapStore.initalPosition) {
+    const layer = linksStore.linksIsEmpty ? rlinksStore.rlinks : linksStore.links
+    mapRef.value.fitBounds(layer)
+  }
+})
 
 </script>
 <template>
@@ -217,18 +220,8 @@ function featureClicked (event) {
       @update-selected-filter="updateSelectedFilter"
       @select-layer="changeLayer"
       @select-preset="changePreset"
-      @delete-preset="clickDeletePreset"
+      @delete-preset="deleteButton"
     />
-
-    <div class="left-panel">
-      <MapLegend
-        v-show="visibleLayer.features.length>0"
-        key="result"
-        :order="0"
-        :color-scale="colorScale"
-        :display-settings="displaySettings"
-      />
-    </div>
     <MapResults
       v-if="visibleLayer.features"
       ref="mapRef"
@@ -239,19 +232,28 @@ function featureClicked (event) {
       :extrusion="displaySettings.extrusion"
       :labels="displaySettings.labels"
       :links="visibleLayer"
-      :nan-links="NaNLayer"
+      :nan-links="nanLayer"
       :selected-feature="displaySettings.selectedFeature"
       :opacity="displaySettings.opacity"
       :offset="displaySettings.offset"
-      @selectClick="featureClicked"
+      @select-click="featureClicked"
     >
+      <div class="legend">
+        <MapLegend
+          v-show="visibleLayer.features.length>0"
+          key="result"
+          :order="0"
+          :color-scale="colorScale"
+          :display-settings="displaySettings"
+        />
+      </div>
       <div :style="{'display':'flex'}">
         <ResultsSettings
           :display-settings="displaySettings"
           :feature-choices="attributes"
           :type="type"
           @submit="updateSettings"
-          @save-preset="clickSavePreset"
+          @save-preset="savePreset"
         />
         <StyleSelector />
 
@@ -262,6 +264,7 @@ function featureClicked (event) {
           :available-layers="availableLayers"
         />
       </div>
+
       <div
         v-for="file in availableStyles"
         :key="file.name"
@@ -276,7 +279,6 @@ function featureClicked (event) {
         </template>
       </div>
     </MapResults>
-
     <v-dialog
       v-model="showDialog"
       scrollable
@@ -315,85 +317,23 @@ function featureClicked (event) {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="showPresetDialog"
-      persistent
-      max-width="400"
-      @keydown.esc="showPresetDialog=false"
+    <PromiseDialog
+      ref="presetDialog"
+      :title="$gettext('Create or modify preset')"
     >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Create or modify preset") }}
-        </v-card-title>
-        <v-form
-          validate-on="submit lazy"
-          @submit.prevent="createPreset"
-        >
-          <v-card-text>
-            <v-container>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="inputName"
-                  autofocus
-                  :rules="[value => !!value || 'Required.']"
-                  :label="$gettext('name')"
-                />
-              </v-col>
-            </v-container>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-
-            <v-btn
-              color="grey"
-              variant="text"
-              @click="showPresetDialog=false"
-            >
-              {{ $gettext("Cancel") }}
-            </v-btn>
-
-            <v-btn
-              color="green-darken-1"
-              variant="text"
-              type="submit"
-            >
-              {{ $gettext("ok") }}
-            </v-btn>
-          </v-card-actions>
-        </v-form>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      v-model="showDeleteDialog"
-      persistent
-      max-width="400"
-      @keydown.esc="showDeleteDialog=false"
-      @keydown.enter="deletePreset"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Delete") + ' ' + presetToDelete + ' ?' }}
-        </v-card-title>
-        <v-card-actions>
-          <v-spacer />
-
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="showDeleteDialog=false"
-          >
-            {{ $gettext("Cancel") }}
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="text"
-            @click="deletePreset"
-          >
-            {{ $gettext("delete") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <v-text-field
+        v-model="inputName"
+        autofocus
+        :rules="[value => !!value || 'Required.']"
+        :label="$gettext('name')"
+      />
+    </PromiseDialog>
+    <PromiseDialog
+      ref="deleteDialog"
+      :title=" $gettext('Delete %{name}?', { name: selectedPreset }) "
+      :confirm-button="$gettext('Delete')"
+      confirm-color="error"
+    />
   </section>
 </template>
 <style lang="scss" scoped>
@@ -402,9 +342,8 @@ function featureClicked (event) {
   width: 100%;
   display: flex;
 }
-.left-panel {
-  height: 100%;
-  position: absolute;
+.legend {
+  position:absolute
 }
 
 </style>

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import s3 from '../AWSClient'
 import Markdown from '@comp/utils/Markdown.vue'
 import { ref, onMounted, computed } from 'vue'
@@ -8,11 +8,13 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
 // Function to convert Blob to Data URL using a Promise
-function readBlobAsDataURL (blob) {
+function readBlobAsDataURL (blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = (event) => {
-      resolve(event.target.result)
+      if (event.target) {
+        resolve(event.target.result as string)
+      }
     }
     reader.onerror = (error) => {
       reject(error)
@@ -30,7 +32,11 @@ onMounted(() => {
   width.value = isMobile.value ? 100 : 50
 })
 
-const imgs = ref([])
+interface Img {
+  name: string
+  src: string
+}
+const imgs = ref<Img[]>([])
 const message = ref('')
 const mdString = ref('')
 
@@ -71,7 +77,7 @@ function replaceSrc() {
   // if true. insert its src in the MD string. and remove it from the imgs list.
   // then any unfound imgs will be display at the end (no duplicates)
   if (mdString.value.length > 0) {
-    const toDelete = []
+    const toDelete: Img[] = []
     for (const img of imgs.value) {
       if (mdString.value.includes(img.name)) {
         mdString.value = mdString.value.replace(img.name, img.src)
@@ -95,69 +101,75 @@ onMounted(async () => {
 
 </script>
 <template>
-  <v-bottom-navigation
-    class="toolbar"
-    :elevation="10"
-    dense
-  >
-    <div class="slider ">
-      <v-slider
-        v-model="width"
-        class=" align-center"
-        min="0"
-        max="100"
-        step="1"
-        density="compact"
-        track-size="2"
-        thumb-size="10"
-      >
-        <template v-slot:prepend>
-          <v-icon
-            size="x-small"
-            @click="()=>{width = Math.max(0,width-10)}"
-          >
-            fa-solid fa-magnifying-glass-minus
-          </v-icon>
-        </template>
-        <template v-slot:append>
-          <span>{{ width }}</span>
-          <v-icon
-            class="ml-2"
-            size="x-small"
-            @click="()=>{width = Math.min(100,width+10)}"
-          >
-            fa-solid fa-magnifying-glass-plus
-          </v-icon>
-        </template>
-      </v-slider>
-    </div>
-  </v-bottom-navigation>
-  <section class="layout">
-    <p v-if="imgs.length===0">
-      {{ $gettext(message) }}
-    </p>
-    <Markdown
-      :source="mdString"
-      :style="{'width':`${width}%`}"
-    />
-    <div
-      v-for="img in imgs"
-      :key="img.name"
-      class="gallery"
-
-      :style="{'width':`${width}%`}"
-    >
-      <v-img
-        :src="img.src"
-        :alt="img.name"
+  <section class="container">
+    <div class="layout">
+      <p v-if="imgs.length===0">
+        {{ $gettext(message) }}
+      </p>
+      <Markdown
+        :source="mdString"
+        :style="{'width':`${width}%`}"
       />
+      <div
+        v-for="img in imgs"
+        :key="img.name"
+        class="gallery"
+
+        :style="{'width':`${width}%`}"
+      >
+        <v-img
+          :src="img.src"
+          :alt="img.name"
+        />
+      </div>
+    </div>
+    <div
+      class="toolbar elevation-2"
+    >
+      <div class="slider ">
+        <v-slider
+          v-model="width"
+          class=" align-center"
+          min="0"
+          max="100"
+          step="1"
+          density="compact"
+          track-size="2"
+          thumb-size="10"
+        >
+          <template v-slot:prepend>
+            <v-icon
+              size="x-small"
+              @click="()=>{width = Math.max(0,width-10)}"
+            >
+              fa-solid fa-magnifying-glass-minus
+            </v-icon>
+          </template>
+          <template v-slot:append>
+            <span>{{ width }}</span>
+            <v-icon
+              class="ml-2"
+              size="x-small"
+              @click="()=>{width = Math.min(100,width+10)}"
+            >
+              fa-solid fa-magnifying-glass-plus
+            </v-icon>
+          </template>
+        </v-slider>
+      </div>
     </div>
   </section>
 </template>
 <style lang="scss" scoped>
-
+.container{
+  display:flex;
+  flex-direction: column;
+  width:100%;
+  height:100%;
+}
 .layout {
   background-color:rgb(var(--v-theme-white));
+  color:rgb(var(--v-theme-black));
   display: flex;
   height: 100%;
   align-items: center;
@@ -197,6 +209,8 @@ div.desc {
 .toolbar{
   height: 35px !important;
   display: flex;
+  color:rgb(var(--v-theme-darkgrey));
+  background-color:rgb(var(--v-theme-lightgrey));;
 }
 .slider{
   width:12rem;

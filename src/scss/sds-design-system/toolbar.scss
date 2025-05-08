@@ -1,3 +1,5 @@
+@use "color-shades";
+
 
 .project-name {
   font-size: 1.3em;
@@ -8,15 +10,15 @@
 .language {
   width: 50px;
   display: flex;
-  color: $grey-light;
-  border-right: 1px solid $grey-light;
+  color: color-shades.$grey-light;
+  border-right: 1px solid color-shades.$grey-light;
   align-items: center;
   justify-content: center;
   transition: 0.3s;
   cursor: pointer;
 }
 .language.active, .language:hover {
-  color: $secondary;
+  color: color-shades.$secondary;
 }
 .language:last-child {
   border-right: 0;

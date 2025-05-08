@@ -222,7 +222,7 @@ function cancel () {
     <template v-slot:activator="{ props:mp }">
       <div class="setting">
         <v-btn
-          :color="(displaySettings.selectedFeature === null)? 'error' : 'regular'"
+          :color="(displaySettings.selectedFeature === null)? 'error' : 'white'"
           v-bind="mp"
           icon="fa-solid fa-cog"
         />
@@ -249,7 +249,7 @@ function cancel () {
 
       <v-form
         ref="form"
-        lazy-validation
+        validate-on="lazy"
       >
         <v-col>
           <v-select
