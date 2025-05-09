@@ -23,7 +23,7 @@ const rules = ref({
 async function sendEmail() {
   loading.value = true
   try {
-    // await auth.sendRecoveryEmail(username.value)
+    await auth.sendRecoveryEmail(username.value)
     showPasswordField.value = true
   } catch (err) {
     error.value = err as string

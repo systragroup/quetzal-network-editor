@@ -1,3 +1,7 @@
+## [7.0.1] (2025-05-09)
+### Bug Fixes
+* Change password was not working (was left commented)
+
 ## [7.0.0] (2025-05-08)
 Major Release with A lot of code refactoring, TypeScript added and variants (periods)
 ### Features
