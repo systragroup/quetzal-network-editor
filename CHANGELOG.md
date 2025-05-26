@@ -1,3 +1,7 @@
+## [7.0.2] (2025-05-26)
+### Bug Fixes
+* Labels on result map were not working properly.
+
 ## [7.0.1] (2025-05-09)
 ### Bug Fixes
 * Change password was not working (was left commented)

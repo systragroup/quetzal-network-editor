@@ -96,12 +96,10 @@ defineExpose({ update, fitBounds })
 function update () {
   // childComponentRef.value.update()
   // update map like that as the mapbox watcher is slower.
+
   if (mapIsLoaded.value) {
     map.value.getSource('results').setData(links.value)
     map.value.getSource('NaNresults')?.setData(nanLinks.value)
-    if (labels.value !== '') {
-      if (map.value.getLayer('labels')) map.value.removeLayer('labels')
-    }
   }
 }
 
@@ -343,7 +341,6 @@ function zoneLeave (event) {
         @contextmenu="selectClick"
       />
       <MglSymbolLayer
-        v-if="labels!==''"
         type="symbol"
         source-id="results"
         source="links"

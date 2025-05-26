@@ -380,7 +380,7 @@ function cancel () {
           <v-select
             v-model="parameters[15].value"
             variant="underlined"
-            :items="[null, ...featureChoices.sort()]"
+            :items="['', ...featureChoices.sort()]"
             :label="$gettext(parameters[15].name)"
             :hint="showHint? $gettext(parameters[15].hint): ''"
             :persistent-hint="showHint"
@@ -438,7 +438,7 @@ function cancel () {
             :label="$gettext(parameters[11].name)"
             :hint="showHint? $gettext(parameters[11].hint): ''"
             :persistent-hint="showHint"
-            @update:modelValue="toggleFixScale(parameters[11].name)"
+            @update:model-value="toggleFixScale(parameters[11].name)"
           />
           <v-row>
             <v-col
