@@ -13,6 +13,7 @@ const runStore = useRunStore()
 const userStore = useUserStore()
 
 const steps = computed(() => { return runStore.steps })
+const modelTag = computed(() => runStore.modelTag)
 const avalaibleStepFunctions = computed(() => {
   const modelsSet = runStore.availableModels
   return runStore.avalaibleStepFunctions.filter(el => modelsSet.has(el))
@@ -34,6 +35,7 @@ const modelIsLoaded = computed(() => userStore.model !== null)
 
 onMounted(async () => {
   if (modelIsLoaded.value) {
+    await runStore.getModelTag()
     await runStore.getSteps()
     await runStore.checkRunningExecution()
   }
@@ -106,6 +108,10 @@ function playAudio() {
       <v-card-title class="subtitle">
         {{ $gettext('Simulation') }}
       </v-card-title>
+      <v-card-subtitle class="model-tag">
+        {{ modelTag }}
+      </v-card-subtitle>
+
       <Logs :disabled="running || !modelIsLoaded" />
     </div>
     <v-tabs
@@ -221,6 +227,9 @@ function playAudio() {
   overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
 }
+.model-tag{
+
+}
 .subtitle {
   font-size: 2em;
   font-weight: bold;
@@ -241,8 +250,7 @@ function playAudio() {
 }
 .title-container{
   display: flex;
-  gap:1rem;
-  align-items: center;
+  align-items: baseline;
   flex-direction: row;
 }
 </style>

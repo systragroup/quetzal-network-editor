@@ -1,3 +1,8 @@
+## [7.1.d] (2025-06-18)
+### Features
+* add model_tag to info.json. models will write it down. and the front will update info.json when its finish running.
+* Show model_tag in the Run page.
+
 ## [7.1.c] (2025-05-26)
 ### Bug Fixes
 * (7.0.2 rebase) Labels on result map were not working properly.

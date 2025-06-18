@@ -133,6 +133,11 @@ export function useAPI (params = { withHistory: false }) {
     } catch { return false }
   }
 
+  async function getFunctionTag(functionName: string) {
+    const resp = await quetzalClient.get(`model/version/${functionName}/`)
+    return resp.data
+  }
+
   return {
     running,
     error,
@@ -146,5 +151,7 @@ export function useAPI (params = { withHistory: false }) {
     pollExecution,
     getHistory,
     getRunningExecution,
+    getFunctionTag,
+
   }
 }

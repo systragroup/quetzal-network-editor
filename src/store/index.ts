@@ -41,7 +41,7 @@ export const useIndexStore = defineStore('index', {
     // Project specific
     visibleRasters: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
-    projectInfo: { description: '' },
+    projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
     // microservices
     importPoly: null,

@@ -95,13 +95,9 @@ export function stylesSerializer (json: Style[]) {
   return json
 }
 
-export function infoSerializer (json: ProjectInfo) {
-  const keys = Object.keys(json)
-  if (!keys.includes('description')) {
-    const err = new Error($gettext('info.json should be of the form {description: ""}'))
-    err.name = 'ImportError'
-    throw err
+export function infoSerializer (json: ProjectInfo): ProjectInfo {
+  return {
+    description: json.description || '',
+    model_tag: json.model_tag || '',
   }
-
-  return json
 }

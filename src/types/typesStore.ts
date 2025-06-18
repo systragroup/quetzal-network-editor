@@ -20,6 +20,7 @@ export interface Style {
 }
 export interface ProjectInfo {
   description: string
+  model_tag: string
 }
 
 export interface FileFormat {

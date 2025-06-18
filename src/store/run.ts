@@ -19,7 +19,7 @@ export const useRunStore = defineStore('runStore', () => {
   const userStore = useUserStore()
   const model = computed(() => userStore.model)
   const stateMachineArn = computed(() => `arn:aws:states:ca-central-1:142023388927:stateMachine:${model.value}`)
-
+  const modelTag = ref<string>('')
   const avalaibleStepFunctions = ref<string[]>(['default'])
   const selectedStepFunction = ref<string>('default') // default or comparision,
 
@@ -37,6 +37,13 @@ export const useRunStore = defineStore('runStore', () => {
   function cleanRun() {
     currentStep.value = 0
     clean()
+  }
+
+  // get model_tag
+
+  async function getModelTag() {
+    const response = await quetzalClient.get(`/model/version/${model.value}/`)
+    modelTag.value = response.data
   }
 
   // Steps
@@ -179,6 +186,7 @@ export const useRunStore = defineStore('runStore', () => {
 
   async function getOutputs () {
     const userStore = useUserStore()
+    const store = useIndexStore()
     const model = userStore.model
     const scen = userStore.scenario + '/'
     const path = scen + 'outputs/'
@@ -192,9 +200,10 @@ export const useRunStore = defineStore('runStore', () => {
     if (res.length > 0) {
       // load new Results
       // delete outputs
-      const store = useIndexStore()
       store.loadOtherFiles(res)
     }
+    const info = await s3.readInfo(model, scen)
+    store.projectInfo.model_tag = info.model_tag
   }
 
   // parameters
@@ -274,6 +283,7 @@ export const useRunStore = defineStore('runStore', () => {
   return {
     selectedStepFunction,
     avalaibleStepFunctions,
+    modelTag,
     currentStep,
     parameters,
     hasLogs,
@@ -291,6 +301,7 @@ export const useRunStore = defineStore('runStore', () => {
     getLogs,
     downloadLogs,
     getOutputs,
+    getModelTag,
     getSteps,
     checkRunningExecution,
     error,

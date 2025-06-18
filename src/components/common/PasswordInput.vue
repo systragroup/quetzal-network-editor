@@ -18,7 +18,6 @@ const rulesArr: Record<string, any> = {
 
 }
 function getRules(arr: string[] | undefined) {
-  console.log
   if (arr === undefined) { return [] }
   else {
     return arr.map(r => rulesArr[r]) }
