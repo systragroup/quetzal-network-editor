@@ -19,29 +19,11 @@ interface GeoJsonCRS {
   }
 }
 
-// Geometry Interfaces
+// TODO MultiPolygon
+
 interface GeoJsonGeometry {
   type: GeoJsonGeometryType
   coordinates: any // Use appropriate types for stricter validation if needed
-}
-
-// interface GeoJsonPolygon extends GeoJsonGeometry {
-//   type: 'Polygon'
-//   coordinates: [number, number][][] // Array of LinearRing coordinate arrays
-// }
-
-// interface GeoJsonMultiPolygon extends GeoJsonGeometry {
-//   type: 'MultiPolygon'
-//   coordinates: [number, number][][][]
-// }
-
-// My Geojson types
-//
-
-// features
-
-export interface GeoJsonProperties {
-  [key: string]: any
 }
 
 export interface PointGeometry {
@@ -54,6 +36,17 @@ export interface LineStringGeometry {
   coordinates: number[][]
 }
 
+export type Position = number[]
+
+export interface PolygonGeometry {
+  type: 'Polygon'
+  coordinates: Position[][]
+}
+
+export interface GeoJsonProperties {
+  [key: string]: any
+}
+
 export interface PointFeatures {
   type: 'Feature'
   geometry: PointGeometry
@@ -64,6 +57,12 @@ export interface LineStringFeatures {
   type: 'Feature'
   geometry: LineStringGeometry
   properties: GeoJsonProperties
+}
+
+export interface PolygonFeatures {
+  type: 'Feature'
+  geometry: PolygonGeometry
+  properties: GeoJsonProperties | null
 }
 
 export interface GeoJsonFeatures {
@@ -86,6 +85,12 @@ export interface PointGeoJson {
   crs?: GeoJsonCRS // Optional CRS
 }
 
+export interface PolygonGeoJson {
+  type: 'FeatureCollection'
+  features: PolygonFeatures[]
+  crs?: GeoJsonCRS // Optional CRS
+}
+
 export interface GeoJson {
   type: 'FeatureCollection'
   features: GeoJsonFeatures[]
@@ -101,10 +106,28 @@ export function basePoint(): PointGeoJson {
     features: [],
   }
 }
+
 export function baseLineString(): LineStringGeoJson {
   return {
     type: 'FeatureCollection',
     crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
     features: [],
+  }
+}
+export function basePolygon(): PolygonGeoJson {
+  return {
+    type: 'FeatureCollection',
+    crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
+    features: [],
+  }
+}
+export function basePolygonFeature(): PolygonFeatures {
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [],
+    },
+    properties: null,
   }
 }

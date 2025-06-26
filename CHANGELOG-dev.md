@@ -1,3 +1,10 @@
+## [7.1.FUTURE] (2025-06-26)
+### Changes
+* OSM importer in typescript
+* GTFS importer in typescript
+* add types for polygon.
+* getRules function centralized
+
 ## [7.1.d] (2025-06-18)
 ### Features
 * add model_tag to info.json. models will write it down. and the front will update info.json when its finish running.

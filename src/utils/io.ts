@@ -78,7 +78,7 @@ export async function unzipCalendar (file: File) {
   return {}
 }
 
-export function parseCSV(bytes: Uint8Array) {
+export function parseCSV(bytes: Uint8Array | ArrayBuffer) {
   const str = new TextDecoder().decode(bytes)
   const jsonData = Papa.parse(str, {
     header: true,

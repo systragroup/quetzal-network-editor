@@ -1,5 +1,6 @@
 import { GroupForm, IsoTimeStringTZ, TimeString } from './components'
-import { LineStringGeoJson, LineStringFeatures, PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
+import { LineStringGeoJson, LineStringFeatures,
+  PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
 
 // indexStore
 
@@ -465,4 +466,40 @@ export interface TransitParams {
   general: GeneralTransitParams
   catchment_radius: CatchmentRadius
   footpaths: FootPaths
+}
+
+// GTFS importer params
+
+export interface GTFSParams {
+  callID: string
+  files: string[]
+  start_time: TimeString
+  end_time: TimeString
+  day: string | string[]
+  dates: string[]
+
+  [key: string]: TimeString | string | string[]
+}
+
+export interface UploadGTFSInfo {
+  name: string
+  date: string
+  minDate: string
+  maxDate: string
+  progress: number
+}
+
+export interface UploadGTFSPayload {
+  content: File
+  info: UploadGTFSInfo
+}
+
+// OSM importer params
+
+export interface OSMImporterParams {
+  poly: number[][]
+  highway: string[]
+  callID: string
+  elevation: boolean
+  extended_cycleway: boolean
 }

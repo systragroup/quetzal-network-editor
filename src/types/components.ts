@@ -13,7 +13,7 @@ export interface FormOption {
   continue: boolean
 }
 
-export type SimpleFormType = 'number' | 'string' | 'boolean' | 'select'
+export type SimpleFormType = 'number' | 'string' | 'boolean' | 'select' | 'time'
 
 export interface FormData {
   key: string
@@ -27,7 +27,7 @@ export interface FormData {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   rules?: (string | Function)[]
   multiple?: boolean
-  items?: any[] | string | undefined
+  items?: any[] | undefined
   error?: boolean
 }
 

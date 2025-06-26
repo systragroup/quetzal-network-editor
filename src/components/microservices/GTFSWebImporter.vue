@@ -1,41 +1,79 @@
-<script setup>
+<script setup lang="ts">
 import bboxPolygon from '@turf/bbox-polygon'
 import booleanContains from '@turf/boolean-contains'
 import booleanIntersects from '@turf/boolean-intersects'
-import { polygon } from '@turf/helpers'
 import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
-import { useGTFSStore } from '@src/store/GTFSImporter'
+import { useGTFSStore } from '@src/store/GTFSImporter.ts'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
 import { parseCSV } from '@src/utils/io'
 import MapSelector from './MapSelector.vue'
+import Warning from '../utils/Warning.vue'
+import { FormData } from '@src/types/components'
+import { getRules } from '@src/utils/form'
 import { useGettext } from 'vue3-gettext'
+import { basePolygonFeature, GeoJsonFeatures, PolygonFeatures } from '@src/types/geojson'
 const { $gettext } = useGettext()
+
+export interface GTFSListMobilityData {
+  'index': number
+  'bbox': GeoJsonFeatures
+  'allInPolygon': boolean
+  'location.bounding_box.extracted_on': number
+  'location.bounding_box.maximum_latitude': number
+  'location.bounding_box.maximum_longitude': number
+  'location.bounding_box.minimum_latitude': number
+  'location.bounding_box.minimum_longitude': number
+  'location.country_code': string
+  'location.municipality': string
+  'location.subdivision_name': string
+  'urls.latest': string
+  'provider': string
+}
+
+export interface GTFSList {
+  index: number
+  bbox: GeoJsonFeatures
+  allInPolygon: boolean
+  countryCode: string
+  city: string
+  name: string
+  url: string
+  provider: string
+}
 
 const runGTFS = useGTFSStore()
 const linksStore = useLinksStore()
 const store = useIndexStore()
 const showOverwriteDialog = ref(false)
-const poly = ref(null)
-const gtfsList = ref([])
-const availableGTFS = ref([])
+const poly = ref<PolygonFeatures>(basePolygonFeature())
+const gtfsList = ref<GTFSListMobilityData[]>([])
+const availableGTFS = ref<GTFSList[]>([])
 const showHint = ref(false)
 const selectedGTFS = ref(runGTFS.selectedGTFS)
 const stateMachineArn = computed(() => runGTFS.stateMachineArn)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
-const callID = computed(() => runGTFS.callID)
+// const callID = computed(() => runGTFS.callID)
 const running = computed(() => runGTFS.running)
 const error = computed(() => runGTFS.error)
 const errorMessage = computed(() => runGTFS.errorMessage)
+const storeParameters = computed(() => runGTFS.parameters)
+
+function save() {
+  const selected = availableGTFS.value.filter(el => selectedGTFS.value.includes(el.index))
+  const filesPath = selected.map(el => el.url)
+  const dates: string[] = []
+  runGTFS.saveParams(parameters.value, filesPath, dates)
+  runGTFS.saveSelectedGTFS(selectedGTFS.value)
+}
 
 onBeforeUnmount(() => {
-  runGTFS.saveParams(parameters.value)
-  runGTFS.saveSelectedGTFS(selectedGTFS.value)
+  save()
 })
-const parameters = ref([{
-  name: 'start_time',
-  text: 'start time',
-  value: runGTFS.parameters.start_time,
+const parameters = ref<FormData[]>([{
+  key: 'start_time',
+  label: 'start time',
+  value: storeParameters.value.start_time,
   type: 'time',
   units: '',
   hint: 'Start Time to restrict the GTFS in a period',
@@ -44,9 +82,9 @@ const parameters = ref([{
   ],
 },
 {
-  name: 'end_time',
-  text: 'end time',
-  value: runGTFS.parameters.end_time,
+  key: 'end_time',
+  label: 'end time',
+  value: storeParameters.value.end_time,
   type: 'time',
   units: '',
   hint: 'End Time to restrict the GTFS in a period',
@@ -55,10 +93,10 @@ const parameters = ref([{
   ],
 },
 {
-  name: 'day',
-  text: 'day',
-  value: runGTFS.parameters.day,
-  type: 'String',
+  key: 'day',
+  label: 'day',
+  value: storeParameters.value.day,
+  type: 'string',
   items: ['monday',
     'tuesday',
     'wednesday',
@@ -73,23 +111,19 @@ const parameters = ref([{
   ],
 },
 ])
-const rules = {
-  required: v => !!v || $gettext('Required'),
-}
 
 onMounted(async () => {
   gtfsList.value = await fetchCSV()
+  // filter out GTFS without bounding box.
+  gtfsList.value = gtfsList.value.filter(el => el['location.bounding_box.minimum_longitude'])
   gtfsList.value.forEach((el, idx) => {
-    try {
-      el.bbox = bboxPolygon(
-        [el['location.bounding_box.minimum_longitude'],
-          el['location.bounding_box.minimum_latitude'],
-          el['location.bounding_box.maximum_longitude'],
-          el['location.bounding_box.maximum_latitude'],
-        ])
-    } catch {
-      el.bbox = null
-    }
+    el.bbox = bboxPolygon(
+      [el['location.bounding_box.minimum_longitude'],
+        el['location.bounding_box.minimum_latitude'],
+        el['location.bounding_box.maximum_longitude'],
+        el['location.bounding_box.maximum_latitude'],
+      ])
+
     el.index = idx
   })
   gtfsList.value = gtfsList.value.filter(el => el.bbox)
@@ -109,32 +143,35 @@ async function fetchCSV () {
       store.changeAlert({ name: 'Network error', message: 'cannot fetch GTFS list' })
     }
     const data = await response.arrayBuffer()
-    const json = parseCSV(data)
+    const json = parseCSV(data) as GTFSListMobilityData[]
     return json
   } catch (err) {
     store.changeAlert(err)
+    return []
   }
 }
 
-function getBBOX (val) {
-  if (!poly.value) {
-    poly.value = val
-    getAvaileGTFS()
-  } else {
-    poly.value = val
-  }
+function getBBOX (val: PolygonFeatures) {
+  poly.value = val
+  getAvaileGTFS()
 }
 function getAvaileGTFS () {
-  let lPoly = null
-  if (poly.value.style === 'bbox') {
-    const g = poly.value.geometry
-    lPoly = bboxPolygon([g[1], g[0], g[3], g[2]])
-  } else {
-    lPoly = polygon([poly.value.geometry])
-  }
-  availableGTFS.value = gtfsList.value.filter(
-    el => (booleanContains(lPoly, el.bbox) || booleanIntersects(lPoly, el.bbox)))
-  availableGTFS.value.forEach(el => el.allInPolygon = booleanContains(lPoly, el.bbox))
+  const filtered = gtfsList.value.filter(el =>
+    (booleanContains(poly.value, el.bbox) || booleanIntersects(poly.value, el.bbox)))
+
+  availableGTFS.value = filtered.map(el => {
+    const data: GTFSList = {
+      index: el.index,
+      bbox: el.bbox,
+      allInPolygon: booleanContains(poly.value, el.bbox),
+      countryCode: el['location.country_code'],
+      city: el['location.municipality'],
+      name: el['location.subdivision_name'],
+      url: el['urls.latest'],
+      provider: el['provider'],
+    }
+    return data
+  })
   // remove checked gtfs not available anymore.
   const indexSet = new Set(availableGTFS.value.map(el => el.index))
   selectedGTFS.value = selectedGTFS.value.filter(el => indexSet.has(el))
@@ -143,13 +180,8 @@ function getAvaileGTFS () {
 function importGTFS () {
   if (linksIsEmpty.value) {
     runGTFS.setCallID()
-    const selected = availableGTFS.value.filter(el => selectedGTFS.value.includes(el.index))
-    const filesPath = selected.map(el => el['urls.latest'])
-    const inputs = { files: filesPath, callID: callID.value }
-    parameters.value.forEach(item => {
-      inputs[item.name] = item.value
-    })
-    runGTFS.startExecution(stateMachineArn.value, inputs)
+    save()
+    runGTFS.startExecution(stateMachineArn.value, storeParameters.value)
   } else {
     showOverwriteDialog.value = true
   }
@@ -194,24 +226,10 @@ function applyOverwriteDialog () {
       >
         {{ $gettext('Download') }}
       </v-btn>
-      <v-card-subtitle>
-        <v-alert
-          v-if="error"
-          density="compact"
-          variant="outlined"
-          text
-          type="error"
-        >
-          {{ $gettext("There as been an error while importing OSM network. \
-            Please try again. If the problem persist, contact us.") }}
-          <p
-            v-for="key in Object.keys(errorMessage)"
-            :key="key"
-          >
-            <b>{{ key }}: </b>{{ errorMessage[key] }}
-          </p>
-        </v-alert>
-      </v-card-subtitle>
+      <Warning
+        :show="error"
+        :messages="errorMessage"
+      />
       <div class="params-row">
         <div
           v-for="(item, key) in parameters"
@@ -223,27 +241,26 @@ function applyOverwriteDialog () {
             v-model="item.value"
             step="1"
             :type="item.type"
-            :label="$gettext(item.text)"
+            :label="$gettext(item.label)"
             :suffix="item.units"
             variant="underlined"
-            :hint="showHint? $gettext(item.hint): ''"
+            :hint="showHint? item.hint: ''"
             :persistent-hint="showHint"
-            :rules="item.rules.map((rule) => rules[rule])"
+            :rules="getRules(item.rules)"
             required
             @wheel="()=>{}"
           />
-
           <v-select
-            v-else
+            v-if="item.items !== undefined"
             v-model="item.value"
             variant="underlined"
             :type="item.type"
             :items="item.items"
-            :label="$gettext(item.text)"
+            :label="$gettext(item.label)"
             :suffix="item.units"
-            :hint="showHint? $gettext(item.hint): ''"
+            :hint="showHint? item.hint: ''"
             :persistent-hint="showHint"
-            :rules="item.rules.map((rule) => rules[rule])"
+            :rules="getRules(item.rules)"
             required
             @wheel="()=>{}"
           />
@@ -269,16 +286,16 @@ function applyOverwriteDialog () {
             :value="item.index"
             :label="String(key)"
           /></span>
-          <span class="list-item-small">{{ item['allInPolygon'] }} </span>
-          <span class="list-item-small">{{ item['location.country_code'] }} </span>
-          <span class="list-item-medium">{{ item['location.subdivision_name'] }}</span>
-          <span class="list-item-medium">{{ item['location.municipality'] }}</span>
+          <span class="list-item-small">{{ item.allInPolygon }} </span>
+          <span class="list-item-small">{{ item.countryCode }} </span>
+          <span class="list-item-medium">{{ item.name }}</span>
+          <span class="list-item-medium">{{ item.city }}</span>
           <span class="list-item-large">{{ item.provider }}</span>
           <v-btn
             variant="text"
             icon="fa-solid fa-download"
             size="small"
-            :href="item['urls.latest']"
+            :href="item.url"
           />
         </ul>
       </div>

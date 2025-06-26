@@ -208,7 +208,7 @@ async function putObject (bucket, key, body) {
   } else { return 'no changes' }
 }
 
-function uploadObject (bucket, key, body = '') {
+function uploadObject (bucket, key, body) {
   const userStore = useUserStore()
   const checksum = hash(body)
   const params = {

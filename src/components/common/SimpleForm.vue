@@ -3,7 +3,7 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { ref } from 'vue'
 import { FormData, SimpleFormType } from '@src/types/components'
-
+import { getRules } from '@src/utils/form'
 const editorForm = defineModel<FormData[]>()
 const emits = defineEmits(['change'])
 
@@ -19,18 +19,6 @@ async function validate() {
     setTimeout(() => { shake.value = false }, 500)
   }
   return resp.valid
-}
-
-function getRules(arr: (string | Function)[] | undefined) {
-  if (arr === undefined) { return [] }
-  else { return arr.map((r) => typeof (r) === 'string' ? rules[r] : r) }
-}
-
-const rules: Record<string, any> = {
-  required: (v: any) => (v != null && v !== '') || $gettext('Required'),
-  largerThanZero: (v: number) => v > 0 || $gettext('Should be larger than 0'),
-  nonNegative: (v: number) => v >= 0 || $gettext('Should be larger or equal to 0'),
-  longerThanZero: (v: string) => v.length > 0 || $gettext('Should not be empty'),
 }
 
 function change(item: FormData) {
@@ -70,7 +58,6 @@ function typeMap(type: SimpleFormType) {
           :name="item.key"
           :item="item"
           :show-hint="showHint"
-          :get-rules="getRules"
           @update:model-value="change(item)"
         >
           <component

@@ -7,35 +7,50 @@ import { useLinksStore } from '@src/store/links'
 import s3 from '@src/AWSClient'
 import router from '@src/router/index'
 import { useGettext } from 'vue3-gettext'
+import { GTFSParams, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesStore'
+import { FormData } from '@src/types/components'
+import { LineStringGeoJson } from '@src/types/geojson'
 
 export const useGTFSStore = defineStore('runGTFS', () => {
   const { $gettext } = useGettext()
   const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api')
   const bucket = ref('quetzal-api-bucket')
-  const callID = ref(uuid())
-  function setCallID() { callID.value = uuid() }
+
+  const callID = ref('')
+  function setCallID() {
+    callID.value = uuid()
+    parameters.value.callID = callID.value
+  }
 
   const { error, running, errorMessage, status, timer,
     startExecution, stopExecution, cleanRun } = useAPI()
 
   function clean() {
-    UploadedGTFS.value = []
-    selectedGTFS.value = []
+    uploadedGTFS.value = []
+    parameters.value.files = []
     callID.value = uuid()
     cleanRun()
   }
 
-  const parameters = ref({
+  const parameters = ref<GTFSParams>({
+    callID: '',
+    files: [],
     start_time: '06:00:00',
     end_time: '08:59:00',
     day: 'tuesday',
+    dates: [],
   })
-  function saveParams (payload) { payload.forEach(param => parameters.value[param.name] = param.value) }
 
-  const UploadedGTFS = ref([]) // list of upploded gtfs (zip local)
-  const selectedGTFS = ref([]) // list of index for web Importer
-  function saveSelectedGTFS (payload) {
-    // for web importer
+  function saveParams (params: FormData[], selectedFiles: string[], selectedDates: string[]) {
+    params.forEach(param => parameters.value[param.key] = param.value)
+    parameters.value.files = selectedFiles
+    parameters.value.dates = selectedDates
+  }
+
+  const uploadedGTFS = ref<UploadGTFSInfo[]>([]) // list of upploded gtfs (zip local)
+  const selectedGTFS = ref<number[]>([]) // list of index for web Importer
+
+  function saveSelectedGTFS (payload: number[]) {
     selectedGTFS.value = payload
   }
 
@@ -51,15 +66,15 @@ export const useGTFSStore = defineStore('runGTFS', () => {
       router.push('/Home').catch(() => {})
     }
   })
-
-  const widthDict = ref({
+  type WidthDict = Record<string, number>
+  const widthDict = ref<WidthDict>({
     bus: 3,
     subway: 8,
     rail: 6,
     tram: 5,
   })
-  function applyDict (links, widthDict) {
-    // 00BCD4
+
+  function applyDict (links: LineStringGeoJson, widthDict: WidthDict) {
     Object.keys(widthDict).forEach(routeType => {
       links.features.filter(link => link.properties.route_type === routeType).forEach(
         link => { link.properties.route_width = widthDict[routeType] },
@@ -81,20 +96,28 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   }
 
   // for zip importer
-  async function addGTFS (payload) {
-    const nameList = UploadedGTFS.value.map(el => el?.name)
+  async function addGTFS (payload: UploadGTFSPayload) {
+    const nameList = uploadedGTFS.value.map(el => el?.name)
     if (!nameList.includes(payload.info.name)) {
-      UploadedGTFS.value.push(payload.info)
+      uploadedGTFS.value.push(payload.info)
     }
     const upload = s3.uploadObject(bucket.value, callID.value + '/' + payload.info.name, payload.content)
     upload.on('httpUploadProgress', (progress) => {
-      const percent = Math.round(progress.loaded / progress.total * 100)
-      updateProgress({ name: payload.info.name, progress: percent })
+      if (progress) {
+        const percent = Math.round((progress.loaded || 0) / (progress.total || 1) * 100)
+        updateProgress({ name: payload.info.name, progress: percent })
+      }
     })
     upload.done()
   }
-  function updateProgress (payload) {
-    UploadedGTFS.value.filter(el => el.name === payload.name)[0].progress = payload.progress
+
+  interface UploadProgress {
+    name: string
+    progress: number
+  }
+
+  function updateProgress (payload: UploadProgress) {
+    uploadedGTFS.value.filter(el => el.name === payload.name)[0].progress = payload.progress
   }
 
   return {
@@ -113,7 +136,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     clean,
     parameters,
     saveParams,
-    UploadedGTFS,
+    uploadedGTFS,
     selectedGTFS,
     saveSelectedGTFS,
     addGTFS,

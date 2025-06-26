@@ -1,11 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import { unzipCalendar } from '@src/utils/io'
 import DatePicker from '@comp/utils/DatePicker.vue'
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
+import { getRules } from '@src/utils/form'
+
 import { useGettext } from 'vue3-gettext'
+import { FormData } from '@src/types/components'
+import Warning from '../utils/Warning.vue'
 const { $gettext } = useGettext()
 
 const runGTFS = useGTFSStore()
@@ -15,25 +19,27 @@ const showOverwriteDialog = ref(false)
 const showHint = ref(false)
 const stateMachineArn = computed(() => runGTFS.stateMachineArn)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
-const callID = computed(() => runGTFS.callID)
-const UploadedGTFS = computed(() => runGTFS.UploadedGTFS)
+const uploadedGTFS = computed(() => runGTFS.uploadedGTFS)
 const running = computed(() => runGTFS.running)
 const error = computed(() => runGTFS.error)
 const errorMessage = computed(() => runGTFS.errorMessage)
-const isUploading = computed(() => UploadedGTFS.value.filter(item => item.progress < 100).length > 0)
+const isUploading = computed(() => uploadedGTFS.value.filter(item => item.progress < 100).length > 0)
+const storeParameters = computed(() => runGTFS.parameters)
 
-onBeforeUnmount(() => {
-  runGTFS.saveParams(parameters.value)
-})
-
-const rules = {
-  required: v => !!v || $gettext('Required'),
+function save() {
+  const files = uploadedGTFS.value.map(el => el.name)
+  const dates = uploadedGTFS.value.map(el => el.date)
+  runGTFS.saveParams(parameters.value, files, dates)
 }
 
-const parameters = ref([{
-  name: 'start_time',
-  text: 'start time',
-  value: runGTFS.parameters.start_time,
+onBeforeUnmount(() => {
+  save()
+})
+
+const parameters = ref<FormData[]>([{
+  key: 'start_time',
+  label: 'start time',
+  value: storeParameters.value.start_time,
   type: 'time',
   units: '',
   hint: 'Start Time to restrict the GTFS in a period',
@@ -42,9 +48,9 @@ const parameters = ref([{
   ],
 },
 {
-  name: 'end_time',
-  text: 'end time',
-  value: runGTFS.parameters.end_time,
+  key: 'end_time',
+  label: 'end time',
+  value: storeParameters.value.end_time,
   type: 'time',
   units: '',
   hint: 'End Time to restrict the GTFS in a period',
@@ -56,23 +62,25 @@ const parameters = ref([{
 const zipInput = ref()
 function uploadGTFS () {
   zipInput.value.click()
-  document.getElementById('zip-input').value = '' // clean it for next file
+  const element = document.getElementById('zip-input') as HTMLInputElement | null
+  if (element) element.value = '' // clean it for next file
 }
 
-async function readZip (event) {
+async function readZip (event: Event) {
   try {
     store.changeLoading(true)
-    const zfiles = event.target.files
+    const input = event.target as HTMLInputElement
+    const zfiles = input.files
     // there is a file
-    if (!zfiles.length) {
+    if (!zfiles?.length) {
       store.changeLoading(false)
       return
     }
-    for (const file of zfiles) {
-      const calendar = await unzipCalendar(file)
-      const minDate = calendar.reduce((min, date) =>
+    for (const file of Array.from(zfiles)) {
+      const calendar = await unzipCalendar(file) as any
+      const minDate = calendar.reduce((min: any, date: any) =>
         (date.start_date < min ? date.start_date : min), calendar[0].start_date)
-      const maxDate = calendar.reduce((max, date) =>
+      const maxDate = calendar.reduce((max: any, date: any) =>
         (date.end_date > max ? date.end_date : max), calendar[0].end_date)
 
       const payload = {
@@ -90,13 +98,9 @@ async function readZip (event) {
 
 function importGTFS () {
   if (linksIsEmpty.value) {
-    const files = UploadedGTFS.value.map(el => el.name)
-    const dates = UploadedGTFS.value.map(el => el.date)
-    const inputs = { files, dates, callID: callID.value }
-    parameters.value.forEach(item => {
-      inputs[item.name] = item.value
-    })
-    runGTFS.startExecution(stateMachineArn.value, inputs)
+    runGTFS.setCallID()
+    save()
+    runGTFS.startExecution(stateMachineArn.value, storeParameters.value)
   } else {
     showOverwriteDialog.value = true
   }
@@ -117,7 +121,7 @@ function applyOverwriteDialog () {
       type="file"
       style="display: none"
       accept=".zip"
-      multiple="multiple"
+      multiple
       @change="readZip"
     >
     <v-card class="card">
@@ -141,24 +145,10 @@ function applyOverwriteDialog () {
         </v-btn>
       </v-card-actions>
 
-      <v-card-subtitle>
-        <v-alert
-          v-if="error"
-          density="compact"
-          variant="outlined"
-          text
-          type="error"
-        >
-          {{ $gettext("There as been an error while converting your GTFS. \
-            Please try again. If the problem persist, contact us.") }}
-          <p
-            v-for="key in Object.keys(errorMessage)"
-            :key="key"
-          >
-            <b>{{ key }}: </b>{{ errorMessage[key] }}
-          </p>
-        </v-alert>
-      </v-card-subtitle>
+      <Warning
+        :show="error"
+        :messages="errorMessage"
+      />
       <div class="params-row">
         <div
           v-for="(item, key) in parameters"
@@ -170,11 +160,11 @@ function applyOverwriteDialog () {
             :type="item.type"
             step="1"
             variant="underlined"
-            :label="$gettext(item.text)"
+            :label="$gettext(item.label)"
             :suffix="item.units"
-            :hint="showHint? $gettext(item.hint): ''"
+            :hint="showHint? item.hint: ''"
             :persistent-hint="showHint"
-            :rules="item.rules.map((rule) => rules[rule])"
+            :rules="getRules(item.rules)"
             required
             @wheel="()=>{}"
           />
@@ -190,7 +180,7 @@ function applyOverwriteDialog () {
           <span class="list-item-small"> {{ $gettext('Uploaded') }}</span>
         </li>
         <ul
-          v-for="(item,key) in UploadedGTFS"
+          v-for="(item,key) in uploadedGTFS"
           :key="key"
           class="list-row"
         >
@@ -220,8 +210,8 @@ function applyOverwriteDialog () {
       <div class="bottom-button">
         <v-btn
           :loading="running"
-          :disabled="running || UploadedGTFS.length==0 || isUploading"
-          :color="(running || UploadedGTFS.length==0 || isUploading)? 'regular' :'success'"
+          :disabled="running || uploadedGTFS.length==0 || isUploading"
+          :color="(running || uploadedGTFS.length==0 || isUploading)? 'regular' :'success'"
           prepend-icon="fa-solid fa-play"
           @click="importGTFS"
         >
