@@ -10,6 +10,7 @@ import { useGettext } from 'vue3-gettext'
 import { GTFSParams, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 import { LineStringGeoJson } from '@src/types/geojson'
+import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
 
 function baseParameters(): GTFSParams {
   return {
@@ -69,28 +70,33 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   })
 
   type WidthDict = Record<string, number>
-  const widthDict = ref<WidthDict>({
-    bus: 3,
-    subway: 8,
-    rail: 6,
-    tram: 5,
-  })
+  type ColorDict = Record<string, string>
 
-  function applyDict (links: LineStringGeoJson, widthDict: WidthDict) {
+  function applyDict (links: LineStringGeoJson, widthDict: WidthDict, colorDict: ColorDict) {
     Object.keys(widthDict).forEach(routeType => {
-      links.features.filter(link => link.properties.route_type === routeType).forEach(
-        link => { link.properties.route_width = widthDict[routeType] },
-      )
+      links.features.filter(link => link.properties.route_type === routeType).forEach(link => {
+        link.properties.route_width = widthDict[routeType]
+        if (!link.properties.route_color) { link.properties.route_color = colorDict[routeType] }
+      })
+    })
+    return links
+  }
+
+  function removeHashInColor(links: LineStringGeoJson): LineStringGeoJson {
+    links.features.forEach(link => {
+      if (link.properties.route_color) {
+        link.properties.route_color = link.properties.route_color.replace('#', '')
+      }
     })
     return links
   }
 
   async function downloadFromS3 () {
     const linksStore = useLinksStore()
-
-    let links = await s3.readJson(bucket.value, callID.value.concat('/links.geojson'))
+    let links = await s3.readJson(bucket.value, callID.value.concat('/links.geojson')) as LineStringGeoJson
     if (links.features.length > 0) {
-      links = applyDict(links, widthDict.value)
+      links = removeHashInColor(links)
+      links = applyDict(links, routeTypeWidth, routeTypeColor)
     }
     linksStore.appendNewLinks(links)
     const nodes = await s3.readJson(bucket.value, callID.value.concat('/nodes.geojson'))
