@@ -43,7 +43,9 @@ export function useAPI (params = { withHistory: false }) {
     executionArn.value = ''
   }
 
-  type Input = RunInputs | MatrixRoadCasterParams | GTFSParams | OSMImporterParams
+  // todo: runinputs or some Dict with callId.
+  type InputWithCallID = (MatrixRoadCasterParams | GTFSParams | OSMImporterParams) & { callID: string }
+  type Input = RunInputs | InputWithCallID
   async function startExecution (stateMachineArn: string, input: Input) {
     running.value = true
     error.value = false

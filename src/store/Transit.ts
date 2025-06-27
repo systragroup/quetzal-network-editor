@@ -9,16 +9,14 @@ import { useGettext } from 'vue3-gettext'
 import { TransitParams } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 
-export const useTransitStore = defineStore('runTransit', () => {
-  const { $gettext } = useGettext()
-  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-transit-api')
-  const bucket = ref<string>('quetzal-api-bucket')
-  const callID = ref<string>('')
-  function setCallID() { callID.value = uuid() }
-  const timer = ref<number>(0)
-  const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI()
+interface SaveParams {
+  general: FormData[]
+  footpaths: FormData[]
+  catchment_radius: FormData[]
+}
 
-  const parameters = ref<TransitParams>({
+function baseParameters(): TransitParams {
+  return {
     general: {
       step_size: 0.001,
       use_road_network: false,
@@ -29,14 +27,28 @@ export const useTransitStore = defineStore('runTransit', () => {
       speed: 3,
       n_ntlegs: 2,
     },
-  })
-
-  interface SaveParams {
-    general: FormData[]
-    footpaths: FormData[]
-    catchment_radius: FormData[]
-
   }
+}
+
+export const useTransitStore = defineStore('runTransit', () => {
+  const { $gettext } = useGettext()
+  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-transit-api')
+  const bucket = ref<string>('quetzal-api-bucket')
+
+  const callID = ref<string>('')
+  const timer = ref<number>(0)
+  const parameters = ref<TransitParams>(baseParameters())
+
+  const { error, running, errorMessage, startExecution, status, stopExecution, cleanRun } = useAPI()
+
+  function reset() {
+    callID.value = ''
+    timer.value = 0
+    parameters.value = baseParameters()
+    cleanRun()
+  }
+
+  function setCallID() { callID.value = uuid() }
 
   function saveParams (payload: SaveParams) {
     payload.general.forEach(param => parameters.value.general[param.key] = param.value)
@@ -56,6 +68,7 @@ export const useTransitStore = defineStore('runTransit', () => {
           autoClose: false, color: 'success' })
     }
   })
+
   async function downloadResults () {
     let outputs = await s3.listFiles(bucket.value, `${callID.value}/outputs/`)
     const res = []
@@ -91,5 +104,6 @@ export const useTransitStore = defineStore('runTransit', () => {
     setCallID,
     startExecution,
     stopExecution,
+    reset,
   }
 })

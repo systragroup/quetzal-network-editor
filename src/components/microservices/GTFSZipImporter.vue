@@ -21,6 +21,7 @@ const stateMachineArn = computed(() => runGTFS.stateMachineArn)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const uploadedGTFS = computed(() => runGTFS.uploadedGTFS)
 const running = computed(() => runGTFS.running)
+const callID = computed(() => runGTFS.callID)
 const error = computed(() => runGTFS.error)
 const errorMessage = computed(() => runGTFS.errorMessage)
 const isUploading = computed(() => uploadedGTFS.value.filter(item => item.progress < 100).length > 0)
@@ -98,9 +99,9 @@ async function readZip (event: Event) {
 
 function importGTFS () {
   if (linksIsEmpty.value) {
-    runGTFS.setCallID()
     save()
-    runGTFS.startExecution(stateMachineArn.value, storeParameters.value)
+    const input = { callID: callID.value, ...storeParameters.value }
+    runGTFS.startExecution(stateMachineArn.value, input)
   } else {
     showOverwriteDialog.value = true
   }

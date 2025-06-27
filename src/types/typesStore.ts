@@ -432,7 +432,6 @@ export interface MapMatchingParams {
 }
 
 export interface MatrixRoadCasterParams {
-  callID: string
   api: 'google' | 'here'
   num_zones: number
   train_size: number
@@ -471,11 +470,10 @@ export interface TransitParams {
 // GTFS importer params
 
 export interface GTFSParams {
-  callID: string
   files: string[]
   start_time: TimeString
   end_time: TimeString
-  day: string | string[]
+  day: string
   dates: string[]
 
   [key: string]: TimeString | string | string[]
@@ -499,7 +497,6 @@ export interface UploadGTFSPayload {
 export interface OSMImporterParams {
   poly: number[][]
   highway: string[]
-  callID: string
   elevation: boolean
   extended_cycleway: boolean
 }

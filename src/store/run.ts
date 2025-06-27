@@ -32,11 +32,11 @@ export const useRunStore = defineStore('runStore', () => {
   const logs = ref<RunLog[]>([])
 
   const { error, errorMessage, status, history,
-    startExecution, stopExecution, cleanRun: clean, getRunningExecution } = useAPI({ withHistory: true })
+    startExecution, stopExecution, cleanRun, getRunningExecution } = useAPI({ withHistory: true })
 
-  function cleanRun() {
+  function reset() {
     currentStep.value = 0
-    clean()
+    cleanRun()
   }
 
   // get model_tag
@@ -310,7 +310,7 @@ export const useRunStore = defineStore('runStore', () => {
     status,
     startExecution,
     stopExecution,
-    cleanRun,
+    reset,
   }
 })
 

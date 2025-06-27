@@ -81,7 +81,7 @@ function selectScenario (e, val) {
   }
 }
 async function loadProject () {
-  runStore.cleanRun()
+  runStore.reset()
   userStore.setModel(localModel.value)
   userStore.setScenario({ scenario: localScen.value, protected: locked.value })
   emits('load', 'emit')

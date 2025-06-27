@@ -15,6 +15,7 @@ const poly = ref<PolygonFeatures>(basePolygonFeature())
 
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const stateMachineArn = computed(() => runOSM.stateMachineArn)
+const callID = computed(() => runOSM.callID)
 const running = computed(() => runOSM.running)
 const error = computed(() => runOSM.error)
 const errorMessage = computed(() => runOSM.errorMessage)
@@ -26,13 +27,14 @@ function getBBOX (val: PolygonFeatures) {
 function importOSM () {
   if (rlinksIsEmpty.value) {
     runOSM.setCallID()
-    const input: OSMImporterParams = {
+    const params: OSMImporterParams = {
       poly: toRaw(poly.value.geometry.coordinates[0]),
       highway: toRaw(runOSM.selectedHighway),
-      callID: runOSM.callID,
       elevation: true,
       extended_cycleway: runOSM.extendedCycleway,
     }
+
+    const input = { callID: callID.value, ...params }
     runOSM.startExecution(stateMachineArn.value, input)
   } else {
     showOverwriteDialog.value = true

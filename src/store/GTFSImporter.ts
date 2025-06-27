@@ -11,44 +11,45 @@ import { GTFSParams, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesS
 import { FormData } from '@src/types/components'
 import { LineStringGeoJson } from '@src/types/geojson'
 
-export const useGTFSStore = defineStore('runGTFS', () => {
-  const { $gettext } = useGettext()
-  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api')
-  const bucket = ref('quetzal-api-bucket')
-
-  const callID = ref('')
-  function setCallID() {
-    callID.value = uuid()
-    parameters.value.callID = callID.value
-  }
-
-  const { error, running, errorMessage, status, timer,
-    startExecution, stopExecution, cleanRun } = useAPI()
-
-  function clean() {
-    uploadedGTFS.value = []
-    parameters.value.files = []
-    callID.value = uuid()
-    cleanRun()
-  }
-
-  const parameters = ref<GTFSParams>({
-    callID: '',
+function baseParameters(): GTFSParams {
+  return {
     files: [],
     start_time: '06:00:00',
     end_time: '08:59:00',
     day: 'tuesday',
     dates: [],
-  })
+  }
+}
+
+export const useGTFSStore = defineStore('runGTFS', () => {
+  const { $gettext } = useGettext()
+  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api')
+  const bucket = ref('quetzal-api-bucket')
+
+  const callID = ref(uuid())
+  const parameters = ref<GTFSParams>(baseParameters())
+  const uploadedGTFS = ref<UploadGTFSInfo[]>([]) // list of upploded gtfs (zip local)
+  const selectedGTFS = ref<number[]>([]) // list of index for web Importer
+
+  const { error, running, errorMessage, status, timer, startExecution, stopExecution, cleanRun } = useAPI()
+
+  function reset() {
+    uploadedGTFS.value = []
+    selectedGTFS.value = []
+    callID.value = uuid()
+    parameters.value = baseParameters()
+    cleanRun()
+  }
+
+  // used for the webimporter. we want a new callID on run
+  // the zip importer need a fix callID to upload its gtfs in a bucket, then run
+  function setCallID() { callID.value = uuid() }
 
   function saveParams (params: FormData[], selectedFiles: string[], selectedDates: string[]) {
     params.forEach(param => parameters.value[param.key] = param.value)
     parameters.value.files = selectedFiles
     parameters.value.dates = selectedDates
   }
-
-  const uploadedGTFS = ref<UploadGTFSInfo[]>([]) // list of upploded gtfs (zip local)
-  const selectedGTFS = ref<number[]>([]) // list of index for web Importer
 
   function saveSelectedGTFS (payload: number[]) {
     selectedGTFS.value = payload
@@ -66,6 +67,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
       router.push('/Home').catch(() => {})
     }
   })
+
   type WidthDict = Record<string, number>
   const widthDict = ref<WidthDict>({
     bus: 3,
@@ -132,8 +134,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     timer,
     startExecution,
     stopExecution,
-    cleanRun,
-    clean,
+    reset,
     parameters,
     saveParams,
     uploadedGTFS,

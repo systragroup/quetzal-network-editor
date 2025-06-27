@@ -11,17 +11,8 @@ import { userLinksStore } from './rlinks'
 import { MapMatchingParams } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 
-export const useMapMatchingStore = defineStore('runMapMatching', () => {
-  const { $gettext } = useGettext()
-  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-mapmatching-api')
-  const bucket = ref<string>('quetzal-api-bucket')
-  const callID = ref<string>('')
-  function setCallID() { callID.value = uuid() }
-  const timer = ref<number>(0)
-
-  const { error, running, errorMessage, startExecution, status, stopExecution } = useAPI()
-
-  const parameters = ref<MapMatchingParams>({
+function baseParameters(): MapMatchingParams {
+  return {
     SIGMA: 4.02,
     BETA: 3,
     POWER: 2,
@@ -29,7 +20,28 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     ptMetrics: true,
     keepTime: true,
     exclusions: [],
-  })
+  }
+}
+
+export const useMapMatchingStore = defineStore('runMapMatching', () => {
+  const { $gettext } = useGettext()
+  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-mapmatching-api')
+  const bucket = ref<string>('quetzal-api-bucket')
+
+  const callID = ref<string>('')
+  const timer = ref<number>(0)
+  const parameters = ref<MapMatchingParams>(baseParameters())
+
+  const { error, running, errorMessage, startExecution, status, stopExecution, cleanRun } = useAPI()
+
+  function reset() {
+    callID.value = ''
+    timer.value = 0
+    parameters.value = baseParameters()
+    cleanRun()
+  }
+
+  function setCallID() { callID.value = uuid() }
 
   function saveParams (payload: FormData[]) {
     payload.forEach(param => parameters.value[param.key] = param.value) }
@@ -101,5 +113,6 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     startExecution,
     stopExecution,
     getCSVs,
+    reset,
   }
 })

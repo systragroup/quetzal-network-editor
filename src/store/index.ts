@@ -8,6 +8,9 @@ import { useODStore } from './od'
 import { useRunStore } from './run'
 import { useOSMStore } from './OSMImporter'
 import { useGTFSStore } from './GTFSImporter'
+import { useMRCStore } from './MatrixRoadCaster.js'
+import { useMapMatchingStore } from './MapMatching.js'
+import { useTransitStore } from './Transit.js'
 import { useMapStore } from './map'
 
 import { infoSerializer, stylesSerializer } from '@src/utils/serializer'
@@ -222,9 +225,15 @@ export const useIndexStore = defineStore('index', {
       const runStore = useRunStore()
       const runOSMStore = useOSMStore()
       const runGTFSStore = useGTFSStore()
-      runStore.cleanRun()
-      runOSMStore.cleanRun()
-      runGTFSStore.clean()
+      const runMRC = useMRCStore()
+      const runMapMatching = useMapMatchingStore()
+      const runTransit = useTransitStore()
+      runStore.reset()
+      runOSMStore.reset()
+      runGTFSStore.reset()
+      runMRC.reset()
+      runMapMatching.reset()
+      runTransit.reset()
     },
 
     applySettings (payload: SettingsPayload) {

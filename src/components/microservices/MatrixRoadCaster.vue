@@ -195,7 +195,8 @@ async function start () {
   runMRC.saveParams(parameters.value)
   getApproxTimer()
   await exportFiles()
-  runMRC.startExecution(stateMachineArn.value, storeParameters.value)
+  const input = { callID: callID.value, ...storeParameters.value }
+  runMRC.startExecution(stateMachineArn.value, input)
 }
 
 function stopRun () { runMRC.stopExecution() }
