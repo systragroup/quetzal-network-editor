@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { unzipCalendar } from '@src/utils/io'
 import DatePicker from '@comp/utils/DatePicker.vue'
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount, toRaw } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
 import { getRules } from '@src/utils/form'
+import { useUserStore } from '@src/store/user'
 
 import { useGettext } from 'vue3-gettext'
 import { FormData } from '@src/types/components'
 import Warning from '../utils/Warning.vue'
+import { RunInputs } from '@src/types/api'
+import { GTFSParams } from '@src/types/typesStore'
 const { $gettext } = useGettext()
 
 const runGTFS = useGTFSStore()
@@ -30,7 +33,16 @@ const storeParameters = computed(() => runGTFS.parameters)
 function save() {
   const files = uploadedGTFS.value.map(el => el.name)
   const dates = uploadedGTFS.value.map(el => el.date)
-  runGTFS.saveParams(parameters.value, files, dates)
+  const p: any = {}
+  parameters.value.forEach(el => p[el.key] = el.value)
+  const params: Partial<GTFSParams> = {
+    files: files,
+    time_ranges: [[p.start_time, p.end_time]],
+    periods: [''],
+    dates: dates,
+  }
+
+  runGTFS.saveParams(params)
 }
 
 onBeforeUnmount(() => {
@@ -40,7 +52,7 @@ onBeforeUnmount(() => {
 const parameters = ref<FormData[]>([{
   key: 'start_time',
   label: 'start time',
-  value: storeParameters.value.start_time,
+  value: storeParameters.value.time_ranges[0][0],
   type: 'time',
   units: '',
   hint: 'Start Time to restrict the GTFS in a period',
@@ -51,7 +63,7 @@ const parameters = ref<FormData[]>([{
 {
   key: 'end_time',
   label: 'end time',
-  value: storeParameters.value.end_time,
+  value: storeParameters.value.time_ranges[0][1],
   type: 'time',
   units: '',
   hint: 'End Time to restrict the GTFS in a period',
@@ -100,8 +112,19 @@ async function readZip (event: Event) {
 function importGTFS () {
   if (linksIsEmpty.value) {
     save()
-    const input = { callID: callID.value, ...storeParameters.value }
-    runGTFS.startExecution(stateMachineArn.value, input)
+    const params = toRaw(storeParameters.value)
+    const userStore = useUserStore()
+    const inputs: RunInputs = {
+      scenario_path_S3: callID.value,
+      launcher_arg: {
+        training_folder: '/tmp',
+        params: params,
+      },
+      metadata: {
+        user_email: userStore.cognitoInfo?.email,
+      },
+    }
+    runGTFS.startExecution(stateMachineArn.value, inputs)
   } else {
     showOverwriteDialog.value = true
   }
@@ -194,7 +217,7 @@ function applyOverwriteDialog () {
               :date="item.date"
               :from="item.minDate"
               :to="item.maxDate"
-              @update:date="(val)=>item.date=val"
+              @update:date="(val:any)=>item.date=val"
             />
 
           </span>

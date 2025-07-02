@@ -2,7 +2,7 @@
 import bboxPolygon from '@turf/bbox-polygon'
 import booleanContains from '@turf/boolean-contains'
 import booleanIntersects from '@turf/boolean-intersects'
-import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted, toRaw } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter.ts'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
@@ -13,6 +13,10 @@ import { FormData } from '@src/types/components'
 import { getRules } from '@src/utils/form'
 import { useGettext } from 'vue3-gettext'
 import { basePolygonFeature, GeoJsonFeatures, PolygonFeatures } from '@src/types/geojson'
+import { RunInputs } from '@src/types/api'
+import { useUserStore } from '@src/store/user'
+import { GTFSParams } from '@src/types/typesStore'
+
 const { $gettext } = useGettext()
 
 export interface GTFSListMobilityData {
@@ -62,8 +66,16 @@ const storeParameters = computed(() => runGTFS.parameters)
 function save() {
   const selected = availableGTFS.value.filter(el => selectedGTFS.value.includes(el.index))
   const filesPath = selected.map(el => el.url)
-  const dates: string[] = []
-  runGTFS.saveParams(parameters.value, filesPath, dates)
+  const p: any = {}
+  parameters.value.forEach(el => p[el.key] = el.value)
+  const params: GTFSParams = {
+    files: filesPath,
+    time_ranges: [[p.start_time, p.end_time]],
+    periods: [''],
+    day: p.day,
+    dates: [],
+  }
+  runGTFS.saveParams(params)
   runGTFS.saveSelectedGTFS(selectedGTFS.value)
 }
 
@@ -73,7 +85,7 @@ onBeforeUnmount(() => {
 const parameters = ref<FormData[]>([{
   key: 'start_time',
   label: 'start time',
-  value: storeParameters.value.start_time,
+  value: storeParameters.value.time_ranges[0][0],
   type: 'time',
   units: '',
   hint: 'Start Time to restrict the GTFS in a period',
@@ -84,7 +96,7 @@ const parameters = ref<FormData[]>([{
 {
   key: 'end_time',
   label: 'end time',
-  value: storeParameters.value.end_time,
+  value: storeParameters.value.time_ranges[0][1],
   type: 'time',
   units: '',
   hint: 'End Time to restrict the GTFS in a period',
@@ -181,8 +193,19 @@ function importGTFS () {
   if (linksIsEmpty.value) {
     runGTFS.setCallID()
     save()
-    const input = { callID: callID.value, ...storeParameters.value }
-    runGTFS.startExecution(stateMachineArn.value, input)
+    const params = toRaw(storeParameters.value)
+    const userStore = useUserStore()
+    const inputs: RunInputs = {
+      scenario_path_S3: callID.value,
+      launcher_arg: {
+        training_folder: '/tmp',
+        params: params,
+      },
+      metadata: {
+        user_email: userStore.cognitoInfo?.email,
+      },
+    }
+    runGTFS.startExecution(stateMachineArn.value, inputs)
   } else {
     showOverwriteDialog.value = true
   }

@@ -8,15 +8,14 @@ import s3 from '@src/AWSClient'
 import router from '@src/router/index'
 import { useGettext } from 'vue3-gettext'
 import { GTFSParams, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesStore'
-import { FormData } from '@src/types/components'
 import { LineStringGeoJson } from '@src/types/geojson'
 import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
 
 function baseParameters(): GTFSParams {
   return {
     files: [],
-    start_time: '06:00:00',
-    end_time: '08:59:00',
+    time_ranges: [['06:00:00', '08:59:00']],
+    periods: [''],
     day: 'tuesday',
     dates: [],
   }
@@ -24,7 +23,7 @@ function baseParameters(): GTFSParams {
 
 export const useGTFSStore = defineStore('runGTFS', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api')
+  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api-dev')
   const bucket = ref('quetzal-api-bucket')
 
   const callID = ref(uuid())
@@ -46,10 +45,12 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   // the zip importer need a fix callID to upload its gtfs in a bucket, then run
   function setCallID() { callID.value = uuid() }
 
-  function saveParams (params: FormData[], selectedFiles: string[], selectedDates: string[]) {
-    params.forEach(param => parameters.value[param.key] = param.value)
-    parameters.value.files = selectedFiles
-    parameters.value.dates = selectedDates
+  function saveParams (params: Partial<GTFSParams>) {
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined) {
+        parameters.value[key] = params[key]!
+      }
+    })
   }
 
   function saveSelectedGTFS (payload: number[]) {
@@ -93,13 +94,13 @@ export const useGTFSStore = defineStore('runGTFS', () => {
 
   async function downloadFromS3 () {
     const linksStore = useLinksStore()
-    let links = await s3.readJson(bucket.value, callID.value.concat('/links.geojson')) as LineStringGeoJson
+    let links = await s3.readJson(bucket.value, callID.value.concat('/outputs/links.geojson')) as LineStringGeoJson
     if (links.features.length > 0) {
       links = removeHashInColor(links)
       links = applyDict(links, routeTypeWidth, routeTypeColor)
     }
     linksStore.appendNewLinks(links)
-    const nodes = await s3.readJson(bucket.value, callID.value.concat('/nodes.geojson'))
+    const nodes = await s3.readJson(bucket.value, callID.value.concat('/outputs/nodes.geojson'))
     linksStore.appendNewNodes(nodes)
   }
 
@@ -109,7 +110,8 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     if (!nameList.includes(payload.info.name)) {
       uploadedGTFS.value.push(payload.info)
     }
-    const upload = s3.uploadObject(bucket.value, callID.value + '/' + payload.info.name, payload.content)
+    const upload = s3.uploadObject(bucket.value, callID.value + '/inputs/' + payload.info.name, payload.content)
+    console.log(callID.value)
     upload.on('httpUploadProgress', (progress) => {
       if (progress) {
         const percent = Math.round((progress.loaded || 0) / (progress.total || 1) * 100)

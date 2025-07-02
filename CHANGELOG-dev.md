@@ -1,9 +1,14 @@
-## [7.1.FUTURE] (2025-06-26)
+## [7.1.e] (2025-06-26)
 ### Changes
 * OSM importer in typescript
 * GTFS importer in typescript
 * add types for polygon.
 * getRules function centralized
+* Import GTFS use the gtfs color. if no color: use my default colors for route_type
+
+### Features
+* GTFS importer backend as notebook (new form, like models)
+* GTFS parameters in the correct form for periods. need to add the period selector.
 
 ## [7.1.d] (2025-06-18)
 ### Features
