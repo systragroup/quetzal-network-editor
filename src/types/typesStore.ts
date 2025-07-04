@@ -468,16 +468,20 @@ export interface TransitParams {
 }
 
 // GTFS importer params
-type TimeRange = [TimeString, TimeString]
+
+export interface StringTimeserie {
+  start_time: TimeString
+  end_time: TimeString
+  value: string // periods
+}
 
 export interface GTFSParams {
   files: string[]
-  time_ranges: TimeRange[]
-  periods: string[]
+  timeseries: StringTimeserie[]
   day: string
   dates: string[]
 
-  [key: string]: string | string[] | TimeRange[]
+  [key: string]: string | string[] | StringTimeserie[]
 }
 
 export interface UploadGTFSInfo {

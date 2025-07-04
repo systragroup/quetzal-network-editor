@@ -5,21 +5,19 @@ import { ref, computed, onBeforeUnmount, toRaw } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { getRules } from '@src/utils/form'
 import { useUserStore } from '@src/store/user'
 
 import { useGettext } from 'vue3-gettext'
-import { FormData } from '@src/types/components'
 import Warning from '../utils/Warning.vue'
+import TimeSeriesSelector from './TimeSeriesSelector.vue'
 import { RunInputs } from '@src/types/api'
-import { GTFSParams } from '@src/types/typesStore'
+import { StringTimeserie } from '@src/types/typesStore'
 const { $gettext } = useGettext()
 
 const runGTFS = useGTFSStore()
 const linksStore = useLinksStore()
 const store = useIndexStore()
 const showOverwriteDialog = ref(false)
-const showHint = ref(false)
 const stateMachineArn = computed(() => runGTFS.stateMachineArn)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const uploadedGTFS = computed(() => runGTFS.uploadedGTFS)
@@ -30,48 +28,25 @@ const errorMessage = computed(() => runGTFS.errorMessage)
 const isUploading = computed(() => uploadedGTFS.value.filter(item => item.progress < 100).length > 0)
 const storeParameters = computed(() => runGTFS.parameters)
 
+const periods = ref<StringTimeserie[]>(storeParameters.value.timeseries)
+// form data
+
 function save() {
   const files = uploadedGTFS.value.map(el => el.name)
   const dates = uploadedGTFS.value.map(el => el.date)
-  const p: any = {}
-  parameters.value.forEach(el => p[el.key] = el.value)
-  const params: Partial<GTFSParams> = {
+  runGTFS.saveParams({
     files: files,
-    time_ranges: [[p.start_time, p.end_time]],
-    periods: [''],
+    timeseries: toRaw(periods.value),
     dates: dates,
-  }
-
-  runGTFS.saveParams(params)
+  })
 }
 
 onBeforeUnmount(() => {
   save()
 })
 
-const parameters = ref<FormData[]>([{
-  key: 'start_time',
-  label: 'start time',
-  value: storeParameters.value.time_ranges[0][0],
-  type: 'time',
-  units: '',
-  hint: 'Start Time to restrict the GTFS in a period',
-  rules: [
-    'required',
-  ],
-},
-{
-  key: 'end_time',
-  label: 'end time',
-  value: storeParameters.value.time_ranges[0][1],
-  type: 'time',
-  units: '',
-  hint: 'End Time to restrict the GTFS in a period',
-  rules: [
-    'required',
-  ],
-},
-])
+// zip importer
+
 const zipInput = ref()
 function uploadGTFS () {
   zipInput.value.click()
@@ -108,6 +83,8 @@ async function readZip (event: Event) {
     store.changeAlert(err)
   }
 }
+
+// run
 
 function importGTFS () {
   if (linksIsEmpty.value) {
@@ -173,27 +150,7 @@ function applyOverwriteDialog () {
         :show="error"
         :messages="errorMessage"
       />
-      <div class="params-row">
-        <div
-          v-for="(item, key) in parameters"
-          :key="key"
-          class="params"
-        >
-          <v-text-field
-            v-model="item.value"
-            :type="item.type"
-            step="1"
-            variant="underlined"
-            :label="$gettext(item.label)"
-            :suffix="item.units"
-            :hint="showHint? item.hint: ''"
-            :persistent-hint="showHint"
-            :rules="getRules(item.rules)"
-            required
-            @wheel="()=>{}"
-          />
-        </div>
-      </div>
+      <TimeSeriesSelector v-model="periods" />
       <div class="list">
         <li class="list-row bold">
           <span class="list-item-small" />
@@ -308,18 +265,7 @@ function applyOverwriteDialog () {
   margin: 10px;
   margin-left: 0;
 }
-.params-row {
-  /* Add individual list item styles here */
-  display: flex; /* Use flexbox layout for each list item */
-  align-items: center;
-  margin-right:1rem;
-  padding-top: 0.5rem;
-  justify-content:flex-start;
-  gap: 1rem;
-}
-.params{
-  width: 10rem;
-}
+
 .list {
   height:70%;
   margin-top:1rem;

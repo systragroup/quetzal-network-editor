@@ -7,15 +7,15 @@ import { useGTFSStore } from '@src/store/GTFSImporter.ts'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
 import { parseCSV } from '@src/utils/io'
-import MapSelector from './MapSelector.vue'
-import Warning from '../utils/Warning.vue'
-import { FormData } from '@src/types/components'
 import { getRules } from '@src/utils/form'
+import MapSelector from './MapSelector.vue'
+import TimeSeriesSelector from './TimeSeriesSelector.vue'
+import Warning from '../utils/Warning.vue'
 import { useGettext } from 'vue3-gettext'
 import { basePolygonFeature, GeoJsonFeatures, PolygonFeatures } from '@src/types/geojson'
 import { RunInputs } from '@src/types/api'
 import { useUserStore } from '@src/store/user'
-import { GTFSParams } from '@src/types/typesStore'
+import { StringTimeserie } from '@src/types/typesStore'
 
 const { $gettext } = useGettext()
 
@@ -63,68 +63,32 @@ const error = computed(() => runGTFS.error)
 const errorMessage = computed(() => runGTFS.errorMessage)
 const storeParameters = computed(() => runGTFS.parameters)
 
+const periods = ref<StringTimeserie[]>(storeParameters.value.timeseries)
+const selectedDay = ref<string>(storeParameters.value.day)
+
 function save() {
   const selected = availableGTFS.value.filter(el => selectedGTFS.value.includes(el.index))
   const filesPath = selected.map(el => el.url)
-  const p: any = {}
-  parameters.value.forEach(el => p[el.key] = el.value)
-  const params: GTFSParams = {
+
+  runGTFS.saveParams({
     files: filesPath,
-    time_ranges: [[p.start_time, p.end_time]],
-    periods: [''],
-    day: p.day,
+    timeseries: toRaw(periods.value),
+    day: selectedDay.value,
     dates: [],
-  }
-  runGTFS.saveParams(params)
+  })
+
   runGTFS.saveSelectedGTFS(selectedGTFS.value)
 }
 
 onBeforeUnmount(() => {
   save()
 })
-const parameters = ref<FormData[]>([{
-  key: 'start_time',
-  label: 'start time',
-  value: storeParameters.value.time_ranges[0][0],
-  type: 'time',
-  units: '',
-  hint: 'Start Time to restrict the GTFS in a period',
-  rules: [
-    'required',
-  ],
-},
-{
-  key: 'end_time',
-  label: 'end time',
-  value: storeParameters.value.time_ranges[0][1],
-  type: 'time',
-  units: '',
-  hint: 'End Time to restrict the GTFS in a period',
-  rules: [
-    'required',
-  ],
-},
-{
-  key: 'day',
-  label: 'day',
-  value: storeParameters.value.day,
-  type: 'string',
-  items: ['monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-    'sunday'],
-  units: '',
-  hint: 'restrict each GTFS to this day.',
-  rules: [
-    'required',
-  ],
-},
-])
 
 onMounted(async () => {
+  getGTFSList()
+})
+
+async function getGTFSList() {
   gtfsList.value = await fetchCSV()
   // filter out GTFS without bounding box.
   gtfsList.value = gtfsList.value.filter(el => el['location.bounding_box.minimum_longitude'])
@@ -145,7 +109,7 @@ onMounted(async () => {
     if (a['location.country_code'] > b['location.country_code']) return 1
     return 0
   })
-})
+}
 
 async function fetchCSV () {
   try {
@@ -167,6 +131,7 @@ function getBBOX (val: PolygonFeatures) {
   poly.value = val
   getAvaileGTFS()
 }
+
 function getAvaileGTFS () {
   const filtered = gtfsList.value.filter(el =>
     (booleanContains(poly.value, el.bbox) || booleanIntersects(poly.value, el.bbox)))
@@ -219,77 +184,51 @@ function applyOverwriteDialog () {
 
 </script>
 <template>
-  <div class=" background">
+  <div class="background">
     <v-card class="card">
       <v-card-title class="subtitle">
         {{ $gettext('GTFS importer') }}
       </v-card-title>
+      <v-card-subtitle>
+        {{ $gettext('Data fetch from')+ ' https://database.mobilitydata.org/' }}
+      </v-card-subtitle>
       <MapSelector @change="getBBOX" />
     </v-card>
     <v-card class="card2">
       <v-card-title class="subtitle">
         {{ $gettext('Available GTFS') }}
       </v-card-title>
-      <v-card-subtitle>
-        {{ $gettext('Data fetch from')+ ' https://database.mobilitydata.org/' }}
-      </v-card-subtitle>
+      <div class="params-row">
+        <v-btn
+          :loading="running"
+          :disabled="running || selectedGTFS.length===0"
+          :color="(running || selectedGTFS.length===0)? 'regular': 'success'"
+          prepend-icon="fa-solid fa-play"
+          @click="importGTFS"
+        >
+          {{ $gettext('Download') }}
+        </v-btn>
+        <v-select
+          v-model="selectedDay"
+          step="1"
+          max-width="10rem"
+          type="string"
+          :items="['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']"
+          :label="$gettext('day')"
+          :suffix="''"
+          density="compact"
+          variant="outlined"
+          hide-details
+          :persistent-hint="showHint"
+          :rules="getRules(['required'])"
+        />
+      </div>
 
-      <v-btn
-        :disabled="running"
-        prepend-icon="fa-solid fa-sync"
-        @click="getAvaileGTFS"
-      >
-        {{ $gettext('fetch available GTFS') }}
-      </v-btn>
-      <v-btn
-        :loading="running"
-        :disabled="running || selectedGTFS.length===0"
-        :color="(running || selectedGTFS.length===0)? 'regular': 'success'"
-        prepend-icon="fa-solid fa-play"
-        @click="importGTFS"
-      >
-        {{ $gettext('Download') }}
-      </v-btn>
       <Warning
         :show="error"
         :messages="errorMessage"
       />
-      <div class="params-row">
-        <div
-          v-for="(item, key) in parameters"
-          :key="key"
-          class="params"
-        >
-          <v-text-field
-            v-if="typeof item.items === 'undefined'"
-            v-model="item.value"
-            step="1"
-            :type="item.type"
-            :label="$gettext(item.label)"
-            :suffix="item.units"
-            variant="underlined"
-            :hint="showHint? item.hint: ''"
-            :persistent-hint="showHint"
-            :rules="getRules(item.rules)"
-            required
-            @wheel="()=>{}"
-          />
-          <v-select
-            v-if="item.items !== undefined"
-            v-model="item.value"
-            variant="underlined"
-            :type="item.type"
-            :items="item.items"
-            :label="$gettext(item.label)"
-            :suffix="item.units"
-            :hint="showHint? item.hint: ''"
-            :persistent-hint="showHint"
-            :rules="getRules(item.rules)"
-            required
-            @wheel="()=>{}"
-          />
-        </div>
-      </div>
+      <TimeSeriesSelector v-model="periods" />
       <div class="list">
         <ul class="list-row">
           <span class="list-item-small"><v-checkbox :disabled="true" /></span>
@@ -358,15 +297,16 @@ function applyOverwriteDialog () {
 <style lang="scss" scoped>
 .background {
   background-color:var(--v-background-base);
-  padding:2rem;
+  padding:0rem 2rem;
   width:100vw;
   height:90vh;
+  gap:1rem;
   display:flex;
   align-items:stretch;
 }
 .card {
   height: 90%;
-  margin:1rem;
+  margin:0rem;
   flex:1;
   padding: 2.5rem;
   background-color: rgb(var(--v-theme-lightergrey));
@@ -375,7 +315,7 @@ function applyOverwriteDialog () {
 .card2 {
   height: 90%;
   flex:1;
-  margin:1rem;
+  margin:0rem;
   padding: 2.5rem 0 2.5rem 2.0rem;
   margin-right: 3rem;
   overflow-y: hidden;
@@ -383,22 +323,6 @@ function applyOverwriteDialog () {
 }
 .card button {
   margin-top: 0;
-}
-.title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 3.5em;
-  color: $primary !important;
-  font-weight: bold;
-}
-.subtitle {
-  font-size: 2em;
-  color:var(--v-secondary-dark);
-  font-weight: bold;
-  margin: 10px;
-  margin-left: 0;
 }
 .params-row {
   /* Add individual list item styles here */
@@ -408,11 +332,13 @@ function applyOverwriteDialog () {
   padding-top: 0.5rem;
   justify-content:flex-start;
   gap: 1rem;
+}
+.subtitle {
+  font-size: 2em;
+  color:var(--v-secondary-dark);
+  font-weight: bold;
+}
 
-}
-.params{
-  width: 10rem;
-}
 .list {
   height:70%;
   margin-top:1rem;

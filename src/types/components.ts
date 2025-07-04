@@ -15,6 +15,8 @@ export interface FormOption {
 
 export type SimpleFormType = 'number' | 'string' | 'boolean' | 'select' | 'time'
 
+export type FormObject = Record<string, Omit<FormData, 'key'>>
+
 export interface FormData {
   key: string
   label: string

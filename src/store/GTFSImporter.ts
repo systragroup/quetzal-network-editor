@@ -14,8 +14,11 @@ import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
 function baseParameters(): GTFSParams {
   return {
     files: [],
-    time_ranges: [['06:00:00', '08:59:00']],
-    periods: [''],
+    timeseries: [{
+      start_time: '06:00:00',
+      end_time: '08:59:00',
+      value: '',
+    }],
     day: 'tuesday',
     dates: [],
   }
