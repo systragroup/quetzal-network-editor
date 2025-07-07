@@ -153,8 +153,15 @@ function getAvaileGTFS () {
   const indexSet = new Set(availableGTFS.value.map(el => el.index))
   selectedGTFS.value = selectedGTFS.value.filter(el => indexSet.has(el))
 }
+// run
 
-function importGTFS () {
+const formRef = ref()
+
+async function importGTFS () {
+  const isValid = await formRef.value.validate()
+  if (!isValid) {
+    return
+  }
   if (linksIsEmpty.value) {
     runGTFS.setCallID()
     save()
@@ -246,6 +253,7 @@ const headers: DataTableHeaders[] = [
         :messages="errorMessage"
       />
       <TimeSeriesSelector
+        ref="formRef"
         v-model="periods"
       />
       <div class="table-container">

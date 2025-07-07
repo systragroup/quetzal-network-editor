@@ -85,8 +85,13 @@ async function readZip (event: Event) {
 }
 
 // run
+const formRef = ref()
 
-function importGTFS () {
+async function importGTFS () {
+  const isValid = await formRef.value.validate()
+  if (!isValid) {
+    return
+  }
   if (linksIsEmpty.value) {
     save()
     const params = toRaw(storeParameters.value)
@@ -150,7 +155,10 @@ function applyOverwriteDialog () {
         :show="error"
         :messages="errorMessage"
       />
-      <TimeSeriesSelector v-model="periods" />
+      <TimeSeriesSelector
+        ref="formRef"
+        v-model="periods"
+      />
       <div class="list">
         <li class="list-row bold">
           <span class="list-item-small" />
