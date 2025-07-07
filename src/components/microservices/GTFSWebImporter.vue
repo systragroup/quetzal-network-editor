@@ -182,6 +182,24 @@ function applyOverwriteDialog () {
   importGTFS()
 }
 
+export interface DataTableHeaders {
+  key: string
+  title: string
+  parser?: (_value: any) => any
+  width?: string
+  sortable?: boolean
+
+}
+const headers: DataTableHeaders[] = [
+  { key: 'index', title: 'id' },
+  { key: 'allInPolygon', title: 'All in polygon' },
+  { key: 'countryCode', title: 'Code' },
+  { key: 'name', title: 'Name' },
+  { key: 'city', title: 'City' },
+  { key: 'provider', title: 'Agency' },
+  { key: 'url', title: '.zip' },
+]
+
 </script>
 <template>
   <div class="background">
@@ -194,7 +212,7 @@ function applyOverwriteDialog () {
       </v-card-subtitle>
       <MapSelector @change="getBBOX" />
     </v-card>
-    <v-card class="card2">
+    <v-card class="card">
       <v-card-title class="subtitle">
         {{ $gettext('Available GTFS') }}
       </v-card-title>
@@ -223,44 +241,37 @@ function applyOverwriteDialog () {
           :rules="getRules(['required'])"
         />
       </div>
-
       <Warning
         :show="error"
         :messages="errorMessage"
       />
-      <TimeSeriesSelector v-model="periods" />
-      <div class="list">
-        <ul class="list-row">
-          <span class="list-item-small"><v-checkbox :disabled="true" /></span>
-          <span class="list-item-small">All in polygon</span>
-          <span class="list-item-small">Code</span>
-          <span class="list-item-medium">Name</span>
-          <span class="list-item-medium">City</span>
-          <span class="list-item-large">Agency</span>
-          <span class="list-item-small">.zip</span>
-        </ul>
-        <ul
-          v-for="(item,key) in availableGTFS"
-          :key="item.index"
-          class="list-row"
+      <TimeSeriesSelector
+        v-model="periods"
+      />
+      <div class="table-container">
+        <v-data-table-virtual
+          v-model="selectedGTFS"
+          class="table"
+          height="100"
+          item-height="10"
+          :fixed-header="true"
+          :sticky="true"
+          :headers="headers"
+          :items="availableGTFS"
+          :item-value="'index'"
+          hide-default-footer
+          show-select
+          hover
         >
-          <span class="list-item-small"> <v-checkbox-btn
-            v-model="selectedGTFS"
-            :value="item.index"
-            :label="String(key)"
-          /></span>
-          <span class="list-item-small">{{ item.allInPolygon }} </span>
-          <span class="list-item-small">{{ item.countryCode }} </span>
-          <span class="list-item-medium">{{ item.name }}</span>
-          <span class="list-item-medium">{{ item.city }}</span>
-          <span class="list-item-large">{{ item.provider }}</span>
-          <v-btn
-            variant="text"
-            icon="fa-solid fa-download"
-            size="small"
-            :href="item.url"
-          />
-        </ul>
+          <template v-slot:item.url="{ item }">
+            <v-btn
+              variant="text"
+              icon="fa-solid fa-download"
+              size="small"
+              :href="item.url"
+            />
+          </template>
+        </v-data-table-virtual>
       </div>
     </v-card>
     <v-dialog
@@ -296,29 +307,21 @@ function applyOverwriteDialog () {
 </template>
 <style lang="scss" scoped>
 .background {
-  background-color:var(--v-background-base);
-  padding:0rem 2rem;
-  width:100vw;
-  height:90vh;
+  padding:2rem;
+  margin-right:1rem;
+  width:100%;
+  height:calc(100vh - 150px);
   gap:1rem;
   display:flex;
   align-items:stretch;
 }
 .card {
-  height: 90%;
-  margin:0rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   flex:1;
+  gap:0.5rem;
   padding: 2.5rem;
-  background-color: rgb(var(--v-theme-lightergrey));
-
-}
-.card2 {
-  height: 90%;
-  flex:1;
-  margin:0rem;
-  padding: 2.5rem 0 2.5rem 2.0rem;
-  margin-right: 3rem;
-  overflow-y: hidden;
   background-color: rgb(var(--v-theme-lightergrey));
 }
 .card button {
@@ -328,10 +331,17 @@ function applyOverwriteDialog () {
   /* Add individual list item styles here */
   display: flex; /* Use flexbox layout for each list item */
   align-items: center;
-  margin-right:1rem;
-  padding-top: 0.5rem;
   justify-content:flex-start;
   gap: 1rem;
+}
+.table-container{
+  display: flex;
+  flex-direction: column;
+  height:100%;
+  width:100%;
+}
+.table{
+  height:100%;
 }
 .subtitle {
   font-size: 2em;
@@ -339,35 +349,4 @@ function applyOverwriteDialog () {
   font-weight: bold;
 }
 
-.list {
-  height:70%;
-  margin-top:1rem;
-  margin-right:1rem;
-  overflow: hidden auto;
-  border-top: 1px solid rgb(var(--v-theme-mediumgrey));
-  border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
-}
-.list-row {
-  /* Add individual list item styles here */
-  display: flex; /* Use flexbox layout for each list item */
-  padding-left:0;
-  align-items: center;
-  justify-content:flex-start;
-  border-bottom: 1px solid rgb(var(--v-theme-mediumgrey));
-}
-.list-item-small {
-  /* Add individual list item styles here */
-  flex: 0 0 8%;
-  margin:4px;
-}
-.list-item-medium {
-  /* Add individual list item styles here */
-  flex: 0 0 18%;
-  margin-right:2px;
-}
-.list-item-large {
-  /* Add individual list item styles here */
-  flex: 0 0 26%;
-  margin:4px;
-}
 </style>

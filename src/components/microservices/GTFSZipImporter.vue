@@ -115,7 +115,7 @@ function applyOverwriteDialog () {
 
 </script>
 <template>
-  <div>
+  <div class="background">
     <input
       id="zip-input"
       ref="zipInput"
@@ -178,13 +178,14 @@ function applyOverwriteDialog () {
             />
 
           </span>
-          <span class="list-item-small"> <v-progress-circular
-                                           v-if="item.progress<100"
-                                           :indeterminate="item.progress===0"
-                                           absolute
-                                           color="primary"
-                                           :model-value="item.progress"
-                                         />
+          <span class="list-item-small">
+            <v-progress-circular
+              v-if="item.progress<100"
+              :indeterminate="item.progress===0"
+              absolute
+              color="primary"
+              :model-value="item.progress"
+            />
             <v-icon v-else>fas fa-check</v-icon></span>
         </ul>
       </div>
@@ -233,12 +234,22 @@ function applyOverwriteDialog () {
 </template>
 <style lang="scss" scoped>
 
+.background {
+  padding:2rem;
+  margin-right:1rem;
+  width:80%;
+  height:calc(100vh - 150px);
+  gap:1rem;
+  display:flex;
+  align-items:stretch;
+}
 .card {
-  height: 75vh;
-  width: 80vw;
-  margin: 1rem;
-  padding: 2.5rem 2rem;
-  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex:1;
+  gap:0.5rem;
+  padding: 2.5rem;
   background-color: rgb(var(--v-theme-lightergrey));
 }
 .row {

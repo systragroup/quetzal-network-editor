@@ -23,9 +23,9 @@ onMounted(() => {
 })
 
 const modelForm: FormObject = {
-  period: { label: 'period name', value: '', type: 'string', rules: ['required'], disabled: false },
   start_time: { label: 'start time', value: '', type: 'time', rules: ['required'] },
   end_time: { label: 'end time', value: '', type: 'time', rules: ['required'] },
+  period: { label: 'period name', value: '', type: 'string', rules: ['required'], disabled: false },
 }
 
 const editorForms = ref<FormObject[]>([])
@@ -68,6 +68,20 @@ function updateModel() {
     :key="i"
   >
     <div class="params-row">
+      <v-btn
+        v-if="i==0"
+        icon="fas fa-plus"
+        size="x-small"
+        color="primary"
+        @click="addNewForm"
+      />
+      <v-btn
+        v-else
+        icon="fas fa-trash"
+        size="x-small"
+        color="error"
+        @click="deleteForm(i)"
+      />
       <div
         v-for="(item, key) in form"
         :key="key"
@@ -87,20 +101,6 @@ function updateModel() {
           @wheel="()=>{}"
         />
       </div>
-      <v-btn
-        v-if="i==0"
-        icon="fas fa-plus"
-        size="small"
-        color="primary"
-        @click="addNewForm"
-      />
-      <v-btn
-        v-else
-        icon="fas fa-trash"
-        size="small"
-        color="error"
-        @click="deleteForm(i)"
-      />
     </div>
   </div>
 </template>
