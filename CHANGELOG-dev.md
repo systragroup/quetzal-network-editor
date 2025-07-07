@@ -5,6 +5,7 @@
 * add types for polygon.
 * getRules function centralized
 * Import GTFS use the gtfs color. if no color: use my default colors for route_type
+* ScenarioExplorer in typescript
 
 ### Features
 * GTFS importer backend as notebook (new form, like models)

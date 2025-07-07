@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
@@ -9,6 +9,7 @@ import { computed, ref, watch, onMounted } from 'vue'
 
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
+import { Scenario, ScenarioPayload } from '@src/types/typesStore'
 const { $gettext } = useGettext()
 
 const emits = defineEmits(['load', 'unload'])
@@ -22,7 +23,7 @@ const projectIsEmpty = computed(() => store.projectIsEmpty)
 
 // logic to show the v-menu
 const model = computed(() => { return userStore.model }) // globaly selected Model
-const localModel = ref(model.value)
+const localModel = ref<string | null>(model.value)
 
 watch(localModel, async () => {
   // when we click on a tab (model), fetch the scenario list.
@@ -31,6 +32,7 @@ watch(localModel, async () => {
 })
 
 async function getScenario() {
+  if (!localModel.value) return
   loading.value = true
   await userStore.getScenario(localModel.value)
   loading.value = false
@@ -38,12 +40,12 @@ async function getScenario() {
 
 const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
 const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
-const modelScen = computed(() => { return userStore.model + userStore.scenario })
+const modelScen = computed(() => { return `${userStore.model}${userStore.scenario}` })
 onMounted(async () => {
   // a scenario is selected: scroll to it.
-  // note: 0 because null + null = 0
-  if (modelScen.value !== 0) {
-    document.getElementById(modelScen.value).scrollIntoView()
+  if (modelScen.value !== 'nullnull') {
+    const elem = document.getElementById(modelScen.value)
+    if (elem) { elem.scrollIntoView() }
     // also. go fetch the scenario List if DB changed.
     await getScenario()
   }
@@ -58,7 +60,8 @@ watch(modelsList, async (val) => {
   // when logout. this will happen. we want to reset localModel for its watcher to work on login.
   if (val.length === 0) { localModel.value = null }
 })
-function formatTab(tab) {
+
+function formatTab(tab: string) {
   return tab.startsWith('quetzal-') ? tab.slice(8) : tab
 }
 
@@ -68,7 +71,7 @@ watch(scenario, (val) => {
   }
 })
 
-function selectScenario (e, val) {
+function selectScenario (e: Event | null, val: ScenarioPayload) {
   if (e?.type === 'keydown') { return }
   localScen.value = val.scenario
   locked.value = val.protected
@@ -88,7 +91,7 @@ async function loadProject () {
 }
 
 const searchString = ref('')
-const sortModel = ref('scenario')
+const sortModel = ref<string>('scenario')
 const sortDirection = ref(true)
 const scenariosList = computed(() => {
   // sort by alphabetical order, with protectedScens one one top
@@ -111,16 +114,16 @@ const scenariosList = computed(() => {
 
 const copyDialog = ref()
 const input = ref('')
-const selectedScenario = ref(null)
+const selectedScenario = ref<string | null>(null)
 
 const rules = ref({
-  required: v => v !== '' || $gettext('Please enter a name'),
-  noSlash: v => !v.includes('/') || $gettext('cannot have / in name'),
-  noHash: v => !v.includes('#') || $gettext('cannot have # in name'),
-  noDuplicated: v => !scenariosList.value.map(p => p.scenario).includes(v) || $gettext('project already exist'),
+  required: (v: any) => v !== '' || $gettext('Please enter a name'),
+  noSlash: (v: any) => !v.includes('/') || $gettext('cannot have / in name'),
+  noHash: (v: any) => !v.includes('#') || $gettext('cannot have # in name'),
+  noDuplicated: (v: any) => !scenariosList.value.map(p => p.scenario).includes(v) || $gettext('project already exist'),
 })
 
-async function createProject (selected) {
+async function createProject (selected: string | null) {
   selectedScenario.value = selected
   input.value = selected ? selected + ' copy' : ''
   const resp = await copyDialog.value.openDialog()
@@ -142,7 +145,7 @@ async function createProject (selected) {
         store.changeNotification(
           { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
       }
-      selectScenario(null, { model: localModel.value, scenario: input.value, protected: false })
+      selectScenario(null, { scenario: input.value, protected: false })
     } catch (err) {
       store.changeAlert(err)
     } finally {
@@ -166,7 +169,7 @@ async function showSelectDialog () {
   }
 }
 function applySelectDialog () {
-  if (modelScen.value === localModel.value + localScen.value) {
+  if (modelScen.value === `${localModel.value}${localScen.value}`) {
     userStore.unloadProject()
     emits('unload')
   } else {
@@ -176,7 +179,7 @@ function applySelectDialog () {
 
 function cancelSelectDialog () {
   // reset vmodel back to loaded scenario
-  modelScen.value = model.value + scenario.value
+  // modelScen.value = `${model.value}${scenario.value}`
   localScen.value = scenario.value
 }
 
@@ -184,7 +187,7 @@ function cancelSelectDialog () {
 const deleteDialog = ref()
 const scenarioToDelete = ref('')
 
-async function deleteScenario (name) {
+async function deleteScenario (name: string) {
   scenarioToDelete.value = name
   const resp = await deleteDialog.value.openDialog()
   if (!resp) return
@@ -200,7 +203,7 @@ async function deleteScenario (name) {
   }
 }
 
-async function mouseOn(val) {
+async function mouseOn(val: Scenario) {
   const info = await val.info
   userStore.setInfoPreview(info)
 }
@@ -243,7 +246,7 @@ async function mouseOff() {
         :label="$gettext('search')"
         hide-details
         prepend-inner-icon="fas fa-search"
-        @click:clear="searchString=null"
+        @click:clear="searchString=''"
       />
       <v-btn-toggle
         v-model="sortModel"
@@ -357,12 +360,12 @@ async function mouseOff() {
 
   <PromiseDialog
     ref="selectDialog"
-    :title="modelScen === localModel + localScen? $gettext('Unload Scenario?'):$gettext('Load %{sc} ?', {sc: localScen})"
+    :title="modelScen === `${localModel}${localScen}`? $gettext('Unload Scenario?'): $gettext('Load %{sc} ?', {sc: String(localScen)})"
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
   >
-    {{ $gettext('Any unsaved changes to %{sc} will be lost', {sc: scenario}) }}
+    {{ $gettext('Any unsaved changes to %{sc} will be lost', {sc: String(scenario)}) }}
   </PromiseDialog>
 
   <PromiseDialog

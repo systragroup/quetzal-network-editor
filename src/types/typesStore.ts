@@ -330,14 +330,22 @@ export interface CognitoInfo {
   given_name: string
 }
 export interface Scenario {
-  lastModified: string
   model: string
-  protected: boolean
   scenario: string
+  protected: boolean
+  lastModified: string
   timestamp: number
   userEmail: string
   userEmailPromise: Promise<string>
+  info: Promise<InfoPreview>
+  [key: string]: any // to allow for additional properties
 }
+
+export interface ScenarioPayload {
+  protected: boolean
+  scenario: string | null
+}
+
 export interface InfoPreview {
   description: string
 }

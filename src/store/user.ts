@@ -4,7 +4,7 @@ import { useIndexStore } from './index'
 import s3 from '@src/AWSClient'
 import auth from '../auth'
 import { useClient } from '@src/axiosClient.js'
-import { CognitoInfo, InfoPreview, Scenario, UserStore } from '@src/types/typesStore'
+import { CognitoInfo, InfoPreview, Scenario, ScenarioPayload, UserStore } from '@src/types/typesStore'
 
 const $gettext = (s: string) => s
 
@@ -36,6 +36,8 @@ export const useUserStore = defineStore('userStore', {
     unloadProject () {
       this.model = null
       this.scenario = null
+      const store = useIndexStore()
+      store.changeOutputName('output')
     },
     setLoggedIn () {
       this.loggedIn = true
@@ -62,16 +64,19 @@ export const useUserStore = defineStore('userStore', {
           err => console.log(err))
       })
     },
-    setModel (payload: string) {
+    setModel (payload: string | null) {
       this.model = payload
     },
-    setScenario (payload: Scenario) {
+    setScenario (payload: ScenarioPayload) {
       // {just scenario and protected}
       const store = useIndexStore()
       this.scenario = payload.scenario
       this.protected = payload.protected
-      store.changeOutputName(payload.scenario)
+      if (payload.scenario) {
+        store.changeOutputName(payload.scenario)
+      }
     },
+
     setInfoPreview(payload: InfoPreview | null) {
       this.infoPreview = payload
     },
