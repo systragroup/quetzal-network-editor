@@ -245,11 +245,6 @@ function loadNetwork (files) {
       >
         <v-row>
           <v-col class="left-col">
-            <div
-              class="custom-title"
-            >
-              {{ userStore.loggedIn? $gettext("Select a Project"): $gettext("Login to access projects") }}
-            </div>
             <ScenariosExplorer
               @load="loadFilesFromS3"
               @unload="newProject"
@@ -413,15 +408,6 @@ function loadNetwork (files) {
   display: flex;
   align-items: center ;
 
-}
-.custom-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2em !important;
-  color: rgb(var(--v-theme-primary));
-  font-weight: bold;
-  border-bottom: 1px solid rgb(var(--v-theme-lightgrey));
 }
 .card-title {
   font-size: 2em !important;

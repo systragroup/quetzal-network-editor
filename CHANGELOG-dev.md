@@ -1,4 +1,4 @@
-## [7.1.e] (2025-06-26)
+## [7.1.e] (2025-07-07)
 ### Changes
 * OSM importer in typescript
 * GTFS importer in typescript
@@ -10,6 +10,7 @@
 ### Features
 * GTFS importer backend as notebook (new form, like models)
 * GTFS parameters in the correct form for periods. need to add the period selector.
+* Model Selection is now list and not tabs over the scenarios (2 steps)
 
 ## [7.1.d] (2025-06-18)
 ### Features

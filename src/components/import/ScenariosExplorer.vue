@@ -44,6 +44,7 @@ const modelScen = computed(() => { return `${userStore.model}${userStore.scenari
 onMounted(async () => {
   // a scenario is selected: scroll to it.
   if (modelScen.value !== 'nullnull') {
+    showScenario.value = true
     const elem = document.getElementById(modelScen.value)
     if (elem) { elem.scrollIntoView() }
     // also. go fetch the scenario List if DB changed.
@@ -55,10 +56,16 @@ const locked = ref(false)
 watch(modelsList, async (val) => {
   // kind of a onMounted
   // This component is rendered before we fetch the bucket list on cognito API.
-  // so, when it fetch, set the model to the first one and get the scenario.
-  if (localModel.value === null) { localModel.value = modelsList.value[0] }
+  // so, when it fetch, set the model to the first one and get the scenario. if only one
+  if (val.length === 1) {
+    localModel.value = modelsList.value[0]
+    showScenario.value = true
+  }
   // when logout. this will happen. we want to reset localModel for its watcher to work on login.
-  if (val.length === 0) { localModel.value = null }
+  if (val.length === 0) {
+    localModel.value = null
+    showScenario.value = false
+  }
 })
 
 function formatTab(tab: string) {
@@ -211,26 +218,63 @@ async function mouseOff() {
   userStore.setInfoPreview(null)
 }
 
+const showScenario = ref(false)
+function selectModel(v: string) {
+  localModel.value = v
+  showScenario.value = true }
+
 </script>
 <template>
+  <div class="custom-title">
+    {{ loggedIn? showScenario? $gettext("Select a Project"): $gettext("Select a Model"): $gettext("Login to access projects") }}
+  </div>
   <div
-    v-if="loggedIn && modelsList.length>0"
-    class="test"
+    v-if="loggedIn && !showScenario"
+    class="model-container"
   >
-    <v-tabs
-      v-model="localModel"
-      show-arrows
-      fixed-tabs
+    <v-list-item
+      v-for="el in modelsList"
+      :id="el"
+      :key="el"
+      :value="el"
+      class="list-item"
+      :class="{'is-active': model === el}"
+      lines="two"
+      @click="(e)=>selectModel(el)"
     >
-      <v-tab
-        v-for="tab in modelsList"
-        :key="tab"
-        :value="tab"
-        :disabled="loading"
+      <v-list-item-title class="model-list-item name-wrap">
+        {{ formatTab(el) }}
+      </v-list-item-title>
+      <template v-slot:append>
+        <v-icon icon="fas fa-arrow-right" />
+      </template>
+    </v-list-item>
+  </div>
+  <div
+    v-if="loggedIn && showScenario"
+    class="scenario-container"
+  >
+    <div>
+      <v-tooltip
+        location="right"
+        open-delay="250"
       >
-        {{ formatTab(tab) }}
-      </v-tab>
-    </v-tabs>
+        <template v-slot:activator="{ props }">
+          <v-btn
+            style="border-color:rgb(var(--v-theme-lightgrey))"
+            v-bind="props"
+            prepend-icon="fas fa-arrow-left"
+            block
+            variant="outlined"
+            size="large"
+            @click="showScenario=false"
+          >
+            {{ formatTab(String(localModel)) }}
+          </v-btn>
+        </template>
+        <span>{{ $gettext('Go back to model selection') }}</span>
+      </v-tooltip>
+    </div>
     <v-divider />
     <div
       class="container"
@@ -392,7 +436,14 @@ async function mouseOff() {
   </PromiseDialog>
 </template>
 <style lang="scss" scoped>
-
+.custom-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em !important;
+  color: rgb(var(--v-theme-primary)) !important;
+  font-weight: bold;
+}
 .pointer{
   cursor: pointer;
 }
@@ -402,7 +453,11 @@ async function mouseOff() {
   align-items: center;
   margin:0.5rem;
 }
-.test{
+.model-container{
+  overflow: auto; /* Enable scrolling if the content overflows */
+  max-height:100%
+}
+.scenario-container{
   display:flex;
   flex-direction: column;
   height:calc(100% - 100px);
@@ -410,10 +465,9 @@ async function mouseOff() {
 .item{
   flex:1;
 }
-.custom-title {
-  font-size: 1.2em;
-  padding-left: 1.2rem;
-  color: rgb(var(--v-theme-secondarydark));
+.model-list-item{
+  font-size: 1.5rem;
+  text-transform: uppercase;
 }
 .is-active{
   opacity:1;
