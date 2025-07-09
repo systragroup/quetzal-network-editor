@@ -457,29 +457,14 @@ export interface MatrixRoadCasterParams {
 // Transit
 export type TransitParamsCategory = 'general' | 'catchment_radius' | 'footpaths'
 
-export interface TransitParamsObject<T> {
-  value: T
-  variant?: string
-  route_type?: string
-}
-
-export interface GeneralTransitParams {
-  step_size: TransitParamsObject<number>[]
-  use_road_network: TransitParamsObject<boolean>[]
-  [key: string]: any
-}
-
-export interface FootPaths {
-  max_length: TransitParamsObject<number>[]
-  speed: TransitParamsObject<number>[]
-  n_ntlegs: TransitParamsObject<number>[]
-}
-export type CatchmentRadius = Record<string, TransitParamsObject<number>[]> // {bus:500, subway:800, rail:1000}
-
 export interface TransitParams {
-  general: GeneralTransitParams
-  catchment_radius: CatchmentRadius
-  footpaths: FootPaths
+  category: TransitParamsCategory
+  key: string
+  value: string | number | boolean
+  variant: string
+  route_type?: string
+
+  [key: string]: string | number | boolean | undefined
 }
 
 // GTFS importer params

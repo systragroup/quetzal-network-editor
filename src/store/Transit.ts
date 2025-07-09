@@ -6,21 +6,42 @@ import { useAPI } from '../composables/APIComposable'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
-import { TransitParams } from '@src/types/typesStore'
+import { TransitParams, TransitParamsCategory } from '@src/types/typesStore'
+import { VariantFormData } from '@src/types/components'
 
-function baseParameters(): TransitParams {
-  return {
-    general: {
-      use_road_network: [{ value: false }],
-      step_size: [{ value: 0.001 }],
+function baseParameters(): TransitParams[] {
+  return [
+    {
+      category: 'general',
+      key: 'use_road_network',
+      value: false,
+      variant: '',
     },
-    catchment_radius: {},
-    footpaths: {
-      max_length: [{ value: 1000 }],
-      speed: [{ value: 3 }],
-      n_ntlegs: [{ value: 2 }],
+    {
+      category: 'general',
+      key: 'step_size',
+      value: 0.001,
+      variant: '',
     },
-  }
+    {
+      category: 'footpaths',
+      key: 'max_length',
+      value: 1000,
+      variant: '',
+    },
+    {
+      category: 'footpaths',
+      key: 'speed',
+      value: 3,
+      variant: '',
+    },
+    {
+      category: 'footpaths',
+      key: 'n_ntlegs',
+      value: 2,
+      variant: '',
+    },
+  ]
 }
 
 export const useTransitStore = defineStore('runTransit', () => {
@@ -30,7 +51,7 @@ export const useTransitStore = defineStore('runTransit', () => {
 
   const callID = ref<string>('')
   const timer = ref<number>(0)
-  const parameters = ref<TransitParams>(baseParameters())
+  const parameters = ref<TransitParams[]>(baseParameters())
 
   const { error, running, errorMessage, startExecution, status, stopExecution, cleanRun } = useAPI()
 
@@ -44,15 +65,34 @@ export const useTransitStore = defineStore('runTransit', () => {
   function setCallID() { callID.value = uuid() }
 
   function addCatchmentRadius(route_type: string) {
-    parameters.value.catchment_radius[route_type] = [{ value: 1000 }]
+    const param: TransitParams = {
+      category: 'catchment_radius',
+      key: route_type,
+      value: 1000,
+      variant: '',
+    }
+    parameters.value.push(param)
   }
 
-  function deleteCatchmentRadius(route_type: string) {
-    delete parameters.value.catchment_radius[route_type]
+  function deleteParam(category: TransitParamsCategory, key: string) {
+    parameters.value = parameters.value.filter(p => !(p.key === key && p.category === category))
   }
 
-  function saveParams (payload: TransitParams) {
-    parameters.value = payload
+  function deleteVariant(variant: string) {
+    if (variant !== '') {
+      parameters.value = parameters.value.filter(p => p.variant !== variant)
+    }
+  }
+
+  function saveParams (payload: VariantFormData[]) {
+    parameters.value = payload.map(param => {
+      return {
+        category: param.category,
+        key: param.key,
+        value: param.value,
+        variant: param.variant,
+      } as TransitParams
+    })
   }
 
   watch(status, async (val) => {
@@ -100,7 +140,8 @@ export const useTransitStore = defineStore('runTransit', () => {
     parameters,
     timer,
     addCatchmentRadius,
-    deleteCatchmentRadius,
+    deleteParam,
+    deleteVariant,
     saveParams,
     setCallID,
     startExecution,

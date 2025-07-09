@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-import { computed, ref, toRefs, watch } from 'vue'
+import { ref, toRefs } from 'vue'
 import { VariantFormData, FormType } from '@src/types/components'
 import { getRules } from '@src/utils/form'
 import { cloneDeep } from 'lodash'
@@ -57,40 +57,26 @@ function typeMap(type: FormType) {
 
 const showEdit = ref(false)
 
-// type AvailableVariants = Record<string, string[]>
-const availableVariants = computed(() => {
-  // return a dict [cat,name] : variants[] of available variantes for each param
+function availableVariants(key: string) {
   const variantChoices = variants.value ? variants.value : []
-  const keys = editorForm.value.map(p => p.key)
-  const grouped = Object.groupBy(keys, (str) => str.split('#')[0]) as Record<string, string[]>
-  Object.keys(grouped).forEach(key => {
-    const usedVariants = grouped[key].slice(1).map((str: string) => str.split('#')[1])
-    grouped[key] = variantChoices.filter(v => !usedVariants.includes(v))
-  })
-
-  return grouped
-})
-
-function isVariant(item: VariantFormData) { return item.key.includes('#') }
-function getItemVariant(item: VariantFormData) { return item.key.split('#')[1] }
-
-function getVariantsChoices(item: VariantFormData) {
-  const key = item.key.split('#')[0]
-  // add the actual selected variant to the list
-  return availableVariants.value[key]
+  const filtered = editorForm.value.filter(el => el.key === key)
+  const usedVariants = filtered.map(el => el.variant)
+  return variantChoices.filter(v => !usedVariants.includes(v))
 }
 
+function isVariant(item: VariantFormData) { return item.variant !== '' }
+
 function changeItemVariant(variant: string, item: VariantFormData) {
-  item.key = item.key.split('#')[0] + `#${variant}`
+  item.variant = item.variant
   // item.label = item.label.split('#')[0] + `#${variant}`
 }
 
 function addItem(item: VariantFormData) {
   const copy = cloneDeep(item)
   const key = item.key
-  const v = availableVariants.value[key][0]
+  const v = availableVariants(key)[0]
   if (v) { // else. all variants there
-    copy.key = copy.key + `#${v}`
+    copy.variant = v
     // copy.label = copy.label + `#${v}`
     const position = editorForm.value.indexOf(item)
     editorForm.value.splice(position + 1, 0, copy)
@@ -132,7 +118,7 @@ function deleteItem(item: VariantFormData) {
             :color="item.type==='boolean'? 'primary': undefined"
             :precision="item.precision === undefined? null : item.precision"
             :suffix="item.units"
-            :prefix="getItemVariant(item)"
+            :prefix="item.variant"
             :items="item.items"
             :rules="getRules(item.rules)"
             :label="$gettext(item.label)"
@@ -140,21 +126,21 @@ function deleteItem(item: VariantFormData) {
             @update:model-value="change(item)"
           >
             <template
-              v-if="showEdit && item.variant"
+              v-if="showEdit"
               v-slot:prepend
             >
               <MenuSelector
                 v-if="isVariant(item)"
-                :items="getVariantsChoices(item)"
+                :items="availableVariants(item.key)"
                 size="small"
-                :model-value="getItemVariant(item)"
+                :model-value="item.variant"
                 @update:model-value="(v:string)=>changeItemVariant(v, item)"
               />
               <v-btn
                 v-else
                 variant="tonal"
                 size="small"
-                :disabled="getVariantsChoices(item).length==0"
+                :disabled="availableVariants(item.key).length==0"
                 icon="fas fa-plus"
                 @click="addItem(item)"
               />

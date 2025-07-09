@@ -12,8 +12,8 @@ import Warning from '../utils/Warning.vue'
 import { useODStore } from '@src/store/od'
 import Markdown from '../utils/Markdown.vue'
 import { useGettext } from 'vue3-gettext'
-import { TransitParams, TransitParamsObject } from '@src/types/typesStore'
 import { cloneDeep } from 'lodash'
+import { TransitParams, TransitParamsCategory } from '@src/types/typesStore'
 
 const { $gettext } = useGettext()
 const indexStore = useIndexStore()
@@ -33,7 +33,6 @@ const callID = computed(() => runTransit.callID)
 const bucket = computed(() => runTransit.bucket)
 const storeParameters = computed(() => runTransit.parameters)
 const population = computed(() => indexStore.otherFiles.filter(file => file.path === 'inputs/population.geojson')[0])
-
 const filesMissing = computed(() => linksIsEmpty.value)
 
 const parameters = ref<VariantFormData[]>([])
@@ -41,70 +40,52 @@ const parameters = ref<VariantFormData[]>([])
 const paramModel: Record<string, VariantFormData> = {
   use_road_network: {
     key: 'use_road_network', label: $gettext('use road network'), value: null,
-    type: 'boolean', variant: false, category: 'general',
+    type: 'boolean', variant: '', category: 'general',
     hint: 'Use road network nodes to compute population mesh (population is distributed on road nodes.)',
     rules: ['required', 'nonNegative'],
   },
   step_size: {
     key: 'step_size', label: $gettext('Population mesh size (0.001 ~100m)'), value: null,
-    type: 'number', variant: false, category: 'general',
+    type: 'number', variant: '', category: 'general',
     units: 'degree', hint: 'Population is created from zones as a mesh of point with this distance',
     rules: ['required', 'nonNegative'],
   },
   max_length: {
     key: 'max_length', label: $gettext('Footpaths max length'), value: null,
-    type: 'number', units: 'metres', variant: true, category: 'footpaths',
+    type: 'number', units: 'metres', variant: '', category: 'footpaths',
     hint: 'as the crow flight walking speed', rules: ['required', 'nonNegative'],
   },
   speed: {
     key: 'speed', label: $gettext('Footpaths speed'), value: null,
-    type: 'number', units: 'km/h', variant: true, category: 'footpaths',
+    type: 'number', units: 'km/h', variant: '', category: 'footpaths',
     hint: 'max length for a footpath (walk distance between stations)', rules: ['required', 'largerThanZero'],
   },
   n_ntlegs: {
     key: 'n_ntlegs', label: $gettext('Footpaths number of connections'), value: null,
-    type: 'number', variant: true, category: 'footpaths',
+    type: 'number', variant: '', category: 'footpaths',
     hint: 'number of connection between the zones and the footpaths', rules: ['required', 'largerThanZero'],
   },
   catchment_radius: {
     key: 'catchment_radius', label: $gettext('Catchment radius'), value: 500,
-    type: 'number', units: 'metres', variant: true, category: 'catchment_radius',
+    type: 'number', units: 'metres', variant: '', category: 'catchment_radius',
     hint: 'vehicle type catchment radius', rules: ['required', 'nonNegative'],
   },
 }
 
-function createForm(params: TransitParamsObject<any>[], key: string) {
-  const formList: VariantFormData[] = []
-  params.forEach(param => {
-    const model = cloneDeep(paramModel[key])
-    model.value = param.value
-    if (param.variant) { model.key = `${key}#${param.variant}` }
-    formList.push(model)
-  })
-  return formList
-}
+const variantChoice = computed(() => linksStore.variantChoice)
 
-function createCatchmentForm(params: TransitParamsObject<number>[], route_type: string) {
-  const formList: VariantFormData[] = []
-  params.forEach(param => {
-    const model = cloneDeep(paramModel.catchment_radius)
-    model.value = param.value
-    model.label = `${route_type} ${model.label}`
-    if (param.variant) {
-      model.key = `${route_type}#${param.variant}`
-    }
-    else {
-      model.key = route_type
-    }
-    formList.push(model)
-  })
-  return formList
+function initVariants() {
+  const keepSet = new Set([...variantChoice.value, ''])
+  const storeVariants = new Set(storeParameters.value.map(param => param.variant))
+  const toDelete = Array.from(storeVariants).filter(el => !keepSet.has(el))
+  toDelete.forEach(variant => runTransit.deleteVariant(variant))
 }
 
 function initCatchmentRadius() {
   // get routeTypes in Transit parameters and in the links.
   // will add missing one and delete non existing one (if delete metro, remove metro catchment_radius)
-  const storeKeys = new Set(Object.keys(storeParameters.value.catchment_radius))
+  const filtered = storeParameters.value.filter(param => param.category === 'catchment_radius')
+  const storeKeys = new Set(filtered.map(param => param.key))
   const routeTypesSet = new Set(linksStore.links.features.map(link => link.properties.route_type))
 
   // add new route_types to the store (new catchment radius for it)
@@ -113,33 +94,37 @@ function initCatchmentRadius() {
 
   // delete storeParam if route_type doesnt exist anymore.
   const keysToDelete = Array.from(storeKeys).filter(el => !routeTypesSet.has(el))
-  keysToDelete.forEach((route_type) => runTransit.deleteCatchmentRadius(route_type))
+  keysToDelete.forEach((route_type) => runTransit.deleteParam('catchment_radius', route_type))
 }
 
-function createCatchmentRadiusForm() {
-  const keys = Object.keys(storeParameters.value.catchment_radius)
-  keys.forEach(route_type => {
-    parameters.value.push(...createCatchmentForm(storeParameters.value.catchment_radius[route_type], route_type))
+function createBasicForm(category: TransitParamsCategory) {
+  const filtered = storeParameters.value.filter(el => el.category === category)
+  filtered.forEach(param => {
+    const model = cloneDeep(paramModel[param.key])
+    model.value = param.value
+    model.variant = param.variant
+    parameters.value.push(model)
   })
 }
 
-function createGeneralForm() {
-  parameters.value.push(...createForm(storeParameters.value.general.step_size, 'step_size'))
-  parameters.value.push(...createForm(storeParameters.value.general.use_road_network, 'use_road_network'))
-}
-
-function createFootpathsForm() {
-  parameters.value.push(...createForm(storeParameters.value.footpaths.max_length, 'max_length'))
-  parameters.value.push(...createForm(storeParameters.value.footpaths.n_ntlegs, 'n_ntlegs'))
-  parameters.value.push(...createForm(storeParameters.value.footpaths.speed, 'speed'))
+function createCatchmentRadiusForm() {
+  const filtered = storeParameters.value.filter(el => el.category === 'catchment_radius')
+  filtered.forEach(param => {
+    const model = cloneDeep(paramModel.catchment_radius)
+    model.value = param.value
+    model.variant = param.variant
+    model.key = param.key
+    model.label = `${model.label} (${param.key})`
+    parameters.value.push(model)
+  })
 }
 
 onMounted(() => {
   initCatchmentRadius()
-  createGeneralForm()
-  createFootpathsForm()
+  initVariants()
+  createBasicForm('general')
+  createBasicForm('footpaths')
   createCatchmentRadiusForm()
-  // parameters.value = [...general.value, ...footpaths.value, ...catchmentRadius.value]
 })
 
 onBeforeUnmount(() => {
@@ -147,38 +132,22 @@ onBeforeUnmount(() => {
 })
 
 function saveParams() {
-  const category = Object.groupBy(parameters.value, el => el.category)
-  const res: any = { general: {}, footpaths: {}, catchment_radius: {} }
-  Object.keys(res).forEach(cat => {
-    let params = category[cat] as any
-    if (params) {
-      params = Object.groupBy(params, (el: any) => el.key.split('#')[0])
-      Object.keys(params).forEach(key => {
-        params[key] = params[key]?.map((el: any) => { return { value: el.value, variant: el.key.split('#')[1] } })
-      })
-      res[cat] = params
-    }
-  })
-
-  const payload: TransitParams = {
-    general: res.general,
-    catchment_radius: res.catchment_radius,
-    footpaths: res.footpaths,
-  }
-  runTransit.saveParams(payload)
+  runTransit.saveParams(parameters.value)
+  formatParams()
 }
 
-const formRef = ref()
-
-function flattenVariant(dict: Record<string, TransitParamsObject<any>[]>) {
-  const acc: Record<string, any> = {}
-  Object.keys(dict).forEach(key => {
-    dict[key].forEach((el: any) => {
-      const newKey = el.variant ? `${key}#${el.variant}` : key
-      acc[newKey] = el.value
-    })
+function formatParams() {
+  // change [{cat:'',key:'',val:'',variant:''}] to {cat: {key: val#variant}}
+  const group: Record<string, TransitParams[]> = Object.groupBy(storeParameters.value, el => el.category)
+  const params: Record<string, Record<string, any>> = {}
+  Object.keys(group).forEach(cat => {
+    params[cat] = group[cat].reduce((acc: Record<string, any>, el: TransitParams) => {
+      const key = el.variant !== '' ? `${el.key}#${el.variant}` : el.key
+      acc[key] = el.value
+      return acc
+    }, {})
   })
-  return acc
+  return params
 }
 
 async function start () {
@@ -189,11 +158,7 @@ async function start () {
   runTransit.running = true
   runTransit.setCallID()
   await exportFiles()
-  const params = {
-    general: flattenVariant(runTransit.parameters.general),
-    catchment_radius: flattenVariant(runTransit.parameters.catchment_radius),
-    footpaths: flattenVariant(runTransit.parameters.footpaths),
-  }
+  const params = formatParams()
   const inputs: RunInputs = {
     scenario_path_S3: callID.value,
     launcher_arg: {
@@ -248,6 +213,9 @@ async function exportFiles() {
 }
 
 function stopRun () { runTransit.stopExecution() }
+
+const formRef = ref()
+
 const mdString = `
 # Transit Analysis
 ## inputs
@@ -283,7 +251,7 @@ const mdString = `
       <VariantForm
         ref="formRef"
         v-model="parameters"
-        :variants="['am','pm']"
+        :variants="variantChoice"
       >
         <v-card-actions>
           <v-btn
