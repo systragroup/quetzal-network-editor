@@ -455,19 +455,25 @@ export interface MatrixRoadCasterParams {
 }
 
 // Transit
+export type TransitParamsCategory = 'general' | 'catchment_radius' | 'footpaths'
+
+export interface TransitParamsObject<T> {
+  value: T
+  variant?: string
+  route_type?: string
+}
+
 export interface GeneralTransitParams {
-  step_size: number
-  use_road_network: boolean
-  [key: string]: number | boolean
+  step_size: TransitParamsObject<number>[]
+  use_road_network: TransitParamsObject<boolean>[]
 }
 
 export interface FootPaths {
-  max_length: number
-  speed: number
-  n_ntlegs: number
-  [key: string]: number
+  max_length: TransitParamsObject<number>[]
+  speed: TransitParamsObject<number>[]
+  n_ntlegs: TransitParamsObject<number>[]
 }
-export type CatchmentRadius = Record<string, number> // {bus:500, subway:800, rail:1000}
+export type CatchmentRadius = Record<string, TransitParamsObject<number>[]> // {bus:500, subway:800, rail:1000}
 
 export interface TransitParams {
   general: GeneralTransitParams

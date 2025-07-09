@@ -1,5 +1,3 @@
-export type FormType = 'number' | 'string'
-
 export interface FormFormat {
   value: any
   disabled: boolean
@@ -13,7 +11,7 @@ export interface FormOption {
   continue: boolean
 }
 
-export type SimpleFormType = 'number' | 'string' | 'boolean' | 'select' | 'time'
+export type FormType = 'number' | 'string' | 'boolean' | 'select' | 'time'
 
 export type FormObject = Record<string, Omit<FormData, 'key'>>
 
@@ -21,7 +19,7 @@ export interface FormData {
   key: string
   label: string
   value: any
-  type: SimpleFormType
+  type: FormType
   units?: string
   precision?: number
   disabled?: boolean
@@ -31,6 +29,12 @@ export interface FormData {
   multiple?: boolean
   items?: any[] | undefined
   error?: boolean
+}
+
+export interface VariantFormData extends FormData {
+  variant: boolean
+  category: string
+
 }
 
 export type TimeString = string // HH:MM:SS

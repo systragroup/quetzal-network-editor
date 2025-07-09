@@ -7,25 +7,18 @@ import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
 import { TransitParams } from '@src/types/typesStore'
-import { FormData } from '@src/types/components'
-
-interface SaveParams {
-  general: FormData[]
-  footpaths: FormData[]
-  catchment_radius: FormData[]
-}
 
 function baseParameters(): TransitParams {
   return {
     general: {
-      step_size: 0.001,
-      use_road_network: false,
+      use_road_network: [{ value: false }],
+      step_size: [{ value: 0.001 }],
     },
     catchment_radius: {},
     footpaths: {
-      max_length: 1000,
-      speed: 3,
-      n_ntlegs: 2,
+      max_length: [{ value: 1000 }],
+      speed: [{ value: 3 }],
+      n_ntlegs: [{ value: 2 }],
     },
   }
 }
@@ -50,10 +43,16 @@ export const useTransitStore = defineStore('runTransit', () => {
 
   function setCallID() { callID.value = uuid() }
 
-  function saveParams (payload: SaveParams) {
-    payload.general.forEach(param => parameters.value.general[param.key] = param.value)
-    payload.footpaths.forEach(param => parameters.value.footpaths[param.key] = param.value)
-    payload.catchment_radius.forEach(param => parameters.value.catchment_radius[param.key] = param.value)
+  function addCatchmentRadius(route_type: string) {
+    parameters.value.catchment_radius[route_type] = [{ value: 1000 }]
+  }
+
+  function deleteCatchmentRadius(route_type: string) {
+    delete parameters.value.catchment_radius[route_type]
+  }
+
+  function saveParams (payload: TransitParams) {
+    parameters.value = payload
   }
 
   watch(status, async (val) => {
@@ -100,6 +99,8 @@ export const useTransitStore = defineStore('runTransit', () => {
     errorMessage,
     parameters,
     timer,
+    addCatchmentRadius,
+    deleteCatchmentRadius,
     saveParams,
     setCallID,
     startExecution,

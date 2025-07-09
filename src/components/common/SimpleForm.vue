@@ -2,7 +2,7 @@
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { ref } from 'vue'
-import { FormData, SimpleFormType } from '@src/types/components'
+import { FormData, FormType } from '@src/types/components'
 import { getRules } from '@src/utils/form'
 const editorForm = defineModel<FormData[]>()
 const emits = defineEmits(['change'])
@@ -29,7 +29,7 @@ defineExpose({
   validate,
 })
 
-function typeMap(type: SimpleFormType) {
+function typeMap(type: FormType) {
   switch (type) {
     case 'number':
       return 'v-number-input'

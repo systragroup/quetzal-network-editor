@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useGettext } from 'vue3-gettext'
-const { $gettext } = useGettext()
+
 import { toRefs, computed, onMounted } from 'vue'
 import { SingleParam } from '@src/types/typesStore'
 import { useUserStore } from '@src/store/user'
-const userStore = useUserStore()
+import { getRules } from '@src/utils/form'
 
+const userStore = useUserStore()
 const scenariosList = computed(() => { return userStore.scenariosList })
 const activeScenario = computed(() => { return userStore.scenario })
 
@@ -14,8 +14,7 @@ interface Props {
 }
 
 // Define props with default values
-const props = withDefaults(defineProps<Props>(), {
-})
+const props = defineProps<Props>()
 const { item } = toRefs(props)
 
 // const emits = defineEmits(['change'])
@@ -30,14 +29,6 @@ function getItems(item: SingleParam): any[] | undefined {
   } else {
     return item.items
   }
-}
-
-type Rules = Record<string, any>
-
-const rules: Rules = {
-  required: (v: any) => v != null || $gettext('Required'),
-  largerThanZero: (v: number) => v > 0 || $gettext('should be larger than 0'),
-  nonNegative: (v: number) => v >= 0 || $gettext('should be larger or equal to 0'),
 }
 
 function removeDeletedScenarios (item: SingleParam) {
@@ -67,14 +58,9 @@ const component = computed(() => {
   }
 })
 
-// function getItemLabel(label: string) {
-//   return label.split('#')[0]
-// }
-
 function getItemVariant(label: string) {
   return label.split('#')[1]
 }
-// const isVariant = computed(() => item.value.text.includes('#'))
 
 </script>
 <template>
@@ -91,7 +77,7 @@ function getItemVariant(label: string) {
     :prefix="getItemVariant(item.name)"
     :suffix="item.units ? item.units : undefined"
     :type="item.type"
-    :rules="item.rules?.map((str) => rules[str])"
+    :rules="getRules(item.rules)"
     :multiple="item?.multiple"
     :items="getItems(item)"
     @update:model-value="removeDeletedScenarios(item)"
