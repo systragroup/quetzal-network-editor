@@ -67,8 +67,7 @@ function availableVariants(key: string) {
 function isVariant(item: VariantFormData) { return item.variant !== '' }
 
 function changeItemVariant(variant: string, item: VariantFormData) {
-  item.variant = item.variant
-  // item.label = item.label.split('#')[0] + `#${variant}`
+  item.variant = variant
 }
 
 function addItem(item: VariantFormData) {

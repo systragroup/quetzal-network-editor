@@ -52,7 +52,8 @@ const paramModel: Record<string, VariantFormData> = {
   },
   duration: {
     key: 'duration', label: $gettext('duration'), value: null,
-    type: 'number', variant: '', category: 'general', units: 'minutes', hint: 'duration',
+    type: 'number', variant: '', category: 'general', units: 'minutes',
+    hint: 'duration of the period (minutes) for metrics',
     rules: ['required', 'nonNegative'], showVariant: true,
   },
   max_length: {
@@ -76,8 +77,9 @@ const paramModel: Record<string, VariantFormData> = {
     hint: 'vehicle type catchment radius', rules: ['required', 'nonNegative'], showVariant: true,
   },
 }
-
-const variantChoice = computed(() => linksStore.variantChoice)
+// remove # at the begginin #am => am
+const variantChoice = computed(() => linksStore.variantChoice.map(el => el.split('#')[1] || el))
+const selectedVariants = ref<string[]>(variantChoice.value)
 
 function initVariants() {
   const keepSet = new Set([...variantChoice.value, ''])
@@ -91,7 +93,7 @@ function initCatchmentRadius() {
   // will add missing one and delete non existing one (if delete metro, remove metro catchment_radius)
   const filtered = storeParameters.value.filter(param => param.category === 'catchment_radius')
   const storeKeys = new Set(filtered.map(param => param.key))
-  const routeTypesSet = new Set(linksStore.links.features.map(link => link.properties.route_type))
+  const routeTypesSet = new Set(linksStore.links.features.map(link => link.properties.route_type as string))
 
   // add new route_types to the store (new catchment radius for it)
   const keysToAdd = Array.from(routeTypesSet).filter(el => !storeKeys.has(el))
@@ -166,6 +168,7 @@ async function start () {
   const params = formatParams()
   const inputs: RunInputs = {
     scenario_path_S3: callID.value,
+    variants: selectedVariants.value,
     launcher_arg: {
       training_folder: '/tmp',
       params: params,
@@ -253,6 +256,17 @@ const mdString = `
       />
       <v-spacer />
       <v-divider />
+      <v-select
+        v-if="variantChoice.length>1"
+        v-model="selectedVariants"
+        class="ma-2"
+        :label="$gettext('periods')"
+        chips
+        :disabled="running"
+        :items="variantChoice"
+        :multiple="true"
+        :hide-details="true"
+      />
       <VariantForm
         ref="formRef"
         v-model="parameters"
