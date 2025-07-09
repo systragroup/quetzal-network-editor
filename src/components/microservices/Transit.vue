@@ -3,7 +3,7 @@ import { useTransitStore } from '@src/store/Transit'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { ref, computed, onMounted, onBeforeUnmount, toRaw } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import s3 from '@src/AWSClient'
 import { VariantFormData } from '@src/types/components'
 import VariantForm from '../common/VariantForm.vue'
@@ -162,14 +162,24 @@ function saveParams() {
 
   const payload: TransitParams = {
     general: res.general,
-    catchment_radius: res.catchmentRadius,
+    catchment_radius: res.catchment_radius,
     footpaths: res.footpaths,
   }
-
   runTransit.saveParams(payload)
 }
 
 const formRef = ref()
+
+function flattenVariant(dict: Record<string, TransitParamsObject<any>[]>) {
+  const acc: Record<string, any> = {}
+  Object.keys(dict).forEach(key => {
+    dict[key].forEach((el: any) => {
+      const newKey = el.variant ? `${key}#${el.variant}` : key
+      acc[newKey] = el.value
+    })
+  })
+  return acc
+}
 
 async function start () {
   const resp = await formRef.value.validate()
@@ -179,7 +189,11 @@ async function start () {
   runTransit.running = true
   runTransit.setCallID()
   await exportFiles()
-  const params = toRaw(runTransit.parameters)
+  const params = {
+    general: flattenVariant(runTransit.parameters.general),
+    catchment_radius: flattenVariant(runTransit.parameters.catchment_radius),
+    footpaths: flattenVariant(runTransit.parameters.footpaths),
+  }
   const inputs: RunInputs = {
     scenario_path_S3: callID.value,
     launcher_arg: {

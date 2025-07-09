@@ -466,6 +466,7 @@ export interface TransitParamsObject<T> {
 export interface GeneralTransitParams {
   step_size: TransitParamsObject<number>[]
   use_road_network: TransitParamsObject<boolean>[]
+  [key: string]: any
 }
 
 export interface FootPaths {

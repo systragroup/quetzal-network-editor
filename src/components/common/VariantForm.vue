@@ -101,7 +101,6 @@ function deleteItem(item: VariantFormData) {
   editorForm.value = editorForm.value.filter(el => el !== item)
 }
 
-watch(editorForm, v => console.log(v))
 </script>
 <template>
   <div

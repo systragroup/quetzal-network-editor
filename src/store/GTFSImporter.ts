@@ -114,7 +114,6 @@ export const useGTFSStore = defineStore('runGTFS', () => {
       uploadedGTFS.value.push(payload.info)
     }
     const upload = s3.uploadObject(bucket.value, callID.value + '/inputs/' + payload.info.name, payload.content)
-    console.log(callID.value)
     upload.on('httpUploadProgress', (progress) => {
       if (progress) {
         const percent = Math.round((progress.loaded || 0) / (progress.total || 1) * 100)
