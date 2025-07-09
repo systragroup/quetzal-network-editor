@@ -13,7 +13,7 @@ interface Props {
 
 // Define props with default values
 const props = withDefaults(defineProps<Props>(), {
-  variants: undefined,
+  variants: () => [''],
 })
 const { variants } = toRefs(props)
 
@@ -126,7 +126,7 @@ function deleteItem(item: VariantFormData) {
             @update:model-value="change(item)"
           >
             <template
-              v-if="showEdit"
+              v-if="showEdit && item.showVariant"
               v-slot:prepend
             >
               <MenuSelector
@@ -165,7 +165,7 @@ function deleteItem(item: VariantFormData) {
         <slot />
         <v-spacer />
         <v-btn
-          v-if="variants"
+          v-if="variants.length>1"
           prepend-icon="fas fa-plus"
           variant="text"
           :active="showEdit"

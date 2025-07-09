@@ -24,6 +24,12 @@ function baseParameters(): TransitParams[] {
       variant: '',
     },
     {
+      category: 'general',
+      key: 'duration',
+      value: 24 * 60,
+      variant: '',
+    },
+    {
       category: 'footpaths',
       key: 'max_length',
       value: 1000,
