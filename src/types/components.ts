@@ -34,6 +34,7 @@ export interface FormData {
 export interface VariantFormData extends FormData {
   variant: string
   category: string
+  advanced: boolean
   showVariant?: boolean
 
 }

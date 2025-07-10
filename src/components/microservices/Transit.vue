@@ -40,39 +40,41 @@ const parameters = ref<VariantFormData[]>([])
 const paramModel: Record<string, VariantFormData> = {
   use_road_network: {
     key: 'use_road_network', label: $gettext('use road network'), value: null,
-    type: 'boolean', variant: '', category: 'general',
+    type: 'boolean', variant: '', category: 'general', advanced: false,
     hint: 'Use road network nodes to compute population mesh (population is distributed on road nodes.)',
     rules: ['required', 'nonNegative'], showVariant: false,
   },
   step_size: {
     key: 'step_size', label: $gettext('Population mesh size (0.001 ~100m)'), value: null,
-    type: 'number', variant: '', category: 'general',
+    type: 'number', variant: '', category: 'general', advanced: true,
     units: 'degree', hint: 'Population is created from zones as a mesh of point with this distance',
     rules: ['required', 'nonNegative'], showVariant: false,
   },
   duration: {
     key: 'duration', label: $gettext('duration'), value: null,
     type: 'number', variant: '', category: 'general', units: 'minutes',
-    hint: 'duration of the period (minutes) for metrics',
+    hint: 'duration of the period (minutes) for metrics', advanced: false,
     rules: ['required', 'nonNegative'], showVariant: true,
   },
   max_length: {
     key: 'max_length', label: $gettext('Footpaths max length'), value: null,
-    type: 'number', units: 'metres', variant: '', category: 'footpaths',
-    hint: 'as the crow flight walking speed', rules: ['required', 'nonNegative'], showVariant: true,
+    type: 'number', units: 'metres', variant: '', category: 'footpaths', advanced: true,
+    hint: 'max length for a footpath (walk distance between stations)',
+    rules: ['required', 'nonNegative'], showVariant: true,
   },
   speed: {
-    key: 'speed', label: $gettext('Footpaths speed'), value: null,
+    key: 'speed', label: $gettext('Footpaths speed'), value: null, advanced: true,
     type: 'number', units: 'km/h', variant: '', category: 'footpaths', showVariant: true,
-    hint: 'max length for a footpath (walk distance between stations)', rules: ['required', 'largerThanZero'],
+    hint: 'as the crow flight walking speed', rules: ['required', 'largerThanZero'],
   },
   n_ntlegs: {
-    key: 'n_ntlegs', label: $gettext('Footpaths number of connections'), value: null,
+    key: 'n_ntlegs', label: $gettext('zone connectors'), value: null, advanced: true,
     type: 'number', variant: '', category: 'footpaths', showVariant: true,
-    hint: 'number of connection between the zones and the footpaths', rules: ['required', 'largerThanZero'],
+    hint: 'number of connection between the zones and the stations (or roads if using the road network)',
+    rules: ['required', 'largerThanZero'],
   },
   catchment_radius: {
-    key: 'catchment_radius', label: $gettext('Catchment radius'), value: 500,
+    key: 'catchment_radius', label: $gettext('Catchment radius'), value: 500, advanced: false,
     type: 'number', units: 'metres', variant: '', category: 'catchment_radius',
     hint: 'vehicle type catchment radius', rules: ['required', 'nonNegative'], showVariant: true,
   },
@@ -265,7 +267,9 @@ const mdString = `
         :disabled="running"
         :items="variantChoice"
         :multiple="true"
-        :hide-details="true"
+        :hide-details="false"
+        :persistent-hint="true"
+        :hint="$gettext(`Click ' + manage ' to add period specific parameters such as the duration of each period`)"
       />
       <VariantForm
         ref="formRef"

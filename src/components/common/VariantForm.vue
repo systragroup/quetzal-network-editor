@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-import { ref, toRefs } from 'vue'
-import { VariantFormData, FormType } from '@src/types/components'
-import { getRules } from '@src/utils/form'
+import { computed, ref, toRefs } from 'vue'
+import { VariantFormData } from '@src/types/components'
 import { cloneDeep } from 'lodash'
 import MenuSelector from '../utils/MenuSelector.vue'
+import FormInput from './FormInput.vue'
 
 interface Props {
   variants?: string[]
 }
-
-// Define props with default values
 const props = withDefaults(defineProps<Props>(), {
   variants: () => [''],
 })
@@ -20,6 +18,8 @@ const { variants } = toRefs(props)
 const editorForm = defineModel<VariantFormData[]>({ default: [] })
 const emits = defineEmits(['change'])
 
+// form stuff
+
 const shake = ref(false)
 const formRef = ref()
 const showHint = ref(false)
@@ -27,34 +27,17 @@ const showHint = ref(false)
 async function validate() {
   const resp = await formRef.value.validate()
   if (!resp.valid) {
-    // set shake and then back to false. leave time for animation.
-    shake.value = true
+    shake.value = true // set shake and then back to false. leave time for animation.
     setTimeout(() => { shake.value = false }, 500)
   }
   return resp.valid
-}
-
-function change(item: VariantFormData) {
-  emits('change', item)
 }
 
 defineExpose({
   validate,
 })
 
-function typeMap(type: FormType) {
-  switch (type) {
-    case 'number':
-      return 'v-number-input'
-    case 'boolean':
-      return 'v-switch'
-    case 'select':
-      return 'v-select'
-    default:
-      return 'v-text-field'
-  }
-}
-
+// variants logic: display add delete
 const showEdit = ref(false)
 
 function availableVariants(key: string) {
@@ -76,7 +59,6 @@ function addItem(item: VariantFormData) {
   const v = availableVariants(key)[0]
   if (v) { // else. all variants there
     copy.variant = v
-    // copy.label = copy.label + `#${v}`
     const position = editorForm.value.indexOf(item)
     editorForm.value.splice(position + 1, 0, copy)
   }
@@ -86,43 +68,43 @@ function deleteItem(item: VariantFormData) {
   editorForm.value = editorForm.value.filter(el => el !== item)
 }
 
+// logic to hide and show advanced parameters
+const showAdvanced = ref(false)
+const sortedForm = computed(() => [...editorForm.value].sort((a, b) => {
+  return (a.advanced === b.advanced) ? 0 : a.advanced ? 1 : -1
+}))
+const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advanced))
+
 </script>
 <template>
   <div
     class="box"
-    :class="{'shake':shake}"
+    :class="{'shake': shake}"
   >
     <v-form ref="formRef">
       <div
-        v-for="(item, key) in editorForm"
+        v-for="(item, key) in sortedForm"
         :key="key"
         class="form"
       >
+        <v-btn
+          v-if="key === advancedIndex"
+          variant="text"
+          class="lower-button"
+          @click="showAdvanced = !showAdvanced"
+        >
+          {{ showAdvanced? $gettext('▾ Hide Advanced') : $gettext('▸ Show Advanced') }}
+        </v-btn>
         <slot
           :name="item.key"
           :item="item"
           :show-hint="showHint"
-          @update:model-value="change(item)"
+          @update:model-value="emits('change', item)"
         >
-          <component
-            :is="typeMap(item.type)"
-            v-model="item.value"
-            control-variant="stacked"
-            :hint="showHint? item.hint: ''"
-            :density="item.type==='boolean'? 'compact': 'default'"
-            :persistent-hint="showHint"
-            :variant="item.disabled? 'underlined': 'filled'"
-            :disabled="item.disabled"
-            :units="item.units"
-            :color="item.type==='boolean'? 'primary': undefined"
-            :precision="item.precision === undefined? null : item.precision"
-            :suffix="item.units"
-            :prefix="item.variant"
-            :items="item.items"
-            :rules="getRules(item.rules)"
-            :label="$gettext(item.label)"
-            :multiple="item.multiple"
-            @update:model-value="change(item)"
+          <FormInput
+            v-show="!item.advanced || showAdvanced"
+            :item="item"
+            :show-hint="showHint"
           >
             <template
               v-if="showEdit && item.showVariant"
@@ -156,10 +138,9 @@ function deleteItem(item: VariantFormData) {
                 @click="deleteItem(item)"
               />
             </template>
-          </component>
+          </FormInput>
         </slot>
       </div>
-
       <v-card-actions>
         <slot />
         <v-spacer />
@@ -183,6 +164,9 @@ function deleteItem(item: VariantFormData) {
   </div>
 </template>
 <style lang="scss" scoped>
+.lower-button{
+  text-transform:none;
+}
 .box{
   max-height:100%;
   padding:0.5rem;
