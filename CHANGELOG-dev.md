@@ -1,3 +1,12 @@
+## [7.1.f] (2025-07-xx)
+### Features
+* add Variants (periods) to Transit Microservice.
+* add Advanced parameters (hidden under "show advanced") for Transit
+* update quetzal transit (backend) to take period. (only run thme in parallel. no Agg at the end for now...)
+
+### changes
+* updates libs
+
 ## [7.1.e] (2025-07-07)
 ### Changes
 * OSM importer in typescript

@@ -52,7 +52,7 @@ function baseParameters(): TransitParams[] {
 
 export const useTransitStore = defineStore('runTransit', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-transit-api')
+  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-transit-api-dev')
   const bucket = ref<string>('quetzal-api-bucket')
 
   const callID = ref<string>('')
