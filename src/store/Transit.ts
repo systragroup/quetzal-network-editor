@@ -118,7 +118,9 @@ export const useTransitStore = defineStore('runTransit', () => {
     let outputs = await s3.listFiles(bucket.value, `${callID.value}/outputs/`)
     const res = []
     for (const file of outputs) {
-      const name = file.replace('outputs/', 'microservices/')
+      // get stuff after callId/outputs/ so am/file.json or just file.json
+      let name = file.split('/').slice(2).join('/')
+      name = 'microservices/' + name
       let content = null
       if (name.endsWith('.geojson') || name.endsWith('.json')) {
         content = await s3.readJson(bucket.value, file)
