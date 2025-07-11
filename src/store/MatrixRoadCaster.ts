@@ -6,8 +6,12 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useIndexStore } from '@src/store/index'
 import { useAPI } from '../composables/APIComposable'
 import { useGettext } from 'vue3-gettext'
-import { MatrixRoadCasterParams } from '@src/types/typesStore'
+import { MatrixRoadCasterParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
+import { cloneDeep } from 'lodash'
+
+const VERSION = 0
+const NAME = 'matrixroadcaster'
 
 function baseParameters(): MatrixRoadCasterParams {
   return {
@@ -41,6 +45,28 @@ export const useMRCStore = defineStore('runMRC', () => {
     zoneFile.value = ''
     parameters.value = baseParameters()
     cleanRun()
+  }
+
+  function loadParams(payload: MicroserviceParametersDTO<MatrixRoadCasterParams>) {
+    // TODO: migration
+    parameters.value = payload.parameters
+  }
+
+  function exportParams() {
+    const params = cloneDeep(parameters.value)
+    params.apiKey = ''
+    const payload: MicroserviceParametersDTO<MatrixRoadCasterParams> = {
+      version: VERSION,
+      name: NAME,
+      parameters: params,
+    }
+    const store = useIndexStore()
+    store.addMicroservicesParameters(payload)
+  }
+
+  function start(inputs: MatrixRoadCasterParams & { callID: string }) {
+    exportParams()
+    startExecution(stateMachineArn.value, inputs)
   }
 
   function setCallID() { callID.value = uuid() }
@@ -84,7 +110,7 @@ export const useMRCStore = defineStore('runMRC', () => {
     const res = []
     for (const file of filesList) {
       let name = file.split('/').slice(-1)
-      name = 'microservices/' + name
+      name = `microservices/${NAME}/${name}`
       const content = await s3.readBytes(bucket.value, file)
       res.push({ path: name, content: content })
     }
@@ -105,12 +131,13 @@ export const useMRCStore = defineStore('runMRC', () => {
     errorMessage,
     status,
     timer,
-    startExecution,
+    start,
     stopExecution,
     reset,
     parameters,
     zoneFile,
     saveParams,
     saveParam,
+    loadParams,
   }
 })

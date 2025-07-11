@@ -7,9 +7,12 @@ import { useLinksStore } from '@src/store/links'
 import s3 from '@src/AWSClient'
 import router from '@src/router/index'
 import { useGettext } from 'vue3-gettext'
-import { GTFSParams, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesStore'
+import { GTFSParams, MicroserviceParametersDTO, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesStore'
 import { LineStringGeoJson } from '@src/types/geojson'
 import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
+import { RunInputs } from '@src/types/api'
+const VERSION = 0
+const NAME = 'gtfs'
 
 function baseParameters(): GTFSParams {
   return {
@@ -54,6 +57,28 @@ export const useGTFSStore = defineStore('runGTFS', () => {
         parameters.value[key] = params[key]!
       }
     })
+  }
+
+  function loadParams(payload: MicroserviceParametersDTO<GTFSParams>) {
+    // TODO: migration
+    parameters.value = payload.parameters
+    parameters.value.files = []
+    parameters.value.dates = []
+  }
+
+  function exportParams() {
+    const payload: MicroserviceParametersDTO<GTFSParams> = {
+      version: VERSION,
+      name: NAME,
+      parameters: parameters.value,
+    }
+    const store = useIndexStore()
+    store.addMicroservicesParameters(payload)
+  }
+
+  function start(inputs: RunInputs) {
+    exportParams()
+    startExecution(stateMachineArn.value, inputs)
   }
 
   function saveSelectedGTFS (payload: number[]) {
@@ -142,7 +167,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     errorMessage,
     status,
     timer,
-    startExecution,
+    start,
     stopExecution,
     reset,
     parameters,
@@ -151,5 +176,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     selectedGTFS,
     saveSelectedGTFS,
     addGTFS,
+    loadParams,
+    exportParams,
   }
 })

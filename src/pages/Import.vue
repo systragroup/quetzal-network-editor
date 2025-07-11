@@ -134,6 +134,9 @@ async function loadFilesFromS3 () {
       } else if (name === 'attributesChoices.json') {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
+      } else if (name.endsWith('params.json')) { // microservices params
+        const content = await s3.readJson(model, file)
+        res.push({ path: name, content })
         // take PT and road network and od (ending en geojson)
       } else if ((name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/'))
       && (name.endsWith('.geojson'))) {

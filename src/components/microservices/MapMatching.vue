@@ -17,7 +17,6 @@ const { $gettext } = useGettext()
 const runMapMatching = useMapMatchingStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
-const stateMachineArn = computed(() => runMapMatching.stateMachineArn)
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const running = computed(() => runMapMatching.running)
@@ -113,6 +112,7 @@ async function start () {
   const resp = await formRef.value.validate()
   if (!resp) { return }
   const userStore = useUserStore()
+  runMapMatching.saveParams(parameters.value)
   runMapMatching.running = true
   runMapMatching.setCallID()
   getApproxTimer()
@@ -128,7 +128,7 @@ async function start () {
       user_email: userStore.cognitoInfo?.email,
     },
   }
-  runMapMatching.startExecution(stateMachineArn.value, inputs)
+  runMapMatching.start(inputs)
 }
 
 function getApproxTimer () {

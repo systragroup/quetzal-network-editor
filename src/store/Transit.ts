@@ -6,8 +6,12 @@ import { useAPI } from '../composables/APIComposable'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
-import { TransitParams, TransitParamsCategory } from '@src/types/typesStore'
+import { TransitParams, TransitParamsCategory, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { VariantFormData } from '@src/types/components'
+import { RunInputs } from '@src/types/api'
+
+const VERSION = 0
+const NAME = 'transit'
 
 function baseParameters(): TransitParams[] {
   return [
@@ -101,6 +105,26 @@ export const useTransitStore = defineStore('runTransit', () => {
     })
   }
 
+  function loadParams(payload: MicroserviceParametersDTO<TransitParams[]>) {
+    // TODO: migration
+    parameters.value = payload.parameters
+  }
+
+  function exportParams() {
+    const payload: MicroserviceParametersDTO<TransitParams[]> = {
+      version: VERSION,
+      name: NAME,
+      parameters: parameters.value,
+    }
+    const store = useIndexStore()
+    store.addMicroservicesParameters(payload)
+  }
+
+  function start(inputs: RunInputs) {
+    exportParams()
+    startExecution(stateMachineArn.value, inputs)
+  }
+
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {
       running.value = true
@@ -118,9 +142,9 @@ export const useTransitStore = defineStore('runTransit', () => {
     let outputs = await s3.listFiles(bucket.value, `${callID.value}/outputs/`)
     const res = []
     for (const file of outputs) {
-      // get stuff after callId/outputs/ so am/file.json or just file.json
+      // get stuff after callId/outputs/ ==>  am/file.json or just file.json
       let name = file.split('/').slice(2).join('/')
-      name = 'microservices/' + name
+      name = `microservices/${NAME}/${name}`
       let content = null
       if (name.endsWith('.geojson') || name.endsWith('.json')) {
         content = await s3.readJson(bucket.value, file)
@@ -151,8 +175,10 @@ export const useTransitStore = defineStore('runTransit', () => {
     deleteVariant,
     saveParams,
     setCallID,
-    startExecution,
+    start,
     stopExecution,
     reset,
+    loadParams,
+    exportParams,
   }
 })

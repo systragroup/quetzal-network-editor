@@ -18,7 +18,6 @@ const runGTFS = useGTFSStore()
 const linksStore = useLinksStore()
 const store = useIndexStore()
 const showOverwriteDialog = ref(false)
-const stateMachineArn = computed(() => runGTFS.stateMachineArn)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const uploadedGTFS = computed(() => runGTFS.uploadedGTFS)
 const running = computed(() => runGTFS.running)
@@ -106,7 +105,7 @@ async function importGTFS () {
         user_email: userStore.cognitoInfo?.email,
       },
     }
-    runGTFS.startExecution(stateMachineArn.value, inputs)
+    runGTFS.start(inputs)
   } else {
     showOverwriteDialog.value = true
   }

@@ -55,7 +55,6 @@ const gtfsList = ref<GTFSListMobilityData[]>([])
 const availableGTFS = ref<GTFSList[]>([])
 const showHint = ref(false)
 const selectedGTFS = ref(runGTFS.selectedGTFS)
-const stateMachineArn = computed(() => runGTFS.stateMachineArn)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const callID = computed(() => runGTFS.callID)
 const running = computed(() => runGTFS.running)
@@ -177,7 +176,7 @@ async function importGTFS () {
         user_email: userStore.cognitoInfo?.email,
       },
     }
-    runGTFS.startExecution(stateMachineArn.value, inputs)
+    runGTFS.start(inputs)
   } else {
     showOverwriteDialog.value = true
   }

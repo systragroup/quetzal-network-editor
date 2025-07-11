@@ -66,6 +66,7 @@ export interface IndexStore {
   styles: Style[]
   projectInfo: ProjectInfo
   otherFiles: OtherFiles[]
+  microservicesParams: FileFormat[]
 }
 
 // payloads
@@ -419,7 +420,15 @@ export type Params = (ParamsInfo | CategoryParam | ParamsVariants)[]
 
 export type PayloadParams = Record<string, Record<string, any>>
 
+//
 // Microservices
+//
+
+export interface MicroserviceParametersDTO<T> {
+  version: number
+  name: 'transit' | 'gtfs' | 'mapmatching' | 'matrixroadcaster'
+  parameters: T
+}
 
 // MapMatching
 

@@ -15,7 +15,6 @@ import { getRules } from '@src/utils/form'
 const { $gettext } = useGettext()
 
 const runMRC = useMRCStore()
-const stateMachineArn = computed(() => runMRC.stateMachineArn)
 const running = computed(() => runMRC.running)
 const error = computed(() => runMRC.error)
 const errorMessage = computed(() => runMRC.errorMessage)
@@ -196,7 +195,7 @@ async function start () {
   getApproxTimer()
   await exportFiles()
   const input = { callID: callID.value, ...storeParameters.value }
-  runMRC.startExecution(stateMachineArn.value, input)
+  runMRC.start(input)
 }
 
 function stopRun () { runMRC.stopExecution() }

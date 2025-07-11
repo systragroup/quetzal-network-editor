@@ -8,8 +8,11 @@ import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
 import { userLinksStore } from './rlinks'
-import { MapMatchingParams } from '@src/types/typesStore'
+import { MapMatchingParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
+import { RunInputs } from '@src/types/api'
+const VERSION = 0
+const NAME = 'mapmatching'
 
 function baseParameters(): MapMatchingParams {
   return {
@@ -45,6 +48,26 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
 
   function saveParams (payload: FormData[]) {
     payload.forEach(param => parameters.value[param.key] = param.value) }
+
+  function loadParams(payload: MicroserviceParametersDTO<MapMatchingParams>) {
+    // TODO: migration
+    parameters.value = payload.parameters
+  }
+
+  function exportParams() {
+    const payload: MicroserviceParametersDTO<MapMatchingParams> = {
+      version: VERSION,
+      name: NAME,
+      parameters: parameters.value,
+    }
+    const store = useIndexStore()
+    store.addMicroservicesParameters(payload)
+  }
+
+  function start(inputs: RunInputs) {
+    exportParams()
+    startExecution(stateMachineArn.value, inputs)
+  }
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {
@@ -87,7 +110,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     const res = []
     for (const file of filesList) {
       let name = file.split('/').slice(-1)
-      name = 'microservices/' + name
+      name = `microservices/${NAME}/${name}`
       const content = await s3.readBytes(bucket.value, file)
       res.push({ path: name, content: content })
     }
@@ -110,9 +133,10 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     timer,
     saveParams,
     setCallID,
-    startExecution,
+    start,
     stopExecution,
     getCSVs,
     reset,
+    loadParams,
   }
 })

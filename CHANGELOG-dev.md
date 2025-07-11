@@ -1,4 +1,11 @@
-## [7.1.f] (2025-07-xx)
+## [7.1.g] (2025-07-11)
+### Features
+* Save microservices parameters (except OSM)
+    folder: microservices/{serviceName}
+    params.json in this folder with a version number for future migration.
+    all outputs files there too.
+
+## [7.1.f] (2025-07-10)
 ### Features
 * add Variants (periods) to Transit Microservice.
 * add Advanced parameters (hidden under "show advanced") for Transit

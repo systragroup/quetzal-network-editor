@@ -19,6 +19,7 @@ import { cloneDeep } from 'lodash'
 
 import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
+  MicroserviceParametersDTO,
   Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
 const $gettext = (s: string) => s
 
@@ -48,6 +49,7 @@ export const useIndexStore = defineStore('index', {
     otherFiles: [], // [{path, content}]
     // microservices
     importPoly: null,
+    microservicesParams: [],
   }),
 
   actions: {
@@ -125,11 +127,13 @@ export const useIndexStore = defineStore('index', {
         const infoFile = otherFiles.filter(el => el.path === 'info.json')[0]
         otherFiles = otherFiles.filter(el => el !== infoFile)
 
+        const microservicesFiles = otherFiles.filter(el => el.path.startsWith('microservices/'))
+        otherFiles = otherFiles.filter(el => !microservicesFiles.includes(el))
+
         const inputFiles = otherFiles.filter(el => el.path.startsWith('inputs/'))
         otherFiles = otherFiles.filter(el => !inputFiles.includes(el))
 
-        const outputFiles = otherFiles.filter(el =>
-          el.path.startsWith('outputs/') || el.path.startsWith('microservices/'))
+        const outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
 
         otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
         // at this point. nothing is used in otherFiles.
@@ -153,6 +157,7 @@ export const useIndexStore = defineStore('index', {
         if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
+        if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
@@ -172,6 +177,49 @@ export const useIndexStore = defineStore('index', {
         const name = file.path.split('.').slice(-2)[0]
         this.otherFiles.push({ ...file, name, extension })
       }
+    },
+
+    loadMicroservicesFiles(payload: FileFormat[]) {
+      // microservices/{ms_name}/all the files. get params and the others one as outputs
+      const paramsFiles = payload.filter(el => el.path.endsWith('params.json'))
+      paramsFiles.forEach(file => this.loadMicroserviceParameters(file.content))
+
+      const outputFiles = payload.filter(el => !paramsFiles.includes(el))
+      this.loadOtherFiles(outputFiles)
+    },
+
+    loadMicroserviceParameters(payload: MicroserviceParametersDTO<any>) {
+      const name = payload.name
+      // add file in store to save later. remove if exist.
+      console.log(name)
+      this.addMicroservicesParameters(payload)
+      switch (name) {
+        case 'transit':
+          const runTransit = useTransitStore()
+          runTransit.loadParams(payload)
+          break
+        case 'gtfs':
+          const runGTFSStore = useGTFSStore()
+          runGTFSStore.loadParams(payload)
+          break
+        case 'mapmatching':
+          console.log('salut')
+          const runMapMatching = useMapMatchingStore()
+          runMapMatching.loadParams(payload)
+          break
+        case 'matrixroadcaster':
+          const runMRC = useMRCStore()
+          runMRC.loadParams(payload)
+          break
+      }
+    },
+
+    addMicroservicesParameters(payload: MicroserviceParametersDTO<any>) {
+      // when start microservice. store input file here to be exported.
+      // add file in store to save later. remove if exist.
+      const path = `microservices/${payload.name}/params.json`
+      this.microservicesParams.filter(el => el.path !== path)
+      this.microservicesParams.push({ path: path, content: cloneDeep(payload) })
     },
 
     deleteOutputs () {
@@ -205,8 +253,6 @@ export const useIndexStore = defineStore('index', {
     },
 
     setVisibleRasters (payload: string[]) {
-      // payload.forEach(el => arr.push({ item: el }))
-      // this.visibleRasters = new Set(payload)
       this.visibleRasters = payload
     },
 
@@ -362,8 +408,7 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob)
         }
-
-        for (const file of this.otherFiles) {
+        for (const file of [...this.otherFiles, ...this.microservicesParams]) {
           // if others file loaded from S3 (they are not loaded yet. need to download them.)
           if (file.content == null && userStore.model !== null) {
             file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
@@ -455,8 +500,12 @@ export const useIndexStore = defineStore('index', {
       filesOnCloud = filesOnCloud.filter(path => !filesToExcludes.includes(path))
       filesOnCloud = filesOnCloud.map(file => file.slice(scen.length)) // remove scen name from file)
       filesOnCloud = filesOnCloud.filter(path =>
-        path.startsWith('outputs/') || path.startsWith('inputs/') || path.startsWith('microservices/'))
-      const localOtherFiles = this.otherFiles.map(el => el.path)
+        path.startsWith('outputs/')
+        || path.startsWith('inputs/')
+        || path.startsWith('microservices/'))
+
+      let otherFiles = [...this.otherFiles, ...this.microservicesParams]
+      const localOtherFiles = otherFiles.map(el => el.path)
       for (const file of filesOnCloud) {
         if (!localOtherFiles.includes(file)) {
           await s3.deleteObject(bucket, scen + file)
@@ -465,7 +514,7 @@ export const useIndexStore = defineStore('index', {
 
       // save others files
       // if payload === inputs. only export inputs/ files.
-      let otherFiles = this.otherFiles
+
       if (payload === 'inputs') {
         otherFiles = otherFiles.filter(file => file.path.startsWith('inputs/'))
       }

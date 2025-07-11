@@ -72,9 +72,7 @@ export const useUserStore = defineStore('userStore', {
       const store = useIndexStore()
       this.scenario = payload.scenario
       this.protected = payload.protected
-      if (payload.scenario) {
-        store.changeOutputName(payload.scenario)
-      }
+      store.changeOutputName(payload.scenario || 'output')
     },
 
     setInfoPreview(payload: InfoPreview | null) {
