@@ -46,7 +46,7 @@ const paramModel: Record<string, VariantFormData> = {
   },
   step_size: {
     key: 'step_size', label: $gettext('Population mesh size (0.001 ~100m)'), value: null,
-    type: 'number', variant: '', category: 'general', advanced: true,
+    type: 'number', variant: '', category: 'general', min: 0.005, advanced: true,
     units: 'degree', hint: 'Population is created from zones as a mesh of point with this distance',
     rules: ['required', 'nonNegative'], showVariant: false,
   },

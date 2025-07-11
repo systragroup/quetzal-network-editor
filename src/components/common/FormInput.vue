@@ -52,6 +52,8 @@ function typeMap(type: FormType) {
     :suffix="item.units"
     :prefix="item.variant"
     :items="item.items"
+    :min="item.min"
+    :max="item.max"
     :rules="getRules(item.rules)"
     :label="$gettext(item.label)"
     :multiple="item.multiple"

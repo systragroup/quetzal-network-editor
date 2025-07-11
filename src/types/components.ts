@@ -28,6 +28,8 @@ export interface FormData {
   rules?: (string | Function)[]
   multiple?: boolean
   items?: any[] | undefined
+  min?: number
+  max?: number
   error?: boolean
 }
 

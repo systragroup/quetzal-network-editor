@@ -104,6 +104,7 @@ const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advance
           <FormInput
             v-show="!item.advanced || showAdvanced"
             :item="item"
+            v-bind="$attrs"
             :show-hint="showHint"
           >
             <template
