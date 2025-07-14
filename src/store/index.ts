@@ -191,7 +191,6 @@ export const useIndexStore = defineStore('index', {
     loadMicroserviceParameters(payload: MicroserviceParametersDTO<any>) {
       const name = payload.name
       // add file in store to save later. remove if exist.
-      console.log(name)
       this.addMicroservicesParameters(payload)
       switch (name) {
         case 'transit':
@@ -203,7 +202,6 @@ export const useIndexStore = defineStore('index', {
           runGTFSStore.loadParams(payload)
           break
         case 'mapmatching':
-          console.log('salut')
           const runMapMatching = useMapMatchingStore()
           runMapMatching.loadParams(payload)
           break

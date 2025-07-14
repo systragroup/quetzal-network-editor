@@ -1,3 +1,13 @@
+## [7.1.h] (2025-07-14)
+### Features
+* add selectedModel to LocalStorage. select last selected model when mounted
+
+### changes
+* small refactorisation of ScenarioExplorer.vue and UserStore.ts
+
+### Bug Fixes
+* scenario list was not updated properly in store (using fetch list to navigate and not the actually selected model.) this could changed the list of scneario in the parameters choices.
+
 ## [7.1.g] (2025-07-11)
 ### Features
 * Save microservices parameters (except OSM)

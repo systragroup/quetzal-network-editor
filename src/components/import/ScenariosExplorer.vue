@@ -1,11 +1,11 @@
 <script setup lang="ts">
-
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useRunStore } from '@src/store/run'
+import { useClient } from '@src/axiosClient.js'
 
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, nextTick } from 'vue'
 
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
@@ -21,50 +21,72 @@ const loggedIn = computed(() => userStore.loggedIn)
 
 const projectIsEmpty = computed(() => store.projectIsEmpty)
 
-// logic to show the v-menu
-const model = computed(() => { return userStore.model }) // globaly selected Model
-const localModel = ref<string | null>(model.value)
+// model and scenario
+const storeModel = computed(() => { return userStore.model }) // globaly selected Model
+const storeScenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
+const localModel = ref<string | null>(storeModel.value) // locally selected model
+const localScen = ref<string | null>(storeScenario.value) // locally selected scen
+const modelScen = computed(() => { return `${storeModel.value}${storeScenario.value}` })
+
+const modelsList = computed(() => { return userStore.modelsList }) // list of model cognito API.
+const scenariosList = ref<Scenario[]>(userStore.scenariosList)
+
+async function getScenarios() {
+  if (!localModel.value) return
+  loading.value = true
+  scenariosList.value = await s3.getScenario(localModel.value)
+  // change email when promise resolve. fetching email il slow. so we lazy load them
+  scenariosList.value.forEach((scen) => {
+    scen.userEmailPromise.then((val) => { scen.userEmail = val }).catch(
+      err => console.log(err))
+  })
+  loading.value = false
+  // refresh store scenario list if we are on the selected model
+  if (localModel.value === storeModel.value) { userStore.setScenariosList(scenariosList.value) }
+}
 
 watch(localModel, async () => {
   // when we click on a tab (model), fetch the scenario list.
-  userStore.setScenariosList([])
-  await getScenario()
+  scenariosList.value = []
+  await getScenarios()
 })
 
-async function getScenario() {
-  if (!localModel.value) return
-  loading.value = true
-  await userStore.getScenario(localModel.value)
-  loading.value = false
-}
-
-const modelsList = computed(() => { return userStore.bucketList }) // list of model cognito API.
-const scenario = computed(() => { return userStore.scenario }) // globaly selected Scenario
-const modelScen = computed(() => { return `${userStore.model}${userStore.scenario}` })
 onMounted(async () => {
   // a scenario is selected: scroll to it.
   if (modelScen.value !== 'nullnull') {
     showScenario.value = true
-    const elem = document.getElementById(modelScen.value)
-    if (elem) { elem.scrollIntoView() }
-    // also. go fetch the scenario List if DB changed.
-    await getScenario()
+    nextTick(() => {
+      const elem = document.getElementById(modelScen.value)
+      if (elem) { elem.scrollIntoView() }
+    })
+    // update scenario list
+    await getScenarios()
   }
 })
-const localScen = ref(scenario.value) // locally selected scen. need to cancel selection for example.
-const locked = ref(false)
-watch(modelsList, async (val) => {
-  // kind of a onMounted
-  // This component is rendered before we fetch the bucket list on cognito API.
-  // so, when it fetch, set the model to the first one and get the scenario. if only one
-  if (val.length === 1) {
-    localModel.value = modelsList.value[0]
-    showScenario.value = true
-  }
-  // when logout. this will happen. we want to reset localModel for its watcher to work on login.
-  if (val.length === 0) {
+
+watch(loggedIn, async (val) => {
+  if (val) {
+    try {
+      const { quetzalClient } = useClient()
+      const resp = await quetzalClient.get('buckets/')
+      userStore.setModelsList(resp.data)
+    } catch (err: any) {
+      const store = useIndexStore()
+      store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
+    }
+  } else { // logout
     localModel.value = null
+    localScen.value = null
     showScenario.value = false
+    userStore.setModelsList([])
+  }
+  // set model
+  // if only one select it
+  const lastOpenModel = String(localStorage.getItem('model'))
+  if (modelsList.value.includes(lastOpenModel)) {
+    selectModel(lastOpenModel)
+  } else if (modelsList.value.length === 1) {
+    selectModel(modelsList.value[0])
   }
 })
 
@@ -72,37 +94,36 @@ function formatTab(tab: string) {
   return tab.startsWith('quetzal-') ? tab.slice(8) : tab
 }
 
-watch(scenario, (val) => {
-  if (val !== localScen.value) {
-    localScen.value = ''
-  }
-})
+const locked = ref(false)
 
 function selectScenario (e: Event | null, val: ScenarioPayload) {
   if (e?.type === 'keydown') { return }
   localScen.value = val.scenario
   locked.value = val.protected
   if (val.scenario) {
-    if (projectIsEmpty.value && !scenario.value) {
+    if (projectIsEmpty.value && !storeScenario.value) {
       loadProject()
     } else {
       showSelectDialog()
     }
   }
 }
+
 async function loadProject () {
   runStore.reset()
   userStore.setModel(localModel.value)
   userStore.setScenario({ scenario: localScen.value, protected: locked.value })
+  userStore.setScenariosList(scenariosList.value)
+  localStorage.setItem('model', String(storeModel.value))
   emits('load', 'emit')
 }
 
 const searchString = ref('')
 const sortModel = ref<string>('scenario')
 const sortDirection = ref(true)
-const scenariosList = computed(() => {
+const sortedScenariosList = computed(() => {
   // sort by alphabetical order, with protectedScens one one top
-  let arr = userStore.scenariosList
+  let arr = scenariosList.value
   if (searchString.value) {
     arr = arr.filter(el => el.scenario.toLowerCase().includes(searchString.value.toLowerCase()))
   }
@@ -146,7 +167,7 @@ async function createProject (selected: string | null) {
         // this is a new project
         // copy the parameters file from Base. this will create a new project .
         // take first Scen. should be base or any locked scen
-        const protectedList = userStore.scenariosList.filter(scen => scen.protected)
+        const protectedList = scenariosList.value.filter(scen => scen.protected)
         const base = protectedList[0].scenario
         await s3.copyFolder(localModel.value, base, input.value, true)
         store.changeNotification(
@@ -159,7 +180,7 @@ async function createProject (selected: string | null) {
       input.value = ''
       selectedScenario.value = null
       store.changeLoading(false)
-      await getScenario()
+      await getScenarios()
     }
   }
 }
@@ -186,8 +207,7 @@ function applySelectDialog () {
 
 function cancelSelectDialog () {
   // reset vmodel back to loaded scenario
-  // modelScen.value = `${model.value}${scenario.value}`
-  localScen.value = scenario.value
+  localScen.value = storeScenario.value
 }
 
 // Delete dialog
@@ -201,7 +221,7 @@ async function deleteScenario (name: string) {
   try {
     store.changeLoading(true)
     await s3.deleteFolder(localModel.value, scenarioToDelete.value + '/')
-    await getScenario()
+    await getScenarios()
     store.changeNotification({ text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
   } catch (err) {
     store.changeAlert(err)
@@ -233,17 +253,17 @@ function selectModel(v: string) {
     class="model-container"
   >
     <v-list-item
-      v-for="el in modelsList"
-      :id="el"
-      :key="el"
-      :value="el"
+      v-for="model in modelsList"
+      :id="model"
+      :key="model"
+      :value="model"
       class="list-item"
-      :class="{'is-active': model === el}"
+      :class="{'is-active': storeModel === model}"
       lines="two"
-      @click="(e)=>selectModel(el)"
+      @click="(e)=>selectModel(model)"
     >
       <v-list-item-title class="model-list-item name-wrap">
-        {{ formatTab(el) }}
+        {{ formatTab(model) }}
       </v-list-item-title>
       <template v-slot:append>
         <v-icon icon="fas fa-arrow-right" />
@@ -303,7 +323,6 @@ function selectModel(v: string) {
           size="small"
         >
           <span class="hidden-sm-and-down lowercase-text">{{ $gettext('name') }}</span>
-
           <v-icon end>
             fas fa-font
           </v-icon>
@@ -313,7 +332,6 @@ function selectModel(v: string) {
           size="small"
         >
           <span class="hidden-sm-and-down lowercase-text">date</span>
-
           <v-icon end>
             fas fa-calendar-week
           </v-icon>
@@ -323,7 +341,6 @@ function selectModel(v: string) {
           size="small"
         >
           <span class="hidden-sm-and-down lowercase-text">email</span>
-
           <v-icon end>
             fas fa-at
           </v-icon>
@@ -341,7 +358,7 @@ function selectModel(v: string) {
       class="v-card-content"
     >
       <v-list-item
-        v-for="scen in scenariosList"
+        v-for="scen in sortedScenariosList"
         :id="scen.model + scen.scenario"
         :key="scen.model + scen.scenario"
         :value="scen.model + scen.scenario"
@@ -409,7 +426,7 @@ function selectModel(v: string) {
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
   >
-    {{ $gettext('Any unsaved changes to %{sc} will be lost', {sc: String(scenario)}) }}
+    {{ $gettext('Any unsaved changes to %{sc} will be lost', {sc: String(storeScenario)}) }}
   </PromiseDialog>
 
   <PromiseDialog

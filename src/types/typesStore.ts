@@ -354,7 +354,7 @@ export interface InfoPreview {
 export interface UserStore {
   cognitoInfo: CognitoInfo
   cognitoGroup: string
-  bucketListStore: string[]
+  modelsList: string[]
   idToken: string
   refreshExpTime: number
   idExpTime: number
