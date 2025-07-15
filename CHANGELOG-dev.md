@@ -1,3 +1,7 @@
+## [7.1.i] (2025-07-15)
+### Bug Fixes
+* S3 upload was not working for large object (large gtfs, multipart upload checksum missing). fix it
+
 ## [7.1.h] (2025-07-14)
 ### Features
 * add selectedModel to LocalStorage. select last selected model when mounted

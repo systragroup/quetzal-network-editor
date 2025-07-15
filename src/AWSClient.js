@@ -24,6 +24,7 @@ let s3Client = new S3({
   signatureVersion: 'v4',
   region: REGION,
   credentials: creds,
+  requestChecksumCalculation: 'WHEN_REQUIRED',
 
 })
 
@@ -313,6 +314,7 @@ export default {
       signatureVersion: 'v4',
       region: REGION,
       credentials: creds,
+      requestChecksumCalculation: 'WHEN_REQUIRED',
     })
     s3Client.middlewareStack.add(
       (next, _) => async (args) => {
