@@ -20,6 +20,7 @@ export interface FormData {
   label: string
   value: any
   type: FormType
+  advanced?: boolean
   units?: string
   precision?: number
   disabled?: boolean
@@ -36,7 +37,6 @@ export interface FormData {
 export interface VariantFormData extends FormData {
   variant: string
   category: string
-  advanced: boolean
   showVariant?: boolean
 
 }

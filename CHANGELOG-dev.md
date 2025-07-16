@@ -1,3 +1,8 @@
+## [7.1.j] (2025-07-16)
+### Changes
+* add advanced parameters to mapmatching microservice.
+* Translation
+
 ## [7.1.i] (2025-07-15)
 ### Bug Fixes
 * S3 upload was not working for large object (large gtfs, multipart upload checksum missing). fix it
