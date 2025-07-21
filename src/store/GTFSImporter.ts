@@ -29,7 +29,7 @@ function baseParameters(): GTFSParams {
 
 export const useGTFSStore = defineStore('runGTFS', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api-dev')
+  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api')
   const bucket = ref('quetzal-api-bucket')
 
   const callID = ref(uuid())
