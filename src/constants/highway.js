@@ -1,5 +1,5 @@
 // this files contains all available highways and associated constant.
-const highwayList = [
+export const highwayList = [
   'motorway',
   'motorway_link',
   'trunk',
@@ -18,7 +18,7 @@ const highwayList = [
   'pedestrian',
 ]
 
-const highwayColor = {
+export const highwayColor = {
   motorway: 'E892A2',
   motorway_link: 'E892A2',
   trunk: 'E892A2',
@@ -37,7 +37,7 @@ const highwayColor = {
   pedestrian: '1D8621',
 }
 
-const highwayWidth = {
+export const highwayWidth = {
   motorway: 4,
   motorway_link: 4,
   trunk: 4,
@@ -55,5 +55,3 @@ const highwayWidth = {
   cycleway: 2,
   pedestrian: 2,
 }
-
-export { highwayList, highwayColor, highwayWidth }

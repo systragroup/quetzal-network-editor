@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-import { ref } from 'vue'
-import { FormData, SimpleFormType } from '@src/types/components'
-
-const editorForm = defineModel<FormData[]>()
+import { computed, ref } from 'vue'
+import { FormData, FormType } from '@src/types/components'
+import { getRules } from '@src/utils/form'
+const editorForm = defineModel<FormData[]>({ default: [] })
 const emits = defineEmits(['change'])
 
 const shake = ref(false)
@@ -21,18 +21,6 @@ async function validate() {
   return resp.valid
 }
 
-function getRules(arr: (string | Function)[] | undefined) {
-  if (arr === undefined) { return [] }
-  else { return arr.map((r) => typeof (r) === 'string' ? rules[r] : r) }
-}
-
-const rules: Record<string, any> = {
-  required: (v: any) => (v != null && v !== '') || $gettext('Required'),
-  largerThanZero: (v: number) => v > 0 || $gettext('Should be larger than 0'),
-  nonNegative: (v: number) => v >= 0 || $gettext('Should be larger or equal to 0'),
-  longerThanZero: (v: string) => v.length > 0 || $gettext('Should not be empty'),
-}
-
 function change(item: FormData) {
   emits('change', item)
 }
@@ -41,7 +29,7 @@ defineExpose({
   validate,
 })
 
-function typeMap(type: SimpleFormType) {
+function typeMap(type: FormType) {
   switch (type) {
     case 'number':
       return 'v-number-input'
@@ -54,6 +42,13 @@ function typeMap(type: SimpleFormType) {
   }
 }
 
+// logic to hide and show advanced parameters
+const showAdvanced = ref(false)
+const sortedForm = computed(() => [...editorForm.value].sort((a, b) => {
+  return (a.advanced === b.advanced) ? 0 : a.advanced ? 1 : -1
+}))
+const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advanced))
+
 </script>
 <template>
   <div
@@ -62,19 +57,27 @@ function typeMap(type: SimpleFormType) {
   >
     <v-form ref="formRef">
       <div
-        v-for="(item, key) in editorForm"
+        v-for="(item, key) in sortedForm"
         :key="key"
         class="form"
       >
+        <v-btn
+          v-if="key === advancedIndex"
+          variant="text"
+          class="lower-button"
+          @click="showAdvanced = !showAdvanced"
+        >
+          {{ showAdvanced? $gettext('▾ Hide Advanced') : $gettext('▸ Show Advanced') }}
+        </v-btn>
         <slot
           :name="item.key"
           :item="item"
           :show-hint="showHint"
-          :get-rules="getRules"
           @update:model-value="change(item)"
         >
           <component
             :is="typeMap(item.type)"
+            v-show="!item.advanced || showAdvanced"
             v-model="item.value"
             control-variant="stacked"
             :hint="showHint? item.hint: ''"
@@ -109,6 +112,9 @@ function typeMap(type: SimpleFormType) {
   </div>
 </template>
 <style lang="scss" scoped>
+.lower-button{
+  text-transform:none;
+}
 .box{
   max-height:100%;
   padding:0.5rem;

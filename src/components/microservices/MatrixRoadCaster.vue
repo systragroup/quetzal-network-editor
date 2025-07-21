@@ -11,10 +11,10 @@ import { FormData } from '@src/types/components'
 import Warning from '../utils/Warning.vue'
 import SimpleForm from '../common/SimpleForm.vue'
 import Markdown from '../utils/Markdown.vue'
+import { getRules } from '@src/utils/form'
 const { $gettext } = useGettext()
 
 const runMRC = useMRCStore()
-const stateMachineArn = computed(() => runMRC.stateMachineArn)
 const running = computed(() => runMRC.running)
 const error = computed(() => runMRC.error)
 const errorMessage = computed(() => runMRC.errorMessage)
@@ -194,7 +194,8 @@ async function start () {
   runMRC.saveParams(parameters.value)
   getApproxTimer()
   await exportFiles()
-  runMRC.startExecution(stateMachineArn.value, storeParameters.value)
+  const input = { callID: callID.value, ...storeParameters.value }
+  runMRC.start(input)
 }
 
 function stopRun () { runMRC.stopExecution() }
@@ -253,7 +254,7 @@ const mdString = $gettext(`
           />
         </div>
       </template>
-      <template #hereApiKey="{item, showHint,getRules}">
+      <template #hereApiKey="{item, showHint}">
         <v-text-field
           v-model="item.value"
           :type="showPassword ? 'text' : 'password'"

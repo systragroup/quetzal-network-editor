@@ -17,7 +17,6 @@ const { $gettext } = useGettext()
 const runMapMatching = useMapMatchingStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
-const stateMachineArn = computed(() => runMapMatching.stateMachineArn)
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const running = computed(() => runMapMatching.running)
@@ -35,7 +34,7 @@ const routeTypeList = computed(() =>
 const parameters = ref<FormData[]>([
   {
     key: 'exclusions',
-    label: 'route_type exclusion',
+    label: $gettext('route_type exclusion'),
     value: null,
     items: routeTypeList.value,
     type: 'select',
@@ -46,6 +45,7 @@ const parameters = ref<FormData[]>([
     key: 'SIGMA',
     label: 'Sigma',
     value: null,
+    advanced: true,
     type: 'number',
     units: 'meters',
     rules: ['required'],
@@ -56,6 +56,7 @@ const parameters = ref<FormData[]>([
     key: 'BETA',
     label: 'beta',
     value: null,
+    advanced: true,
     type: 'number',
     units: 'meters',
     rules: ['required'],
@@ -66,14 +67,16 @@ const parameters = ref<FormData[]>([
     key: 'POWER',
     label: 'power',
     value: null,
+    advanced: true,
     type: 'number',
     rules: ['required'],
     hint: 'Power used in the Emission Probability',
   },
   {
     key: 'DIFF',
-    label: 'Use difference',
+    label: $gettext('Use difference'),
     value: null,
+    advanced: true,
     type: 'boolean',
     units: 'bool',
     rules: ['required'],
@@ -82,7 +85,7 @@ const parameters = ref<FormData[]>([
   },
   {
     key: 'ptMetrics',
-    label: 'Add indicators on road links',
+    label: $gettext('Add indicators on road links'),
     value: null,
     type: 'boolean',
     units: 'bool',
@@ -90,7 +93,7 @@ const parameters = ref<FormData[]>([
   },
   {
     key: 'keepTime',
-    label: 'keep time',
+    label: $gettext('Keep PT time and calculate new PT speed'),
     value: true,
     type: 'boolean',
     units: 'bool',
@@ -113,6 +116,7 @@ async function start () {
   const resp = await formRef.value.validate()
   if (!resp) { return }
   const userStore = useUserStore()
+  runMapMatching.saveParams(parameters.value)
   runMapMatching.running = true
   runMapMatching.setCallID()
   getApproxTimer()
@@ -128,7 +132,7 @@ async function start () {
       user_email: userStore.cognitoInfo?.email,
     },
   }
-  runMapMatching.startExecution(stateMachineArn.value, inputs)
+  runMapMatching.start(inputs)
 }
 
 function getApproxTimer () {

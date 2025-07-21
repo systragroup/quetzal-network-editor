@@ -24,6 +24,7 @@ let s3Client = new S3({
   signatureVersion: 'v4',
   region: REGION,
   credentials: creds,
+  requestChecksumCalculation: 'WHEN_REQUIRED',
 
 })
 
@@ -208,7 +209,7 @@ async function putObject (bucket, key, body) {
   } else { return 'no changes' }
 }
 
-function uploadObject (bucket, key, body = '') {
+function uploadObject (bucket, key, body) {
   const userStore = useUserStore()
   const checksum = hash(body)
   const params = {
@@ -221,16 +222,16 @@ function uploadObject (bucket, key, body = '') {
   return resp
 }
 
-async function readInfo (bucket, key) {
+async function readInfo (bucket, scen) {
   try {
-    const params = { Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' }
+    const params = { Bucket: bucket, Key: `${scen}/info.json`, ResponseCacheControl: 'no-cache' }
     // const params = { Bucket: bucket, Key: key }
     const response = await s3Client.getObject(params) // await the promise
     const str = await response.Body.transformToString('utf-8')
     const fileContent = JSON.parse(str.trim())
     return fileContent
   } catch (err) {
-    return { description: '' }
+    return { description: '', model_tag: '' }
   }
 }
 
@@ -273,7 +274,7 @@ async function getScenario (bucket) {
       console.log(err)
       return 'idns-canada@systra.com'
     })
-    const infoPromise = readInfo(bucket, `${scen}/info.json`).then(resp => resp).catch(() => {})
+    const infoPromise = readInfo(bucket, scen).then(resp => resp).catch(() => {})
 
     scenList.push({
       model: bucket,
@@ -313,6 +314,7 @@ export default {
       signatureVersion: 'v4',
       region: REGION,
       credentials: creds,
+      requestChecksumCalculation: 'WHEN_REQUIRED',
     })
     s3Client.middlewareStack.add(
       (next, _) => async (args) => {
@@ -336,4 +338,5 @@ export default {
   downloadFolder,
   uploadObject,
   getChecksum,
+  readInfo,
 }

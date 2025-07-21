@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox3'
 import NodesLayer from './NodesLayer.vue'
 import buffer from '@turf/buffer'
@@ -15,13 +15,15 @@ import short from 'short-uuid'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
-const emits = defineEmits(['change'])
+const emits = defineEmits<{
+  change: [polygon: PolygonFeatures]
+}>()
 
 const store = useIndexStore()
 const mapStore = useMapStore()
 const map = ref()
 const mapIsLoaded = ref(false)
-const poly = ref(null)
+const poly = ref<PolygonFeatures>(basePolygonFeature())
 const nodes = ref({})
 const header = geojson
 const freeForm = ref(false)
@@ -49,7 +51,7 @@ watch(mapStyle, () => {
   } catch (err) {}
 })
 
-function onMapLoaded (event) {
+function onMapLoaded (event: any) {
   event.map.dragRotate.disable()
   map.value = event.map
   map.value.on('dragend', getBounds)
@@ -70,8 +72,7 @@ function getBounds () {
   const bbox = bboxPolygon([mapbbox._sw.lng, mapbbox._sw.lat, mapbbox._ne.lng, mapbbox._ne.lat])
   poly.value = buffer(bbox, -0.1 * (mapbbox._ne.lat - mapbbox._sw.lat), { units: 'degrees' })
   poly.value.geometry.coordinates[0] = poly.value.geometry.coordinates[0].reverse()
-  const geom = [mapbbox._sw.lat, mapbbox._sw.lng, mapbbox._ne.lat, mapbbox._ne.lng]
-  emits('change', { style: 'bbox', geometry: geom })
+  emits('change', poly.value)
 }
 
 function toggleFreeForm () {
@@ -104,17 +105,22 @@ function offHover () {
 }
 
 function getNodes () {
-  const tempNodes = cloneDeep(geojson)
+  const tempNodes = basePoint()
   const polygon = poly.value.geometry.coordinates[0]
   // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
   polygon.slice(0, polygon.length - 1).forEach(
     (pt, idx) => tempNodes.features.push(Point(pt, { index: short.generate(), coordinatesIndex: idx })),
   )
   nodes.value = tempNodes
-  emits('change', { style: 'poly', geometry: poly.value.geometry.coordinates[0] })
+  emits('change', poly.value)
 }
 
-function moveNode (event) {
+interface NodeEvent {
+  selectedFeature: GeoJsonFeatures
+  lngLat: number[]
+}
+
+function moveNode (event: NodeEvent) {
   const idx = event.selectedFeature.properties.coordinatesIndex
   const polygon = poly.value.geometry.coordinates[0]
   polygon[idx] = event.lngLat
@@ -125,7 +131,7 @@ function moveNode (event) {
   getNodes()
 }
 
-function removeNode (event) {
+function removeNode (event: NodeEvent) {
   const idx = event.selectedFeature.properties.coordinatesIndex
   const polygon = poly.value.geometry.coordinates[0]
   if (polygon.length <= 4) {
@@ -140,7 +146,14 @@ function removeNode (event) {
   }
 }
 
-function addNode (event) {
+import { MapMouseEvent } from 'mapbox-gl'
+interface MapboxClickEvent {
+  selectedFeature: any
+  mapboxEvent: MapMouseEvent
+  lngLat: any
+}
+
+function addNode (event: MapboxClickEvent) {
   if (freeForm.value && Object.keys(event).includes('mapboxEvent')) {
     const polygon = poly.value.geometry.coordinates[0]
     const lngLat = event.mapboxEvent.lngLat
@@ -148,7 +161,7 @@ function addNode (event) {
     const clickedPoint = Point(Object.values(lngLat))
     const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
     // for multiString, gives the index of the closest one, add +1 for the slice.
-    const sliceIndex = snapped.properties.index + 1
+    const sliceIndex = snapped.properties.index ? snapped.properties.index + 1 : 1
     polygon.splice(sliceIndex, 0, Object.values(lngLat))
     getNodes()
   }
@@ -158,9 +171,11 @@ function addNode (event) {
 import { readFileAsText } from '@src/utils/io'
 import { serializer } from '@src/utils/serializer'
 import saveAs from 'file-saver'
+import { basePoint, basePolygon, basePolygonFeature,
+  GeoJson, GeoJsonFeatures, PolygonFeatures, PolygonGeoJson } from '@src/types/geojson'
 
 function downloadPoly() {
-  const val = cloneDeep(geojson)
+  const val = basePolygon()
   val.features = [cloneDeep(poly.value)]
   val.features[0].properties = { index: '1' }
   const blob = new Blob([JSON.stringify(val)], { type: 'application/json' })
@@ -172,13 +187,15 @@ function uploadPoly() {
   fileInput.value.click()
   fileInput.value.value = '' // clean it for next file
 }
-async function readGeojson(event) {
+async function readGeojson(event: Event) {
   try {
-    const files = event.target.files
-    let data = await readFileAsText(files[0])
-    data = JSON.parse(data)
-    data = serializer(data, files[0].name, 'Polygon')
-    poly.value = data.features[0]
+    const input = event.target as HTMLInputElement
+    if (!input.files?.length) return
+    const file = input.files[0]
+    const data = await readFileAsText(file)
+    const parsed = JSON.parse(data as string) as GeoJson
+    const serialized = serializer(parsed, file.name, 'Polygon') as PolygonGeoJson
+    poly.value = serialized.features[0]
     toggleFreeForm()
   } catch (err) {
     store.changeAlert(err)

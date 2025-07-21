@@ -89,31 +89,22 @@ const subtab = ref('Zip importer')
         Web importer
       </v-tab>
     </v-tabs>
-    <v-window class="layout">
+    <div class="layout">
       <OSMImporter v-if="tab==='OSM importer' " />
       <GTFSZipImporter v-else-if="tab==='GTFS importer' && subtab==='Zip importer'" />
       <GTFSWebImporter v-else-if="tab==='GTFS importer' && subtab==='Web importer'" />
       <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
       <MapMatching v-else-if="tab==='MapMatching'" />
       <Transit v-else-if="tab==='Transit'" />
-    </v-window>
+    </div>
   </section>
 </template>
 <style lang="scss" scoped>
 .layout {
-  position: absolute;
   width:100%;
-  height: 95%;
+  height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: rgb(var(--v-theme-background));
-}
-.layout-overlay {
-  height: 100%;
-  width: 100%;
-  background-color: rgb(var(--v-theme-background));
-  position: absolute;
 }
 .tabs{
   background-color: rgb(var(--v-theme-background));

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getRules } from '@src/utils/form'
 import { ref } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -15,13 +16,6 @@ const rulesArr: Record<string, any> = {
   required: (v: string) => !!v || $gettext('Required'),
   password: (v: string) => re.test(v) || $gettext('need at least: 1 lowercase, 1 uppercase, 1 number, and 1 symbol'),
   match: (v: string) => v === props.match || $gettext('password must match'),
-
-}
-function getRules(arr: string[] | undefined) {
-  console.log
-  if (arr === undefined) { return [] }
-  else {
-    return arr.map(r => rulesArr[r]) }
 }
 
 const showPassword = ref(false)
@@ -33,7 +27,7 @@ const showPassword = ref(false)
     :append-inner-icon="showPassword ? 'fas fa-eye' : 'fas fa-eye-slash'"
     v-bind="$attrs"
     required
-    :rules="getRules(props.rules)"
+    :rules="getRules(props.rules.map(el=>rulesArr[el]))"
     @click:append-inner="showPassword = !showPassword"
   />
 </template>

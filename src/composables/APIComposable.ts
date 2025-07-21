@@ -2,7 +2,7 @@ import { useIndexStore } from '@src/store/index'
 import { ref } from 'vue'
 import { useClient } from '@src/axiosClient.js'
 import { ErrorMessage, RunInputs, RunPayload, Status } from '@src/types/api'
-import { MatrixRoadCasterParams } from '@src/types/typesStore'
+import { MatrixRoadCasterParams, OSMImporterParams } from '@src/types/typesStore'
 const { quetzalClient } = useClient()
 
 export function useAPI (params = { withHistory: false }) {
@@ -43,7 +43,10 @@ export function useAPI (params = { withHistory: false }) {
     executionArn.value = ''
   }
 
-  async function startExecution (stateMachineArn: string, input: RunInputs | MatrixRoadCasterParams) {
+  // todo: runinputs or some Dict with callId.
+  type InputWithCallID = (MatrixRoadCasterParams | OSMImporterParams) & { callID: string }
+  type Input = RunInputs | InputWithCallID
+  async function startExecution (stateMachineArn: string, input: Input) {
     running.value = true
     error.value = false
     const data: RunPayload = {
@@ -133,6 +136,11 @@ export function useAPI (params = { withHistory: false }) {
     } catch { return false }
   }
 
+  async function getFunctionTag(functionName: string) {
+    const resp = await quetzalClient.get(`model/version/${functionName}/`)
+    return resp.data
+  }
+
   return {
     running,
     error,
@@ -146,5 +154,7 @@ export function useAPI (params = { withHistory: false }) {
     pollExecution,
     getHistory,
     getRunningExecution,
+    getFunctionTag,
+
   }
 }

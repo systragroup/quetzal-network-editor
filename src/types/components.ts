@@ -1,5 +1,3 @@
-export type FormType = 'number' | 'string'
-
 export interface FormFormat {
   value: any
   disabled: boolean
@@ -13,13 +11,16 @@ export interface FormOption {
   continue: boolean
 }
 
-export type SimpleFormType = 'number' | 'string' | 'boolean' | 'select'
+export type FormType = 'number' | 'string' | 'boolean' | 'select' | 'time'
+
+export type FormObject = Record<string, Omit<FormData, 'key'>>
 
 export interface FormData {
   key: string
   label: string
   value: any
-  type: SimpleFormType
+  type: FormType
+  advanced?: boolean
   units?: string
   precision?: number
   disabled?: boolean
@@ -27,8 +28,17 @@ export interface FormData {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   rules?: (string | Function)[]
   multiple?: boolean
-  items?: any[] | string | undefined
+  items?: any[] | undefined
+  min?: number
+  max?: number
   error?: boolean
+}
+
+export interface VariantFormData extends FormData {
+  variant: string
+  category: string
+  showVariant?: boolean
+
 }
 
 export type TimeString = string // HH:MM:SS

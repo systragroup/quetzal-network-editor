@@ -3,8 +3,7 @@ import { useIndexStore } from './index'
 
 import s3 from '@src/AWSClient'
 import auth from '../auth'
-import { useClient } from '@src/axiosClient.js'
-import { CognitoInfo, InfoPreview, Scenario, UserStore } from '@src/types/typesStore'
+import { CognitoInfo, InfoPreview, Scenario, ScenarioPayload, UserStore } from '@src/types/typesStore'
 
 const $gettext = (s: string) => s
 
@@ -18,7 +17,7 @@ export const useUserStore = defineStore('userStore', {
       given_name: '',
     },
     cognitoGroup: '',
-    bucketListStore: [],
+    modelsList: [],
     idToken: '',
     refreshExpTime: 1470 * 24 * 60 * 60,
     idExpTime: 24 * 60 * 59,
@@ -36,6 +35,8 @@ export const useUserStore = defineStore('userStore', {
     unloadProject () {
       this.model = null
       this.scenario = null
+      const store = useIndexStore()
+      store.changeOutputName('output')
     },
     setLoggedIn () {
       this.loggedIn = true
@@ -48,46 +49,28 @@ export const useUserStore = defineStore('userStore', {
     setCognitoGroup (payload: string) {
       this.cognitoGroup = payload
     },
-    setBucketList (payload: string[]) {
-      this.bucketListStore = payload
+    setModelsList (payload: string[]) {
+      this.modelsList = payload
     },
     setIdToken (payload: string) {
       this.idToken = payload
     },
     setScenariosList (payload: Scenario[]) {
       this.scenariosList = payload
-      // change email when promise resolve. fetching email il slow. so we lazy load them
-      this.scenariosList.forEach((scen) => {
-        scen.userEmailPromise.then((val) => { scen.userEmail = val }).catch(
-          err => console.log(err))
-      })
     },
-    setModel (payload: string) {
+    setModel (payload: string | null) {
       this.model = payload
     },
-    setScenario (payload: Scenario) {
+    setScenario (payload: ScenarioPayload) {
       // {just scenario and protected}
       const store = useIndexStore()
       this.scenario = payload.scenario
       this.protected = payload.protected
-      store.changeOutputName(payload.scenario)
+      store.changeOutputName(payload.scenario || 'output')
     },
+
     setInfoPreview(payload: InfoPreview | null) {
       this.infoPreview = payload
-    },
-    async getScenario (model: string) {
-      const res = await s3.getScenario(model)
-      this.setScenariosList(res)
-    },
-    async getBucketList () {
-      try {
-        const { quetzalClient } = useClient()
-        const resp = await quetzalClient.get('buckets/')
-        this.setBucketList(resp.data)
-      } catch (err: any) {
-        const store = useIndexStore()
-        store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
-      }
     },
     async isTokenExpired () {
       // Check if the token is expired.
@@ -113,9 +96,6 @@ export const useUserStore = defineStore('userStore', {
 
   },
 
-  getters: {
-    bucketList: (state) => state.bucketListStore ? state.bucketListStore : [],
-  },
 })
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useUserStore, import.meta.hot))

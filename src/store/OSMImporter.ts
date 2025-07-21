@@ -6,6 +6,7 @@ import { useAPI } from '../composables/APIComposable'
 import router from '@src/router/index'
 import { highwayColor, highwayWidth } from '@constants/highway.js'
 import s3 from '@src/AWSClient'
+import { LineStringGeoJson } from '@src/types/geojson'
 
 export const useOSMStore = defineStore('runOSM', () => {
   const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-osm-api')
@@ -15,6 +16,11 @@ export const useOSMStore = defineStore('runOSM', () => {
 
   const { error, running, errorMessage, status,
     startExecution, stopExecution, cleanRun } = useAPI()
+
+  function reset() {
+    callID.value = ''
+    cleanRun()
+  }
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {
@@ -27,7 +33,7 @@ export const useOSMStore = defineStore('runOSM', () => {
   })
 
   const extendedCycleway = ref(false)
-  const selectedHighway = ref([
+  const selectedHighway = ref<string[]>([
     'motorway',
     'motorway_link',
     'trunk',
@@ -36,7 +42,10 @@ export const useOSMStore = defineStore('runOSM', () => {
     'primary_link',
   ])
 
-  function applyDict (links, colorDict, widthDict) {
+  type WidthDict = Record<string, number>
+  type ColorDict = Record<string, string>
+
+  function applyDict (links: LineStringGeoJson, colorDict: ColorDict, widthDict: WidthDict) {
     // 00BCD4
     Object.keys(colorDict).forEach(highway => {
       links.features.filter(link => link.properties.highway === highway).forEach(
@@ -70,6 +79,6 @@ export const useOSMStore = defineStore('runOSM', () => {
     setCallID,
     startExecution,
     stopExecution,
-    cleanRun,
+    reset,
   }
 })

@@ -31,7 +31,6 @@ async function signin (event) {
     ui.value = false
     await auth.login()
     await s3.login()
-    userStore.getBucketList()
   }
 }
 

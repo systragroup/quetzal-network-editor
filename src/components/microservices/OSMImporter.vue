@@ -1,48 +1,40 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, toRaw } from 'vue'
 import { highwayList } from '@constants/highway.js'
 import MapSelector from './MapSelector.vue'
-import { useOSMStore } from '@src/store/OSMImporter'
+import { useOSMStore } from '@src/store/OSMImporter.ts'
 import { userLinksStore } from '@src/store/rlinks'
+import { basePolygonFeature, PolygonFeatures } from '@src/types/geojson'
+import Warning from '../utils/Warning.vue'
+import { OSMImporterParams } from '@src/types/typesStore'
 
 const runOSM = useOSMStore()
 const rlinksStore = userLinksStore()
 const showOverwriteDialog = ref(false)
-const poly = ref(null)
+const poly = ref<PolygonFeatures>(basePolygonFeature())
 
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const stateMachineArn = computed(() => runOSM.stateMachineArn)
+const callID = computed(() => runOSM.callID)
 const running = computed(() => runOSM.running)
 const error = computed(() => runOSM.error)
 const errorMessage = computed(() => runOSM.errorMessage)
 
-function getBBOX (val) {
+function getBBOX (val: PolygonFeatures) {
   poly.value = val
 }
 
 function importOSM () {
   if (rlinksIsEmpty.value) {
     runOSM.setCallID()
-
-    let input = ''
-    if (poly.value.style === 'bbox') {
-      input = {
-        bbox: poly.value.geometry,
-        highway: runOSM.selectedHighway,
-        callID: runOSM.callID,
-        elevation: true,
-        extended_cycleway: runOSM.selectedExtended,
-      }
-    } else {
-      input = {
-        poly: poly.value.geometry,
-        highway: runOSM.selectedHighway,
-        callID: runOSM.callID,
-        elevation: true,
-        extended_cycleway: runOSM.selectedExtended,
-      }
+    const params: OSMImporterParams = {
+      poly: toRaw(poly.value.geometry.coordinates[0]),
+      highway: toRaw(runOSM.selectedHighway),
+      elevation: true,
+      extended_cycleway: runOSM.extendedCycleway,
     }
 
+    const input = { callID: callID.value, ...params }
     runOSM.startExecution(stateMachineArn.value, input)
   } else {
     showOverwriteDialog.value = true
@@ -57,105 +49,85 @@ function applyOverwriteDialog () {
 
 </script>
 <template>
-  <section class="background">
-    <v-card
-      class="card"
-    >
-      <v-card-title>
-        {{ $gettext("Import OSM network in bounding box") }}
-      </v-card-title>
-      <v-spacer />
-      <v-card-subtitle>
-        <v-alert
-          v-if="error"
-          density="compact"
-          width="50rem"
-          variant="outlined"
-          text
-          type="error"
-        >
-          {{ $gettext("There as been an error while importing OSM network. \
-            Please try again. If the problem persist, contact us.") }}
-          <p
-            v-for="key in Object.keys(errorMessage)"
-            :key="key"
-          >
-            <b>{{ key }}: </b>{{ errorMessage[key] }}
-          </p>
-        </v-alert>
-      </v-card-subtitle>
-      <MapSelector @change="getBBOX" />
-      <v-divider />
+  <v-card class="card">
+    <v-card-title>
+      {{ $gettext("Import OSM network in bounding box") }}
+    </v-card-title>
+    <Warning
+      class="warning"
+      :show="error"
+      :messages="errorMessage"
+    />
+    <MapSelector @change="getBBOX" />
+    <v-divider />
 
+    <v-card-actions>
+      <v-select
+        v-model="runOSM.selectedHighway"
+        class="select"
+        :items="highwayList"
+        :label="$gettext('Select road types')"
+        variant="underlined"
+        multiple
+      >
+        <template v-slot:selection="{ item, index }">
+          <v-chip v-if="index < 2">
+            <span>{{ item.title }}</span>
+          </v-chip>
+          <span
+            v-if="index === 2"
+            class="text-grey text-caption align-self-center"
+          >
+            (+{{ runOSM.selectedHighway.length - 2 }} others)
+          </span>
+        </template>
+      </v-select>
+      <v-spacer />
+      <v-checkbox
+        v-model="runOSM.extendedCycleway"
+        label="Extended cycleway"
+      />
+      <v-spacer />
+      <v-btn
+        variant="outlined"
+        color="success"
+        :loading="running"
+        :disabled="running"
+        @click="importOSM"
+      >
+        {{ $gettext("Download") }}
+      </v-btn>
+    </v-card-actions>
+  </v-card>
+  <v-dialog
+    v-model="showOverwriteDialog"
+    persistent
+    max-width="500"
+    @keydown.enter="applyOverwriteDialog"
+    @keydown.esc="showOverwriteDialog=false"
+  >
+    <v-card>
+      <v-card-title class="text-h5">
+        {{ $gettext("Overwrite current road network ?") }}
+      </v-card-title>
       <v-card-actions>
         <v-spacer />
-        <v-select
-          v-model="runOSM.selectedHighway"
-          class="select"
-          :items="highwayList"
-          label="Select Item"
-          variant="underlined"
-          multiple
-        >
-          <template v-slot:selection="{ item, index }">
-            <v-chip v-if="index < 2">
-              <span>{{ item.title }}</span>
-            </v-chip>
-            <span
-              v-if="index === 2"
-              class="text-grey text-caption align-self-center"
-            >
-              (+{{ runOSM.selectedHighway.length - 2 }} others)
-            </span>
-          </template>
-        </v-select>
-        <v-spacer />
-        <v-checkbox
-          v-model="runOSM.selectedExtended"
-          label="Extended cycleway"
-        />
-        <v-spacer />
         <v-btn
-          variant="outlined"
-          color="success"
-          :loading="running"
-          :disabled="running"
-          @click="importOSM"
+          color="regular"
+          @click="showOverwriteDialog = !showOverwriteDialog"
         >
-          {{ $gettext("Download") }}
+          {{ $gettext("No") }}
+        </v-btn>
+
+        <v-btn
+          color="primary"
+          @click="applyOverwriteDialog"
+        >
+          {{ $gettext("Yes") }}
         </v-btn>
       </v-card-actions>
     </v-card>
-    <v-dialog
-      v-model="showOverwriteDialog"
-      persistent
-      max-width="500"
-      @keydown.enter="applyOverwriteDialog"
-      @keydown.esc="showOverwriteDialog=false"
-    >
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $gettext("Overwrite current road network ?") }}
-        </v-card-title>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="regular"
-            @click="showOverwriteDialog = !showOverwriteDialog"
-          >
-            {{ $gettext("No") }}
-          </v-btn>
-
-          <v-btn
-            color="primary"
-            @click="applyOverwriteDialog"
-          >
-            {{ $gettext("Yes") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </section>
+  </v-dialog>
 </template>
 <style lang="scss" scoped>
 
@@ -165,12 +137,12 @@ function applyOverwriteDialog () {
 .card {
   background-color: rgb(var(--v-theme-lightergrey));
   margin:1rem;
-  height: 100%;
+  max-height: 85vh;
+  width: fit-content;
   overflow-y: auto;
-  padding: 2.5rem;
+  padding: 2rem;
 }
 .map {
-  max-width: 100rem;
   width:50rem;
   height: 35rem;
 }
@@ -178,5 +150,8 @@ function applyOverwriteDialog () {
   position: absolute;
   top: 5px;
   right: 5px;
+}
+.warning{
+  max-width:50rem;
 }
 </style>

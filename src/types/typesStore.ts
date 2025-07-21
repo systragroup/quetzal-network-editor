@@ -1,5 +1,6 @@
 import { GroupForm, IsoTimeStringTZ, TimeString } from './components'
-import { LineStringGeoJson, LineStringFeatures, PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
+import { LineStringGeoJson, LineStringFeatures,
+  PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
 
 // indexStore
 
@@ -20,6 +21,7 @@ export interface Style {
 }
 export interface ProjectInfo {
   description: string
+  model_tag: string
 }
 
 export interface FileFormat {
@@ -64,6 +66,7 @@ export interface IndexStore {
   styles: Style[]
   projectInfo: ProjectInfo
   otherFiles: OtherFiles[]
+  microservicesParams: FileFormat[]
 }
 
 // payloads
@@ -328,14 +331,22 @@ export interface CognitoInfo {
   given_name: string
 }
 export interface Scenario {
-  lastModified: string
   model: string
-  protected: boolean
   scenario: string
+  protected: boolean
+  lastModified: string
   timestamp: number
   userEmail: string
   userEmailPromise: Promise<string>
+  info: Promise<InfoPreview>
+  [key: string]: any // to allow for additional properties
 }
+
+export interface ScenarioPayload {
+  protected: boolean
+  scenario: string | null
+}
+
 export interface InfoPreview {
   description: string
 }
@@ -343,7 +354,7 @@ export interface InfoPreview {
 export interface UserStore {
   cognitoInfo: CognitoInfo
   cognitoGroup: string
-  bucketListStore: string[]
+  modelsList: string[]
   idToken: string
   refreshExpTime: number
   idExpTime: number
@@ -409,7 +420,15 @@ export type Params = (ParamsInfo | CategoryParam | ParamsVariants)[]
 
 export type PayloadParams = Record<string, Record<string, any>>
 
+//
 // Microservices
+//
+
+export interface MicroserviceParametersDTO<T> {
+  version: number
+  name: 'transit' | 'gtfs' | 'mapmatching' | 'matrixroadcaster'
+  parameters: T
+}
 
 // MapMatching
 
@@ -430,7 +449,6 @@ export interface MapMatchingParams {
 }
 
 export interface MatrixRoadCasterParams {
-  callID: string
   api: 'google' | 'here'
   num_zones: number
   train_size: number
@@ -446,22 +464,53 @@ export interface MatrixRoadCasterParams {
 }
 
 // Transit
-export interface GeneralTransitParams {
-  step_size: number
-  use_road_network: boolean
-  [key: string]: number | boolean
-}
-
-export interface FootPaths {
-  max_length: number
-  speed: number
-  n_ntlegs: number
-  [key: string]: number
-}
-export type CatchmentRadius = Record<string, number> // {bus:500, subway:800, rail:1000}
+export type TransitParamsCategory = 'general' | 'catchment_radius' | 'footpaths'
 
 export interface TransitParams {
-  general: GeneralTransitParams
-  catchment_radius: CatchmentRadius
-  footpaths: FootPaths
+  category: TransitParamsCategory
+  key: string
+  value: string | number | boolean
+  variant: string
+  route_type?: string
+
+  [key: string]: string | number | boolean | undefined
+}
+
+// GTFS importer params
+
+export interface StringTimeserie {
+  start_time: TimeString
+  end_time: TimeString
+  value: string // periods
+}
+
+export interface GTFSParams {
+  files: string[]
+  timeseries: StringTimeserie[]
+  day: string
+  dates: string[]
+
+  [key: string]: string | string[] | StringTimeserie[]
+}
+
+export interface UploadGTFSInfo {
+  name: string
+  date: string
+  minDate: string
+  maxDate: string
+  progress: number
+}
+
+export interface UploadGTFSPayload {
+  content: File
+  info: UploadGTFSInfo
+}
+
+// OSM importer params
+
+export interface OSMImporterParams {
+  poly: number[][]
+  highway: string[]
+  elevation: boolean
+  extended_cycleway: boolean
 }

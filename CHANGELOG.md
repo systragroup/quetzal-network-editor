@@ -1,3 +1,49 @@
+## [7.1.0] (2025-07-21)
+
+### Features
+* Save microservices parameters (except OSM)
+    folder: microservices/{serviceName}
+    params.json in this folder with a version number for future migration.
+    all outputs files are also there.
+
+* Advanced parameters (hidden under "show advanced")
+    * Transit microservice
+    * Mapmatching microservice
+
+* Variants (periods) to microservices 
+    * Transit
+    * GTFS importer (zip and web)
+
+* Project Selection:
+    * Model selection (import page) is now list and not tabs over the scenarios (2 steps selection)
+    * Add last selected model to LocalStorage. Load app on this model
+
+* Model Tag:
+    * add model_tag to info.json. models will write it down. and the front will update info.json when its finish running.
+    * Show current model_tag in the Run page. 
+
+### Changes
+* Refactorisation
+    * OSM importer in typescript
+    * GTFS importer in typescript
+    * ScenarioExplorer.vue in typescript
+    * ScenarioExplorer.vue and UserStore.ts (small)
+    * Add types for polygon.
+    * getRules function centralized
+
+* Import GTFS use the gtfs color. if no color: use my default colors for route_type
+* Do csv parsing with PapaParse. remove vueUse 
+* Update quetzal transit (backend) to take period. (only run them in parallel. no Agg at the end for now...)
+* GTFS importer backend as notebook (new form, like models)
+* GTFS importer backend takes periods
+* updated libs
+
+
+### Bug Fixes
+* S3 upload was not working for large object because of a recent update (large gtfs, multipart upload checksum missing).
+* scenario list was not updated properly in store (using fetch list to navigate and not the actually selected model.) this could changed the list of scneario in the parameters choices.
+
+
 ## [7.0.2] (2025-05-26)
 ### Bug Fixes
 * Labels on result map were not working properly.
