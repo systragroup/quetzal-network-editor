@@ -11,6 +11,8 @@ import { userLinksStore } from './rlinks'
 import { MapMatchingParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 import { RunInputs } from '@src/types/api'
+const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
+const MAPMATCHING_ARN = import.meta.env.VITE_MAPMATCHING_ARN
 const VERSION = 0
 const NAME = 'mapmatching'
 
@@ -28,8 +30,8 @@ function baseParameters(): MapMatchingParams {
 
 export const useMapMatchingStore = defineStore('runMapMatching', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-mapmatching-api')
-  const bucket = ref<string>('quetzal-api-bucket')
+  const stateMachineArn = ref<string>(MAPMATCHING_ARN)
+  const bucket = ref<string>(MICROSERVICES_BUCKET)
 
   const callID = ref<string>('')
   const timer = ref<number>(0)

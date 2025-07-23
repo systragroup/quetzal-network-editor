@@ -283,7 +283,6 @@ function applyOverwriteDialog () {
   margin: 10px;
   margin-left: 0;
 }
-
 .list {
   height:70%;
   margin-top:1rem;

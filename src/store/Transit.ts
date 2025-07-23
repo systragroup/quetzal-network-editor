@@ -9,7 +9,8 @@ import { useGettext } from 'vue3-gettext'
 import { TransitParams, TransitParamsCategory, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { VariantFormData } from '@src/types/components'
 import { RunInputs } from '@src/types/api'
-
+const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
+const TRANSIT_ARN = import.meta.env.VITE_TRANSIT_ARN
 const VERSION = 0
 const NAME = 'transit'
 
@@ -56,8 +57,8 @@ function baseParameters(): TransitParams[] {
 
 export const useTransitStore = defineStore('runTransit', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref<string>('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-transit-api')
-  const bucket = ref<string>('quetzal-api-bucket')
+  const stateMachineArn = ref<string>(TRANSIT_ARN)
+  const bucket = ref<string>(MICROSERVICES_BUCKET)
 
   const callID = ref<string>('')
   const timer = ref<number>(0)

@@ -11,6 +11,8 @@ import { GTFSParams, MicroserviceParametersDTO, UploadGTFSInfo, UploadGTFSPayloa
 import { LineStringGeoJson } from '@src/types/geojson'
 import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
 import { RunInputs } from '@src/types/api'
+const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
+const GTFS_IMPORTER_ARN = import.meta.env.VITE_GTFS_IMPORTER_ARN
 const VERSION = 0
 const NAME = 'gtfs'
 
@@ -29,8 +31,8 @@ function baseParameters(): GTFSParams {
 
 export const useGTFSStore = defineStore('runGTFS', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-gtfs-api')
-  const bucket = ref('quetzal-api-bucket')
+  const stateMachineArn = ref(GTFS_IMPORTER_ARN)
+  const bucket = ref(MICROSERVICES_BUCKET)
 
   const callID = ref(uuid())
   const parameters = ref<GTFSParams>(baseParameters())

@@ -9,7 +9,8 @@ import { useGettext } from 'vue3-gettext'
 import { MatrixRoadCasterParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 import { cloneDeep } from 'lodash'
-
+const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
+const MATRIXROADCASTER_ARN = import.meta.env.VITE_MATRIXROADCASTER_ARN
 const VERSION = 0
 const NAME = 'matrixroadcaster'
 
@@ -30,8 +31,8 @@ function baseParameters(): MatrixRoadCasterParams {
 
 export const useMRCStore = defineStore('runMRC', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-matrixroadcaster-api')
-  const bucket = ref('quetzal-api-bucket')
+  const stateMachineArn = ref(MATRIXROADCASTER_ARN)
+  const bucket = ref(MICROSERVICES_BUCKET)
 
   const callID = ref('')
   const parameters = ref<MatrixRoadCasterParams>(baseParameters())
