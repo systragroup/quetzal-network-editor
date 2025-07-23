@@ -39,7 +39,10 @@ export interface GlobalAttributesChoice {
   road: AttributesChoice
 }
 
+export type SpeedTimeMethod = 'speed' | 'time'
+
 export interface SettingsPayload {
+  speedTimeMethod: SpeedTimeMethod
   defaultHighway: string
   roadSpeed: number
   linksPopupContent: string[]
@@ -57,6 +60,7 @@ export interface IndexStore {
   anchorMode: boolean
   stickyMode: boolean
   routingMode: boolean
+  speedTimeMethod: SpeedTimeMethod
   linksPopupContent: string[]
   roadsPopupContent: string[]
   cyclewayMode: boolean
@@ -202,6 +206,7 @@ export interface LinksStore {
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  speedTimeMethod: SpeedTimeMethod
 
 }
 
@@ -287,6 +292,7 @@ export interface RlinksStore {
   editionMode: boolean
   savedNetwork: SavedRoadNetwork
   networkWasModified: boolean
+  speedTimeMethod: SpeedTimeMethod
 }
 
 // OD store

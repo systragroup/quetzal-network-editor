@@ -27,7 +27,7 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
 import { baseLineString, basePoint,
   LineStringFeatures,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
-import { initLengthTimeSpeed, calcLengthTime,
+import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
   getDefaultLink } from '@src/utils/network'
 
@@ -53,6 +53,8 @@ export const useLinksStore = defineStore('links', {
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: cloneDeep(tcDefaultAttributesChoices),
+    // parameters
+    speedTimeMethod: 'time',
   }),
 
   actions: {
@@ -400,7 +402,7 @@ export const useLinksStore = defineStore('links', {
       // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
       const { newLink, newNode } = this.createNewLink(payload)
-      calcLengthTime(newLink.features[0], this.timeVariants)
+      calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
       this.calcSchedule(newLink, payload.action)
       this.editorNodes.features.push(newNode.features[0])
       if (payload.action === 'Extend Line Upward') {
@@ -443,7 +445,7 @@ export const useLinksStore = defineStore('links', {
           link1.properties[`speed${v}`] = weightedAverage(speedList, timeList)
         })
 
-        calcLengthTime(link1, this.timeVariants)
+        calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
 
         const toDeleteIndex = link2.properties.index
         // find removed link index. drop everylinks link_sequence after by 1
@@ -480,8 +482,8 @@ export const useLinksStore = defineStore('links', {
       ]
 
       // new Geom. calc length and time with speed.
-      calcLengthTime(link1, this.timeVariants)
-      calcLengthTime(link2, this.timeVariants)
+      calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
+      calcLengthTimeorSpeed(link2, this.timeVariants, this.speedTimeMethod)
 
       if (isScheduleTrip(link1)) {
         const departures = link1.properties.departures.map((el: string) => hhmmssToSeconds(el))
@@ -570,7 +572,7 @@ export const useLinksStore = defineStore('links', {
       const link = this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
-      calcLengthTime(link, this.timeVariants)
+      calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       // return the modified link (used for Routing)
       return link
     },
@@ -606,11 +608,11 @@ export const useLinksStore = defineStore('links', {
       // update links geometry.
       this.connectedLinks.b.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-        calcLengthTime(link, this.timeVariants)
+        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       })
       this.connectedLinks.a.forEach(link => {
         link.geometry.coordinates[0] = geom
-        calcLengthTime(link, this.timeVariants)
+        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       })
     },
 
@@ -622,7 +624,7 @@ export const useLinksStore = defineStore('links', {
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
       // update time and distance
-      calcLengthTime(link, this.timeVariants)
+      calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
     },
 
     moveRoutingAnchor (payload: MoveNode) {
@@ -647,13 +649,13 @@ export const useLinksStore = defineStore('links', {
         (link) => {
           link.properties.a = stickyIndex
           link.geometry.coordinates[0] = geom
-          calcLengthTime(link, this.timeVariants)
+          calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
         })
       this.editorLinks.features.filter(link => link.properties.b === newNodeIndex).forEach(
         (link) => {
           link.properties.b = stickyIndex
           link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-          calcLengthTime(link, this.timeVariants)
+          calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
         })
     },
 
@@ -684,7 +686,7 @@ export const useLinksStore = defineStore('links', {
       const modifiedSpeeds = this.timeVariants.filter(v => props.includes(`speed${v}`))
       if (modifiedSpeeds.length > 0) {
         this.editorLinks.features.forEach(link =>
-          calcLengthTime(link, modifiedSpeeds as NonEmptyArray<string>),
+          calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
       // New line
@@ -734,7 +736,7 @@ export const useLinksStore = defineStore('links', {
       const modifiedSpeeds = this.timeVariants.filter(v => props.includes(`speed${v}`))
       if (modifiedSpeeds.length > 0) {
         tempLinks.forEach(link =>
-          calcLengthTime(link, modifiedSpeeds as NonEmptyArray<string>),
+          calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
       // get tripId list
@@ -791,7 +793,7 @@ export const useLinksStore = defineStore('links', {
           this.editorNodes.features.filter(node => node.properties.index === link.properties.a)[0].geometry.coordinates,
           ...link.geometry.coordinates.slice(1),
         ]
-        calcLengthTime(link, this.timeVariants)
+        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       }
       // same for nodes b
       const linksB = this.links.features.filter(
@@ -802,7 +804,7 @@ export const useLinksStore = defineStore('links', {
           ...link.geometry.coordinates.slice(0, -1),
           this.editorNodes.features.filter(node => node.properties.index === link.properties.b)[0].geometry.coordinates,
         ]
-        calcLengthTime(link, this.timeVariants)
+        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       }
       // get tripId list
       this.getTripList()

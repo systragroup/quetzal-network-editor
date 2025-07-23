@@ -20,11 +20,9 @@ import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, Point
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
-import { addDefaultValuesToVariants, calcLengthTime, getBaseAttributesWithVariants,
+import { addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getVariantsChoices } from '@src/utils/network'
 const $gettext = (s: string) => s
-
-// eslint-disable-next-line max-len
 
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
@@ -51,6 +49,8 @@ export const userLinksStore = defineStore('rlinks', {
     editionMode: false,
     savedNetwork: { rlinks: '', rnodes: '' },
     networkWasModified: false, // update in Roadlinks.vue when map is updated (updateLinks and others are watch)
+    // params
+    speedTimeMethod: 'time',
   }),
 
   actions: {
@@ -414,7 +414,7 @@ export const userLinksStore = defineStore('rlinks', {
       const modifiedSpeeds = this.timeVariants.filter(v => props.includes(`speed${v}`))
       if (modifiedSpeeds.length > 0) {
         selectedLinks.forEach(link =>
-          calcLengthTime(link, modifiedSpeeds as NonEmptyArray<string>),
+          calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
 
@@ -473,11 +473,12 @@ export const userLinksStore = defineStore('rlinks', {
         ...link2.geometry.coordinates.slice(sliceIndex),
       ]
 
-      calcLengthTime(link1, this.timeVariants)
-      calcLengthTime(link2, this.timeVariants)
+      calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
+      calcLengthTimeorSpeed(link2, this.timeVariants, this.speedTimeMethod)
       if (link1.properties.time_r) {
-        calcLengthTime(link1, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
-        calcLengthTime(link2, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
+        const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
+        calcLengthTimeorSpeed(link1, reversedVariants, this.speedTimeMethod)
+        calcLengthTimeorSpeed(link2, reversedVariants, this.speedTimeMethod)
       }
 
       this.visiblerLinks.features.push(link2)
@@ -566,7 +567,7 @@ export const userLinksStore = defineStore('rlinks', {
       linkFeature.properties.b = nodeIdB
       // add length, speed, time now that we have a geometry.
       linkGeometry.coordinates = [rnodeA.geometry.coordinates, rnodeB.geometry.coordinates]
-      calcLengthTime(newLink.features[0], this.timeVariants)
+      calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
       if (this.rlineAttributes.includes('oneway')) {
         linkFeature.properties.oneway = '0'
         this.initReversePropertiesOnLink(linkFeature)
@@ -614,16 +615,18 @@ export const userLinksStore = defineStore('rlinks', {
       // changing links geometry, time, length
       this.connectedLinks.b.forEach(link => {
         link.geometry.coordinates = [...link.geometry.coordinates.slice(0, -1), payload.lngLat]
-        calcLengthTime(link, this.timeVariants)
+        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
         if (link.properties.time_r) {
-          calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>) }
+          const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
+          calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod) }
       })
 
       this.connectedLinks.a.forEach(link => {
         link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
-        calcLengthTime(link, this.timeVariants)
+        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
         if (link.properties.time_r) {
-          calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>) }
+          const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
+          calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod) }
       })
 
       this.updateLinks = [...this.connectedLinks.visibleLinksList]
@@ -638,9 +641,10 @@ export const userLinksStore = defineStore('rlinks', {
         payload.lngLat,
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
-      calcLengthTime(link, this.timeVariants)
+      calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       if (link.properties.time_r) {
-        calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
+        const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
+        calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod)
       }
       this.updateLinks = [link]
     },
@@ -651,9 +655,10 @@ export const userLinksStore = defineStore('rlinks', {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
-      calcLengthTime(link, this.timeVariants)
+      calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       if (link.properties.time_r) {
-        calcLengthTime(link, this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>)
+        const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
+        calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod)
       }
       this.updateLinks = [link]
     },

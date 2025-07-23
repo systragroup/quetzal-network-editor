@@ -15,6 +15,13 @@ export default {
     const linksStore = useLinksStore()
     const rlinksStore = userLinksStore()
     const showHint = ref(false)
+    const computeMethod = ref({
+      name: $gettext('Automatically Compute'),
+      type: 'radio',
+      value: 'time',
+      units: '',
+      hint: $gettext('When editing or drawing a network. We can compute (with the length) the time with the speed or the speed with the time.'),
+    })
     const roadSpeed = ref({
       name: $gettext('Road speed'),
       type: 'Number',
@@ -59,6 +66,7 @@ export default {
       // value are init with this function.
       // we want to get the value each time we show the settings.
       // if not, Cancel will not work as the state here and in the store will differ.
+      computeMethod.value.value = store.speedTimeMethod
       roadSpeed.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'speed')[0].value
       linksPopupContent.value.choices = linksStore.lineAttributes
       linksPopupContent.value.value = store.linksPopupContent
@@ -77,6 +85,7 @@ export default {
       const resp = await event
       if (resp.valid) {
         const payload = {
+          speedTimeMethod: computeMethod.value.value,
           roadSpeed: roadSpeed.value.value,
           linksPopupContent: linksPopupContent.value.value,
           roadsPopupContent: roadsPopupContent.value.value,
@@ -100,6 +109,7 @@ export default {
 
     return {
       showHint,
+      computeMethod,
       roadSpeed,
       linksPopupContent,
       roadsPopupContent,
@@ -207,6 +217,22 @@ export default {
               :rules="zipRules"
               required
             />
+            <v-radio-group
+              v-model="computeMethod.value"
+              inline
+              :label="$gettext(computeMethod.name)"
+              :hint="showHint? $gettext(computeMethod.hint): ''"
+              :persistent-hint="showHint"
+            >
+              <v-radio
+                :label="$gettext('Time')"
+                value="time"
+              />
+              <v-radio
+                :label="$gettext('Speed')"
+                value="speed"
+              />
+            </v-radio-group>
           </v-col>
         </v-container>
         <v-card-actions>
@@ -247,7 +273,6 @@ export default {
   position: absolute;
   align-items: center;
   justify-content: center;
-
 }
 .card {
   width: 500px;
@@ -268,7 +293,6 @@ export default {
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding:1rem
-
 }
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
