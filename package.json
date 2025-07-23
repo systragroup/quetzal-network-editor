@@ -94,7 +94,7 @@
     "eslint-plugin-promise": "^6.6.0",
     "eslint-plugin-vue": "^9.33.0",
     "eslint-plugin-vuetify": "^2.5.2",
-    "jsdom": "^22.1.0",
+    "jsdom": "^26.1.0",
     "postcss-html": "^1.8.0",
     "sass": "^1.87.0",
     "sinon": "^16.0.0",
