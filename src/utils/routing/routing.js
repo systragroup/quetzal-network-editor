@@ -8,7 +8,7 @@ import { cloneDeep } from 'lodash'
 import createGraph from 'ngraph.graph'
 import path from 'ngraph.path'
 import { shallowRef, toRaw, computed, watch } from 'vue'
-import { calcLengthTime } from '../network'
+import { calcLengthTimeorSpeed } from '../network'
 
 // Global state. Can reuuse thoses anywhere in the app.
 // onMounted. only init if null (so we do it only once.)
@@ -235,7 +235,7 @@ export function useRouting () {
     // this move the nodes on links and crop the Linestring to the nodes.
     snapToGeom(nodeA, nodeB, link)
 
-    calcLengthTime(link, linksStore.variantChoice)
+    calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
   }
 
   function routing() {
