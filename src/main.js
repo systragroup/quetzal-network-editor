@@ -22,27 +22,6 @@ import translations from './translations.json'
 import '@scss/main.scss'
 
 // config
-
-function selectBestLanguage (browserLangs, supportedLangs) {
-  if (browserLangs.length) {
-    for (const lang of browserLangs) {
-      const parts = lang.toLowerCase().split('-')
-      if (parts.length > 1) {
-        parts[1] = parts[1].toUpperCase()
-      }
-      const normLang = parts.join('-')
-      if (supportedLangs.includes(normLang)) {
-        return normLang
-      } else if (parts.length > 1 && supportedLangs.includes(parts[0])) {
-        return parts[0]
-      }
-    }
-    return supportedLangs[0]
-  } else {
-    return supportedLangs[0]
-  }
-}
-
 const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
@@ -52,7 +31,6 @@ app.component('FontAwesomeIcon', FontAwesomeIcon)
 library.add(fas)
 app.config.devtools = true
 app.config.performance = false
-const bestLanguage = selectBestLanguage(navigator.languages, ['en', 'fr'])
 const vuetify = createVuetify({
   // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
   components: {
@@ -121,7 +99,6 @@ const vuetify = createVuetify({
     },
   },
   locale: {
-    locale: bestLanguage,
     fallback: 'translations',
     messages: { fr, en, translations },
   },
@@ -133,7 +110,6 @@ app.use(createGettext({
     en: 'English',
     fr: 'Français',
   },
-  defaultLanguage: bestLanguage,
   translations,
   silent: true,
 }))
