@@ -1,3 +1,14 @@
+## [7.1.1] (2025-07-23)
+### Changes
+* add dev env for all microservices.
+* add env variables for microservices ARN
+
+### bug fix
+* v-list-group css was making the Trips (name) in the side panel to overflow in x
+
+### security
+* updated libs
+
 ## [7.1.0] (2025-07-21)
 
 ### Features
@@ -495,6 +506,9 @@ For example, a large project with PT and road links visibles uses 400Mb instead 
 
 
 # Previous Changelogs and dev Changelog
+* [7.0 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-7.0.md) (2025-01-14 - 2025-04-29)
+* [6.1 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-6.1.md) (2024-09-06 - 2024-11-26)
+* [6.0 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-6.0.md) (2024-05-03 - 2024-09-03)
 * [5.3 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-5.3.md) (2024-03-28 - 2024-05-02)
 * [5.2 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-5.2.md) (2024-02-15 - 2024-04-17)
 * [5.1 CHANGELOG.md](https://github.com/systragroup/quetzal-network-editor/blob/master/changelogs/CHANGELOG-5.1.md) (2024-01-16 - 2024-02-26)

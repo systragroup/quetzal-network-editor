@@ -7,10 +7,12 @@ import router from '@src/router/index'
 import { highwayColor, highwayWidth } from '@constants/highway.js'
 import s3 from '@src/AWSClient'
 import { LineStringGeoJson } from '@src/types/geojson'
+const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
+const OSM_IMPORTER_ARN = import.meta.env.VITE_OSM_IMPORTER_ARN
 
 export const useOSMStore = defineStore('runOSM', () => {
-  const stateMachineArn = ref('arn:aws:states:ca-central-1:142023388927:stateMachine:quetzal-osm-api')
-  const bucket = ref('quetzal-api-bucket')
+  const stateMachineArn = ref(OSM_IMPORTER_ARN)
+  const bucket = ref(MICROSERVICES_BUCKET)
   const callID = ref('')
   function setCallID() { callID.value = uuid() }
 

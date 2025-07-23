@@ -13,12 +13,13 @@ import { StepFunctionDefinition } from '@src/types/stepFunction'
 import { useGettext } from 'vue3-gettext'
 import { RunInputs } from '@src/types/api'
 import { includesOrEqual } from '@src/utils/utils'
+const BASE_STATEMACHINE_ARN = import.meta.env.VITE_BASE_STATEMACHINE_ARN
 
 export const useRunStore = defineStore('runStore', () => {
   const { $gettext } = useGettext()
   const userStore = useUserStore()
   const model = computed(() => userStore.model)
-  const stateMachineArn = computed(() => `arn:aws:states:ca-central-1:142023388927:stateMachine:${model.value}`)
+  const stateMachineArn = computed(() => `${BASE_STATEMACHINE_ARN}:${model.value}`)
   const modelTag = ref<string>('')
   const avalaibleStepFunctions = ref<string[]>(['default'])
   const selectedStepFunction = ref<string>('default') // default or comparision,
