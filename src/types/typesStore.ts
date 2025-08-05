@@ -144,9 +144,15 @@ export interface SplitLinkPayload extends SelectedLink {
   newNode: PointGeoJson
 }
 
+export type AddNodeTypes = 'editorNodes' | 'anchorNodes' | 'anchorRoutingNodes'
+export interface LngLat {
+  lng: number
+  lat: number
+}
+
 export interface AddNodeInlinePayload extends SelectedLink {
-  lngLat: number[]
-  nodes: 'editorNodes' | 'anchorNodes'
+  lngLat: LngLat
+  nodes: AddNodeTypes
 }
 
 export interface AnchorPayload extends SelectedLink {
