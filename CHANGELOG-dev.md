@@ -1,3 +1,10 @@
+## [7.2.b] (2025-08-xx)
+### Refactoring
+* quick refactoring of EditorLinks.vue to TS. all of those would need more work
+
+### Changes
+* Mapbox 3.14.0 (should improve memory)
+
 ## [7.2.a] (2025-07-23)
 ### Features
 * Add the choice to compute Time or Speed when editing Links and rlinks.[#89](https://github.com/systragroup/quetzal-network-editor/issues/589)
