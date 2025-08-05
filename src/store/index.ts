@@ -305,7 +305,7 @@ export const useIndexStore = defineStore('index', {
     },
 
     addStyle (payload: Style) {
-      // payload: styling for results {name,layer, displaySettings:{...}}
+      // add style. if name exist replace.
       const names = this.styles.map(el => el.name)
       const idx = names.indexOf(payload.name)
       if (idx !== -1) {

@@ -6,7 +6,7 @@ import { useAPI } from '../composables/APIComposable'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
-import { TransitParams, TransitParamsCategory, MicroserviceParametersDTO } from '@src/types/typesStore'
+import { TransitParams, TransitParamsCategory, MicroserviceParametersDTO, Style } from '@src/types/typesStore'
 import { VariantFormData } from '@src/types/components'
 import { RunInputs } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
@@ -140,6 +140,8 @@ export const useTransitStore = defineStore('runTransit', () => {
   })
 
   async function downloadResults () {
+    const store = useIndexStore()
+
     let outputs = await s3.listFiles(bucket.value, `${callID.value}/outputs/`)
     const res = []
     for (const file of outputs) {
@@ -152,11 +154,16 @@ export const useTransitStore = defineStore('runTransit', () => {
       } else {
         content = await s3.readBytes(bucket.value, file)
       }
-      res.push({ path: name, content: content })
+      // if styles.json. add to style and not as a otherFile
+      if (name.endsWith('styles.json')) {
+        content.forEach((style: Style) => store.addStyle(style))
+      } else {
+        res.push({ path: name, content: content })
+      }
     }
+
     if (res.length > 0) {
       // load new Results
-      const store = useIndexStore()
       store.loadOtherFiles(res)
     }
   }
