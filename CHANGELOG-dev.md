@@ -1,3 +1,7 @@
+## [7.2.c] (2025-08-xx)
+### Changes
+* Vuetify updated to 3.9. 
+
 ## [7.2.b] (2025-08-05)
 ### Refactoring
 * quick refactoring of EditorLinks.vue to TS. all of those would need more work

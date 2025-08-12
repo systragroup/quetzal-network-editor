@@ -9520,10 +9520,10 @@ vue@^3.5.20:
     "@vue/server-renderer" "3.5.20"
     "@vue/shared" "3.5.20"
 
-vuetify@<3.9.0:
-  version "3.8.12"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.8.12.tgz#7c433b8b036011bb0a800f08f5a53d61067eeae8"
-  integrity sha512-XRX/yRel/V5rlas12ovujVCo8RDb/NwICyef/DVYzybqbYz/UGHZd23sN5q1zw0h9jUN8httXI6ytWN7OFugmA==
+vuetify@^3.9.5:
+  version "3.9.5"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.9.5.tgz#7f5c79d3789051606f99f2e330ea3a2339ad7bb7"
+  integrity sha512-rJBSo1FeKcJJaqTfVHbOdpFXCmgeEIGzrh6HBEMGjSflan6voPIMSiK2dTCUU4t9JeghwvJtoAE5eBuqYIkFVA==
 
 w3c-xmlserializer@^5.0.0:
   version "5.0.0"
