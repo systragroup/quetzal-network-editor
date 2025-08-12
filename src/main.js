@@ -99,7 +99,7 @@ const vuetify = createVuetify({
     },
   },
   locale: {
-    fallback: 'translations',
+    fallback: 'en',
     messages: { fr, en, translations },
   },
 })
