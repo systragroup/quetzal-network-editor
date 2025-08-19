@@ -1,9 +1,9 @@
-## [7.2.c] (2025-08-xx)
+## [7.2.c] (2025-08-19)
 ### Changes
 * Vuetify updated to 3.9. 
 
 ### Features
-* add TreeView for inputs and outputs. Can now download a single output
+* add TreeView for inputs and outputs. Can now download a single output [#590](https://github.com/systragroup/quetzal-network-editor/issues/589)
 
 ## [7.2.b] (2025-08-05)
 ### Refactoring
@@ -17,7 +17,7 @@
 
 ## [7.2.a] (2025-07-23)
 ### Features
-* Add the choice to compute Time or Speed when editing Links and rlinks.[#89](https://github.com/systragroup/quetzal-network-editor/issues/589)
+* Add the choice to compute Time or Speed when editing Links and rlinks.[#589](https://github.com/systragroup/quetzal-network-editor/issues/589)
     * radio button in the setting (on the edition map)
     * if time selected: compute time with speed and length
     * if speed is selected: compute speed with time and length.
