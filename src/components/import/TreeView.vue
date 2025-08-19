@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, toRefs, watch } from 'vue'
+import { computed, ref, toRefs, watch } from 'vue'
 import { OtherFiles } from '@src/types/typesStore'
 
 function buildTree(paths: string[]): TreeData[] {
   const result: TreeData[] = []
   const levelMap: any = { result }
   let i = 0
-
   paths.forEach((path) => {
     const parts = path.split('/')
 
@@ -30,22 +29,6 @@ function buildTree(paths: string[]): TreeData[] {
   return result
 }
 
-interface Props {
-  files: OtherFiles[]
-  showDelete?: boolean
-  showUpload?: boolean
-  showDownload?: boolean
-}
-const props = withDefaults(defineProps<Props>(), {
-  files: () => [],
-  showDelete: false,
-  showDownload: false,
-  showUpload: false,
-})
-const { files, showDelete, showDownload, showUpload } = toRefs(props)
-
-const emits = defineEmits(['filesLoaded', 'delete', 'upload', 'download'])
-
 interface TreeData {
   title: string
   id: number
@@ -53,38 +36,40 @@ interface TreeData {
   children?: TreeData[]
 }
 
-const treeData = computed(() => buildTree(files.value.map(el => el.path)))
-
-// Get a list of opened dir. if not everyting reopen on changes.
-
-const opened = ref<number[]>([])
-
-function getAllIds(items: TreeData[]): number[] {
-  let ids: number[] = []
-  items.forEach((item) => {
-    ids.push(item.id)
-    if (item.children) {
-      ids = ids.concat(getAllIds(item.children))
-    }
-  })
-  return ids
+interface Props {
+  files: OtherFiles[]
+  showDelete?: boolean
+  showUpload?: boolean
+  showDownload?: boolean
 }
 
-onMounted(() => {
-  opened.value = getAllIds(treeData.value)
+const props = withDefaults(defineProps<Props>(), {
+  files: () => [],
+  showDelete: false,
+  showDownload: false,
+  showUpload: false,
 })
 
+const { files, showDelete, showDownload, showUpload } = toRefs(props)
+
+const emits = defineEmits(['filesLoaded', 'delete', 'upload', 'download'])
+
+const treeData = computed(() => buildTree(files.value.map(el => el.path)))
+
+//
+
+// Get a list of opened dir (all). if not everyting reopen on changes.
+const opened = ref<number[]>(files.value.map((_, i) => i))
 // when add values. open all
 watch(files, (newVals, oldVals) => {
   if (newVals.length > oldVals.length) {
-    opened.value = getAllIds(treeData.value)
+    opened.value = files.value.map((_, i) => i)
   }
 })
 
 // icons
-
 const icons: Record<string, string> = {
-  html: 'fas fa-file-code',
+  md: 'fas fa-file-code',
   json: 'fas fa-file-lines',
   geojson: 'fas fa-layer-group',
   csv: 'fas fa-file-csv',
@@ -107,7 +92,6 @@ function getIcon (item: TreeData, isOpen: boolean) {
 
 // no selection
 const selected = ref([])
-
 </script>
 <template>
   <v-treeview
