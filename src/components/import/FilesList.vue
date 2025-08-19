@@ -96,64 +96,71 @@ function downloadFile(file: string) {
     multiple
     @change="readOtherFiles"
   >
-  <div class="files-container">
-    <div class="title-box">
-      <h1 class="custom-title">
-        {{ $gettext('Other Inputs') }}
-      </h1>
-      <div class="upload-button">
-        <v-btn
-          icon
-          variant="outlined"
-          @click="()=>buttonHandle('inputs')"
-        >
-          <v-icon size="small">
-            fa-solid fa-upload
-          </v-icon>
-        </v-btn>
+  <div class="container">
+    <div class="files-container">
+      <div class="title-box">
+        <h1 class="custom-title">
+          {{ $gettext('Other Inputs') }}
+        </h1>
+        <div class="upload-button">
+          <v-btn
+            icon
+            variant="outlined"
+            @click="()=>buttonHandle('inputs')"
+          >
+            <v-icon size="small">
+              fa-solid fa-upload
+            </v-icon>
+          </v-btn>
+        </div>
       </div>
+      <TreeView
+        :files="inputFiles"
+        :show-delete="true"
+        :show-upload="true"
+        @delete="deleteFile"
+        @upload="buttonHandle"
+      />
     </div>
-    <TreeView
-      :files="inputFiles"
-      :show-delete="true"
-      :show-upload="true"
-      @delete="deleteFile"
-      @upload="buttonHandle"
-    />
-  </div>
-  <div class="files-container">
-    <div class="title-box">
-      <h1 class="custom-title">
-        {{ $gettext('Outputs') }}
-      </h1>
-      <div class="upload-button">
-        <v-btn
-          icon
-          variant="outlined"
-          @click="()=>buttonHandle('outputs')"
-        >
-          <v-icon size="small">
-            fa-solid fa-upload
-          </v-icon>
-        </v-btn>
+    <div class="files-container">
+      <div class="title-box">
+        <h1 class="custom-title">
+          {{ $gettext('Outputs') }}
+        </h1>
+        <div class="upload-button">
+          <v-btn
+            icon
+            variant="outlined"
+            @click="()=>buttonHandle('outputs')"
+          >
+            <v-icon size="small">
+              fa-solid fa-upload
+            </v-icon>
+          </v-btn>
+        </div>
       </div>
+      <TreeView
+        :files="outputFiles"
+        :show-delete="true"
+        :show-download="true"
+        @delete="deleteFile"
+        @download="downloadFile"
+      />
     </div>
-    <TreeView
-      :files="outputFiles"
-      :show-delete="true"
-      :show-download="true"
-      @delete="deleteFile"
-      @download="downloadFile"
-    />
   </div>
 </template>
 <style lang="scss" scoped>
+.container{
+  height:100%;
+  display: flex;
+  gap:0.5rem;
+  flex-direction: column;
+}
 .files-container{
-  height:50%;
+  height:calc(50% - 4px);
   border-radius: 5px;
   background:rgb(var(--v-theme-mediumgrey));
   display: flex;
-  margin: 0.5rem 0 0;
   flex-direction: column;
 }
 .title-box {

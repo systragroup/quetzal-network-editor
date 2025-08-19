@@ -2,29 +2,6 @@
 import { computed, onMounted, ref, toRefs, watch } from 'vue'
 import { OtherFiles } from '@src/types/typesStore'
 
-interface Props {
-  files: OtherFiles[]
-  showDelete?: boolean
-  showUpload?: boolean
-  showDownload?: boolean
-}
-const props = withDefaults(defineProps<Props>(), {
-  files: () => [],
-  showDelete: false,
-  showDownload: false,
-  showUpload: false,
-})
-const { files, showDelete, showDownload, showUpload } = toRefs(props)
-
-const emits = defineEmits(['filesLoaded', 'delete', 'upload', 'download'])
-
-interface TreeData {
-  title: string
-  id: number
-  fullpath?: string
-  children?: TreeData[]
-}
-
 function buildTree(paths: string[]): TreeData[] {
   const result: TreeData[] = []
   const levelMap: any = { result }
@@ -53,6 +30,29 @@ function buildTree(paths: string[]): TreeData[] {
   return result
 }
 
+interface Props {
+  files: OtherFiles[]
+  showDelete?: boolean
+  showUpload?: boolean
+  showDownload?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  files: () => [],
+  showDelete: false,
+  showDownload: false,
+  showUpload: false,
+})
+const { files, showDelete, showDownload, showUpload } = toRefs(props)
+
+const emits = defineEmits(['filesLoaded', 'delete', 'upload', 'download'])
+
+interface TreeData {
+  title: string
+  id: number
+  fullpath?: string
+  children?: TreeData[]
+}
+
 const treeData = computed(() => buildTree(files.value.map(el => el.path)))
 
 // Get a list of opened dir. if not everyting reopen on changes.
@@ -74,14 +74,12 @@ onMounted(() => {
   opened.value = getAllIds(treeData.value)
 })
 
+// when add values. open all
 watch(files, (newVals, oldVals) => {
   if (newVals.length > oldVals.length) {
     opened.value = getAllIds(treeData.value)
   }
 })
-
-// no selection
-const selected = ref([])
 
 // icons
 
@@ -96,11 +94,19 @@ const icons: Record<string, string> = {
 
 function getIcon (item: TreeData, isOpen: boolean) {
   if (item.children) return isOpen ? 'fas fa-folder-open' : 'fas fa-folder'
-  const name = item.title.split('.').at(-1)
-  if (name) {
-    return icons[name] ?? 'fas fa-file'
+  const extension = item.title.split('.').at(-1)
+  if (extension === 'json') { // if json match a geojson its a OD layer
+    const name = item.fullpath?.replace('.json', '.geojson')
+    const filtered = files.value.filter(el => el.path === name)
+    if (filtered.length > 0) return 'fas fa-exchange-alt'
+  }
+  if (extension) {
+    return icons[extension] ?? 'fas fa-file'
   }
 }
+
+// no selection
+const selected = ref([])
 
 </script>
 <template>
@@ -169,9 +175,11 @@ function getIcon (item: TreeData, isOpen: boolean) {
 .list-button{
   display:flex;
   flex-direction:row;
+
 }
 .treeview{
   background:rgb(var(--v-theme-mediumgrey));
+
 }
 
 </style>
