@@ -1,8 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { readFileAsText, readFileAsBytes } from '@src/utils/io'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref } from 'vue'
 import { useGettext } from 'vue3-gettext'
+import TreeView from './TreeView.vue'
 const { $gettext } = useGettext()
 
 const emit = defineEmits(['filesLoaded'])
@@ -12,38 +13,37 @@ const inputFiles = computed(() => { return store.otherFiles.filter(file => file.
 const outputFiles = computed(() => { return store.otherFiles.filter(file =>
   file.path.startsWith('outputs/') || file.path.startsWith('microservices/')) })
 
-function isViz (file, otherFiles) {
-  // check to put the little logo if a json has a geojson associated with
-  if (file.extension === 'geojson') {
-    return true
-  } else if (file.extension === 'json') {
-    const filtered = otherFiles.filter(el => el.name === file.name).map(el => el.extension)
-    return filtered.includes('geojson')
-  } else {
-    return false
-  }
-}
-const otherOutputs = ref()
-const otherInputs = ref()
+const otherOutputsRef = ref()
+const otherInputsRef = ref()
 const choice = ref('')
-function buttonHandle (event) {
+function buttonHandle (event: string) {
   choice.value = event
   if (choice.value === 'outputs') {
-    otherOutputs.value.click()
-    document.getElementById('other-outputs').value = '' // clean it for next file
+    otherOutputsRef.value.click()
+    const el = document.getElementById('other-outputs') as HTMLInputElement
+    if (el) el.value = '' // clean it for next file
+  } else if (choice.value === 'inputs') {
+    otherInputsRef.value.accept = '*'
+    otherInputsRef.value.click()
+    const el = document.getElementById('other-inputs') as HTMLInputElement
+    if (el) el.value = '' // clean it for next file
   } else if (choice.value.startsWith('inputs')) {
-    // inputs or a path (if we want to change an existing input)
-    otherInputs.value.click()
-    document.getElementById('other-inputs').value = '' // clean it for next file
+    // change an input
+    otherInputsRef.value.accept = '.' + choice.value.split('.').at(-1)
+    otherInputsRef.value.click()
+    const el = document.getElementById('other-inputs') as HTMLInputElement
+    if (el) el.value = '' // clean it for next file
   }
 }
 
-async function readOtherFiles (event) {
+async function readOtherFiles (event: Event) {
   // load outputs as Layer Module and as other files (ex: png)
   store.changeLoading(true)
   const fileList = []
-  const files = event.target.files
-  for (const file of files) {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  if (!files) return
+  for (const file of Array.from(files)) {
     let name = choice.value + '/' + file.name // inputs/ or outputs/
     // if we want to replace an existing input. this.choice contains the existing path name
     if (!['inputs', 'outputs'].includes(choice.value)) {
@@ -67,28 +67,33 @@ async function readOtherFiles (event) {
   store.changeLoading(false)
   emit('filesLoaded', fileList)
 }
-function deleteFile (file) {
+
+function deleteFile (file: string) {
   store.deleteotherFiles([file])
   store.changeNotification(
     { text: file + $gettext(' deleted'), autoClose: true, color: 'success' })
+}
+function downloadFile(file: string) {
+  store.exportFile(file)
 }
 
 </script>
 <template>
   <input
     id="other-inputs"
-    ref="otherInputs"
+    ref="otherInputsRef"
     type="file"
     style="display: none"
-    multiple="multiple"
+    accept=".geojson"
+    multiple
     @change="readOtherFiles"
   >
   <input
     id="other-outputs"
-    ref="otherOutputs"
+    ref="otherOutputsRef"
     type="file"
     style="display: none"
-    multiple="multiple"
+    multiple
     @change="readOtherFiles"
   >
   <div class="files-container">
@@ -108,53 +113,13 @@ function deleteFile (file) {
         </v-btn>
       </div>
     </div>
-    <div class="list">
-      <li
-        v-for="(file, key) in inputFiles"
-        :key="key"
-      >
-        {{ file.path }}
-        <v-tooltip
-          v-if="isViz(file,inputFiles)"
-          location="top"
-          open-delay="250"
-        >
-          <template v-slot:activator="{ props }">
-            <v-icon
-              size="small"
-              class="list-icon"
-              v-bind="props"
-            >
-              fa-solid fa-layer-group
-            </v-icon>
-          </template>
-          <span>{{ $gettext('Viewable in results') }}</span>
-        </v-tooltip>
-        <div class="list-button">
-          <v-tooltip
-            location="top"
-            open-delay="250"
-          >
-            <template v-slot:activator="{ props }">
-              <v-btn
-                variant="text"
-                icon="fa-solid fa-upload"
-                size="small"
-                v-bind="props"
-                @click="()=>buttonHandle(file.path)"
-              />
-            </template>
-            <span>{{ $gettext('Replace file inplace') }}</span>
-          </v-tooltip>
-          <v-btn
-            variant="text"
-            size="small"
-            icon="fa-solid fa-trash"
-            @click="()=>deleteFile(file.path)"
-          />
-        </div>
-      </li>
-    </div>
+    <TreeView
+      :files="inputFiles"
+      :show-delete="true"
+      :show-upload="true"
+      @delete="deleteFile"
+      @upload="buttonHandle"
+    />
   </div>
   <div class="files-container">
     <div class="title-box">
@@ -173,37 +138,13 @@ function deleteFile (file) {
         </v-btn>
       </div>
     </div>
-    <div class="list">
-      <li
-        v-for="file in outputFiles"
-        :key="file.path"
-      >
-        {{ file.path }}
-        <v-tooltip
-          v-if="isViz(file,outputFiles)"
-          location="top"
-          open-delay="250"
-        >
-          <template v-slot:activator="{ props }">
-            <v-icon
-              size="small"
-              class="list-icon"
-              v-bind="props"
-            >
-              fa-solid fa-layer-group
-            </v-icon>
-          </template>
-          <span>{{ $gettext('Viewable in results') }}</span>
-        </v-tooltip>
-        <v-btn
-          variant="text"
-          class="list-button"
-          size="small"
-          icon="fa-solid fa-trash"
-          @click="()=>deleteFile(file.path)"
-        />
-      </li>
-    </div>
+    <TreeView
+      :files="outputFiles"
+      :show-delete="true"
+      :show-download="true"
+      @delete="deleteFile"
+      @download="downloadFile"
+    />
   </div>
 </template>
 <style lang="scss" scoped>
@@ -229,27 +170,6 @@ function deleteFile (file) {
 .upload-button {
   margin-left: auto;
   margin-right:0.75rem
-}
-.list-button{
-  margin-left:auto;
-  display:flex;
-  flex-direction:row;
-  margin-right:1rem;
-}
-.list-icon{
-  margin-left:0.5rem
-}
-.list {
-  font-size: 1em;
-  font-weight: bold;
-  overflow-y: auto;
-  padding-left: 1rem;
-  padding-top:0.5rem
-}
-.list li {
-  /* Add individual list item styles here */
-  display: flex; /* Use flexbox layout for each list item */
-  align-items: center; /* Align button vertically in the list item */
 }
 
 </style>

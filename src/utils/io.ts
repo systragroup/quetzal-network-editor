@@ -100,11 +100,11 @@ export function WorkerParseCSV(bytes: Uint8Array): Promise<any[]> {
   })
 }
 
-export function readFileAsText (file: File) {
+export function readFileAsText (file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = function (event) {
-      resolve(event?.target?.result)
+      resolve(event?.target?.result as string)
     }
     reader.onerror = function (event) {
       reject(event?.target?.error)
@@ -113,7 +113,7 @@ export function readFileAsText (file: File) {
   })
 }
 
-export function readFileAsBytes (file: any) {
+export function readFileAsBytes (file: any): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = function (event: any) {

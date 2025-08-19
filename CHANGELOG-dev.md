@@ -2,6 +2,9 @@
 ### Changes
 * Vuetify updated to 3.9. 
 
+### Features
+* add TreeView for inputs and outputs. Can now download a single output
+
 ## [7.2.b] (2025-08-05)
 ### Refactoring
 * quick refactoring of EditorLinks.vue to TS. all of those would need more work

@@ -335,6 +335,14 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           saveAs(blob, path)
         }
+      } else {
+        // get otherFile
+        const file = this.otherFiles.filter(file => path === file.path)[0]
+        if (file) {
+          const content = await this.getFileContent(file) as any
+          const blob = new Blob([content])
+          saveAs(blob, path)
+        }
       }
     },
 
@@ -343,7 +351,6 @@ export const useIndexStore = defineStore('index', {
       const rlinksStore = userLinksStore()
       const ODStore = useODStore()
       const runStore = useRunStore()
-      const userStore = useUserStore()
       const zip = new JSZip()
       let links = ''
       let nodes = ''
@@ -414,22 +421,26 @@ export const useIndexStore = defineStore('index', {
           zip.file('attributesChoices.json', blob)
         }
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
-          // if others file loaded from S3 (they are not loaded yet. need to download them.)
-          if (file.content == null && userStore.model !== null) {
-            file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
-          }
-          if (file.content instanceof Uint8Array) {
-            const blob = new Blob([file.content]) // { type: 'text/csv' }
-            zip.file(file.path, blob)
-          } else {
-            const blob = new Blob([JSON.stringify(file.content)], { type: 'application/json' })
-            zip.file(file.path, blob)
-          }
+          const content = this.getFileContent(file)
+          zip.file(file.path, content)
         }
       }
       zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
         .then((content) => { saveAs(content, `${this.outputName}.zip`)
         })
+    },
+
+    async getFileContent(file: FileFormat) {
+      const userStore = useUserStore()
+      // if others file loaded from S3 (they are not loaded yet. need to download them.)
+      if (file.content == null && userStore.model !== null) {
+        file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
+      }
+      if (file.content instanceof Uint8Array) {
+        return file.path, file.content
+      } else {
+        return file.path, JSON.stringify(file.content)
+      }
     },
 
     async exportToS3 (payload: string) {
