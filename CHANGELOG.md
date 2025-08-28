@@ -1,3 +1,8 @@
+## [7.1.2] (2025-08-28)
+### bug fix
+* Run page not loading: update libs.
+
+
 ## [7.1.1] (2025-07-23)
 ### Changes
 * add dev env for all microservices.
