@@ -53,10 +53,7 @@ export const useRunStore = defineStore('runStore', () => {
     const store = useIndexStore()
     try {
       let data = { stateMachineArn: stateMachineArn.value }
-      console.log(data)
-      const response = await quetzalClient.post('/describe/model', data)
-      console.log(response)
-      console.log(response.data.definition)
+      const response = await quetzalClient.post('/describe/model', JSON.stringify(data))
       const def = JSON.parse(response.data.definition) as StepFunctionDefinition
 
       // check if there is a choice in the definition => avalaibleStepFunctions

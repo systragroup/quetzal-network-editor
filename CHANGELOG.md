@@ -1,3 +1,7 @@
+## [7.1.3] (2025-08-28)
+### bug fix
+* last version used to debug. Env variables were added, but not added in the github deploy workflow.
+
 ## [7.1.2] (2025-08-28)
 ### bug fix
 * Run page not loading: update libs.
