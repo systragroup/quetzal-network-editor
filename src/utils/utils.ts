@@ -187,3 +187,10 @@ export function includesOrEqual<T>(a: T | T[], b: T) {
     return a === b
   }
 }
+
+export function arrayMinMax(arr: number[]) {
+  return arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ])
+}

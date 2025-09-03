@@ -4,41 +4,19 @@ import { useIndexStore } from '@src/store/index'
 import { CRSis4326 } from '@src/utils/serializer'
 import chroma from 'chroma-js'
 import seedrandom from 'seedrandom'
+import { arrayMinMax } from '@src/utils/utils'
 import { baseLineString, GeoJson } from '@src/types/geojson'
+import { DisplaySettings, Style } from '@src/types/typesStore'
 const $gettext = (s: string) => s
 
 export type FeatureName = string
 
 export type MatrixData = Record<FeatureName, Record<string, string>>
 
-export interface Preset {
-  layer: string
-  name: string
-  displaySettings: DisplaySettings
+export interface Preset extends Style {
   selectedFilter: string
   selectedCategory?: string[]
   selectedIndex?: string
-}
-
-export interface DisplaySettings {
-  maxWidth: number
-  minWidth: number
-  numStep: number
-  scale: 'linear' | 'sqrt' | 'log' | 'exp' | 'quad'
-  fixScale: boolean
-  minVal: number
-  maxVal: number
-  cmap: string
-  opacity: number
-  offset: boolean
-  showNaN: boolean
-  reverseColor: boolean
-  extrusion: boolean
-  padding: [number, number]
-  selectedFeature: string
-  labels: string
-
-  [key: string]: number | string | boolean | number[]
 }
 
 const defaultSettings: DisplaySettings = {
@@ -324,12 +302,6 @@ export function useResult () {
       link => link.properties[key])
 
     if (!displaySettings.value.fixScale) {
-      const arrayMinMax = (arr: number[]) =>
-        arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
-          Number.POSITIVE_INFINITY,
-          Number.NEGATIVE_INFINITY,
-        ])
-
       const [minV, maxV] = arrayMinMax(featureArr)
       displaySettings.value.minVal = Math.round(minV * 100) / 100
       displaySettings.value.maxVal = Math.round(maxV * 100) / 100

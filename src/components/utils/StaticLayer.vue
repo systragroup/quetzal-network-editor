@@ -1,4 +1,3 @@
-<!-- eslint-disable no-case-declarations -->
 <script setup lang="ts">
 import MapLegend from '@comp/utils/MapLegend.vue'
 import { onBeforeUnmount, toRefs, onMounted } from 'vue'
@@ -17,12 +16,12 @@ interface Props {
   preset: Preset
   map: Map
   order: number
-  visibleRasters: string[]
+  visibleLayers: string[]
 }
 
-// const props = defineProps(['preset', 'map', 'order', 'visibleRasters'])
+// const props = defineProps(['preset', 'map', 'order', 'visibleLayers'])
 const props = defineProps<Props>()
-const { preset, map, order: zorder, visibleRasters } = toRefs(props)
+const { preset, map, order: zorder, visibleLayers } = toRefs(props)
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 const ODStore = useODStore()
@@ -179,8 +178,8 @@ function moveLayer () {
     return
   }
   const layersList = styles.layers.map(layer => layer.id)
-  const index = visibleRasters.value.indexOf(name)
-  let previousLayers = visibleRasters.value.map(layer => layer + '-layer').splice(0, index)
+  const index = visibleLayers.value.indexOf(name)
+  let previousLayers = visibleLayers.value.map(layer => layer + '-layer').splice(0, index)
   previousLayers = previousLayers.filter(layer => layersList.includes(layer))
   const previousLayer = previousLayers.slice(-1)[0] // take last one. [1,2,3,4]. 5 is under 4, last one.
   if (previousLayer) {

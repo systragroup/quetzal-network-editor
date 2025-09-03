@@ -44,7 +44,7 @@ export const useIndexStore = defineStore('index', {
     roadsPopupContent: ['highway'],
     outputName: 'output',
     // Project specific
-    visibleRasters: [], // list of rasterFiles path.
+    visibleLayers: [], // list of rasterFiles path.
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
@@ -251,8 +251,8 @@ export const useIndexStore = defineStore('index', {
       rlinks.loadrLinksAttributesChoices(payload.road)
     },
 
-    setVisibleRasters (payload: string[]) {
-      this.visibleRasters = payload
+    setvisibleLayers (payload: string[]) {
+      this.visibleLayers = payload
     },
 
     initNetworks () {
@@ -590,6 +590,9 @@ export const useIndexStore = defineStore('index', {
         availableLayers.push('od')
       }
       state.otherFiles.filter(file => file.extension === 'geojson').forEach(file => {
+        availableLayers.push(file.name)
+      })
+      state.otherFiles.filter(file => file.extension === 'tif').forEach(file => {
         availableLayers.push(file.name)
       })
 

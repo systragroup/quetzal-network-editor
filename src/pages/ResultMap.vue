@@ -82,7 +82,7 @@ async function changeLayer (layer, preset = null) {
 const selectedPreset = ref(null)
 const availableLayers = computed(() => store.availableLayers)
 
-const visibleRasters = computed(() => store.visibleRasters)
+const visibleLayers = computed(() => store.visibleLayers)
 const availableStyles = computed(() => store.styles)
 
 async function changePreset (preset) {
@@ -134,7 +134,7 @@ async function savePreset (preset) {
     }
 
     store.addStyle(style)
-    if (visibleRasters.value.includes(inputName.value)) {
+    if (visibleLayers.value.includes(inputName.value)) {
       store.changeNotification(
         {
           text: $gettext('Preset changed. Please reload the active layer on the map'),
@@ -269,12 +269,12 @@ onMounted(() => {
         v-for="file in availableStyles"
         :key="file.name"
       >
-        <template v-if=" visibleRasters.includes(file.name) && availableLayers.includes(file.layer)">
+        <template v-if=" visibleLayers.includes(file.name) && availableLayers.includes(file.layer)">
           <StaticLayer
             :preset="file"
             :map="slotProps.map"
-            :order="visibleRasters.indexOf(file.name)+1"
-            :visible-rasters="visibleRasters"
+            :order="visibleLayers.indexOf(file.name)+1"
+            :visible-layers="visibleLayers"
           />
         </template>
       </div>

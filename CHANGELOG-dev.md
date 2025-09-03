@@ -1,3 +1,12 @@
+## [7.2.d] (2025-09-xx)
+### Refactoring
+* internaly: visibleRaster rename visibleLayers (every rasters now layer)
+* add TS for displaySettings (styles)
+* rework legend css a little and TS
+
+### Bug Fixes
+* do not show NaN NaN on Legend
+
 ## [7.2.c] (2025-08-19)
 ### Changes
 * Vuetify updated to 3.9. 

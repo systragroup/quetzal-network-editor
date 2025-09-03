@@ -21,11 +21,11 @@ const { choices, map } = toRefs(props)
 const store = useIndexStore()
 const show = ref(false)
 const selectedLayers = ref([])
-onMounted(() => { selectedLayers.value = store.visibleRasters })
+onMounted(() => { selectedLayers.value = store.visibleLayers })
 watch(selectedLayers, (val) => {
   const order = choices.value.map(l => l.name)
   const orderedSelected = order.filter(el => val.includes(el))
-  store.setVisibleRasters(orderedSelected)
+  store.setvisibleLayers(orderedSelected)
 })
 watch(choices, (vals) => {
   const names = vals.map(el => el.name)
@@ -36,7 +36,7 @@ function moveLayer (name) {
   if (selectedLayers.value.includes(name)) {
     const order = choices.value.map(l => l.name)
     const orderedSelected = order.filter(el => selectedLayers.value.includes(el))
-    store.setVisibleRasters(orderedSelected)
+    store.setvisibleLayers(orderedSelected)
     // order all active layers
     for (let i = 0; i < orderedSelected.length - 1; i++) {
       const topLayer = orderedSelected[i]

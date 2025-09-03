@@ -84,9 +84,10 @@ function saveMapPosition () {
   } catch (err) {}
 }
 
-// All of the rasters
-const visibleRasters = computed(() => store.visibleRasters)
-const rasterFiles = computed(() => store.styles)
+// All of the layers
+const visibleLayers = computed(() => store.visibleLayers)
+const styles = computed(() => store.styles)
+// const rasterFiles = computed(() => store.styles)
 const availableLayers = computed(() => store.availableLayers)
 
 // modes
@@ -393,8 +394,8 @@ const { routeLink } = useRouting()
         <Settings />
         <StyleSelector />
         <LayerSelector
-          v-if="rasterFiles.length>0"
-          :choices="rasterFiles"
+          v-if="styles.length>0"
+          :choices="styles"
           :available-layers="availableLayers"
           :map="map"
         />
@@ -405,16 +406,16 @@ const { routeLink } = useRouting()
         :visualize-pitch="true"
       />
       <div
-        v-for="file in rasterFiles"
+        v-for="file in styles"
         :key="file.name"
       >
         <StaticLayer
-          v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)"
+          v-if="mapIsLoaded && visibleLayers.includes(file.name) && availableLayers.includes(file.layer)"
           :key="file.name"
           :map="map"
           :preset="file"
-          :order="visibleRasters.indexOf(file.name)"
-          :visible-rasters="visibleRasters"
+          :order="visibleLayers.indexOf(file.name)"
+          :visible-layers="visibleLayers"
         />
       </div>
       <template v-if="mapIsLoaded && !rlinksIsEmpty">

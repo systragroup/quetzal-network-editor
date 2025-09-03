@@ -17,7 +17,7 @@ export interface ImportPoly {
 export interface Style {
   name: string
   layer: string
-  displaySettings: Record<string, any>
+  displaySettings: DisplaySettings
 }
 export interface ProjectInfo {
   description: string
@@ -66,7 +66,7 @@ export interface IndexStore {
   cyclewayMode: boolean
   outputName: string
   importPoly: ImportPoly | null
-  visibleRasters: string[]
+  visibleLayers: string[]
   styles: Style[]
   projectInfo: ProjectInfo
   otherFiles: OtherFiles[]
@@ -431,6 +431,31 @@ export interface CategoryParam {
 export type Params = (ParamsInfo | CategoryParam | ParamsVariants)[]
 
 export type PayloadParams = Record<string, Record<string, any>>
+
+//
+// results Store
+//
+
+export interface DisplaySettings {
+  maxWidth: number
+  minWidth: number
+  numStep: number
+  scale: 'linear' | 'sqrt' | 'log' | 'exp' | 'quad'
+  fixScale: boolean
+  minVal: number
+  maxVal: number
+  cmap: string
+  opacity: number
+  offset: boolean
+  showNaN: boolean
+  reverseColor: boolean
+  extrusion: boolean
+  padding: [number, number]
+  selectedFeature: string
+  labels: string
+
+  [key: string]: number | string | boolean | number[]
+}
 
 //
 // Microservices
