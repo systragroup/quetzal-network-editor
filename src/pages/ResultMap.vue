@@ -15,6 +15,7 @@ import MapLegend from '@comp/utils/MapLegend.vue'
 import LayerSelector from '@comp/utils/LayerSelector.vue'
 import StyleSelector from '@comp/utils/StyleSelector.vue'
 import StaticLayer from '@comp/utils/StaticLayer.vue'
+import RasterLayer from '@src/components/utils/RasterLayer.vue'
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 const { $gettext } = useGettext()
@@ -81,6 +82,7 @@ async function changeLayer (layer, preset = null) {
 
 const selectedPreset = ref(null)
 const availableLayers = computed(() => store.availableLayers)
+const availableRasters = computed(() => store.availableRasters)
 
 const visibleLayers = computed(() => store.visibleLayers)
 const availableStyles = computed(() => store.styles)
@@ -247,21 +249,27 @@ onMounted(() => {
           :display-settings="displaySettings"
         />
       </div>
-      <div :style="{'display':'flex'}">
+      <div>
         <ResultsSettings
+          :order="0"
           :display-settings="displaySettings"
           :feature-choices="attributes"
           :type="type"
           @submit="updateSettings"
           @save-preset="savePreset"
         />
-        <StyleSelector />
-
+        <StyleSelector :order="1" />
         <LayerSelector
           v-if="availableStyles.length>0"
+          order="2"
           :choices="availableStyles"
           :map="slotProps.map"
           :available-layers="availableLayers"
+        />
+        <RasterLayer
+          v-if="availableRasters.length>0"
+          :order="3"
+          :map="slotProps.map"
         />
       </div>
 

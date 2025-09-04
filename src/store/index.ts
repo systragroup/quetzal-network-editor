@@ -44,7 +44,8 @@ export const useIndexStore = defineStore('index', {
     roadsPopupContent: ['highway'],
     outputName: 'output',
     // Project specific
-    visibleLayers: [], // list of rasterFiles path.
+    visibleLayers: [], // list of layersFiles path.
+    visibleRasters: [], // list of tif files
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
@@ -592,11 +593,11 @@ export const useIndexStore = defineStore('index', {
       state.otherFiles.filter(file => file.extension === 'geojson').forEach(file => {
         availableLayers.push(file.name)
       })
-      state.otherFiles.filter(file => file.extension === 'tif').forEach(file => {
-        availableLayers.push(file.name)
-      })
-
       return availableLayers
+    },
+
+    availableRasters: (state) => {
+      return state.otherFiles.filter(file => file.extension === 'tif').map(file => file.name)
     },
 
   },

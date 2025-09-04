@@ -4,9 +4,9 @@ import { ref, watch, toRefs, computed } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
-const props = defineProps(['displaySettings', 'featureChoices', 'type'])
+const props = defineProps(['displaySettings', 'featureChoices', 'type', 'order'])
 const emits = defineEmits(['submit', 'save-preset'])
-const { displaySettings, featureChoices, type } = toRefs(props)
+const { displaySettings, featureChoices, type, order } = toRefs(props)
 
 const colorsMaps = computed(() => {
   const first = ['OrRd', 'Spectral', 'RdYlGn', 'Viridis', 'YlGn', 'RdYlBu']
@@ -220,7 +220,10 @@ function cancel () {
     transition="scale-transition"
   >
     <template v-slot:activator="{ props:mp }">
-      <div class="setting">
+      <div
+        class="layer-button"
+        :style="{ '--n': order }"
+      >
         <v-btn
           :color="(displaySettings.selectedFeature === null)? 'error' : 'white'"
           v-bind="mp"
@@ -496,6 +499,13 @@ function cancel () {
   </v-menu>
 </template>
 <style lang="scss" scoped>
+.layer-button {
+  right: calc(3.5rem * var(--n) + 0.5rem);
+  top: 1rem;
+  z-index: 2;
+  position: absolute;
+}
+
 .gradient-preview {
   width: 8rem;
   white-space: nowrap;
@@ -543,14 +553,6 @@ function cancel () {
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding: 0.5rem 1rem 0;
-}
-.setting {
-  left: 96%;
-  z-index: 2;
-  top:1rem;
-  position: absolute;
-  align-items: center;
-  justify-content: center;
 }
 .setting-card {
 overflow-y:auto;

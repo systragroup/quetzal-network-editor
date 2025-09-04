@@ -67,6 +67,7 @@ export interface IndexStore {
   outputName: string
   importPoly: ImportPoly | null
   visibleLayers: string[]
+  visibleRasters: string[]
   styles: Style[]
   projectInfo: ProjectInfo
   otherFiles: OtherFiles[]

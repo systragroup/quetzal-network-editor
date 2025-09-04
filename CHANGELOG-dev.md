@@ -1,11 +1,17 @@
-## [7.2.d] (2025-09-xx)
+## [7.2.d] (2025-09-04)
+### Features
+* Raster Layer: can add GeoTiff to map
+
 ### Refactoring
 * internaly: visibleRaster rename visibleLayers (every rasters now layer)
 * add TS for displaySettings (styles)
 * rework legend css a little and TS
+* fix css order/position of buttons on the top right of the map. (settings, layers, etc)
 
 ### Bug Fixes
 * do not show NaN NaN on Legend
+* Run parameters. negative number were weird to input. fixed.
+* Run parameters. Use of primary color was making it hard to read in light mode. removed.
 
 ## [7.2.c] (2025-08-19)
 ### Changes

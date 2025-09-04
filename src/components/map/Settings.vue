@@ -7,7 +7,6 @@ import { ref, watch } from 'vue'
 const $gettext = s => s
 
 export default {
-  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Settings',
   emits: ['submit'],
   setup (_, context) {
@@ -15,6 +14,7 @@ export default {
     const linksStore = useLinksStore()
     const rlinksStore = userLinksStore()
     const showHint = ref(false)
+    const order = ref(0)
     const computeMethod = ref({
       name: $gettext('Automatically Compute'),
       type: 'radio',
@@ -122,6 +122,7 @@ export default {
       cancel,
       shake,
       show,
+      order,
     }
   },
 }
@@ -137,7 +138,10 @@ export default {
     transition="scale-transition"
   >
     <template v-slot:activator="{ props }">
-      <div class="setting">
+      <div
+        class="layer-button"
+        :style="{ '--n': order }"
+      >
         <v-btn
           icon="fa-solid fa-cog"
           color="regular"
@@ -266,13 +270,11 @@ export default {
   </v-menu>
 </template>
 <style lang="scss" scoped>
-.setting {
-  left: 96%;
+.layer-button {
+  right: calc(3.5rem * var(--n) + 0.5rem);
   z-index: 2;
   top:1rem;
   position: absolute;
-  align-items: center;
-  justify-content: center;
 }
 .card {
   width: 500px;

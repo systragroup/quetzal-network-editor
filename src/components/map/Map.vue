@@ -17,7 +17,7 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
-
+import RasterLayer from '../utils/RasterLayer.vue'
 // Filter links from selected line
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -87,8 +87,9 @@ function saveMapPosition () {
 // All of the layers
 const visibleLayers = computed(() => store.visibleLayers)
 const styles = computed(() => store.styles)
-// const rasterFiles = computed(() => store.styles)
+
 const availableLayers = computed(() => store.availableLayers)
+const availableRasters = computed(() => store.availableRasters)
 
 // modes
 const { mode } = toRefs(props)
@@ -387,24 +388,27 @@ const { routeLink } = useRouting()
       @click="addPoint"
       @mousedown="clickStopDraw"
     >
-      <div
-        v-if="mapIsLoaded"
-        :style="{'display':'flex'}"
-      >
-        <Settings />
-        <StyleSelector />
-        <LayerSelector
-          v-if="styles.length>0"
-          :choices="styles"
-          :available-layers="availableLayers"
-          :map="map"
-        />
-      </div>
       <MglScaleControl position="bottom-right" />
       <MglNavigationControl
         position="bottom-right"
         :visualize-pitch="true"
       />
+      <div v-if="mapIsLoaded">
+        <Settings />
+        <StyleSelector :order="1" />
+        <LayerSelector
+          v-if="styles.length>0"
+          :order="2"
+          :choices="styles"
+          :available-layers="availableLayers"
+          :map="map"
+        />
+        <RasterLayer
+          v-if="availableRasters.length>0"
+          :order="3"
+          :map="map"
+        />
+      </div>
       <div
         v-for="file in styles"
         :key="file.name"

@@ -1,6 +1,13 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang='ts'>
+import { ref, computed, toRefs } from 'vue'
 import { useMapStore } from '../../store/map'
+
+interface Props {
+  order: number
+}
+const props = defineProps<Props>()
+const { order } = toRefs(props)
+
 const mapStore = useMapStore()
 const show = ref(false)
 const styles = [
@@ -14,7 +21,7 @@ const styles = [
 
 const mapStyle = computed(() => mapStore.mapStyle)
 // const selectedOpacity = ref(0)
-function changeMapStyle (event) {
+function changeMapStyle (event: string) {
   mapStore.changeMapStyle(event)
 }
 
@@ -30,7 +37,10 @@ function changeMapStyle (event) {
     transition="scale-transition"
   >
     <template v-slot:activator="{ props:menuProps }">
-      <div class="layer-button">
+      <div
+        class="layer-button"
+        :style="{ '--n': order }"
+      >
         <v-btn
           v-bind="menuProps"
           color="regular"
@@ -60,19 +70,16 @@ function changeMapStyle (event) {
 </template>
 <style lang="scss" scoped>
 .layer-button {
-  left: calc(96% - 3.5rem);
+  right: calc(3.5rem * var(--n) + 0.5rem);
   top:1rem;
   z-index: 2;
-  position: relative;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
 }
 .subtitle {
   font-size: 1.5em;
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding:1rem
-
 }
 .is-active{
   opacity:1;
