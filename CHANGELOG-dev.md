@@ -1,3 +1,7 @@
+## [7.2.e] (2025-09-04)
+### Features
+ * add elevation (terrain) on result map if map layer is not light or dark.
+
 ## [7.2.d] (2025-09-04)
 ### Features
 * Raster Layer: can add GeoTiff to map
