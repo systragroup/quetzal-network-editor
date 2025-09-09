@@ -68,7 +68,8 @@ function onMapLoaded (event) {
 }
 
 import { useMapResize } from '@src/composables/useMapResize.js'
-const { canvasDiv } = useMapResize(map)
+const canvasDiv = ref()
+useMapResize(map, canvasDiv)
 
 const mapStyle = computed(() => { return mapStore.mapStyle })
 watch(mapStyle, () => { saveMapPosition() })

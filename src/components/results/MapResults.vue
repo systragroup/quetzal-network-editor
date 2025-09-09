@@ -98,7 +98,7 @@ function setTerrain() {
     encoding: 'terrarium', // or "mapbox" if you use terrain-rgb
     maxzoom: 15,
   })
-  map.value.setTerrain({ source: 'srtm-dem', exaggeration: 1 })
+  map.value.setTerrain({ source: 'srtm-dem', exaggeration: 2 })
 }
 
 function fitBounds (layer) {
@@ -107,7 +107,8 @@ function fitBounds (layer) {
 }
 
 import { useMapResize } from '@src/composables/useMapResize.js'
-const { canvasDiv } = useMapResize(map)
+const canvasDiv = ref()
+useMapResize(map, canvasDiv)
 
 const selectedLinks = ref([])
 const popup = ref(null)
