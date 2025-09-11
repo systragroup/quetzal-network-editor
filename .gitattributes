@@ -1,1 +1,2 @@
 .env* filter=secret diff=secret
+*.mp3 filter=secret diff=secret
