@@ -1,3 +1,7 @@
+## [7.2.g] (2025-09-22)
+### bug fixes
+* Calc speed option bug: was rouding to 0 instead of 6 like everywhere else.
+
 ## [7.2.f] (2025-09-11)
 ### changes
 * add thundertrack song. encrypt it on github

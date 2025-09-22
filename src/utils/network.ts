@@ -48,7 +48,7 @@ export function calcLengthSpeed(linkFeature: LineStringFeatures, variants: NonEm
   linkFeature.properties.length = round(distance * 1000, 0) // metres
   variants.forEach(v => {
     const speed = distance / Number(linkFeature.properties[`time${v}`]) * secPerHour // secs (m / km/h) * secPerHour
-    linkFeature.properties[`speed${v}`] = round(speed, 0) // rounded to 0 decimals
+    linkFeature.properties[`speed${v}`] = round(speed, 6) // rounded to 6 decimals
   })
 }
 
