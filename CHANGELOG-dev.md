@@ -1,3 +1,7 @@
+## [7.2.h] (2025-10-14)
+### bug fixes
+* HideNaN was not working on non polygon layers
+
 ## [7.2.g] (2025-09-22)
 ### bug fixes
 * Calc speed option bug: was rouding to 0 instead of 6 like everywhere else.

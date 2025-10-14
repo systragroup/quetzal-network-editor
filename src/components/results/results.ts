@@ -268,16 +268,25 @@ export function useResult () {
 
   function getNaNLayer() {
     // keep track of NaN links to display them when we have a polygon
-    if (!displaySettings.value.showNaN) {
+    const hideNaN = !displaySettings.value.showNaN
+    if (hideNaN) {
       const key = displaySettings.value.selectedFeature
       nanLayer.value.features = visibleLayer.value.features.filter(link => !link.properties[key])
-      const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
-      if (!(allNaN && hasOD.value && Object.keys(matAvailableIndex.value).includes(key))) {
-      // remove NaN from links
-        visibleLayer.value.features = visibleLayer.value.features.filter(link => link.properties[key])
-      }
     } else {
       nanLayer.value = baseLineString()
+    }
+  }
+
+  function removeNaN() {
+    const hideNaN = !displaySettings.value.showNaN
+    if (hideNaN) {
+      const key = displaySettings.value.selectedFeature
+      const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
+      const isODKey = Object.keys(matAvailableIndex.value).includes(key)
+      // do not remove NaN if its interactive selection map (show green)
+      if (allNaN && isODKey && hasOD.value) return
+      // else remove NaN
+      visibleLayer.value.features = visibleLayer.value.features.filter(link => link.properties[key])
     }
   }
 
@@ -285,8 +294,9 @@ export function useResult () {
     const group = new Set(selectedCategory.value)
     const cat = selectedFilter.value
     visibleLayer.value.features = layer.value.features.filter(link => group.has(link.properties[cat]))
-    simplifyLayer()
     if (type.value === 'Polygon') getNaNLayer()
+    removeNaN()
+    simplifyLayer()
   }
 
   function updateSelectedFeature () {
