@@ -72,13 +72,15 @@ onMounted(async () => {
 })
 
 function getData (items: any, page: number, itemsPerPage: number, sortBy: any) {
-  const start = (page - 1) * itemsPerPage
-  const end = start + itemsPerPage
   if (sortBy.length > 0) {
     const sortKey = sortBy[0].key
     const sortOrder = sortBy[0].order
     items = orderBy(items, sortKey, sortOrder)
   }
+  if (itemsPerPage === -1) return items // All
+
+  const start = (page - 1) * itemsPerPage
+  const end = start + itemsPerPage
   return items.slice(start, end)
 }
 
