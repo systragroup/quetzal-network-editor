@@ -1,12 +1,14 @@
 ## [7.2.h] (2025-10-14)
-### Features
-* add migration pipeline (only style.json (preset) for now)
-* add legendName to style.
+add migration pipeline (only style.json (preset) for now)
 
+### Features
+* add legendName to style.
 
 ### bug fixes
 * HideNaN was not working on non polygon layers
-* table All doesnt show all.[#596](https://github.com/systragroup/quetzal-network-editor/issues/596)
+* csv table: show All when selecting showAll.[#596](https://github.com/systragroup/quetzal-network-editor/issues/596)
+* zip output uses the scenario name. even when changed.
+
 
 ## [7.2.g] (2025-09-22)
 ### bug fixes

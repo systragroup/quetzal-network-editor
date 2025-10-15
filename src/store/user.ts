@@ -35,8 +35,6 @@ export const useUserStore = defineStore('userStore', {
     unloadProject () {
       this.model = null
       this.scenario = null
-      const store = useIndexStore()
-      store.changeOutputName('output')
     },
     setLoggedIn () {
       this.loggedIn = true
@@ -63,10 +61,8 @@ export const useUserStore = defineStore('userStore', {
     },
     setScenario (payload: ScenarioPayload) {
       // {just scenario and protected}
-      const store = useIndexStore()
       this.scenario = payload.scenario
       this.protected = payload.protected
-      store.changeOutputName(payload.scenario || 'output')
     },
 
     setInfoPreview(payload: InfoPreview | null) {

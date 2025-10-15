@@ -148,6 +148,7 @@ async function loadFilesFromS3 () {
       }
     }
     loadNetwork(res)
+    store.changeOutputName(userStore.scenario)
   } catch (err) {
     store.changeAlert(err)
     store.changeLoading(false)
