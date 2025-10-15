@@ -50,7 +50,7 @@ async function getImg () {
     if (!(file.content instanceof Uint8Array)) {
       var url = await s3.getImagesURL(userStore.model, scenario + file.path)
     } else {
-      const blob = new Blob([file.content], { type: 'image/png' })
+      const blob = new Blob([file.content as any], { type: 'image/png' })
       // Create a data URL from the Blob
       var url = await readBlobAsDataURL(blob)
     }

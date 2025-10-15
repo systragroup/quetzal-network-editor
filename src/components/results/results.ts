@@ -13,12 +13,6 @@ export type FeatureName = string
 
 export type MatrixData = Record<FeatureName, Record<string, string>>
 
-export interface Preset extends Style {
-  selectedFilter: string
-  selectedCategory?: string[]
-  selectedIndex?: string
-}
-
 const defaultSettings: DisplaySettings = {
   selectedFeature: '',
   maxWidth: 10,
@@ -36,6 +30,7 @@ const defaultSettings: DisplaySettings = {
   extrusion: false,
   padding: [0, 100],
   labels: '',
+  legendName: '',
 }
 
 function isHexColor (variable: string) {
@@ -165,7 +160,7 @@ export function useResult () {
     matSelectedIndex.value = ''
   }
 
-  function loadLayer (data: GeoJson, matData: MatrixData | null, preset: Preset | null = null) {
+  function loadLayer (data: GeoJson, matData: MatrixData | null, preset: Style | null = null) {
     reset()
     layer.value = data
     // Handle type

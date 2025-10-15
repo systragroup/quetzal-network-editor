@@ -15,10 +15,15 @@ export interface ImportPoly {
   poly: any
 }
 export interface Style {
+  version: 1
   name: string
   layer: string
   displaySettings: DisplaySettings
+  selectedFilter?: string // if filter visible
+  selectedCategory?: string[] // if filter visible
+  selectedIndex?: string // if interactive. selected index to show
 }
+
 export interface ProjectInfo {
   description: string
   model_tag: string
@@ -454,6 +459,7 @@ export interface DisplaySettings {
   padding: [number, number]
   selectedFeature: string
   labels: string
+  legendName: string
 
   [key: string]: number | string | boolean | number[]
 }

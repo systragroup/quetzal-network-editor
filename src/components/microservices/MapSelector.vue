@@ -57,9 +57,8 @@ watch(mapStyle, () => {
 function onMapLoaded (event: any) {
   event.map.dragRotate.disable()
   map.value = event.map as Map
+  initMapEvent()
 
-  map.value.on('dragend', getBounds)
-  map.value.on('zoomend', getBounds)
   freeForm.value = false
   if (store.importPoly?.freeForm) {
     poly.value = store.importPoly.poly
@@ -67,8 +66,12 @@ function onMapLoaded (event: any) {
   } else {
     getBounds()
   }
-
   mapIsLoaded.value = true
+}
+function initMapEvent() {
+  if (!map.value) return
+  map.value.on('dragend', getBounds)
+  map.value.on('zoomend', getBounds)
 }
 
 function getBounds () {

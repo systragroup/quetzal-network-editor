@@ -110,13 +110,13 @@ async function changePreset (preset) {
 const presetDialog = ref()
 const inputName = ref('')
 
-async function savePreset (preset) {
+async function savePreset (tempDisplaySettings) {
   // open a dialog to chose the name and accept
-  const tempDisplaySettings = preset
   inputName.value = selectedPreset.value
   const resp = await presetDialog.value.openDialog()
   if (resp) {
     const style = {
+      version: 1,
       name: cloneDeep(inputName.value),
       layer: cloneDeep(selectedLayer.value),
       displaySettings: cloneDeep(tempDisplaySettings),

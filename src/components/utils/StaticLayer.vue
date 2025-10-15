@@ -2,18 +2,19 @@
 import MapLegend from '@comp/utils/MapLegend.vue'
 import { onBeforeUnmount, toRefs, onMounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
-import { Preset, useResult } from '@comp/results/results'
+import { useResult } from '@comp/results/results'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useODStore } from '@src/store/od'
 import { useTheme } from 'vuetify'
 import { Map } from 'mapbox-gl'
+import { Style } from '@src/types/typesStore'
 const theme = useTheme()
 // set visibility. to render or not by fetching the data.
 // we need to create all the statics link (even without the data)
 // for the correct z-order. if not, they are drawn over the links.
 interface Props {
-  preset: Preset
+  preset: Style
   map: Map
   order: number
   visibleLayers: string[]
@@ -38,7 +39,7 @@ const opacity = preset.value.displaySettings.opacity
 const offsetValue = preset.value.displaySettings.offset ? -1 : 1
 const labels = preset.value.displaySettings.labels
 
-async function changeLayer (layer: string, preset: Preset | null = null) {
+async function changeLayer (layer: string, preset: Style | null = null) {
   switch (layer) {
     case 'links':
       loadLayer(linksStore.links, null, preset)

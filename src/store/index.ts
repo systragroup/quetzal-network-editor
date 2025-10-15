@@ -21,6 +21,7 @@ import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
   Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
+import { migrateStyle } from '@src/migrations/migration.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -301,7 +302,8 @@ export const useIndexStore = defineStore('index', {
     },
 
     loadStyles (payload: Style[]) {
-      const json = stylesSerializer(payload)
+      let json = stylesSerializer(payload)
+      json = json.map(style => migrateStyle(style))
       this.styles = json
     },
 
