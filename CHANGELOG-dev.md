@@ -1,3 +1,10 @@
+## [7.2.i] (2025-10-15)
+### bug fixes
+* remove params when unloading a project
+
+### Features
+* can rename a project [#597](https://github.com/systragroup/quetzal-network-editor/issues/597)
+
 ## [7.2.h] (2025-10-15)
 add migration pipeline (only style.json (preset) for now)
 
