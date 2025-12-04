@@ -10,8 +10,9 @@ import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import { Scenario, ScenarioPayload } from '@src/types/typesStore'
 const { $gettext } = useGettext()
-
 const emits = defineEmits(['load', 'unload'])
+
+const COMMON = '_common'
 const store = useIndexStore()
 const userStore = useUserStore()
 const loading = ref(false)
@@ -32,7 +33,8 @@ const scenariosList = ref<Scenario[]>(userStore.scenariosList)
 async function getScenarios() {
   if (!localModel.value) return
   loading.value = true
-  scenariosList.value = await s3.getScenario(localModel.value)
+  const tempList = await s3.getScenario(localModel.value)
+  scenariosList.value = tempList.filter(el => el.scenario !== COMMON)
   // change email when promise resolve. fetching email il slow. so we lazy load them
   scenariosList.value.forEach((scen) => {
     scen.userEmailPromise.then((val) => { scen.userEmail = val }).catch(
@@ -107,12 +109,20 @@ function selectScenario (e: Event | null, val: ScenarioPayload) {
   }
 }
 
-async function loadProject () {
+async function loadProject() {
   userStore.setModel(localModel.value)
   userStore.setScenario({ scenario: localScen.value, protected: locked.value })
   userStore.setScenariosList(scenariosList.value)
+  getDocs(localModel.value)
   localStorage.setItem('model', String(storeModel.value))
   emits('load', 'emit')
+}
+
+async function getDocs(model: string | null) {
+  let filesList = await s3.listFiles(model, `${COMMON}/docs/`)
+  filesList = filesList.filter(name => !name.endsWith('/'))
+  const formatted = filesList.map(name => { return { path: name, content: null } })
+  store.loadDocFiles(formatted)
 }
 
 const searchString = ref('')
@@ -154,6 +164,7 @@ const rules = ref({
   required: (v: any) => v !== '' || $gettext('Please enter a name'),
   noSlash: (v: any) => !v.includes('/') || $gettext('cannot have / in name'),
   noHash: (v: any) => !v.includes('#') || $gettext('cannot have # in name'),
+  noCommon: (v: any) => v !== COMMON || $gettext('reserved name.'),
   noDuplicated: (v: any) => !scenariosList.value.map(p => p.scenario).includes(v) || $gettext('project already exist'),
 })
 
@@ -290,7 +301,6 @@ async function mouseOn(val: Scenario) {
 async function mouseOff() {
   userStore.setInfoPreview(null)
 }
-
 const showScenario = ref(false)
 function selectModel(v: string) {
   localModel.value = v
@@ -506,7 +516,7 @@ function selectModel(v: string) {
       v-model="input"
       variant="underlined"
       autofocus
-      :rules="[rules.required,rules.noSlash,rules.noHash,rules.noDuplicated]"
+      :rules="[rules.required,rules.noSlash,rules.noHash,rules.noDuplicated,rules.noCommon]"
       :label="$gettext('name')"
     />
   </PromiseDialog>

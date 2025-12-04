@@ -9,9 +9,10 @@ const userStore = useUserStore()
 </script>
 <template>
   <MarkDownViewer
-    :model="userStore.model!"
-    :scenario="userStore.scenario + '/'"
-    :file-paths="store.otherFiles"
+    v-if="userStore.model"
+    :model="userStore.model"
+    :scenario="''"
+    :file-paths="store.docFiles"
   />
 </template>
 <style lang="scss" scoped>

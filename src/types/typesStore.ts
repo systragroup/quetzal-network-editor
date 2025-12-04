@@ -76,6 +76,7 @@ export interface IndexStore {
   styles: Style[]
   projectInfo: ProjectInfo
   otherFiles: OtherFiles[]
+  docFiles: OtherFiles[]
   microservicesParams: FileFormat[]
 }
 

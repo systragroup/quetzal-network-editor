@@ -20,7 +20,7 @@ import { cloneDeep } from 'lodash'
 import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
-  Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
+  Notification, OtherFiles, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
 import { migrateStyle } from '@src/migrations/migration.js'
 const $gettext = (s: string) => s
 
@@ -50,6 +50,7 @@ export const useIndexStore = defineStore('index', {
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
+    docFiles: [], // [{path, content}]
     // microservices
     importPoly: null,
     microservicesParams: [],
@@ -167,6 +168,17 @@ export const useIndexStore = defineStore('index', {
       } catch (err) {
         this.changeAlert(err as Error)
       }
+    },
+
+    loadDocFiles(payload: FileFormat[]) {
+      // push files
+      const res: OtherFiles[] = []
+      for (const file of payload) {
+        const extension = file.path.split('.').slice(-1)[0]
+        const name = file.path.split('.').slice(-2)[0]
+        res.push({ ...file, name, extension })
+      }
+      this.docFiles = res
     },
 
     loadOtherFiles (payload: FileFormat[]) {
@@ -577,6 +589,7 @@ export const useIndexStore = defineStore('index', {
         && runStore.parameters.length === 0
         && state.styles.length === 0)
     },
+    hasDocs: (state) => state.docFiles.length > 0,
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()

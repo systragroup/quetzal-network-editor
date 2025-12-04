@@ -26,7 +26,7 @@ watch(error, (val) => {
 
 const isProtected = computed(() => userStore.protected)
 const scenario = computed(() => userStore.scenario)
-
+const hasDocs = computed(() => store.hasDocs)
 const drawer = ref(true)
 const showRail = defineModel({ type: Boolean, default: false })
 // logic to only have the sidepanel (small) if on desktop
@@ -71,11 +71,11 @@ onMounted(() => {
 })
 
 const getDisplayedRoutes = computed(() => {
-  if (isMobile.value) {
-    return menuItems.value.filter(o => o.name !== 'Home')
-  } else {
-    return menuItems.value
-  }
+  const exclusion = []
+  if (isMobile.value) exclusion.push('Home')
+  if (!hasDocs.value) exclusion.push('Docs')
+
+  return menuItems.value.filter(el => !exclusion.includes(el.name))
 })
 
 async function handleClickMenuItem (route) {

@@ -1,3 +1,9 @@
+## [7.2.j] (2025-12-04)
+### Features
+* add model docs. under scenario _common/docs/ works like outputs .md.
+### changes
+* _common is now reserved for scenario name and filtered out of the list.
+
 ## [7.2.i] (2025-10-15)
 ### bug fixes
 * remove params when unloading a project
