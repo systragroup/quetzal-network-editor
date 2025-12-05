@@ -37,7 +37,7 @@ function readBlobAsDataURL (blob: Blob): Promise<string> {
 const store = useIndexStore()
 
 const isMobile = computed(() => store.isMobile)
-const width = ref(50)
+const width = ref(75)
 onMounted(() => {
   width.value = isMobile.value ? 100 : 50
 })
@@ -53,8 +53,7 @@ const mdString = ref('')
 async function getImg () {
   // get the list of images from output files.
   // if its undefined (its on s3). fetch it.
-  const imgFiles = filePaths.value.filter(file => file.extension === 'png')
-  console.log(imgFiles)
+  const imgFiles = filePaths.value.filter(file => ['png', 'gif'].includes(file.extension))
   for (const file of imgFiles) {
     if (!(file.content instanceof Uint8Array)) {
       var url = await s3.getImagesURL(model.value, scenario.value + file.path)
@@ -74,7 +73,6 @@ async function getMD() {
   if (mdFile.length > 0) {
     let content = mdFile[0].content
     if (!(content instanceof Uint8Array)) {
-      console.log(scenario.value + mdFile[0].path)
       content = await s3.readBytes(model.value, scenario.value + mdFile[0].path)
     }
     mdString.value = new TextDecoder().decode(content)
@@ -101,12 +99,13 @@ onMounted(async () => {
   await getImg()
   await getMD()
   replaceSrc()
-  console.log(imgs.value)
   store.changeLoading(false)
   if (imgs.value.length === 0 && mdString.value.length === 0) {
     message.value = $gettext('Nothing to display')
   }
 })
+
+const darkMode = computed(() => store.darkMode)
 
 </script>
 <template>
@@ -117,6 +116,7 @@ onMounted(async () => {
       </p>
       <Markdown
         :source="mdString"
+        :dark-mode="darkMode"
         :style="{'width':`${width}%`}"
       />
       <div

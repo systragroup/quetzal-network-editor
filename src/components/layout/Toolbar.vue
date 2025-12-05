@@ -34,7 +34,8 @@ const theme = useTheme()
 // when init. get preference. watcher on immediate will sync it with vuetify and store.
 const darkMode = ref(localStorage.getItem('darkMode') === 'true')
 watch(darkMode, (val) => {
-  theme.global.name.value = val ? 'dark' : 'light'
+  const value = val ? 'dark' : 'light'
+  theme.change(value)
   store.changeDarkMode(val)
   localStorage.setItem('darkMode', String(val))
 }, { immediate: true })

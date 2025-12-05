@@ -6219,6 +6219,11 @@ gettext-extractor@^3.6.2:
     pofile "1.0.x"
     typescript "4 - 5"
 
+github-markdown-css@^5.8.1:
+  version "5.8.1"
+  resolved "https://registry.yarnpkg.com/github-markdown-css/-/github-markdown-css-5.8.1.tgz#2a53cf17f0c9bde5ff9e83710a3310a02f5278a7"
+  integrity sha512-8G+PFvqigBQSWLQjyzgpa2ThD9bo7+kDsriUIidGcRhXgmcaAWUIpCZf8DavJgc+xifjbCG+GvMyWr0XMXmc7g==
+
 gl-matrix@^3.4.3:
   version "3.4.3"
   resolved "https://registry.yarnpkg.com/gl-matrix/-/gl-matrix-3.4.3.tgz#fc1191e8320009fd4d20e9339595c6041ddc22c9"
