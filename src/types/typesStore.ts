@@ -69,7 +69,6 @@ export interface IndexStore {
   linksPopupContent: string[]
   roadsPopupContent: string[]
   cyclewayMode: boolean
-  outputName: string
   importPoly: ImportPoly | null
   visibleLayers: string[]
   visibleRasters: string[]
@@ -383,6 +382,7 @@ export interface UserStore {
   scenariosList: Scenario[]
   model: null | string
   scenario: null | string
+  outputName: string
   infoPreview: InfoPreview | null
   protected: boolean
 }

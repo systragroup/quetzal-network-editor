@@ -3,7 +3,7 @@ import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
 import { useIndexStore } from '@src/store/index'
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const store = useIndexStore()
 const loading = computed(() => store.loading)
@@ -16,7 +16,6 @@ watch(snackbar, (val) => {
     store.changeNotification({ text: '', autoClose: true })
   }
 })
-onMounted(() => { store.initNetworks() })
 
 const showRail = ref(false)
 

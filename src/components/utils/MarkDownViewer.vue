@@ -37,9 +37,9 @@ function readBlobAsDataURL (blob: Blob): Promise<string> {
 const store = useIndexStore()
 
 const isMobile = computed(() => store.isMobile)
-const width = ref(75)
+const width = ref(100) // set bellow on mount
 onMounted(() => {
-  width.value = isMobile.value ? 100 : 50
+  width.value = isMobile.value ? 100 : 75
 })
 
 interface Img {
@@ -62,6 +62,7 @@ async function getImg () {
       // Create a data URL from the Blob
       var url = await readBlobAsDataURL(blob)
     }
+    // remove path
     const name = file.path.split('/').slice(-1)[0]
     imgs.value.push({ name: name, src: url })
   }
@@ -105,8 +106,6 @@ onMounted(async () => {
   }
 })
 
-const darkMode = computed(() => store.darkMode)
-
 </script>
 <template>
   <section class="container">
@@ -116,7 +115,6 @@ const darkMode = computed(() => store.darkMode)
       </p>
       <Markdown
         :source="mdString"
-        :dark-mode="darkMode"
         :style="{'width':`${width}%`}"
       />
       <div

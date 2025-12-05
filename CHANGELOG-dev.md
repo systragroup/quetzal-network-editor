@@ -1,8 +1,14 @@
 ## [7.2.j] (2025-12-04)
 ### Features
 * add model docs. under scenario _common/docs/ works like outputs .md.
+
 ### changes
 * _common is now reserved for scenario name and filtered out of the list.
+* add better markdown css (like github)
+* Remove initNetwork on app mount. it was messing up values set before (like darkmode), and feel unnecesarry to $reset() all store.
+
+### bug fixes
+* when rename a scenario. outputName was not changed.
 
 ## [7.2.i] (2025-10-15)
 ### bug fixes

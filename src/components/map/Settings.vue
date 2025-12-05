@@ -2,6 +2,7 @@
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
+import { useUserStore } from '@src/store/user'
 import { ref, watch } from 'vue'
 
 const $gettext = s => s
@@ -13,6 +14,7 @@ export default {
     const store = useIndexStore()
     const linksStore = useLinksStore()
     const rlinksStore = userLinksStore()
+    const userStore = useUserStore()
     const showHint = ref(false)
     const order = ref(0)
     const computeMethod = ref({
@@ -73,7 +75,7 @@ export default {
       roadsPopupContent.value.choices = rlinksStore.rlineAttributes
       roadsPopupContent.value.value = store.roadsPopupContent
       defaultHighway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'highway')[0].value
-      outputName.value.value = store.outputName
+      outputName.value.value = userStore.outputName
     }
     const shake = ref(false)
     const show = ref(false)

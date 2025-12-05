@@ -6,6 +6,7 @@ import auth from '../auth'
 import { CognitoInfo, InfoPreview, Scenario, ScenarioPayload, UserStore } from '@src/types/typesStore'
 
 const $gettext = (s: string) => s
+const OUTPUT_NAME = 'output'
 
 export const useUserStore = defineStore('userStore', {
   state: (): UserStore => ({
@@ -27,6 +28,7 @@ export const useUserStore = defineStore('userStore', {
     scenariosList: [],
     model: null,
     scenario: null,
+    outputName: OUTPUT_NAME,
     infoPreview: null, // null or { description: '' }
     protected: false,
   }),
@@ -35,6 +37,7 @@ export const useUserStore = defineStore('userStore', {
     unloadProject () {
       this.model = null
       this.scenario = null
+      this.outputName = OUTPUT_NAME
     },
     setLoggedIn () {
       this.loggedIn = true
@@ -63,6 +66,11 @@ export const useUserStore = defineStore('userStore', {
       // {just scenario and protected}
       this.scenario = payload.scenario
       this.protected = payload.protected
+      this.changeOutputName(payload.scenario)
+    },
+
+    changeOutputName (name: string | null) {
+      this.outputName = typeof name === 'string' ? name : OUTPUT_NAME
     },
 
     setInfoPreview(payload: InfoPreview | null) {

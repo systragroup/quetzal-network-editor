@@ -43,7 +43,6 @@ export const useIndexStore = defineStore('index', {
     // general viz
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
-    outputName: 'output',
     // Project specific
     visibleLayers: [], // list of layersFiles path.
     visibleRasters: [], // list of tif files
@@ -298,6 +297,7 @@ export const useIndexStore = defineStore('index', {
     applySettings (payload: SettingsPayload) {
       const rlinksStore = userLinksStore()
       const linksStore = useLinksStore()
+      const userStore = useUserStore()
       rlinksStore.ChangeDefaultValues({ highway: payload.defaultHighway, speed: Number(payload.roadSpeed) })
 
       this.speedTimeMethod = payload.speedTimeMethod
@@ -306,11 +306,7 @@ export const useIndexStore = defineStore('index', {
 
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent
-      this.changeOutputName(payload.outputName)
-    },
-
-    changeOutputName (payload: string) {
-      this.outputName = payload
+      userStore.changeOutputName(payload.outputName)
     },
 
     loadStyles (payload: Style[]) {
@@ -366,6 +362,7 @@ export const useIndexStore = defineStore('index', {
       const rlinksStore = userLinksStore()
       const ODStore = useODStore()
       const runStore = useRunStore()
+      const userStore = useUserStore()
       const zip = new JSZip()
       let links = ''
       let nodes = ''
@@ -441,7 +438,7 @@ export const useIndexStore = defineStore('index', {
         }
       }
       zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
-        .then((content) => { saveAs(content, `${this.outputName}.zip`)
+        .then((content: any) => { saveAs(content, `${userStore.outputName}.zip`)
         })
     },
 
@@ -526,7 +523,7 @@ export const useIndexStore = defineStore('index', {
 
       // delete otherFiles (if a otherFiles is on S3 but not in memory (was deleted locally))
       // delete it on s3 when we save.
-      let filesOnCloud = await s3.listFiles(bucket, scen)
+      let filesOnCloud: string[] = await s3.listFiles(bucket, scen)
       const filesToExcludes = Object.values(paths) // list of all files (that are not others.)
       filesOnCloud = filesOnCloud.filter(path => !filesToExcludes.includes(path))
       filesOnCloud = filesOnCloud.map(file => file.slice(scen.length)) // remove scen name from file)

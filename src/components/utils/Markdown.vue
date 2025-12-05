@@ -5,7 +5,7 @@ import 'katex/dist/katex.min.css'
 import lightCss from 'github-markdown-css/github-markdown-light.css?url'
 import darkCss from 'github-markdown-css/github-markdown-dark.css?url'
 
-import { toRefs, watch } from 'vue'
+import { computed, onMounted, toRefs, watch } from 'vue'
 const markdown = new MarkdownIt()
 markdown.use(mdKatex)
 
@@ -14,12 +14,8 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  darkMode: {
-    type: Boolean,
-    default: false,
-  },
 })
-const { source, darkMode } = toRefs(props)
+const { source } = toRefs(props)
 
 markdown.renderer.rules.image = function (tokens, idx) {
   const token = tokens[idx]
@@ -35,9 +31,13 @@ markdown.renderer.rules.image = function (tokens, idx) {
 // we have 2 style depending on the theme (dark light).
 // need to toggle them manually
 
+import { useIndexStore } from '@src/store/index'
+const store = useIndexStore()
+const darkMode = computed(() => store.darkMode)
+onMounted(() => setThemeCss(darkMode.value ? darkCss : lightCss))
 watch(darkMode, (v) => {
   setThemeCss(v ? darkCss : lightCss)
-}, { immediate: true })
+})
 
 function setThemeCss(href) {
   const themeId = 'markdown-theme'
