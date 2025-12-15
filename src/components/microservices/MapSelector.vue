@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MglMap, MglNavigationControl, MglScaleControl, MglGeojsonLayer } from 'vue-mapbox3'
+import { Map } from 'mapbox-gl'
 import NodesLayer from './NodesLayer.vue'
 import buffer from '@turf/buffer'
 import bboxPolygon from '@turf/bbox-polygon'
@@ -21,7 +22,7 @@ const emits = defineEmits<{
 
 const store = useIndexStore()
 const mapStore = useMapStore()
-const map = ref()
+const map = ref<Map | null>(null)
 const mapIsLoaded = ref(false)
 const poly = ref<PolygonFeatures>(basePolygonFeature())
 const nodes = ref({})
@@ -32,7 +33,8 @@ const mapStyle = computed(() => { return mapStore.mapStyle })
 
 onBeforeUnmount(() => {
   // remove stroke layer as it use the polygon layer data.
-  const center = map.value?.getCenter()
+  if (!map.value) return
+  const center = map.value.getCenter()
   if (center) {
     mapStore.saveMapPosition({
       mapCenter: [center.lng, center.lat],
@@ -46,6 +48,7 @@ onBeforeUnmount(() => {
 })
 
 watch(mapStyle, () => {
+  if (!map.value) return
   try {
     map.value.removeLayer('stroke')
   } catch (err) {}
@@ -53,9 +56,9 @@ watch(mapStyle, () => {
 
 function onMapLoaded (event: any) {
   event.map.dragRotate.disable()
-  map.value = event.map
-  map.value.on('dragend', getBounds)
-  map.value.on('zoomend', getBounds)
+  map.value = event.map as Map
+  initMapEvent()
+
   freeForm.value = false
   if (store.importPoly?.freeForm) {
     poly.value = store.importPoly.poly
@@ -63,12 +66,17 @@ function onMapLoaded (event: any) {
   } else {
     getBounds()
   }
-
   mapIsLoaded.value = true
+}
+function initMapEvent() {
+  if (!map.value) return
+  map.value.on('dragend', getBounds)
+  map.value.on('zoomend', getBounds)
 }
 
 function getBounds () {
-  const mapbbox = map.value.getBounds()
+  const mapbbox = map.value?.getBounds()
+  if (!mapbbox) return
   const bbox = bboxPolygon([mapbbox._sw.lng, mapbbox._sw.lat, mapbbox._ne.lng, mapbbox._ne.lat])
   poly.value = buffer(bbox, -0.1 * (mapbbox._ne.lat - mapbbox._sw.lat), { units: 'degrees' })
   poly.value.geometry.coordinates[0] = poly.value.geometry.coordinates[0].reverse()
@@ -76,6 +84,7 @@ function getBounds () {
 }
 
 function toggleFreeForm () {
+  if (!map.value) return
   freeForm.value = !freeForm.value
   if (freeForm.value) {
     map.value.off('dragend', getBounds)
@@ -93,12 +102,14 @@ function toggleFreeForm () {
 }
 
 function onHover () {
+  if (!map.value) return
   if (freeForm.value) {
     map.value.getCanvas().style.cursor = 'pointer'
   }
 }
 
 function offHover () {
+  if (!map.value) return
   if (freeForm.value) {
     map.value.getCanvas().style.cursor = ''
   }

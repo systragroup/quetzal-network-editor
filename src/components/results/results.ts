@@ -4,42 +4,14 @@ import { useIndexStore } from '@src/store/index'
 import { CRSis4326 } from '@src/utils/serializer'
 import chroma from 'chroma-js'
 import seedrandom from 'seedrandom'
+import { arrayMinMax } from '@src/utils/utils'
 import { baseLineString, GeoJson } from '@src/types/geojson'
+import { DisplaySettings, Style } from '@src/types/typesStore'
 const $gettext = (s: string) => s
 
 export type FeatureName = string
 
 export type MatrixData = Record<FeatureName, Record<string, string>>
-
-export interface Preset {
-  layer: string
-  name: string
-  displaySettings: DisplaySettings
-  selectedFilter: string
-  selectedCategory?: string[]
-  selectedIndex?: string
-}
-
-export interface DisplaySettings {
-  maxWidth: number
-  minWidth: number
-  numStep: number
-  scale: 'linear' | 'sqrt' | 'log' | 'exp' | 'quad'
-  fixScale: boolean
-  minVal: number
-  maxVal: number
-  cmap: string
-  opacity: number
-  offset: boolean
-  showNaN: boolean
-  reverseColor: boolean
-  extrusion: boolean
-  padding: [number, number]
-  selectedFeature: string
-  labels: string
-
-  [key: string]: number | string | boolean | number[]
-}
 
 const defaultSettings: DisplaySettings = {
   selectedFeature: '',
@@ -58,6 +30,7 @@ const defaultSettings: DisplaySettings = {
   extrusion: false,
   padding: [0, 100],
   labels: '',
+  legendName: '',
 }
 
 function isHexColor (variable: string) {
@@ -187,7 +160,7 @@ export function useResult () {
     matSelectedIndex.value = ''
   }
 
-  function loadLayer (data: GeoJson, matData: MatrixData | null, preset: Preset | null = null) {
+  function loadLayer (data: GeoJson, matData: MatrixData | null, preset: Style | null = null) {
     reset()
     layer.value = data
     // Handle type
@@ -290,16 +263,25 @@ export function useResult () {
 
   function getNaNLayer() {
     // keep track of NaN links to display them when we have a polygon
-    if (!displaySettings.value.showNaN) {
+    const hideNaN = !displaySettings.value.showNaN
+    if (hideNaN) {
       const key = displaySettings.value.selectedFeature
       nanLayer.value.features = visibleLayer.value.features.filter(link => !link.properties[key])
-      const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
-      if (!(allNaN && hasOD.value && Object.keys(matAvailableIndex.value).includes(key))) {
-      // remove NaN from links
-        visibleLayer.value.features = visibleLayer.value.features.filter(link => link.properties[key])
-      }
     } else {
       nanLayer.value = baseLineString()
+    }
+  }
+
+  function removeNaN() {
+    const hideNaN = !displaySettings.value.showNaN
+    if (hideNaN) {
+      const key = displaySettings.value.selectedFeature
+      const allNaN = layer.value.features.filter(link => link.properties[key]).length === 0
+      const isODKey = Object.keys(matAvailableIndex.value).includes(key)
+      // do not remove NaN if its interactive selection map (show green)
+      if (allNaN && isODKey && hasOD.value) return
+      // else remove NaN
+      visibleLayer.value.features = visibleLayer.value.features.filter(link => link.properties[key])
     }
   }
 
@@ -307,8 +289,9 @@ export function useResult () {
     const group = new Set(selectedCategory.value)
     const cat = selectedFilter.value
     visibleLayer.value.features = layer.value.features.filter(link => group.has(link.properties[cat]))
-    simplifyLayer()
     if (type.value === 'Polygon') getNaNLayer()
+    removeNaN()
+    simplifyLayer()
   }
 
   function updateSelectedFeature () {
@@ -324,12 +307,6 @@ export function useResult () {
       link => link.properties[key])
 
     if (!displaySettings.value.fixScale) {
-      const arrayMinMax = (arr: number[]) =>
-        arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
-          Number.POSITIVE_INFINITY,
-          Number.NEGATIVE_INFINITY,
-        ])
-
       const [minV, maxV] = arrayMinMax(featureArr)
       displaySettings.value.minVal = Math.round(minV * 100) / 100
       displaySettings.value.maxVal = Math.round(maxV * 100) / 100

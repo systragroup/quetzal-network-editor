@@ -9,6 +9,7 @@ const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')
 const ResultTable = () => import('@page/ResultTable.vue')
 const Microservices = () => import('@page/Microservices.vue')
+const Documentation = () => import('@page/Documentation.vue')
 
 const basePath = import.meta.env.VITE_BASE_PATH
 const $gettext = s => s
@@ -17,6 +18,13 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   base: basePath,
   routes: [
+    {
+      path: '/Docs',
+      name: 'Docs',
+      component: Documentation,
+      icon: 'fab fa-readme',
+      title: $gettext('Docs'),
+    },
     {
       path: '/',
       name: 'Import',

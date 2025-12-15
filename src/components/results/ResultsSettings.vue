@@ -4,9 +4,9 @@ import { ref, watch, toRefs, computed } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
-const props = defineProps(['displaySettings', 'featureChoices', 'type'])
+const props = defineProps(['displaySettings', 'featureChoices', 'type', 'order'])
 const emits = defineEmits(['submit', 'save-preset'])
-const { displaySettings, featureChoices, type } = toRefs(props)
+const { displaySettings, featureChoices, type, order } = toRefs(props)
 
 const colorsMaps = computed(() => {
   const first = ['OrRd', 'Spectral', 'RdYlGn', 'Viridis', 'YlGn', 'RdYlBu']
@@ -118,10 +118,16 @@ const parameters = ref([{
   value: displaySettings.value.labels,
   hint: $gettext('show labels'),
 },
+{
+  name: $gettext('legend title'),
+  type: 'String',
+  value: displaySettings.value.legendName,
+  units: '',
+  hint: $gettext('Legend title'),
+},
 ])
 const showHint = ref(false)
 const showFixScale = ref(false)
-const shake = ref(false)
 
 watch(showDialog, () => {
   refresh()
@@ -129,6 +135,11 @@ watch(showDialog, () => {
 })
 // when we change layer
 watch(featureChoices, () => refresh())
+
+// when change selected Features.
+function setLegendName(v) {
+  parameters.value[16].value = v
+}
 
 function toggleFixScale () {
   if (parameters.value[11].value) {
@@ -170,6 +181,7 @@ function refresh () {
   parameters.value[13].value = displaySettings.value.extrusion
   parameters.value[14].value = displaySettings.value.padding
   parameters.value[15].value = displaySettings.value.labels
+  parameters.value[16].value = displaySettings.value.legendName
 }
 function submit (method) {
   if (true) {
@@ -190,17 +202,13 @@ function submit (method) {
       extrusion: parameters.value[13].value,
       padding: parameters.value[14].value,
       labels: parameters.value[15].value,
+      legendName: parameters.value[16].value,
     }
     if (method === 'apply') {
       emits('submit', payload)
     } else if (method === 'save') {
       emits('save-preset', payload)
     }
-  } else {
-    shake.value = true
-    setTimeout(() => {
-      shake.value = false
-    }, 500)
   }
 }
 
@@ -220,7 +228,10 @@ function cancel () {
     transition="scale-transition"
   >
     <template v-slot:activator="{ props:mp }">
-      <div class="setting">
+      <div
+        class="layer-button"
+        :style="{ '--n': order }"
+      >
         <v-btn
           :color="(displaySettings.selectedFeature === null)? 'error' : 'white'"
           v-bind="mp"
@@ -260,6 +271,16 @@ function cancel () {
             :hint="showHint? $gettext(parameters[0].hint): ''"
             :persistent-hint="showHint"
             required
+            @update:model-value="setLegendName"
+          />
+          <v-text-field
+            v-model="parameters[16].value"
+            variant="underlined"
+            density="compact"
+            :label="$gettext(parameters[16].name)"
+            :hint="showHint? $gettext(parameters[16].hint): ''"
+            :persistent-hint="showHint"
+            @wheel="()=>{}"
           />
           <v-row>
             <v-col
@@ -496,6 +517,13 @@ function cancel () {
   </v-menu>
 </template>
 <style lang="scss" scoped>
+.layer-button {
+  right: calc(3.5rem * var(--n) + 0.5rem);
+  top: 1rem;
+  z-index: 2;
+  position: absolute;
+}
+
 .gradient-preview {
   width: 8rem;
   white-space: nowrap;
@@ -543,14 +571,6 @@ function cancel () {
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding: 0.5rem 1rem 0;
-}
-.setting {
-  left: 96%;
-  z-index: 2;
-  top:1rem;
-  position: absolute;
-  align-items: center;
-  justify-content: center;
 }
 .setting-card {
 overflow-y:auto;

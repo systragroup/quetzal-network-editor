@@ -36,7 +36,14 @@ export const useRunStore = defineStore('runStore', () => {
     startExecution, stopExecution, cleanRun, getRunningExecution } = useAPI({ withHistory: true })
 
   function reset() {
+    modelTag.value = ''
+    avalaibleStepFunctions.value = ['default']
+    selectedStepFunction.value = 'default'
     currentStep.value = 0
+    steps.value = [{ name: 'Loading Steps...', tasks: ['Loading Steps...'] }]
+    hasLogs.value = false
+    logs.value = []
+    parameters.value = []
     cleanRun()
   }
 

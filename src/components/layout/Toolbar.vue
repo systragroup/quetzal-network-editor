@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 
 import Profile from './Profile.vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useTheme } from 'vuetify'
 import { useGettext } from 'vue3-gettext'
 import systraLogoUrl from '@static/systra_logo.png'
@@ -32,16 +32,25 @@ const scenario = computed(() => {
 
 const theme = useTheme()
 // when init. get preference. watcher on immediate will sync it with vuetify and store.
-const darkMode = ref(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+const darkMode = ref(localStorage.getItem('darkMode') === 'true')
 watch(darkMode, (val) => {
-  theme.global.name.value = val ? 'dark' : 'light'
+  const value = val ? 'dark' : 'light'
+  theme.change(value)
   store.changeDarkMode(val)
+  localStorage.setItem('darkMode', String(val))
 }, { immediate: true })
 
 const language = useGettext()
-function handleChangeLanguage(lang) {
-  // this.$vuetify.locale.current = lang
+
+onMounted(() => {
+  const storeLanguage = localStorage.getItem('language')
+  const available = Object.keys(language.available)
+  if (storeLanguage && available.includes(storeLanguage)) { handleChangeLanguage(storeLanguage) }
+})
+
+function handleChangeLanguage(lang: any) {
   language.current = lang
+  localStorage.setItem('language', String(lang))
 }
 
 </script>

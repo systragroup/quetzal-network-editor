@@ -2,7 +2,6 @@
 import s3 from '@src/AWSClient'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
-import { useRunStore } from '@src/store/run'
 import { useClient } from '@src/axiosClient.js'
 
 import { computed, ref, watch, onMounted, nextTick } from 'vue'
@@ -11,11 +10,11 @@ import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import { Scenario, ScenarioPayload } from '@src/types/typesStore'
 const { $gettext } = useGettext()
-
 const emits = defineEmits(['load', 'unload'])
+
+const COMMON = '_common'
 const store = useIndexStore()
 const userStore = useUserStore()
-const runStore = useRunStore()
 const loading = ref(false)
 const loggedIn = computed(() => userStore.loggedIn)
 
@@ -34,7 +33,8 @@ const scenariosList = ref<Scenario[]>(userStore.scenariosList)
 async function getScenarios() {
   if (!localModel.value) return
   loading.value = true
-  scenariosList.value = await s3.getScenario(localModel.value)
+  const tempList = await s3.getScenario(localModel.value)
+  scenariosList.value = tempList.filter(el => el.scenario !== COMMON)
   // change email when promise resolve. fetching email il slow. so we lazy load them
   scenariosList.value.forEach((scen) => {
     scen.userEmailPromise.then((val) => { scen.userEmail = val }).catch(
@@ -109,13 +109,20 @@ function selectScenario (e: Event | null, val: ScenarioPayload) {
   }
 }
 
-async function loadProject () {
-  runStore.reset()
+async function loadProject() {
   userStore.setModel(localModel.value)
   userStore.setScenario({ scenario: localScen.value, protected: locked.value })
   userStore.setScenariosList(scenariosList.value)
+  getDocs(localModel.value)
   localStorage.setItem('model', String(storeModel.value))
   emits('load', 'emit')
+}
+
+async function getDocs(model: string | null) {
+  let filesList = await s3.listFiles(model, `${COMMON}/docs/`)
+  filesList = filesList.filter(name => !name.endsWith('/'))
+  const formatted = filesList.map(name => { return { path: name, content: null } })
+  store.loadDocFiles(formatted)
 }
 
 const searchString = ref('')
@@ -140,45 +147,100 @@ const sortedScenariosList = computed(() => {
   })
 })
 
+interface DialogProps {
+  title: string
+  confirmButton: string
+}
+
 const copyDialog = ref()
 const input = ref('')
-const selectedScenario = ref<string | null>(null)
+
+const dialogProps = ref<DialogProps>({
+  title: '',
+  confirmButton: '',
+})
 
 const rules = ref({
   required: (v: any) => v !== '' || $gettext('Please enter a name'),
   noSlash: (v: any) => !v.includes('/') || $gettext('cannot have / in name'),
   noHash: (v: any) => !v.includes('#') || $gettext('cannot have # in name'),
+  noCommon: (v: any) => v !== COMMON || $gettext('reserved name.'),
   noDuplicated: (v: any) => !scenariosList.value.map(p => p.scenario).includes(v) || $gettext('project already exist'),
 })
 
-async function createProject (selected: string | null) {
-  selectedScenario.value = selected
-  input.value = selected ? selected + ' copy' : ''
+async function createProject() {
+  input.value = ''
+  dialogProps.value = { title: $gettext('New Scenario'), confirmButton: $gettext('create') }
   const resp = await copyDialog.value.openDialog()
   if (resp) {
     try {
       store.changeLoading(true)
-      if (selectedScenario.value) {
-        // this is a copy
-        await s3.copyFolder(localModel.value, selectedScenario.value + '/', input.value, false)
-        store.changeNotification(
-          { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
-      } else {
-        // this is a new project
-        // copy the parameters file from Base. this will create a new project .
-        // take first Scen. should be base or any locked scen
-        const protectedList = scenariosList.value.filter(scen => scen.protected)
-        const base = protectedList[0].scenario
-        await s3.copyFolder(localModel.value, base, input.value, true)
-        store.changeNotification(
-          { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
-      }
+      // copy the parameters file from Base. this will create a new project .
+      // take first Scen. should be base or any locked scen
+      const protectedList = scenariosList.value.filter(scen => scen.protected)
+      const base = protectedList[0].scenario
+      await s3.copyFolder(localModel.value, base, input.value, true)
+      store.changeNotification(
+        { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
+
       selectScenario(null, { scenario: input.value, protected: false })
     } catch (err) {
       store.changeAlert(err)
     } finally {
       input.value = ''
-      selectedScenario.value = null
+      store.changeLoading(false)
+      await getScenarios()
+    }
+  }
+}
+
+async function copyProject (selectedScenario: string) {
+  input.value = selectedScenario + ' copy'
+  dialogProps.value = {
+    title: $gettext('Copy %{sc}?', { sc: String(selectedScenario) }),
+    confirmButton: $gettext('copy'),
+  }
+  const resp = await copyDialog.value.openDialog()
+  if (resp) {
+    try {
+      store.changeLoading(true)
+      await s3.copyFolder(localModel.value, selectedScenario + '/', input.value, false)
+      store.changeNotification(
+        { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
+
+      selectScenario(null, { scenario: input.value, protected: false })
+    } catch (err) {
+      store.changeAlert(err)
+    } finally {
+      input.value = ''
+      store.changeLoading(false)
+      await getScenarios()
+    }
+  }
+}
+
+async function renameProject() {
+  input.value = storeScenario.value || ''
+  dialogProps.value = {
+    title: $gettext('Rename %{sc}?', { sc: String(storeScenario.value) }),
+    confirmButton: $gettext('rename'),
+  }
+  const resp = await copyDialog.value.openDialog()
+  if (resp) {
+    try {
+      store.changeLoading(true)
+      const oldPath = storeScenario.value + '/'
+      const newName = input.value
+      await s3.copyFolder(storeModel.value, oldPath, newName, false)
+      await s3.deleteFolder(storeModel.value, oldPath)
+      store.changeNotification(
+        { text: $gettext('scenario renamed'), autoClose: true, color: 'success' })
+
+      userStore.setScenario({ scenario: newName, protected: false })
+    } catch (err) {
+      store.changeAlert(err)
+    } finally {
+      input.value = ''
       store.changeLoading(false)
       await getScenarios()
     }
@@ -212,15 +274,17 @@ function cancelSelectDialog () {
 
 // Delete dialog
 const deleteDialog = ref()
-const scenarioToDelete = ref('')
 
-async function deleteScenario (name: string) {
-  scenarioToDelete.value = name
+async function deleteScenario (scenarioToDelete: string) {
+  dialogProps.value = {
+    title: $gettext('Delete %{sc}?', { sc: scenarioToDelete }),
+    confirmButton: $gettext('Delete'),
+  }
   const resp = await deleteDialog.value.openDialog()
   if (!resp) return
   try {
     store.changeLoading(true)
-    await s3.deleteFolder(localModel.value, scenarioToDelete.value + '/')
+    await s3.deleteFolder(localModel.value, scenarioToDelete + '/')
     await getScenarios()
     store.changeNotification({ text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
   } catch (err) {
@@ -237,7 +301,6 @@ async function mouseOn(val: Scenario) {
 async function mouseOff() {
   userStore.setInfoPreview(null)
 }
-
 const showScenario = ref(false)
 function selectModel(v: string) {
   localModel.value = v
@@ -376,11 +439,19 @@ function selectModel(v: string) {
         <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
         <template v-slot:append>
           <v-btn
+            v-if="modelScen === scen.model + scen.scenario && !scen.protected"
+            variant="text"
+            icon="fas fa-pen"
+            class="ma-1"
+            size="small"
+            @click.stop="renameProject"
+          />
+          <v-btn
             variant="text"
             icon="fas fa-copy"
             class="ma-1"
             size="small"
-            @click.stop="createProject(scen.scenario)"
+            @click.stop="copyProject(scen.scenario)"
           />
           <v-btn
             variant="text"
@@ -407,7 +478,7 @@ function selectModel(v: string) {
         class="mt-2"
         prepend-icon="fa-solid fa-cloud-arrow-up"
 
-        @click="createProject(null)"
+        @click="createProject"
       >
         {{ $gettext('new scenario') }}
       </v-btn>
@@ -431,23 +502,21 @@ function selectModel(v: string) {
 
   <PromiseDialog
     ref="deleteDialog"
-    :title="$gettext('Delete %{sc}?', { sc: scenarioToDelete })"
-    :confirm-button="$gettext('Delete')"
+    v-bind="dialogProps"
     confirm-color="error"
   >
     {{ $gettext('The scenario will be permanently deleted') }}
   </PromiseDialog>
   <PromiseDialog
     ref="copyDialog"
-    :title="selectedScenario? $gettext('Copy %{sc}?', { sc: selectedScenario }): $gettext('New Scenario')"
-    :confirm-button="$gettext('Create')"
+    v-bind="dialogProps"
     confirm-color="primary"
   >
     <v-text-field
       v-model="input"
       variant="underlined"
       autofocus
-      :rules="[rules.required,rules.noSlash,rules.noHash,rules.noDuplicated]"
+      :rules="[rules.required,rules.noSlash,rules.noHash,rules.noDuplicated,rules.noCommon]"
       :label="$gettext('name')"
     />
   </PromiseDialog>

@@ -16,16 +16,20 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  order: {
+    type: Number,
+    default: 3,
+  },
 })
-const { choices, map } = toRefs(props)
+const { choices, map, order } = toRefs(props)
 const store = useIndexStore()
 const show = ref(false)
 const selectedLayers = ref([])
-onMounted(() => { selectedLayers.value = store.visibleRasters })
+onMounted(() => { selectedLayers.value = store.visibleLayers })
 watch(selectedLayers, (val) => {
-  const order = choices.value.map(l => l.name)
-  const orderedSelected = order.filter(el => val.includes(el))
-  store.setVisibleRasters(orderedSelected)
+  const layerOrder = choices.value.map(l => l.name)
+  const orderedSelected = layerOrder.filter(el => val.includes(el))
+  store.setvisibleLayers(orderedSelected)
 })
 watch(choices, (vals) => {
   const names = vals.map(el => el.name)
@@ -34,9 +38,9 @@ watch(choices, (vals) => {
 
 function moveLayer (name) {
   if (selectedLayers.value.includes(name)) {
-    const order = choices.value.map(l => l.name)
-    const orderedSelected = order.filter(el => selectedLayers.value.includes(el))
-    store.setVisibleRasters(orderedSelected)
+    const layerOrder = choices.value.map(l => l.name)
+    const orderedSelected = layerOrder.filter(el => selectedLayers.value.includes(el))
+    store.setvisibleLayers(orderedSelected)
     // order all active layers
     for (let i = 0; i < orderedSelected.length - 1; i++) {
       const topLayer = orderedSelected[i]
@@ -60,7 +64,10 @@ function moveLayer (name) {
     transition="scale-transition"
   >
     <template v-slot:activator="{ props:menuProps }">
-      <div class="layer-button">
+      <div
+        class="layer-button"
+        :style="{ '--n': order }"
+      >
         <v-btn
           v-bind="menuProps"
           :color="(selectedLayers.length > 0)? 'success' : 'regular'"
@@ -120,12 +127,10 @@ function moveLayer (name) {
 </template>
 <style lang="scss" scoped>
 .layer-button {
-  left: calc(96% - 10rem);
+  right: calc(3.5rem * var(--n) + 0.5rem);
   top:1rem;
   z-index: 2;
-  position: relative;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
 }
 .card {
   width: 500px;

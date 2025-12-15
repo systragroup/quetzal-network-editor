@@ -15,6 +15,7 @@ import MapLegend from '@comp/utils/MapLegend.vue'
 import LayerSelector from '@comp/utils/LayerSelector.vue'
 import StyleSelector from '@comp/utils/StyleSelector.vue'
 import StaticLayer from '@comp/utils/StaticLayer.vue'
+import RasterLayer from '@src/components/utils/RasterLayer.vue'
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 const { $gettext } = useGettext()
@@ -81,8 +82,9 @@ async function changeLayer (layer, preset = null) {
 
 const selectedPreset = ref(null)
 const availableLayers = computed(() => store.availableLayers)
+const availableRasters = computed(() => store.availableRasters)
 
-const visibleRasters = computed(() => store.visibleRasters)
+const visibleLayers = computed(() => store.visibleLayers)
 const availableStyles = computed(() => store.styles)
 
 async function changePreset (preset) {
@@ -108,13 +110,13 @@ async function changePreset (preset) {
 const presetDialog = ref()
 const inputName = ref('')
 
-async function savePreset (preset) {
+async function savePreset (tempDisplaySettings) {
   // open a dialog to chose the name and accept
-  const tempDisplaySettings = preset
   inputName.value = selectedPreset.value
   const resp = await presetDialog.value.openDialog()
   if (resp) {
     const style = {
+      version: 1,
       name: cloneDeep(inputName.value),
       layer: cloneDeep(selectedLayer.value),
       displaySettings: cloneDeep(tempDisplaySettings),
@@ -134,7 +136,7 @@ async function savePreset (preset) {
     }
 
     store.addStyle(style)
-    if (visibleRasters.value.includes(inputName.value)) {
+    if (visibleLayers.value.includes(inputName.value)) {
       store.changeNotification(
         {
           text: $gettext('Preset changed. Please reload the active layer on the map'),
@@ -247,21 +249,27 @@ onMounted(() => {
           :display-settings="displaySettings"
         />
       </div>
-      <div :style="{'display':'flex'}">
+      <div>
         <ResultsSettings
+          :order="0"
           :display-settings="displaySettings"
           :feature-choices="attributes"
           :type="type"
           @submit="updateSettings"
           @save-preset="savePreset"
         />
-        <StyleSelector />
-
+        <StyleSelector :order="1" />
         <LayerSelector
           v-if="availableStyles.length>0"
+          order="2"
           :choices="availableStyles"
           :map="slotProps.map"
           :available-layers="availableLayers"
+        />
+        <RasterLayer
+          v-if="availableRasters.length>0"
+          :order="3"
+          :map="slotProps.map"
         />
       </div>
 
@@ -269,12 +277,12 @@ onMounted(() => {
         v-for="file in availableStyles"
         :key="file.name"
       >
-        <template v-if=" visibleRasters.includes(file.name) && availableLayers.includes(file.layer)">
+        <template v-if=" visibleLayers.includes(file.name) && availableLayers.includes(file.layer)">
           <StaticLayer
             :preset="file"
             :map="slotProps.map"
-            :order="visibleRasters.indexOf(file.name)+1"
-            :visible-rasters="visibleRasters"
+            :order="visibleLayers.indexOf(file.name)+1"
+            :visible-layers="visibleLayers"
           />
         </template>
       </div>

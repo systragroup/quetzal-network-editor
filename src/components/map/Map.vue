@@ -17,7 +17,7 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
-
+import RasterLayer from '../utils/RasterLayer.vue'
 // Filter links from selected line
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
@@ -68,7 +68,8 @@ function onMapLoaded (event) {
 }
 
 import { useMapResize } from '@src/composables/useMapResize.js'
-const { canvasDiv } = useMapResize(map)
+const canvasDiv = ref()
+useMapResize(map, canvasDiv)
 
 const mapStyle = computed(() => { return mapStore.mapStyle })
 watch(mapStyle, () => { saveMapPosition() })
@@ -84,10 +85,12 @@ function saveMapPosition () {
   } catch (err) {}
 }
 
-// All of the rasters
-const visibleRasters = computed(() => store.visibleRasters)
-const rasterFiles = computed(() => store.styles)
+// All of the layers
+const visibleLayers = computed(() => store.visibleLayers)
+const styles = computed(() => store.styles)
+
 const availableLayers = computed(() => store.availableLayers)
+const availableRasters = computed(() => store.availableRasters)
 
 // modes
 const { mode } = toRefs(props)
@@ -386,35 +389,38 @@ const { routeLink } = useRouting()
       @click="addPoint"
       @mousedown="clickStopDraw"
     >
-      <div
-        v-if="mapIsLoaded"
-        :style="{'display':'flex'}"
-      >
-        <Settings />
-        <StyleSelector />
-        <LayerSelector
-          v-if="rasterFiles.length>0"
-          :choices="rasterFiles"
-          :available-layers="availableLayers"
-          :map="map"
-        />
-      </div>
       <MglScaleControl position="bottom-right" />
       <MglNavigationControl
         position="bottom-right"
         :visualize-pitch="true"
       />
+      <div v-if="mapIsLoaded">
+        <Settings />
+        <StyleSelector :order="1" />
+        <LayerSelector
+          v-if="styles.length>0"
+          :order="2"
+          :choices="styles"
+          :available-layers="availableLayers"
+          :map="map"
+        />
+        <RasterLayer
+          v-if="availableRasters.length>0"
+          :order="3"
+          :map="map"
+        />
+      </div>
       <div
-        v-for="file in rasterFiles"
+        v-for="file in styles"
         :key="file.name"
       >
         <StaticLayer
-          v-if="mapIsLoaded && visibleRasters.includes(file.name) && availableLayers.includes(file.layer)"
+          v-if="mapIsLoaded && visibleLayers.includes(file.name) && availableLayers.includes(file.layer)"
           :key="file.name"
           :map="map"
           :preset="file"
-          :order="visibleRasters.indexOf(file.name)"
-          :visible-rasters="visibleRasters"
+          :order="visibleLayers.indexOf(file.name)"
+          :visible-layers="visibleLayers"
         />
       </div>
       <template v-if="mapIsLoaded && !rlinksIsEmpty">

@@ -1,5 +1,5 @@
 import { baseLineString, LineStringFeatures, LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
-import { Attributes, NonEmptyArray } from '@src/types/typesStore'
+import { Attributes, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
 import length from '@turf/length'
 import { round } from './utils'
 const secPerHour = 3600
@@ -39,6 +39,26 @@ export function calcLengthTime(linkFeature: LineStringFeatures, variants: NonEmp
     const time = distance / Number(linkFeature.properties[`speed${v}`]) * secPerHour // secs (m / km/h) * secPerHour
     linkFeature.properties[`time${v}`] = round(time, 0) // rounded to 0 decimals
   })
+}
+
+export function calcLengthSpeed(linkFeature: LineStringFeatures, variants: NonEmptyArray<string>) {
+  // get length (geom) then round
+  // get speed from time and geom (not rounded)
+  const distance = length(linkFeature) // Km
+  linkFeature.properties.length = round(distance * 1000, 0) // metres
+  variants.forEach(v => {
+    const speed = distance / Number(linkFeature.properties[`time${v}`]) * secPerHour // secs (m / km/h) * secPerHour
+    linkFeature.properties[`speed${v}`] = round(speed, 6) // rounded to 6 decimals
+  })
+}
+
+// eslint-disable-next-line max-len
+export function calcLengthTimeorSpeed(linkFeature: LineStringFeatures, variants: NonEmptyArray<string>, mode: SpeedTimeMethod) {
+  if (mode === 'time') {
+    calcLengthTime(linkFeature, variants)
+  } else if (mode === 'speed') {
+    calcLengthSpeed(linkFeature, variants)
+  }
 }
 
 export function getDefaultLink (defaultAttributes: Attributes[]): LineStringGeoJson {

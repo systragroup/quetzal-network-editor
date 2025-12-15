@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import audioFile from '@static/samsung-washing-machine-melody-made-with-Voicemod-technology.mp3'
+import audioFile2 from '@static/Thunderstruck_crop.mp3'
 import Logs from '@comp/run/Logs.vue'
 import { computed, watch, onMounted, ref } from 'vue'
 import { useIndexStore } from '@src/store/index'
@@ -32,6 +33,7 @@ const errorMessage = computed(() => runStore.errorMessage)
 
 const isProtected = computed(() => userStore.protected)
 const modelIsLoaded = computed(() => userStore.model !== null)
+const model = computed(() => userStore.model)
 
 onMounted(async () => {
   if (modelIsLoaded.value) {
@@ -91,13 +93,19 @@ watch(status, (v) => { if (v === 'FINISHED') playAudio() })
 
 function playAudio() {
   if (endSignal.value) {
-    const audio = new Audio(audioFile)
+    let time = 5000
+    let file = audioFile
+    if (model.value === 'quetzal-thunder-track') {
+      file = audioFile2
+      time = 11000
+    }
+    const audio = new Audio(file)
     audio.play()
     // Stop the audio after 2 seconds
     setTimeout(function () {
       audio.pause()
       audio.currentTime = 0
-    }, 5000)
+    }, time)
   }
 }
 

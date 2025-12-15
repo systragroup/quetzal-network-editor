@@ -15,10 +15,15 @@ export interface ImportPoly {
   poly: any
 }
 export interface Style {
+  version: 1
   name: string
   layer: string
-  displaySettings: Record<string, any>
+  displaySettings: DisplaySettings
+  selectedFilter?: string // if filter visible
+  selectedCategory?: string[] // if filter visible
+  selectedIndex?: string // if interactive. selected index to show
 }
+
 export interface ProjectInfo {
   description: string
   model_tag: string
@@ -39,7 +44,10 @@ export interface GlobalAttributesChoice {
   road: AttributesChoice
 }
 
+export type SpeedTimeMethod = 'speed' | 'time'
+
 export interface SettingsPayload {
+  speedTimeMethod: SpeedTimeMethod
   defaultHighway: string
   roadSpeed: number
   linksPopupContent: string[]
@@ -57,15 +65,17 @@ export interface IndexStore {
   anchorMode: boolean
   stickyMode: boolean
   routingMode: boolean
+  speedTimeMethod: SpeedTimeMethod
   linksPopupContent: string[]
   roadsPopupContent: string[]
   cyclewayMode: boolean
-  outputName: string
   importPoly: ImportPoly | null
+  visibleLayers: string[]
   visibleRasters: string[]
   styles: Style[]
   projectInfo: ProjectInfo
   otherFiles: OtherFiles[]
+  docFiles: OtherFiles[]
   microservicesParams: FileFormat[]
 }
 
@@ -140,9 +150,15 @@ export interface SplitLinkPayload extends SelectedLink {
   newNode: PointGeoJson
 }
 
+export type AddNodeTypes = 'editorNodes' | 'anchorNodes' | 'anchorRoutingNodes'
+export interface LngLat {
+  lng: number
+  lat: number
+}
+
 export interface AddNodeInlinePayload extends SelectedLink {
-  lngLat: number[]
-  nodes: 'editorNodes' | 'anchorNodes'
+  lngLat: LngLat
+  nodes: AddNodeTypes
 }
 
 export interface AnchorPayload extends SelectedLink {
@@ -202,6 +218,7 @@ export interface LinksStore {
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  speedTimeMethod: SpeedTimeMethod
 
 }
 
@@ -287,6 +304,7 @@ export interface RlinksStore {
   editionMode: boolean
   savedNetwork: SavedRoadNetwork
   networkWasModified: boolean
+  speedTimeMethod: SpeedTimeMethod
 }
 
 // OD store
@@ -364,6 +382,7 @@ export interface UserStore {
   scenariosList: Scenario[]
   model: null | string
   scenario: null | string
+  outputName: string
   infoPreview: InfoPreview | null
   protected: boolean
 }
@@ -419,6 +438,32 @@ export interface CategoryParam {
 export type Params = (ParamsInfo | CategoryParam | ParamsVariants)[]
 
 export type PayloadParams = Record<string, Record<string, any>>
+
+//
+// results Store
+//
+
+export interface DisplaySettings {
+  maxWidth: number
+  minWidth: number
+  numStep: number
+  scale: 'linear' | 'sqrt' | 'log' | 'exp' | 'quad'
+  fixScale: boolean
+  minVal: number
+  maxVal: number
+  cmap: string
+  opacity: number
+  offset: boolean
+  showNaN: boolean
+  reverseColor: boolean
+  extrusion: boolean
+  padding: [number, number]
+  selectedFeature: string
+  labels: string
+  legendName: string
+
+  [key: string]: number | string | boolean | number[]
+}
 
 //
 // Microservices

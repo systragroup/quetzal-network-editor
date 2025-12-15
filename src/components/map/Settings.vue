@@ -2,19 +2,28 @@
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
+import { useUserStore } from '@src/store/user'
 import { ref, watch } from 'vue'
 
 const $gettext = s => s
 
 export default {
-  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Settings',
   emits: ['submit'],
   setup (_, context) {
     const store = useIndexStore()
     const linksStore = useLinksStore()
     const rlinksStore = userLinksStore()
+    const userStore = useUserStore()
     const showHint = ref(false)
+    const order = ref(0)
+    const computeMethod = ref({
+      name: $gettext('Automatically Compute'),
+      type: 'radio',
+      value: 'time',
+      units: '',
+      hint: $gettext('When editing or drawing a network. We can compute (with the length) the time with the speed or the speed with the time.'),
+    })
     const roadSpeed = ref({
       name: $gettext('Road speed'),
       type: 'Number',
@@ -59,13 +68,14 @@ export default {
       // value are init with this function.
       // we want to get the value each time we show the settings.
       // if not, Cancel will not work as the state here and in the store will differ.
+      computeMethod.value.value = store.speedTimeMethod
       roadSpeed.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'speed')[0].value
       linksPopupContent.value.choices = linksStore.lineAttributes
       linksPopupContent.value.value = store.linksPopupContent
       roadsPopupContent.value.choices = rlinksStore.rlineAttributes
       roadsPopupContent.value.value = store.roadsPopupContent
       defaultHighway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'highway')[0].value
-      outputName.value.value = store.outputName
+      outputName.value.value = userStore.outputName
     }
     const shake = ref(false)
     const show = ref(false)
@@ -77,6 +87,7 @@ export default {
       const resp = await event
       if (resp.valid) {
         const payload = {
+          speedTimeMethod: computeMethod.value.value,
           roadSpeed: roadSpeed.value.value,
           linksPopupContent: linksPopupContent.value.value,
           roadsPopupContent: roadsPopupContent.value.value,
@@ -100,6 +111,7 @@ export default {
 
     return {
       showHint,
+      computeMethod,
       roadSpeed,
       linksPopupContent,
       roadsPopupContent,
@@ -112,6 +124,7 @@ export default {
       cancel,
       shake,
       show,
+      order,
     }
   },
 }
@@ -127,7 +140,10 @@ export default {
     transition="scale-transition"
   >
     <template v-slot:activator="{ props }">
-      <div class="setting">
+      <div
+        class="layer-button"
+        :style="{ '--n': order }"
+      >
         <v-btn
           icon="fa-solid fa-cog"
           color="regular"
@@ -207,6 +223,22 @@ export default {
               :rules="zipRules"
               required
             />
+            <v-radio-group
+              v-model="computeMethod.value"
+              inline
+              :label="$gettext(computeMethod.name)"
+              :hint="showHint? $gettext(computeMethod.hint): ''"
+              :persistent-hint="showHint"
+            >
+              <v-radio
+                :label="$gettext('Time')"
+                value="time"
+              />
+              <v-radio
+                :label="$gettext('Speed')"
+                value="speed"
+              />
+            </v-radio-group>
           </v-col>
         </v-container>
         <v-card-actions>
@@ -240,14 +272,11 @@ export default {
   </v-menu>
 </template>
 <style lang="scss" scoped>
-.setting {
-  left: 96%;
+.layer-button {
+  right: calc(3.5rem * var(--n) + 0.5rem);
   z-index: 2;
   top:1rem;
   position: absolute;
-  align-items: center;
-  justify-content: center;
-
 }
 .card {
   width: 500px;
@@ -268,7 +297,6 @@ export default {
   color:  var(--v-secondarydark-base) !important;
   font-weight: bold;
   padding:1rem
-
 }
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;

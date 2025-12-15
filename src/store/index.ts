@@ -20,7 +20,8 @@ import { cloneDeep } from 'lodash'
 import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
-  Notification, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
+  Notification, OtherFiles, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
+import { migrateStyle } from '@src/migrations/migration.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -38,15 +39,17 @@ export const useIndexStore = defineStore('index', {
     stickyMode: false,
     routingMode: false,
     cyclewayMode: false,
+    speedTimeMethod: 'time',
     // general viz
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
-    outputName: 'output',
     // Project specific
-    visibleRasters: [], // list of rasterFiles path.
+    visibleLayers: [], // list of layersFiles path.
+    visibleRasters: [], // list of tif files
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
     projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
+    docFiles: [], // [{path, content}]
     // microservices
     importPoly: null,
     microservicesParams: [],
@@ -166,6 +169,17 @@ export const useIndexStore = defineStore('index', {
       }
     },
 
+    loadDocFiles(payload: FileFormat[]) {
+      // push files
+      const res: OtherFiles[] = []
+      for (const file of payload) {
+        const extension = file.path.split('.').slice(-1)[0]
+        const name = file.path.split('.').slice(-2)[0]
+        res.push({ ...file, name, extension })
+      }
+      this.docFiles = res
+    },
+
     loadOtherFiles (payload: FileFormat[]) {
       // payload = [{path, content}]. transform to [{path,content,name,extension}]
       // if a file is updated with the same path (already exist). remove it
@@ -250,8 +264,8 @@ export const useIndexStore = defineStore('index', {
       rlinks.loadrLinksAttributesChoices(payload.road)
     },
 
-    setVisibleRasters (payload: string[]) {
-      this.visibleRasters = payload
+    setvisibleLayers (payload: string[]) {
+      this.visibleLayers = payload
     },
 
     initNetworks () {
@@ -282,23 +296,27 @@ export const useIndexStore = defineStore('index', {
 
     applySettings (payload: SettingsPayload) {
       const rlinksStore = userLinksStore()
+      const linksStore = useLinksStore()
+      const userStore = useUserStore()
       rlinksStore.ChangeDefaultValues({ highway: payload.defaultHighway, speed: Number(payload.roadSpeed) })
+
+      this.speedTimeMethod = payload.speedTimeMethod
+      linksStore.speedTimeMethod = payload.speedTimeMethod
+      rlinksStore.speedTimeMethod = payload.speedTimeMethod
+
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent
-      this.changeOutputName(payload.outputName)
-    },
-
-    changeOutputName (payload: string) {
-      this.outputName = payload
+      userStore.changeOutputName(payload.outputName)
     },
 
     loadStyles (payload: Style[]) {
-      const json = stylesSerializer(payload)
+      let json = stylesSerializer(payload)
+      json = json.map(style => migrateStyle(style))
       this.styles = json
     },
 
     addStyle (payload: Style) {
-      // payload: styling for results {name,layer, displaySettings:{...}}
+      // add style. if name exist replace.
       const names = this.styles.map(el => el.name)
       const idx = names.indexOf(payload.name)
       if (idx !== -1) {
@@ -326,6 +344,14 @@ export const useIndexStore = defineStore('index', {
       if (path === 'styles.json') {
         if (this.styles.length > 0) {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
+          saveAs(blob, path)
+        }
+      } else {
+        // get otherFile
+        const file = this.otherFiles.filter(file => path === file.path)[0]
+        if (file) {
+          const content = await this.getFileContent(file) as any
+          const blob = new Blob([content])
           saveAs(blob, path)
         }
       }
@@ -407,22 +433,26 @@ export const useIndexStore = defineStore('index', {
           zip.file('attributesChoices.json', blob)
         }
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
-          // if others file loaded from S3 (they are not loaded yet. need to download them.)
-          if (file.content == null && userStore.model !== null) {
-            file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
-          }
-          if (file.content instanceof Uint8Array) {
-            const blob = new Blob([file.content]) // { type: 'text/csv' }
-            zip.file(file.path, blob)
-          } else {
-            const blob = new Blob([JSON.stringify(file.content)], { type: 'application/json' })
-            zip.file(file.path, blob)
-          }
+          const content = this.getFileContent(file)
+          zip.file(file.path, content)
         }
       }
       zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
-        .then((content) => { saveAs(content, `${this.outputName}.zip`)
+        .then((content: any) => { saveAs(content, `${userStore.outputName}.zip`)
         })
+    },
+
+    async getFileContent(file: FileFormat) {
+      const userStore = useUserStore()
+      // if others file loaded from S3 (they are not loaded yet. need to download them.)
+      if (file.content == null && userStore.model !== null) {
+        file.content = await s3.readBytes(userStore.model, userStore.scenario + '/' + file.path)
+      }
+      if (file.content instanceof Uint8Array) {
+        return file.path, file.content
+      } else {
+        return file.path, JSON.stringify(file.content)
+      }
     },
 
     async exportToS3 (payload: string) {
@@ -493,7 +523,7 @@ export const useIndexStore = defineStore('index', {
 
       // delete otherFiles (if a otherFiles is on S3 but not in memory (was deleted locally))
       // delete it on s3 when we save.
-      let filesOnCloud = await s3.listFiles(bucket, scen)
+      let filesOnCloud: string[] = await s3.listFiles(bucket, scen)
       const filesToExcludes = Object.values(paths) // list of all files (that are not others.)
       filesOnCloud = filesOnCloud.filter(path => !filesToExcludes.includes(path))
       filesOnCloud = filesOnCloud.map(file => file.slice(scen.length)) // remove scen name from file)
@@ -556,6 +586,7 @@ export const useIndexStore = defineStore('index', {
         && runStore.parameters.length === 0
         && state.styles.length === 0)
     },
+    hasDocs: (state) => state.docFiles.length > 0,
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()
@@ -574,8 +605,11 @@ export const useIndexStore = defineStore('index', {
       state.otherFiles.filter(file => file.extension === 'geojson').forEach(file => {
         availableLayers.push(file.name)
       })
-
       return availableLayers
+    },
+
+    availableRasters: (state) => {
+      return state.otherFiles.filter(file => file.extension === 'tif').map(file => file.name)
     },
 
   },

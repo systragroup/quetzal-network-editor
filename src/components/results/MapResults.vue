@@ -80,14 +80,35 @@ function onMapLoaded (event) {
       { text: $gettext('Right click and drag to tilt the map'), autoClose: true, color: 'success' })
   }
   mapIsLoaded.value = true
+
+  // for now. set Terrain if not the base maps
+  if (!['mapbox://styles/mapbox/light-v11', 'mapbox://styles/mapbox/dark-v11'].includes(mapStyle.value)) {
+    setTerrain()
+  }
 }
+
+function setTerrain() {
+  // https://github.com/tilezen/joerd/blob/master/docs/data-sources.md
+  map.value.addSource('srtm-dem', {
+    type: 'raster-dem',
+    tiles: [
+      'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+    ],
+    tileSize: 256,
+    encoding: 'terrarium', // or "mapbox" if you use terrain-rgb
+    maxzoom: 15,
+  })
+  map.value.setTerrain({ source: 'srtm-dem', exaggeration: 2 })
+}
+
 function fitBounds (layer) {
   const bounds = mapStore.getBounds(layer)
   mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
 }
 
 import { useMapResize } from '@src/composables/useMapResize.js'
-const { canvasDiv } = useMapResize(map)
+const canvasDiv = ref()
+useMapResize(map, canvasDiv)
 
 const selectedLinks = ref([])
 const popup = ref(null)

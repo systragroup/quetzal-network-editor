@@ -67,7 +67,6 @@ function getItemVariant(label: string) {
   <component
     :is="component"
     v-model="item.value"
-    color="primary"
     variant="outlined"
     control-variant="stacked"
     inset
@@ -76,7 +75,6 @@ function getItemVariant(label: string) {
     :label="item.text"
     :prefix="getItemVariant(item.name)"
     :suffix="item.units ? item.units : undefined"
-    :type="item.type"
     :rules="getRules(item.rules)"
     :multiple="item?.multiple"
     :items="getItems(item)"
