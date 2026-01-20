@@ -500,7 +500,6 @@ export interface MatrixRoadCasterParams {
   date_time: IsoTimeStringTZ
   ff_time_col: string
   max_speed: number
-  num_cores: number
   num_random_od: number
   use_zone: false
   hereApiKey: string

@@ -9,6 +9,7 @@ import { useGettext } from 'vue3-gettext'
 import { MatrixRoadCasterParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 import { cloneDeep } from 'lodash'
+import { RunInputs } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
 const MATRIXROADCASTER_ARN = import.meta.env.VITE_MATRIXROADCASTER_ARN
 const VERSION = 0
@@ -19,10 +20,9 @@ function baseParameters(): MatrixRoadCasterParams {
     api: 'google',
     num_zones: 100,
     train_size: 100,
-    date_time: '2024-12-13T08:00:00-04:00',
+    date_time: '2026-02-13T08:00:00-04:00',
     ff_time_col: 'time',
     max_speed: 100,
-    num_cores: 1,
     num_random_od: 1,
     use_zone: false,
     hereApiKey: '',
@@ -35,6 +35,7 @@ export const useMRCStore = defineStore('runMRC', () => {
   const bucket = ref(MICROSERVICES_BUCKET)
 
   const callID = ref('')
+
   const parameters = ref<MatrixRoadCasterParams>(baseParameters())
   const zoneFile = ref('')
 
@@ -43,10 +44,13 @@ export const useMRCStore = defineStore('runMRC', () => {
 
   function reset() {
     callID.value = ''
+    timer.value = 0
     zoneFile.value = ''
     parameters.value = baseParameters()
     cleanRun()
   }
+
+  function setCallID() { callID.value = uuid() }
 
   function loadParams(payload: MicroserviceParametersDTO<MatrixRoadCasterParams>) {
     // TODO: migration
@@ -65,12 +69,10 @@ export const useMRCStore = defineStore('runMRC', () => {
     store.addMicroservicesParameters(payload)
   }
 
-  function start(inputs: MatrixRoadCasterParams & { callID: string }) {
+  function start(inputs: RunInputs) {
     exportParams()
     startExecution(stateMachineArn.value, inputs)
   }
-
-  function setCallID() { callID.value = uuid() }
 
   watch(status, async (val) => {
     if (val === 'SUCCEEDED') {
@@ -97,8 +99,8 @@ export const useMRCStore = defineStore('runMRC', () => {
   async function ApplyResults () {
     const rlinksStore = userLinksStore()
     rlinksStore.$reset()
-    const rlinks = await s3.readJson(bucket.value, callID.value.concat('/road_links.geojson'))
-    const rnodes = await s3.readJson(bucket.value, callID.value.concat('/road_nodes.geojson'))
+    const rlinks = await s3.readJson(bucket.value, callID.value.concat('/outputs/road_links.geojson'))
+    const rnodes = await s3.readJson(bucket.value, callID.value.concat('/outputs/road_nodes.geojson'))
     rlinksStore.loadRoadFiles([
       { path: 'inputs/road/links.geojson', content: rlinks },
       { path: 'inputs/road/nodes.geojson', content: rnodes },

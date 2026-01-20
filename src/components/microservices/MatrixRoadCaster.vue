@@ -12,6 +12,7 @@ import Warning from '../utils/Warning.vue'
 import SimpleForm from '../common/SimpleForm.vue'
 import Markdown from '../utils/Markdown.vue'
 import { getRules } from '@src/utils/form'
+import { RunInputs } from '@src/types/api'
 const { $gettext } = useGettext()
 
 const runMRC = useMRCStore()
@@ -23,6 +24,7 @@ const callID = computed(() => runMRC.callID)
 const timer = computed(() => runMRC.timer)
 const status = computed(() => runMRC.status)
 const storeParameters = computed(() => runMRC.parameters)
+const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 
 const selectedZoneFile = ref(runMRC.zoneFile)
 
@@ -156,11 +158,11 @@ async function exportFiles() {
   try {
     await s3.putObject(
       bucket.value,
-      callID.value.concat('/road_links.geojson'),
+      callID.value.concat('/inputs/road_links.geojson'),
       JSON.stringify(rlinksStore.rlinks))
     await s3.putObject(
       bucket.value,
-      callID.value.concat('/road_nodes.geojson'),
+      callID.value.concat('/inputs/road_nodes.geojson'),
       JSON.stringify(rlinksStore.rnodes))
 
     if (useZone.value) {
@@ -173,7 +175,7 @@ async function exportFiles() {
       }
       await s3.putObject(
         bucket.value,
-        callID.value.concat('/zones.geojson'),
+        callID.value.concat('/inputs/zones.geojson'),
         file.content)
     }
   } catch (err) {
@@ -189,13 +191,25 @@ const formRef = ref()
 async function start () {
   const resp = await formRef.value.validate()
   if (!resp) { return }
+  const userStore = useUserStore()
+
   runMRC.setCallID()
   runMRC.running = true
   runMRC.saveParams(parameters.value)
   getApproxTimer()
   await exportFiles()
-  const input = { callID: callID.value, ...storeParameters.value }
-  runMRC.start(input)
+  const params = runMRC.parameters
+  const inputs: RunInputs = {
+    scenario_path_S3: callID.value,
+    launcher_arg: {
+      training_folder: '/tmp',
+      params: params,
+    },
+    metadata: {
+      user_email: userStore.cognitoInfo?.email,
+    },
+  }
+  runMRC.start(inputs)
 }
 
 function stopRun () { runMRC.stopExecution() }
@@ -274,6 +288,7 @@ const mdString = $gettext(`
           variant="outlined"
           color="success"
           :loading="running"
+          :disabled="running || rlinksIsEmpty"
           @click="start"
         >
           {{ $gettext("Process") }}
