@@ -1,3 +1,7 @@
+## [7.2.1] (2026-01-20)
+### changes
+* MatrixRoadCaster now use a notebook style models like most microservices.
+
 ## [7.2.0] (2025-12-15)
 
 ## Features
