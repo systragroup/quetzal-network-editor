@@ -1,3 +1,7 @@
+## [7.2.2] (2026-03-03)
+### changes
+* change how we authenticate with S3 client as the opld method stop working with latest security updates.
+
 ## [7.2.1] (2026-01-20)
 ### changes
 * MatrixRoadCaster now use a notebook style models like most microservices.
