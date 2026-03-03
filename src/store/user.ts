@@ -3,7 +3,7 @@ import { useIndexStore } from './index'
 
 import s3 from '@src/AWSClient'
 import auth from '../auth'
-import { CognitoInfo, InfoPreview, Scenario, ScenarioPayload, UserStore } from '@src/types/typesStore'
+import { CognitoInfo, IdentityCredentials, InfoPreview, Scenario, ScenarioPayload, UserStore } from '@src/types/typesStore'
 
 const $gettext = (s: string) => s
 const OUTPUT_NAME = 'output'
@@ -20,6 +20,11 @@ export const useUserStore = defineStore('userStore', {
     cognitoGroup: '',
     modelsList: [],
     idToken: '',
+    credentials: {
+      accessKeyId: '',
+      secretAccessKey: '',
+      sessionToken: '',
+    },
     refreshExpTime: 1470 * 24 * 60 * 60,
     idExpTime: 24 * 60 * 59,
     signinTime: 0,
@@ -56,6 +61,10 @@ export const useUserStore = defineStore('userStore', {
     setIdToken (payload: string) {
       this.idToken = payload
     },
+    setCredentials(payload: IdentityCredentials) {
+      this.credentials = payload
+    },
+
     setScenariosList (payload: Scenario[]) {
       this.scenariosList = payload
     },

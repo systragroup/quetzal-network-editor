@@ -4,26 +4,16 @@ import { useUserStore } from '@src/store/user'
 import { S3, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { Upload } from '@aws-sdk/lib-storage'
-import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import { hash } from '@src/utils/utils'
 
-const USERPOOL_ID = import.meta.env.VITE_COGNITO_USERPOOL_ID
-const IDENTITY_POOL_ID = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
 const REGION = import.meta.env.VITE_COGNITO_REGION
-
-const creds = fromCognitoIdentityPool({
-  clientConfig: { region: REGION },
-  identityPoolId: IDENTITY_POOL_ID,
-  logins: {},
-})
 
 let s3Client = new S3({
   apiVersion: '2006-03-01',
   signatureVersion: 'v4',
   region: REGION,
-  credentials: creds,
   requestChecksumCalculation: 'WHEN_REQUIRED',
 
 })
@@ -299,21 +289,13 @@ async function getChecksum (bucket, key) {
 
 export default {
   s3: s3Client,
-  creds,
   async login () {
     const userStore = useUserStore()
-    // creds.params.Logins = creds.params.logins || {}
-    const creds = fromCognitoIdentityPool({
-      clientConfig: { region: REGION },
-      identityPoolId: IDENTITY_POOL_ID,
-      logins: { [`cognito-idp.${REGION}.amazonaws.com/${USERPOOL_ID}`]: userStore.idToken },
-    })
-
     s3Client = new S3({
       apiVersion: '2006-03-01',
       signatureVersion: 'v4',
       region: REGION,
-      credentials: creds,
+      credentials: userStore.credentials,
       requestChecksumCalculation: 'WHEN_REQUIRED',
     })
     s3Client.middlewareStack.add(

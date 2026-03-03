@@ -348,6 +348,13 @@ export interface CognitoInfo {
   family_name: string
   given_name: string
 }
+
+export interface IdentityCredentials {
+  accessKeyId: string
+  secretAccessKey: string
+  sessionToken: string
+}
+
 export interface Scenario {
   model: string
   scenario: string
@@ -374,6 +381,7 @@ export interface UserStore {
   cognitoGroup: string
   modelsList: string[]
   idToken: string
+  credentials: IdentityCredentials
   refreshExpTime: number
   idExpTime: number
   signinTime: number
