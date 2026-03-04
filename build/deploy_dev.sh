@@ -10,7 +10,7 @@ fi
 # build app 
 yarn run build-staging
 
-REMOTE_REPO_URL="https://github.com/systragroup/quetzal-network-editor-dev.git"
+REMOTE_REPO_URL="git@github.com:systragroup/quetzal-network-editor-dev.git"
 BRANCH="main"  # Change to your target branch if necessary
 DIRECTORY_PATH="dist"  # Specify the path to the file you want to add
 
