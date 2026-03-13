@@ -35,9 +35,6 @@ async function login () {
     const sessionIdInfo = jwtToken.payload as any
     const idToken = jwtToken.toString()
     userStore.setIdToken(idToken)
-    const creds = await getIdentityCredentials(idToken) // for s3
-    if (!creds) { throw new Error('error getting identity credentials') }
-    userStore.setCredentials(creds)
     userStore.setCognitoInfo(sessionIdInfo)
     if (Object.keys(sessionIdInfo).includes('cognito:groups')) {
       userStore.setCognitoGroup(sessionIdInfo['cognito:groups'][0])
@@ -116,4 +113,5 @@ export default {
   logout,
   sendRecoveryEmail,
   ChangePassword,
+  getIdentityCredentials,
 }

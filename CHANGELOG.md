@@ -1,3 +1,7 @@
+## [7.2.3] (2026-03-13)
+### bug fixes
+* S3 client auth was falling to renew token.
+
 ## [7.2.2] (2026-03-03)
 ### changes
 * change how we authenticate with S3 client as the opld method stop working with latest security updates.

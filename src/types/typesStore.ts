@@ -381,7 +381,6 @@ export interface UserStore {
   cognitoGroup: string
   modelsList: string[]
   idToken: string
-  credentials: IdentityCredentials
   refreshExpTime: number
   idExpTime: number
   signinTime: number
