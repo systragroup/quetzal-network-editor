@@ -1,3 +1,6 @@
+## [7.3.b] (2026-03-13)
+rebase on master 7.2.3
+
 ## [7.3.a] (2026-03-06)
 ### changes
 * Fix labels on result map. for linestring, they are well offset and follow links
