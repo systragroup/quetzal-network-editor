@@ -7,7 +7,6 @@ import { Upload } from '@aws-sdk/lib-storage'
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import { hash } from '@src/utils/utils'
-import auth from '@src/auth'
 
 const REGION = import.meta.env.VITE_COGNITO_REGION
 
@@ -292,15 +291,12 @@ export default {
   s3: s3Client,
   async login () {
     const userStore = useUserStore()
-    const creds = await auth.getIdentityCredentials(userStore.idToken) // for s3
-    userStore.setCredExpTime(creds.expiration)
+    const creds = userStore.credentials
     s3Client = new S3({
       apiVersion: '2006-03-01',
       signatureVersion: 'v4',
       region: REGION,
-      credentials: { accessKeyId: creds.accessKeyId,
-        secretAccessKey: creds.secretAccessKey,
-        sessionToken: creds.sessionToken },
+      credentials: creds,
       requestChecksumCalculation: 'WHEN_REQUIRED',
     })
     s3Client.middlewareStack.add(

@@ -36,6 +36,8 @@ async function login () {
     const idToken = jwtToken.toString()
     userStore.setIdToken(idToken)
     userStore.setCognitoInfo(sessionIdInfo)
+    const creds = await getIdentityCredentials(idToken)
+    userStore.setCredentials(creds)
     if (Object.keys(sessionIdInfo).includes('cognito:groups')) {
       userStore.setCognitoGroup(sessionIdInfo['cognito:groups'][0])
     }
@@ -83,9 +85,9 @@ async function ChangePassword(username: string, code: string, newPassword: strin
 // get S3 credentials from cognito.
 //
 import { CognitoIdentityClient, GetIdCommand, GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity'
-import { IdentityCredentials } from './types/typesStore'
+import { IdentityCredentialsPayload } from './types/typesStore'
 
-async function getIdentityCredentials(idToken: string): Promise<IdentityCredentials | undefined> {
+async function getIdentityCredentials(idToken: string): Promise<IdentityCredentialsPayload> {
   const cognitoClient = new CognitoIdentityClient({ region: REGION })
 
   const logins = { [`cognito-idp.${REGION}.amazonaws.com/${USERPOOL_ID}`]: idToken }
@@ -96,14 +98,13 @@ async function getIdentityCredentials(idToken: string): Promise<IdentityCredenti
   const credCommand = new GetCredentialsForIdentityCommand({ IdentityId: idResponse.IdentityId, Logins: logins })
   const credsResponse = await cognitoClient.send(credCommand)
   const creds = credsResponse.Credentials
-  if (creds) {
-    return {
-      accessKeyId: creds.AccessKeyId!,
-      secretAccessKey: creds.SecretKey!,
-      sessionToken: creds.SessionToken!,
-      expiration: creds.Expiration!.getTime(),
-    }
-  } else return undefined
+  if (!creds) { throw new Error('Error getting S3 Credentials') }
+  return {
+    accessKeyId: creds.AccessKeyId!,
+    secretAccessKey: creds.SecretKey!,
+    sessionToken: creds.SessionToken!,
+    expiration: creds.Expiration!.getTime(),
+  }
 }
 
 export default {
@@ -114,5 +115,4 @@ export default {
   logout,
   sendRecoveryEmail,
   ChangePassword,
-  getIdentityCredentials,
 }

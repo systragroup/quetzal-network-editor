@@ -3,7 +3,8 @@ import { useIndexStore } from './index'
 
 import s3 from '@src/AWSClient'
 import auth from '../auth'
-import { CognitoInfo, InfoPreview, Scenario, ScenarioPayload, UserStore } from '@src/types/typesStore'
+import { CognitoInfo, IdentityCredentialsPayload,
+  InfoPreview, Scenario, ScenarioPayload, UserStore } from '@src/types/typesStore'
 
 const $gettext = (s: string) => s
 const OUTPUT_NAME = 'output'
@@ -24,6 +25,11 @@ export const useUserStore = defineStore('userStore', {
     idExpTime: 0,
     credExpTime: 0,
     signinTime: 0,
+    credentials: {
+      accessKeyId: '',
+      secretAccessKey: '',
+      sessionToken: '',
+    },
     loggedIn: false,
     scenariosList: [],
     model: null,
@@ -57,8 +63,13 @@ export const useUserStore = defineStore('userStore', {
       this.idToken = payload
     },
 
-    setCredExpTime(payload: number) {
-      this.credExpTime = payload
+    setCredentials(payload: IdentityCredentialsPayload) {
+      this.credentials = {
+        accessKeyId: payload.accessKeyId,
+        secretAccessKey: payload.secretAccessKey,
+        sessionToken: payload.sessionToken,
+      }
+      this.credExpTime = payload.expiration
     },
 
     setScenariosList (payload: Scenario[]) {
@@ -87,7 +98,7 @@ export const useUserStore = defineStore('userStore', {
       // IF the refresh token is expired, log out.
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
       if ((currentTime >= this.idExpTime) || (currentTime >= this.credExpTime)) {
-        console.log('exp')
+        console.log('token expired. refresh')
         await auth.login()
         await s3.login()
       }
