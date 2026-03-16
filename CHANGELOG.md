@@ -1,3 +1,7 @@
+## [7.2.4] (2026-03-16)
+### bug fixes
+* S3 client auth was falling to renew token. The problem was the new Auth method using credentials. those credentials were expiring after 1h and not after 24h like the cognito auth token.
+
 ## [7.2.3] (2026-03-13)
 ### bug fixes
 * S3 client auth was falling to renew token.
