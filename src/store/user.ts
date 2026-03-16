@@ -21,9 +21,9 @@ export const useUserStore = defineStore('userStore', {
     modelsList: [],
     idToken: '',
     refreshExpTime: 1470 * 24 * 60 * 60,
-    idExpTime: 24 * 60 * 59,
+    idExpTime: 0,
+    credExpTime: 0,
     signinTime: 0,
-    loginTime: 0,
     loggedIn: false,
     scenariosList: [],
     model: null,
@@ -44,8 +44,8 @@ export const useUserStore = defineStore('userStore', {
     },
     setCognitoInfo (payload: CognitoInfo) {
       this.signinTime = payload.auth_time
+      this.idExpTime = payload.exp
       this.cognitoInfo = payload
-      this.loginTime = Math.floor(Date.now() / 1000)
     },
     setCognitoGroup (payload: string) {
       this.cognitoGroup = payload
@@ -55,6 +55,10 @@ export const useUserStore = defineStore('userStore', {
     },
     setIdToken (payload: string) {
       this.idToken = payload
+    },
+
+    setCredExpTime(payload: number) {
+      this.credExpTime = payload
     },
 
     setScenariosList (payload: Scenario[]) {
@@ -82,10 +86,12 @@ export const useUserStore = defineStore('userStore', {
       // re login using the refresh token. (if ID token is expired)
       // IF the refresh token is expired, log out.
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
-      if (this.loginTime > 0 && currentTime > this.loginTime + this.idExpTime) {
+      if ((currentTime >= this.idExpTime) || (currentTime >= this.credExpTime)) {
+        console.log('exp')
         await auth.login()
         await s3.login()
       }
+      // refresh is expired after 4 years
       if (currentTime > this.signinTime + this.refreshExpTime) {
         auth.logout()
         const store = useIndexStore()

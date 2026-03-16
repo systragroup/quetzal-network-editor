@@ -353,6 +353,7 @@ export interface IdentityCredentials {
   accessKeyId: string
   secretAccessKey: string
   sessionToken: string
+  expiration: number
 }
 
 export interface Scenario {
@@ -383,8 +384,8 @@ export interface UserStore {
   idToken: string
   refreshExpTime: number
   idExpTime: number
+  credExpTime: number
   signinTime: number
-  loginTime: number
   loggedIn: boolean
   scenariosList: Scenario[]
   model: null | string

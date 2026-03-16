@@ -101,6 +101,7 @@ async function getIdentityCredentials(idToken: string): Promise<IdentityCredenti
       accessKeyId: creds.AccessKeyId!,
       secretAccessKey: creds.SecretKey!,
       sessionToken: creds.SessionToken!,
+      expiration: creds.Expiration!.getTime(),
     }
   } else return undefined
 }
