@@ -196,13 +196,13 @@ export const useRunStore = defineStore('runStore', () => {
     const userStore = useUserStore()
     const store = useIndexStore()
     const model = userStore.model
-    const scen = userStore.scenario + '/'
-    const path = scen + 'outputs/'
+    const scen = userStore.scenario!
+    const path = scen + '/outputs/'
     let filesList = await s3.listFiles(model, path)
     filesList = filesList.filter(name => !name.endsWith('/'))
     const res = []
     for (const file of filesList) {
-      const name = file.slice(scen.length) // remove scen name from file
+      const name = file.slice(scen.length + 1) // remove scen name from file + 1 for '/'
       res.push({ path: name, content: null })
     }
     if (res.length > 0) {

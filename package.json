@@ -2,7 +2,7 @@
   "name": "Quetzal-network-editor",
   "description": "Quetzal web companion",
   "author": "SYSTRA Canada (Simon Boivin)",
-  "version": "7.2.4",
+  "version": "7.2.5",
   "type": "module",
   "private": true,
   "scripts": {
