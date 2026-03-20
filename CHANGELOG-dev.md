@@ -1,3 +1,6 @@
+## [7.3.d] (2026-03-20)
+rebase on master 7.2.5
+
 ## [7.3.c] (2026-03-16)
 rebase on master 7.2.4
 
