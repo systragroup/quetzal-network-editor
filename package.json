@@ -51,6 +51,8 @@
     "file-saver": "^2.0.5",
     "geotiff": "^2.1.4-beta.1",
     "github-markdown-css": "^5.9.0",
+    "immer": "^11.1.4",
+    "jsondiffpatch": "^0.7.3",
     "jszip": "^3.10.1",
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.23",

@@ -7,7 +7,6 @@ import { Map, GeoJSONSource, MapMouseEvent } from 'mapbox-gl'
 import { useGettext } from 'vue3-gettext'
 import { useForm } from '@src/composables/UseForm'
 import { baseLineString, basePoint, GeoJsonFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
-
 const { openDialog } = useForm()
 const { $gettext } = useGettext()
 
@@ -61,6 +60,7 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 const editorLinks = computed(() => { return linksStore.editorLinks })
 const editorNodes = computed(() => { return linksStore.editorNodes })
+const isEditorMode = computed(() => linksStore.editorTrip !== null)
 
 const stickyMode = computed(() => { return store.stickyMode })
 const showedTrips = computed(() => { return linksStore.selectedTrips })
@@ -99,6 +99,23 @@ watch(editorLinks, (links) => {
     setNodesPickupDropOff()
   }
 }, { deep: true, immediate: false })
+
+import { useHistory } from '@src/composables/useHistory'
+
+function commitChange() {
+  commit({ links: editorLinks.value, nodes: editorNodes.value })
+}
+
+const { commit, historyAction, state, setState } = useHistory({ links: editorLinks.value, nodes: editorNodes.value })
+
+watch(isEditorMode, () => setState({ links: editorLinks.value, nodes: editorNodes.value }))
+
+watch(historyAction, () => {
+  if (state.value) {
+    linksStore.editorNodes = state.value.nodes
+    linksStore.editorLinks = state.value.links
+  }
+})
 
 function setNodesPickupDropOff() {
   // get nodes with dropOff and pickup not 0. mark them as stop:false.
@@ -376,6 +393,7 @@ function stopMovingNode () {
   }
   // emit a clickNode with the selected node.
   // this will work with lag as it is the selectedFeature and not the highlighted one.
+  commitChange()
 }
 </script>
 <template>
