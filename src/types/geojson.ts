@@ -51,12 +51,14 @@ export interface PointFeatures {
   type: 'Feature'
   geometry: PointGeometry
   properties: GeoJsonProperties
+  id?: string
 }
 
 export interface LineStringFeatures {
   type: 'Feature'
   geometry: LineStringGeometry
   properties: GeoJsonProperties
+  id?: string
 }
 
 export interface PolygonFeatures {

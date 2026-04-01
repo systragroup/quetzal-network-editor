@@ -249,6 +249,7 @@ function addPointPT(event) {
       : linksStore.editorLinks.features[0]
     routeLink(newLinkFeature)
   }
+  linksStore.commitChanges(action)
 }
 
 function addPointRoad(event) {
@@ -362,6 +363,7 @@ function applyStickyNode() {
 }
 
 import { useRouting } from '@src/utils/routing/routing.js'
+// import HistorySelector from '../utils/HistorySelector.vue'
 const { routeLink } = useRouting()
 
 </script>
@@ -397,6 +399,7 @@ const { routeLink } = useRouting()
       <div v-if="mapIsLoaded">
         <Settings />
         <StyleSelector :order="1" />
+        <!-- <HistorySelector :order="2" /> -->
         <LayerSelector
           v-if="styles.length>0"
           :order="2"

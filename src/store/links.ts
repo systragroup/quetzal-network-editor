@@ -30,14 +30,18 @@ import { baseLineString, basePoint,
 import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
   getDefaultLink } from '@src/utils/network'
-
 const $gettext = (s: string) => s
+
+import { useHistory } from '@src/composables/useHistory'
+import { toRaw } from 'vue'
+const { commit, state, initHistory, redo, undo, history } = useHistory({ links: {}, nodes: {} })
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
     links: baseLineString(),
     nodes: basePoint(),
     visibleNodes: basePoint(),
+    history: history,
     // Edition of a trip
     editorTrip: null,
     editorLinks: baseLineString(),
@@ -58,6 +62,27 @@ export const useLinksStore = defineStore('links', {
   }),
 
   actions: {
+
+    commitChanges(name: string) {
+      const links = Object.fromEntries(this.editorLinks.features.map(item => [item.properties.index, toRaw(item)]))
+      const nodes = Object.fromEntries(this.editorNodes.features.map(item => [item.properties.index, toRaw(item)]))
+      commit({ links: links, nodes: nodes }, name)
+    },
+    redo() {
+      if (redo()) {
+        this.editorLinks.features = Object.values(state.value.links).map(el => toRaw(el))
+        this.editorNodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
+        this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+      }
+    },
+    undo() {
+      if (undo()) {
+        this.editorLinks.features = Object.values(state.value.links).map(el => toRaw(el))
+        this.editorNodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
+        this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
+      }
+    },
+
     //
     // io
     //
@@ -190,6 +215,9 @@ export const useLinksStore = defineStore('links', {
 
       // get the corresponding nodes
       this.getEditorNodes(this.nodes)
+      const links = Object.fromEntries(this.links.features.map(item => [item.properties.index, toRaw(item)]))
+      const nodes = Object.fromEntries(this.nodes.features.map(item => [item.properties.index, toRaw(item)]))
+      initHistory({ links: links, nodes: nodes })
     },
 
     editEditorLinksInfo (payload: SchedulePayload[]) {
@@ -465,7 +493,7 @@ export const useLinksStore = defineStore('links', {
       const ratio = payload.offset // point distance (entre 0 et 1) on the original link
       const newNode = payload.newNode.features[0]
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
-      const link1 = this.editorLinks.features[featureIndex] // this link is extented
+      const link1 = cloneDeep(this.editorLinks.features[featureIndex]) // this link is extented
       const link2 = cloneDeep(link1)
       link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
 
@@ -495,7 +523,7 @@ export const useLinksStore = defineStore('links', {
         }
       }
       // add new node and link
-      this.editorLinks.features.splice(featureIndex + 1, 0, link2)
+      this.editorLinks.features.splice(featureIndex, 1, ...[link1, link2])
       this.editorNodes.features.push(newNode)
 
       // add +1 to every link sequence after link1

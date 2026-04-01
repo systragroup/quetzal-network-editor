@@ -2,7 +2,7 @@
 import { MglPopup, MglImageLayer, MglGeojsonLayer } from 'vue-mapbox3'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
-import { computed, toRefs, ref, watch, onMounted } from 'vue'
+import { computed, toRefs, ref, watch, onMounted, onUnmounted } from 'vue'
 import { Map, GeoJSONSource, MapMouseEvent } from 'mapbox-gl'
 import { useGettext } from 'vue3-gettext'
 import { useForm } from '@src/composables/UseForm'
@@ -60,7 +60,6 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 const editorLinks = computed(() => { return linksStore.editorLinks })
 const editorNodes = computed(() => { return linksStore.editorNodes })
-const isEditorMode = computed(() => linksStore.editorTrip !== null)
 
 const stickyMode = computed(() => { return store.stickyMode })
 const showedTrips = computed(() => { return linksStore.selectedTrips })
@@ -100,22 +99,40 @@ watch(editorLinks, (links) => {
   }
 }, { deep: true, immediate: false })
 
-import { useHistory } from '@src/composables/useHistory'
+// import { useHistory } from '@src/composables/useHistory'
 
-function commitChange() {
-  commit({ links: editorLinks.value, nodes: editorNodes.value })
-}
+// function commitChange() {
+//   commit({ links: editorLinks.value, nodes: editorNodes.value })
+// }
 
-const { commit, historyAction, state, setState } = useHistory({ links: editorLinks.value, nodes: editorNodes.value })
+// const { commit, historyAction, state, setState } = useHistory({ links: editorLinks.value, nodes: editorNodes.value })
 
-watch(isEditorMode, () => setState({ links: editorLinks.value, nodes: editorNodes.value }))
+// watch(isEditorMode, () => setState({ links: editorLinks.value, nodes: editorNodes.value }))
 
-watch(historyAction, () => {
-  if (state.value) {
-    linksStore.editorNodes = state.value.nodes
-    linksStore.editorLinks = state.value.links
-  }
+// watch(historyAction, () => {
+//   if (state.value) {
+//     linksStore.editorNodes = state.value.nodes
+//     linksStore.editorLinks = state.value.links
+//   }
+// })
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
 })
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+function handleKeydown(event: KeyboardEvent) {
+  // Check if Ctrl (or Command on Mac) and Z are pressed
+  if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+    event.preventDefault()
+    linksStore.undo()
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
+    event.preventDefault()
+    linksStore.redo()
+  }
+}
 
 function setNodesPickupDropOff() {
   // get nodes with dropOff and pickup not 0. mark them as stop:false.
@@ -176,13 +193,17 @@ function selectClick (event: CustomMapEvent) {
   if (selectedFeature.value !== null) {
     if (hoveredStateId.value.layerId === 'editorLinks') {
       let type: AddNodeTypes = 'editorNodes'
-      if (anchorMode.value && routingMode.value) { type = 'anchorRoutingNodes'
-      } else if (anchorMode.value) { type = 'anchorNodes' }
+      if (anchorMode.value && routingMode.value) {
+        type = 'anchorRoutingNodes'
+      } else if (anchorMode.value) {
+        type = 'anchorNodes'
+      }
       linksStore.addNodeInline({
         selectedLink: selectedFeature.value.properties,
         lngLat: event.mapboxEvent.lngLat,
         nodes: type,
       })
+      linksStore.commitChanges('add node inline')
     }
   }
 }
@@ -264,6 +285,7 @@ function actionClick (event: ActionClick) {
   }
   contextMenu.value.showed = false
   contextMenu.value.type = null
+  linksStore.commitChanges(event.action)
 }
 
 function onCursor (event: CustomMapEvent) {
@@ -393,7 +415,8 @@ function stopMovingNode () {
   }
   // emit a clickNode with the selected node.
   // this will work with lag as it is the selectedFeature and not the highlighted one.
-  commitChange()
+  // commitChange()
+  linksStore.commitChanges('move node')
 }
 </script>
 <template>

@@ -24,6 +24,10 @@ import { addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWit
   getDefaultLink, getVariantsChoices } from '@src/utils/network'
 const $gettext = (s: string) => s
 
+// import { useHistory } from '@src/composables/useHistory'
+// import { toRaw } from 'vue'
+// const { commit, state, initHistory, redo, undo } = useHistory({ links: {}, nodes: {} })
+
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
@@ -54,6 +58,40 @@ export const userLinksStore = defineStore('rlinks', {
   }),
 
   actions: {
+
+    // commitChanges(name: string) {
+    //   const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
+    //   const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
+    //   commit({ links: links, nodes: nodes }, name)
+    // },
+    // redo() {
+    //   const diff = redo() as any
+    //   if (diff) {
+    //     this.rlinks.features = Object.values(state.value.links).map(el => toRaw(el))
+    //     this.rnodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
+
+    //     const linksList = new Set(Object.keys(diff.links))
+    //     this.updateLinks = [...this.rlinks.features.filter(link => linksList.has(link.properties.index))]
+    //     const nodesList = new Set(Object.keys(diff.nodes))
+    //     this.updateNodes = [...this.rnodes.features.filter(node => nodesList.has(node.properties.index))]
+    //   }
+    // },
+    // undo() {
+    //   const diff = undo() as any
+    //   if (diff) {
+    //     this.rlinks.features = Object.values(state.value.links).map(el => toRaw(el))
+    //     this.rnodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
+
+    //     const linksList = new Set(Object.keys(diff.links))
+    //     this.updateLinks = [...this.rlinks.features.filter(link => linksList.has(link.properties.index))]
+    //     const nodesList = new Set(Object.keys(diff.nodes))
+    //     this.updateNodes = [...this.rnodes.features.filter(node => nodesList.has(node.properties.index))]
+    //   }
+    // },
+
+    // commitParts(name: string) {
+    //   commitPart({ rlinks: toRaw(this.updateLinks), rnodes: toRaw(this.updateNodes) }, name)
+    // },
     //
     // IO
     //
@@ -195,6 +233,11 @@ export const userLinksStore = defineStore('rlinks', {
 
     startEditing () {
       this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
+
+      // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
+      // const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
+      // initHistory({ links: links, nodes: nodes })
+
       this.editionMode = true
       this.networkWasModified = false
     },
