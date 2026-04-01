@@ -69,6 +69,7 @@ export interface GeoJsonFeatures {
   type: 'Feature'
   geometry: GeoJsonGeometry
   properties: GeoJsonProperties
+  id?: string
 }
 
 // Geojson
