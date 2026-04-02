@@ -3,7 +3,8 @@ import { GroupForm, IsoTimeStringTZ, TimeString } from './components'
 import { LineStringGeoJson, LineStringFeatures,
   PointGeoJson, GeoJsonProperties,
   PointGeometry,
-  LineStringGeometry } from './geojson'
+  LineStringGeometry,
+  PointFeatures } from './geojson'
 
 // indexStore
 
@@ -151,6 +152,9 @@ export interface NewNodePayload {
 export interface SelectedNode {
   selectedNode: GeoJsonProperties
 }
+export interface SelectedrNode {
+  selectedNode: PointFeatures
+}
 
 export interface SelectedLink {
   selectedLink: GeoJsonProperties
@@ -180,7 +184,9 @@ export interface AnchorPayload extends SelectedLink {
 export interface MoveNode extends SelectedNode {
   lngLat: number[]
 }
-
+export interface MoverNode extends SelectedrNode {
+  lngLat: number[]
+}
 export interface StickyNodePayload {
   selectedNodeId: string
   stickyNodeId: string

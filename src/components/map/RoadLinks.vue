@@ -305,13 +305,13 @@ function contextMenuNode (event: CustomMapEvent) {
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     const ids = hoveredStateId.value.id
     selectedFeature.value = features.filter(item => ids.includes(item.id as string)) as GeoJsonFeatures[]
-
     if (selectedFeature.value.length > 0) {
+      const point = selectedFeature.value[0] as PointFeatures
       if (hoveredStateId.value?.layerId === 'rnodes') {
-        const index = selectedFeature.value[0].properties.index
+        const index = point.properties.index
         openDialog({ action: 'Edit rNode Info', selectedArr: [index], lingering: true, type: 'road' })
       } else if (hoveredStateId.value?.layerId === 'anchorrNodes') {
-        rlinksStore.deleteAnchorrNode({ selectedNode: selectedFeature.value[0].properties })
+        rlinksStore.deleteAnchorrNode({ selectedNode: point })
       }
     }
   }
@@ -425,7 +425,8 @@ function moveNode (event: CustomMapEvent) {
         // disable popup
         disablePopup.value = true
         if (layerId === 'rnodes') {
-          rlinksStore.getConnectedLinks({ selectedNode: selectedFeature.value[0] })
+          const point = selectedFeature.value[0] as PointFeatures
+          rlinksStore.getConnectedLinks({ selectedNode: point })
         }
         // get position
         map.value.on('mousemove', onMove)
@@ -438,13 +439,14 @@ function onMove (event: MapMouseEvent) {
   // only if dragmode is activated (we just leave the node hovering state.)
   if (dragNode.value && selectedFeature.value) {
     const layerId = hoveredStateId.value?.layerId
+    const point = selectedFeature.value[0] as PointFeatures
     if (layerId === 'anchorrNodes') {
-      rlinksStore.moverAnchor({ selectedNode: selectedFeature.value[0], lngLat: Object.values(event.lngLat) })
+      rlinksStore.moverAnchor({ selectedNode: point, lngLat: Object.values(event.lngLat) })
     } else {
       // when we move a rNode, we need to update drawlink as it is link to this moved node.
       emits('clickFeature', { action: 'Move rNode' })
       selectedFeature.value as GeoJsonFeatures[]
-      rlinksStore.moverNode({ selectedNode: selectedFeature.value[0], lngLat: Object.values(event.lngLat) })
+      rlinksStore.moverNode({ selectedNode: point, lngLat: Object.values(event.lngLat) })
     }
   }
 }

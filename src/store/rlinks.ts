@@ -13,8 +13,8 @@ import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes,
   AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes, CreateRlinkPayload,
-  EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NonEmptyArray, RlinksStore,
-  SelectedNode, SplitRoadPayload } from '@src/types/typesStore'
+  EditRoadPayload, FilesPayload, MoverNode, NewAttribute, NonEmptyArray, RlinksStore,
+  SelectedrNode, SplitRoadPayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
   PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties,
@@ -637,7 +637,7 @@ export const userLinksStore = defineStore('rlinks', {
       return nodeIdB
     },
 
-    getConnectedLinks (payload: SelectedNode) {
+    getConnectedLinks (payload: SelectedrNode) {
       const nodeIndex = payload.selectedNode.properties.index
       // get links connected to the node
       // visible List here is used to update only the visible links on the map
@@ -651,7 +651,7 @@ export const userLinksStore = defineStore('rlinks', {
         visibleLinksList: visibleLinksList,
       }
     },
-    moverNode (payload: MoveNode) {
+    moverNode (payload: MoverNode) {
       const nodeIndex = payload.selectedNode.properties.index
       // remove node
       const newNode = this.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0]
@@ -678,7 +678,7 @@ export const userLinksStore = defineStore('rlinks', {
       this.updateNodes = [newNode]
     },
 
-    moverAnchor (payload: MoveNode) {
+    moverAnchor (payload: MoverNode) {
       const linkIndex = payload.selectedNode.properties.linkIndex
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
       const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
@@ -693,9 +693,9 @@ export const userLinksStore = defineStore('rlinks', {
       }
       this.updateLinks = [link]
     },
-    deleteAnchorrNode (payload: SelectedNode) {
-      const linkIndex = payload.selectedNode.linkIndex
-      const coordinatedIndex = payload.selectedNode.coordinatedIndex
+    deleteAnchorrNode (payload: SelectedrNode) {
+      const linkIndex = payload.selectedNode.properties.linkIndex
+      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
       const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
