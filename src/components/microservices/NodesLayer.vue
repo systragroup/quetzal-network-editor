@@ -100,9 +100,6 @@ export default {
           lngLat: Object.values(event.lngLat),
         }
         this.$emit('move', click)
-        // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
-        // this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
-        //  booleanContains(this.bbox, node))
       }
     },
     stopMovingNode (event) {

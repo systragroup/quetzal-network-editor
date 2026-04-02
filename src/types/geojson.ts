@@ -43,9 +43,7 @@ export interface PolygonGeometry {
   coordinates: Position[][]
 }
 
-export interface GeoJsonProperties {
-  [key: string]: any
-}
+export type GeoJsonProperties = Record<string, any>
 
 export interface PointFeatures {
   type: 'Feature'

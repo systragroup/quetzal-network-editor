@@ -29,7 +29,8 @@ import { baseLineString, basePoint,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
-  getDefaultLink } from '@src/utils/network'
+  getDefaultLink,
+  getAnchorGeojson } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 import { useHistory } from '@src/composables/useHistory'
@@ -897,21 +898,10 @@ export const useLinksStore = defineStore('links', {
       ? state.editorLinks.features.slice(-1)[0].properties.b
       : state.editorNodes.features[0].properties.index,
     anchorNodes: (state) => {
-      const nodes: any = basePoint()
-      state.editorLinks.features.filter(link => link.geometry.coordinates.length > 2).forEach(
-        feature => {
-          const linkIndex = feature.properties.index
-          feature.geometry.coordinates.slice(1, -1).forEach(
-            (pt, idx) => nodes.features.push({
-              properties: { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
-              geometry: { coordinates: pt, type: 'Point' },
-            }),
-          )
-        },
-      )
-      return nodes
+      return getAnchorGeojson(state.editorLinks.features)
     },
     routeAnchorNodes: (state) => {
+      // cannot use the getAnchorGeojson as we dont work on geometry and idx is not +1
       const nodes: any = basePoint()
       state.editorLinks.features.forEach(
         feature => {

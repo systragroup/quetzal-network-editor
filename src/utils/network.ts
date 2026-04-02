@@ -1,5 +1,7 @@
-import { baseLineString, LineStringFeatures, LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
+import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson } from '@src/types/geojson'
 import { Attributes, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
+import short from 'short-uuid'
+
 import length from '@turf/length'
 import { round } from './utils'
 const secPerHour = 3600
@@ -103,4 +105,25 @@ export function getBaseAttributesWithVariants(attributes: Attributes[]) {
   const variantTuple = variantAttributes.map(el => el.name.split('#'))
   const toDelete = new Set(variantTuple.map(el => el[0]))
   return toDelete
+}
+
+export function getAnchorGeojson(features: LineStringFeatures[]): PointGeoJson {
+  const nodes = basePoint()
+  features.filter(link => link.geometry.coordinates.length > 2).forEach(
+    linkFeature => {
+      const linkIndex = linkFeature.properties.index
+      const linkGeometry = linkFeature.geometry.coordinates.slice(1, -1)
+      linkGeometry.forEach(
+        (pt: number[], idx: number) => {
+          const pointFeature: PointFeatures = {
+            properties: { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
+            geometry: { coordinates: pt, type: 'Point' },
+            type: 'Feature',
+          }
+          nodes.features.push(pointFeature)
+        },
+      )
+    },
+  )
+  return nodes
 }

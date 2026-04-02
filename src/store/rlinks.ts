@@ -585,6 +585,7 @@ export const userLinksStore = defineStore('rlinks', {
       // create a node if we click on the map (case 1)
       const nodeIdA = payload.nodeIdA
       const geom = payload.geom
+
       const linksId = payload.linksId
       let nodeIdB = payload.nodeIdB
 
@@ -592,7 +593,8 @@ export const userLinksStore = defineStore('rlinks', {
       // else if: clicked no where: create a node
       if (linksId) {
         // create a node inline and then the new link
-        const newNode = this.addRoadNodeInline({ selectedIndex: linksId, lngLat: geom, nodes: 'rnodes' })
+        const lnglat = { lng: geom[0], lat: geom[1] }
+        const newNode = this.addRoadNodeInline({ selectedIndex: linksId, lngLat: lnglat, nodes: 'rnodes' })
         nodeIdB = newNode.features[0].properties.index
       } else if (!nodeIdB) {
         const newNode = this.createNewrNode(geom)

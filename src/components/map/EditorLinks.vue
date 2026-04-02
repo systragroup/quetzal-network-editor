@@ -10,41 +10,10 @@ import { baseLineString, basePoint, GeoJsonFeatures, LineStringGeoJson, PointGeo
 const { openDialog } = useForm()
 const { $gettext } = useGettext()
 
-interface State {
-  layerId: string
-  id: string
-  properties?: any
-}
-
 interface Popup {
   coordinates: number[]
   showed: boolean
   content: string | null
-}
-
-interface ContextMenuAction {
-  name: string
-  text: string
-}
-
-interface ContextMenu {
-  coordinates: number[]
-  showed: boolean
-  actions: ContextMenuAction[]
-  feature: GeoJsonFeatures
-  type: string | null
-}
-
-interface CustomMapEvent {
-  layerId: string
-  map: Map
-  mapboxEvent: MapMouseEvent
-}
-
-interface ActionClick {
-  action: string
-  feature: GeoJsonFeatures
-  coordinates: number[]
 }
 
 interface Props {
@@ -149,14 +118,15 @@ function setNodesPickupDropOff() {
 }
 
 const selectedFeature = ref<GeoJsonFeatures | null>(null)
-const hoveredStateId = ref<State | null>(null)
-const stickyStateId = ref<State | null>(null)
+const hoveredStateId = ref<HoverState | null>(null)
+const stickyStateId = ref<HoverState | null>(null)
 const isSticking = computed(() => { return stickyStateId.value !== null && hoveredStateId.value !== null && keepHovering.value })
 const keepHovering = ref(false)
 const dragNode = ref(false)
 
 import { useRouting } from '@src/utils/routing/routing.js'
 import { AddNodeTypes } from '@src/types/typesStore'
+import { ActionClick, ContextMenu, CustomMapEvent, HoverState } from '@src/types/mapbox'
 const { routeLink } = useRouting()
 const routeAnchorLine = computed(() => {
   if (anchorMode.value && routingMode.value) {
@@ -294,12 +264,12 @@ function onCursor (event: CustomMapEvent) {
     if (hoveredStateId.value !== null) {
       map.value.setFeatureState({ source: hoveredStateId.value.layerId, id: hoveredStateId.value.id }, { hover: false })
     }
-    const mapEvent = event.mapboxEvent.features
-    if (!mapEvent) return
+    const mapFeature = event.mapboxEvent.features
+    if (!mapFeature) return
     hoveredStateId.value = {
       layerId: event.layerId,
-      id: mapEvent[0].id as string,
-      properties: mapEvent[0].properties,
+      id: mapFeature[0].id as string,
+      properties: mapFeature[0].properties,
     }
     map.value.setFeatureState({ source: hoveredStateId.value.layerId, id: hoveredStateId.value.id }, { hover: true })
     if (!disablePopup.value && !anchorMode.value) {

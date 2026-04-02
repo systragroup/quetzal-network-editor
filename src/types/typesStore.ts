@@ -1,7 +1,9 @@
 import { History } from '@src/composables/useHistory'
 import { GroupForm, IsoTimeStringTZ, TimeString } from './components'
 import { LineStringGeoJson, LineStringFeatures,
-  PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
+  PointGeoJson, GeoJsonProperties,
+  PointGeometry,
+  LineStringGeometry } from './geojson'
 
 // indexStore
 
@@ -90,10 +92,19 @@ export type LinksAction = ''
   | 'Extend Line Upward'
   | 'Extend Line Downward'
 
+export type LinksAction2 = ''
+  | 'Cut Before Node'
+  | 'Cut After Node'
+  | 'Delete Stop'
+
 export type RoadsAction = ''
   | 'Edit Road Group Info'
   | 'Edit rLink Info'
   | 'Edit rNode Info'
+
+export type RoadsAction2 = ''
+  | 'Delete rLink'
+  | 'Delete Selected'
 
 export type ODAction = ''
   | 'Edit OD Info'
@@ -257,7 +268,7 @@ export interface SplitRoadPayload {
   newNode: PointGeoJson
 }
 export interface AddRoadNodeInlinePayload {
-  lngLat: number[]
+  lngLat: LngLat
   selectedIndex: string[]
   nodes: 'anchorrNodes' | 'rnodes'
 
@@ -280,7 +291,9 @@ export interface CreateRlinkPayload {
 
 export interface UpdateFeatures {
   type: 'Feature'
-  id: string
+  id?: string // should be necessary
+  geometry?: LineStringGeometry | PointGeometry
+  properties?: GeoJsonProperties
 }
 
 export interface SavedRoadNetwork {
@@ -302,8 +315,8 @@ export interface RlinksStore {
   visiblerNodes: PointGeoJson
   connectedLinks: RoadConnectedLinks
   rlinksAttributesChoices: AttributesChoice
-  updateLinks: (UpdateFeatures | LineStringFeatures)[]
-  updateNodes: (UpdateFeatures | PointFeatures)[]
+  updateLinks: UpdateFeatures[]
+  updateNodes: UpdateFeatures[]
   editionMode: boolean
   savedNetwork: SavedRoadNetwork
   networkWasModified: boolean
