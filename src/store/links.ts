@@ -2,9 +2,7 @@
 /* eslint-disable no-return-assign */
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
-import length from '@turf/length'
-import nearestPointOnLine from '@turf/nearest-point-on-line'
-import { lineString, point as Point } from '@turf/helpers'
+import { lineString } from '@turf/helpers'
 
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
@@ -30,7 +28,8 @@ import { baseLineString, basePoint,
 import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
   getDefaultLink,
-  getAnchorGeojson } from '@src/utils/network'
+  getAnchorGeojson,
+  snapOnLink } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 import { useHistory } from '@src/composables/useHistory'
@@ -417,12 +416,12 @@ export const useLinksStore = defineStore('links', {
     },
 
     getNewNode (payload: NewNodePayload) {
-      // Copy specified node
-      const tempNode = cloneDeep(this.editorNodes)
-      const features = tempNode.features.filter(node => node.properties.index === payload.nodeCopyId)[0]
-      features.properties.index = 'node_' + short.generate()
-      features.geometry.coordinates = payload.coordinates
+      const { nodeCopyId, coordinates } = payload
       const newNode = basePoint()
+      // Copy specified node
+      const features = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === nodeCopyId)[0])
+      features.properties.index = 'node_' + short.generate()
+      features.geometry.coordinates = coordinates
       newNode.features = [features]
       return newNode
     },
@@ -489,26 +488,28 @@ export const useLinksStore = defineStore('links', {
     },
 
     splitLink (payload: SplitLinkPayload) {
-      const linkIndex = payload.selectedLink.index
-      const sliceIndex = payload.sliceIndex
-      const ratio = payload.offset // point distance (entre 0 et 1) on the original link
-      const newNode = payload.newNode.features[0]
+      // this function edit 1 link, create 1 link create 1 node
+      const { linkIndex, lngLat } = payload
+
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
-      const link1 = cloneDeep(this.editorLinks.features[featureIndex]) // this link is extented
+      const link1 = cloneDeep(this.editorLinks.features[featureIndex])
+      const { sliceIndex, offset, newCoords } = snapOnLink(link1.geometry.coordinates, lngLat)
+      const ratio = offset // point distance (entre 0 et 1) on the original link
+
+      const nodeCopyId = link1.properties.a
+      const newNode = this.getNewNode({ coordinates: newCoords, nodeCopyId }).features[0]
+
       const link2 = cloneDeep(link1)
       link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
-
       link1.properties.b = newNode.properties.index
-      link1.geometry.coordinates = [
-        ...link1.geometry.coordinates.slice(0, sliceIndex),
-        newNode.geometry.coordinates,
-      ]
-
       link2.properties.a = newNode.properties.index
-      link2.geometry.coordinates = [
-        newNode.geometry.coordinates,
-        ...link2.geometry.coordinates.slice(sliceIndex),
-      ]
+
+      // do geometry
+      link1.geometry.coordinates = link1.geometry.coordinates.slice(0, sliceIndex)
+      link1.geometry.coordinates.push(newCoords)
+
+      link2.geometry.coordinates = link2.geometry.coordinates.slice(sliceIndex)
+      link2.geometry.coordinates.splice(0, 0, newCoords)
 
       // new Geom. calc length and time with speed.
       calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
@@ -533,65 +534,57 @@ export const useLinksStore = defineStore('links', {
     },
 
     addNodeInline (payload: AddNodeInlinePayload) {
-      // payload contain selectedLink and event.lngLat (clicked point)
-      const link = this.editorLinks.features.filter((link) => link.properties.index === payload.selectedLink.index)[0]
-      const linkGeom = lineString(link.geometry.coordinates)
-      const clickedPoint = Point(Object.values(payload.lngLat))
-      const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
-      // we snap on the temp geom for the index:
-      const dist = length(linkGeom, { units: 'kilometers' }) // dist
-      // for multiString, gives the index of the closest one, add +1 for the slice.
-
-      const sliceIndex = snapped.properties.index ? snapped.properties.index + 1 : 1
-      const offset = snapped.properties.location ? snapped.properties.location / dist : 0
-      if (payload.nodes === 'editorNodes') {
-        const nodeCopyId = link.properties.a
-        const newNode = this.getNewNode({ coordinates: snapped.geometry.coordinates, nodeCopyId })
-        this.splitLink({ selectedLink: payload.selectedLink, offset, sliceIndex, newNode })
-        // Anchor Nodes
-      } else if (payload.nodes === 'anchorNodes') {
-        this.addAnchorNode({
-          selectedLink: payload.selectedLink,
-          coordinates: snapped.geometry.coordinates,
-          sliceIndex,
+      const { selectedLink, lngLat, nodeType } = payload
+      const linkIndex = selectedLink.properties.index
+      if (nodeType === 'editorNodes') {
+        this.splitLink({
+          linkIndex: linkIndex,
+          lngLat: lngLat,
         })
-      } else {
-        // in the cas of a Routing Anchor, we want the find the slice index on the
-        // virtual geometry created with link.proeperties.anchor. not the actual geom.
-        const inBetween = link.properties.anchors || []
-        const routingGeom = lineString([
-          link.geometry.coordinates[0],
-          ...inBetween,
-          ...link.geometry.coordinates.slice(-1),
-        ])
-        const snapped2 = nearestPointOnLine(routingGeom, clickedPoint, { units: 'kilometers' })
-        const anchorSliceIndex = snapped2.properties.index || 0
+      }
+      else if (nodeType == 'anchorNodes') {
+        this.addAnchorNode({
+          linkIndex: linkIndex,
+          lngLat: lngLat,
+        })
+      }
+      else {
         this.addRoutingAnchorNode({
-          selectedLink: payload.selectedLink,
-          coordinates: snapped.geometry.coordinates,
-          sliceIndex: anchorSliceIndex,
+          linkIndex: linkIndex,
+          lngLat: lngLat,
         })
       }
     },
 
     addAnchorNode (payload: AnchorPayload) {
-      const linkIndex = payload.selectedLink.index
-      const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
-      // changing link change editorLinks as it is an observer.
-      const link = this.editorLinks.features[featureIndex]
-      link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
+      // change link geometry coordinates
+      const { linkIndex, lngLat } = payload
+      const link = this.editorLinks.features.filter((link) => link.properties.index === linkIndex)[0]
+      const { sliceIndex, newCoords } = snapOnLink(link.geometry.coordinates, lngLat)
+
+      link.geometry.coordinates.splice(sliceIndex, 0, newCoords)
     },
 
     addRoutingAnchorNode (payload: AnchorPayload) {
-      const linkIndex = payload.selectedLink.index
-      const featureIndex = this.editorLinks.features.findIndex(link => link.properties.index === linkIndex)
-      // changing link change editorLinks as it is an observer.
-      const link = this.editorLinks.features[featureIndex]
+      // change properties.anchor
+      const { linkIndex, lngLat } = payload
+      const link = this.editorLinks.features.filter((link) => link.properties.index === linkIndex)[0]
+      const { newCoords } = snapOnLink(link.geometry.coordinates, lngLat)
+
+      // in the cas of a Routing Anchor, we want the find the slice index on the
+      // virtual geometry created with link.proeperties.anchor. not the actual geom.
+      const inBetween = link.properties.anchors || []
+      const routingGeom = [
+        toRaw(link.geometry.coordinates[0]),
+        ...inBetween,
+        toRaw(link.geometry.coordinates.slice(-1)[0]),
+      ]
+      const { sliceIndex } = snapOnLink(routingGeom, newCoords)
       // if anchor properties does not exist: create it. else append at correct index.
       if (Object.keys(link.properties).includes('anchors')) {
-        link.properties.anchors.splice(payload.sliceIndex, 0, payload.coordinates)
+        link.properties.anchors.splice(sliceIndex - 1, 0, newCoords)
       } else {
-        link.properties.anchors = [payload.coordinates]
+        link.properties.anchors = [newCoords]
       }
     },
 

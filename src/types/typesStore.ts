@@ -4,7 +4,8 @@ import { LineStringGeoJson, LineStringFeatures,
   PointGeoJson, GeoJsonProperties,
   PointGeometry,
   LineStringGeometry,
-  PointFeatures } from './geojson'
+  PointFeatures,
+} from './geojson'
 
 // indexStore
 
@@ -160,10 +161,10 @@ export interface SelectedLink {
   selectedLink: GeoJsonProperties
 }
 
-export interface SplitLinkPayload extends SelectedLink {
-  offset: number
-  sliceIndex: number
-  newNode: PointGeoJson
+export interface SplitLinkPayload {
+  linkIndex: string
+  lngLat: LngLat
+
 }
 
 export type AddNodeTypes = 'editorNodes' | 'anchorNodes' | 'anchorRoutingNodes'
@@ -171,15 +172,16 @@ export interface LngLat {
   lng: number
   lat: number
 }
-
-export interface AddNodeInlinePayload extends SelectedLink {
+export interface AddNodeInlinePayload {
+  selectedLink: LineStringFeatures
   lngLat: LngLat
-  nodes: AddNodeTypes
+  nodeType: AddNodeTypes
 }
 
-export interface AnchorPayload extends SelectedLink {
-  coordinates: number[]
-  sliceIndex: number
+export interface AnchorPayload {
+  linkIndex: string
+  lngLat: LngLat
+
 }
 export interface MoveNode extends SelectedNode {
   lngLat: number[]

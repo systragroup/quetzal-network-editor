@@ -1,8 +1,10 @@
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson } from '@src/types/geojson'
-import { Attributes, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
+import { Attributes, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
 import short from 'short-uuid'
 
 import length from '@turf/length'
+import nearestPointOnLine from '@turf/nearest-point-on-line'
+import { lineString, point as Point } from '@turf/helpers'
 import { round } from './utils'
 const secPerHour = 3600
 
@@ -127,3 +129,49 @@ export function getAnchorGeojson(features: LineStringFeatures[]): PointGeoJson {
   )
   return nodes
 }
+
+export function snapOnLink(linksGeometry: number[][], lngLat: LngLat | number[]) {
+  // take geometry.coordinates
+  const linkGeom = lineString(linksGeometry)
+  const clickedPoint = Point(Object.values(lngLat))
+  const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
+  // we snap on the temp geom for the index:
+  const dist = length(linkGeom, { units: 'kilometers' }) // dist
+  // for multiString, gives the index of the closest one, add +1 for the slice.
+  const sliceIndex = snapped.properties.index ? snapped.properties.index + 1 : 1
+  const offset = snapped.properties.location ? snapped.properties.location / dist : 0
+  const newCoords = snapped.geometry.coordinates
+  return { sliceIndex, offset, newCoords }
+}
+
+// function createNode() {
+
+// }
+
+// function createLink() {
+
+// }
+
+// function deleteNode() {}
+
+// function deleteLink() {}
+
+// // function createNewNode() {
+// //   create()
+// // }
+// function addNodeInline() {
+//   createNode()
+//   changeLink(1)
+//   createNewLink()
+//   insert
+// }
+// function applyNewLink() {}
+// function cutLineBeforeNode() {}
+// function cutLineAfterNode() {}
+// function deleteNode() {}
+// function deleteRoutingAnchorNode() {}
+// function deleteAnchorNode() {}
+// function moveNode() {}
+// function moveAnchor() {}
+// function moveRoutingAnchor() {}
+// function applystickynode() {}
