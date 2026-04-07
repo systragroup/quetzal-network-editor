@@ -5,7 +5,7 @@ import { useLinksStore } from '@src/store/links'
 import { computed, toRefs, ref, watch, onMounted, onUnmounted } from 'vue'
 import { Map, GeoJSONSource, MapMouseEvent } from 'mapbox-gl'
 import { useGettext } from 'vue3-gettext'
-import { baseLineString, basePoint, GeoJsonFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
+import { baseLineString, basePoint, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
 import { AddNodeTypes } from '@src/types/typesStore'
 import { ActionClick, ContextMenu, CustomMapEvent, HoverState } from '@src/types/mapbox'
 import { useForm } from '@src/composables/UseForm'
@@ -52,11 +52,11 @@ const routingMode = computed(() => { return store.routingMode })
 
 import { useRouting } from '@src/utils/routing/routing.js'
 const { routeLink } = useRouting()
-const showRouteAnchorLine = computed(() => anchorMode.value && routingMode.value)
-const routeAnchorLine = computed(() => showRouteAnchorLine.value ? linksStore.routeAnchorLine : baseLineString())
+const routeAnchorMode = computed(() => anchorMode.value && routingMode.value)
+const routeAnchorLine = computed(() => routeAnchorMode.value ? linksStore.routeAnchorLine : baseLineString())
 
 const anchorNodes = computed(() => {
-  if (showRouteAnchorLine.value) {
+  if (routeAnchorMode.value) {
     return linksStore.routeAnchorNodes
   } else if (anchorMode.value) {
     return linksStore.anchorNodes
@@ -160,15 +160,15 @@ function selectClick (event: CustomMapEvent) {
   if (selectedFeature.value !== null) {
     if (hoveredStateId.value.layerId === 'editorLinks') {
       let type: AddNodeTypes = 'editorNodes'
-      if (anchorMode.value && routingMode.value) {
+      if (routeAnchorMode.value) {
         type = 'anchorRoutingNodes'
       } else if (anchorMode.value) {
         type = 'anchorNodes'
       }
       linksStore.addNodeInline({
-        selectedLink: selectedFeature.value.properties,
+        selectedLink: selectedFeature.value as LineStringFeatures,
         lngLat: event.mapboxEvent.lngLat,
-        nodes: type,
+        nodeType: type,
       })
       linksStore.commitChanges('add node inline')
     }
