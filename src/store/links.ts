@@ -325,7 +325,7 @@ export const useLinksStore = defineStore('links', {
       this.getTripList()
     },
 
-    getTripList () {
+    getTripList () { // this could be remove i think. and be a computed
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
     },
 
@@ -726,16 +726,18 @@ export const useLinksStore = defineStore('links', {
     editLineInfo (payload: GroupForm) {
       // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
       const props = getModifiedKeys(payload)
-      this.editorLinks.features.forEach(
-        (features) => props.forEach((key) => features.properties[key] = payload[key].value))
+      const features = cloneDeep(this.editorLinks.features)
+      features.forEach(
+        link => props.forEach((key) => link.properties[key] = payload[key].value))// assign
 
       // apply speed (get time on each link for the new speed.)
       const modifiedSpeeds = this.timeVariants.filter(v => props.includes(`speed${v}`))
       if (modifiedSpeeds.length > 0) {
-        this.editorLinks.features.forEach(link =>
+        features.forEach(link =>
           calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
+      features.forEach(link => _editLink(this.editorLinks, link))
       // New line
       // change LinksDefault values. so drawing a link uses those inputed values
       if (this.editorLinks.features.length === 0) {
@@ -743,7 +745,6 @@ export const useLinksStore = defineStore('links', {
           const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
           attr.value = payload[key].value
         },
-
         )
       }
     },
@@ -752,22 +753,18 @@ export const useLinksStore = defineStore('links', {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedIndex, info } = payload
       const props = Object.keys(info)
-      const link = this.editorLinks.features.filter(link => link.properties.index === selectedIndex)[0]
+      const link = cloneDeep(this.editorLinks.features.filter(link => link.properties.index === selectedIndex)[0])
       props.forEach(key => link.properties[key] = info[key].value)
+      _editLink(this.editorLinks, link)
     },
 
     editNodeInfo (payload: EditLinkPayload) {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedIndex, info } = payload
       const props = Object.keys(info)
-      this.editorNodes.features.filter(
-        // eslint-disable-next-line array-callback-return
-        function (node) {
-          if (node.properties.index === selectedIndex) {
-            props.forEach((key) => node.properties[key] = info[key].value)
-          }
-        },
-      )
+      const node = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === selectedIndex)[0])
+      props.forEach(key => node.properties[key] = info[key].value)
+      _editFeature(this.editorNodes, node)
     },
 
     editGroupInfo (payload: EditGroupPayload) {

@@ -245,7 +245,7 @@ function setHighlight(trip: string | null) {
             class="ma-2"
             :style="{color: 'white'}"
 
-            :disabled="selectedTrips.length===0? true: false"
+            :disabled="(selectedTrips.length===0)||(editorTrip!=null)? true: false"
             v-bind="props"
             @click="propertiesButton(selectedTrips,'Edit Group Info')"
           />
