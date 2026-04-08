@@ -144,34 +144,33 @@ export function snapOnLink(linksGeometry: number[][], lngLat: LngLat | number[])
   return { sliceIndex, offset, newCoords }
 }
 
-// function createNode() {
+export function _insertLink(editorLinks: LineStringGeoJson, feature: LineStringFeatures, spliceIndex = 0) {
+  // insert links at an index (0 for first.)
+  // add +1 to every link sequence after this (assume links are ordered)
+  editorLinks.features.splice(spliceIndex, 0, feature)
+  editorLinks.features.slice(spliceIndex + 1).forEach(link => link.properties.link_sequence += 1)
+}
 
-// }
+export function _editLink(editorLinks: LineStringGeoJson, feature: LineStringFeatures) {
+  const filtered = editorLinks.features.filter(link => link.properties.index == feature.properties.index)[0]
+  Object.assign(filtered, feature)
+}
 
-// function createLink() {
+export function _deleteLink(editorLinks: LineStringGeoJson, index: string) {
+  const featureIndex = editorLinks.features.findIndex(link => link.properties.index === index)
+  editorLinks.features.splice(featureIndex, 1)
+  editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence -= 1)
+}
 
-// }
+export function _deleteNode(editorNodes: PointGeoJson, index: string) {
+  editorNodes.features = editorNodes.features.filter(node => node.properties.index !== index)
+}
 
-// function deleteNode() {}
+export function _addNode(editorNodes: PointGeoJson, feature: PointFeatures) {
+  editorNodes.features.push(feature)
+}
 
-// function deleteLink() {}
-
-// // function createNewNode() {
-// //   create()
-// // }
-// function addNodeInline() {
-//   createNode()
-//   changeLink(1)
-//   createNewLink()
-//   insert
-// }
-// function applyNewLink() {}
-// function cutLineBeforeNode() {}
-// function cutLineAfterNode() {}
-// function deleteNode() {}
-// function deleteRoutingAnchorNode() {}
-// function deleteAnchorNode() {}
-// function moveNode() {}
-// function moveAnchor() {}
-// function moveRoutingAnchor() {}
-// function applystickynode() {}
+export function _editFeature(geojson: LineStringGeoJson | PointGeoJson, feature: LineStringFeatures | PointFeatures) {
+  const filtered = geojson.features.filter(feat => feat.properties.index == feature.properties.index)[0]
+  Object.assign(filtered, feature)
+}

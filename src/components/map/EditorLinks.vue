@@ -215,10 +215,10 @@ function contextMenuAnchor() {
     let modLink = undefined
     if (routingMode.value) {
       modLink = linksStore.deleteRoutingAnchorNode({ selectedNode: selectedFeature.value.properties })
+      routeLink(modLink)
     } else {
-      modLink = linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value.properties })
+      linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value.properties })
     }
-    if (store.routingMode && modLink) { routeLink(modLink) }
   }
 }
 
@@ -327,19 +327,22 @@ function moveNode (event: CustomMapEvent) {
   if (!hoveredStateId.value) return
   if (!['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId)) return
   if (event.mapboxEvent.originalEvent.button === 0) {
-    event.mapboxEvent.preventDefault() // prevent map control
-    map.value.getCanvas().style.cursor = 'grab'
-    // disable mouseLeave so we stay in hover state.
-    keepHovering.value = true
     // get selected node
     const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
     const id = hoveredStateId.value.featureId
-    selectedFeature.value = features.filter(item => item.id === id)[0] as GeoJsonFeatures
+    const selected = features.filter(item => item.id === id)[0]
+    if (!selected) return //  sometime its undefined...
+    selectedFeature.value = selected as GeoJsonFeatures
     linksStore.getConnectedLinks({ selectedNode: selectedFeature.value })
 
     // disable popup
     disablePopup.value = true
     popupEditor.value.showed = false
+    // prevent map control
+    event.mapboxEvent.preventDefault()
+    map.value.getCanvas().style.cursor = 'grab'
+    // disable mouseLeave so we stay in hover state.
+    keepHovering.value = true
     // get position
     map.value.on('mousemove', onMove)
     map.value.on('mouseup', stopMovingNode)
@@ -360,6 +363,7 @@ function onMove (event: MapMouseEvent) {
     }
   }
 }
+
 function stopMovingNode () {
   // stop tracking position (moving node.)
   map.value.getCanvas().style.cursor = 'pointer'

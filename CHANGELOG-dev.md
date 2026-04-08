@@ -1,3 +1,7 @@
+## [7.3.x] (2026-04-08)
+### bug fixes
+* cut line before node: was not changing link_sequence
+
 ## [7.3.d] (2026-03-20)
 rebase on master 7.2.5
 
