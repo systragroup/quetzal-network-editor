@@ -8,7 +8,7 @@ import { cloneDeep } from 'lodash'
 import createGraph from 'ngraph.graph'
 import path from 'ngraph.path'
 import { shallowRef, toRaw, computed, watch, onMounted } from 'vue'
-import { _editFeature, calcLengthTimeorSpeed } from '../network'
+import { _editLink, _editNode, calcLengthTimeorSpeed } from '../network'
 
 // Global state. Can reuuse thoses anywhere in the app.
 // onMounted. only init if null (so we do it only once.)
@@ -259,15 +259,15 @@ export function useRouting () {
     const nodeB = cloneDeep(nodes.value.features.filter(node => node.properties.index === routedLink.properties.b)[0])
     // this move the nodes on links and crop the Linestring to the nodes.
     snapToGeom(nodeA, nodeB, routedLink)
-    _editFeature(linksStore.editorLinks, routedLink)
-    _editFeature(linksStore.editorNodes, nodeA)
-    _editFeature(linksStore.editorNodes, nodeB)
+    _editLink(linksStore.editorLinks, routedLink)
+    _editNode(linksStore.editorNodes, nodeA)
+    _editNode(linksStore.editorNodes, nodeB)
   }
 
   function unroute(link) {
     const modifiedLink = _unrouteLink(cloneDeep(link))
     calcLengthTimeorSpeed(modifiedLink, linksStore.variantChoice, linksStore.speedTimeMethod)
-    _editFeature(linksStore.editorLinks, modifiedLink)
+    _editLink(linksStore.editorLinks, modifiedLink)
   }
 
   function routeAll() {

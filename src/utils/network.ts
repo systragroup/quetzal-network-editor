@@ -156,21 +156,27 @@ export function _editLink(editorLinks: LineStringGeoJson, feature: LineStringFea
   Object.assign(filtered, feature)
 }
 
-export function _deleteLink(editorLinks: LineStringGeoJson, index: string) {
-  const featureIndex = editorLinks.features.findIndex(link => link.properties.index === index)
+export function _deleteLink(editorLinks: LineStringGeoJson, feature: LineStringFeatures) {
+  const featureIndex = editorLinks.features.findIndex(link => link.properties.index === feature.properties.index)
   editorLinks.features.splice(featureIndex, 1)
   editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence -= 1)
+}
+
+// edit properties with an array.? or pass the form object and assign to each.
+// export function _editLinkArray(editorLinks: LineStringGeoJson, features: LineStringFeatures[]) {
+//   const filtered = editorLinks.features.filter(link => link.properties.index == feature.properties.index)[0]
+//   Object.assign(filtered, feature)
+// }
+
+export function _addNode(editorNodes: PointGeoJson, feature: PointFeatures) {
+  editorNodes.features.push(feature)
 }
 
 export function _deleteNode(editorNodes: PointGeoJson, index: string) {
   editorNodes.features = editorNodes.features.filter(node => node.properties.index !== index)
 }
 
-export function _addNode(editorNodes: PointGeoJson, feature: PointFeatures) {
-  editorNodes.features.push(feature)
-}
-
-export function _editFeature(geojson: LineStringGeoJson | PointGeoJson, feature: LineStringFeatures | PointFeatures) {
-  const filtered = geojson.features.filter(feat => feat.properties.index == feature.properties.index)[0]
+export function _editNode(editorNodes: PointGeoJson, feature: PointFeatures) {
+  const filtered = editorNodes.features.filter(feat => feat.properties.index == feature.properties.index)[0]
   Object.assign(filtered, feature)
 }

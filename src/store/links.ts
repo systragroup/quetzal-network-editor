@@ -34,13 +34,32 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   _deleteLink,
   _editLink,
   _deleteNode,
-  _editFeature,
-  _addNode } from '@src/utils/network'
+  _addNode,
+  _editNode } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 import { useHistory } from '@src/composables/useHistory'
 import { toRaw } from 'vue'
 const { commit, state, initHistory, redo, undo, history } = useHistory({ links: {}, nodes: {} })
+
+export type Commit =
+  | {
+    type: 'add'
+    feature: LineStringFeatures
+    spliceIndex?: number
+  }
+  | {
+    type: 'delete'
+    feature: LineStringFeatures
+  }
+  | {
+    type: 'update'
+    feature: LineStringFeatures
+  }
+  | {
+    type: 'update'
+    features: LineStringFeatures[] // batch updates
+  }
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
@@ -89,6 +108,22 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
+    // commitTest(payload: Commit) {
+    //   switch (payload.type) {
+    //     case 'add':
+    //       console.log('rr')
+    //     case 'delete':
+    //       console.log('rr')
+
+    //     case 'update':
+    //       console.log('rr')
+    //   }
+      // if (Array.isArray(features)) {
+      //   features.forEach(link => _editLink(this.editorLinks, link))
+      // } else {
+      //   _editLink(this.editorLinks, features)
+      // }
+    },
     //
     // io
     //
@@ -455,9 +490,9 @@ export const useLinksStore = defineStore('links', {
       const link2 = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0])
 
       if (nodeIndex == this.firstNodeId) {
-        _deleteLink(this.editorLinks, link2.properties.index)
+        _deleteLink(this.editorLinks, link2)
       } else if (nodeIndex == this.lastNodeId) {
-        _deleteLink(this.editorLinks, link1.properties.index)
+        _deleteLink(this.editorLinks, link1)
       } else {
         // merge link2 on link1 then delete link2
         link1.geometry.coordinates = [
@@ -478,9 +513,8 @@ export const useLinksStore = defineStore('links', {
 
         calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
 
-        const toDelete = link2.properties.index
-        _editFeature(this.editorLinks, link1)
-        _deleteLink(this.editorLinks, toDelete)
+        _editLink(this.editorLinks, link1)
+        _deleteLink(this.editorLinks, link2)
         // for routing
         return link1
       }
@@ -663,7 +697,7 @@ export const useLinksStore = defineStore('links', {
       const nodeIndex = payload.selectedNode.properties.index
       const node = this.editorNodes.features.filter(node => node.properties.index == nodeIndex)[0]
       if (node) { // could be an anchor
-        _editFeature(this.editorNodes, node)
+        _editNode(this.editorNodes, node)
       }
       this.connectedLinks.b.forEach(link => _editLink(this.editorLinks, link))
       this.connectedLinks.a.forEach(link => _editLink(this.editorLinks, link))
@@ -707,7 +741,7 @@ export const useLinksStore = defineStore('links', {
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
       const toDelete = this.editorLinks.features.slice(featureIndex)
       toDelete.toReversed().forEach(link => {
-        _deleteLink(this.editorLinks, link.properties.index)
+        _deleteLink(this.editorLinks, link)
         _deleteNode(this.editorNodes, link.properties.b)
       })
     },
@@ -718,7 +752,7 @@ export const useLinksStore = defineStore('links', {
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
       const toDelete = this.editorLinks.features.slice(0, featureIndex)
       toDelete.forEach(link => {
-        _deleteLink(this.editorLinks, link.properties.index)
+        _deleteLink(this.editorLinks, link)
         _deleteNode(this.editorNodes, link.properties.a)
       })
     },
@@ -764,7 +798,7 @@ export const useLinksStore = defineStore('links', {
       const props = Object.keys(info)
       const node = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === selectedIndex)[0])
       props.forEach(key => node.properties[key] = info[key].value)
-      _editFeature(this.editorNodes, node)
+      _editNode(this.editorNodes, node)
     },
 
     editGroupInfo (payload: EditGroupPayload) {
