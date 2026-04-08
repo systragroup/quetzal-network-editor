@@ -384,6 +384,9 @@ function stopMovingNode () {
     linksStore.connectedLinks.a.forEach(link => routeLink(link))
     linksStore.connectedLinks.anchor.forEach(link => routeLink(link))
   }
+  if (selectedFeature.value) {
+    linksStore.stopMovingNode({ selectedNode: selectedFeature.value })
+  }
   linksStore.commitChanges('move node')
 }
 </script>

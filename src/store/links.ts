@@ -620,6 +620,10 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
+    // TODO: right now moving nodes and anchor modify the editorlinks object.
+    // we would want to modify a copy then apply changes. but how to display it?
+    // add a new transparent line and virtual node and snap in place when mouseup.
+
     moveNode (payload: MoveNode) {
       const nodeIndex = payload.selectedNode.properties.index
       const geom = payload.lngLat
@@ -627,7 +631,6 @@ export const useLinksStore = defineStore('links', {
       const newNode = this.editorNodes.features.filter(node => node.properties.index === nodeIndex)[0]
       newNode.geometry.coordinates = geom
       // update links geometry.
-      // TODO: we dont want to change the actual geometry. move what is shown then apply change with _editLinks
       this.connectedLinks.b.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
@@ -639,7 +642,6 @@ export const useLinksStore = defineStore('links', {
     },
 
     moveAnchor (payload: MoveNode) {
-      // TODO: we dont want to change the actual geometry. move what is shown then apply change with _editLinks
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
       const link = this.connectedLinks.anchor[0]
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
@@ -656,6 +658,19 @@ export const useLinksStore = defineStore('links', {
       const link = this.connectedLinks.anchor[0]
       link.properties.anchors[coordinatedIndex] = payload.lngLat
     },
+
+    stopMovingNode(payload: SelectedNode) {
+      const nodeIndex = payload.selectedNode.properties.index
+      const node = this.editorNodes.features.filter(node => node.properties.index == nodeIndex)[0]
+      if (node) { // could be an anchor
+        _editFeature(this.editorNodes, node)
+      }
+      this.connectedLinks.b.forEach(link => _editLink(this.editorLinks, link))
+      this.connectedLinks.a.forEach(link => _editLink(this.editorLinks, link))
+      this.connectedLinks.anchor.forEach(link => _editLink(this.editorLinks, link))
+    },
+
+    // end of moving nodes section
 
     applyStickyNode(payload: StickyNodePayload) {
       // this function assume that stickyindex !== nodeIndex (should always be a new node)
