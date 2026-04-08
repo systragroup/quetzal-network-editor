@@ -162,7 +162,7 @@ function applyChanges() {
       arrivals: toRaw(f.properties['arrivals']),
     })
   })
-  linksStore.editEditorLinksInfo(schedules)
+  linksStore.editEditorLinksSchedule(schedules)
 }
 
 function saveAndQuit() {

@@ -42,25 +42,6 @@ import { useHistory } from '@src/composables/useHistory'
 import { toRaw } from 'vue'
 const { commit, state, initHistory, redo, undo, history } = useHistory({ links: {}, nodes: {} })
 
-export type Commit =
-  | {
-    type: 'add'
-    feature: LineStringFeatures
-    spliceIndex?: number
-  }
-  | {
-    type: 'delete'
-    feature: LineStringFeatures
-  }
-  | {
-    type: 'update'
-    feature: LineStringFeatures
-  }
-  | {
-    type: 'update'
-    features: LineStringFeatures[] // batch updates
-  }
-
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
     links: baseLineString(),
@@ -108,22 +89,6 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
-    // commitTest(payload: Commit) {
-    //   switch (payload.type) {
-    //     case 'add':
-    //       console.log('rr')
-    //     case 'delete':
-    //       console.log('rr')
-
-    //     case 'update':
-    //       console.log('rr')
-    //   }
-    //   // if (Array.isArray(features)) {
-    //   //   features.forEach(link => _editLink(this.editorLinks, link))
-    //   // } else {
-    //   //   _editLink(this.editorLinks, features)
-    //   // }
-    // },
     //
     // io
     //
@@ -263,15 +228,17 @@ export const useLinksStore = defineStore('links', {
       initHistory({ links: links, nodes: nodes })
     },
 
-    editEditorLinksInfo (payload: SchedulePayload[]) {
-      if (this.editorLinks.features.length === payload.length) {
-        for (let i = 0; i < payload.length; i++) {
-          let keys = Object.keys(payload[i])
-          keys.forEach(key => this.editorLinks.features[i].properties[key] = payload[i][key])
-          // TODO :_editLink
-        }
-      } else {
+    editEditorLinksSchedule (payload: SchedulePayload[]) {
+      if (this.editorLinks.features.length !== payload.length) {
+        // this should not happen...
         console.error('Payload length should be same length as editorLinks.features')
+        return
+      }
+      for (let i = 0; i < payload.length; i++) {
+        const linkSchedule = payload[i]
+        const link = cloneDeep(this.editorLinks.features[i])
+        Object.keys(linkSchedule).forEach(key => link.properties[key] = linkSchedule[key])
+        _editLink(this.editorLinks, link)
       }
     },
 
