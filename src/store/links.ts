@@ -118,12 +118,12 @@ export const useLinksStore = defineStore('links', {
     //     case 'update':
     //       console.log('rr')
     //   }
-      // if (Array.isArray(features)) {
-      //   features.forEach(link => _editLink(this.editorLinks, link))
-      // } else {
-      //   _editLink(this.editorLinks, features)
-      // }
-    },
+    //   // if (Array.isArray(features)) {
+    //   //   features.forEach(link => _editLink(this.editorLinks, link))
+    //   // } else {
+    //   //   _editLink(this.editorLinks, features)
+    //   // }
+    // },
     //
     // io
     //
