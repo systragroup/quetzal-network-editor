@@ -132,3 +132,16 @@ export function basePolygonFeature(): PolygonFeatures {
     properties: null,
   }
 }
+
+//
+
+export function createLinestringFeature(coordinates: number[][], properties: GeoJsonProperties = {}): LineStringFeatures {
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'LineString',
+      coordinates: coordinates,
+    },
+    properties: properties,
+  }
+}

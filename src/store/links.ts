@@ -2,8 +2,6 @@
 /* eslint-disable no-return-assign */
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
-import { lineString } from '@turf/helpers'
-
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
   hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage,
@@ -21,8 +19,10 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   FilesPayload, SelectedNode, SplitLinkPayload, StickyNodePayload,
   NonEmptyArray,
   SchedulePayload,
-  AttributeTypes } from '@src/types/typesStore'
+  AttributeTypes,
+} from '@src/types/typesStore'
 import { baseLineString, basePoint,
+  createLinestringFeature,
   LineStringFeatures,
   LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTimeorSpeed,
@@ -331,7 +331,7 @@ export const useLinksStore = defineStore('links', {
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
     },
 
-    createNewLink (payload: NewLinkPayload) {
+    getNewLink (payload: NewLinkPayload) {
       // copy editor links geoJSON, only take first (or last) link.
       // delete some properties like id and index.
       // create link
@@ -431,10 +431,10 @@ export const useLinksStore = defineStore('links', {
       return newNode
     },
 
-    applyNewLink (payload: NewLinkPayload) {
+    addNewLink (payload: NewLinkPayload) {
       // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
       // get linestring length in km
-      const { newLink, newNode } = this.createNewLink(payload)
+      const { newLink, newNode } = this.getNewLink(payload)
       calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
       this.calcSchedule(newLink, payload.action)
       _addNode(this.editorNodes, newNode.features[0])
@@ -510,6 +510,7 @@ export const useLinksStore = defineStore('links', {
 
       link2.geometry.coordinates = link2.geometry.coordinates.slice(sliceIndex)
       link2.geometry.coordinates.splice(0, 0, newCoords)
+      link2.properties.link_sequence += 1 // must add 1 here as we only add +1 link_sequence after the inserted link
 
       // new Geom. calc length and time with speed.
       calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
@@ -526,7 +527,6 @@ export const useLinksStore = defineStore('links', {
       }
       // add new node and link
       _editLink(this.editorLinks, link1)
-      link2.properties.link_sequence += 1 // must add 1 here as we only add +1 link_sequence after the inserted link
       _insertLink(this.editorLinks, link2, featureIndex + 1)
       _addNode(this.editorNodes, newNode)
     },
@@ -621,54 +621,52 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
-    // TODO: right now moving nodes and anchor modify the editorlinks object.
-    // we would want to modify a copy then apply changes. but how to display it?
-    // add a new transparent line and virtual node and snap in place when mouseup.
-
     moveNode (payload: MoveNode) {
       const nodeIndex = payload.selectedNode.properties.index
       const geom = payload.lngLat
       // change node geometry
-      const newNode = this.editorNodes.features.filter(node => node.properties.index === nodeIndex)[0]
-      newNode.geometry.coordinates = geom
+      const node = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === nodeIndex)[0])
+      node.geometry.coordinates = geom
+      _editNode(this.editorNodes, node)
+      const linksB = cloneDeep(this.editorLinks.features.filter(link => link.properties.b === nodeIndex))
+      const linksA = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === nodeIndex))
+
       // update links geometry.
-      this.connectedLinks.b.forEach(link => {
+      linksB.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
+        _editLink(this.editorLinks, link)
       })
-      this.connectedLinks.a.forEach(link => {
+      linksA.forEach(link => {
         link.geometry.coordinates[0] = geom
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
+        _editLink(this.editorLinks, link)
       })
+      // for routing
+      return [...linksA, ...linksB]
     },
 
-    moveAnchor (payload: MoveNode) {
-      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
-      const link = this.connectedLinks.anchor[0]
-      link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
-        payload.lngLat,
-        ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+    moveAnchor(payload: MoveNode) {
+      const { selectedNode, lngLat } = payload
+      const linkIndex = selectedNode.properties.linkIndex
+      const coordinatedIndex = selectedNode.properties.coordinatedIndex
+      const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
+      link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
 
-      // update time and distance
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
+      _editLink(this.editorLinks, link)
+      return link
     },
 
     moveRoutingAnchor (payload: MoveNode) {
-      // TODO: we dont want to change the actual geometry. move what is shown then apply change with _editLinks
-      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
-      const link = this.connectedLinks.anchor[0]
-      link.properties.anchors[coordinatedIndex] = payload.lngLat
-    },
-
-    stopMovingNode(payload: SelectedNode) {
-      const nodeIndex = payload.selectedNode.properties.index
-      const node = this.editorNodes.features.filter(node => node.properties.index == nodeIndex)[0]
-      if (node) { // could be an anchor
-        _editNode(this.editorNodes, node)
-      }
-      this.connectedLinks.b.forEach(link => _editLink(this.editorLinks, link))
-      this.connectedLinks.a.forEach(link => _editLink(this.editorLinks, link))
-      this.connectedLinks.anchor.forEach(link => _editLink(this.editorLinks, link))
+      const { selectedNode, lngLat } = payload
+      const linkIndex = selectedNode.properties.linkIndex
+      const coordinatedIndex = selectedNode.properties.coordinatedIndex
+      const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
+      link.properties.anchors[coordinatedIndex] = lngLat
+      calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
+      _editLink(this.editorLinks, link)
+      return link
     },
 
     // end of moving nodes section
@@ -918,21 +916,26 @@ export const useLinksStore = defineStore('links', {
     },
     routeAnchorNodes: (state) => {
       // cannot use the getAnchorGeojson as we dont work on geometry and idx is not +1
-      const nodes: any = basePoint()
-      state.editorLinks.features.forEach(
-        feature => {
-          const linkIndex = feature.properties.index
-          feature.properties.anchors?.forEach(
-            (pt: number[], idx: number) => nodes.features.push({
-              properties: { index: short.generate(), linkIndex, coordinatedIndex: idx },
-              geometry: { coordinates: pt, type: 'Point' },
-            }),
-          )
-        },
+      const nodes: PointGeoJson = basePoint()
+      let lineIndex = 0 // position of the node in the complete linetring
+      state.editorLinks.features.forEach(feature => {
+        const linkIndex = feature.properties.index
+        lineIndex += 1
+        feature.properties.anchors?.forEach((pt: number[], idx: number) => {
+          const node: PointFeatures = {
+            properties: { index: short.generate(), linkIndex, coordinatedIndex: idx, lineIndex: lineIndex },
+            geometry: { coordinates: pt, type: 'Point' },
+            type: 'Feature',
+          }
+          nodes.features.push(node)
+          lineIndex += 1
+        })
+      },
       )
       return nodes
     },
     routeAnchorLine: (state) => {
+      const linestring = baseLineString()
       const geom: number[][] = []
       state.editorLinks.features.forEach(link => {
         const inBetween = link.properties.anchors || []
@@ -941,7 +944,8 @@ export const useLinksStore = defineStore('links', {
         geom.push(...inBetween)
         geom.push(...link.geometry.coordinates.slice(-1))
       })
-      return lineString(geom)
+      linestring.features = [createLinestringFeature(geom)]
+      return linestring
     },
     // this return the attribute type, of undefined.
     lineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),

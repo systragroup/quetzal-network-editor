@@ -186,6 +186,7 @@ export interface AnchorPayload {
 export interface MoveNode extends SelectedNode {
   lngLat: number[]
 }
+
 export interface MoverNode extends SelectedrNode {
   lngLat: number[]
 }
