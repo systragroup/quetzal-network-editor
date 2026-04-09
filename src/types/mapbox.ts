@@ -16,8 +16,8 @@ export interface MapSelectorEvent {
 
 export interface HoverState {
   layerId: string
-  id: string
-  properties?: any
+  featureId: string
+  feature: GeoJsonFeatures
 }
 
 export interface HoverStateRoad {

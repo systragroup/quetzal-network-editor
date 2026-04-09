@@ -6,7 +6,7 @@ import { computed, toRefs, ref, watch, onMounted, onUnmounted, toRaw } from 'vue
 import { Map, GeoJSONSource, MapMouseEvent } from 'mapbox-gl'
 import { useGettext } from 'vue3-gettext'
 import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures
-  , LineStringFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
+  , LineStringFeatures, LineStringGeoJson, PointFeatures, PointGeoJson } from '@src/types/geojson'
 import { AddNodeTypes } from '@src/types/typesStore'
 import { ActionClick, ContextMenu, CustomMapEvent, HoverState } from '@src/types/mapbox'
 import { useForm } from '@src/composables/UseForm'
@@ -71,10 +71,7 @@ const anchorNodes = computed(() => {
 watch(editorLinks, (links) => {
   // update map when change on editorLinks.
   setSourceData('editorLinks', links)
-  if (!keepHovering.value) {
-    // dont set pickupdrop off when moving node
-    setNodesPickupDropOff()
-  }
+  setNodesPickupDropOff()
 }, { deep: true, immediate: false })
 
 function setNodesPickupDropOff() {
@@ -127,66 +124,39 @@ const contextMenu = ref<ContextMenu>({
   type: null, // link of node
 })
 
-interface SelectedFeature {
-  layerId: string
-  featureId: string
-}
-
 const selectedFeature = ref<GeoJsonFeatures | null>(null)
-const hoveredStateId = ref<SelectedFeature | null>(null)
-const stickyStateId = ref<HoverState | null>(null)
-const isSticking = computed(() => stickyStateId.value !== null && hoveredStateId.value !== null && keepHovering.value)
-const keepHovering = ref(false)
-const dragNode = ref(false)
-
-watch(hoveredStateId, (newVal, oldVal) => {
-  if (oldVal) {
-    map.value.setFeatureState({ source: oldVal.layerId, id: oldVal.featureId }, { hover: false })
-    emits('offHover')
-  } if (newVal) {
-    map.value.setFeatureState({ source: newVal.layerId, id: newVal.featureId }, { hover: true })
-    emits('onHover', { selectedId: newVal.featureId })
-  }
-})
 
 // clicks
 
 function selectClick (event: CustomMapEvent) {
   if (!hoveredStateId.value) return
   // Get the highlighted feature
-  const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-  const id = hoveredStateId.value.featureId
-  selectedFeature.value = features.filter(item => item.id === id)[0] as GeoJsonFeatures
-  // Emit a click base on layer type (node or link)
-
-  if (selectedFeature.value !== null) {
-    if (hoveredStateId.value.layerId === 'editorLinks') {
-      let type: AddNodeTypes = 'editorNodes'
-      if (routeAnchorMode.value) {
-        type = 'anchorRoutingNodes'
-      } else if (anchorMode.value) {
-        type = 'anchorNodes'
-      }
-      linksStore.addNodeInline({
-        selectedLink: selectedFeature.value as LineStringFeatures,
-        lngLat: event.mapboxEvent.lngLat,
-        nodeType: type,
-      })
+  selectedFeature.value = hoveredStateId.value.feature
+  if (hoveredStateId.value.layerId === 'editorLinks') {
+    let type: AddNodeTypes = 'editorNodes'
+    if (routeAnchorMode.value) {
+      type = 'anchorRoutingNodes'
+    } else if (anchorMode.value) {
+      type = 'anchorNodes'
     }
+    linksStore.addNodeInline({
+      selectedLink: selectedFeature.value as LineStringFeatures,
+      lngLat: event.mapboxEvent.lngLat,
+      nodeType: type,
+    })
   }
 }
 
 function contextMenuNode (event: CustomMapEvent) {
-  if (popupEditor.value.showed && hoveredStateId.value?.layerId === 'editorNodes') {
+  if (!hoveredStateId.value) return
+  if (popupEditor.value.showed && hoveredStateId.value.layerId === 'editorNodes') {
     contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng,
       event.mapboxEvent.lngLat.lat,
     ]
     contextMenu.value.showed = true
 
     contextMenu.value.type = 'node'
-    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-    const id = hoveredStateId.value.featureId
-    contextMenu.value.feature = features.filter(item => item.id === id)[0] as GeoJsonFeatures
+    contextMenu.value.feature = hoveredStateId.value.feature
 
     const selectedNode = contextMenu.value.feature.properties.index
 
@@ -209,10 +179,9 @@ function contextMenuNode (event: CustomMapEvent) {
 }
 
 function contextMenuAnchor() {
-  if (hoveredStateId.value?.layerId === 'anchorNodes') {
-    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-    const id = hoveredStateId.value.featureId
-    selectedFeature.value = features.filter(item => item.id === id)[0] as GeoJsonFeatures
+  if (!hoveredStateId.value) return
+  if (hoveredStateId.value.layerId === 'anchorNodes') {
+    selectedFeature.value = hoveredStateId.value.feature
     let modLink = undefined
     if (routingMode.value) {
       modLink = linksStore.deleteRoutingAnchorNode({ selectedNode: selectedFeature.value.properties })
@@ -226,9 +195,7 @@ function contextMenuAnchor() {
 function linkRightClick () {
   if (!hoveredStateId.value) return
   if (hoveredStateId.value.layerId === 'editorLinks') {
-    const features = map.value.querySourceFeatures(hoveredStateId.value.layerId)
-    const id = hoveredStateId.value.featureId
-    selectedFeature.value = features.filter(item => item.id === id)[0] as GeoJsonFeatures
+    selectedFeature.value = hoveredStateId.value.feature
     const selectedIndex = selectedFeature.value.properties.index
     openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
   }
@@ -266,56 +233,65 @@ function setPopup(coords: number[]) {
   }
 }
 
-function onCursor (event: CustomMapEvent) {
-  if (!event.mapboxEvent.features) return
-  // if hover is null or if hover is editorlinks. this make hoveing more natural and avoid collision from node to links
-  if (!hoveredStateId.value || hoveredStateId.value.layerId === 'editorLinks') {
-    const feature = event.mapboxEvent.features[0]
-    const featureId = feature.id as string
-    const layerId = event.layerId
-    hoveredStateId.value = {
-      layerId: layerId,
-      featureId: featureId,
-    }
+const hoveredStateId = ref<HoverState | null>(null)
+
+watch(hoveredStateId, (newVal, oldVal) => {
+  if (oldVal) {
+    map.value.setFeatureState({ source: oldVal.layerId, id: oldVal.featureId }, { hover: false })
+    map.value.getCanvas().style.cursor = ''
+    popupEditor.value.showed = false
+    emits('offHover')
+  } if (newVal) {
+    map.value.setFeatureState({ source: newVal.layerId, id: newVal.featureId }, { hover: true })
     map.value.getCanvas().style.cursor = 'pointer'
+    emits('onHover', { selectedId: newVal.featureId })
+  }
+})
+
+function onCursor (event: CustomMapEvent) {
+  // if hover is null or if hover is editorlinks. this make hoveing more natural and avoid collision from node to links
+  if (!event.mapboxEvent.features) return
+  if (!hoveredStateId.value || hoveredStateId.value.layerId === 'editorLinks') {
+    const feature = event.mapboxEvent.features[0] as GeoJsonFeatures
+    const index = feature.id as string
+    const layerId = event.layerId
+    hoveredStateId.value = { layerId: layerId, featureId: index, feature: feature }
     setPopup([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
   }
-  // if (hoveredStateId.value) return
 }
 function offCursor (event: CustomMapEvent) {
   if (!hoveredStateId.value) return
-  // when we drag a node, we want to start dragging when we leave the node, but we will stay in hovering mode.
+  // help to keep node hovering when we slightly move (colistion with links under)
   if ((['editorNodes', 'anchorNodes'].includes(hoveredStateId.value.layerId) && event.layerId === 'editorLinks')) return
-  // normal behaviours, hovering is is set to false
-  if (!keepHovering.value) {
-    map.value.getCanvas().style.cursor = ''
-    popupEditor.value.showed = false
-    hoveredStateId.value = null
-  } else { // keep hovering
-    dragNode.value = true
-    contextMenu.value.showed = false
-  }
+  hoveredStateId.value = null
 }
+
+// stickynode hovering
+
+const stickyStateId = ref<HoverState | null>(null)
+const isSticking = computed(() => stickyStateId.value !== null && hoveredStateId.value !== null)
+
+watch(stickyStateId, (newVal, oldVal) => {
+  if (oldVal) {
+    map.value.setFeatureState({ source: oldVal.layerId, id: oldVal.featureId }, { hover: false })
+    emits('offHover')
+  } if (newVal) {
+    map.value.setFeatureState({ source: newVal.layerId, id: newVal.featureId }, { hover: true })
+    emits('onHoverSticky', { selectedId: newVal.featureId, layerId: newVal.layerId })
+  }
+})
 
 function onCursorSticky(event: CustomMapEvent) {
   const features = event.mapboxEvent.features
   if (!features) return
-  const selectedId = features[0].id as string
-  stickyStateId.value = { layerId: event.layerId, id: selectedId }
-
-  map.value.setFeatureState({ source: stickyStateId.value.layerId, id: stickyStateId.value.id }, { hover: true })
-  if (!hoveredStateId.value) return
-  if (dragNode.value && hoveredStateId.value.layerId === 'editorNodes') {
-    dragNode.value = false
-  }
-  emits('onHoverSticky', { selectedId: stickyStateId.value.id, layerId: stickyStateId.value.layerId })
+  const selected = features[0] as PointFeatures
+  const selectedId = selected.id as string
+  stickyStateId.value = { layerId: event.layerId, featureId: selectedId, feature: selected }
 }
 
-function offCursorSticky (event: CustomMapEvent) {
+function offCursorSticky () {
   if (stickyStateId.value) {
-    map.value.setFeatureState({ source: stickyStateId.value.layerId, id: stickyStateId.value.id }, { hover: false })
     stickyStateId.value = null
-    emits('offHover', event)
   }
 }
 
@@ -327,8 +303,6 @@ function stopMoving() {
   // stop tracking position (moving node.)
   map.value.getCanvas().style.cursor = 'pointer'
   // enable popup and hovering off back. disable Dragmode
-  keepHovering.value = false
-  dragNode.value = false
   disablePopup.value = false
   hoveredStateId.value = null
 }
@@ -341,14 +315,6 @@ function startMoving(event: CustomMapEvent) {
   event.mapboxEvent.preventDefault()
   map.value.getCanvas().style.cursor = 'grab'
   // disable mouseLeave so we stay in hover state.
-  keepHovering.value = true
-}
-function getHoveringFeature(hoveredStateId: SelectedFeature): GeoJsonFeatures | null {
-  const features = map.value.querySourceFeatures(hoveredStateId.layerId)
-  const id = hoveredStateId.featureId
-  const selected = features.filter(item => item.id === id)[0]
-  if (!selected) return null //  sometime its undefined...
-  return selected as GeoJsonFeatures
 }
 
 const movingLine = ref<LineStringGeoJson>(baseLineString())
@@ -356,10 +322,11 @@ const movingLine = ref<LineStringGeoJson>(baseLineString())
 // moving node
 
 function moveNode (event: CustomMapEvent) {
-  if (hoveredStateId.value?.layerId !== 'editorNodes') return
+  if (!hoveredStateId.value) return
+  if (hoveredStateId.value.layerId !== 'editorNodes') return
   if (event.mapboxEvent.originalEvent.button !== 0) return
   // get selected node
-  const selected = getHoveringFeature(hoveredStateId.value)
+  const selected = hoveredStateId.value.feature
   if (!selected) return //  sometime its undefined...
   selectedFeature.value = selected
 
@@ -396,8 +363,8 @@ function stopMovingNode () {
   }
 
   if (stickyStateId.value) {
-    const index = selectedFeature.value?.properties.index
-    emits('useStickyNode', { selectedNode: index, stickyNode: stickyStateId.value.id })
+    const index = selected.properties.index
+    emits('useStickyNode', { selectedNode: index, stickyNode: stickyStateId.value.featureId })
   }
   stopMoving()
   map.value.off('mousemove', onMove)
@@ -416,10 +383,11 @@ function moveAnchorOrRoutingAnchor (event: CustomMapEvent) {
 }
 
 function moveAnchor (event: CustomMapEvent) {
-  if (hoveredStateId.value?.layerId !== 'anchorNodes') return
+  if (!hoveredStateId.value) return
+  if (hoveredStateId.value.layerId !== 'anchorNodes') return
   if (event.mapboxEvent.originalEvent.button !== 0) return
   // get selected node
-  const selected = getHoveringFeature(hoveredStateId.value)
+  const selected = hoveredStateId.value.feature
   if (!selected) return //  sometime its undefined...
   selectedFeature.value = selected
 
@@ -455,10 +423,11 @@ function stopMovingNodeAnchor () {
 // routeAnchor
 
 function moveRoutingAnchor (event: CustomMapEvent) {
-  if (hoveredStateId.value?.layerId !== 'anchorNodes') return
+  if (!hoveredStateId.value) return
+  if (hoveredStateId.value.layerId !== 'anchorNodes') return
   if (event.mapboxEvent.originalEvent.button !== 0) return
 
-  const selected = getHoveringFeature(hoveredStateId.value)
+  const selected = hoveredStateId.value.feature
   if (!selected) return //  sometime its undefined...
   selectedFeature.value = selected
   movingLine.value = cloneDeep(routeAnchorLine.value)
