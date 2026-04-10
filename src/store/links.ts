@@ -448,7 +448,7 @@ export const useLinksStore = defineStore('links', {
       const { newLink, newNode } = this.getNewLink(payload)
       calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
       this.calcSchedule(newLink, payload.action)
-      _addNode(this.editorNodes, newNode.features[0]) //  add even if sticky as it exist in nodes, but not in editorNodes
+      _addNode(this.editorNodes, newNode.features[0]) //
 
       const feature = newLink.features[0]
 
@@ -686,17 +686,17 @@ export const useLinksStore = defineStore('links', {
     applyStickyNode(payload: StickyNodePayload) {
       // this function assume that stickyindex !== nodeIndex (should always be a new node)
       // this function assume that sticky index is not in editorNodes (cannot reuse a node for a trip)
-      const newNodeIndex = payload.selectedNodeId
+      const oldNodeIndex = payload.selectedNode.proeperties.index
       const stickyIndex = payload.stickyNodeId
       // remove and old node and add new one (sticky one replace old one)
-      _deleteNode(this.editorNodes, newNodeIndex)
+      _deleteNode(this.editorNodes, oldNodeIndex)
       const newNodeFeatures = cloneDeep(this.nodes.features.filter(node => node.properties.index === stickyIndex)[0])
 
       _addNode(this.editorNodes, newNodeFeatures)
 
       const geom = cloneDeep(newNodeFeatures.geometry.coordinates)
-      const linksA = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === newNodeIndex))
-      const linksB = this.editorLinks.features.filter(link => link.properties.b === newNodeIndex)
+      const linksA = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === oldNodeIndex))
+      const linksB = this.editorLinks.features.filter(link => link.properties.b === oldNodeIndex)
       linksA.forEach(
         (link) => {
           link.properties.a = stickyIndex
@@ -711,6 +711,8 @@ export const useLinksStore = defineStore('links', {
           calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
           _editLink(this.editorLinks, link)
         })
+
+      return [...linksA, ...linksB]
     },
 
     cutLineAfterNode (payload: SelectedNode) {

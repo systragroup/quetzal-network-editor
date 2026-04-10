@@ -189,8 +189,7 @@ export interface MoveNode extends SelectedNode {
 export interface MoverNode extends SelectedrNode {
   lngLat: number[]
 }
-export interface StickyNodePayload {
-  selectedNodeId: string
+export interface StickyNodePayload extends SelectedNode {
   stickyNodeId: string
 }
 

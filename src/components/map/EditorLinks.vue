@@ -143,7 +143,6 @@ function addPoint (event: MapMouseEvent) {
     addPointPT(event)
   }
 }
-const stickyNodeId = ref<string | undefined>()
 
 async function addPointPT(event: MapMouseEvent) {
   const selectedNodeId = drawLink.value.features[0].properties.nodeId as string
@@ -152,14 +151,16 @@ async function addPointPT(event: MapMouseEvent) {
     : 'Extend Line Downward'
   const pointGeom = Object.values(event.lngLat)
   if (drawMode.value && !anchorMode.value && !hoveredStateId.value) {
-    stickyNodeId.value = cloneDeep(stickyStateId.value?.featureId)
-    if (stickyNodeId.value) {
-      console.log(stickyNodeId.value)
-      const resp = await stickyDialog.value.openDialog()
-      if (resp) {
-        linksStore.addNewLink({ geom: pointGeom, action: action, stickyNodeId: stickyNodeId.value })
+    if (stickyStateId.value) {
+      const stickyNodeId = cloneDeep(stickyStateId.value?.featureId)
+      const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
+      if (!nodesList.has(stickyNodeId)) { // cannot reuse same node
+        const resp = await stickyDialog.value.openDialog(
+          $gettext('Replace %{node} with %{b}?', { node: selectedNodeId, b: stickyNodeId }))
+        if (resp) { linksStore.addNewLink({ geom: pointGeom, action: action, stickyNodeId: stickyNodeId }) }
       } else {
-        linksStore.addNewLink({ geom: pointGeom, action: action })
+        store.changeNotification(
+          { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
       }
     } else {
       linksStore.addNewLink({ geom: pointGeom, action: action })
@@ -475,25 +476,30 @@ function onMove (event: MapMouseEvent) {
 
 async function stopMovingNode () {
   const selected = selectedFeature.value!
-  const geom = movingLine.value.features[0].geometry.coordinates[1]
-  const modifiedLinks = linksStore.moveNode({ selectedNode: selected, lngLat: toRaw(geom) })
+  let modifiedLinks: LineStringFeatures[] = []
+  // if sticky. replace node with existing one
+  if (stickyStateId.value) {
+    const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
+    const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
+    if (!nodesList.has(stickyNodeId)) {
+      const resp = await stickyDialog.value.openDialog(
+        $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId }))
+      if (resp) {
+        modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
+      }
+    } else {
+      store.changeNotification(
+        { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
+    }
+  } else { //  just move the node (not sticky)
+    const geom = movingLine.value.features[0].geometry.coordinates[1]
+    modifiedLinks = linksStore.moveNode({ selectedNode: selected, lngLat: toRaw(geom) })
+  }
+
   if (routingMode.value) {
     modifiedLinks.forEach(link => routeLink(link))
   }
 
-  if (stickyStateId.value) {
-    stickyNodeId.value = stickyStateId.value.featureId
-    const selectedNodeId = selectedFeature.value?.properties.index
-    if (stickyNodeId.value !== selectedNodeId) {
-      const resp = await stickyDialog.value.openDialog()
-      if (resp) {
-        const nodesList = editorNodes.value.features.map(node => node.properties.index)
-        if (!nodesList.includes(stickyNodeId.value)) {
-          linksStore.applyStickyNode({ selectedNodeId: selectedNodeId, stickyNodeId: stickyNodeId.value })
-        }
-      }
-    }
-  }
   stopMoving()
   map.value.off('mousemove', onMove)
   map.value.off('mouseup', stopMovingNode)
@@ -590,7 +596,6 @@ function stopMovingRouteAnchor () {
   <section>
     <PromiseDialog
       ref="stickyDialog"
-      :title="$gettext('Replace %{node} with %{b}?', { node: selectedFeature?.properties.index, b: stickyNodeId||''})"
     />
     <MglGeojsonLayer
       source-id="editorLinks"
