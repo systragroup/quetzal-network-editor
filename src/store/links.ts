@@ -331,70 +331,6 @@ export const useLinksStore = defineStore('links', {
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
     },
 
-    getNewLink (payload: NewLinkPayload) {
-      // copy editor links geoJSON, only take first (or last) link.
-      // delete some properties like id and index.
-      // create link
-      const { action, geom, stickyNodeId } = payload
-      // let newLink = cloneDeep(this.editorLinks)
-      let newNode = basePoint()
-      const newLink = getDefaultLink(this.linksDefaultAttributes)// trip_id already set in linksDefaultAttributes
-      const newLinkFeature = newLink.features[0]
-
-      // if there is no link to copy, create one. (new Line)
-      if (this.editorLinks.features.length === 0) {
-        const node = cloneDeep(this.editorNodes.features[0])
-        const nodeCopyId = node.properties.index
-        if (stickyNodeId) {
-          newNode.features[0] = this.nodes.features.filter(node => node.properties.index == stickyNodeId)[0]
-        } else {
-          newNode = this.getNewNode({ nodeCopyId, coordinates: geom })
-        }
-
-        newLinkFeature.properties.a = nodeCopyId
-        newLinkFeature.properties.b = cloneDeep(newNode.features[0].properties.index)
-
-        const nodegeom = cloneDeep(node.geometry.coordinates)
-        const newGeom = cloneDeep(newNode.features[0].geometry.coordinates)
-        newLinkFeature.geometry.coordinates = [nodegeom, newGeom]
-      }
-      // Take last link or first link
-
-      else if (action === 'Extend Line Upward') {
-        const copyFeature = cloneDeep(this.editorLinks.features.slice(-1)[0])
-        Object.assign(newLinkFeature, copyFeature)
-        const firstPoint = cloneDeep(copyFeature.geometry.coordinates.slice(-1)[0])
-        newLinkFeature.geometry.coordinates = [firstPoint, geom]
-
-        if (stickyNodeId) {
-          newNode.features[0] = this.nodes.features.filter(node => node.properties.index == stickyNodeId)[0]
-        } else {
-          const nodeCopyId = copyFeature.properties.b
-          newNode = this.getNewNode({ nodeCopyId, coordinates: geom })
-        }
-
-        newLinkFeature.properties.a = cloneDeep(copyFeature.properties.b)
-        newLinkFeature.properties.b = cloneDeep(newNode.features[0].properties.index)
-      } else if (action === 'Extend Line Downward') {
-        const copyFeature = cloneDeep(this.editorLinks.features[0])
-        Object.assign(newLinkFeature, copyFeature)
-
-        const lastPoint = cloneDeep(copyFeature.geometry.coordinates[0])
-        newLinkFeature.geometry.coordinates = [geom, lastPoint]
-
-        if (stickyNodeId) {
-          newNode.features[0] = this.nodes.features.filter(node => node.properties.index == stickyNodeId)[0]
-        } else {
-          const nodeCopyId = copyFeature.properties.a
-          newNode = this.getNewNode({ nodeCopyId, coordinates: geom })
-        }
-        newLinkFeature.properties.b = cloneDeep(copyFeature.properties.a)
-        newLinkFeature.properties.a = cloneDeep(newNode.features[0].properties.index)
-      }
-      newLinkFeature.properties.index = 'link_' + short.generate()
-      return { newLink, newNode }
-    },
-
     calcSchedule(geojsonLink: LineStringGeoJson, action: LinksAction) {
       // ScheduleTrip
       const link = geojsonLink.features[0]
@@ -434,7 +370,6 @@ export const useLinksStore = defineStore('links', {
     getNewNode (payload: NewNodePayload) {
       const { nodeCopyId, coordinates } = payload
       const newNode = basePoint()
-      // Copy specified node
       const features = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === nodeCopyId)[0])
       features.properties.index = 'node_' + short.generate()
       features.geometry.coordinates = coordinates
@@ -443,12 +378,51 @@ export const useLinksStore = defineStore('links', {
     },
 
     addNewLink (payload: NewLinkPayload) {
-      // nodeId: this.selectedNodeId, geom: pointGeom, action: Extend Line Upward
-      // get linestring length in km
-      const { newLink, newNode } = this.getNewLink(payload)
+      const { action, geom, stickyNodeId } = payload
+      const newLink = getDefaultLink(this.linksDefaultAttributes)// trip_id already set in linksDefaultAttributes
+      const newLinkFeature = newLink.features[0]
+      let nodeId = action === 'Extend Line Upward' ? this.lastNodeId : this.firstNodeId
+
+      let toNode = basePoint()
+      if (stickyNodeId) {
+        toNode.features = cloneDeep(this.nodes.features.filter(node => node.properties.index == stickyNodeId))
+      } else {
+        toNode = this.getNewNode({ nodeCopyId: nodeId, coordinates: geom })
+      }
+
+      const fromNodeFeature = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === nodeId))[0]
+      const toNodeFeature = cloneDeep(toNode.features[0])
+
+      // // if there is no link to copy, create one. (new Line)
+      if (this.editorLinks.features.length === 0) {
+        newLinkFeature.properties.a = fromNodeFeature.properties.index
+        newLinkFeature.properties.b = toNodeFeature.properties.index
+
+        newLinkFeature.geometry.coordinates = [fromNodeFeature.geometry.coordinates, toNodeFeature.geometry.coordinates]
+      }
+      // Take last link or first link
+
+      else if (action === 'Extend Line Upward') {
+        const copyFeature = cloneDeep(this.editorLinks.features.slice(-1)[0])
+        Object.assign(newLinkFeature, copyFeature)
+
+        newLinkFeature.geometry.coordinates = [fromNodeFeature.geometry.coordinates, geom]
+        newLinkFeature.properties.a = fromNodeFeature.properties.index
+        newLinkFeature.properties.b = toNodeFeature.properties.index
+      } else if (action === 'Extend Line Downward') {
+        const copyFeature = cloneDeep(this.editorLinks.features[0])
+        Object.assign(newLinkFeature, copyFeature)
+
+        newLinkFeature.geometry.coordinates = [geom, fromNodeFeature.geometry.coordinates]
+        newLinkFeature.properties.b = fromNodeFeature.properties.index
+        newLinkFeature.properties.a = toNodeFeature.properties.index
+      }
+
+      newLinkFeature.properties.index = 'link_' + short.generate()
+
       calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
       this.calcSchedule(newLink, payload.action)
-      _addNode(this.editorNodes, newNode.features[0]) //
+      _addNode(this.editorNodes, toNodeFeature) //
 
       const feature = newLink.features[0]
 
@@ -686,7 +660,7 @@ export const useLinksStore = defineStore('links', {
     applyStickyNode(payload: StickyNodePayload) {
       // this function assume that stickyindex !== nodeIndex (should always be a new node)
       // this function assume that sticky index is not in editorNodes (cannot reuse a node for a trip)
-      const oldNodeIndex = payload.selectedNode.proeperties.index
+      const oldNodeIndex = payload.selectedNode.properties.index
       const stickyIndex = payload.stickyNodeId
       // remove and old node and add new one (sticky one replace old one)
       _deleteNode(this.editorNodes, oldNodeIndex)

@@ -175,9 +175,6 @@ async function addPointPT(event: MapMouseEvent) {
   linksStore.commitChanges(action)
 }
 
-// import SimpleDialog from '../utils/SimpleDialog.vue'
-//
-
 const stickyDialog = ref()
 
 // TODO: updateLink like roadLinks
@@ -273,7 +270,12 @@ function contextMenuNode (event: CustomMapEvent) {
 
     const selectedNode = contextMenu.value.feature.properties.index
 
-    if ((selectedNode === linksStore.firstNodeId) || (selectedNode === linksStore.lastNodeId)) {
+    if (editorLinks.value.features.length <= 1) {
+      contextMenu.value.actions
+          = [
+          { name: 'Edit Node Info', text: $gettext('Edit Node Info') },
+        ]
+    } else if ((selectedNode === linksStore.firstNodeId) || (selectedNode === linksStore.lastNodeId)) {
       contextMenu.value.actions
           = [
           { name: 'Edit Node Info', text: $gettext('Edit Node Info') },
