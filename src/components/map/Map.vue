@@ -16,7 +16,6 @@ import { useMapStore } from '@src/store/map'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import StyleSelector from '../utils/StyleSelector.vue'
-import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 import RasterLayer from '../utils/RasterLayer.vue'
 // Filter links from selected line
 import { useGettext } from 'vue3-gettext'
@@ -94,7 +93,6 @@ const availableRasters = computed(() => store.availableRasters)
 
 // modes
 const { mode } = toRefs(props)
-const editorNodes = computed(() => linksStore.editorNodes)
 const anchorMode = computed(() => store.anchorMode)
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const editorTrip = computed(() => linksStore.editorTrip)
@@ -142,21 +140,6 @@ watch(editorTrip, (val) => {
   if (!val) { drawMode.value = false }
 })
 
-watch(isEditorMode, (val) => {
-  // check if map is loaded too, there is a bug if not, when component is laoded in edition mode (changing page).
-  if (val && editorNodes.value.features.length > 0 && !anchorMode.value && mapIsLoaded.value) {
-    drawMode.value = true
-  } else {
-    drawMode.value = false
-    drawLink.value.geometry.coordinates = []
-  }// remove drawmode if we quit edition mode.
-
-  if (!val && drawMode.value) {
-    drawMode.value = false
-    drawLink.value.geometry.coordinates = []
-  }
-})
-
 watch(anchorMode, (val) => {
   if (val) {
     drawMode.value = false
@@ -186,70 +169,15 @@ const selectedNode = ref({ id: null, layerId: null })
 const hoverId = ref(null)
 const hoverLayer = ref(null)
 
-const firstNodeId = computed(() => { return linksStore.firstNodeId })
-const lastNodeId = computed(() => { return linksStore.lastNodeId })
-
-const firstNode = computed(() =>
-  editorNodes.value.features.filter((node) => node.properties.index === firstNodeId.value)[0],
-)
-const lastNode = computed(() =>
-  editorNodes.value.features.filter((node) => node.properties.index === lastNodeId.value)[0],
-)
-// when the first or last node change (delete or new) change the value of those nodes.
-watch(firstNode, (val) => {
-  if (editorTrip.value && val) {
-    drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
-    selectedNode.value.layerId = 'nodes'
-    selectedNode.value.id = firstNode.value?.properties.index
-  }
-}, { deep: true })
-watch(lastNode, (val) => {
-  if (editorTrip.value && val) {
-    drawLink.value.geometry.coordinates = [val.geometry.coordinates, val.geometry.coordinates]
-    selectedNode.value.layerId = 'nodes'
-    selectedNode.value.id = lastNode.value?.properties.index
-  }
-}, { deep: true })
-
 function addPoint (event) {
   if (Object.keys(event).includes('mapboxEvent')) {
     event.mapboxEvent.originalEvent.stopPropagation()
     if (drawMode.value) {
       if (selectedNode.value.layerId === 'rnodes') {
         addPointRoad(event)
-      } else { // PT nodes
-        addPointPT(event)
-      }
-    } else {
-      // for a new Line
-      if (editorNodes.value.features.length === 0 && editorTrip.value) {
-        linksStore.createNewNode(Object.values(event.mapboxEvent.lngLat))
-        store.changeNotification({ text: '', autoClose: true })
       }
     }
   }
-}
-
-function addPointPT(event) {
-  const action = (selectedNode.value.id === linksStore.lastNodeId)
-    ? 'Extend Line Upward'
-    : 'Extend Line Downward'
-  const pointGeom = Object.values(event.mapboxEvent.lngLat)
-  if (drawMode.value && !anchorMode.value && !hoverId.value) {
-    linksStore.addNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
-  } else if (connectedDrawLink.value && hoverLayer.value === 'stickyNodes' && hoverId.value) {
-    // reuse a existing node. create the link and simulate a move event with useStickyNode()
-    linksStore.addNewLink({ nodeId: selectedNode.value.id, geom: pointGeom, action: action })
-    const newNode = linksStore.editorNodes.features.slice(-1)[0].properties.index
-    useStickyNode({ stickyNode: hoverId.value, selectedNode: newNode })
-  }
-  if (store.routingMode) {
-    const newLinkFeature = action === 'Extend Line Upward'
-      ? linksStore.editorLinks.features.slice(-1)[0]
-      : linksStore.editorLinks.features[0]
-    routeLink(newLinkFeature)
-  }
-  linksStore.commitChanges(action)
 }
 
 function addPointRoad(event) {
@@ -284,24 +212,6 @@ function clickFeature (event) {
   }
 }
 
-function onHover (event) {
-  // no drawing when we hover on link or node
-  hoverId.value = event.selectedId
-  if (drawMode.value) { map.value.setLayoutProperty('drawLink', 'visibility', 'none') }
-  // change hook when we hover first or last node.
-  if (hoverId.value === linksStore.firstNodeId) {
-    drawLink.value.geometry.coordinates = [firstNode.value.geometry.coordinates, firstNode.value.geometry.coordinates]
-    selectedNode.value.id = hoverId.value
-    selectedNode.value.layerId = event.layerId
-    drawMode.value = true
-  } else if (hoverId.value === linksStore.lastNodeId) {
-    drawLink.value.geometry.coordinates = [lastNode.value.geometry.coordinates, lastNode.value.geometry.coordinates]
-    selectedNode.value.id = hoverId.value
-    selectedNode.value.layerId = event.layerId
-    drawMode.value = true
-  }
-}
-
 function onHoverRoad (event) {
   if (event?.layerId === 'rnodes') {
     hoverLayer.value = event.layerId
@@ -324,12 +234,6 @@ function onHoverRoad (event) {
   }
 }
 
-function onHoverSticky(event) {
-  hoverId.value = event.selectedId
-  hoverLayer.value = event.layerId
-  connectedDrawLink.value = true
-}
-
 function offHover () {
   // put back visible draw line
   hoverId.value = null
@@ -340,40 +244,10 @@ function offHover () {
   }
 }
 
-const showDialog = ref(false)
-const stickyNodeId = ref('')
-const selectedNodeId = ref('')
-function useStickyNode(event) {
-  stickyNodeId.value = event.stickyNode
-  selectedNodeId.value = event.selectedNode
-  // only show dialog if we do not stick on itself (moving a node eand removing it to its original place => no changes)
-  if (stickyNodeId.value !== selectedNodeId.value) {
-    showDialog.value = true
-  }
-}
-
-function applyStickyNode() {
-  const nodesList = editorNodes.value.features.map(node => node.properties.index)
-  if (!nodesList.includes(stickyNodeId.value)) {
-    linksStore.applyStickyNode({ selectedNodeId: selectedNodeId.value, stickyNodeId: stickyNodeId.value })
-  } else {
-    store.changeNotification(
-      { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
-  }
-}
-
-import { useRouting } from '@src/utils/routing/routing.js'
 // import HistorySelector from '../utils/HistorySelector.vue'
-const { routeLink } = useRouting()
 
 </script>
 <template>
-  <SimpleDialog
-    v-model="showDialog"
-    :title="$gettext('Replace %{index}', { index: selectedNodeId })"
-    :body="$gettext('with %{index}?', { index: stickyNodeId }) "
-    @confirm="applyStickyNode"
-  />
   <div
     ref="canvasDiv"
     class="map"
@@ -442,7 +316,6 @@ const { routeLink } = useRouting()
       <template v-if="mapIsLoaded">
         <EditorLinks
           :map="map"
-          v-on="anchorMode ? {clickFeature: clickFeature } : {onHover:onHover,onHoverSticky:onHoverSticky, offHover:offHover,clickFeature: clickFeature, useStickyNode:useStickyNode}"
         />
       </template>
       <ODMap

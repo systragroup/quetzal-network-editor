@@ -108,11 +108,11 @@ export function basePoint(): PointGeoJson {
   }
 }
 
-export function baseLineString(): LineStringGeoJson {
+export function baseLineString(features: LineStringFeatures[] = []): LineStringGeoJson {
   return {
     type: 'FeatureCollection',
     crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
-    features: [],
+    features: features,
   }
 }
 export function basePolygon(): PolygonGeoJson {

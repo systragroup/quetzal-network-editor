@@ -139,10 +139,9 @@ export interface EditNewLinkPayload {
 }
 
 export interface NewLinkPayload {
-  nodeId: string
   geom: number[]
   action: LinksAction
-  nodeCopyId?: string
+  stickyNodeId?: string
 }
 
 export interface NewNodePayload {
