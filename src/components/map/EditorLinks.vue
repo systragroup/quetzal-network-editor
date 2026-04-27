@@ -69,40 +69,33 @@ const anchorNodes = computed(() => {
 
 // drawLink
 
-const drawMode = ref(false)
-const drawLink = ref(baseLineString([createLinestringFeature([[0, 0], [0, 0]], { nodeId: null })]))
+import { useDrawLink } from '@src/composables/useDrawLink'
+
+const { drawLink, drawMode, updateDrawLink, stopDraw } = useDrawLink(map.value)
 
 watch(isEditorMode, (val) => {
   if (val) {
     map.value.on('mousemove', draw)
     map.value.on('mousedown', clickStopDraw)
-    map.value.on('mouseout', resetDraw)
     map.value.on('click', addPoint)
   }
   else {
     map.value.off('mousemove', draw)
     map.value.off('mousedown', clickStopDraw)
-    map.value.off('mouseout', resetDraw)
     map.value.off('click', addPoint)
   }
 }, { immediate: true })
 
 function draw (event: MapMouseEvent) {
   if (drawMode.value && !anchorMode.value) {
-    map.value.setLayoutProperty('testLink', 'visibility', 'visible')
-    drawLink.value.features[0].geometry.coordinates[1] = Object.values(event.lngLat)
+    updateDrawLink(event)
   }
-}
-
-function resetDraw () {
-  map.value.setLayoutProperty('testLink', 'visibility', 'none')
 }
 
 function clickStopDraw (event: MapMouseEvent) {
   // remove drawmode when we right click on map
   if (event.originalEvent.button === 2 && !hoveredStateId.value) {
-    drawMode.value = false
-    drawLink.value.features[0].geometry.coordinates = []
+    stopDraw()
   }
 }
 
@@ -756,26 +749,6 @@ function stopMovingRouteAnchor () {
         minzoom: 2,
         paint: {
           'line-color': $vuetify.theme.current.colors.linkssecondary,
-          'line-width': 3,
-          'line-dasharray':['literal', [0, 2, 4]],
-        }
-      }"
-    />
-
-    <MglGeojsonLayer
-      source-id="testLink"
-      :source="{
-        type: 'geojson',
-        data: drawLink,
-        buffer: 0,
-        promoteId: 'index',
-      }"
-      layer-id="testLink"
-      :layer="{
-        type: 'line',
-        minzoom: 2,
-        paint: {
-          'line-color': $vuetify.theme.current.colors.linksprimary,
           'line-width': 3,
           'line-dasharray':['literal', [0, 2, 4]],
         }
