@@ -1,12 +1,11 @@
 <script setup>
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
-import { MglMap, MglGeojsonLayer, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
+import { MglMap, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
 import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef, onMounted } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
-import { lineString } from '@turf/helpers'
 import Settings from './Settings.vue'
 import StaticLinks from './StaticLinks.vue'
 import EditorLinks from './EditorLinks.vue'
@@ -99,150 +98,21 @@ const editorTrip = computed(() => linksStore.editorTrip)
 const isEditorMode = computed(() => editorTrip.value !== null)
 
 // DrakLink
-const drawLink = ref(lineString([[0, 0], [0, 0]]))
-const drawMode = ref(false)
-const connectedDrawLink = ref(false)
 
-function draw (event) {
-  // do not update position on connected link, this makes the node sticky
-  if (Object.keys(event).includes('mapboxEvent')) {
-    if (!connectedDrawLink.value) {
-      if (drawMode.value && !anchorMode.value) {
-        // update draw line with new geometry.
-        const geometry = [drawLink.value.geometry.coordinates[0], Object.values(event.mapboxEvent.lngLat)]
-        drawLink.value.geometry.coordinates = geometry
-      }
-    }
-  }
-}
-
-function resetDraw (event) {
-  // reset draw line when we leave the map. put it back when enter
-  if (drawMode.value && event === 'out') {
-    map.value.setLayoutProperty('drawLink', 'visibility', 'none')
-  }
-  if (drawMode.value && event === 'in') {
-    map.value.setLayoutProperty('drawLink', 'visibility', 'visible')
-  }
-}
-function clickStopDraw (event) {
-  // remove drawmode when we right click on map
-  if (event.mapboxEvent?.originalEvent.button === 2 && !hoverId.value) {
-    drawMode.value = false
-  }
-}
-
-watch(editorTrip, (val) => {
+watch(editorTrip, () => {
   store.setAnchorMode(false)
   store.setStickyMode(false)
   store.setRoutingMode(false)
-  connectedDrawLink.value = false
-  if (!val) { drawMode.value = false }
 })
 
 watch(anchorMode, (val) => {
   if (val) {
-    drawMode.value = false
     store.changeNotification(
       { text: $gettext('Left click to add an anchor point, right click to delete'), autoClose: false })
   } else {
     store.changeNotification({ text: '', autoClose: true })
   }
 })
-
-watch(mode, (val) => {
-  if (val === 'pt') {
-    drawMode.value = false
-  }
-})
-
-watch(drawMode, (val) => {
-  if (val) {
-    map.value.setLayoutProperty('drawLink', 'visibility', 'visible')
-  } else {
-    map.value.setLayoutProperty('drawLink', 'visibility', 'none')
-  }
-})
-
-// Hovering and stuff.
-const selectedNode = ref({ id: null, layerId: null })
-const hoverId = ref(null)
-const hoverLayer = ref(null)
-
-function addPoint (event) {
-  if (Object.keys(event).includes('mapboxEvent')) {
-    event.mapboxEvent.originalEvent.stopPropagation()
-    if (drawMode.value) {
-      if (selectedNode.value.layerId === 'rnodes') {
-        addPointRoad(event)
-      }
-    }
-  }
-}
-
-function addPointRoad(event) {
-  const pointGeom = Object.values(event.mapboxEvent.lngLat)
-  let payload = {}
-  if (hoverLayer.value === 'rlinks') {
-    payload = {
-      nodeIdA: selectedNode.value.id,
-      linksId: hoverId.value, // could be null, a node or a link.
-      geom: pointGeom,
-    }
-  } else {
-    payload = {
-      nodeIdA: selectedNode.value.id,
-      nodeIdB: hoverId.value, // could be null, a node or a link.
-      geom: pointGeom,
-    }
-  }
-  // this action overwrite payload.nodeIdB to the actual newLink nodeB.
-  const toHover = rlinksStore.createrLink(payload)
-  drawMode.value = false
-  // then, create a hover (and off hover) to the new node b to continue drawing
-  onHoverRoad({ layerId: 'rnodes', selectedId: [toHover] })
-  offHover()
-}
-
-function clickFeature (event) {
-  // when we move a rNode, we need to update drawlink as it is link to this moved node.
-  if (['Move rNode', 'Delete rLink'].includes(event.action)) {
-    drawMode.value = false
-    connectedDrawLink.value = false
-  }
-}
-
-function onHoverRoad (event) {
-  if (event?.layerId === 'rnodes') {
-    hoverLayer.value = event.layerId
-    hoverId.value = event.selectedId[0]
-    if (drawMode.value) {
-      // nodes are sticky. drawlink change size and style
-      connectedDrawLink.value = true
-    } else {
-      const node = rlinksStore.visiblerNodes.features.filter(node =>
-        node.properties.index === hoverId.value)[0]
-      drawLink.value.geometry.coordinates = [node.geometry.coordinates, node.geometry.coordinates]
-      drawMode.value = true
-      connectedDrawLink.value = false
-      selectedNode.value.id = hoverId.value
-      selectedNode.value.layerId = hoverLayer.value
-    }
-  } else if (event?.layerId === 'rlinks') {
-    hoverLayer.value = event.layerId
-    hoverId.value = event.selectedId
-  }
-}
-
-function offHover () {
-  // put back visible draw line
-  hoverId.value = null
-  hoverLayer.value = null
-  if (drawMode.value) {
-    map.value.setLayoutProperty('drawLink', 'visibility', 'visible')
-    connectedDrawLink.value = false
-  }
-}
 
 // import HistorySelector from '../utils/HistorySelector.vue'
 
@@ -259,11 +129,6 @@ function offHover () {
       :center="mapStore.mapCenter"
       :zoom="mapStore.mapZoom"
       @load="onMapLoaded"
-      @mousemove="draw"
-      @mouseout="resetDraw('out')"
-      @mouseenter="resetDraw('in')"
-      @click="addPoint"
-      @mousedown="clickStopDraw"
     >
       <MglScaleControl position="bottom-right" />
       <MglNavigationControl
@@ -304,8 +169,6 @@ function offHover () {
         <RoadLinks
           :map="map"
           :is-editor-mode="isEditorMode"
-          @select="drawMode = false"
-          v-on="(isEditorMode)? {} : anchorMode ? {clickFeature: clickFeature } : {onHover:onHoverRoad, offHover:offHover,clickFeature: clickFeature}"
         />
       </template>
       <StaticLinks
@@ -323,29 +186,6 @@ function offHover () {
         :is-editor-mode="isEditorMode"
         :is-o-d-mode="mode==='od'"
         @click-feature="clickFeature"
-      />
-
-      <MglGeojsonLayer
-        v-show="drawMode"
-        source-id="drawLink"
-        :source="{
-          type: 'geojson',
-          data:drawLink,
-          buffer: 0,
-          generateId: true,
-        }"
-        layer-id="drawLink"
-        :layer="{
-          type: 'line',
-          minzoom: 2,
-          paint: {
-            'line-opacity': 1,
-            'line-color': $vuetify.theme.current.colors.linksprimary,
-            'line-width': ['case', ['boolean', connectedDrawLink, false], 5, 3],
-            'line-dasharray':['case', ['boolean', connectedDrawLink, false],['literal', []] , ['literal', [0, 2, 4]]],
-
-          }
-        }"
       />
     </MglMap>
   </div>

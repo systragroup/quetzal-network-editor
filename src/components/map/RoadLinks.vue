@@ -16,6 +16,7 @@ import { getAnchorGeojson } from '@src/utils/network'
 import { ActionClickRoad, ContextMenuRoad, CustomMapEvent, HoverStateRoad, MapSelectorEvent } from '@src/types/mapbox'
 import { baseLineString, basePoint, GeoJsonFeatures, LineStringFeatures, PointFeatures } from '@src/types/geojson'
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
+import RoadLinksDraw from './RoadLinksDraw.vue'
 const { openDialog } = useForm()
 
 // interface Popup {
@@ -158,10 +159,9 @@ watch(isRoadMode, (val) => {
     map.value.off('zoomend', getZoom)
     minZoom.value.nodes = 24 // set to invisible.
     deselectAll() // deselect any selected links
-    emits('select') // this cancel the DrawMode.
   }
 })
-
+const drawMode = ref(false)
 const keepHovering = ref(false)
 const dragNode = ref(false)
 const selectedFeature = ref<GeoJsonFeatures[]>()
@@ -170,11 +170,11 @@ function onCursor (event: CustomMapEvent) {
   if (isRoadMode.value) {
     if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
     if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'rlinks') {
-      const mapFeature = event.mapboxEvent.features
-      if (!mapFeature) return
+      const mapFeatures = event.mapboxEvent.features as GeoJsonFeatures[]
+      if (!mapFeatures) return
 
       if (!disablePopup.value && selectedPopupContent.value.length > 0) {
-        const feature = mapFeature[0]
+        const feature = mapFeatures[0]
         if (event.layerId === 'rlinks') {
           // eslint-disable-next-line max-len
           const htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties ? [prop] : ''}</b>`)
@@ -192,8 +192,8 @@ function onCursor (event: CustomMapEvent) {
         )
       }
       // get a list of all overID. if there is multiple superposed link get all of them!
-      const uniqueArray = [...new Set(mapFeature.map(item => item.id))] as string[]
-      hoveredStateId.value = { layerId: event.layerId, id: uniqueArray }
+      const uniqueArray = mapFeatures.map(item => item.id) as string[]
+      hoveredStateId.value = { layerId: event.layerId, id: uniqueArray, features: mapFeatures }
       map.value.setFeatureState(
         { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
         { hover: true },
@@ -227,24 +227,24 @@ function offCursor (event: CustomMapEvent) {
     }
   }
 }
+watch(drawMode, v => console.log('watch', v), { deep: true })
 
 function selectClick (event: CustomMapEvent) {
-  if (isRoadMode.value) {
-    if (hoveredStateId.value !== null) {
-      // Get the highlighted feature
-      const selectedIndexes = hoveredStateId.value.id
-      // Emit a click base on layer type (node or link)
-      if (selectedIndexes !== null) {
-        if (hoveredStateId.value.layerId === 'rlinks') {
-          const action = anchorMode.value ? 'anchorrNodes' : 'rnodes'
-          rlinksStore.addRoadNodeInline({
-            selectedIndex: selectedIndexes,
-            lngLat: event.mapboxEvent.lngLat,
-            nodes: action,
-          })
-        }
-      }
-    }
+  console.log('selectClick', drawMode.value)
+  if (drawMode.value) return
+  if (!isRoadMode.value) return
+  if (!hoveredStateId.value) return
+  // Get the highlighted feature
+  const selectedIndexes = hoveredStateId.value.id
+  if (!selectedIndexes) return
+  // Emit a click base on layer type (node or link)
+  if (hoveredStateId.value.layerId === 'rlinks') {
+    const action = anchorMode.value ? 'anchorrNodes' : 'rnodes'
+    rlinksStore.addRoadNodeInline({
+      selectedIndex: selectedIndexes,
+      lngLat: event.mapboxEvent.lngLat,
+      nodes: action,
+    })
   }
 }
 
@@ -470,8 +470,7 @@ function stopMovingNode () {
         { hover: false },
       )
     }
-
-    hoveredStateId.value = null
+    // hoveredStateId.value = null
     map.value.off('mouseup', stopMovingNode)
     // this will work with lag as it is the selectedFeature and not the highlighted one.}
   }
@@ -556,6 +555,11 @@ const ArrowDirCondition = computed(() => {
 </script>
 <template>
   <section>
+    <RoadLinksDraw
+      v-model="drawMode"
+      :map="map"
+      :hovered-state-id="hoveredStateId"
+    />
     <MapClickSelector
       v-if="isRoadMode"
       :map="map"

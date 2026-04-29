@@ -1,21 +1,20 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { baseLineString, createLinestringFeature } from '@src/types/geojson'
+import { createLinestringFeature } from '@src/types/geojson'
 import { GeoJSONSource, Map, MapMouseEvent } from 'mapbox-gl'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useTheme } from 'vuetify'
 
-export function useDrawLink(currentMap: Map) {
+export function useDrawLink(currentMap: Map, instanceName = 'drawlink') {
   const map = ref(currentMap)
-  const name = 'drawlink'
+  const name = instanceName
   const layerId = `layer-${name}`
   const sourceId = `source-${name}`
 
-  const drawMode = ref(false)
-  const drawLink = ref(baseLineString([createLinestringFeature([[0, 0], [0, 0]], { nodeId: null })]))
+  const drawLink = ref(createLinestringFeature([[0, 0], [0, 0]], { nodeId: null }))
 
   function updateDrawLink (event: MapMouseEvent) {
     showDraw()
-    drawLink.value.features[0].geometry.coordinates[1] = Object.values(event.lngLat)
+    drawLink.value.geometry.coordinates[1] = Object.values(event.lngLat)
     setData()
   }
 
@@ -33,8 +32,7 @@ export function useDrawLink(currentMap: Map) {
   }
 
   function stopDraw () {
-    drawMode.value = false
-    drawLink.value.features[0].geometry.coordinates = []
+    drawLink.value.geometry.coordinates = []
     hideDraw()
   }
   const theme = useTheme()
@@ -78,8 +76,8 @@ export function useDrawLink(currentMap: Map) {
 
   return {
     map,
-    drawMode,
     drawLink,
+    showDraw,
     updateDrawLink,
     hideDraw,
     stopDraw,

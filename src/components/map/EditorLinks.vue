@@ -39,7 +39,6 @@ const editorNodes = computed(() => { return linksStore.editorNodes })
 
 const stickyMode = computed(() => { return store.stickyMode })
 const showedTrips = computed(() => { return linksStore.selectedTrips })
-const isEditorMode = computed(() => linksStore.editorTrip !== null)
 
 const visibleNodes = computed(() => { return stickyMode.value ? linksStore.visibleNodes : basePoint() })
 
@@ -53,6 +52,7 @@ const routingMode = computed(() => { return store.routingMode })
 import { useRouting } from '@src/utils/routing/routing.js'
 import { cloneDeep } from 'lodash'
 import PromiseDialog from '../utils/PromiseDialog.vue'
+import EditorLinksDraw from './EditorLinksDraw.vue'
 const { routeLink } = useRouting()
 const routeAnchorMode = computed(() => anchorMode.value && routingMode.value)
 const routeAnchorLine = computed(() => routeAnchorMode.value ? linksStore.routeAnchorLine : baseLineString())
@@ -66,107 +66,6 @@ const anchorNodes = computed(() => {
     return basePoint()
   }
 })
-
-// drawLink
-
-import { useDrawLink } from '@src/composables/useDrawLink'
-
-const { drawLink, drawMode, updateDrawLink, stopDraw } = useDrawLink(map.value)
-
-watch(isEditorMode, (val) => {
-  if (val) {
-    map.value.on('mousemove', draw)
-    map.value.on('mousedown', clickStopDraw)
-    map.value.on('click', addPoint)
-  }
-  else {
-    map.value.off('mousemove', draw)
-    map.value.off('mousedown', clickStopDraw)
-    map.value.off('click', addPoint)
-  }
-}, { immediate: true })
-
-function draw (event: MapMouseEvent) {
-  if (drawMode.value && !anchorMode.value) {
-    updateDrawLink(event)
-  }
-}
-
-function clickStopDraw (event: MapMouseEvent) {
-  // remove drawmode when we right click on map
-  if (event.originalEvent.button === 2 && !hoveredStateId.value) {
-    stopDraw()
-  }
-}
-
-function setDrawLinkFirstPoint(point: PointFeatures | null) {
-  const feature = drawLink.value.features[0]
-  if (point) {
-    feature.geometry.coordinates[0] = toRaw(point.geometry.coordinates)
-    feature.properties.nodeId = toRaw(point.properties.index)
-    drawMode.value = true
-  } else {
-    feature.geometry.coordinates[0] = [0, 0]
-    feature.properties.nodeId = null
-    drawMode.value = false
-  }
-}
-
-const firstNodeId = computed(() => { return linksStore.firstNodeId })
-const lastNodeId = computed(() => { return linksStore.lastNodeId })
-
-const firstNode = computed(() =>
-  editorNodes.value.features.filter((node) => node.properties.index === firstNodeId.value)[0],
-)
-const lastNode = computed(() =>
-  editorNodes.value.features.filter((node) => node.properties.index === lastNodeId.value)[0],
-)
-
-// when the first or last node change (delete or new) change the value of those nodes.
-watch(firstNode, (val) => setDrawLinkFirstPoint(val), { deep: true })
-watch(lastNode, (val) => setDrawLinkFirstPoint(val), { deep: true })
-
-function addPoint (event: MapMouseEvent) {
-  // for a new Line
-  event.originalEvent.stopPropagation()
-  if (editorNodes.value.features.length === 0) {
-    linksStore.createNewNode(Object.values(event.lngLat))
-    store.changeNotification({ text: '', autoClose: true })
-  } else if (drawMode.value) {
-    addPointPT(event)
-  }
-}
-
-async function addPointPT(event: MapMouseEvent) {
-  const selectedNodeId = drawLink.value.features[0].properties.nodeId as string
-  const action = (selectedNodeId === linksStore.lastNodeId)
-    ? 'Extend Line Upward'
-    : 'Extend Line Downward'
-  const pointGeom = Object.values(event.lngLat)
-  if (drawMode.value && !anchorMode.value && !hoveredStateId.value) {
-    if (stickyStateId.value) {
-      const stickyNodeId = cloneDeep(stickyStateId.value?.featureId)
-      const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
-      if (!nodesList.has(stickyNodeId)) { // cannot reuse same node
-        const resp = await stickyDialog.value.openDialog(
-          $gettext('Replace %{node} with %{b}?', { node: selectedNodeId, b: stickyNodeId }))
-        if (resp) { linksStore.addNewLink({ geom: pointGeom, action: action, stickyNodeId: stickyNodeId }) }
-      } else {
-        store.changeNotification(
-          { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
-      }
-    } else {
-      linksStore.addNewLink({ geom: pointGeom, action: action })
-    }
-  }
-  if (routingMode.value) {
-    const newLinkFeature = action === 'Extend Line Upward'
-      ? linksStore.editorLinks.features.slice(-1)[0]
-      : linksStore.editorLinks.features[0]
-    routeLink(newLinkFeature)
-  }
-  linksStore.commitChanges(action)
-}
 
 const stickyDialog = ref()
 
@@ -351,17 +250,6 @@ watch(hoveredStateId, (newVal, oldVal) => {
   } if (newVal) {
     map.value.setFeatureState({ source: newVal.layerId, id: newVal.featureId }, { hover: true })
     map.value.getCanvas().style.cursor = 'pointer'
-  }
-})
-
-watch(hoveredStateId, (val) => {
-  if (val) {
-    if (val.featureId == firstNodeId.value) {
-      setDrawLinkFirstPoint(firstNode.value)
-    }
-    if (val.featureId == lastNodeId.value) {
-      setDrawLinkFirstPoint(lastNode.value)
-    }
   }
 })
 
@@ -591,6 +479,11 @@ function stopMovingRouteAnchor () {
   <section>
     <PromiseDialog
       ref="stickyDialog"
+    />
+    <EditorLinksDraw
+      :map="map"
+      :hovered-state-id="hoveredStateId"
+      :sticky-state-id="stickyStateId"
     />
     <MglGeojsonLayer
       source-id="editorLinks"

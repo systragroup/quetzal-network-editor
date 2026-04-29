@@ -1,5 +1,5 @@
 import { Map, MapMouseEvent } from 'mapbox-gl'
-import { GeoJsonFeatures, GeoJsonProperties } from './geojson'
+import { GeoJsonFeatures } from './geojson'
 import { LinksAction, LinksAction2, RoadsAction, RoadsAction2 } from './typesStore'
 
 export interface CustomMapEvent {
@@ -23,7 +23,7 @@ export interface HoverState {
 export interface HoverStateRoad {
   layerId: string
   id: string[]
-  properties?: GeoJsonProperties
+  features: GeoJsonFeatures[]
 }
 
 export interface ActionClick {

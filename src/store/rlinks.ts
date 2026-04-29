@@ -131,8 +131,8 @@ export const userLinksStore = defineStore('rlinks', {
       payload.features.forEach(link => this.rlinks.features.push(link))
       this.getrLinksProperties()
       this.getVariants()
-      this.deleteNonVariantAttributes()
-      this.initOneways()
+      this._deleteNonVariantAttributes()
+      this._initOneways()
       this.initSelectedrFilter()
     },
 
@@ -141,7 +141,7 @@ export const userLinksStore = defineStore('rlinks', {
       addDefaultValuesToVariants(this.linksDefaultAttributes)
     },
 
-    deleteNonVariantAttributes() {
+    _deleteNonVariantAttributes() {
       // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
       const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
       toDelete.forEach(attr => this.deleteLinksPropertie({ name: attr }))
@@ -182,6 +182,24 @@ export const userLinksStore = defineStore('rlinks', {
       // add all default attributes
       const newAttrs = getDifference(header, this.rnodeAttributes)
       newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
+    },
+
+    _initOneways () {
+      if (this.rlineAttributes.includes('oneway')) {
+        // make sure oneway is '1' or '0'
+        this.rlinks.features.forEach(link => {
+          if ([true, 'true', '1', 1].includes(link.properties.oneway)) {
+            link.properties.oneway = '1'
+          } else {
+            link.properties.oneway = '0'
+          }
+        })
+        const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
+        // this function only apply the non _r val if it doesnt exist.
+        toSplit.forEach(link => {
+          this.initReversePropertiesOnLink(link)
+        })
+      }
     },
 
     loadrLinksAttributesChoices (payload: AttributesChoice) {
@@ -280,24 +298,6 @@ export const userLinksStore = defineStore('rlinks', {
       // replace undefined with null here. the filter will not work if undefined.
       const val = Array.from(new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter] || null)))
       this.filteredrCategory = val
-    },
-
-    initOneways () {
-      if (this.rlineAttributes.includes('oneway')) {
-        // make sure oneway is '1' or '0'
-        this.rlinks.features.forEach(link => {
-          if ([true, 'true', '1', 1].includes(link.properties.oneway)) {
-            link.properties.oneway = '1'
-          } else {
-            link.properties.oneway = '0'
-          }
-        })
-        const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
-        // this function only apply the non _r val if it doesnt exist.
-        toSplit.forEach(link => {
-          this.initReversePropertiesOnLink(link)
-        })
-      }
     },
 
     ChangeDefaultValues(payload: Record<string, any>) {
@@ -555,7 +555,6 @@ export const userLinksStore = defineStore('rlinks', {
 
           this.splitrLink({ selectedFeature: selectedFeatures[i], offset, sliceIndex, newNode })
           this.updateNodes = [newNode.features[0]]
-
         // Anchor Nodes
         } else {
           this.addAnchorrNode({
@@ -634,7 +633,7 @@ export const userLinksStore = defineStore('rlinks', {
       }
       this.updateLinks = [linkFeature]
       this.updateNodes = [rnodeB]
-      return nodeIdB
+      return rnodeB
     },
 
     getConnectedLinks (payload: SelectedrNode) {
