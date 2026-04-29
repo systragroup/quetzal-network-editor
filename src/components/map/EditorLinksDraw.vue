@@ -37,17 +37,9 @@ import { HoverState } from '@src/types/mapbox'
 const { drawLink, updateDrawLink, stopDraw, showDraw } = useDrawLink(map.value)
 const drawMode = ref(false)
 
-watch(drawMode, (val) => {
-  if (val) {
-    showDraw()
-  } else {
-    stopDraw()
-  }
-})
+watch(drawMode, (val) => val ? showDraw() : stopDraw())
 // set drawmode to false on anchormode
-watch(anchorMode, (val) => {
-  if (val) drawMode.value = false
-})
+watch(anchorMode, (val) => val ? drawMode.value = false : null)
 
 watch(isEditorMode, (val) => {
   if (val) {

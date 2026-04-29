@@ -5,7 +5,7 @@ import { computed, ref, watch, onMounted, toRefs, onBeforeUnmount, watchEffect, 
 import MapClickSelector from '../utils/MapClickSelector.vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
-import mapboxgl, { MapMouseEvent, Popup } from 'mapbox-gl'
+import mapboxgl, { LngLat, MapMouseEvent, Popup } from 'mapbox-gl'
 import { Map, GeoJSONSource } from 'mapbox-gl'
 
 import { useGettext } from 'vue3-gettext'
@@ -18,12 +18,6 @@ import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures, Li
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
 import RoadLinksDraw from './RoadLinksDraw.vue'
 const { openDialog } = useForm()
-
-// interface Popup {
-//   coordinates: number[]
-//   showed: boolean
-//   content: string | null
-// }
 
 interface Props {
   map: Map
@@ -115,14 +109,6 @@ watchEffect(() => {
   }
 }, { flush: 'post' }) // so its done after the source is created
 
-const popup = ref<Popup>()
-
-const hoveredStateId = ref<HoverStateRoad | null>(null)
-
-const disablePopup = ref(false)
-
-const currentZoom = ref(10)
-
 async function getZoom() { currentZoom.value = map.value.getZoom() }
 // width go to x3 when zoomed. go progressively (sigmoid function.)
 const width = computed(() => {
@@ -160,60 +146,64 @@ watch(isRoadMode, (val) => {
   }
 })
 
+const popup = ref <Popup>()
+
+const disablePopup = ref(false)
+
+const currentZoom = ref(10)
+
 const drawMode = ref(false)
 const selectedFeature = ref<GeoJsonFeatures[]>([])
 
-function onCursor (event: CustomMapEvent) {
-  if (isRoadMode.value) {
-    if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
-    if (hoveredStateId.value === null || hoveredStateId.value.layerId === 'rlinks') {
-      const mapFeatures = event.mapboxEvent.features as GeoJsonFeatures[]
-      if (!mapFeatures) return
+const hoveredStateId = ref<HoverStateRoad | null>(null)
 
-      if (!disablePopup.value && selectedPopupContent.value.length > 0) {
-        const feature = mapFeatures[0]
-        if (event.layerId === 'rlinks') {
-          // eslint-disable-next-line max-len
-          const htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties ? [prop] : ''}</b>`)
-          popup.value = new mapboxgl.Popup({ closeButton: false })
-            .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-            .setHTML(htmlContent.join('<br> '))
-            .addTo(event.map)
-        }
-      }
-      map.value.getCanvas().style.cursor = 'pointer'
-      if (hoveredStateId.value !== null) {
-        map.value.setFeatureState(
-          { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
-          { hover: false },
-        )
-      }
-      // get a list of all overID. if there is multiple superposed link get all of them!
-      const uniqueArray = mapFeatures.map(item => item.id) as string[]
-      hoveredStateId.value = { layerId: event.layerId, id: uniqueArray, features: mapFeatures }
-      map.value.setFeatureState(
-        { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
-        { hover: true },
-      )
+watch(hoveredStateId, (newVal, oldVal) => {
+  if (oldVal) {
+    map.value.setFeatureState({ source: oldVal.layerId, id: oldVal.id[0] }, { hover: false })
+    map.value.getCanvas().style.cursor = ''
+    if (popup.value?.isOpen()) popup.value.remove()
+  } if (newVal) {
+    map.value.setFeatureState({ source: newVal.layerId, id: newVal.id[0] }, { hover: true })
+    map.value.getCanvas().style.cursor = 'pointer'
+  }
+})
+
+// hovering
+function setPopup(coords: LngLat, feature: any) {
+  if (popup.value?.isOpen()) popup.value.remove()
+  if (!disablePopup.value && selectedPopupContent.value.length > 0) {
+    // eslint-disable-next-line max-len
+    const htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties ? [prop] : ''}</b>`)
+    popup.value = new mapboxgl.Popup({ closeButton: false })
+      .setLngLat(coords)
+      .setHTML(htmlContent.join('<br> '))
+      .addTo(map.value)
+  }
+}
+
+function onCursor (event: CustomMapEvent) {
+  if (!isRoadMode.value) return
+  // make sure there is no popup before creating one.
+
+  if (!event.mapboxEvent.features) return
+  // this make hovering more natural and avoid collision from node to links
+  if (!hoveredStateId.value || hoveredStateId.value.layerId === 'rlinks') {
+    const features = event.mapboxEvent.features as GeoJsonFeatures[]
+    // get a list of all overID. if there is multiple superposed link get all of them!
+    const uniqueArray = features.map(item => item.id) as string[]
+    hoveredStateId.value = { layerId: event.layerId, id: uniqueArray, features: features }
+
+    if (event.layerId === 'rlinks') {
+      setPopup(event.mapboxEvent.lngLat, features[0])
     }
   }
 }
 
 function offCursor (event: CustomMapEvent) {
-  if (isRoadMode.value) {
-    if (popup.value?.isOpen()) popup.value.remove()
-    if (hoveredStateId.value !== null) {
-      // eslint-disable-next-line max-len
-      if (!(['rnodes', 'anchorrNodes'].includes(hoveredStateId.value?.layerId) && event?.layerId === 'rlinks')) {
-        map.value.getCanvas().style.cursor = ''
-        map.value.setFeatureState(
-          { source: hoveredStateId.value.layerId, id: hoveredStateId.value.id[0] },
-          { hover: false },
-        )
-        hoveredStateId.value = null
-      }
-    }
-  }
+  if (!isRoadMode.value) return
+  if (!hoveredStateId.value) return
+  if (['rnodes', 'anchorrNodes'].includes(hoveredStateId.value.layerId) && event.layerId === 'rlinks') return
+  hoveredStateId.value = null
 }
 
 function selectClick (event: CustomMapEvent) {

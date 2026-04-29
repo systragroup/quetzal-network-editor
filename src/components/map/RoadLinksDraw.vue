@@ -31,17 +31,9 @@ const { drawLink, updateDrawLink, stopDraw, showDraw } = useDrawLink(map.value, 
 
 const connectedDrawLink = ref(false)
 
-watch(drawMode, (val) => {
-  if (val) {
-    showDraw()
-  } else {
-    stopDraw()
-  }
-})
+watch(drawMode, (val) => val ? showDraw() : stopDraw())
 // set drawmode to false on anchormode
-watch(anchorMode, (val) => {
-  if (val) drawMode.value = false
-})
+watch(anchorMode, (val) => val ? drawMode.value = false : null)
 
 watch(isRoadMode, (val) => {
   if (val) {
