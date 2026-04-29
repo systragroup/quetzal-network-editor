@@ -34,8 +34,20 @@ const { routeLink } = useRouting()
 import { useDrawLink } from '@src/composables/useDrawLink'
 import { HoverState } from '@src/types/mapbox'
 
-const { drawLink, updateDrawLink, stopDraw } = useDrawLink(map.value)
+const { drawLink, updateDrawLink, stopDraw, showDraw } = useDrawLink(map.value)
 const drawMode = ref(false)
+
+watch(drawMode, (val) => {
+  if (val) {
+    showDraw()
+  } else {
+    stopDraw()
+  }
+})
+// set drawmode to false on anchormode
+watch(anchorMode, (val) => {
+  if (val) drawMode.value = false
+})
 
 watch(isEditorMode, (val) => {
   if (val) {
@@ -59,7 +71,6 @@ function draw (event: MapMouseEvent) {
 function clickStopDraw (event: MapMouseEvent) {
   // remove drawmode when we right click on map
   if (event.originalEvent.button === 2 && !hoveredStateId.value) {
-    stopDraw()
     drawMode.value = false
   }
 }
@@ -70,8 +81,6 @@ function setDrawLinkFirstPoint(point: PointFeatures | null) {
     drawLink.value.properties.nodeId = toRaw(point.properties.index)
     drawMode.value = true
   } else {
-    drawLink.value.geometry.coordinates[0] = [0, 0]
-    drawLink.value.properties.nodeId = null
     drawMode.value = false
   }
 }

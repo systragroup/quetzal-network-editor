@@ -13,7 +13,6 @@ export function useDrawLink(currentMap: Map, instanceName = 'drawlink') {
   const drawLink = ref(createLinestringFeature([[0, 0], [0, 0]], { nodeId: null }))
 
   function updateDrawLink (event: MapMouseEvent) {
-    showDraw()
     drawLink.value.geometry.coordinates[1] = Object.values(event.lngLat)
     setData()
   }
@@ -32,7 +31,8 @@ export function useDrawLink(currentMap: Map, instanceName = 'drawlink') {
   }
 
   function stopDraw () {
-    drawLink.value.geometry.coordinates = []
+    drawLink.value = createLinestringFeature([[0, 0], [0, 0]], { nodeId: null })
+    setData()
     hideDraw()
   }
   const theme = useTheme()
@@ -67,11 +67,13 @@ export function useDrawLink(currentMap: Map, instanceName = 'drawlink') {
   onMounted(() => {
     addLayer()
     map.value.on('mouseout', hideDraw)
+    map.value.on('mouseover', showDraw)
   })
 
   onBeforeUnmount(() => {
     removeLayer()
     map.value.off('mouseout', hideDraw)
+    map.value.off('mouseover', showDraw)
   })
 
   return {

@@ -31,6 +31,18 @@ const { drawLink, updateDrawLink, stopDraw, showDraw } = useDrawLink(map.value, 
 
 const connectedDrawLink = ref(false)
 
+watch(drawMode, (val) => {
+  if (val) {
+    showDraw()
+  } else {
+    stopDraw()
+  }
+})
+// set drawmode to false on anchormode
+watch(anchorMode, (val) => {
+  if (val) drawMode.value = false
+})
+
 watch(isRoadMode, (val) => {
   if (val) {
     map.value.on('click', addPoint)
@@ -46,7 +58,7 @@ watch(isRoadMode, (val) => {
 
 function draw (event: MapMouseEvent) {
   if (!connectedDrawLink.value) {
-    if (drawMode.value && !anchorMode.value) {
+    if (drawMode.value) {
       updateDrawLink(event)
     }
   }
@@ -55,27 +67,19 @@ function draw (event: MapMouseEvent) {
 function clickStopDraw (event: MapMouseEvent) {
   // remove drawmode when we right click on map
   if (event.originalEvent.button === 2 && !hoveredStateId.value) {
-    stopDraw()
     drawMode.value = false
   }
 }
 
-function setDrawLinkFirstPoint(point: PointFeatures | null) {
-  if (point) {
-    drawLink.value.geometry.coordinates[0] = toRaw(point.geometry.coordinates)
-    drawLink.value.properties.nodeId = toRaw(point.properties.index)
-    drawMode.value = true
-  } else {
-    drawLink.value.geometry.coordinates[0] = [0, 0]
-    drawLink.value.properties.nodeId = null
-    drawMode.value = false
-  }
+function setDrawLinkFirstPoint(point: PointFeatures) {
+  drawLink.value.geometry.coordinates[0] = toRaw(point.geometry.coordinates)
+  drawLink.value.properties.nodeId = toRaw(point.properties.index)
+  drawMode.value = true
 }
 
 function offHover () {
   // put back visible draw line
   if (drawMode.value) {
-    showDraw()
     connectedDrawLink.value = false
   }
 }
@@ -84,7 +88,7 @@ function onHover(hovering: HoverStateRoad) {
   if (hovering.layerId === 'rnodes') {
     if (drawMode.value) {
       connectedDrawLink.value = true
-    } else {
+    } else if (!anchorMode.value) {
       setDrawLinkFirstPoint(hovering.features[0] as PointFeatures)
       connectedDrawLink.value = false
     }
@@ -102,6 +106,7 @@ watch(hoveredStateId, (val) => {
 function addPoint (event: MapMouseEvent) {
   // for a new Line
   if (!drawMode.value) return
+  if (anchorMode.value) return
   event.originalEvent.stopPropagation()
   const pointGeom = Object.values(event.lngLat)
   const selectedNodeId = drawLink.value.properties.nodeId as string

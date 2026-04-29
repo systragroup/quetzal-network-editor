@@ -20,7 +20,7 @@ import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, Point
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
-import { addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
+import { _editLink, _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getVariantsChoices } from '@src/utils/network'
 const $gettext = (s: string) => s
 
@@ -652,46 +652,57 @@ export const userLinksStore = defineStore('rlinks', {
     },
     moverNode (payload: MoverNode) {
       const nodeIndex = payload.selectedNode.properties.index
-      // remove node
-      const newNode = this.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0]
-      newNode.geometry.coordinates = payload.lngLat
+      const geom = payload.lngLat
+      // change node geometry
+      const node = cloneDeep(this.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0])
+      node.geometry.coordinates = geom
+      _editNode(this.visiblerNodes, node)
 
-      // changing links geometry, time, length
-      this.connectedLinks.b.forEach(link => {
-        link.geometry.coordinates = [...link.geometry.coordinates.slice(0, -1), payload.lngLat]
+      const linksB = cloneDeep(this.rlinks.features.filter(link => link.properties.b === nodeIndex))
+      const linksA = cloneDeep(this.rlinks.features.filter(link => link.properties.a === nodeIndex))
+
+      // update links geometry.
+      linksB.forEach(link => {
+        link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
+        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
+        if (link.properties.time_r) {
+          const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
+          calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod)
+        }
+        _editLink(this.rlinks, link)
+      })
+      linksA.forEach(link => {
+        link.geometry.coordinates[0] = geom
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
         if (link.properties.time_r) {
           const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
           calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod) }
+        _editLink(this.rlinks, link)
       })
 
-      this.connectedLinks.a.forEach(link => {
-        link.geometry.coordinates = [payload.lngLat, ...link.geometry.coordinates.slice(1)]
-        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-        if (link.properties.time_r) {
-          const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
-          calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod) }
-      })
+      const visibleLinksList = cloneDeep(this.visiblerLinks.features.filter(link =>
+        (link.properties.a === nodeIndex) || (link.properties.b === nodeIndex)))
 
-      this.updateLinks = [...this.connectedLinks.visibleLinksList]
-      this.updateNodes = [newNode]
+      this.updateLinks = [...visibleLinksList]
+      this.updateNodes = [node]
     },
 
     moverAnchor (payload: MoverNode) {
-      const linkIndex = payload.selectedNode.properties.linkIndex
-      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
-      const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
-      link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
-        payload.lngLat,
-        ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
+      const { selectedNode, lngLat } = payload
+      const coordinatedIndex = selectedNode.properties.coordinatedIndex
+      const linkIndex = selectedNode.properties.linkIndex
 
+      const link = cloneDeep(this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
+      link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       if (link.properties.time_r) {
         const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
         calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod)
       }
+      _editLink(this.rlinks, link)
       this.updateLinks = [link]
     },
+
     deleteAnchorrNode (payload: SelectedrNode) {
       const linkIndex = payload.selectedNode.properties.linkIndex
       const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
