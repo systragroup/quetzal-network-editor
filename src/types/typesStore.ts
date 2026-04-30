@@ -116,12 +116,6 @@ export interface FilesPayload {
   content: LineStringGeoJson | PointGeoJson
 }
 
-export interface ConnectedLinks {
-  a: LineStringFeatures[]
-  b: LineStringFeatures[]
-  anchor: LineStringFeatures[]
-}
-
 export interface NewAttribute {
   name: string
 }
@@ -230,7 +224,6 @@ export interface LinksStore {
   variantChoice: NonEmptyArray<string>
   tripList: string[]
   selectedTrips: string[]
-  connectedLinks: ConnectedLinks
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
@@ -239,12 +232,6 @@ export interface LinksStore {
 }
 
 // road
-
-export interface RoadConnectedLinks {
-  a: LineStringFeatures[]
-  b: LineStringFeatures[]
-  visibleLinksList: LineStringFeatures[]
-}
 
 export type ShowMethod = 'showAll' | 'hideAll' | 'add' | 'remove'
 
@@ -306,7 +293,6 @@ export interface RlinksStore {
   nodesDefaultAttributes: Attributes[]
   visiblerLinks: LineStringGeoJson
   visiblerNodes: PointGeoJson
-  connectedLinks: RoadConnectedLinks
   rlinksAttributesChoices: AttributesChoice
   updateLinks: UpdateFeatures[]
   updateNodes: UpdateFeatures[]

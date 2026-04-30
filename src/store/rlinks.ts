@@ -43,7 +43,6 @@ export const userLinksStore = defineStore('rlinks', {
     selectedrFilter: '',
     selectedrGroup: [],
     filteredrCategory: [],
-    connectedLinks: { a: [], b: [], visibleLinksList: [] },
     // to tell mapbox what to dynamicly update
     updateLinks: [],
     updateNodes: [],

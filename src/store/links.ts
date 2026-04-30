@@ -59,7 +59,6 @@ export const useLinksStore = defineStore('links', {
     // filters
     tripList: [],
     selectedTrips: [],
-    connectedLinks: { a: [], b: [], anchor: [] },
     // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
