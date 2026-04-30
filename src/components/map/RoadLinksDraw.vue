@@ -125,7 +125,7 @@ function addPoint (event: MapMouseEvent) {
     }
   }
 
-  const newNode = rlinksStore.createrLink(payload)
+  const newNode = rlinksStore.createLink(payload)
   setDrawLinkFirstPoint(newNode)
   // then, create a hover (and off hover) to the new node b to continue drawing
   // onHoverRoad({ layerId: 'rnodes', selectedId: [toHover] })

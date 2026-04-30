@@ -171,8 +171,8 @@ export function _editLinkArray(links: LineStringGeoJson, features: LineStringFea
   })
 }
 
-export function _deleteLinkArr(links: LineStringGeoJson, linkArr: Set<string>) {
-  links.features = links.features.filter(link => !linkArr.has(link.properties.index))
+export function _deleteLinks(links: LineStringGeoJson, toDelete: Set<string>) {
+  links.features = links.features.filter(link => !toDelete.has(link.properties.index))
 }
 
 export function _addlinks(links: LineStringGeoJson, features: LineStringFeatures[]) {
@@ -185,6 +185,9 @@ export function _addNode(nodes: PointGeoJson, feature: PointFeatures) {
 
 export function _deleteNode(nodes: PointGeoJson, index: string) {
   nodes.features = nodes.features.filter(node => node.properties.index !== index)
+}
+export function _deleteNodes(nodes: PointGeoJson, toDelete: Set<string>) {
+  nodes.features = nodes.features.filter(node => !toDelete.has(node.properties.index))
 }
 
 export function _editNode(nodes: PointGeoJson, feature: PointFeatures) {

@@ -4,7 +4,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer } from '@src/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference, groupFormToDict } from '@src/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference, groupFormToDict, getUnusedNodes } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
@@ -17,9 +17,10 @@ import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
-import { _addlinks, _addNode, _deleteLinkArr, _editLink, _editLinkArray, _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
+import { _addlinks, _addNode, _deleteLinks, _deleteNodes, _editLink, _editLinkArray, _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getVariantsChoices,
   snapOnLink } from '@src/utils/network'
+import { addReverseProperties, deleteReverseProperties } from '@src/utils/roadNetwork'
 const $gettext = (s: string) => s
 
 // import { useHistory } from '@src/composables/useHistory'
@@ -128,7 +129,7 @@ export const userLinksStore = defineStore('rlinks', {
       payload.features.forEach(link => this.rlinks.features.push(link))
       this.getrLinksProperties()
       this.getVariants()
-      this._deleteNonVariantAttributes()
+      this.deleteNonVariantAttributes()
       this._initOneways()
       this.initSelectedrFilter()
     },
@@ -138,7 +139,7 @@ export const userLinksStore = defineStore('rlinks', {
       addDefaultValuesToVariants(this.linksDefaultAttributes)
     },
 
-    _deleteNonVariantAttributes() {
+    deleteNonVariantAttributes() {
       // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
       const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
       toDelete.forEach(attr => this.deleteLinksPropertie({ name: attr }))
@@ -193,7 +194,7 @@ export const userLinksStore = defineStore('rlinks', {
         const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
         // this function only apply the non _r val if it doesnt exist.
         toSplit.forEach(link => {
-          this.initReversePropertiesOnLink(link)
+          addReverseProperties(link, this.reversedAttributes)
         })
       }
     },
@@ -214,6 +215,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     addLinksPropertie (payload: NewAttribute) {
+      // TODO _editLinkArray
       this.rlinks.features.map(link => link.properties[payload.name] = null)
       this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
       this.linksDefaultAttributes.push({ name: payload.name, type: undefined })
@@ -224,12 +226,15 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     addNodesPropertie (payload: NewAttribute) {
+      // todo: _editNodeArray
       this.rnodes.features.map(node => node.properties[payload.name] = null)
       this.visiblerNodes.features.map(node => node.properties[payload.name] = null)
       this.nodesDefaultAttributes.push({ name: payload.name, type: undefined })
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
+      // TODO _editLinkArray
+
       this.rlinks.features.forEach(link => delete link.properties[payload.name])
       this.rlinks.features.forEach(link => delete link.properties[payload.name + '_r'])
       this.visiblerLinks.features.forEach(link => delete link.properties[payload.name])
@@ -240,6 +245,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     deleteNodesPropertie (payload: NewAttribute) {
+      // todo: _editNodeArray
       this.rnodes.features.forEach(node => delete node.properties[payload.name])
       this.visiblerNodes.features.forEach(node => delete node.properties[payload.name])
       this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
@@ -382,19 +388,6 @@ export const userLinksStore = defineStore('rlinks', {
       }
     },
 
-    initReversePropertiesOnLink(link: LineStringFeatures) {
-      this.reversedAttributes.forEach((rkey) => {
-        if (!link.properties[rkey]) {
-          link.properties[rkey] = link.properties[rkey.slice(0, -2)]
-        }
-      })
-    },
-
-    deleteReversePropertiesOnLink(link: LineStringFeatures) {
-      this.reversedAttributes.forEach(
-        (rkey) => delete link.properties[rkey])
-    },
-
     editLinkInfo (payload: EditRoadPayload) {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedArr, infoArr } = payload
@@ -412,10 +405,10 @@ export const userLinksStore = defineStore('rlinks', {
         const onewayChanged = onewayValue !== link.properties.oneway
 
         if (onewayChanged && onewayValue === '0') {
-          this.initReversePropertiesOnLink(link)
+          addReverseProperties(link, this.reversedAttributes)
         // if we change from 2way to oneway delete _r attrs
         } else if (onewayChanged && onewayValue === '1') {
-          this.deleteReversePropertiesOnLink(link)
+          deleteReverseProperties(link, this.reversedAttributes)
         }
         // push changes
         editedList.push(link)
@@ -451,9 +444,9 @@ export const userLinksStore = defineStore('rlinks', {
       selectedLinks.forEach((feature) => Object.assign(feature.properties, dict))
       // change all reversed values too.
       if (onewayValue === '0') {
-        selectedLinks.forEach(link => this.initReversePropertiesOnLink(link))
+        selectedLinks.forEach(link => addReverseProperties(link, this.reversedAttributes))
       } else if (onewayValue === '1') {
-        selectedLinks.forEach(link => this.deleteReversePropertiesOnLink(link))
+        selectedLinks.forEach(link => deleteReverseProperties(link, this.reversedAttributes))
       }
       // // apply speed (get time on each link for the new speed.)
       const modifiedSpeeds = this.timeVariants.filter(v => props.includes(`speed${v}`))
@@ -498,7 +491,7 @@ export const userLinksStore = defineStore('rlinks', {
       link2.geometry.coordinates = link2.geometry.coordinates.slice(sliceIndex)
       link2.geometry.coordinates.splice(0, 0, newCoords)
 
-      const variants = this.getTimeVariants(link1)
+      const variants = this._getTimeVariants(link1)
       calcLengthTimeorSpeed(link1, variants, this.speedTimeMethod)
       calcLengthTimeorSpeed(link2, variants, this.speedTimeMethod)
 
@@ -510,8 +503,6 @@ export const userLinksStore = defineStore('rlinks', {
       _addlinks(this.rlinks, newLinks)
       _editLinkArray(this.rlinks, modifiedLinks)
       _addNode(this.rnodes, newNode)
-      // _addlinks(this.visiblerLinks, newLinks)
-      // _editLinkArray(this.visiblerLinks, modifiedLinks)
       this.updateLinks = [...modifiedLinks, ...newLinks]
       this.updateNodes = [newNode]
     },
@@ -550,12 +541,12 @@ export const userLinksStore = defineStore('rlinks', {
         link.geometry.coordinates.splice(sliceIndex, 0, newCoords)
         modifiedLinks.push(link)
       }
+
       _editLinkArray(this.rlinks, modifiedLinks)
-      // _editLinkArray(this.visiblerLinks, modifiedLinks)
       this.updateLinks = [...modifiedLinks]
     },
 
-    createrLink (payload: CreateRlinkPayload) {
+    createLink (payload: CreateRlinkPayload) {
       // nodeIdA: node id, nodeIdB: node id, geom: array geom where we clicked, layerId: str. the layer id rnodes,rlinks
       // 3 cases.
       // 1) click on the map. create a node b then connect.
@@ -600,7 +591,7 @@ export const userLinksStore = defineStore('rlinks', {
       calcLengthTimeorSpeed(linkFeature, this.timeVariants, this.speedTimeMethod)
       if (this.rlineAttributes.includes('oneway')) {
         linkFeature.properties.oneway = '0'
-        this.initReversePropertiesOnLink(linkFeature)
+        addReverseProperties(linkFeature, this.reversedAttributes)
       }
 
       newLinksArr.push(linkFeature)
@@ -621,6 +612,7 @@ export const userLinksStore = defineStore('rlinks', {
       _addlinks(this.rlinks, newLinksArr)
       _editLinkArray(this.rlinks, modifiedLinksArr)
       if (newNodeArr.length > 0) _addNode(this.rnodes, newNodeArr[0])
+
       this.updateLinks = newLinksArr
       this.updateNodes = [rnodeB]
       return rnodeB
@@ -639,12 +631,12 @@ export const userLinksStore = defineStore('rlinks', {
       // update links geometry.
       linksB.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-        const variants = this.getTimeVariants(link)
+        const variants = this._getTimeVariants(link)
         calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
       linksA.forEach(link => {
         link.geometry.coordinates[0] = geom
-        const variants = this.getTimeVariants(link)
+        const variants = this._getTimeVariants(link)
         calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
 
@@ -665,7 +657,7 @@ export const userLinksStore = defineStore('rlinks', {
 
       const link = cloneDeep(this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
-      const variants = this.getTimeVariants(link)
+      const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       _editLink(this.rlinks, link)
       this.updateLinks = [link]
@@ -678,19 +670,21 @@ export const userLinksStore = defineStore('rlinks', {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
-      const variants = this.getTimeVariants(link)
+      const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       _editLink(this.rlinks, link)
 
       this.updateLinks = [link]
     },
 
-    deleterLink (selectedIndexes: string[]) {
+    deleteLink (selectedIndexes: string[]) {
       const linkArr = new Set(selectedIndexes)
       // this.visiblerLinks.features = this.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
       this.updateLinks = Array.from(linkArr).map(idx => { return { type: 'Feature', id: idx } })
-      _deleteLinkArr(this.rlinks, linkArr)
-      this.deleteUnusedrNodes()
+      _deleteLinks(this.rlinks, linkArr)
+      const toDelete = getUnusedNodes(this.rnodes, this.rlinks)
+      _deleteNodes(this.rnodes, new Set(toDelete))
+
       this.getVisiblerNodes({ method: 'remove' })
       this.getFilteredrCat()
     },
@@ -699,12 +693,7 @@ export const userLinksStore = defineStore('rlinks', {
       const cat = this.selectedrFilter
       const filtered = this.rlinks.features.filter(link => link.properties[cat] === group)
       const selectedIndex = filtered.map(link => link.properties.index)
-      this.deleterLink(selectedIndex)
-    },
-
-    deleteUnusedrNodes () {
-      // delete every every nodes not in links
-      this.rnodes.features = deleteUnusedNodes(this.rnodes, this.rlinks)
+      this.deleteLink(selectedIndex)
     },
 
   },
@@ -718,7 +707,7 @@ export const userLinksStore = defineStore('rlinks', {
       const timeVariants = state.variantChoice.filter(v => attrs.has(`time${v}`) || attrs.has(`speed${v}`))
       return (timeVariants.length > 0 ? timeVariants : ['']) as NonEmptyArray<string>
     },
-    getTimeVariants() {
+    _getTimeVariants() {
       // return time variant and reversed time variant if it has reverse direction: ex: ['', '_r']
       return (link: LineStringFeatures) => {
         if (link.properties.time_r) {

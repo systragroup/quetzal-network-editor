@@ -760,7 +760,9 @@ export const useLinksStore = defineStore('links', {
 
     deleteUnusedNodes () {
       // delete every every nodes not in links
+      // TODO: should use the method like rlinks?
       this.nodes.features = deleteUnusedNodes(this.nodes, this.links)
+      //
     },
 
     confirmChanges () { // apply change to Links
