@@ -188,13 +188,16 @@ function contextMenuNode (event: CustomMapEvent) {
 function contextMenuAnchor() {
   if (!hoveredStateId.value) return
   if (hoveredStateId.value.layerId === 'anchorNodes') {
-    selectedFeature.value = hoveredStateId.value.feature
-    let modLink = undefined
+    const selected = hoveredStateId.value.feature
+    const payload = {
+      linkIndex: selected.properties.linkIndex,
+      coordinatedIndex: selected.properties.coordinatedIndex,
+    }
     if (routingMode.value) {
-      modLink = linksStore.deleteRoutingAnchorNode({ selectedNode: selectedFeature.value.properties })
+      const modLink = linksStore.deleteRoutingAnchorNode(payload)
       routeLink(modLink)
     } else {
-      linksStore.deleteAnchorNode({ selectedNode: selectedFeature.value.properties })
+      linksStore.deleteAnchorNode(payload)
     }
   }
 }

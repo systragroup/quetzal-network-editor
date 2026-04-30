@@ -45,8 +45,9 @@ watch(isRoadMode, (val) => {
     map.value.off('mousemove', draw)
     map.value.off('mousedown', clickStopDraw)
     map.value.off('click', addPoint)
+    drawMode.value = false
   }
-}, { immediate: true })
+})
 
 function draw (event: MapMouseEvent) {
   if (!connectedDrawLink.value) {

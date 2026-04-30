@@ -44,6 +44,15 @@ export function getModifiedKeys(form: GroupForm) {
   },
   )
 }
+export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, any> {
+  return properties.reduce(
+    (dict: Record<string, any>, key: string) => {
+      dict[key] = groupInfo[key].value
+      return dict
+    },
+    {},
+  )
+}
 
 export function isScheduleTrip(link: GeoJsonFeatures | undefined) {
   if (link == undefined) { return false }

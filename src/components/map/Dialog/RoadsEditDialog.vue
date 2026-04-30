@@ -101,13 +101,13 @@ async function submitForm() {
   if (resp.includes(false)) { return false }
   switch (action.value) {
     case 'Edit rLink Info':
-      rlinksStore.editrLinkInfo({ selectedArr: selectedArr.value, info: editorForm.value })
+      rlinksStore.editLinkInfo({ selectedArr: selectedArr.value, infoArr: editorForm.value })
       break
     case 'Edit Road Group Info':
-      rlinksStore.editrGroupInfo({ selectedArr: selectedArr.value, info: editorForm.value })
+      rlinksStore.editGroupInfo({ selectedArr: selectedArr.value, infoArr: editorForm.value })
       break
     case 'Edit rNode Info':
-      rlinksStore.editrNodeInfo({ selectedArr: selectedArr.value, info: editorForm.value })
+      rlinksStore.editNodeInfo({ selectedArr: selectedArr.value, infoArr: editorForm.value })
       break
   }
   return true

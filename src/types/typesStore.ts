@@ -148,12 +148,18 @@ export interface NewNodePayload {
   coordinates: number[]
   nodeCopyId: string
 }
-
+// TODO change to featture. properties are any
 export interface SelectedNode {
   selectedNode: GeoJsonProperties
 }
+// TODO remove
 export interface SelectedrNode {
   selectedNode: PointFeatures
+}
+
+export interface SelectedAnchor {
+  linkIndex: string
+  coordinatedIndex: number
 }
 
 export interface SelectedLink {
@@ -264,27 +270,18 @@ export interface ChangeVisibleNodes {
 }
 
 export interface EditRoadPayload {
-  info: GroupForm[]
+  infoArr: GroupForm[]
   selectedArr: string[]
 }
 
 export interface SplitRoadPayload {
-  offset: number
   sliceIndex: number
-  selectedFeature: LineStringFeatures
-  newNode: PointGeoJson
+  selectedLink: LineStringFeatures
+  newNode: PointFeatures
 }
 export interface AddRoadNodeInlinePayload {
   lngLat: LngLat
   selectedIndex: string[]
-  nodes: 'anchorrNodes' | 'rnodes'
-
-}
-
-export interface AnchorRoadPayload {
-  coordinates: number[]
-  sliceIndex: number
-  selectedLink: LineStringFeatures
 }
 
 export interface CreateRlinkPayload {

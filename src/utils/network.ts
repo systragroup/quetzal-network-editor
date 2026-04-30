@@ -144,39 +144,50 @@ export function snapOnLink(linksGeometry: number[][], lngLat: LngLat | number[])
   return { sliceIndex, offset, newCoords }
 }
 
-export function _insertLink(editorLinks: LineStringGeoJson, feature: LineStringFeatures, spliceIndex = 0) {
+export function _insertLinkPT(editorLinks: LineStringGeoJson, feature: LineStringFeatures, spliceIndex = 0) {
   // insert links at an index (0 for first.)
   // add +1 to every link sequence after this (assume links are ordered)
   editorLinks.features.splice(spliceIndex, 0, feature)
   editorLinks.features.slice(spliceIndex + 1).forEach(link => link.properties.link_sequence += 1)
 }
 
-export function _editLink(editorLinks: LineStringGeoJson, feature: LineStringFeatures) {
-  const filtered = editorLinks.features.filter(link => link.properties.index == feature.properties.index)[0]
-  Object.assign(filtered, feature)
-}
-
-export function _deleteLink(editorLinks: LineStringGeoJson, feature: LineStringFeatures) {
+export function _deleteLinkPT(editorLinks: LineStringGeoJson, feature: LineStringFeatures) {
   const featureIndex = editorLinks.features.findIndex(link => link.properties.index === feature.properties.index)
   editorLinks.features.splice(featureIndex, 1)
   editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence -= 1)
 }
 
-// edit properties with an array.? or pass the form object and assign to each.
-// export function _editLinkArray(editorLinks: LineStringGeoJson, features: LineStringFeatures[]) {
-//   const filtered = editorLinks.features.filter(link => link.properties.index == feature.properties.index)[0]
-//   Object.assign(filtered, feature)
-// }
-
-export function _addNode(editorNodes: PointGeoJson, feature: PointFeatures) {
-  editorNodes.features.push(feature)
+export function _editLink(links: LineStringGeoJson, feature: LineStringFeatures) {
+  const filtered = links.features.filter(link => link.properties.index == feature.properties.index)[0]
+  Object.assign(filtered, feature)
 }
 
-export function _deleteNode(editorNodes: PointGeoJson, index: string) {
-  editorNodes.features = editorNodes.features.filter(node => node.properties.index !== index)
+export function _editLinkArray(links: LineStringGeoJson, features: LineStringFeatures[]) {
+  // Create a map from index → modified feature and update every index in the map
+  const updateMap = new Map(features.map(feature => [feature.properties.index, feature]))
+  links.features.forEach(feature => {
+    const index = feature.properties.index
+    if (updateMap.has(index)) Object.assign(feature, updateMap.get(index))
+  })
 }
 
-export function _editNode(editorNodes: PointGeoJson, feature: PointFeatures) {
-  const filtered = editorNodes.features.filter(feat => feat.properties.index == feature.properties.index)[0]
+export function _deleteLinkArr(links: LineStringGeoJson, linkArr: Set<string>) {
+  links.features = links.features.filter(link => !linkArr.has(link.properties.index))
+}
+
+export function _addlinks(links: LineStringGeoJson, features: LineStringFeatures[]) {
+  links.features.push(...features)
+}
+
+export function _addNode(nodes: PointGeoJson, feature: PointFeatures) {
+  nodes.features.push(feature)
+}
+
+export function _deleteNode(nodes: PointGeoJson, index: string) {
+  nodes.features = nodes.features.filter(node => node.properties.index !== index)
+}
+
+export function _editNode(nodes: PointGeoJson, feature: PointFeatures) {
+  const filtered = nodes.features.filter(feat => feat.properties.index == feature.properties.index)[0]
   Object.assign(filtered, feature)
 }

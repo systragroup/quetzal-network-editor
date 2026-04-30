@@ -3,25 +3,23 @@
 /* eslint-disable no-return-assign */
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
-import length from '@turf/length'
-import nearestPointOnLine from '@turf/nearest-point-on-line'
-import { lineString, point as Point } from '@turf/helpers'
 import { serializer } from '@src/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference } from '@src/utils/utils'
+import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference, groupFormToDict } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
-import { AddRoadNodeInlinePayload, AnchorRoadPayload, Attributes,
+import { AddRoadNodeInlinePayload,
   AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes, CreateRlinkPayload,
-  EditRoadPayload, FilesPayload, MoverNode, NewAttribute, NonEmptyArray, RlinksStore,
-  SelectedrNode, SplitRoadPayload } from '@src/types/typesStore'
-import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
-  PointGeoJson, PointGeometry } from '@src/types/geojson'
+  EditRoadPayload, FilesPayload, MoverNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
+  SelectedAnchor, SplitRoadPayload } from '@src/types/typesStore'
+import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
+  PointGeoJson } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
-import { _editLink, _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
-  getDefaultLink, getVariantsChoices } from '@src/utils/network'
+import { _addlinks, _addNode, _deleteLinkArr, _editLink, _editLinkArray, _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
+  getDefaultLink, getVariantsChoices,
+  snapOnLink } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 // import { useHistory } from '@src/composables/useHistory'
@@ -170,7 +168,6 @@ export const userLinksStore = defineStore('rlinks', {
       const toReverse = this.rlineAttributes.filter(attr => !rlinksConstantProperties.includes(attr))
       const reversedAttributes = toReverse.map(attr => attr + '_r')
       const newAttrs = getDifference(reversedAttributes, this.reversedAttributes)
-
       newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
@@ -391,8 +388,7 @@ export const userLinksStore = defineStore('rlinks', {
         if (!link.properties[rkey]) {
           link.properties[rkey] = link.properties[rkey.slice(0, -2)]
         }
-      },
-      )
+      })
     },
 
     deleteReversePropertiesOnLink(link: LineStringFeatures) {
@@ -400,53 +396,60 @@ export const userLinksStore = defineStore('rlinks', {
         (rkey) => delete link.properties[rkey])
     },
 
-    editrLinkInfo (payload: EditRoadPayload) {
+    editLinkInfo (payload: EditRoadPayload) {
       // get selected link in editorLinks and modify the changes attributes.
-      const tempList = []
-      const { selectedArr, info } = payload
+      const { selectedArr, infoArr } = payload
+
+      const editedList = []
       for (let i = 0; i < selectedArr.length; i++) {
-        const formData = info[i]
-        const props = Object.keys(formData)
-        const link = this.visiblerLinks.features.filter((link) => link.properties.index === selectedArr[i])[0]
-        const onewayValue = formData.oneway?.value
-        const onewayChanged = onewayValue !== link.properties.oneway
+        const formData = infoArr[i]
+        const linkIndex = selectedArr[i]
+        const link = cloneDeep(this.visiblerLinks.features.filter((link) => link.properties.index === linkIndex)[0])
         // applied all properties.
-        props.forEach((key) => link.properties[key] = formData[key].value)
-        tempList.push(link)
+        Object.keys(formData).forEach((key) => link.properties[key] = formData[key].value)
 
         // if we change a one way to a 2 way, copy oneway properties to the reverse one.
+        const onewayValue = formData.oneway?.value
+        const onewayChanged = onewayValue !== link.properties.oneway
+
         if (onewayChanged && onewayValue === '0') {
           this.initReversePropertiesOnLink(link)
         // if we change from 2way to oneway delete _r attrs
         } else if (onewayChanged && onewayValue === '1') {
           this.deleteReversePropertiesOnLink(link)
         }
+        // push changes
+        editedList.push(link)
       }
-      this.updateLinks = [...tempList]
+
+      _editLinkArray(this.rlinks, editedList)
+      this.updateLinks = [...editedList]
     },
 
-    editrNodeInfo (payload: EditRoadPayload) {
+    editNodeInfo (payload: EditRoadPayload) {
       // get selected node in editorNodes and modify the changes attributes.
-      const { selectedArr, info } = payload
-      const selectedNodeId = selectedArr[0]
-      const formData = info[0]
-      const props = Object.keys(formData)
-      const node = this.rnodes.features.filter(node => node.properties.index === selectedNodeId)[0]
-      props.forEach((key) => node.properties[key] = formData[key].value)
+      const { selectedArr, infoArr } = payload
+      const selectedIndex = selectedArr[0]
+      const formData = infoArr[0]
+      const node = cloneDeep(this.rnodes.features.filter(node => node.properties.index === selectedIndex)[0])
+      Object.keys(formData).forEach(key => node.properties[key] = formData[key].value)
+
+      _editNode(this.rnodes, node)
       this.updateNodes = [node]
     },
 
-    editrGroupInfo (payload: EditRoadPayload) {
+    editGroupInfo (payload: EditRoadPayload) {
       // edit line info on multiple trips at once.
-      const { selectedArr, info } = payload
-      const groupInfo = info[0]
+      const { selectedArr, infoArr } = payload
+      const groupInfo = infoArr[0]
       const selectedIndex = new Set(selectedArr)
-      const selectedLinks = this.rlinks.features.filter(link => selectedIndex.has(link.properties.index))
+      const selectedLinks = cloneDeep(this.rlinks.features.filter(link => selectedIndex.has(link.properties.index)))
       const onewayValue = groupInfo.oneway?.value
 
       // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
       const props = getModifiedKeys(groupInfo)
-      selectedLinks.forEach((features) => props.forEach((key) => features.properties[key] = groupInfo[key].value))
+      const dict = groupFormToDict(props, groupInfo)
+      selectedLinks.forEach((feature) => Object.assign(feature.properties, dict))
       // change all reversed values too.
       if (onewayValue === '0') {
         selectedLinks.forEach(link => this.initReversePropertiesOnLink(link))
@@ -461,118 +464,96 @@ export const userLinksStore = defineStore('rlinks', {
         )
       }
 
+      _editLinkArray(this.rlinks, selectedLinks)
       this.refreshVisibleRoads()
       this.getFilteredrCat()
       this.updateLinks = selectedLinks
     },
 
-    createNewrNode (geometry: number[]) {
+    _getNewNode (payload: NewNodePayload) {
+      const { nodeCopyId, coordinates } = payload
       const newNode = basePoint()
-      const nodeProperties = this.nodesDefaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
-        dict[attr.name] = attr.value
-        return dict
-      }, {})
-
-      nodeProperties.index = 'rnode_' + short.generate()
-      const nodeGeometry: PointGeometry = {
-        coordinates: geometry,
-        type: 'Point',
-      }
-      // Copy specified node
-      const nodeFeatures: PointFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
-      newNode.features = [nodeFeatures]
-      this.rnodes.features.push(newNode.features[0])
-      // dont duplicate nodes. Sometime, if quenedi road are hidden we need to happen.
-      const lastIndex = this.visiblerNodes.features.slice(-1)[0].properties.index
-      if (lastIndex !== newNode.features[0].properties.index) {
-        this.visiblerNodes.features.push(newNode.features[0])
-      }
-      return newNode
+      const features = cloneDeep(this.rnodes.features.filter(node => node.properties.index === nodeCopyId)[0])
+      features.properties.index = 'rnode_' + short.generate()
+      features.geometry.coordinates = coordinates
+      newNode.features = [features]
+      return features
     },
 
-    splitrLink (payload: SplitRoadPayload) {
-      // changing link1 change editorLinks as it is an observer.
-
+    _splitLink (payload: SplitRoadPayload) {
       // distance du point (entre 0 et 1) sur le lien original
-      const sliceIndex = payload.sliceIndex
-      const newNode = payload.newNode.features[0]
+      const { sliceIndex, newNode, selectedLink } = payload
+      const newCoords = newNode.geometry.coordinates
 
-      const link1 = payload.selectedFeature
+      const link1 = cloneDeep(selectedLink)
       const link2 = cloneDeep(link1)
-      const toDelete = cloneDeep(link1.properties.index)
 
-      link1.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
       link2.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
 
       link1.properties.b = newNode.properties.index
-      link1.geometry.coordinates = [
-        ...link1.geometry.coordinates.slice(0, sliceIndex),
-        newNode.geometry.coordinates,
-      ]
-
       link2.properties.a = newNode.properties.index
-      link2.geometry.coordinates = [
-        newNode.geometry.coordinates,
-        ...link2.geometry.coordinates.slice(sliceIndex),
-      ]
 
-      calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
-      calcLengthTimeorSpeed(link2, this.timeVariants, this.speedTimeMethod)
-      if (link1.properties.time_r) {
-        const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
-        calcLengthTimeorSpeed(link1, reversedVariants, this.speedTimeMethod)
-        calcLengthTimeorSpeed(link2, reversedVariants, this.speedTimeMethod)
-      }
+      link1.geometry.coordinates = link1.geometry.coordinates.slice(0, sliceIndex)
+      link1.geometry.coordinates.push(newCoords)
 
-      this.visiblerLinks.features.push(link2)
-      // update actual rlinks and rnodes
-      this.rlinks.features.filter((link) => link.properties.index === link1.properties.index)[0] = link1
-      this.rlinks.features.push(link2)
+      link2.geometry.coordinates = link2.geometry.coordinates.slice(sliceIndex)
+      link2.geometry.coordinates.splice(0, 0, newCoords)
 
-      this.updateLinks = [link1, link2, { type: 'Feature', id: toDelete }]
+      const variants = this.getTimeVariants(link1)
+      calcLengthTimeorSpeed(link1, variants, this.speedTimeMethod)
+      calcLengthTimeorSpeed(link2, variants, this.speedTimeMethod)
+
+      return [link1, link2]
     },
 
-    addRoadNodeInline (payload: AddRoadNodeInlinePayload) {
-      // selectedLink : list of links index
-      // lngLat : object wit click geometry
-      // nodes : str. name of node to add (rnode, anchorrNodeS)
-      let newNode = basePoint()
-      const selectedFeatures = this.visiblerLinks.features
-        .filter((link) => payload.selectedIndex.includes(link.properties.index))
-      // for loop. for each selectedc links add the node and split.
-      for (let i = 0; i < selectedFeatures.length; i++) {
-        const linkGeom = lineString(selectedFeatures[i].geometry.coordinates)
-        const clickedPoint = Point(Object.values(payload.lngLat))
-        const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
-        const dist = length(linkGeom, { units: 'kilometers' }) // dist
-        // for multiString, gives the index of the closest one, add +1 for the slice.
-        const sliceIndex = snapped.properties.index ? snapped.properties.index + 1 : 1
-        const offset = snapped.properties.location ? snapped.properties.location / dist : 0
+    addNodeInline (payload: AddRoadNodeInlinePayload) {
+      const { newLinks, modifiedLinks, newNode } = this._addNodeInline(payload)
+      _addlinks(this.rlinks, newLinks)
+      _editLinkArray(this.rlinks, modifiedLinks)
+      _addNode(this.rnodes, newNode)
+      // _addlinks(this.visiblerLinks, newLinks)
+      // _editLinkArray(this.visiblerLinks, modifiedLinks)
+      this.updateLinks = [...modifiedLinks, ...newLinks]
+      this.updateNodes = [newNode]
+    },
 
-        if (payload.nodes === 'rnodes') {
-          // only add one node, takes the first one.
-          if (i === 0) { newNode = this.createNewrNode(snapped.geometry.coordinates) }
-
-          this.splitrLink({ selectedFeature: selectedFeatures[i], offset, sliceIndex, newNode })
-          this.updateNodes = [newNode.features[0]]
-        // Anchor Nodes
-        } else {
-          this.addAnchorrNode({
-            selectedLink: selectedFeatures[i],
-            coordinates: snapped.geometry.coordinates,
-            sliceIndex,
-          })
+    _addNodeInline (payload: AddRoadNodeInlinePayload) {
+      // splt
+      const { lngLat, selectedIndex } = payload
+      const selectedLinks = this.visiblerLinks.features.filter((link) => selectedIndex.includes(link.properties.index))
+      let newNode = basePoint().features[0]
+      const newLinks = []
+      const modifiedLinks = []
+      // for each selected links add the node and split.
+      for (let i = 0; i < selectedLinks.length; i++) {
+        const link = selectedLinks[i]
+        const { sliceIndex, newCoords } = snapOnLink(link.geometry.coordinates, lngLat)
+        // only add one node, takes the first one.
+        if (i === 0) {
+          newNode = this._getNewNode({ nodeCopyId: link.properties.b, coordinates: newCoords })
         }
+        const [link1, link2] = this._splitLink({ selectedLink: link, sliceIndex, newNode })
+        modifiedLinks.push(link1)
+        newLinks.push(link2)
       }
-      return newNode
+
+      return { newLinks, modifiedLinks, newNode }
     },
 
-    addAnchorrNode (payload: AnchorRoadPayload) {
-      const linkIndex = payload.selectedLink.properties.index
-      const featureIndex = this.visiblerLinks.features.findIndex(link => link.properties.index === linkIndex)
-      // changing link change visible rLinks as it is an observer.
-      const link = this.visiblerLinks.features[featureIndex]
-      link.geometry.coordinates.splice(payload.sliceIndex, 0, payload.coordinates)
+    addAnchor (payload: AddRoadNodeInlinePayload) {
+      const { lngLat, selectedIndex } = payload
+      const selectedLinks = this.visiblerLinks.features.filter((link) => selectedIndex.includes(link.properties.index))
+      const modifiedLinks = []
+      // for each selected links add the node and split.
+      for (let i = 0; i < selectedLinks.length; i++) {
+        const link = cloneDeep(selectedLinks[i])
+        const { sliceIndex, newCoords } = snapOnLink(link.geometry.coordinates, lngLat)
+        link.geometry.coordinates.splice(sliceIndex, 0, newCoords)
+        modifiedLinks.push(link)
+      }
+      _editLinkArray(this.rlinks, modifiedLinks)
+      // _editLinkArray(this.visiblerLinks, modifiedLinks)
+      this.updateLinks = [...modifiedLinks]
     },
 
     createrLink (payload: CreateRlinkPayload) {
@@ -588,36 +569,42 @@ export const userLinksStore = defineStore('rlinks', {
       const linksId = payload.linksId
       let nodeIdB = payload.nodeIdB
 
+      const rnodeA = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdA)[0]
+      let rnodeB = cloneDeep(this.visiblerNodes.features.filter(node => node.properties.index === nodeIdB)[0])
       // clicked on a link. create node and split link
       // else if: clicked no where: create a node
+      const newLinksArr = []
+      const modifiedLinksArr = []
+      const newNodeArr = []
       if (linksId) {
         // create a node inline and then the new link
         const lnglat = { lng: geom[0], lat: geom[1] }
-        const newNode = this.addRoadNodeInline({ selectedIndex: linksId, lngLat: lnglat, nodes: 'rnodes' })
-        nodeIdB = newNode.features[0].properties.index
+        const { newLinks, modifiedLinks, newNode } = this._addNodeInline({ selectedIndex: linksId, lngLat: lnglat })
+        newLinksArr.push(...newLinks)
+        modifiedLinksArr.push(...modifiedLinks)
+        newNodeArr.push(newNode)
+        rnodeB = newNode
       } else if (!nodeIdB) {
-        const newNode = this.createNewrNode(geom)
-        nodeIdB = newNode.features[0].properties.index
+        const newNode = this._getNewNode({ coordinates: geom, nodeCopyId: nodeIdA })
+        rnodeB = newNode
+        newNodeArr.push(newNode)
       }
 
-      const rnodeA = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdA)[0]
-      const rnodeB = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdB)[0]
-      const newLink = getDefaultLink(this.linksDefaultAttributes)
-      const linkFeature = newLink.features[0]
+      const linkFeature = getDefaultLink(this.linksDefaultAttributes).features[0]
       const linkGeometry = linkFeature.geometry
 
       linkFeature.properties.index = 'rlink_' + short.generate()
       linkFeature.properties.a = nodeIdA
-      linkFeature.properties.b = nodeIdB
+      linkFeature.properties.b = rnodeB.properties.index
       // add length, speed, time now that we have a geometry.
       linkGeometry.coordinates = [rnodeA.geometry.coordinates, rnodeB.geometry.coordinates]
-      calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
+      calcLengthTimeorSpeed(linkFeature, this.timeVariants, this.speedTimeMethod)
       if (this.rlineAttributes.includes('oneway')) {
         linkFeature.properties.oneway = '0'
         this.initReversePropertiesOnLink(linkFeature)
       }
 
-      this.rlinks.features.push(linkFeature)
+      newLinksArr.push(linkFeature)
 
       // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
       const newLinkGroup = linkFeature.properties[this.selectedrFilter]
@@ -626,37 +613,26 @@ export const userLinksStore = defineStore('rlinks', {
       }
       if (!this.selectedrGroup.includes(newLinkGroup)) {
         // if its not already selected, push it.
-        this.visiblerLinks.features.push(linkFeature)
+        // this.visiblerLinks.features.push(linkFeature)
         this.selectedrGroup = [...this.selectedrGroup, newLinkGroup]
       } else {
-        this.visiblerLinks.features.push(linkFeature)
+        // this.visiblerLinks.features.push(linkFeature)
       }
-      this.updateLinks = [linkFeature]
+
+      _addlinks(this.rlinks, newLinksArr)
+      _editLinkArray(this.rlinks, modifiedLinksArr)
+      if (newNodeArr.length > 0) _addNode(this.rnodes, newNodeArr[0])
+      this.updateLinks = newLinksArr
       this.updateNodes = [rnodeB]
       return rnodeB
     },
 
-    getConnectedLinks (payload: SelectedrNode) {
-      const nodeIndex = payload.selectedNode.properties.index
-      // get links connected to the node
-      // visible List here is used to update only the visible links on the map
-      const b = this.visiblerLinks.features.filter(link => link.properties.b === nodeIndex)
-      const a = this.visiblerLinks.features.filter(link => link.properties.a === nodeIndex)
-      const visibleLinksList = [...a, ...b]
-      // use rLinks as we could moidified links that are not visible moving a node.
-      this.connectedLinks = {
-        b: this.rlinks.features.filter(link => link.properties.b === nodeIndex),
-        a: this.rlinks.features.filter(link => link.properties.a === nodeIndex),
-        visibleLinksList: visibleLinksList,
-      }
-    },
     moverNode (payload: MoverNode) {
       const nodeIndex = payload.selectedNode.properties.index
       const geom = payload.lngLat
       // change node geometry
       const node = cloneDeep(this.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0])
       node.geometry.coordinates = geom
-      _editNode(this.visiblerNodes, node)
 
       const linksB = cloneDeep(this.rlinks.features.filter(link => link.properties.b === nodeIndex))
       const linksA = cloneDeep(this.rlinks.features.filter(link => link.properties.a === nodeIndex))
@@ -664,25 +640,21 @@ export const userLinksStore = defineStore('rlinks', {
       // update links geometry.
       linksB.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
-        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-        if (link.properties.time_r) {
-          const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
-          calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod)
-        }
-        _editLink(this.rlinks, link)
+        const variants = this.getTimeVariants(link)
+        calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
       linksA.forEach(link => {
         link.geometry.coordinates[0] = geom
-        calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-        if (link.properties.time_r) {
-          const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
-          calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod) }
-        _editLink(this.rlinks, link)
+        const variants = this.getTimeVariants(link)
+        calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
 
-      const visibleLinksList = cloneDeep(this.visiblerLinks.features.filter(link =>
-        (link.properties.a === nodeIndex) || (link.properties.b === nodeIndex)))
+      const visibleLinksList = this.visiblerLinks.features.filter(link =>
+        (link.properties.a === nodeIndex) || (link.properties.b === nodeIndex))
 
+      _editLinkArray(this.rlinks, linksA)
+      _editLinkArray(this.rlinks, linksB)
+      _editNode(this.rnodes, node)
       this.updateLinks = [...visibleLinksList]
       this.updateNodes = [node]
     },
@@ -694,35 +666,31 @@ export const userLinksStore = defineStore('rlinks', {
 
       const link = cloneDeep(this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
-      calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      if (link.properties.time_r) {
-        const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
-        calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod)
-      }
+      const variants = this.getTimeVariants(link)
+      calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       _editLink(this.rlinks, link)
       this.updateLinks = [link]
     },
 
-    deleteAnchorrNode (payload: SelectedrNode) {
-      const linkIndex = payload.selectedNode.properties.linkIndex
-      const coordinatedIndex = payload.selectedNode.properties.coordinatedIndex
-      const link = this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0]
+    deleteAnchorNode (payload: SelectedAnchor) {
+      const { linkIndex, coordinatedIndex } = payload
+      const link = cloneDeep(this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
+
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
 
-      calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      if (link.properties.time_r) {
-        const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
-        calcLengthTimeorSpeed(link, reversedVariants, this.speedTimeMethod)
-      }
+      const variants = this.getTimeVariants(link)
+      calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
+      _editLink(this.rlinks, link)
+
       this.updateLinks = [link]
     },
 
     deleterLink (selectedIndexes: string[]) {
       const linkArr = new Set(selectedIndexes)
-      this.rlinks.features = this.rlinks.features.filter(link => !linkArr.has(link.properties.index))
-      this.visiblerLinks.features = this.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
+      // this.visiblerLinks.features = this.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
       this.updateLinks = Array.from(linkArr).map(idx => { return { type: 'Feature', id: idx } })
+      _deleteLinkArr(this.rlinks, linkArr)
       this.deleteUnusedrNodes()
       this.getVisiblerNodes({ method: 'remove' })
       this.getFilteredrCat()
@@ -751,7 +719,17 @@ export const userLinksStore = defineStore('rlinks', {
       const timeVariants = state.variantChoice.filter(v => attrs.has(`time${v}`) || attrs.has(`speed${v}`))
       return (timeVariants.length > 0 ? timeVariants : ['']) as NonEmptyArray<string>
     },
-
+    getTimeVariants() {
+      // return time variant and reversed time variant if it has reverse direction: ex: ['', '_r']
+      return (link: LineStringFeatures) => {
+        if (link.properties.time_r) {
+          const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
+          return [...this.timeVariants, ...reversedVariants] as NonEmptyArray<string>
+        } else {
+          return this.timeVariants
+        }
+      }
+    },
     hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
     rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
     grouprLinks: (state) => (category: string, group: string) => {

@@ -215,12 +215,17 @@ function selectClick (event: CustomMapEvent) {
   if (!selectedIndexes) return
   // Emit a click base on layer type (node or link)
   if (hoveredStateId.value.layerId === 'rlinks') {
-    const action = anchorMode.value ? 'anchorrNodes' : 'rnodes'
-    rlinksStore.addRoadNodeInline({
-      selectedIndex: selectedIndexes,
-      lngLat: event.mapboxEvent.lngLat,
-      nodes: action,
-    })
+    if (anchorMode.value) {
+      rlinksStore.addAnchor({
+        selectedIndex: selectedIndexes,
+        lngLat: event.mapboxEvent.lngLat,
+      })
+    } else {
+      rlinksStore.addNodeInline({
+        selectedIndex: selectedIndexes,
+        lngLat: event.mapboxEvent.lngLat,
+      })
+    }
   }
 }
 
@@ -286,7 +291,10 @@ function contextMenuNode (event: CustomMapEvent) {
         const index = point.properties.index
         openDialog({ action: 'Edit rNode Info', selectedArr: [index], lingering: true, type: 'road' })
       } else if (hoveredStateId.value?.layerId === 'anchorrNodes') {
-        rlinksStore.deleteAnchorrNode({ selectedNode: point })
+        rlinksStore.deleteAnchorNode({
+          linkIndex: point.properties.linkIndex,
+          coordinatedIndex: point.properties.coordinatedIndex,
+        })
       }
     }
   }

@@ -20,6 +20,7 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   NonEmptyArray,
   SchedulePayload,
   AttributeTypes,
+  SelectedAnchor,
 } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   createLinestringFeature,
@@ -30,8 +31,8 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   getDefaultLink,
   getAnchorGeojson,
   snapOnLink,
-  _insertLink,
-  _deleteLink,
+  _insertLinkPT,
+  _deleteLinkPT,
   _editLink,
   _deleteNode,
   _addNode,
@@ -428,9 +429,9 @@ export const useLinksStore = defineStore('links', {
 
       if (payload.action === 'Extend Line Upward') {
         feature.properties.link_sequence += 1
-        _insertLink(this.editorLinks, feature, this.editorLinks.features.length) // push
+        _insertLinkPT(this.editorLinks, feature, this.editorLinks.features.length) // push
       } else if (payload.action === 'Extend Line Downward') {
-        _insertLink(this.editorLinks, feature, 0) // insert at 0
+        _insertLinkPT(this.editorLinks, feature, 0) // insert at 0
       }
     },
 
@@ -443,9 +444,9 @@ export const useLinksStore = defineStore('links', {
       const link2 = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0])
 
       if (nodeIndex == this.firstNodeId) {
-        _deleteLink(this.editorLinks, link2)
+        _deleteLinkPT(this.editorLinks, link2)
       } else if (nodeIndex == this.lastNodeId) {
-        _deleteLink(this.editorLinks, link1)
+        _deleteLinkPT(this.editorLinks, link1)
       } else {
         // merge link2 on link1 then delete link2
         link1.geometry.coordinates = [
@@ -467,7 +468,7 @@ export const useLinksStore = defineStore('links', {
         calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
 
         _editLink(this.editorLinks, link1)
-        _deleteLink(this.editorLinks, link2)
+        _deleteLinkPT(this.editorLinks, link2)
         // for routing
         return link1
       }
@@ -513,7 +514,7 @@ export const useLinksStore = defineStore('links', {
       }
       // add new node and link
       _editLink(this.editorLinks, link1)
-      _insertLink(this.editorLinks, link2, featureIndex + 1)
+      _insertLinkPT(this.editorLinks, link2, featureIndex + 1)
       _addNode(this.editorNodes, newNode)
     },
 
@@ -573,9 +574,8 @@ export const useLinksStore = defineStore('links', {
       _editLink(this.editorLinks, link)
     },
 
-    deleteAnchorNode (payload: SelectedNode) {
-      const linkIndex = payload.selectedNode.linkIndex
-      const coordinatedIndex = payload.selectedNode.coordinatedIndex
+    deleteAnchorNode (payload: SelectedAnchor) {
+      const { linkIndex, coordinatedIndex } = payload
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
@@ -583,30 +583,15 @@ export const useLinksStore = defineStore('links', {
       _editLink(this.editorLinks, link)
     },
 
-    deleteRoutingAnchorNode (payload: SelectedNode) {
-      const linkIndex = payload.selectedNode.linkIndex
-      const coordinatedIndex = payload.selectedNode.coordinatedIndex
+    deleteRoutingAnchorNode (payload: SelectedAnchor) {
+      const { linkIndex, coordinatedIndex } = payload
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
         ...link.properties.anchors.slice(coordinatedIndex + 1)]
-
       _editLink(this.editorLinks, link)
       // return the modified link (used for Routing)
       return link
     },
-
-    getConnectedLinks (payload: SelectedNode) {
-      const nodeIndex = payload.selectedNode.properties.index
-      const linkIndex = payload.selectedNode.properties.linkIndex
-      // get links connected to the node
-      // use rLinks as we could moidified links that are not visible moving a node.
-      this.connectedLinks = {
-        b: this.editorLinks.features.filter(link => link.properties.b === nodeIndex),
-        a: this.editorLinks.features.filter(link => link.properties.a === nodeIndex),
-        anchor: this.editorLinks.features.filter(feature => feature.properties.index === linkIndex),
-      }
-    },
-
     moveNode (payload: MoveNode) {
       const nodeIndex = payload.selectedNode.properties.index
       const geom = payload.lngLat
@@ -694,7 +679,7 @@ export const useLinksStore = defineStore('links', {
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
       const toDelete = this.editorLinks.features.slice(featureIndex)
       toDelete.toReversed().forEach(link => {
-        _deleteLink(this.editorLinks, link)
+        _deleteLinkPT(this.editorLinks, link)
         _deleteNode(this.editorNodes, link.properties.b)
       })
     },
@@ -705,7 +690,7 @@ export const useLinksStore = defineStore('links', {
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
       const toDelete = this.editorLinks.features.slice(0, featureIndex)
       toDelete.forEach(link => {
-        _deleteLink(this.editorLinks, link)
+        _deleteLinkPT(this.editorLinks, link)
         _deleteNode(this.editorNodes, link.properties.a)
       })
     },
