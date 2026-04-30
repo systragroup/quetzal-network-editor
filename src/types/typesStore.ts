@@ -148,22 +148,14 @@ export interface NewNodePayload {
   coordinates: number[]
   nodeCopyId: string
 }
-// TODO change to featture. properties are any
+
 export interface SelectedNode {
-  selectedNode: GeoJsonProperties
-}
-// TODO remove
-export interface SelectedrNode {
   selectedNode: PointFeatures
 }
 
 export interface SelectedAnchor {
   linkIndex: string
   coordinatedIndex: number
-}
-
-export interface SelectedLink {
-  selectedLink: GeoJsonProperties
 }
 
 export interface SplitLinkPayload {
@@ -192,9 +184,6 @@ export interface MoveNode extends SelectedNode {
   lngLat: number[]
 }
 
-export interface MoverNode extends SelectedrNode {
-  lngLat: number[]
-}
 export interface StickyNodePayload extends SelectedNode {
   stickyNodeId: string
 }

@@ -436,7 +436,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     deleteNode (payload: SelectedNode) {
-      const nodeIndex = payload.selectedNode.index
+      const nodeIndex = payload.selectedNode.properties.index
       // remove node
       _deleteNode(this.editorNodes, nodeIndex)
       // extend link1. delete link2
@@ -675,7 +675,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     cutLineAfterNode (payload: SelectedNode) {
-      const nodeId = payload.selectedNode.index
+      const nodeId = payload.selectedNode.properties.index
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
       const toDelete = this.editorLinks.features.slice(featureIndex)
       toDelete.toReversed().forEach(link => {
@@ -686,7 +686,7 @@ export const useLinksStore = defineStore('links', {
 
     cutLineBeforeNode (payload: SelectedNode) {
       // Filter links from selected line
-      const nodeId = payload.selectedNode.index
+      const nodeId = payload.selectedNode.properties.index
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
       const toDelete = this.editorLinks.features.slice(0, featureIndex)
       toDelete.forEach(link => {

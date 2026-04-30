@@ -10,7 +10,7 @@ import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { AddRoadNodeInlinePayload,
   AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes, CreateRlinkPayload,
-  EditRoadPayload, FilesPayload, MoverNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
+  EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
   PointGeoJson } from '@src/types/geojson'
@@ -627,7 +627,7 @@ export const userLinksStore = defineStore('rlinks', {
       return rnodeB
     },
 
-    moverNode (payload: MoverNode) {
+    moverNode (payload: MoveNode) {
       const nodeIndex = payload.selectedNode.properties.index
       const geom = payload.lngLat
       // change node geometry
@@ -659,7 +659,7 @@ export const userLinksStore = defineStore('rlinks', {
       this.updateNodes = [node]
     },
 
-    moverAnchor (payload: MoverNode) {
+    moverAnchor (payload: MoveNode) {
       const { selectedNode, lngLat } = payload
       const coordinatedIndex = selectedNode.properties.coordinatedIndex
       const linkIndex = selectedNode.properties.linkIndex

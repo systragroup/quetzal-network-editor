@@ -212,19 +212,20 @@ function linkRightClick () {
 }
 
 function actionClick (event: ActionClick) {
+  const selectedNode = event.feature as PointFeatures
   switch (event.action) {
     case 'Cut Before Node':
-      linksStore.cutLineBeforeNode({ selectedNode: event.feature.properties })
+      linksStore.cutLineBeforeNode({ selectedNode: selectedNode })
       break
     case 'Cut After Node':
-      linksStore.cutLineAfterNode({ selectedNode: event.feature.properties })
+      linksStore.cutLineAfterNode({ selectedNode: selectedNode })
       break
     case 'Delete Stop':
-      const modLink = linksStore.deleteNode({ selectedNode: event.feature.properties })
+      const modLink = linksStore.deleteNode({ selectedNode: selectedNode })
       if (store.routingMode && modLink) { routeLink(modLink) }
       break
     case 'Edit Node Info':
-      const selectedIndex = event.feature.properties.index
+      const selectedIndex = selectedNode.properties.index
       openDialog({ action: 'Edit Node Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
       break
   }
@@ -361,7 +362,7 @@ function onMove (event: MapMouseEvent) {
 }
 
 async function stopMovingNode () {
-  const selected = selectedFeature.value!
+  const selected = selectedFeature.value! as PointFeatures
   let modifiedLinks: LineStringFeatures[] = []
   // if sticky. replace node with existing one
   if (stickyStateId.value) {
@@ -427,7 +428,7 @@ function onMoveAnchor (event: MapMouseEvent) {
 }
 
 function stopMovingNodeAnchor () {
-  const selected = selectedFeature.value!
+  const selected = selectedFeature.value! as PointFeatures
   const index = selected.properties.coordinatedIndex
 
   const geom = movingLine.value.features[0].geometry.coordinates[index]
@@ -463,7 +464,7 @@ function onMoveRouteAnchor (event: MapMouseEvent) {
 }
 
 function stopMovingRouteAnchor () {
-  const selected = selectedFeature.value!
+  const selected = selectedFeature.value! as PointFeatures
   const index = selected.properties.lineIndex
   const geom = movingLine.value.features[0].geometry.coordinates[index]
   const modifiedLinks = linksStore.moveRoutingAnchor({ selectedNode: selected, lngLat: toRaw(geom) })
