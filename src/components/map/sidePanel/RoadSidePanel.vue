@@ -8,7 +8,6 @@ import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
 import { useForm } from '@src/composables/UseForm'
-import { ShowMethod } from '@src/types/typesStore'
 const { openDialog } = useForm()
 
 const store = useIndexStore()
@@ -17,27 +16,9 @@ const linksStore = useLinksStore()
 const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
 const localSelectedTrip = ref(cloneDeep(selectedrGoup.value))
 
-watch(localSelectedTrip, (newVal, oldVal) => {
-  let changes: string | string[] = ''
-  let method: ShowMethod = 'add'
-  if (JSON.stringify(newVal) === JSON.stringify(filteredCat.value)) {
-    changes = newVal
-    method = 'showAll'
-  } else if (newVal.length === 0) {
-    changes = []
-    method = 'hideAll'
-  } else if (newVal.length < oldVal.length) {
-    // if a tripis unchecked. we remove it
-    changes = oldVal.filter(item => !newVal.includes(item))
-    method = 'remove'
-  } else if (newVal.length > oldVal.length) {
-    // if a trip is added, we add it!
-    changes = newVal.filter(item => !oldVal.includes(item))
-    method = 'add'
-  }
-  if (typeof changes !== 'string') {
-    rlinksStore.changeVisibleRoads({ category: vmodelSelectedFilter.value, data: changes, method })
-  }
+watch(localSelectedTrip, newVal => {
+  const category = vmodelSelectedFilter.value
+  rlinksStore.changeVisibleRoads({ category: toRaw(category), data: toRaw(newVal) })
 })
 watch(selectedrGoup, (newVal) => {
   // check selected group in store. if it changes from another component
@@ -73,7 +54,8 @@ onMounted(() => {
 
 function propertiesButton (group: string) {
   // select the TripId and open dialog
-  const features = rlinksStore.grouprLinks(vmodelSelectedFilter.value, group)
+
+  const features = rlinksStore.visiblerLinks.features.filter(link => link.properties[vmodelSelectedFilter.value] === group)
   const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }

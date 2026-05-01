@@ -38,6 +38,7 @@ onMounted(() => {
   }
   init()
 })
+watch(isRoadMode, () => init())
 onBeforeUnmount(() => {
   // remove arrow layer first as it depend on rlink layer
   map.value.removeLayer('arrow-rlinks')
@@ -64,6 +65,8 @@ onUnmounted(() => {
 //     rlinksStore.redo()
 //   }
 // }
+const visiblerLinks = computed(() => rlinksStore.visiblerLinks)
+const visiblerNodes = computed(() => rlinksStore.visiblerNodes)
 
 async function initLinks() {
   const links = visiblerLinks.value
@@ -85,9 +88,39 @@ function init() {
   initLinks()
   initNodes()
 }
-const selectedPopupContent = computed(() => { return store.roadsPopupContent })
-const visiblerLinks = computed(() => { return rlinksStore.visiblerLinks })
-const visiblerNodes = computed(() => { return rlinksStore.visiblerNodes })
+
+type NetworkFeature = (LineStringFeatures | PointFeatures | UpdateFeatures)
+
+function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
+  // update features. if properties is not provided: ex: {type:'Feature',id:'link_1'}. will delete
+  // if its empty. we set Data (refresh all.)
+  if (array.length === 0) {
+    if (source == 'rlinks') {
+      initLinks()
+    } else {
+      initNodes()
+    }
+  } else {
+    const features = cloneDeep(array)
+    features.forEach(el => el.id = el.properties ? el.properties.index : el.id)
+    const mapSource = map.value.getSource(source) as GeoJSONSource
+    if (!mapSource) return
+    mapSource.updateData({ type: 'FeatureCollection', features: features as any }) // TODO: change any
+  }
+  rlinksStore.networkWasModified = true // mark as updated. (if nothing change. Canel will be faster)
+}
+
+const updateLinks = computed(() => { return rlinksStore.updateLinks })
+const updateNodes = computed(() => { return rlinksStore.updateNodes })
+watch(updateLinks, (list) => { updateData('rlinks', list) }, { flush: 'sync' })
+watch(updateNodes, (list) => { updateData('rnodes', list) }, { flush: 'sync' })
+
+const selectedPopupContent = computed(() => store.roadsPopupContent)
+
+// init all when we change a filter.
+const filtereValues = computed(() => rlinksStore.selectedrGroup)
+watch(filtereValues, () => init())
+
 function queryAnchor() {
   // query links in window and generate Anchor nodes.
   const query = map.value.queryRenderedFeatures({ layers: ['rlinks'] })
@@ -228,32 +261,6 @@ function selectClick (event: CustomMapEvent) {
     }
   }
 }
-
-type NetworkFeature = (LineStringFeatures | PointFeatures | UpdateFeatures)
-
-function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
-  // update features. if properties is not provided: ex: {type:'Feature',id:'link_1'}. will delete
-  // if its empty. we set Data (refresh all.)
-  if (array.length === 0) {
-    if (source == 'rlinks') {
-      initLinks()
-    } else {
-      initNodes()
-    }
-  } else {
-    const features = cloneDeep(array)
-    features.forEach(el => el.id = el.properties ? el.properties.index : el.id)
-    const mapSource = map.value.getSource(source) as GeoJSONSource
-    if (!mapSource) return
-    mapSource.updateData({ type: 'FeatureCollection', features: features as any }) // TODO: change any
-  }
-  rlinksStore.networkWasModified = true // mark as updated. (if nothing change. Canel will be faster)
-}
-
-const updateLinks = computed(() => { return rlinksStore.updateLinks })
-const updateNodes = computed(() => { return rlinksStore.updateNodes })
-watch(updateLinks, (list) => { updateData('rlinks', list) }, { flush: 'sync' })
-watch(updateNodes, (list) => { updateData('rnodes', list) }, { flush: 'sync' })
 
 const contextMenu = ref<ContextMenuRoad>({
   coordinates: [0, 0],
@@ -424,6 +431,7 @@ function moveNode (event: CustomMapEvent) {
   selectedFeature.value = hoveredStateId.value.features
   const selectedNode = selectedFeature.value[0] as PointFeatures
   const nodeIndex = selectedNode.properties.index
+
   // get links connected to the node
   // update the position of the movingLine
   const b = visiblerLinks.value.features.filter(link => link.properties.b === nodeIndex)

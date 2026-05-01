@@ -4,12 +4,12 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer } from '@src/utils/serializer'
-import { IndexAreDifferent, deleteUnusedNodes, getModifiedKeys, getDifference, groupFormToDict, getUnusedNodes } from '@src/utils/utils'
+import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict, getUnusedNodes, deleteUnusedNodes } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
 import { AddRoadNodeInlinePayload,
-  AttributesChoice, ChangeVisibleLinks, ChangeVisibleNodes, CreateRlinkPayload,
+  AttributesChoice, ChangeVisibleLinks, CreateRlinkPayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
@@ -31,8 +31,6 @@ export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
     rnodes: basePoint(),
-    visiblerLinks: baseLineString(),
-    visiblerNodes: basePoint(),
     // variant (periods)
     variant: '',
     variantChoice: [''], // should never be empty.
@@ -217,7 +215,6 @@ export const userLinksStore = defineStore('rlinks', {
     addLinksPropertie (payload: NewAttribute) {
       // TODO _editLinkArray
       this.rlinks.features.map(link => link.properties[payload.name] = null)
-      this.visiblerLinks.features.map(link => link.properties[payload.name] = null)
       this.linksDefaultAttributes.push({ name: payload.name, type: undefined })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
       if (!rlinksConstantProperties.includes(payload.name)) {
@@ -228,7 +225,6 @@ export const userLinksStore = defineStore('rlinks', {
     addNodesPropertie (payload: NewAttribute) {
       // todo: _editNodeArray
       this.rnodes.features.map(node => node.properties[payload.name] = null)
-      this.visiblerNodes.features.map(node => node.properties[payload.name] = null)
       this.nodesDefaultAttributes.push({ name: payload.name, type: undefined })
     },
 
@@ -237,8 +233,6 @@ export const userLinksStore = defineStore('rlinks', {
 
       this.rlinks.features.forEach(link => delete link.properties[payload.name])
       this.rlinks.features.forEach(link => delete link.properties[payload.name + '_r'])
-      this.visiblerLinks.features.forEach(link => delete link.properties[payload.name])
-      this.visiblerLinks.features.forEach(link => delete link.properties[payload.name + '_r'])
 
       this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
       this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name + '_r')
@@ -247,7 +241,6 @@ export const userLinksStore = defineStore('rlinks', {
     deleteNodesPropertie (payload: NewAttribute) {
       // todo: _editNodeArray
       this.rnodes.features.forEach(node => delete node.properties[payload.name])
-      this.visiblerNodes.features.forEach(node => delete node.properties[payload.name])
       this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
     },
 
@@ -276,7 +269,6 @@ export const userLinksStore = defineStore('rlinks', {
         this.getrNodesProperties()
 
         this.initSelectedrFilter()
-        this.refreshVisibleRoads() // nodes are refresh in this method
         this.updateLinks = [] // refresh rlinks
       }
 
@@ -309,83 +301,8 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     changeVisibleRoads (payload: ChangeVisibleLinks) {
-      // trips list of visible trip_id.
-      const method = payload.method
-      const data = payload.data
-      const cat = payload.category
-      this.selectedrFilter = cat
-      switch (method) {
-        case 'showAll':
-          this.selectedrGroup = data
-          // need to slice. so it doest change if we append to rlinks.
-          this.visiblerLinks.features = this.rlinks.features.slice()
-          this.updateLinks = this.visiblerLinks.features
-          break
-        case 'hideAll':
-          this.selectedrGroup = data
-          // eslint-disable-next-line max-len
-          this.updateLinks = this.visiblerLinks.features.map(el => { return { type: 'Feature', id: el.properties.index } })
-          this.visiblerLinks.features = []
-          break
-        case 'add':
-          if (!this.selectedrGroup.includes(data[0])) {
-            // this keep reactive. pushing on empty arr is not reactive.
-            this.selectedrGroup = [...this.selectedrGroup, ...data]
-          }
-          const tempLinks = this.rlinks.features.filter(
-            link => link.properties[cat] === data[0])
-          // this.visiblerLinks.features.push(...tempLinks) will crash with large array (stack size limit)
-          tempLinks.forEach(link => this.visiblerLinks.features.push(link))
-          this.updateLinks = [...tempLinks]
-          break
-        case 'remove':
-          this.selectedrGroup = this.selectedrGroup.filter(el => el !== data[0])
-          const linksSet = new Set(this.visiblerLinks.features.filter(
-            link => link.properties[cat] === data[0]))
-          this.visiblerLinks.features = this.visiblerLinks.features.filter(link => !linksSet.has(link))
-          this.updateLinks = Array.from(linksSet).map(el => { return { type: 'Feature', id: el.properties.index } })
-          break
-      }
-      this.getVisiblerNodes({ method })
-    },
-
-    refreshVisibleRoads () {
-      const group = new Set(this.selectedrGroup)
-      const cat = this.selectedrFilter
-      this.visiblerLinks.features = this.rlinks.features.filter(link => group.has(link.properties[cat]))
-      this.getVisiblerNodes({ method: 'showAll' })
-
-      // when we rename a group (highway => test), are rename many group.
-      // remove nonexistant group in the selected group.
-      const possibleGroups = new Set(this.visiblerLinks.features.map(
-        item => item.properties[cat]))
-      this.selectedrGroup = Array.from(possibleGroups).filter(x => group.has(x))
-    },
-
-    getVisiblerNodes (payload: ChangeVisibleNodes) {
-      // payload contain nodes. this.nodes or this.editorNodes
-      // find the nodes in the editor links
-      if (payload.method === 'showAll') {
-        this.visiblerNodes.features = this.rnodes.features
-        // this.updateNodes = this.visiblerNodes.features
-        this.updateNodes = [] // this fill reinit (show all)
-        return
-      } else if (payload.method === 'hideAll') {
-        this.visiblerNodes.features = [] // this will reinit (show none)
-        this.updateNodes = []
-        return
-      }
-
-      const nodesBefore = this.visiblerNodes.features.map(item => item.properties.index)
-      this.visiblerNodes.features = deleteUnusedNodes(this.rnodes, this.visiblerLinks)
-      const nodesAfter = new Set(this.visiblerNodes.features.map(item => item.properties.index))
-      if (payload.method === 'add') {
-        const nodesSet = new Set(nodesBefore)
-        this.updateNodes = this.visiblerNodes.features.filter(el => !nodesSet.has(el.properties.index))
-      } else if (payload.method === 'remove') {
-        const nodesToDelete = new Set(nodesBefore.filter(el => !nodesAfter.has(el)))
-        this.updateNodes = Array.from(nodesToDelete).map(idx => { return { type: 'Feature', id: idx } })
-      }
+      this.selectedrFilter = payload.category
+      this.selectedrGroup = payload.data
     },
 
     editLinkInfo (payload: EditRoadPayload) {
@@ -396,7 +313,7 @@ export const userLinksStore = defineStore('rlinks', {
       for (let i = 0; i < selectedArr.length; i++) {
         const formData = infoArr[i]
         const linkIndex = selectedArr[i]
-        const link = cloneDeep(this.visiblerLinks.features.filter((link) => link.properties.index === linkIndex)[0])
+        const link = cloneDeep(this.rlinks.features.filter((link) => link.properties.index === linkIndex)[0])
         // applied all properties.
         Object.keys(formData).forEach((key) => link.properties[key] = formData[key].value)
 
@@ -413,7 +330,6 @@ export const userLinksStore = defineStore('rlinks', {
         // push changes
         editedList.push(link)
       }
-
       _editLinkArray(this.rlinks, editedList)
       this.updateLinks = [...editedList]
     },
@@ -457,7 +373,6 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       _editLinkArray(this.rlinks, selectedLinks)
-      this.refreshVisibleRoads()
       this.getFilteredrCat()
       this.updateLinks = selectedLinks
     },
@@ -510,7 +425,7 @@ export const userLinksStore = defineStore('rlinks', {
     _addNodeInline (payload: AddRoadNodeInlinePayload) {
       // splt
       const { lngLat, selectedIndex } = payload
-      const selectedLinks = this.visiblerLinks.features.filter((link) => selectedIndex.includes(link.properties.index))
+      const selectedLinks = this.rlinks.features.filter((link) => selectedIndex.includes(link.properties.index))
       let newNode = basePoint().features[0]
       const newLinks = []
       const modifiedLinks = []
@@ -532,7 +447,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     addAnchor (payload: AddRoadNodeInlinePayload) {
       const { lngLat, selectedIndex } = payload
-      const selectedLinks = this.visiblerLinks.features.filter((link) => selectedIndex.includes(link.properties.index))
+      const selectedLinks = this.rlinks.features.filter((link) => selectedIndex.includes(link.properties.index))
       const modifiedLinks = []
       // for each selected links add the node and split.
       for (let i = 0; i < selectedLinks.length; i++) {
@@ -559,8 +474,8 @@ export const userLinksStore = defineStore('rlinks', {
       const linksId = payload.linksId
       let nodeIdB = payload.nodeIdB
 
-      const rnodeA = this.visiblerNodes.features.filter(node => node.properties.index === nodeIdA)[0]
-      let rnodeB = cloneDeep(this.visiblerNodes.features.filter(node => node.properties.index === nodeIdB)[0])
+      const rnodeA = this.rnodes.features.filter(node => node.properties.index === nodeIdA)[0]
+      let rnodeB = cloneDeep(this.rnodes.features.filter(node => node.properties.index === nodeIdB)[0])
       // clicked on a link. create node and split link
       // else if: clicked no where: create a node
       const newLinksArr = []
@@ -603,10 +518,8 @@ export const userLinksStore = defineStore('rlinks', {
       }
       if (!this.selectedrGroup.includes(newLinkGroup)) {
         // if its not already selected, push it.
-        // this.visiblerLinks.features.push(linkFeature)
         this.selectedrGroup = [...this.selectedrGroup, newLinkGroup]
       } else {
-        // this.visiblerLinks.features.push(linkFeature)
       }
 
       _addlinks(this.rlinks, newLinksArr)
@@ -622,7 +535,7 @@ export const userLinksStore = defineStore('rlinks', {
       const nodeIndex = payload.selectedNode.properties.index
       const geom = payload.lngLat
       // change node geometry
-      const node = cloneDeep(this.visiblerNodes.features.filter(node => node.properties.index === nodeIndex)[0])
+      const node = cloneDeep(this.rnodes.features.filter(node => node.properties.index === nodeIndex)[0])
       node.geometry.coordinates = geom
 
       const linksB = cloneDeep(this.rlinks.features.filter(link => link.properties.b === nodeIndex))
@@ -655,7 +568,7 @@ export const userLinksStore = defineStore('rlinks', {
       const coordinatedIndex = selectedNode.properties.coordinatedIndex
       const linkIndex = selectedNode.properties.linkIndex
 
-      const link = cloneDeep(this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
+      const link = cloneDeep(this.rlinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
@@ -665,7 +578,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     deleteAnchorNode (payload: SelectedAnchor) {
       const { linkIndex, coordinatedIndex } = payload
-      const link = cloneDeep(this.visiblerLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
+      const link = cloneDeep(this.rlinks.features.filter(feature => feature.properties.index === linkIndex)[0])
 
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
@@ -679,14 +592,16 @@ export const userLinksStore = defineStore('rlinks', {
 
     deleteLink (selectedIndexes: string[]) {
       const linkArr = new Set(selectedIndexes)
-      // this.visiblerLinks.features = this.visiblerLinks.features.filter(link => !linkArr.has(link.properties.index))
-      this.updateLinks = Array.from(linkArr).map(idx => { return { type: 'Feature', id: idx } })
-      _deleteLinks(this.rlinks, linkArr)
-      const toDelete = getUnusedNodes(this.rnodes, this.rlinks)
-      _deleteNodes(this.rnodes, new Set(toDelete))
-
-      this.getVisiblerNodes({ method: 'remove' })
+      _deleteLinks(this.rlinks, linkArr) // delete links first to get nodes after
+      const toDelete = new Set(getUnusedNodes(this.rnodes, this.rlinks))
+      _deleteNodes(this.rnodes, toDelete)
       this.getFilteredrCat()
+
+      // update map
+      // we are working on visible links already. but nodes could stay visible if they are used by another group
+      this.updateLinks = Array.from(linkArr).map(idx => { return { type: 'Feature', id: idx } })
+      const nodesToUpdate = getUnusedNodes(this.visiblerNodes, this.visiblerLinks)
+      this.updateNodes = Array.from(nodesToUpdate).map(idx => { return { type: 'Feature', id: idx } })
     },
 
     deleterGroup (group: string) {
@@ -699,6 +614,18 @@ export const userLinksStore = defineStore('rlinks', {
   },
 
   getters: {
+    visiblerLinks(): LineStringGeoJson {
+      const filtered = baseLineString()
+      const group = new Set(this.selectedrGroup)
+      const cat = this.selectedrFilter
+      filtered.features = this.rlinks.features.filter(link => group.has(link.properties[cat]))
+      return filtered
+    },
+    visiblerNodes(): PointGeoJson {
+      const filtered = basePoint()
+      filtered.features = deleteUnusedNodes(this.rnodes, this.visiblerLinks)
+      return filtered
+    },
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     rlineAttributes: (state) => state.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')).map(el => el.name),
     reversedAttributes: (state) => state.linksDefaultAttributes.filter(el => el.name.endsWith('_r')).map(el => el.name),
@@ -720,9 +647,6 @@ export const userLinksStore = defineStore('rlinks', {
     },
     hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
     rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
-    grouprLinks: (state) => (category: string, group: string) => {
-      return state.rlinks.features.filter(link => group === link.properties[category])
-    },
     attributesChoicesChanged: (state) =>
       JSON.stringify(state.rlinksAttributesChoices) !== JSON.stringify(roadDefaultAttributesChoices),
   },

@@ -233,16 +233,9 @@ export interface LinksStore {
 
 // road
 
-export type ShowMethod = 'showAll' | 'hideAll' | 'add' | 'remove'
-
 export interface ChangeVisibleLinks {
   category: string
   data: string[]
-  method: ShowMethod
-}
-
-export interface ChangeVisibleNodes {
-  method: ShowMethod
 }
 
 export interface EditRoadPayload {
@@ -291,8 +284,6 @@ export interface RlinksStore {
   filteredrCategory: string[]
   linksDefaultAttributes: Attributes[]
   nodesDefaultAttributes: Attributes[]
-  visiblerLinks: LineStringGeoJson
-  visiblerNodes: PointGeoJson
   rlinksAttributesChoices: AttributesChoice
   updateLinks: UpdateFeatures[]
   updateNodes: UpdateFeatures[]
