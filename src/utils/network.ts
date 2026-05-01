@@ -1,4 +1,4 @@
-import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson } from '@src/types/geojson'
+import { baseLineString, basePoint, GeoJson, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson } from '@src/types/geojson'
 import { Attributes, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
 import short from 'short-uuid'
 
@@ -144,6 +144,8 @@ export function snapOnLink(linksGeometry: number[][], lngLat: LngLat | number[])
   return { sliceIndex, offset, newCoords }
 }
 
+// TODO PT actions should be done in the store so we can commit the generic actions.
+
 export function _insertLinkPT(editorLinks: LineStringGeoJson, feature: LineStringFeatures, spliceIndex = 0) {
   // insert links at an index (0 for first.)
   // add +1 to every link sequence after this (assume links are ordered)
@@ -157,40 +159,21 @@ export function _deleteLinkPT(editorLinks: LineStringGeoJson, feature: LineStrin
   editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence -= 1)
 }
 
-export function _editLink(links: LineStringGeoJson, feature: LineStringFeatures) {
-  const filtered = links.features.filter(link => link.properties.index == feature.properties.index)[0]
-  Object.assign(filtered, feature)
+export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]) {
+  geojson.features.push(...features)
 }
 
-export function _editLinkArray(links: LineStringGeoJson, features: LineStringFeatures[]) {
-  // Create a map from index → modified feature and update every index in the map
+export function _deleteGeojsonFeatures(geojson: GeoJson, toDelete: Set<string>) {
+  // links or nodes
+  geojson.features = geojson.features.filter(feature => !toDelete.has(feature.properties.index))
+}
+
+export function _editGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]) {
+  // links or nodes
+  // Create a map from index => modified feature and update every index in the map
   const updateMap = new Map(features.map(feature => [feature.properties.index, feature]))
-  links.features.forEach(feature => {
+  geojson.features.forEach(feature => {
     const index = feature.properties.index
     if (updateMap.has(index)) Object.assign(feature, updateMap.get(index))
   })
-}
-
-export function _deleteLinks(links: LineStringGeoJson, toDelete: Set<string>) {
-  links.features = links.features.filter(link => !toDelete.has(link.properties.index))
-}
-
-export function _addlinks(links: LineStringGeoJson, features: LineStringFeatures[]) {
-  links.features.push(...features)
-}
-
-export function _addNode(nodes: PointGeoJson, feature: PointFeatures) {
-  nodes.features.push(feature)
-}
-
-export function _deleteNode(nodes: PointGeoJson, index: string) {
-  nodes.features = nodes.features.filter(node => node.properties.index !== index)
-}
-export function _deleteNodes(nodes: PointGeoJson, toDelete: Set<string>) {
-  nodes.features = nodes.features.filter(node => !toDelete.has(node.properties.index))
-}
-
-export function _editNode(nodes: PointGeoJson, feature: PointFeatures) {
-  const filtered = nodes.features.filter(feat => feat.properties.index == feature.properties.index)[0]
-  Object.assign(filtered, feature)
 }

@@ -19,8 +19,8 @@ import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
-import { _addlinks, _addNode, _deleteLinks, _deleteNodes, _editLink, _editLinkArray,
-  _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
+import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
+  addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getVariantsChoices,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties } from '@src/utils/roadNetwork'
@@ -71,12 +71,12 @@ export const userLinksStore = defineStore('rlinks', {
     commitChanges(payload: Commit) {
       const { name, newLinks, newNodes, deleteLinks, deleteNodes, updateLinks, updateNodes } = payload
       console.log(name)
-      if (newLinks) _addlinks(this.rlinks, newLinks)
-      if (newNodes) _addNode(this.rnodes, newNodes[0])// TODO method for array of nodes
-      if (updateLinks) _editLinkArray(this.rlinks, updateLinks)
-      if (updateNodes) _editNode(this.rnodes, updateNodes[0]) // TODO method for array of nodes
-      if (deleteLinks) _deleteLinks(this.rlinks, deleteLinks)
-      if (deleteNodes) _deleteNodes(this.rnodes, deleteNodes)
+      if (newLinks) _addGeojsonFeatures(this.rlinks, newLinks)
+      if (newNodes) _addGeojsonFeatures(this.rnodes, newNodes)// TODO method for array of nodes
+      if (updateLinks) _editGeojsonFeatures(this.rlinks, updateLinks)
+      if (updateNodes) _editGeojsonFeatures(this.rnodes, updateNodes) // TODO method for array of nodes
+      if (deleteLinks) _deleteGeojsonFeatures(this.rlinks, deleteLinks)
+      if (deleteNodes) _deleteGeojsonFeatures(this.rnodes, deleteNodes)
 
       // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
       // const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
@@ -596,7 +596,7 @@ export const userLinksStore = defineStore('rlinks', {
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
-      _editLink(this.rlinks, link)
+      this.commitChanges({ name: 'modeAnchor', updateLinks: [link] })
       this.updateLinks = [link]
     },
 
@@ -613,7 +613,7 @@ export const userLinksStore = defineStore('rlinks', {
 
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
-      _editLink(this.rlinks, link)
+      this.commitChanges({ name: 'deleteAnchor', updateLinks: [link] })
 
       this.updateLinks = [link]
     },

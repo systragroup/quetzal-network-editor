@@ -33,10 +33,9 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   snapOnLink,
   _insertLinkPT,
   _deleteLinkPT,
-  _editLink,
-  _deleteNode,
-  _addNode,
-  _editNode } from '@src/utils/network'
+  _addGeojsonFeatures,
+  _editGeojsonFeatures,
+  _deleteGeojsonFeatures } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 import { useHistory } from '@src/composables/useHistory'
@@ -234,12 +233,14 @@ export const useLinksStore = defineStore('links', {
         console.error('Payload length should be same length as editorLinks.features')
         return
       }
+      const toUpdate = []
       for (let i = 0; i < payload.length; i++) {
         const linkSchedule = payload[i]
         const link = cloneDeep(this.editorLinks.features[i])
         Object.keys(linkSchedule).forEach(key => link.properties[key] = linkSchedule[key])
-        _editLink(this.editorLinks, link)
+        toUpdate.push(link)
       }
+      _editGeojsonFeatures(this.editorLinks, toUpdate)
     },
 
     setVisibleNodes(payload: PointGeoJson) {
@@ -364,7 +365,7 @@ export const useLinksStore = defineStore('links', {
       }
       // Copy specified nodenewNode
       const nodeFeatures: PointFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
-      _addNode(this.editorNodes, nodeFeatures)
+      _addGeojsonFeatures(this.editorNodes, [nodeFeatures])
     },
 
     getNewNode (payload: NewNodePayload) {
@@ -422,7 +423,7 @@ export const useLinksStore = defineStore('links', {
 
       calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
       this.calcSchedule(newLink, payload.action)
-      _addNode(this.editorNodes, toNodeFeature) //
+      _addGeojsonFeatures(this.editorNodes, [toNodeFeature]) //
 
       const feature = newLink.features[0]
 
@@ -437,7 +438,7 @@ export const useLinksStore = defineStore('links', {
     deleteNode (payload: SelectedNode) {
       const nodeIndex = payload.selectedNode.properties.index
       // remove node
-      _deleteNode(this.editorNodes, nodeIndex)
+      _deleteGeojsonFeatures(this.editorNodes, new Set(nodeIndex))
       // extend link1. delete link2
       const link1 = cloneDeep(this.editorLinks.features.filter(link => link.properties.b === nodeIndex)[0])
       const link2 = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === nodeIndex)[0])
@@ -466,7 +467,7 @@ export const useLinksStore = defineStore('links', {
 
         calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
 
-        _editLink(this.editorLinks, link1)
+        _editGeojsonFeatures(this.editorLinks, [link1])
         _deleteLinkPT(this.editorLinks, link2)
         // for routing
         return link1
@@ -512,9 +513,9 @@ export const useLinksStore = defineStore('links', {
         }
       }
       // add new node and link
-      _editLink(this.editorLinks, link1)
+      _editGeojsonFeatures(this.editorLinks, [link1])
       _insertLinkPT(this.editorLinks, link2, featureIndex + 1)
-      _addNode(this.editorNodes, newNode)
+      _addGeojsonFeatures(this.editorNodes, [newNode])
     },
 
     addNodeInline (payload: AddNodeInlinePayload) {
@@ -546,7 +547,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter((link) => link.properties.index === linkIndex)[0])
       const { sliceIndex, newCoords } = snapOnLink(link.geometry.coordinates, lngLat)
       link.geometry.coordinates.splice(sliceIndex, 0, newCoords)
-      _editLink(this.editorLinks, link)
+      _editGeojsonFeatures(this.editorLinks, [link])
     },
 
     addRoutingAnchorNode (payload: AnchorPayload) {
@@ -570,7 +571,7 @@ export const useLinksStore = defineStore('links', {
       } else {
         link.properties.anchors = [newCoords]
       }
-      _editLink(this.editorLinks, link)
+      _editGeojsonFeatures(this.editorLinks, [link])
     },
 
     deleteAnchorNode (payload: SelectedAnchor) {
@@ -579,7 +580,7 @@ export const useLinksStore = defineStore('links', {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      _editLink(this.editorLinks, link)
+      _editGeojsonFeatures(this.editorLinks, [link])
     },
 
     deleteRoutingAnchorNode (payload: SelectedAnchor) {
@@ -587,7 +588,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
         ...link.properties.anchors.slice(coordinatedIndex + 1)]
-      _editLink(this.editorLinks, link)
+      _editGeojsonFeatures(this.editorLinks, [link])
       // return the modified link (used for Routing)
       return link
     },
@@ -597,7 +598,7 @@ export const useLinksStore = defineStore('links', {
       // change node geometry
       const node = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === nodeIndex)[0])
       node.geometry.coordinates = geom
-      _editNode(this.editorNodes, node)
+
       const linksB = cloneDeep(this.editorLinks.features.filter(link => link.properties.b === nodeIndex))
       const linksA = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === nodeIndex))
 
@@ -605,14 +606,14 @@ export const useLinksStore = defineStore('links', {
       linksB.forEach(link => {
         link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-        _editLink(this.editorLinks, link)
       })
       linksA.forEach(link => {
         link.geometry.coordinates[0] = geom
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-        _editLink(this.editorLinks, link)
       })
       // for routing
+      _editGeojsonFeatures(this.editorNodes, [node])
+      _editGeojsonFeatures(this.editorLinks, [...linksA, ...linksB])
       return [...linksA, ...linksB]
     },
 
@@ -624,7 +625,8 @@ export const useLinksStore = defineStore('links', {
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
 
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      _editLink(this.editorLinks, link)
+      _editGeojsonFeatures(this.editorLinks, [link])
+
       return link
     },
 
@@ -635,7 +637,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors[coordinatedIndex] = lngLat
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      _editLink(this.editorLinks, link)
+      _editGeojsonFeatures(this.editorLinks, [link])
       return link
     },
 
@@ -647,10 +649,10 @@ export const useLinksStore = defineStore('links', {
       const oldNodeIndex = payload.selectedNode.properties.index
       const stickyIndex = payload.stickyNodeId
       // remove and old node and add new one (sticky one replace old one)
-      _deleteNode(this.editorNodes, oldNodeIndex)
+      _deleteGeojsonFeatures(this.editorNodes, new Set(oldNodeIndex))
       const newNodeFeatures = cloneDeep(this.nodes.features.filter(node => node.properties.index === stickyIndex)[0])
 
-      _addNode(this.editorNodes, newNodeFeatures)
+      _addGeojsonFeatures(this.editorNodes, [newNodeFeatures])
 
       const geom = cloneDeep(newNodeFeatures.geometry.coordinates)
       const linksA = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === oldNodeIndex))
@@ -660,16 +662,14 @@ export const useLinksStore = defineStore('links', {
           link.properties.a = stickyIndex
           link.geometry.coordinates[0] = geom
           calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-          _editLink(this.editorLinks, link)
         })
       linksB.forEach(
         (link) => {
           link.properties.b = stickyIndex
           link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
           calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-          _editLink(this.editorLinks, link)
         })
-
+      _editGeojsonFeatures(this.editorLinks, [...linksA, ...linksB])
       return [...linksA, ...linksB]
     },
 
@@ -679,8 +679,9 @@ export const useLinksStore = defineStore('links', {
       const toDelete = this.editorLinks.features.slice(featureIndex)
       toDelete.toReversed().forEach(link => {
         _deleteLinkPT(this.editorLinks, link)
-        _deleteNode(this.editorNodes, link.properties.b)
       })
+      const nodesToDelete = new Set(toDelete.map(link => link.properties.b))
+      _deleteGeojsonFeatures(this.editorNodes, nodesToDelete)
     },
 
     cutLineBeforeNode (payload: SelectedNode) {
@@ -690,8 +691,9 @@ export const useLinksStore = defineStore('links', {
       const toDelete = this.editorLinks.features.slice(0, featureIndex)
       toDelete.forEach(link => {
         _deleteLinkPT(this.editorLinks, link)
-        _deleteNode(this.editorNodes, link.properties.a)
       })
+      const nodesToDelete = new Set(toDelete.map(link => link.properties.a))
+      _deleteGeojsonFeatures(this.editorNodes, nodesToDelete)
     },
 
     editLineInfo (payload: GroupForm) {
@@ -708,7 +710,7 @@ export const useLinksStore = defineStore('links', {
           calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
-      features.forEach(link => _editLink(this.editorLinks, link))
+      _editGeojsonFeatures(this.editorLinks, features)
       // New line
       // change LinksDefault values. so drawing a link uses those inputed values
       if (this.editorLinks.features.length === 0) {
@@ -726,7 +728,7 @@ export const useLinksStore = defineStore('links', {
       const props = Object.keys(info)
       const link = cloneDeep(this.editorLinks.features.filter(link => link.properties.index === selectedIndex)[0])
       props.forEach(key => link.properties[key] = info[key].value)
-      _editLink(this.editorLinks, link)
+      _editGeojsonFeatures(this.editorLinks, [link])
     },
 
     editNodeInfo (payload: EditLinkPayload) {
@@ -735,7 +737,7 @@ export const useLinksStore = defineStore('links', {
       const props = Object.keys(info)
       const node = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === selectedIndex)[0])
       props.forEach(key => node.properties[key] = info[key].value)
-      _editNode(this.editorNodes, node)
+      _editGeojsonFeatures(this.editorNodes, [node])
     },
 
     editGroupInfo (payload: EditGroupPayload) {
