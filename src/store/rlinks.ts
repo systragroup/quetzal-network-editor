@@ -4,7 +4,8 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer } from '@src/utils/serializer'
-import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict, getUnusedNodes, deleteUnusedNodes } from '@src/utils/utils'
+import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
+  getUnusedNodes, deleteUnusedNodes } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
@@ -13,11 +14,13 @@ import { AddRoadNodeInlinePayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
+  PointFeatures,
   PointGeoJson } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
-import { _addlinks, _addNode, _deleteLinks, _deleteNodes, _editLink, _editLinkArray, _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
+import { _addlinks, _addNode, _deleteLinks, _deleteNodes, _editLink, _editLinkArray,
+  _editNode, addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getVariantsChoices,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties } from '@src/utils/roadNetwork'
@@ -26,6 +29,16 @@ const $gettext = (s: string) => s
 // import { useHistory } from '@src/composables/useHistory'
 // import { toRaw } from 'vue'
 // const { commit, state, initHistory, redo, undo } = useHistory({ links: {}, nodes: {} })
+
+interface Commit {
+  name: string
+  newLinks?: LineStringFeatures[]
+  newNodes?: PointFeatures[]
+  deleteLinks?: Set<string>
+  deleteNodes?: Set<string>
+  updateLinks?: LineStringFeatures[]
+  updateNodes?: PointFeatures[]
+}
 
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
@@ -55,38 +68,31 @@ export const userLinksStore = defineStore('rlinks', {
 
   actions: {
 
-    // commitChanges(name: string) {
-    //   const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
-    //   const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
-    //   commit({ links: links, nodes: nodes }, name)
-    // },
+    commitChanges(payload: Commit) {
+      const { name, newLinks, newNodes, deleteLinks, deleteNodes, updateLinks, updateNodes } = payload
+      console.log(name)
+      if (newLinks) _addlinks(this.rlinks, newLinks)
+      if (newNodes) _addNode(this.rnodes, newNodes[0])// TODO method for array of nodes
+      if (updateLinks) _editLinkArray(this.rlinks, updateLinks)
+      if (updateNodes) _editNode(this.rnodes, updateNodes[0]) // TODO method for array of nodes
+      if (deleteLinks) _deleteLinks(this.rlinks, deleteLinks)
+      if (deleteNodes) _deleteNodes(this.rnodes, deleteNodes)
+
+      // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
+      // const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
+      // commit({ links: links, nodes: nodes }, name)
+    },
     // redo() {
-    //   const diff = redo() as any
-    //   if (diff) {
+    //   if (redo()) {
     //     this.rlinks.features = Object.values(state.value.links).map(el => toRaw(el))
     //     this.rnodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
-
-    //     const linksList = new Set(Object.keys(diff.links))
-    //     this.updateLinks = [...this.rlinks.features.filter(link => linksList.has(link.properties.index))]
-    //     const nodesList = new Set(Object.keys(diff.nodes))
-    //     this.updateNodes = [...this.rnodes.features.filter(node => nodesList.has(node.properties.index))]
     //   }
     // },
     // undo() {
-    //   const diff = undo() as any
-    //   if (diff) {
+    //   if (undo()) {
     //     this.rlinks.features = Object.values(state.value.links).map(el => toRaw(el))
     //     this.rnodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
-
-    //     const linksList = new Set(Object.keys(diff.links))
-    //     this.updateLinks = [...this.rlinks.features.filter(link => linksList.has(link.properties.index))]
-    //     const nodesList = new Set(Object.keys(diff.nodes))
-    //     this.updateNodes = [...this.rnodes.features.filter(node => nodesList.has(node.properties.index))]
     //   }
-    // },
-
-    // commitParts(name: string) {
-    //   commitPart({ rlinks: toRaw(this.updateLinks), rnodes: toRaw(this.updateNodes) }, name)
     // },
     //
     // IO
@@ -347,7 +353,7 @@ export const userLinksStore = defineStore('rlinks', {
         // push changes
         editedList.push(link)
       }
-      _editLinkArray(this.rlinks, editedList)
+      this.commitChanges({ name: 'editLinkInfo', updateLinks: editedList })
       this.updateLinks = [...editedList]
     },
 
@@ -359,7 +365,7 @@ export const userLinksStore = defineStore('rlinks', {
       const node = cloneDeep(this.rnodes.features.filter(node => node.properties.index === selectedIndex)[0])
       Object.keys(formData).forEach(key => node.properties[key] = formData[key].value)
 
-      _editNode(this.rnodes, node)
+      this.commitChanges({ name: 'editNodeInfo', updateNodes: [node] })
       this.updateNodes = [node]
     },
 
@@ -389,7 +395,7 @@ export const userLinksStore = defineStore('rlinks', {
         )
       }
 
-      _editLinkArray(this.rlinks, selectedLinks)
+      this.commitChanges({ name: 'editGroupInfo', updateLinks: selectedLinks })
       this.getFilteredrCat()
       this.updateLinks = selectedLinks
     },
@@ -436,9 +442,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     addNodeInline (payload: AddRoadNodeInlinePayload) {
       const { newLinks, modifiedLinks, newNode } = this._addNodeInline(payload)
-      _addlinks(this.rlinks, newLinks)
-      _editLinkArray(this.rlinks, modifiedLinks)
-      _addNode(this.rnodes, newNode)
+      this.commitChanges({ name: 'addNodeInline', newLinks: newLinks, updateLinks: modifiedLinks, newNodes: [newNode] })
       this.updateLinks = [...modifiedLinks, ...newLinks]
       this.updateNodes = [newNode]
     },
@@ -478,7 +482,8 @@ export const userLinksStore = defineStore('rlinks', {
         modifiedLinks.push(link)
       }
 
-      _editLinkArray(this.rlinks, modifiedLinks)
+      this.commitChanges({ name: 'addAnchor', updateLinks: modifiedLinks })
+
       this.updateLinks = [...modifiedLinks]
     },
 
@@ -543,9 +548,9 @@ export const userLinksStore = defineStore('rlinks', {
       } else {
       }
 
-      _addlinks(this.rlinks, newLinksArr)
-      _editLinkArray(this.rlinks, modifiedLinksArr)
-      if (newNodeArr.length > 0) _addNode(this.rnodes, newNodeArr[0])
+      const commit: Commit = { name: 'createLink', newLinks: newLinksArr, updateLinks: modifiedLinksArr }
+      if (newNodeArr.length > 0) commit.newNodes = newNodeArr
+      this.commitChanges(commit)
 
       this.updateLinks = newLinksArr
       this.updateNodes = [rnodeB]
@@ -577,9 +582,7 @@ export const userLinksStore = defineStore('rlinks', {
       const visibleLinksList = this.visiblerLinks.features.filter(link =>
         (link.properties.a === nodeIndex) || (link.properties.b === nodeIndex))
 
-      _editLinkArray(this.rlinks, linksA)
-      _editLinkArray(this.rlinks, linksB)
-      _editNode(this.rnodes, node)
+      this.commitChanges({ name: 'moveNode', updateLinks: [...linksA, ...linksB], updateNodes: [node] })
       this.updateLinks = [...visibleLinksList]
       this.updateNodes = [node]
     },
@@ -617,9 +620,13 @@ export const userLinksStore = defineStore('rlinks', {
 
     deleteLink (selectedIndexes: string[]) {
       const linkArr = new Set(selectedIndexes)
-      _deleteLinks(this.rlinks, linkArr) // delete links first to get nodes after
-      const toDelete = new Set(getUnusedNodes(this.rnodes, this.rlinks))
-      _deleteNodes(this.rnodes, toDelete)
+      // nodes are deleted base on deleted links. but we want to commit links and ndoes cchanges at the same time.
+      // so we double compute what links are deleted...
+      const filtered = baseLineString()
+      filtered.features = this.rlinks.features.filter(link => !linkArr.has(link.properties.index))
+      const toDelete = new Set(getUnusedNodes(this.rnodes, filtered))
+
+      this.commitChanges({ name: 'deleteLink', deleteLinks: linkArr, deleteNodes: toDelete })
       this.getFilteredrCat()
 
       // update map

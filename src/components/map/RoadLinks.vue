@@ -48,13 +48,15 @@ onUnmounted(() => {
   if (isRoadMode.value) { rlinksStore.cancelEdition() } // if page change. we cancel.
 })
 
+// // ctrl-z
+
 // onMounted(() => {
 //   document.addEventListener('keydown', handleKeydown)
 // })
 // onUnmounted(() => {
 //   document.removeEventListener('keydown', handleKeydown)
 // })
-// function handleKeydown(event) {
+// function handleKeydown(event: KeyboardEvent) {
 //   // Check if Ctrl (or Command on Mac) and Z are pressed
 //   if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
 //     event.preventDefault()
