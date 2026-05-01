@@ -132,17 +132,6 @@ export const userLinksStore = defineStore('rlinks', {
       this.initSelectedrFilter()
     },
 
-    getVariants() {
-      this.variantChoice = getVariantsChoices(this.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')))
-      addDefaultValuesToVariants(this.linksDefaultAttributes)
-    },
-
-    deleteNonVariantAttributes() {
-      // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
-      const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
-      toDelete.forEach(attr => this.deleteLinksPropertie({ name: attr }))
-    },
-
     appendNewrNodes (payload: PointGeoJson) {
       // append new links and node to the project (import page)
       simplifyGeometry(payload)
@@ -158,15 +147,11 @@ export const userLinksStore = defineStore('rlinks', {
       const newAttrs = getDifference(header, this.rlineAttributes)
       newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
 
-      this.createReversedProperties()
-    },
-
-    createReversedProperties() {
-      // add reversed attributes
+      // create _r attributes if they dont exist (like time_r if there is no time_r)
       const toReverse = this.rlineAttributes.filter(attr => !rlinksConstantProperties.includes(attr))
       const reversedAttributes = toReverse.map(attr => attr + '_r')
-      const newAttrs = getDifference(reversedAttributes, this.reversedAttributes)
-      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
+      const newReversedAttrs = getDifference(reversedAttributes, this.reversedAttributes)
+      newReversedAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
     getrNodesProperties () {
@@ -212,20 +197,46 @@ export const userLinksStore = defineStore('rlinks', {
       newAttrs.forEach(item => this.addLinksPropertie({ name: item }))
     },
 
+    ChangeDefaultValues(payload: Record<string, any>) {
+      Object.keys(payload).forEach(key => {
+        this.linksDefaultAttributes.filter(el => el.name === key)[0].value = payload[key]
+      })
+    },
+
+    getVariants() {
+      this.variantChoice = getVariantsChoices(this.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')))
+      addDefaultValuesToVariants(this.linksDefaultAttributes)
+    },
+
+    deleteNonVariantAttributes() {
+      // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
+      const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
+      toDelete.forEach(attr => this.deleteLinksPropertie({ name: attr }))
+    },
+
+    //
+    // Properties edition
+    //
+
     addLinksPropertie (payload: NewAttribute) {
       // TODO _editLinkArray
-      this.rlinks.features.map(link => link.properties[payload.name] = null)
-      this.linksDefaultAttributes.push({ name: payload.name, type: undefined })
+      const { name } = payload
+      const newAttr: Record<string, null> = { [name]: null }
+      this.rlinks.features.forEach(link => Object.assign(link.properties, newAttr))
+      // this.rlinks.features.map(link => link.properties[payload.name] = null)
+      this.linksDefaultAttributes.push({ name: name, type: undefined })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
-      if (!rlinksConstantProperties.includes(payload.name)) {
-        this.linksDefaultAttributes.push({ name: payload.name + '_r', type: undefined })
+      if (!rlinksConstantProperties.includes(name)) {
+        this.linksDefaultAttributes.push({ name: name + '_r', type: undefined })
       }
     },
 
     addNodesPropertie (payload: NewAttribute) {
       // todo: _editNodeArray
-      this.rnodes.features.map(node => node.properties[payload.name] = null)
-      this.nodesDefaultAttributes.push({ name: payload.name, type: undefined })
+      const { name } = payload
+      const newAttr: Record<string, null> = { [name]: null }
+      this.rnodes.features.forEach(node => Object.assign(node.properties, newAttr))
+      this.nodesDefaultAttributes.push({ name: name, type: undefined })
     },
 
     deleteLinksPropertie (payload: NewAttribute) {
@@ -243,6 +254,10 @@ export const userLinksStore = defineStore('rlinks', {
       this.rnodes.features.forEach(node => delete node.properties[payload.name])
       this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
     },
+
+    //
+    // snapshot
+    //
 
     startEditing () {
       this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
@@ -276,6 +291,10 @@ export const userLinksStore = defineStore('rlinks', {
       this.editionMode = false
     },
 
+    //
+    // filtering
+    //
+
     changeSelectedrFilter (payload: string) {
       this.selectedrFilter = payload
       this.getFilteredrCat()
@@ -294,16 +313,14 @@ export const userLinksStore = defineStore('rlinks', {
       this.filteredrCategory = val
     },
 
-    ChangeDefaultValues(payload: Record<string, any>) {
-      Object.keys(payload).forEach(key => {
-        this.linksDefaultAttributes.filter(el => el.name === key)[0].value = payload[key]
-      })
-    },
-
     changeVisibleRoads (payload: ChangeVisibleLinks) {
       this.selectedrFilter = payload.category
       this.selectedrGroup = payload.data
     },
+
+    //
+    // edition (properties)
+    //
 
     editLinkInfo (payload: EditRoadPayload) {
       // get selected link in editorLinks and modify the changes attributes.
@@ -376,6 +393,10 @@ export const userLinksStore = defineStore('rlinks', {
       this.getFilteredrCat()
       this.updateLinks = selectedLinks
     },
+
+    //
+    // edition (geometry)
+    //
 
     _getNewNode (payload: NewNodePayload) {
       const { nodeCopyId, coordinates } = payload
@@ -575,6 +596,10 @@ export const userLinksStore = defineStore('rlinks', {
       _editLink(this.rlinks, link)
       this.updateLinks = [link]
     },
+
+    //
+    // edition (deletion)
+    //
 
     deleteAnchorNode (payload: SelectedAnchor) {
       const { linkIndex, coordinatedIndex } = payload
