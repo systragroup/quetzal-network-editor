@@ -1,4 +1,3 @@
-import { History } from '@src/composables/useHistory'
 import { GroupForm, IsoTimeStringTZ, TimeString } from './components'
 import { LineStringGeoJson, LineStringFeatures,
   PointGeoJson, GeoJsonProperties,
@@ -210,15 +209,15 @@ export interface Attributes {
 
 export type AttributesChoice = Record<string, (string | number)[]>
 export type NonEmptyArray<T> = [T, ...T[]]
-import { Ref } from 'vue'
 
 export interface LinksStore {
   links: LineStringGeoJson
   nodes: PointGeoJson
   visibleNodes: PointGeoJson
   editorNodes: PointGeoJson
+  history: Commit[]
+  redoStack: Commit[]
   editorLinks: LineStringGeoJson
-  history: Ref<History[]>
   editorTrip: string | null
   variant: string
   variantChoice: NonEmptyArray<string>

@@ -231,7 +231,6 @@ function actionClick (event: ActionClick) {
   }
   contextMenu.value.showed = false
   contextMenu.value.type = null
-  linksStore.commitChanges(event.action)
 }
 
 // hovering
@@ -390,7 +389,6 @@ async function stopMovingNode () {
   stopMoving()
   map.value.off('mousemove', onMove)
   map.value.off('mouseup', stopMovingNode)
-  linksStore.commitChanges('move node')
 }
 
 // moving anchor
@@ -438,7 +436,6 @@ function stopMovingNodeAnchor () {
   stopMoving()
   map.value.off('mousemove', onMoveAnchor)
   map.value.off('mouseup', stopMovingNodeAnchor)
-  linksStore.commitChanges('move Anchor')
 }
 
 // routeAnchor
@@ -475,7 +472,6 @@ function stopMovingRouteAnchor () {
   stopMoving()
   map.value.off('mousemove', onMoveRouteAnchor)
   map.value.off('mouseup', stopMovingRouteAnchor)
-  linksStore.commitChanges('move Routing Anchor')
 }
 
 </script>

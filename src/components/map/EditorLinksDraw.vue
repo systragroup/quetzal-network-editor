@@ -141,7 +141,6 @@ async function addPointPT(event: MapMouseEvent) {
       : linksStore.editorLinks.features[0]
     routeLink(newLinkFeature)
   }
-  linksStore.commitChanges(action)
 }
 
 const stickyDialog = ref()

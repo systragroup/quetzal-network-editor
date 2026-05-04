@@ -145,21 +145,6 @@ export function snapOnLink(linksGeometry: number[][], lngLat: LngLat | number[])
   return { sliceIndex, offset, newCoords }
 }
 
-// TODO PT actions should be done in the store so we can commit the generic actions.
-
-export function _insertLinkPT(editorLinks: LineStringGeoJson, feature: LineStringFeatures, spliceIndex = 0) {
-  // insert links at an index (0 for first.)
-  // add +1 to every link sequence after this (assume links are ordered)
-  editorLinks.features.splice(spliceIndex, 0, feature)
-  editorLinks.features.slice(spliceIndex + 1).forEach(link => link.properties.link_sequence += 1)
-}
-
-export function _deleteLinkPT(editorLinks: LineStringGeoJson, feature: LineStringFeatures) {
-  const featureIndex = editorLinks.features.findIndex(link => link.properties.index === feature.properties.index)
-  editorLinks.features.splice(featureIndex, 1)
-  editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence -= 1)
-}
-
 export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): Set<string> {
   const addedIndexes = new Set(features.map(feat => feat.properties.index))
   geojson.features.push(...features)

@@ -8,7 +8,7 @@ import { cloneDeep } from 'lodash'
 import createGraph from 'ngraph.graph'
 import path from 'ngraph.path'
 import { shallowRef, toRaw, computed, watch, onMounted } from 'vue'
-import { _editGeojsonFeatures, calcLengthTimeorSpeed } from '../network'
+import { calcLengthTimeorSpeed } from '../network'
 
 // Global state. Can reuuse thoses anywhere in the app.
 // onMounted. only init if null (so we do it only once.)
@@ -259,14 +259,13 @@ export function useRouting () {
     const nodeB = cloneDeep(nodes.value.features.filter(node => node.properties.index === routedLink.properties.b)[0])
     // this move the nodes on links and crop the Linestring to the nodes.
     snapToGeom(nodeA, nodeB, routedLink)
-    _editGeojsonFeatures(linksStore.editorLinks, [routedLink])
-    _editGeojsonFeatures(linksStore.editorNodes, [nodeA, nodeB])
+    linksStore.commitChanges({ name: 'route', updateLinks: [routedLink], updateNodes: [nodeA, nodeB] })
   }
 
   function unroute(link) {
     const modifiedLink = _unrouteLink(cloneDeep(link))
     calcLengthTimeorSpeed(modifiedLink, linksStore.variantChoice, linksStore.speedTimeMethod)
-    _editGeojsonFeatures(linksStore.editorLinks, [modifiedLink])
+    linksStore.commitChanges({ name: 'route', updateLinks: [modifiedLink] })
   }
 
   function routeAll() {
