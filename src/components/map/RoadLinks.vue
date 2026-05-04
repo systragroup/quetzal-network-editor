@@ -62,10 +62,10 @@ function handleKeydown(event: KeyboardEvent) {
     event.preventDefault()
     rlinksStore.undo()
   }
-  // if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
-  //   event.preventDefault()
-  //   rlinksStore.redo()
-  // }
+  if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
+    event.preventDefault()
+    rlinksStore.redo()
+  }
 }
 const visiblerLinks = computed(() => rlinksStore.visiblerLinks)
 const visiblerNodes = computed(() => rlinksStore.visiblerNodes)
@@ -140,7 +140,7 @@ watchEffect(() => {
     const anchors = queryAnchor()
     source.setData(anchors)
   } else {
-    source.setData('anchorrNodes').setData(basePoint())
+    source.setData(basePoint())
   }
 }, { flush: 'post' }) // so its done after the source is created
 

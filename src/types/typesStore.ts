@@ -302,6 +302,7 @@ export interface RlinksStore {
   networkWasModified: boolean
   speedTimeMethod: SpeedTimeMethod
   history: Commit[]
+  redoStack: Commit[]
 }
 
 // OD store

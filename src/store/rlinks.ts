@@ -57,64 +57,75 @@ export const userLinksStore = defineStore('rlinks', {
     // params
     speedTimeMethod: 'time',
     history: [],
+    redoStack: [],
   }),
 
   actions: {
 
-    commitChanges(payload: Commit, addToHistory: boolean = true) {
-      const { name, newLinks, newNodes, deleteLinks, deleteNodes, updateLinks, updateNodes } = payload
-      const history: Commit = { name: name + '_undo' }
-      if (newLinks) history.deleteLinks = _addGeojsonFeatures(this.rlinks, newLinks)
+    applyCommit(commit: Commit) {
+      const { name, newLinks, newNodes, deleteLinks, deleteNodes, updateLinks, updateNodes } = commit
+      const history: Commit = { name: name }
 
+      if (newLinks) history.deleteLinks = _addGeojsonFeatures(this.rlinks, newLinks)
       if (newNodes) history.deleteNodes = _addGeojsonFeatures(this.rnodes, newNodes)
       if (updateLinks) history.updateLinks = _editGeojsonFeatures(this.rlinks, updateLinks) as LineStringFeatures[]
       if (updateNodes) history.updateNodes = _editGeojsonFeatures(this.rnodes, updateNodes) as PointFeatures[]
       if (deleteLinks) history.newLinks = _deleteGeojsonFeatures(this.rlinks, deleteLinks) as LineStringFeatures[]
       if (deleteNodes) history.newNodes = _deleteGeojsonFeatures(this.rnodes, deleteNodes) as PointFeatures[]
-      if (addToHistory) this.history.push(history)
 
-      // this.updateLinks = [...updateLinks, ...newLinks]
-      // this.updateNodes = [...updateNodes, ...newNode]
-
-      // visibleLinksList
-
-      // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
-      // const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
-      // commit({ links: links, nodes: nodes }, name)
+      return history
     },
-    // redo() {
-    //   if (redo()) {
-    //     this.rlinks.features = Object.values(state.value.links).map(el => toRaw(el))
-    //     this.rnodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
-    //   }
-    // },
+
     undo() {
       if (this.history.length > 0) {
-        const hist = this.history.pop() as Commit
-        this.commitChanges(hist, false)
+        const prev = this.history.pop() as Commit
+        const next = this.applyCommit(prev)
+        this.update(prev)
+        this.redoStack.push(next)
+      }
+    },
 
-        const { newLinks, newNodes, deleteLinks, updateLinks, updateNodes } = hist
-        const _updateLinks: UpdateFeatures[] = []
-        const _updateNodes: UpdateFeatures[] = []
-        if (newLinks) _updateLinks.push(...newLinks)
-        if (updateLinks) _updateLinks.push(...updateLinks)
+    redo() {
+      if (this.redoStack.length > 0) {
+        const next = this.redoStack.pop() as Commit
+        const prev = this.applyCommit(next)
+        this.update(next)
+        this.history.push(prev)
+      }
+    },
 
-        if (newNodes) _updateNodes.push(...newNodes)
-        if (updateNodes) _updateNodes.push(...updateNodes)
-        if (deleteLinks) {
-          let ls: UpdateFeatures[] = Array.from(deleteLinks).map(idx => { return { type: 'Feature', id: idx } })
-          _updateLinks.push(...ls)
-          const nodesToUpdate = getUnusedNodes(this.visiblerNodes, this.visiblerLinks)
-          ls = Array.from(nodesToUpdate).map(idx => { return { type: 'Feature', id: idx } })
-          _updateNodes.push(...ls)
-        }
+    commitChanges(commit: Commit) {
+      // function to call when performing an action
+      const prev = this.applyCommit(commit)
+      this.update(commit)
+      this.history.push(prev)
+      this.redoStack = [] // must erase redo stack
+    },
 
-        //   const visibleLinksList = this.visiblerLinks.features.filter(link =>
-        // (link.properties.a === nodeIndex) || (link.properties.b === nodeIndex))
-        this.updateLinks = _updateLinks
+    update(commit: Commit) {
+      const { newLinks, newNodes, deleteLinks, updateLinks, updateNodes } = commit
+      const _updateLinks: UpdateFeatures[] = []
+      const _updateNodes: UpdateFeatures[] = []
+
+      // filter updatedLinks with visibleLink. we could modify invisible links and dont want to display them!
+      const visibleIndex = new Set(this.visiblerLinks.features.map(el => el.properties.index))
+      if (updateLinks) _updateLinks.push(...updateLinks.filter(link => visibleIndex.has(link.id)))
+
+      if (newLinks) _updateLinks.push(...newLinks)
+      if (newNodes) _updateNodes.push(...newNodes)
+      if (updateNodes) _updateNodes.push(...updateNodes)
+
+      if (deleteLinks) {
+        let linksArr: UpdateFeatures[] = Array.from(deleteLinks).map(idx => { return { type: 'Feature', id: idx } })
+        _updateLinks.push(...linksArr)
+      }
+
+      this.updateLinks = _updateLinks
+      if (newLinks || deleteLinks) {
+        // there is no way to tell what visible nodes to update at this point. update all...
+        this.updateNodes = []
+      } else {
         this.updateNodes = _updateNodes
-        // this.updateLinks = [] // refresh rlinks
-        // this.updateNodes = [] //  refres nodes.
       }
     },
     //
@@ -290,11 +301,8 @@ export const userLinksStore = defineStore('rlinks', {
 
     startEditing () {
       this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
-      console.log(this.rlinks.features.filter(link => link.properties.highway === 'quenedi'))
 
       // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
-      // const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
-      // initHistory({ links: links, nodes: nodes })
 
       this.editionMode = true
       this.networkWasModified = false
@@ -302,6 +310,8 @@ export const userLinksStore = defineStore('rlinks', {
 
     saveEdition() {
       this.savedNetwork = { rlinks: '', rnodes: '' }
+      this.history = []
+      this.redoStack = []
       this.editionMode = false
       this.networkWasModified = false
     },
@@ -318,6 +328,8 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       this.savedNetwork = { rlinks: '', rnodes: '' }
+      this.history = []
+      this.redoStack = []
       this.editionMode = false
     },
 
@@ -378,7 +390,6 @@ export const userLinksStore = defineStore('rlinks', {
         editedList.push(link)
       }
       this.commitChanges({ name: 'editLinkInfo', updateLinks: editedList })
-      this.updateLinks = [...editedList]
     },
 
     editNodeInfo (payload: EditRoadPayload) {
@@ -390,7 +401,6 @@ export const userLinksStore = defineStore('rlinks', {
       Object.keys(formData).forEach(key => node.properties[key] = formData[key].value)
 
       this.commitChanges({ name: 'editNodeInfo', updateNodes: [node] })
-      this.updateNodes = [node]
     },
 
     editGroupInfo (payload: EditRoadPayload) {
@@ -421,7 +431,6 @@ export const userLinksStore = defineStore('rlinks', {
 
       this.commitChanges({ name: 'editGroupInfo', updateLinks: selectedLinks })
       this.getFilteredrCat()
-      this.updateLinks = selectedLinks
     },
 
     //
@@ -439,8 +448,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     _splitLink (payload: SplitRoadPayload) {
-      // distance du point (entre 0 et 1) sur le lien original
-      const { sliceIndex, newNode, selectedLink } = payload
+      const { newNode, selectedLink, sliceIndex } = payload
       const newCoords = newNode.geometry.coordinates
 
       const link1 = cloneDeep(selectedLink)
@@ -467,8 +475,6 @@ export const userLinksStore = defineStore('rlinks', {
     addNodeInline (payload: AddRoadNodeInlinePayload) {
       const { newLinks, modifiedLinks, newNode } = this._addNodeInline(payload)
       this.commitChanges({ name: 'addNodeInline', newLinks: newLinks, updateLinks: modifiedLinks, newNodes: [newNode] })
-      this.updateLinks = [...modifiedLinks, ...newLinks]
-      this.updateNodes = [newNode]
     },
 
     _addNodeInline (payload: AddRoadNodeInlinePayload) {
@@ -507,8 +513,6 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       this.commitChanges({ name: 'addAnchor', updateLinks: modifiedLinks })
-
-      this.updateLinks = [...modifiedLinks]
     },
 
     createLink (payload: CreateRlinkPayload) {
@@ -575,9 +579,6 @@ export const userLinksStore = defineStore('rlinks', {
       const commit: Commit = { name: 'createLink', newLinks: newLinksArr, updateLinks: modifiedLinksArr }
       if (newNodeArr.length > 0) commit.newNodes = newNodeArr
       this.commitChanges(commit)
-
-      this.updateLinks = [...newLinksArr, ...modifiedLinksArr]
-      this.updateNodes = [rnodeB]
       return rnodeB
     },
 
@@ -603,12 +604,7 @@ export const userLinksStore = defineStore('rlinks', {
         calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
 
-      const visibleLinksList = this.visiblerLinks.features.filter(link =>
-        (link.properties.a === nodeIndex) || (link.properties.b === nodeIndex))
-
       this.commitChanges({ name: 'moveNode', updateLinks: [...linksA, ...linksB], updateNodes: [node] })
-      this.updateLinks = [...visibleLinksList]
-      this.updateNodes = [node]
     },
 
     moverAnchor (payload: MoveNode) {
@@ -621,7 +617,6 @@ export const userLinksStore = defineStore('rlinks', {
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       this.commitChanges({ name: 'modeAnchor', updateLinks: [link] })
-      this.updateLinks = [link]
     },
 
     //
@@ -638,8 +633,6 @@ export const userLinksStore = defineStore('rlinks', {
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       this.commitChanges({ name: 'deleteAnchor', updateLinks: [link] })
-
-      this.updateLinks = [link]
     },
 
     deleteLink (selectedIndexes: string[]) {
@@ -652,12 +645,6 @@ export const userLinksStore = defineStore('rlinks', {
 
       this.commitChanges({ name: 'deleteLink', deleteLinks: linkArr, deleteNodes: toDelete })
       this.getFilteredrCat()
-
-      // update map
-      // we are working on visible links already. but nodes could stay visible if they are used by another group
-      this.updateLinks = Array.from(linkArr).map(idx => { return { type: 'Feature', id: idx } })
-      const nodesToUpdate = getUnusedNodes(this.visiblerNodes, this.visiblerLinks)
-      this.updateNodes = Array.from(nodesToUpdate).map(idx => { return { type: 'Feature', id: idx } })
     },
 
     deleterGroup (group: string) {

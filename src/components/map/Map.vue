@@ -185,7 +185,6 @@ watch(anchorMode, (val) => {
         :map="map"
         :is-editor-mode="isEditorMode"
         :is-o-d-mode="mode==='od'"
-        @click-feature="clickFeature"
       />
     </MglMap>
   </div>
