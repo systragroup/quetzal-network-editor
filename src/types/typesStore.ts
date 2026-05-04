@@ -298,8 +298,6 @@ export interface RlinksStore {
   updateLinks: UpdateFeatures[]
   updateNodes: UpdateFeatures[]
   editionMode: boolean
-  savedNetwork: SavedRoadNetwork
-  networkWasModified: boolean
   speedTimeMethod: SpeedTimeMethod
   history: Commit[]
   redoStack: Commit[]

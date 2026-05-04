@@ -52,8 +52,6 @@ export const userLinksStore = defineStore('rlinks', {
     updateNodes: [],
     // to Cancel edition
     editionMode: false,
-    savedNetwork: { rlinks: '', rnodes: '' },
-    networkWasModified: false, // update in Roadlinks.vue when map is updated (updateLinks and others are watch)
     // params
     speedTimeMethod: 'time',
     history: [],
@@ -300,34 +298,30 @@ export const userLinksStore = defineStore('rlinks', {
     //
 
     startEditing () {
-      this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
-
-      // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
-
+      this.history = []
+      this.redoStack = []
       this.editionMode = true
-      this.networkWasModified = false
     },
 
     saveEdition() {
-      this.savedNetwork = { rlinks: '', rnodes: '' }
       this.history = []
       this.redoStack = []
       this.editionMode = false
-      this.networkWasModified = false
     },
 
     cancelEdition() {
-      if (this.networkWasModified) {
-        this.rlinks = JSON.parse(this.savedNetwork.rlinks)
-        this.rnodes = JSON.parse(this.savedNetwork.rnodes)
-        this.getrLinksProperties()
-        this.getrNodesProperties()
-
-        this.initSelectedrFilter()
-        this.updateLinks = [] // refresh rlinks
+      console.time('cancel')
+      while (this.history.length > 0) {
+        const prev = this.history.pop() as Commit
+        this.applyCommit(prev)
       }
+      console.timeEnd('cancel')
+      this.getrLinksProperties()
+      this.getrNodesProperties()
 
-      this.savedNetwork = { rlinks: '', rnodes: '' }
+      this.updateLinks = [] // refresh rlinks
+      // this.updateNodes = []
+
       this.history = []
       this.redoStack = []
       this.editionMode = false

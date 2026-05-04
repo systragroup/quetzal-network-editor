@@ -109,7 +109,6 @@ function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
     if (!mapSource) return
     mapSource.updateData({ type: 'FeatureCollection', features: features as any }) // TODO: change any
   }
-  rlinksStore.networkWasModified = true // mark as updated. (if nothing change. Canel will be faster)
 }
 
 const updateLinks = computed(() => { return rlinksStore.updateLinks })
