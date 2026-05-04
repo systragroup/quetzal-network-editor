@@ -8,18 +8,26 @@ const props = defineProps<Props>()
 const { order } = toRefs(props)
 
 const show = ref(false)
-// import { useLinksStore } from '@src/store/links'
-// const linkStore = useLinksStore()
-
+import { useLinksStore } from '@src/store/links'
+const linksStore = useLinksStore()
 import { userLinksStore } from '@src/store/rlinks'
-const rlinkStore = userLinksStore()
-const history = computed(() => rlinkStore.history.map(el => ({ name: el.name, type: 'past' })))
-const redoStack = computed(() => rlinkStore.redoStack.map(el => ({ name: el.name, type: 'future' })))
-const timeline = computed(() => [...history.value, { name: 'Current state', type: 'current' }, ...redoStack.value])
+const rlinksStore = userLinksStore()
+
+const isRoadMode = computed(() => rlinksStore.editionMode)
+const isEditorMode = computed(() => linksStore.editorTrip !== null)
+
+const history = computed(() => isEditorMode.value ? linksStore.history : isRoadMode.value ? rlinksStore.history : [])
+const redoStack = computed(() => isEditorMode.value ? linksStore.redoStack : isRoadMode.value ? rlinksStore.redoStack : [])
+const timeline = computed(() => [
+  ...history.value.map(el => ({ name: el.name, type: 'past' })),
+  { name: 'Current state', type: 'current' },
+  ...redoStack.value.map(el => ({ name: el.name, type: 'future' })),
+])
 
 </script>
 <template>
   <v-menu
+    v-if="isRoadMode||isEditorMode"
     v-model="show"
     :close-on-content-click="false"
     :persistent="true"

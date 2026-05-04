@@ -96,7 +96,6 @@ const anchorMode = computed(() => store.anchorMode)
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const editorTrip = computed(() => linksStore.editorTrip)
 const isEditorMode = computed(() => editorTrip.value !== null)
-const isRoadMode = computed(() => rlinksStore.editionMode)
 
 // DrakLink
 
@@ -140,7 +139,6 @@ import HistorySelector from '../utils/HistorySelector.vue'
         <Settings />
         <StyleSelector :order="1" />
         <HistorySelector
-          v-if="isRoadMode"
           :order="3"
         />
         <LayerSelector
