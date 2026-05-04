@@ -96,6 +96,7 @@ const anchorMode = computed(() => store.anchorMode)
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const editorTrip = computed(() => linksStore.editorTrip)
 const isEditorMode = computed(() => editorTrip.value !== null)
+const isRoadMode = computed(() => rlinksStore.editionMode)
 
 // DrakLink
 
@@ -114,7 +115,7 @@ watch(anchorMode, (val) => {
   }
 })
 
-// import HistorySelector from '../utils/HistorySelector.vue'
+import HistorySelector from '../utils/HistorySelector.vue'
 
 </script>
 <template>
@@ -138,7 +139,10 @@ watch(anchorMode, (val) => {
       <div v-if="mapIsLoaded">
         <Settings />
         <StyleSelector :order="1" />
-        <!-- <HistorySelector :order="2" /> -->
+        <HistorySelector
+          v-if="isRoadMode"
+          :order="3"
+        />
         <LayerSelector
           v-if="styles.length>0"
           :order="2"
