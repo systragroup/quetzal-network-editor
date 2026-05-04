@@ -10,9 +10,10 @@ import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
 import { AddRoadNodeInlinePayload,
-  AttributesChoice, ChangeVisibleLinks, CreateRlinkPayload,
+  AttributesChoice, ChangeVisibleLinks, Commit, CreateRlinkPayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
-  SelectedAnchor, SplitRoadPayload } from '@src/types/typesStore'
+  SelectedAnchor, SplitRoadPayload,
+  UpdateFeatures } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
   PointFeatures,
   PointGeoJson } from '@src/types/geojson'
@@ -24,21 +25,12 @@ import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   getDefaultLink, getVariantsChoices,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties } from '@src/utils/roadNetwork'
+import { toRaw } from 'vue'
 const $gettext = (s: string) => s
 
 // import { useHistory } from '@src/composables/useHistory'
 // import { toRaw } from 'vue'
 // const { commit, state, initHistory, redo, undo } = useHistory({ links: {}, nodes: {} })
-
-interface Commit {
-  name: string
-  newLinks?: LineStringFeatures[]
-  newNodes?: PointFeatures[]
-  deleteLinks?: Set<string>
-  deleteNodes?: Set<string>
-  updateLinks?: LineStringFeatures[]
-  updateNodes?: PointFeatures[]
-}
 
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
@@ -64,19 +56,27 @@ export const userLinksStore = defineStore('rlinks', {
     networkWasModified: false, // update in Roadlinks.vue when map is updated (updateLinks and others are watch)
     // params
     speedTimeMethod: 'time',
+    history: [],
   }),
 
   actions: {
 
-    commitChanges(payload: Commit) {
+    commitChanges(payload: Commit, addToHistory: boolean = true) {
       const { name, newLinks, newNodes, deleteLinks, deleteNodes, updateLinks, updateNodes } = payload
-      console.log(name)
-      if (newLinks) _addGeojsonFeatures(this.rlinks, newLinks)
-      if (newNodes) _addGeojsonFeatures(this.rnodes, newNodes)// TODO method for array of nodes
-      if (updateLinks) _editGeojsonFeatures(this.rlinks, updateLinks)
-      if (updateNodes) _editGeojsonFeatures(this.rnodes, updateNodes) // TODO method for array of nodes
-      if (deleteLinks) _deleteGeojsonFeatures(this.rlinks, deleteLinks)
-      if (deleteNodes) _deleteGeojsonFeatures(this.rnodes, deleteNodes)
+      const history: Commit = { name: name + '_undo' }
+      if (newLinks) history.deleteLinks = _addGeojsonFeatures(this.rlinks, newLinks)
+
+      if (newNodes) history.deleteNodes = _addGeojsonFeatures(this.rnodes, newNodes)
+      if (updateLinks) history.updateLinks = _editGeojsonFeatures(this.rlinks, updateLinks) as LineStringFeatures[]
+      if (updateNodes) history.updateNodes = _editGeojsonFeatures(this.rnodes, updateNodes) as PointFeatures[]
+      if (deleteLinks) history.newLinks = _deleteGeojsonFeatures(this.rlinks, deleteLinks) as LineStringFeatures[]
+      if (deleteNodes) history.newNodes = _deleteGeojsonFeatures(this.rnodes, deleteNodes) as PointFeatures[]
+      if (addToHistory) this.history.push(history)
+
+      // this.updateLinks = [...updateLinks, ...newLinks]
+      // this.updateNodes = [...updateNodes, ...newNode]
+
+      // visibleLinksList
 
       // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
       // const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
@@ -88,12 +88,35 @@ export const userLinksStore = defineStore('rlinks', {
     //     this.rnodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
     //   }
     // },
-    // undo() {
-    //   if (undo()) {
-    //     this.rlinks.features = Object.values(state.value.links).map(el => toRaw(el))
-    //     this.rnodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
-    //   }
-    // },
+    undo() {
+      if (this.history.length > 0) {
+        const hist = this.history.pop() as Commit
+        this.commitChanges(hist, false)
+
+        const { newLinks, newNodes, deleteLinks, updateLinks, updateNodes } = hist
+        const _updateLinks: UpdateFeatures[] = []
+        const _updateNodes: UpdateFeatures[] = []
+        if (newLinks) _updateLinks.push(...newLinks)
+        if (updateLinks) _updateLinks.push(...updateLinks)
+
+        if (newNodes) _updateNodes.push(...newNodes)
+        if (updateNodes) _updateNodes.push(...updateNodes)
+        if (deleteLinks) {
+          let ls: UpdateFeatures[] = Array.from(deleteLinks).map(idx => { return { type: 'Feature', id: idx } })
+          _updateLinks.push(...ls)
+          const nodesToUpdate = getUnusedNodes(this.visiblerNodes, this.visiblerLinks)
+          ls = Array.from(nodesToUpdate).map(idx => { return { type: 'Feature', id: idx } })
+          _updateNodes.push(...ls)
+        }
+
+        //   const visibleLinksList = this.visiblerLinks.features.filter(link =>
+        // (link.properties.a === nodeIndex) || (link.properties.b === nodeIndex))
+        this.updateLinks = _updateLinks
+        this.updateNodes = _updateNodes
+        // this.updateLinks = [] // refresh rlinks
+        // this.updateNodes = [] //  refres nodes.
+      }
+    },
     //
     // IO
     //
@@ -267,6 +290,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     startEditing () {
       this.savedNetwork = { rlinks: JSON.stringify(this.rlinks), rnodes: JSON.stringify((this.rnodes)) }
+      console.log(this.rlinks.features.filter(link => link.properties.highway === 'quenedi'))
 
       // const links = Object.fromEntries(this.rlinks.features.map(item => [item.properties.index, toRaw(item)]))
       // const nodes = Object.fromEntries(this.rnodes.features.map(item => [item.properties.index, toRaw(item)]))
@@ -528,7 +552,7 @@ export const userLinksStore = defineStore('rlinks', {
       linkFeature.properties.a = nodeIdA
       linkFeature.properties.b = rnodeB.properties.index
       // add length, speed, time now that we have a geometry.
-      linkGeometry.coordinates = [rnodeA.geometry.coordinates, rnodeB.geometry.coordinates]
+      linkGeometry.coordinates = [toRaw(rnodeA.geometry.coordinates), toRaw(rnodeB.geometry.coordinates)]
       calcLengthTimeorSpeed(linkFeature, this.timeVariants, this.speedTimeMethod)
       if (this.rlineAttributes.includes('oneway')) {
         linkFeature.properties.oneway = '0'
@@ -552,7 +576,7 @@ export const userLinksStore = defineStore('rlinks', {
       if (newNodeArr.length > 0) commit.newNodes = newNodeArr
       this.commitChanges(commit)
 
-      this.updateLinks = newLinksArr
+      this.updateLinks = [...newLinksArr, ...modifiedLinksArr]
       this.updateNodes = [rnodeB]
       return rnodeB
     },
@@ -569,12 +593,12 @@ export const userLinksStore = defineStore('rlinks', {
 
       // update links geometry.
       linksB.forEach(link => {
-        link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
+        link.geometry.coordinates[link.geometry.coordinates.length - 1] = toRaw(geom)
         const variants = this._getTimeVariants(link)
         calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
       linksA.forEach(link => {
-        link.geometry.coordinates[0] = geom
+        link.geometry.coordinates[0] = toRaw(geom)
         const variants = this._getTimeVariants(link)
         calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })

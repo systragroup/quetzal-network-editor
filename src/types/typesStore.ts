@@ -274,6 +274,16 @@ export interface SavedRoadNetwork {
   rnodes: string
 }
 
+export interface Commit {
+  name: string
+  newLinks?: LineStringFeatures[]
+  newNodes?: PointFeatures[]
+  deleteLinks?: Set<string>
+  deleteNodes?: Set<string>
+  updateLinks?: LineStringFeatures[]
+  updateNodes?: PointFeatures[]
+}
+
 export interface RlinksStore {
   rlinks: LineStringGeoJson
   rnodes: PointGeoJson
@@ -291,6 +301,7 @@ export interface RlinksStore {
   savedNetwork: SavedRoadNetwork
   networkWasModified: boolean
   speedTimeMethod: SpeedTimeMethod
+  history: Commit[]
 }
 
 // OD store

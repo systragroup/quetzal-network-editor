@@ -50,23 +50,23 @@ onUnmounted(() => {
 
 // // ctrl-z
 
-// onMounted(() => {
-//   document.addEventListener('keydown', handleKeydown)
-// })
-// onUnmounted(() => {
-//   document.removeEventListener('keydown', handleKeydown)
-// })
-// function handleKeydown(event: KeyboardEvent) {
-//   // Check if Ctrl (or Command on Mac) and Z are pressed
-//   if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
-//     event.preventDefault()
-//     rlinksStore.undo()
-//   }
-//   if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
-//     event.preventDefault()
-//     rlinksStore.redo()
-//   }
-// }
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+function handleKeydown(event: KeyboardEvent) {
+  // Check if Ctrl (or Command on Mac) and Z are pressed
+  if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+    event.preventDefault()
+    rlinksStore.undo()
+  }
+  // if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
+  //   event.preventDefault()
+  //   rlinksStore.redo()
+  // }
+}
 const visiblerLinks = computed(() => rlinksStore.visiblerLinks)
 const visiblerNodes = computed(() => rlinksStore.visiblerNodes)
 
@@ -207,11 +207,16 @@ watch(hoveredStateId, (newVal, oldVal) => {
 function setPopup(coords: LngLat, feature: any) {
   if (popup.value?.isOpen()) popup.value.remove()
   if (!disablePopup.value && selectedPopupContent.value.length > 0) {
-    // eslint-disable-next-line max-len
-    const htmlContent = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties ? [prop] : ''}</b>`)
+    const htmlContent = `
+    <ul>
+    ${selectedPopupContent.value
+    .map(prop => `<ul>${prop}: <b>${feature.properties[prop] ?? ''}</b></ul>`)
+    .join('')}
+    </ul>
+    `
     popup.value = new mapboxgl.Popup({ closeButton: false })
       .setLngLat(coords)
-      .setHTML(htmlContent.join('<br> '))
+      .setHTML(htmlContent)
       .addTo(map.value)
   }
 }
@@ -436,8 +441,8 @@ function moveNode (event: CustomMapEvent) {
 
   // get links connected to the node
   // update the position of the movingLine
-  const b = visiblerLinks.value.features.filter(link => link.properties.b === nodeIndex)
-  const a = visiblerLinks.value.features.filter(link => link.properties.a === nodeIndex)
+  const b = cloneDeep(visiblerLinks.value.features.filter(link => link.properties.b === nodeIndex))
+  const a = cloneDeep(visiblerLinks.value.features.filter(link => link.properties.a === nodeIndex))
   const features: LineStringFeatures[] = []
   a.forEach(link => features.push(createLinestringFeature(link.geometry.coordinates)))
   b.forEach(link => features.push(createLinestringFeature(link.geometry.coordinates.toReversed())))

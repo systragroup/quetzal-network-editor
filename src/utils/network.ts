@@ -6,6 +6,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
 import { round } from './utils'
+import { cloneDeep } from 'lodash'
 const secPerHour = 3600
 
 export function initLengthTimeSpeed(links: LineStringGeoJson, variants: NonEmptyArray<string> = ['']) {
@@ -159,21 +160,29 @@ export function _deleteLinkPT(editorLinks: LineStringGeoJson, feature: LineStrin
   editorLinks.features.slice(featureIndex).forEach(link => link.properties.link_sequence -= 1)
 }
 
-export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]) {
+export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): Set<string> {
+  const addedIndexes = new Set(features.map(feat => feat.properties.index))
   geojson.features.push(...features)
+  return addedIndexes
 }
 
-export function _deleteGeojsonFeatures(geojson: GeoJson, toDelete: Set<string>) {
+export function _deleteGeojsonFeatures(geojson: GeoJson, toDelete: Set<string>): GeoJsonFeatures[] {
   // links or nodes
+  const deleted = cloneDeep(geojson.features.filter(feature => toDelete.has(feature.properties.index)))
   geojson.features = geojson.features.filter(feature => !toDelete.has(feature.properties.index))
+  return deleted
 }
 
-export function _editGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]) {
+export function _editGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): GeoJsonFeatures[] {
   // links or nodes
   // Create a map from index => modified feature and update every index in the map
+  const beforeFeatures: GeoJsonFeatures[] = []
   const updateMap = new Map(features.map(feature => [feature.properties.index, feature]))
   geojson.features.forEach(feature => {
     const index = feature.properties.index
-    if (updateMap.has(index)) Object.assign(feature, updateMap.get(index))
+    if (updateMap.has(index)) {
+      beforeFeatures.push(cloneDeep(feature))
+      Object.assign(feature, updateMap.get(index)) }
   })
+  return beforeFeatures
 }
