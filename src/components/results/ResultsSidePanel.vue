@@ -6,7 +6,7 @@ const { $gettext } = useGettext()
 
 const props = defineProps(['selectedCategory',
   'selectedFilter',
-  'filterChoices',
+  'attributesList',
   'filteredCat',
   'layerChoices',
   'selectedLayer',
@@ -262,7 +262,7 @@ onMounted(() => {
                 <div :style="{'padding-top': '0.5rem'}">
                   <v-select
                     v-model="vmodelSelectedFilter"
-                    :items="filterChoices.sort()"
+                    :items="attributesList.sort()"
                     prepend-inner-icon="fas fa-filter"
                     :label="$gettext('filter')"
                     variant="outlined"

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { toRaw, ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
-import { cloneDeep } from 'lodash'
 import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
@@ -13,41 +12,27 @@ const { openDialog } = useForm()
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
-const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
-const localSelectedTrip = ref(cloneDeep(selectedrGoup.value))
 
-watch(localSelectedTrip, newVal => {
-  const category = vmodelSelectedFilter.value
-  rlinksStore.changeVisibleRoads({ category: toRaw(category), data: toRaw(newVal) })
-})
-watch(selectedrGoup, (newVal) => {
-  // check selected group in store. if it changes from another component
-  const a = new Set(newVal)
-  const b = new Set(localSelectedTrip.value)
-  if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
-    localSelectedTrip.value = toRaw(newVal)
-  }
+const selectedrGoup = computed({
+  get: () => rlinksStore.filteredSelected,
+  set: (set) => rlinksStore.filteredSelected = set,
 })
 
-const selectedFilter = ref(cloneDeep(rlinksStore.selectedrFilter))
-const vmodelSelectedFilter = ref(selectedFilter.value)
-const filterChoices = computed(() => { return rlinksStore.rlineAttributes })
-const filteredCat = computed(() => { return rlinksStore.filteredrCategory })
-// this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
-watch(vmodelSelectedFilter, (newVal, oldVal) => {
-  selectedFilter.value = newVal
-  // only reset if we change the filter.
-  rlinksStore.changeSelectedrFilter(selectedFilter.value)
-  // when the component is loaded, oldVal is null and we dont want to overwrite localSelectedTrip to [].
-  if (oldVal) {
-    localSelectedTrip.value = []
-  }
+const selectedrFilter = computed({
+  get: () => rlinksStore.selectedrFilter,
+  set: (val) => rlinksStore.selectedrFilter = val,
 })
+
+watch(selectedrFilter, (v) => rlinksStore.changeSelectedrFilter(v))
+
+// lists for filter and virtual-scroll
+const attributesList = computed(() => { return rlinksStore.rlineAttributes })
+const filteredChoices = computed(() => { return rlinksStore.filteredChoices })
 
 onMounted(() => {
-  if (linksStore.links.features.length === 0
+  if (linksStore.linksIsEmpty
     && !store.projectIsEmpty
-    && selectedrGoup.value.length === 0) {
+    && selectedrGoup.value.size === 0) {
     showAll()
   }
 })
@@ -55,13 +40,13 @@ onMounted(() => {
 function propertiesButton (group: string) {
   // select the TripId and open dialog
 
-  const features = rlinksStore.rlinks.features.filter(link => link.properties[vmodelSelectedFilter.value] === group)
+  const features = rlinksStore.rlinks.features.filter(link => link.properties[selectedrFilter.value] === group)
   const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function editVisible () {
-  const group = new Set(rlinksStore.selectedrGroup)
+  const group = rlinksStore.filteredSelected
   const cat = rlinksStore.selectedrFilter
   const filtered = rlinksStore.rlinks.features.filter(link => group.has(link.properties[cat]))
   const indexList = filtered.map(link => link.properties.index)
@@ -69,10 +54,12 @@ function editVisible () {
 }
 
 function showAll () {
-  if (localSelectedTrip.value.length === filteredCat.value.length) {
-    localSelectedTrip.value = []
+  if (selectedrGoup.value.size === filteredChoices.value.size) {
+    // hideAll
+    selectedrGoup.value = new Set([])
   } else {
-    localSelectedTrip.value = filteredCat.value
+    // showAll
+    selectedrGoup.value = filteredChoices.value
   }
 }
 
@@ -98,6 +85,11 @@ async function deleteButton (group: string, message: string) {
   }
 }
 
+const selectedrGoupProxy = computed({
+  get: () => [...selectedrGoup.value],
+  set: (arr) => selectedrGoup.value = new Set(arr),
+})
+
 </script>
 <template>
   <section>
@@ -109,14 +101,14 @@ async function deleteButton (group: string, message: string) {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="localSelectedTrip.length === filteredCat.length? 'fa-eye fa' : 'fa-eye-slash fa'"
+            :icon="selectedrGoup.size === filteredChoices.size? 'fa-eye fa' : 'fa-eye-slash fa'"
             class="ma-2"
             :style="{color: 'white'}"
             v-bind="props"
             @click="showAll()"
           />
         </template>
-        <span>{{ localSelectedTrip.length ===filteredCat.length ? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ selectedrGoup.size ===filteredChoices.size ? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         location="bottom"
@@ -128,7 +120,7 @@ async function deleteButton (group: string, message: string) {
             icon="fas fa-list"
             class="ma-2"
             :style="{color: 'white'}"
-            :disabled="localSelectedTrip.length===0? true: false"
+            :disabled="selectedrGoup.size===0? true: false"
 
             v-bind="props"
             @click="editVisible()"
@@ -189,8 +181,8 @@ async function deleteButton (group: string, message: string) {
       <v-list-item>
         <div :style="{'padding-top': '0.5rem'}">
           <v-select
-            v-model="vmodelSelectedFilter"
-            :items="filterChoices.sort()"
+            v-model="selectedrFilter"
+            :items="attributesList.sort()"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"
             variant="outlined"
@@ -202,17 +194,17 @@ async function deleteButton (group: string, message: string) {
       </v-list-item>
 
       <v-virtual-scroll
-        :items="filteredCat"
+        :items="[...filteredChoices]"
         :item-height="45"
         :max-height="roadEditionMode? 'calc(100vh - 250px - 110px)': 'calc(100vh - 250px - 70px)'"
       >
         <template v-slot="{ item }">
           <div
-            :key="vmodelSelectedFilter.concat(item)"
+            :key="selectedrFilter.concat(item)"
             class="container"
           >
             <v-checkbox-btn
-              v-model="localSelectedTrip"
+              v-model="selectedrGoupProxy"
               class="ma-2 pl-2"
               :true-icon="'fa-eye fa'"
               :false-icon="'fa-eye-slash fa'"

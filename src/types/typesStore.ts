@@ -232,11 +232,6 @@ export interface LinksStore {
 
 // road
 
-export interface ChangeVisibleLinks {
-  category: string
-  data: string[]
-}
-
 export interface EditRoadPayload {
   infoArr: GroupForm[]
   selectedArr: string[]
@@ -289,8 +284,8 @@ export interface RlinksStore {
   variant: string
   variantChoice: NonEmptyArray<string>
   selectedrFilter: string
-  selectedrGroup: string[]
-  filteredrCategory: string[]
+  filteredSelected: Set<string>
+  filteredChoices: Set<string >
   linksDefaultAttributes: Attributes[]
   nodesDefaultAttributes: Attributes[]
   rlinksAttributesChoices: AttributesChoice

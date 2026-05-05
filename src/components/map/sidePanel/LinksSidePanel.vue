@@ -54,7 +54,7 @@ watch(tripList, (newVal, oldVal) => {
   }
 })
 // filters (route_type)
-const filterChoices = computed(() => { return linksStore.lineAttributes })
+const attributesList = computed(() => { return linksStore.lineAttributes })
 const selectedFilter = ref('route_type')
 const ShowGroupList = ref<Set<String>>(new Set([]))
 watch(selectedFilter, () => { ShowGroupList.value = new Set([]) })
@@ -307,7 +307,7 @@ function setHighlight(trip: string | null) {
         >
           <v-select
             v-model="selectedFilter"
-            :items="filterChoices.sort()"
+            :items="attributesList.sort()"
             :style="{'flex':1.3}"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"

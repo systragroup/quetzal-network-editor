@@ -2,6 +2,15 @@ import { FormFormat, GroupForm } from '@src/types/components'
 import { GeoJson, GeoJsonFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
 import { createHash } from 'sha256-uint8array'
 
+export function isDefined<T>(value: T | null | undefined): value is T {
+  // Check if a value is defined (not null or undefined)
+  return value !== null && value !== undefined
+}
+export function isUndefined<T>(value: T | null | undefined): value is T {
+  // Check if a value is defined (not null or undefined)
+  return value === null || value === undefined
+}
+
 // Links Used in all
 
 export function getGroupForm (features: GeoJsonFeatures[], lineAttributes: string[], uneditable: string[]) {

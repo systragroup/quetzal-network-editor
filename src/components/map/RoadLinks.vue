@@ -126,7 +126,7 @@ const selectedPopupContent = computed(() => store.roadsPopupContent)
 //
 // filtering
 //
-const filterValues = computed(() => rlinksStore.selectedrGroup)
+const filterValues = computed(() => rlinksStore.filteredSelected)
 const filterCat = computed(() => rlinksStore.selectedrFilter)
 const visibleNodesIndex = computed(() => rlinksStore.visibleNodesIndex)
 watch(filterValues, () => setFilter())

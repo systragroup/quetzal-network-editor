@@ -6,11 +6,11 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
   getUnusedNodes } from '@src/utils/utils'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isUndefined } from 'lodash'
 
 import short from 'short-uuid'
 import { AddRoadNodeInlinePayload,
-  AttributesChoice, ChangeVisibleLinks, Commit, CreateRlinkPayload,
+  AttributesChoice, Commit, CreateRlinkPayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload,
   UpdateFeatures } from '@src/types/typesStore'
@@ -36,6 +36,8 @@ export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
     rnodes: basePoint(),
+    history: [],
+    redoStack: [],
     // variant (periods)
     variant: '',
     variantChoice: [''], // should never be empty.
@@ -44,9 +46,9 @@ export const userLinksStore = defineStore('rlinks', {
     nodesDefaultAttributes: cloneDeep(rnodesDefaultProperties),
     rlinksAttributesChoices: cloneDeep(roadDefaultAttributesChoices),
     // Filter
-    selectedrFilter: '',
-    selectedrGroup: [],
-    filteredrCategory: [],
+    selectedrFilter: '', // ex: highway
+    filteredChoices: new Set([]), // ex: ['residential','motorway','primary'] all the coices
+    filteredSelected: new Set([]), // ex: ['residential'] only show residential
     // to tell mapbox what to dynamicly update
     updateLinks: [],
     updateNodes: [],
@@ -54,8 +56,7 @@ export const userLinksStore = defineStore('rlinks', {
     editionMode: false,
     // params
     speedTimeMethod: 'time',
-    history: [],
-    redoStack: [],
+
   }),
 
   actions: {
@@ -79,6 +80,7 @@ export const userLinksStore = defineStore('rlinks', {
         const prev = this.history.pop() as Commit
         const next = this.applyCommit(prev)
         this.update(prev)
+        this.getFilteredChoices()
         this.redoStack.push(next)
       }
     },
@@ -88,6 +90,7 @@ export const userLinksStore = defineStore('rlinks', {
         const next = this.redoStack.pop() as Commit
         const prev = this.applyCommit(next)
         this.update(next)
+        this.getFilteredChoices()
         this.history.push(prev)
       }
     },
@@ -96,6 +99,7 @@ export const userLinksStore = defineStore('rlinks', {
       // function to call when performing an action
       const prev = this.applyCommit(commit)
       this.update(commit)
+      this.getFilteredChoices()
       this.history.push(prev)
       this.redoStack = [] // must erase redo stack
     },
@@ -122,12 +126,11 @@ export const userLinksStore = defineStore('rlinks', {
       this.updateLinks = _updateLinks
       this.updateNodes = _updateNodes
 
-      // if (newLinks || deleteLinks) {
-      //   // there is no way to tell what visible nodes to update at this point. update all...
-      //   this.updateNodes = []
-      // } else {
-      //   this.updateNodes = _updateNodes
-      // }
+      // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
+      // const newLinkGroup = linkFeature.properties[this.selectedrFilter]
+
+      // this.filteredChoices.add(newLinkGroup)
+      // this.filteredSelected.add(newLinkGroup)
     },
     //
     // IO
@@ -334,28 +337,24 @@ export const userLinksStore = defineStore('rlinks', {
     // filtering
     //
 
-    changeSelectedrFilter (payload: string) {
-      this.selectedrFilter = payload
-      this.getFilteredrCat()
-    },
-
     initSelectedrFilter() {
       const selectedFilter = this.rlineAttributes.includes('highway') ? 'highway' : this.rlineAttributes[0]
       this.changeSelectedrFilter(selectedFilter)
     },
 
-    getFilteredrCat () {
+    changeSelectedrFilter (payload: string) {
+      this.selectedrFilter = payload // ex: highway
+      this.getFilteredChoices()
+    },
+
+    getFilteredChoices () {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
       // replace undefined with null here. the filter will not work if undefined.
-      const val = Array.from(new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter] || null)))
-      this.filteredrCategory = val
+      const arr = new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter] || null))
+      this.filteredChoices = arr // ex: [motorway,residentials,...]
     },
-
-    changeVisibleRoads (payload: ChangeVisibleLinks) {
-      this.selectedrFilter = payload.category
-      this.selectedrGroup = payload.data
-    },
+    updateFilteredChoices() {}, // TODO like at each commit
 
     //
     // edition (properties)
@@ -427,7 +426,6 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       this.commitChanges({ name: 'editGroupInfo', updateLinks: selectedLinks })
-      this.getFilteredrCat()
     },
 
     //
@@ -561,18 +559,6 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       newLinksArr.push(linkFeature)
-
-      // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
-      const newLinkGroup = linkFeature.properties[this.selectedrFilter]
-      if (!this.filteredrCategory.includes(newLinkGroup)) {
-        this.filteredrCategory.push(newLinkGroup)
-      }
-      if (!this.selectedrGroup.includes(newLinkGroup)) {
-        // if its not already selected, push it.
-        this.selectedrGroup = [...this.selectedrGroup, newLinkGroup]
-      } else {
-      }
-
       const commit: Commit = { name: 'createLink', newLinks: newLinksArr, updateLinks: modifiedLinksArr }
       if (newNodeArr.length > 0) commit.newNodes = newNodeArr
       this.commitChanges(commit)
@@ -641,7 +627,6 @@ export const userLinksStore = defineStore('rlinks', {
       const toDelete = new Set(getUnusedNodes(this.rnodes, filtered))
 
       this.commitChanges({ name: 'deleteLink', deleteLinks: linkArr, deleteNodes: toDelete })
-      this.getFilteredrCat()
     },
 
     deleterGroup (group: string) {
@@ -655,14 +640,19 @@ export const userLinksStore = defineStore('rlinks', {
 
   getters: {
     visibleNodesIndex(): Set<string> {
+      // TODO: could also move this to the update function todo that change selectedGroup on commit...
       const visibleNodeIds = new Set<string>()
-      const group = new Set(this.selectedrGroup)
-      this.rlinks.features.forEach(link => {
-        if (group.has(link.properties[this.selectedrFilter])) {
+      const key = this.selectedrFilter
+      const group = this.filteredSelected as Set<string | null>
+      const getNull = group.has(null)
+      for (const link of this.rlinks.features) {
+        const v = link.properties[key]
+        if (group.has(v) || (getNull && isUndefined(v))) {
           visibleNodeIds.add(link.properties.a)
           visibleNodeIds.add(link.properties.b)
         }
-      })
+      }
+
       return visibleNodeIds
     },
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
