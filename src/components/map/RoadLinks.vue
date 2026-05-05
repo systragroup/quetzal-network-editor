@@ -23,32 +23,13 @@ interface Props {
   map: Map
   isEditorMode: boolean
 }
-
 const props = defineProps<Props>()
+const { map, isEditorMode } = toRefs(props)
+
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 
-const { map, isEditorMode } = toRefs(props)
-const isRoadMode = computed(() => rlinksStore.editionMode)
-onMounted(() => {
-  if (map.value.getLayer('links')) {
-    map.value.moveLayer('rlinks', 'links')
-    map.value.moveLayer('anchorrNodes', 'links')
-    map.value.moveLayer('rnodes', 'links')
-  }
-  init()
-})
-watch(isRoadMode, () => init())
-onBeforeUnmount(() => {
-  // remove arrow layer first as it depend on rlink layer
-  map.value.removeLayer('arrow-rlinks')
-})
-
-onUnmounted(() => {
-  if (isRoadMode.value) { rlinksStore.cancelEdition() } // if page change. we cancel.
-})
-
-// // ctrl-z
+// ctrl-z
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
@@ -57,6 +38,7 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 function handleKeydown(event: KeyboardEvent) {
+  // console.log(event.shiftKey)
   // Check if Ctrl (or Command on Mac) and Z are pressed
   if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
     event.preventDefault()
@@ -67,11 +49,33 @@ function handleKeydown(event: KeyboardEvent) {
     rlinksStore.redo()
   }
 }
-const visiblerLinks = computed(() => rlinksStore.visiblerLinks)
-const visiblerNodes = computed(() => rlinksStore.visiblerNodes)
+
+onMounted(() => {
+  if (map.value.getLayer('links')) {
+    map.value.moveLayer('rlinks', 'links')
+    map.value.moveLayer('anchorrNodes', 'links')
+    map.value.moveLayer('rnodes', 'links')
+  }
+  init()
+})
+
+onBeforeUnmount(() => {
+  // remove arrow layer first as it depend on rlink layer
+  map.value.removeLayer('arrow-rlinks')
+})
+
+const isRoadMode = computed(() => rlinksStore.editionMode)
+watch(isRoadMode, () => init())
+
+onUnmounted(() => {
+  if (isRoadMode.value) { rlinksStore.cancelEdition() } // if page change. we cancel.
+})
+
+const rlinks = computed(() => rlinksStore.rlinks)
+const visiblerNodes = computed(() => rlinksStore.rnodes)
 
 async function initLinks() {
-  const links = visiblerLinks.value
+  const links = rlinks.value
   links.features.forEach((link) => link.id = link.properties.index)
   const source = map.value.getSource('rlinks') as GeoJSONSource
   if (source) {
@@ -87,8 +91,10 @@ async function initNodes() {
   }
 }
 function init() {
+  console.log('init')
   initLinks()
   initNodes()
+  setFilter()
 }
 
 type NetworkFeature = (LineStringFeatures | PointFeatures | UpdateFeatures)
@@ -103,11 +109,11 @@ function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
       initNodes()
     }
   } else {
-    const features = cloneDeep(array)
-    features.forEach(el => el.id = el.properties ? el.properties.index : el.id)
+    // const features = cloneDeep(array)
+    array.forEach(el => el.id = el.properties ? el.properties.index : el.id)
     const mapSource = map.value.getSource(source) as GeoJSONSource
     if (!mapSource) return
-    mapSource.updateData({ type: 'FeatureCollection', features: features as any }) // TODO: change any
+    mapSource.updateData({ type: 'FeatureCollection', features: array as any }) // TODO: change any
   }
 }
 
@@ -117,20 +123,42 @@ watch(updateLinks, (list) => { updateData('rlinks', list) }, { flush: 'sync' })
 watch(updateNodes, (list) => { updateData('rnodes', list) }, { flush: 'sync' })
 
 const selectedPopupContent = computed(() => store.roadsPopupContent)
+//
+// filtering
+//
+const filterValues = computed(() => rlinksStore.selectedrGroup)
+const filterCat = computed(() => rlinksStore.selectedrFilter)
+const visibleNodesIndex = computed(() => rlinksStore.visibleNodesIndex)
+watch(filterValues, () => setFilter())
+watch(filterCat, () => setFilter())
+watch(visibleNodesIndex, () => setFilter())
 
-// init all when we change a filter.
-const filtereValues = computed(() => rlinksStore.selectedrGroup)
-watch(filtereValues, () => init())
+function setFilter() {
+  const linksFilter = [
+    'in',
+    ['get', filterCat.value],
+    ['literal', [...filterValues.value]],
+  ]
+  map.value.setFilter('rlinks', linksFilter)
+  map.value.setFilter('arrow-rlinks', linksFilter)
+
+  map.value.setFilter('rnodes', [
+    'in',
+    ['get', 'index'],
+    ['literal', [...visibleNodesIndex.value]],
+  ])
+}
 
 function queryAnchor() {
   // query links in window and generate Anchor nodes.
   const query = map.value.queryRenderedFeatures({ layers: ['rlinks'] })
   const rlinksSet = new Set(query.map(el => el.id))
-  const renderedFeatures = visiblerLinks.value.features.filter(link => rlinksSet.has(link.properties.index))
+  const renderedFeatures = rlinks.value.features.filter(link => rlinksSet.has(link.properties.index))
   return getAnchorGeojson(renderedFeatures)
 }
 
 const anchorMode = computed(() => { return store.anchorMode })
+const currentZoom = ref(10)
 
 watchEffect(() => {
   // query nodes every time VisibleLinks, zoom and anchorMode changes.
@@ -181,14 +209,10 @@ watch(isRoadMode, (val) => {
 })
 
 const popup = ref <Popup>()
-
 const disablePopup = ref(false)
-
-const currentZoom = ref(10)
 
 const drawMode = ref(false)
 const selectedFeature = ref<GeoJsonFeatures[]>([])
-
 const hoveredStateId = ref<HoverStateRoad | null>(null)
 
 watch(hoveredStateId, (newVal, oldVal) => {
@@ -440,8 +464,8 @@ function moveNode (event: CustomMapEvent) {
 
   // get links connected to the node
   // update the position of the movingLine
-  const b = cloneDeep(visiblerLinks.value.features.filter(link => link.properties.b === nodeIndex))
-  const a = cloneDeep(visiblerLinks.value.features.filter(link => link.properties.a === nodeIndex))
+  const b = cloneDeep(rlinks.value.features.filter(link => link.properties.b === nodeIndex))
+  const a = cloneDeep(rlinks.value.features.filter(link => link.properties.a === nodeIndex))
   const features: LineStringFeatures[] = []
   a.forEach(link => features.push(createLinestringFeature(link.geometry.coordinates)))
   b.forEach(link => features.push(createLinestringFeature(link.geometry.coordinates.toReversed())))
@@ -462,7 +486,7 @@ function moveAnchorNode(event: CustomMapEvent) {
   selectedFeature.value = selected
 
   const linkIndex = selectedFeature.value[0].properties.linkIndex
-  const link = cloneDeep(visiblerLinks.value.features.filter(link => link.properties.index === linkIndex)[0])
+  const link = cloneDeep(rlinks.value.features.filter(link => link.properties.index === linkIndex)[0])
   movingLine.value.features = [createLinestringFeature(link.geometry.coordinates)]
   startMoving(event)
   map.value.on('mousemove', onMoveAnchor)

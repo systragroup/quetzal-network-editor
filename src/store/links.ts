@@ -805,7 +805,7 @@ export const useLinksStore = defineStore('links', {
       const props = Object.keys(info)
       const node = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === selectedIndex)[0])
       props.forEach(key => node.properties[key] = info[key].value)
-      this.commitChanges({ name: 'edit noce properties', updateNodes: [node] })
+      this.commitChanges({ name: 'edit node properties', updateNodes: [node] })
     },
 
     editGroupInfo (payload: EditGroupPayload) {

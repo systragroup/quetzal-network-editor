@@ -55,13 +55,16 @@ onMounted(() => {
 function propertiesButton (group: string) {
   // select the TripId and open dialog
 
-  const features = rlinksStore.visiblerLinks.features.filter(link => link.properties[vmodelSelectedFilter.value] === group)
+  const features = rlinksStore.rlinks.features.filter(link => link.properties[vmodelSelectedFilter.value] === group)
   const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function editVisible () {
-  const indexList = rlinksStore.visiblerLinks.features.map(link => link.properties.index)
+  const group = new Set(rlinksStore.selectedrGroup)
+  const cat = rlinksStore.selectedrFilter
+  const filtered = rlinksStore.rlinks.features.filter(link => group.has(link.properties[cat]))
+  const indexList = filtered.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 

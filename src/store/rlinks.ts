@@ -5,7 +5,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
-  getUnusedNodes, deleteUnusedNodes } from '@src/utils/utils'
+  getUnusedNodes } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
@@ -101,30 +101,33 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     update(commit: Commit) {
-      const { newLinks, newNodes, deleteLinks, updateLinks, updateNodes } = commit
+      const { newLinks, newNodes, deleteLinks, updateLinks, updateNodes, deleteNodes } = commit
       const _updateLinks: UpdateFeatures[] = []
       const _updateNodes: UpdateFeatures[] = []
 
-      // filter updatedLinks with visibleLink. we could modify invisible links and dont want to display them!
-      const visibleIndex = new Set(this.visiblerLinks.features.map(el => el.properties.index))
-      if (updateLinks) _updateLinks.push(...updateLinks.filter(link => visibleIndex.has(link.id)))
-
+      if (updateLinks) _updateLinks.push(...updateLinks)
       if (newLinks) _updateLinks.push(...newLinks)
       if (newNodes) _updateNodes.push(...newNodes)
       if (updateNodes) _updateNodes.push(...updateNodes)
 
       if (deleteLinks) {
-        let linksArr: UpdateFeatures[] = Array.from(deleteLinks).map(idx => { return { type: 'Feature', id: idx } })
+        const linksArr: UpdateFeatures[] = Array.from(deleteLinks).map(idx => { return { type: 'Feature', id: idx } })
         _updateLinks.push(...linksArr)
       }
 
-      this.updateLinks = _updateLinks
-      if (newLinks || deleteLinks) {
-        // there is no way to tell what visible nodes to update at this point. update all...
-        this.updateNodes = []
-      } else {
-        this.updateNodes = _updateNodes
+      if (deleteNodes) {
+        let nodesArr: UpdateFeatures[] = Array.from(deleteNodes).map(idx => { return { type: 'Feature', id: idx } })
+        _updateNodes.push(...nodesArr)
       }
+      this.updateLinks = _updateLinks
+      this.updateNodes = _updateNodes
+
+      // if (newLinks || deleteLinks) {
+      //   // there is no way to tell what visible nodes to update at this point. update all...
+      //   this.updateNodes = []
+      // } else {
+      //   this.updateNodes = _updateNodes
+      // }
     },
     //
     // IO
@@ -651,17 +654,16 @@ export const userLinksStore = defineStore('rlinks', {
   },
 
   getters: {
-    visiblerLinks(): LineStringGeoJson {
-      const filtered = baseLineString()
+    visibleNodesIndex(): Set<string> {
+      const visibleNodeIds = new Set<string>()
       const group = new Set(this.selectedrGroup)
-      const cat = this.selectedrFilter
-      filtered.features = this.rlinks.features.filter(link => group.has(link.properties[cat]))
-      return filtered
-    },
-    visiblerNodes(): PointGeoJson {
-      const filtered = basePoint()
-      filtered.features = deleteUnusedNodes(this.rnodes, this.visiblerLinks)
-      return filtered
+      this.rlinks.features.forEach(link => {
+        if (group.has(link.properties[this.selectedrFilter])) {
+          visibleNodeIds.add(link.properties.a)
+          visibleNodeIds.add(link.properties.b)
+        }
+      })
+      return visibleNodeIds
     },
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     rlineAttributes: (state) => state.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')).map(el => el.name),
