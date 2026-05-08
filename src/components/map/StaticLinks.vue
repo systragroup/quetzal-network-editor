@@ -183,7 +183,7 @@ function editLineProperties (selectedTrip: string) {
   openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false, type: 'pt' })
 }
 
-const { highlightTrip, setHighlightTrip } = useHighlight()
+const { highlightTrip, setHighlightTrip, getColor } = useHighlight()
 
 function contextMenuClick(trip: string) {
   if (contextMenu.value.action === 'editProperties') {
@@ -197,9 +197,14 @@ function contextMenuClick(trip: string) {
     setHighlightTrip(null)
   }
 }
+
+const highlightColor = ref<string>(getColor(undefined))
+
 watch(highlightTrip, (trip) => {
   const highlightLinks = baseLineString()
-  highlightLinks.features = cloneDeep(visibleLinks.value.features.filter(el => el.properties.trip_id === trip))
+  const selected = cloneDeep(visibleLinks.value.features.filter(el => el.properties.trip_id === trip))
+  highlightLinks.features = selected
+  highlightColor.value = getColor(selected[0]?.properties.route_color)
   const source = map.value.getSource('highlightLink') as GeoJSONSource
   if (source) source.setData(highlightLinks)
 })
@@ -272,7 +277,6 @@ watch(highlightTrip, (trip) => {
       :source="{
         type: 'geojson',
         data: baseLineString(),
-        promoteId: 'index',
       }"
       layer-id="highlightLink"
       :layer="{
@@ -280,15 +284,13 @@ watch(highlightTrip, (trip) => {
         minzoom: 1,
         maxzoom: 18,
         paint: {
-          'line-color': $vuetify.theme.current.colors.linksprimary,
+          'line-color': highlightColor,
           'line-opacity': 1,
           'line-width': 5,
         },
-        layout: { 'line-cap': 'round', }
       }"
-      v-on="isEditorMode ? {mouseenter:()=>{},mouseleave:()=>{},contextmenu:()=>{} } :
-        { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:rightClick }"
     />
+
     <MglImageLayer
       source-id="highlightLink"
       type="symbol"
@@ -306,7 +308,7 @@ watch(highlightTrip, (trip) => {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': $vuetify.theme.current.colors.linksprimary,
+          'icon-color':highlightColor,
         }
       }"
     />
@@ -333,7 +335,7 @@ watch(highlightTrip, (trip) => {
               class="popup-content"
               block
               @mouseenter="setHighlightTrip(trip)"
-              @mouseleave="setHighlightTrip()"
+              @mouseleave="setHighlightTrip(null)"
               @click="contextMenuClick(trip)"
             >
               {{ $gettext(trip) }}
