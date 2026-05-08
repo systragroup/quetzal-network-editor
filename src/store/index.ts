@@ -380,9 +380,8 @@ export const useIndexStore = defineStore('index', {
         const tempNodes = cloneDeep(linksStore.nodes)
         tempNodes.features = deleteUnusedNodes(tempNodes, tempLinks)
         nodes = JSON.stringify(tempNodes)
-        // TODO visiblerlinks
-        rlinks = JSON.stringify(rlinksStore.visiblerLinks)
-        rnodes = JSON.stringify(rlinksStore.visiblerNodes)
+        rlinks = JSON.stringify(rlinksStore.getVisibleLinks())
+        rnodes = JSON.stringify(rlinksStore.getVisibleNodes())
         od = JSON.stringify(ODStore.visibleLayer)
       // export everything
       } else {

@@ -5,7 +5,8 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
-  getUnusedNodes } from '@src/utils/utils'
+  getUnusedNodes,
+  setsAreEqual } from '@src/utils/utils'
 import { cloneDeep, isUndefined } from 'lodash'
 
 import short from 'short-uuid'
@@ -100,8 +101,11 @@ export const userLinksStore = defineStore('rlinks', {
       const prev = this.applyCommit(commit)
       this.update(commit)
       this.getFilteredChoices()
-      this.history.push(prev)
-      this.redoStack = [] // must erase redo stack
+      // for now. we only track changes when in edition mode
+      if (this.editionMode) {
+        this.history.push(prev)
+        this.redoStack = [] // must erase redo stack
+      }
     },
 
     update(commit: Commit) {
@@ -324,6 +328,7 @@ export const userLinksStore = defineStore('rlinks', {
       console.timeEnd('cancel')
       this.getrLinksProperties()
       this.getrNodesProperties()
+      this.getFilteredChoices()
 
       this.updateLinks = [] // refresh rlinks
       // this.updateNodes = []
@@ -351,10 +356,22 @@ export const userLinksStore = defineStore('rlinks', {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
       // replace undefined with null here. the filter will not work if undefined.
-      const arr = new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter] || null))
-      this.filteredChoices = arr // ex: [motorway,residentials,...]
+      const choices = new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter] || null))
+      if (!setsAreEqual(this.filteredChoices, choices)) {
+        this.filteredChoices = choices // ex: [motorway,residentials,...]
+      }
     },
-    updateFilteredChoices() {}, // TODO like at each commit
+    //  to export
+    getVisibleLinks(): LineStringGeoJson {
+      const links = baseLineString()
+      links.features = this.rlinks.features.filter(el => this.filteredSelected.has(el.properties[this.selectedrFilter]))
+      return links
+    },
+    getVisibleNodes(): PointGeoJson {
+      const nodes = basePoint()
+      nodes.features = this.rnodes.features.filter(node => this.visibleNodesIndex.has(node.properties.index))
+      return nodes
+    },
 
     //
     // edition (properties)

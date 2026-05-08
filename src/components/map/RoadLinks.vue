@@ -91,7 +91,6 @@ async function initNodes() {
   }
 }
 function init() {
-  console.log('init')
   initLinks()
   initNodes()
   setFilter()
@@ -129,9 +128,18 @@ const selectedPopupContent = computed(() => store.roadsPopupContent)
 const filterValues = computed(() => rlinksStore.filteredSelected)
 const filterCat = computed(() => rlinksStore.selectedrFilter)
 const visibleNodesIndex = computed(() => rlinksStore.visibleNodesIndex)
-watch(filterValues, () => setFilter())
-watch(filterCat, () => setFilter())
-watch(visibleNodesIndex, () => setFilter())
+
+watch([filterValues, filterCat], () => {
+  map.value.once('idle', () => { //  need to query after its filter...
+    setAnchor()
+  })
+})
+// visibleNodesIndex change with filterValues, filterCat. so doesnt need to setFilter with those
+watch(visibleNodesIndex, (oldVal, newVal) => {
+  if (oldVal.size !== newVal.size) {
+    setFilter()
+  }
+})
 
 function setFilter() {
   const linksFilter = [
@@ -184,9 +192,11 @@ const minZoom = ref({
   nodes: 24, // 12. start at 24 so non visible until isRoadMode change.
 })
 
-async function getBounds() {
+async function setAnchor() {
   // query anchors if we move on the map
-  if (anchorMode.value && currentZoom.value >= minZoom.value.anchor) {
+  if (!isRoadMode.value) return
+  if (!anchorMode.value) return
+  if (currentZoom.value >= minZoom.value.anchor) {
     const source = map.value.getSource('anchorrNodes') as GeoJSONSource
     const anchors = queryAnchor()
     source.setData(anchors)
@@ -195,13 +205,13 @@ async function getBounds() {
 
 watch(isRoadMode, (val) => {
   if (val) {
-    map.value.on('dragend', getBounds)
+    map.value.on('dragend', setAnchor)
     map.value.on('zoomend', getZoom)
     getZoom() // call function immediatly so line width are update at current zoom.
     minZoom.value.nodes = 12 // set to visible
   } else {
     store.setAnchorMode(false)
-    map.value.off('dragend', getBounds)
+    map.value.off('dragend', setAnchor)
     map.value.off('zoomend', getZoom)
     minZoom.value.nodes = 24 // set to invisible.
     deselectAll() // deselect any selected links

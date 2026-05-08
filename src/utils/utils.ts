@@ -11,6 +11,10 @@ export function isUndefined<T>(value: T | null | undefined): value is T {
   return value === null || value === undefined
 }
 
+export function setsAreEqual<T>(a: Set<T>, b: Set<T>) {
+  return a.size === b.size && [...a].every(x => b.has(x))
+}
+
 // Links Used in all
 
 export function getGroupForm (features: GeoJsonFeatures[], lineAttributes: string[], uneditable: string[]) {
@@ -161,7 +165,7 @@ function getDuplicates(arr: string[]) {
   return new Set(results)
 }
 
-export function dropDuplicatesIndex(features: any[]) {
+export function dropDuplicatesIndex(features: GeoJsonFeatures[]) {
   // from a list of features (geojson.features) find duplicated index and drop them
   // if everything else is equal. (will not drop nodes with same index but diff geometry)
   const set = getDuplicates(features.map(item => item.properties.index))
