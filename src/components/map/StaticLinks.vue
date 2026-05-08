@@ -11,7 +11,7 @@ import { baseLineString, basePoint, LineStringFeatures } from '@src/types/geojso
 interface Props {
   map: Map
   isEditorMode: boolean
-  mode: 'pt' | 'road' | 'OD'
+  mode: 'pt' | 'road' | 'od'
 }
 const props = defineProps<Props>()
 const { map, isEditorMode, mode } = toRefs(props)

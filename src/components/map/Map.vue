@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 /// import MglMap from '@comp/q-mapbox/MglMap.vue'
 import { MglMap, MglNavigationControl, MglScaleControl } from 'vue-mapbox3'
 
-import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef, onMounted } from 'vue'
+import { computed, watch, ref, toRefs, onBeforeUnmount, defineAsyncComponent, shallowRef, onMounted, Ref } from 'vue'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import arrowImage from '@static/arrow.png'
@@ -24,19 +24,19 @@ const LayerSelector = defineAsyncComponent(() => import('../utils/LayerSelector.
 const StaticLayer = defineAsyncComponent(() => import('../utils/StaticLayer.vue'))
 const RoadLinks = defineAsyncComponent(() => import('./RoadLinks.vue'))
 
-const props = defineProps({
-  mode: {
-    type: String,
-    default: 'pt',
-  },
-})
+interface Props {
+  mode: 'pt' | 'road' | 'od'
+}
+
+const props = defineProps<Props>()
+
 const store = useIndexStore()
 const mapStore = useMapStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
 
 // map stuff
-const map = shallowRef(null)
+const map = shallowRef<Map>() as Ref<Map>
 const mapIsLoaded = ref(false)
 
 onMounted(() => {
@@ -51,10 +51,10 @@ function fitBounds() {
   mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
 }
 
-function onMapLoaded (event) {
+function onMapLoaded (event: CustomMapEvent) {
   if (map.value) mapIsLoaded.value = false
-  map.value = event.map
-  map.value.loadImage(arrowImage, function (err, image) {
+  map.value = event.map!
+  map.value.loadImage(arrowImage, (err, image: any) => {
     if (err) {
       console.error('err image', err)
       return
@@ -115,6 +115,8 @@ watch(anchorMode, (val) => {
 })
 
 import HistorySelector from '../utils/HistorySelector.vue'
+import { Map } from 'mapbox-gl'
+import { CustomMapEvent } from '@src/types/mapbox'
 
 </script>
 <template>

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
 import Alert from '@comp/utils/Alert.vue'
