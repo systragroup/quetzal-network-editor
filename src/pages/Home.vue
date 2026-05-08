@@ -18,7 +18,7 @@ const { dialogType } = useForm()
 const store = useIndexStore()
 const linksStore = useLinksStore()
 const rlinksStore = userLinksStore()
-const mode = ref('pt')
+const mode = ref<'pt' | 'road' | 'od'>('pt')
 
 onUnmounted(() => {
   linksStore.setEditorTrip(null)
