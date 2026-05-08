@@ -138,15 +138,15 @@ import HistorySelector from '../utils/HistorySelector.vue'
       <div v-if="mapIsLoaded">
         <Settings />
         <StyleSelector :order="1" />
-        <HistorySelector
-          :order="3"
-        />
         <LayerSelector
           v-if="styles.length>0"
           :order="2"
           :choices="styles"
           :available-layers="availableLayers"
           :map="map"
+        />
+        <HistorySelector
+          :order="styles.length>0?3:2"
         />
         <RasterLayer
           v-if="availableRasters.length>0"

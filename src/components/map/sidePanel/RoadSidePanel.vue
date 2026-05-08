@@ -7,6 +7,7 @@ import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
 import { useForm } from '@src/composables/UseForm'
+import { getDifference } from '@src/utils/utils'
 const { openDialog } = useForm()
 
 const store = useIndexStore()
@@ -28,6 +29,16 @@ watch(selectedrFilter, (v) => rlinksStore.changeSelectedrFilter(v))
 // lists for filter and virtual-scroll
 const attributesList = computed(() => { return rlinksStore.rlineAttributes })
 const filteredChoices = computed(() => { return rlinksStore.filteredChoices })
+watch(filteredChoices, (newVal, oldVal) => {
+  // when add or delete. add the new group to the visible rlinks (or remove)
+  const added = getDifference(newVal, oldVal)
+  const removed = getDifference(oldVal, newVal)
+  if (added.length > 0) {
+    added.forEach(el => selectedrGoup.value.add(el))
+  } else if (removed.length > 0) {
+    removed.forEach(el => selectedrGoup.value.delete(el))
+  }
+})
 
 onMounted(() => {
   if (linksStore.linksIsEmpty
@@ -248,7 +259,7 @@ const selectedrGoupProxy = computed({
                   @click="deleteButton(item, item)"
                 />
               </template>
-              <span>{{ $gettext("Delete Line") }}</span>
+              <span>{{ $gettext("Delete All") }}</span>
             </v-tooltip>
           </div>
         </template>

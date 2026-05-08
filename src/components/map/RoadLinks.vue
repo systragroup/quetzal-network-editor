@@ -43,10 +43,12 @@ function handleKeydown(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
     event.preventDefault()
     rlinksStore.undo()
+    drawMode.value = false
   }
   if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
     event.preventDefault()
     rlinksStore.redo()
+    drawMode.value = false
   }
 }
 
