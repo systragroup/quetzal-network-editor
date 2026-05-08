@@ -66,26 +66,6 @@ export const useLinksStore = defineStore('links', {
 
   actions: {
 
-    // commitChanges(name: string) {
-    //   const links = Object.fromEntries(this.editorLinks.features.map(item => [item.properties.index, toRaw(item)]))
-    //   const nodes = Object.fromEntries(this.editorNodes.features.map(item => [item.properties.index, toRaw(item)]))
-    //   commit({ links: links, nodes: nodes }, name)
-    // },
-    // redo() {
-    //   if (redo()) {
-    //     this.editorLinks.features = Object.values(state.value.links).map(el => toRaw(el))
-    //     this.editorNodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
-    //     this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-    //   }
-    // },
-    // undo() {
-    //   if (undo()) {
-    //     this.editorLinks.features = Object.values(state.value.links).map(el => toRaw(el))
-    //     this.editorNodes.features = Object.values(state.value.nodes).map(el => toRaw(el))
-    //     this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-    //   }
-    // },
-
     applyCommit(commit: Commit) {
       const { name, newLinks, newNodes, deleteLinks, deleteNodes, updateLinks, updateNodes } = commit
       const history: Commit = { name: name }
@@ -104,8 +84,10 @@ export const useLinksStore = defineStore('links', {
       // function to call when performing an action
       const prev = this.applyCommit(commit)
       this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-      this.history.push(prev)
-      this.redoStack = [] // must erase redo stack
+      if (this.editorTrip) { // only track history on edition
+        this.history.push(prev)
+        this.redoStack = [] // must erase redo stack
+      }
     },
 
     undo() {

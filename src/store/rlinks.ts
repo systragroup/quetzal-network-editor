@@ -29,10 +29,6 @@ import { addReverseProperties, deleteReverseProperties } from '@src/utils/roadNe
 import { toRaw } from 'vue'
 const $gettext = (s: string) => s
 
-// import { useHistory } from '@src/composables/useHistory'
-// import { toRaw } from 'vue'
-// const { commit, state, initHistory, redo, undo } = useHistory({ links: {}, nodes: {} })
-
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
@@ -129,12 +125,6 @@ export const userLinksStore = defineStore('rlinks', {
       }
       this.updateLinks = _updateLinks
       this.updateNodes = _updateNodes
-
-      // add newly generated group (i.e. highway == quenedi), to visibles checked groups.
-      // const newLinkGroup = linkFeature.properties[this.selectedrFilter]
-
-      // this.filteredChoices.add(newLinkGroup)
-      // this.filteredSelected.add(newLinkGroup)
     },
     //
     // IO
