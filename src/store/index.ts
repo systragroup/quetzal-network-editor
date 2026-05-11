@@ -75,9 +75,6 @@ export const useIndexStore = defineStore('index', {
     changeLoading (payload: boolean) {
       this.loading = payload
     },
-    changeLeftPanel (payload: boolean) {
-      this.showLeftPanel = payload
-    },
     setAnchorMode (payload: boolean) {
       this.anchorMode = payload
     },

@@ -1,6 +1,6 @@
 <script setup>
 
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, watchEffect } from 'vue'
 import { useResult } from '@comp/results/results'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
@@ -205,88 +205,122 @@ onMounted(() => {
     mapRef.value.fitBounds(layer)
   }
 })
+const isMobile = computed(() => store.isMobile)
+
+const panelWidth = ref(0)
+const showLeftPanel = computed({
+  get: () => store.showLeftPanel,
+  set: (v) => store.showLeftPanel = v,
+})
+watchEffect(() => {
+  if (showLeftPanel.value) {
+    panelWidth.value = isMobile.value ? window.innerWidth - 100 : 350
+  } else {
+    panelWidth.value = 0
+  }
+})
 
 </script>
 <template>
-  <section class="map-view">
-    <ResultsSidePanel
-      :selected-category="selectedCategory"
-      :selected-filter="selectedFilter"
-      :layer-choices="availableLayers"
-      :selected-layer="selectedLayer"
-      :attributes-list="attributes"
-      :filtered-cat="filteredCategory"
-      :preset-choices="availableStyles"
-      :selected-preset="selectedPreset"
-      @update-selected-category="updateSelectedCategory"
-      @update-selected-filter="updateSelectedFilter"
-      @select-layer="changeLayer"
-      @select-preset="changePreset"
-      @delete-preset="deleteButton"
-    />
-    <MapResults
-      v-if="visibleLayer.features"
-      ref="mapRef"
-      :key="type+String(displaySettings.extrusion)"
-      v-slot="slotProps"
-      :selected-layer="selectedLayer"
-      :layer-type="type"
-      :extrusion="displaySettings.extrusion"
-      :labels="displaySettings.labels"
-      :links="visibleLayer"
-      :nan-links="nanLayer"
-      :selected-feature="displaySettings.selectedFeature"
-      :opacity="displaySettings.opacity"
-      :offset="displaySettings.offset"
-      @select-click="featureClicked"
+  <section class="layout-row">
+    <div
+      class="container-left"
+      :style="{ width: panelWidth + 'px' }"
     >
-      <div class="legend">
-        <MapLegend
-          v-show="visibleLayer.features.length>0"
-          key="result"
-          :order="0"
-          :color-scale="colorScale"
-          :display-settings="displaySettings"
-        />
-      </div>
-      <div>
-        <ResultsSettings
-          :order="0"
-          :display-settings="displaySettings"
-          :feature-choices="attributes"
-          :type="type"
-          @submit="updateSettings"
-          @save-preset="savePreset"
-        />
-        <StyleSelector :order="1" />
-        <LayerSelector
-          v-if="availableStyles.length>0"
-          order="2"
-          :choices="availableStyles"
-          :map="slotProps.map"
-          :available-layers="availableLayers"
-        />
-        <RasterLayer
-          v-if="availableRasters.length>0"
-          :order="3"
-          :map="slotProps.map"
-        />
-      </div>
-
+      <ResultsSidePanel
+        :selected-category="selectedCategory"
+        :selected-filter="selectedFilter"
+        :layer-choices="availableLayers"
+        :selected-layer="selectedLayer"
+        :attributes-list="attributes"
+        :filtered-cat="filteredCategory"
+        :preset-choices="availableStyles"
+        :selected-preset="selectedPreset"
+        @update-selected-category="updateSelectedCategory"
+        @update-selected-filter="updateSelectedFilter"
+        @select-layer="changeLayer"
+        @select-preset="changePreset"
+        @delete-preset="deleteButton"
+      />
+    </div>
+    <div
+      class="container-right"
+    >
       <div
-        v-for="file in availableStyles"
-        :key="file.name"
+        class="floating-toggle"
+        @click="showLeftPanel=!showLeftPanel"
       >
-        <template v-if=" visibleLayers.includes(file.name) && availableLayers.includes(file.layer)">
-          <StaticLayer
-            :preset="file"
-            :map="slotProps.map"
-            :order="visibleLayers.indexOf(file.name)+1"
-            :visible-layers="visibleLayers"
-          />
-        </template>
+        <v-icon
+          size="small"
+          color="secondarydark"
+        >
+          {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
+        </v-icon>
       </div>
-    </MapResults>
+      <MapResults
+        v-if="visibleLayer.features"
+        ref="mapRef"
+        :key="type+String(displaySettings.extrusion)"
+        v-slot="slotProps"
+        :selected-layer="selectedLayer"
+        :layer-type="type"
+        :extrusion="displaySettings.extrusion"
+        :labels="displaySettings.labels"
+        :links="visibleLayer"
+        :nan-links="nanLayer"
+        :selected-feature="displaySettings.selectedFeature"
+        :opacity="displaySettings.opacity"
+        :offset="displaySettings.offset"
+        @select-click="featureClicked"
+      >
+        <div class="legend">
+          <MapLegend
+            v-show="visibleLayer.features.length>0"
+            key="result"
+            :order="0"
+            :color-scale="colorScale"
+            :display-settings="displaySettings"
+          />
+        </div>
+        <div>
+          <ResultsSettings
+            :order="0"
+            :display-settings="displaySettings"
+            :feature-choices="attributes"
+            :type="type"
+            @submit="updateSettings"
+            @save-preset="savePreset"
+          />
+          <StyleSelector :order="1" />
+          <LayerSelector
+            v-if="availableStyles.length>0"
+            order="2"
+            :choices="availableStyles"
+            :map="slotProps.map"
+            :available-layers="availableLayers"
+          />
+          <RasterLayer
+            v-if="availableRasters.length>0"
+            :order="3"
+            :map="slotProps.map"
+          />
+        </div>
+
+        <div
+          v-for="file in availableStyles"
+          :key="file.name"
+        >
+          <template v-if=" visibleLayers.includes(file.name) && availableLayers.includes(file.layer)">
+            <StaticLayer
+              :preset="file"
+              :map="slotProps.map"
+              :order="visibleLayers.indexOf(file.name)+1"
+              :visible-layers="visibleLayers"
+            />
+          </template>
+        </div>
+      </MapResults>
+    </div>
     <v-dialog
       v-model="showDialog"
       scrollable
@@ -345,11 +379,40 @@ onMounted(() => {
   </section>
 </template>
 <style lang="scss" scoped>
-.map-view {
+
+.layout-row {
   height: 100%;
-  width: 100%;
+  width:100%;
+  display: flex;
+  flex-direction: row;
+  gap: 0.2rem;
+}
+.container-right {
+  flex: 1; // take the rest of the space
+  min-width: 0;
+  overflow: hidden;
+  height: 100%;
   display: flex;
 }
+.container-left {
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  transition: width 0.5s ease;
+}
+
+.floating-toggle {
+  position: absolute;
+  width: 25px;
+  height: 50px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(var(--v-theme-primarydark));
+  cursor: pointer;
+}
+
 .legend {
   position:absolute
 }

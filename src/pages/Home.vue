@@ -29,7 +29,8 @@ onUnmounted(() => {
 
 const showLeftPanel = computed({
   get: () => store.showLeftPanel,
-  set: (v: boolean) => store.showLeftPanel = v })
+  set: (v: boolean) => store.showLeftPanel = v,
+})
 
 const sectionRef = ref()
 const toCollapse = ref(false)
@@ -39,7 +40,10 @@ const minLeft = ref(400) // in pixels
 const left = ref(0) // in percent
 
 // init left panel size to minValue
-onMounted(() => left.value = showLeftPanel.value ? pixelToPercent(minLeft.value) : 0)
+onMounted(() => {
+  left.value = showLeftPanel.value ? pixelToPercent(minLeft.value) : 0
+  toCollapse.value = !showLeftPanel.value // init to grey if hidden
+})
 
 function pixelToPercent(pixels: number) {
   const rect = sectionRef.value.getBoundingClientRect()
@@ -71,17 +75,18 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
   document.body.style.userSelect = ''
   if (toCollapse.value) {
-    smoothResize.value = true
-    setTimeout(() => {
-      smoothResize.value = false
-      showLeftPanel.value = false
-    }, 500)
-    left.value = 0
+    collapse()
   } else {
     showLeftPanel.value = true
   }
 }
-
+function toggle() {
+  if (showLeftPanel.value) {
+    collapse()
+  } else {
+    expand()
+  }
+}
 function expand() {
   showLeftPanel.value = true
   smoothResize.value = true
@@ -91,6 +96,15 @@ function expand() {
   }, 500)
   left.value = pixelToPercent(minLeft.value + 1)
 }
+function collapse() {
+  smoothResize.value = true
+  setTimeout(() => {
+    smoothResize.value = false
+    showLeftPanel.value = false
+    toCollapse.value = true
+  }, 500)
+  left.value = 0
+}
 
 </script>
 <template>
@@ -98,13 +112,6 @@ function expand() {
     ref="sectionRef"
     class="layout-row"
   >
-    <v-btn
-      v-if="!showLeftPanel"
-      class="reopen-btn"
-      color="regular"
-      icon="fas fa-chevron-right"
-      @click="expand"
-    />
     <!-- Left containter (side Panel) -->
     <div
       class="container left-content"
@@ -124,9 +131,20 @@ function expand() {
     />
     <!-- Right containter (Map) -->
     <div
-      class="container map-view"
+      class="container"
       :style="{ flexBasis: (100 - left) + '%' }"
     >
+      <div
+        class="floating-toggle"
+        @click="toggle"
+      >
+        <v-icon
+          size="small"
+          color="secondarydark"
+        >
+          {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
+        </v-icon>
+      </div>
       <Map :mode="mode" />
     </div>
     <LinksEditDialog v-if="dialogType === 'pt'" />
@@ -135,6 +153,22 @@ function expand() {
   </section>
 </template>
 <style lang="scss" scoped>
+.layout-row {
+  height: 100%;
+  width:100%;
+  display: flex;
+  flex-direction: row;
+  gap: 0rem;
+}
+.container {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+.container.smooth{
+  transition: flex-basis 0.5s ease;
+}
 .left-content {
   transition:
     opacity 0.5s ease,
@@ -145,29 +179,10 @@ function expand() {
   filter: grayscale(1);
   pointer-events: none;
 }
-
-.layout-row {
-  height: 100%;
-  width:100%;
-  display: flex;
-  flex-direction: row;
-  gap: 0.25rem;
-}
-
-.container {
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
-  display: flex;
-}
-.container.smooth{
-  transition: flex-basis 0.5s ease;
-}
-
 .resize-handle {
   width: 5px;
   cursor: col-resize;
-  background-color:rgb(var(--v-theme-lightgrey));
+  background-color:rgb(var(--v-theme-grey));
   transition: background-color 0.2s;
 }
 
@@ -175,10 +190,16 @@ function expand() {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-.reopen-btn {
+.floating-toggle {
   position: absolute;
-  margin: 1rem;
-  z-index: 1000;
+  width: 25px;
+  height: 50px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(var(--v-theme-primarydark));
+  cursor: pointer;
 }
 
 </style>
