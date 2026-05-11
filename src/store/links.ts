@@ -83,6 +83,7 @@ export const useLinksStore = defineStore('links', {
     commitChanges(commit: Commit) {
       // function to call when performing an action
       const prev = this.applyCommit(commit)
+      // TODO? could insert in the correct spot each time as it must follow link_sequence.
       this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
       if (this.editorTrip) { // only track history on edition
         this.history.push(prev)
@@ -379,7 +380,7 @@ export const useLinksStore = defineStore('links', {
       })
       nodeProperties.index = 'node_' + short.generate()
       const nodeGeometry: PointGeometry = {
-        coordinates: geometry,
+        coordinates: toRaw(geometry),
         type: 'Point',
       }
       // Copy specified nodenewNode
@@ -495,7 +496,7 @@ export const useLinksStore = defineStore('links', {
       }
       if (link2) {
         const sliceIdx = this.editorLinks.features.findIndex(link => link.properties.index === link2.properties.index)
-        const toModify = this.editorLinks.features.slice(sliceIdx + 1)
+        const toModify = cloneDeep(this.editorLinks.features.slice(sliceIdx + 1))
         toModify.forEach(link => link.properties.link_sequence -= 1)
         toEdit.push(...toModify)
       }
@@ -629,7 +630,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
         ...link.properties.anchors.slice(coordinatedIndex + 1)]
-      this.commitChanges({ name: 'delete Routing Anchor', updateLinks: [link] })
+      // this.commitChanges({ name: 'delete Routing Anchor', updateLinks: [link] })
 
       // return the modified link (used for Routing)
       return link
@@ -679,7 +680,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors[coordinatedIndex] = lngLat
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      this.commitChanges({ name: 'Move Routing Anchor', updateLinks: [link] })
+      // this.commitChanges({ name: 'Move Routing Anchor', updateLinks: [link] })
 
       return link
     },
@@ -726,7 +727,7 @@ export const useLinksStore = defineStore('links', {
       const linksToDelete = new Set(toDelete.map(link => link.properties.index))
       const nodesToDelete = new Set(toDelete.map(link => link.properties.b))
       // no change in link sequence, we cut after.
-      this.commitChanges({ name: 'cutLineAfterNode', deleteLinks: linksToDelete, deleteNodes: nodesToDelete })
+      this.commitChanges({ name: 'cut line after node', deleteLinks: linksToDelete, deleteNodes: nodesToDelete })
     },
 
     cutLineBeforeNode (payload: SelectedNode) {
@@ -735,14 +736,14 @@ export const useLinksStore = defineStore('links', {
       const featureIndex = this.editorLinks.features.findIndex(link => link.properties.a === nodeId)
 
       const toDelete = this.editorLinks.features.slice(0, featureIndex)
-      const toModify = this.editorLinks.features.slice(featureIndex)
+      const toModify = cloneDeep(this.editorLinks.features.slice(featureIndex))
 
       toModify.forEach(link => link.properties.link_sequence -= toDelete.length)// delete 4 links, remove 4 to every one
       const linksToDelete = new Set(toDelete.map(link => link.properties.index))
       const nodesToDelete = new Set(toDelete.map(link => link.properties.a))
 
       this.commitChanges({
-        name: 'cutLineAfterNode', deleteLinks: linksToDelete, deleteNodes: nodesToDelete, updateLinks: toModify,
+        name: 'cut line before node', deleteLinks: linksToDelete, deleteNodes: nodesToDelete, updateLinks: toModify,
       })
     },
 

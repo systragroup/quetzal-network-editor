@@ -196,6 +196,8 @@ function contextMenuAnchor() {
     if (routingMode.value) {
       const modLink = linksStore.deleteRoutingAnchorNode(payload)
       routeLink(modLink)
+      // TODO: routeLink to return modeLink and not commit. commit action externally (route,unroute...)
+      // commitChanges({ name: 'delete Routing Anchor', updateLinks: [link] })
     } else {
       linksStore.deleteAnchorNode(payload)
     }
@@ -463,9 +465,10 @@ function onMoveRouteAnchor (event: MapMouseEvent) {
 function stopMovingRouteAnchor () {
   const selected = selectedFeature.value! as PointFeatures
   const index = selected.properties.lineIndex
-  const geom = movingLine.value.features[0].geometry.coordinates[index]
-  const modifiedLinks = linksStore.moveRoutingAnchor({ selectedNode: selected, lngLat: toRaw(geom) })
   if (routingMode.value) {
+    const geom = movingLine.value.features[0].geometry.coordinates[index]
+    const modifiedLinks = linksStore.moveRoutingAnchor({ selectedNode: selected, lngLat: toRaw(geom) })
+
     routeLink(modifiedLinks)
   }
 
