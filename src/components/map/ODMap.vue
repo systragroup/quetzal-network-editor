@@ -9,13 +9,13 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
-const props = defineProps(['map', 'isODMode', 'isEditorMode'])
+const props = defineProps(['map', 'active', 'isEditorMode'])
 const header = geojson
 const ODStore = useODStore()
 const layer = computed(() => { return ODStore.visibleLayer })
 const nodes = computed(() => { return ODStore.nodes })
 
-const { isODMode, map } = toRefs(props)
+const { active: isODMode, map } = toRefs(props)
 watch(isODMode, (val) => {
   if (val) {
     map.value.on('click', addPoint)

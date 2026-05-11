@@ -188,7 +188,7 @@ import { CustomMapEvent } from '@src/types/mapbox'
       <ODMap
         :map="map"
         :is-editor-mode="isEditorMode"
-        :is-o-d-mode="mode==='od'"
+        :active="mode==='od'"
       />
     </MglMap>
   </div>

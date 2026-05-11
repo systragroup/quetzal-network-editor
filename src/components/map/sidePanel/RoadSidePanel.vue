@@ -103,7 +103,7 @@ const selectedrGoupProxy = computed({
 
 </script>
 <template>
-  <section>
+  <div class="side-panel">
     <div class="text-white bg-secondary header">
       <v-tooltip
         location="bottom"
@@ -320,9 +320,14 @@ const selectedrGoupProxy = computed({
       :confirm-button="$gettext('Delete')"
       confirm-color="primary"
     />
-  </section>
+  </div>
 </template>
 <style lang="scss" scoped>
+
+.side-panel{
+  width:100%;
+  flex-direction: column;
+}
 
 .header{
   display:flex;
@@ -365,19 +370,7 @@ const selectedrGoupProxy = computed({
 .v-list__tile {
   padding: 0
 }
-.left-panel-toggle-btn {
-  left: 100%;
-  width: 25px;
-  z-index: 1;
-  background-color: $primary-dark;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  height: 50px;
-  transition: 0.3s;
-  cursor: pointer;
-}
+
 .left-panel-title {
   height: 50px;
   line-height: 55px;
