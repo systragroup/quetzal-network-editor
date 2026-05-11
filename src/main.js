@@ -77,7 +77,7 @@ const vuetify = createVuetify({
           lightergrey: '#1e1e1e',
           lightgrey: '#403f3f',
           mediumgrey: '#575757',
-          darkgrey: '#d9d9db',
+          darkgrey: '#9e9e9e',
           background: '#000000',
           white: '#000000',
           black: '#FFFFFF',

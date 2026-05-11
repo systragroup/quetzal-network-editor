@@ -760,7 +760,7 @@ const ArrowDirCondition = computed(() => {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
+          'circle-stroke-color': $vuetify.theme.current.colors.secondary,
           'circle-stroke-width': 2,
         },
       }"

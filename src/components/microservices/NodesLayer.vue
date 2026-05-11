@@ -147,7 +147,7 @@ export default {
         'circle-opacity':0.5,
         'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
         'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-        'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
+        'circle-stroke-color': $vuetify.theme.current.colors.secondary,
         'circle-stroke-width': 2,
       },
     }"

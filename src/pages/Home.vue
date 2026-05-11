@@ -128,12 +128,16 @@ function collapse() {
     <div
       class="resize-handle"
       @mousedown="startResize"
-    />
-    <!-- Right containter (Map) -->
+    >
+      <div class="resize-grip" />
+    </div>
+
+    <!-- Right containter (Map and button) -->
     <div
       class="container"
       :style="{ flexBasis: (100 - left) + '%' }"
     >
+      <!-- button to collapse side panel -->
       <div
         class="floating-toggle"
         @click="toggle"
@@ -158,7 +162,6 @@ function collapse() {
   width:100%;
   display: flex;
   flex-direction: row;
-  gap: 0rem;
 }
 .container {
   overflow: hidden;
@@ -180,16 +183,30 @@ function collapse() {
   pointer-events: none;
 }
 .resize-handle {
-  width: 5px;
+  width: 5px; /* larger hitbox */
   cursor: col-resize;
+  display: flex;
   background-color:rgb(var(--v-theme-grey));
-  transition: background-color 0.2s;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-.resize-handle:hover {
-  background-color: rgba(0, 0, 0, 0.3);
+.resize-grip {
+  width: 3px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: rgb(var(--v-theme-lightgrey));
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+  opacity: 0.7;
 }
 
+.resize-handle:hover .resize-grip {
+  background-color:rgb(var(--v-theme-darkgrey));
+  opacity: 1;
+}
 .floating-toggle {
   position: absolute;
   width: 25px;
