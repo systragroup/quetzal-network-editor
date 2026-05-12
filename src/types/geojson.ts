@@ -145,3 +145,14 @@ export function createLinestringFeature(coordinates: number[][], properties: Geo
     properties: properties,
   }
 }
+
+export function createPointFeature(coordinates: number[], properties: GeoJsonProperties = {}): PointFeatures {
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: coordinates,
+    },
+    properties: properties,
+  }
+}

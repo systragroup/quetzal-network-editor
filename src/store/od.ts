@@ -2,13 +2,12 @@
 /* eslint-disable no-return-assign */
 import { defineStore } from 'pinia'
 
-import { point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@src/utils/serializer'
 import { getModifiedKeys, getDifference, IndexAreDifferent } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
 import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODStore } from '@src/types/typesStore'
-import { baseLineString, basePoint, LineStringFeatures,
+import { baseLineString, basePoint, createPointFeature, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
 import { ODDefaultProperties } from '@src/constants/properties'
 const $gettext = (s: string) => s
@@ -181,18 +180,15 @@ export const useODStore = defineStore('od', {
       const nodes = basePoint()
       state.visibleLayer.features.forEach(
         feature => {
-          const Index = feature.properties.index
+          const index = feature.properties.index
           feature.geometry.coordinates.forEach(
-            (pt, idx) => nodes.features.push(Point(
-              pt,
-              { index: short.generate(), linkIndex: Index, coordinatedIndex: idx },
-            ),
-            ),
-
+            (geom: number[], idx: number) => {
+              const pt = createPointFeature(geom, { index: short.generate(), linkIndex: index, coordinatedIndex: idx })
+              nodes.features.push(pt)
+            },
           )
         },
       )
-
       return nodes
     },
 
