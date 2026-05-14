@@ -392,7 +392,7 @@ export const userLinksStore = defineStore('rlinks', {
         // push changes
         editedList.push(link)
       }
-      this.commitChanges({ name: 'editLinkInfo', updateLinks: editedList })
+      this.commitChanges({ name: 'Edit Link Properties', updateLinks: editedList })
     },
 
     editNodeInfo (payload: EditRoadPayload) {
@@ -403,7 +403,7 @@ export const userLinksStore = defineStore('rlinks', {
       const node = cloneDeep(this.rnodes.features.filter(node => node.properties.index === selectedIndex)[0])
       Object.keys(formData).forEach(key => node.properties[key] = formData[key].value)
 
-      this.commitChanges({ name: 'editNodeInfo', updateNodes: [node] })
+      this.commitChanges({ name: 'Edit Node Properties', updateNodes: [node] })
     },
 
     editGroupInfo (payload: EditRoadPayload) {
@@ -432,7 +432,7 @@ export const userLinksStore = defineStore('rlinks', {
         )
       }
 
-      this.commitChanges({ name: 'editGroupInfo', updateLinks: selectedLinks })
+      this.commitChanges({ name: 'Edit Group Properties', updateLinks: selectedLinks })
     },
 
     //
@@ -476,7 +476,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     addNodeInline (payload: AddRoadNodeInlinePayload) {
       const { newLinks, modifiedLinks, newNode } = this._addNodeInline(payload)
-      this.commitChanges({ name: 'addNodeInline', newLinks: newLinks, updateLinks: modifiedLinks, newNodes: [newNode] })
+      this.commitChanges({ name: 'Add Node', newLinks: newLinks, updateLinks: modifiedLinks, newNodes: [newNode] })
     },
 
     _addNodeInline (payload: AddRoadNodeInlinePayload) {
@@ -514,7 +514,7 @@ export const userLinksStore = defineStore('rlinks', {
         modifiedLinks.push(link)
       }
 
-      this.commitChanges({ name: 'addAnchor', updateLinks: modifiedLinks })
+      this.commitChanges({ name: 'Add Anchor', updateLinks: modifiedLinks })
     },
 
     createLink (payload: CreateRlinkPayload) {
@@ -566,7 +566,7 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       newLinksArr.push(linkFeature)
-      const commit: Commit = { name: 'createLink', newLinks: newLinksArr, updateLinks: modifiedLinksArr }
+      const commit: Commit = { name: 'Add Link', newLinks: newLinksArr, updateLinks: modifiedLinksArr }
       if (newNodeArr.length > 0) commit.newNodes = newNodeArr
       this.commitChanges(commit)
       return rnodeB
@@ -594,7 +594,7 @@ export const userLinksStore = defineStore('rlinks', {
         calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
 
-      this.commitChanges({ name: 'moveNode', updateLinks: [...linksA, ...linksB], updateNodes: [node] })
+      this.commitChanges({ name: 'Move Node', updateLinks: [...linksA, ...linksB], updateNodes: [node] })
     },
 
     moverAnchor (payload: MoveNode) {
@@ -606,7 +606,7 @@ export const userLinksStore = defineStore('rlinks', {
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
-      this.commitChanges({ name: 'modeAnchor', updateLinks: [link] })
+      this.commitChanges({ name: 'move Anchor', updateLinks: [link] })
     },
 
     //
@@ -622,7 +622,7 @@ export const userLinksStore = defineStore('rlinks', {
 
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
-      this.commitChanges({ name: 'deleteAnchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Delete Anchor', updateLinks: [link] })
     },
 
     deleteLink (selectedIndexes: string[]) {
@@ -633,7 +633,7 @@ export const userLinksStore = defineStore('rlinks', {
       filtered.features = this.rlinks.features.filter(link => !linkArr.has(link.properties.index))
       const toDelete = new Set(getUnusedNodes(this.rnodes, filtered))
 
-      this.commitChanges({ name: 'deleteLink', deleteLinks: linkArr, deleteNodes: toDelete })
+      this.commitChanges({ name: 'Delete Link', deleteLinks: linkArr, deleteNodes: toDelete })
     },
 
     deleterGroup (group: string) {

@@ -259,13 +259,13 @@ export function useRouting () {
     const nodeB = cloneDeep(nodes.value.features.filter(node => node.properties.index === routedLink.properties.b)[0])
     // this move the nodes on links and crop the Linestring to the nodes.
     snapToGeom(nodeA, nodeB, routedLink)
-    linksStore.commitChanges({ name: 'route', updateLinks: [routedLink], updateNodes: [nodeA, nodeB] })
+    linksStore.commitChanges({ name: 'Route Link', updateLinks: [routedLink], updateNodes: [nodeA, nodeB] })
   }
 
   function unroute(link) {
     const modifiedLink = _unrouteLink(cloneDeep(link))
     calcLengthTimeorSpeed(modifiedLink, linksStore.variantChoice, linksStore.speedTimeMethod)
-    linksStore.commitChanges({ name: 'route', updateLinks: [modifiedLink] })
+    linksStore.commitChanges({ name: 'Route Link', updateLinks: [modifiedLink] })
   }
 
   function routeAll() {
