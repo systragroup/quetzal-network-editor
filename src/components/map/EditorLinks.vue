@@ -502,7 +502,7 @@ function stopMovingRouteAnchor () {
         type: 'line',
         minzoom: 2,
         paint: {
-          'line-color': ['case', ['boolean', anchorMode, false],$vuetify.theme.current.colors.linkssecondary, $vuetify.theme.current.colors.linksprimary],
+          'line-color': $vuetify.theme.current.colors.linksprimary,
           'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 12, 5],
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
         }
@@ -530,7 +530,7 @@ function stopMovingRouteAnchor () {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': ['case', ['boolean', anchorMode, false], $vuetify.theme.current.colors.linkssecondary, $vuetify.theme.current.colors.linksprimary],
+          'icon-color': $vuetify.theme.current.colors.linksprimary,
         }
       }"
     />
