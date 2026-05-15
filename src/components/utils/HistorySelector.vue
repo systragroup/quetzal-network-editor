@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { ref, computed, toRefs } from 'vue'
+import { ref, computed, toRefs, watchEffect } from 'vue'
 
 interface Props {
   order: number
@@ -15,6 +15,11 @@ const rlinksStore = userLinksStore()
 
 const isRoadMode = computed(() => rlinksStore.editionMode)
 const isEditorMode = computed(() => linksStore.editorTrip !== null)
+watchEffect(() => {
+  if (isRoadMode.value || isEditorMode.value) {
+    show.value = true
+  }
+})
 
 const history = computed(() => isEditorMode.value ? linksStore.history : isRoadMode.value ? rlinksStore.history : [])
 const redoStack = computed(() => isEditorMode.value ? linksStore.redoStack : isRoadMode.value ? rlinksStore.redoStack : [])
@@ -24,6 +29,21 @@ const timeline = computed(() => [
   ...redoStack.value.map(el => ({ name: el.name, type: 'future' })),
 ])
 
+function undo() {
+  if (isEditorMode.value) {
+    linksStore.undo()
+  } else if (isRoadMode.value) {
+    rlinksStore.undo()
+  }
+}
+function redo() {
+  if (isEditorMode.value) {
+    linksStore.redo()
+  } else if (isRoadMode.value) {
+    rlinksStore.redo()
+  }
+}
+
 </script>
 <template>
   <v-menu
@@ -32,7 +52,7 @@ const timeline = computed(() => [
     :close-on-content-click="false"
     :persistent="true"
     no-click-animation
-    location="bottom"
+    location="bottom end"
     offset="5"
     transition="scale-transition"
   >
@@ -54,7 +74,42 @@ const timeline = computed(() => [
     >
       <v-card-title class="subtitle">
         {{ $gettext('History') }}
+        <v-btn-group
+          variant="outlined"
+          divided
+        >
+          <v-btn
+            icon="fas fa-rotate-left"
+            size="x-small"
+            @click="undo"
+          >
+            <v-icon />
+            <v-tooltip
+              activator="parent"
+              location="top"
+              open-delay="250"
+            >
+              {{ $gettext('undo') }}
+            </v-tooltip>
+          </v-btn>
+
+          <v-btn
+            icon="fas fa-rotate-right"
+            size="x-small"
+            @click="redo"
+          >
+            <v-icon />
+            <v-tooltip
+              activator="parent"
+              location="top"
+              open-delay="250"
+            >
+              {{ $gettext('redo') }}
+            </v-tooltip>
+          </v-btn>
+        </v-btn-group>
       </v-card-title>
+
       <v-list-item
         v-for="(item, key) in timeline.toReversed()"
         :key="key"

@@ -99,14 +99,17 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 function handleKeydown(event: KeyboardEvent) {
+  // console.log(event.shiftKey)
   // Check if Ctrl (or Command on Mac) and Z are pressed
-  if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
-    event.preventDefault()
-    linksStore.undo()
-  }
-  if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
+  const ctrl = event.ctrlKey || event.metaKey
+  const key = event.key.toLowerCase()
+  const shift = event.shiftKey
+  if ((ctrl && event.key === 'y') || (ctrl && shift && key === 'z')) {
     event.preventDefault()
     linksStore.redo()
+  } else if (ctrl && key === 'z') {
+    event.preventDefault()
+    linksStore.undo()
   }
 }
 
