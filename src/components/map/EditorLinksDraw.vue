@@ -11,10 +11,11 @@ interface Props {
   map: Map
   hoveredStateId: HoverState | null
   stickyStateId: HoverState | null
+  hide: boolean
 }
 
 const props = defineProps<Props>()
-const { map, hoveredStateId, stickyStateId } = toRefs(props)
+const { map, hoveredStateId, stickyStateId, hide } = toRefs(props)
 const store = useIndexStore()
 
 const linksStore = useLinksStore()
@@ -34,7 +35,7 @@ const { routeLink } = useRouting()
 import { useDrawLink } from '@src/composables/useDrawLink'
 import { HoverState } from '@src/types/mapbox'
 
-const { drawLink, updateDrawLink, stopDraw, showDraw } = useDrawLink(map.value)
+const { drawLink, updateDrawLink, stopDraw, showDraw, hideDraw } = useDrawLink(map.value)
 const drawMode = ref(false)
 
 watch(drawMode, (val) => val ? showDraw() : stopDraw())
@@ -45,12 +46,12 @@ watch(isEditorMode, (val) => {
   if (val) {
     map.value.on('mousemove', draw)
     map.value.on('mousedown', clickStopDraw)
-    map.value.on('click', addPoint)
+    map.value.on('mousedown', addPoint)
   }
   else {
     map.value.off('mousemove', draw)
     map.value.off('mousedown', clickStopDraw)
-    map.value.off('click', addPoint)
+    map.value.off('mousedown', addPoint)
   }
 }, { immediate: true })
 
@@ -76,6 +77,15 @@ function setDrawLinkFirstPoint(point: PointFeatures | null) {
     drawMode.value = false
   }
 }
+
+watch([hide, hoveredStateId], () => {
+  // hide draw when hoveving and when hide (node is moving)
+  if (hide.value || hoveredStateId.value) {
+    hideDraw()
+  } else if (!hoveredStateId.value && !hide.value) {
+    showDraw()
+  }
+})
 
 watch(hoveredStateId, (val) => {
   if (val) {

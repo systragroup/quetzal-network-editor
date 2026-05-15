@@ -307,28 +307,27 @@ function offCursorSticky () {
 }
 
 // moving
+const isMoving = ref(false)
+const movingLine = ref<LineStringGeoJson>(baseLineString())
 
 function stopMoving() {
-  // remove temp linestring
   movingLine.value = baseLineString()
-  // stop tracking position (moving node.)
-  map.value.getCanvas().style.cursor = 'pointer'
-  // enable popup and hovering off back. disable Dragmode
   disablePopup.value = false
+  isMoving.value = false
   hoveredStateId.value = null
+
+  map.value.getCanvas().style.cursor = 'pointer'
 }
 
 function startMoving(event: CustomMapEvent) {
   // disable popup
   disablePopup.value = true
   popupEditor.value.showed = false
-  // prevent map control
+  isMoving.value = false
+
   event.mapboxEvent.preventDefault()
   map.value.getCanvas().style.cursor = 'grab'
-  // disable mouseLeave so we stay in hover state.
 }
-
-const movingLine = ref<LineStringGeoJson>(baseLineString())
 
 // moving node
 
@@ -362,33 +361,42 @@ function moveNode (event: CustomMapEvent) {
 }
 
 function onMove (event: MapMouseEvent) {
-  movingLine.value.features[0].geometry.coordinates[1] = Object.values(event.lngLat)
+  if (isMoving.value) {
+    movingLine.value.features[0].geometry.coordinates[1] = Object.values(event.lngLat)
+  }
+  // only start moving when we leave the node.
+  if (!hoveredStateId.value || hoveredStateId.value?.feature !== selectedFeature.value) {
+    isMoving.value = true
+  }
 }
 
 async function stopMovingNode () {
-  const selected = selectedFeature.value! as PointFeatures
-  let modifiedLinks: LineStringFeatures[] = []
-  // if sticky. replace node with existing one
-  if (stickyStateId.value) {
-    const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
-    const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
-    if (!nodesList.has(stickyNodeId)) {
-      const resp = await stickyDialog.value.openDialog(
-        $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId }))
-      if (resp) {
-        modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
-      }
-    } else {
-      store.changeNotification(
-        { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
-    }
-  } else { //  just move the node (not sticky)
-    const geom = movingLine.value.features[0].geometry.coordinates[1]
-    modifiedLinks = linksStore.moveNode({ selectedNode: selected, lngLat: toRaw(geom) })
-  }
+  if (isMoving.value) { // only move node is we moved
+    const selected = selectedFeature.value! as PointFeatures
+    let modifiedLinks: LineStringFeatures[] = []
+    // if sticky. replace node with existing one
 
-  if (routingMode.value) {
-    modifiedLinks.forEach(link => routeLink(link))
+    if (stickyStateId.value) {
+      const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
+      const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
+      if (!nodesList.has(stickyNodeId)) {
+        const resp = await stickyDialog.value.openDialog(
+          $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId }))
+        if (resp) {
+          modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
+        }
+      } else {
+        store.changeNotification(
+          { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
+      }
+    } else { //  just move the node (not sticky)
+      const geom = movingLine.value.features[0].geometry.coordinates[1]
+      modifiedLinks = linksStore.moveNode({ selectedNode: selected, lngLat: toRaw(geom) })
+    }
+
+    if (routingMode.value) {
+      modifiedLinks.forEach(link => routeLink(link))
+    }
   }
 
   stopMoving()
@@ -489,6 +497,7 @@ function stopMovingRouteAnchor () {
     <EditorLinksDraw
       :map="map"
       :hovered-state-id="hoveredStateId"
+      :hide="isMoving"
       :sticky-state-id="stickyStateId"
     />
     <MglGeojsonLayer
