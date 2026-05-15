@@ -32,7 +32,11 @@ export const useIndexStore = defineStore('index', {
     alert: {},
     darkMode: false,
     isMobile: false,
-    loading: false,
+    loading: {
+      show: false,
+      progress: 0,
+      title: '',
+    },
     // edition params
     showLeftPanel: true,
     anchorMode: false,
@@ -72,8 +76,10 @@ export const useIndexStore = defineStore('index', {
     changeMobile (payload: boolean) {
       this.isMobile = payload
     },
-    changeLoading (payload: boolean) {
-      this.loading = payload
+    changeLoading (show: boolean, progress: number = 0, title: string = '') {
+      this.loading.show = show
+      this.loading.progress = progress
+      this.loading.title = title
     },
     setAnchorMode (payload: boolean) {
       this.anchorMode = payload

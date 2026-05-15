@@ -59,12 +59,18 @@ export interface SettingsPayload {
   outputName: string
 }
 
+export interface Loading {
+  show: boolean
+  progress: number // 0 to 1
+  title: string
+}
+
 export interface IndexStore {
   notification: Notification
   alert: Error | unknown
   darkMode: boolean
   isMobile: boolean
-  loading: boolean
+  loading: Loading
   showLeftPanel: boolean
   anchorMode: boolean
   stickyMode: boolean

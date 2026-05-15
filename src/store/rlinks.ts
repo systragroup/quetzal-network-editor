@@ -26,9 +26,9 @@ import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   getDefaultLink, getVariantsChoices,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties } from '@src/utils/roadNetwork'
-import { toRaw } from 'vue'
+import { nextTick, toRaw } from 'vue'
 const $gettext = (s: string) => s
-
+import { useIndexStore } from '.'
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
@@ -61,7 +61,6 @@ export const userLinksStore = defineStore('rlinks', {
     applyCommit(commit: Commit) {
       const { name, newLinks, newNodes, deleteLinks, deleteNodes, updateLinks, updateNodes } = commit
       const history: Commit = { name: name }
-
       if (newLinks) history.deleteLinks = _addGeojsonFeatures(this.rlinks, newLinks)
       if (newNodes) history.deleteNodes = _addGeojsonFeatures(this.rnodes, newNodes)
       if (updateLinks) history.updateLinks = _editGeojsonFeatures(this.rlinks, updateLinks) as LineStringFeatures[]
@@ -76,9 +75,9 @@ export const userLinksStore = defineStore('rlinks', {
       if (this.history.length > 0) {
         const prev = this.history.pop() as Commit
         const next = this.applyCommit(prev)
+        this.redoStack.push(next)
         this.update(prev)
         this.getFilteredChoices()
-        this.redoStack.push(next)
       }
     },
 
@@ -86,22 +85,22 @@ export const userLinksStore = defineStore('rlinks', {
       if (this.redoStack.length > 0) {
         const next = this.redoStack.pop() as Commit
         const prev = this.applyCommit(next)
+        this.history.push(prev)
         this.update(next)
         this.getFilteredChoices()
-        this.history.push(prev)
       }
     },
 
     commitChanges(commit: Commit) {
       // function to call when performing an action
       const prev = this.applyCommit(commit)
-      this.update(commit)
-      this.getFilteredChoices()
       // for now. we only track changes when in edition mode
       if (this.editionMode) {
         this.history.push(prev)
         this.redoStack = [] // must erase redo stack
       }
+      this.update(commit)
+      this.getFilteredChoices()
     },
 
     update(commit: Commit) {
@@ -123,9 +122,52 @@ export const userLinksStore = defineStore('rlinks', {
         let nodesArr: UpdateFeatures[] = Array.from(deleteNodes).map(idx => { return { type: 'Feature', id: idx } })
         _updateNodes.push(...nodesArr)
       }
-      this.updateLinks = _updateLinks
-      this.updateNodes = _updateNodes
+      this.updateLinks = cloneDeep(_updateLinks)
+      this.updateNodes = cloneDeep(_updateNodes)
     },
+
+    //
+    // start edition
+    //
+
+    startEditing () {
+      this.history = []
+      this.redoStack = []
+      this.editionMode = true
+    },
+
+    saveEdition() {
+      this.history = []
+      this.redoStack = []
+      this.editionMode = false
+    },
+
+    async cancelEdition() {
+      const indexStore = useIndexStore()
+      const total = this.history.length
+      indexStore.changeLoading(true, 0, 'Cancelling...')
+      while (this.history.length > 0) {
+        const prev = this.history.pop() as Commit
+        this.applyCommit(prev)
+        // we show a loading bar, need to await next frame to give time to update the UI
+        indexStore.changeLoading(true, 1 - (this.history.length / total), 'Cancelling...')
+        await nextTick()
+        await new Promise(requestAnimationFrame)
+        // await new Promise(resolve => requestAnimationFrame(resolve))
+      }
+      this.getrLinksProperties()
+      this.getrNodesProperties()
+      this.getFilteredChoices()
+
+      this.updateLinks = [] // refresh rlinks
+      // this.updateNodes = []
+
+      this.history = []
+      this.redoStack = []
+      this.editionMode = false
+      indexStore.changeLoading(false)
+    },
+
     //
     // IO
     //
@@ -291,41 +333,6 @@ export const userLinksStore = defineStore('rlinks', {
       // todo: _editNodeArray
       this.rnodes.features.forEach(node => delete node.properties[payload.name])
       this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
-    },
-
-    //
-    // snapshot
-    //
-
-    startEditing () {
-      this.history = []
-      this.redoStack = []
-      this.editionMode = true
-    },
-
-    saveEdition() {
-      this.history = []
-      this.redoStack = []
-      this.editionMode = false
-    },
-
-    cancelEdition() {
-      console.time('cancel')
-      while (this.history.length > 0) {
-        const prev = this.history.pop() as Commit
-        this.applyCommit(prev)
-      }
-      console.timeEnd('cancel')
-      this.getrLinksProperties()
-      this.getrNodesProperties()
-      this.getFilteredChoices()
-
-      this.updateLinks = [] // refresh rlinks
-      // this.updateNodes = []
-
-      this.history = []
-      this.redoStack = []
-      this.editionMode = false
     },
 
     //
@@ -530,7 +537,7 @@ export const userLinksStore = defineStore('rlinks', {
       const linksId = payload.linksId
       let nodeIdB = payload.nodeIdB
 
-      const rnodeA = this.rnodes.features.filter(node => node.properties.index === nodeIdA)[0]
+      const rnodeA = cloneDeep(this.rnodes.features.filter(node => node.properties.index === nodeIdA)[0])
       let rnodeB = cloneDeep(this.rnodes.features.filter(node => node.properties.index === nodeIdB)[0])
       // clicked on a link. create node and split link
       // else if: clicked no where: create a node
@@ -630,7 +637,7 @@ export const userLinksStore = defineStore('rlinks', {
       // nodes are deleted base on deleted links. but we want to commit links and ndoes cchanges at the same time.
       // so we double compute what links are deleted...
       const filtered = baseLineString()
-      filtered.features = this.rlinks.features.filter(link => !linkArr.has(link.properties.index))
+      filtered.features = cloneDeep(this.rlinks.features.filter(link => !linkArr.has(link.properties.index)))
       const toDelete = new Set(getUnusedNodes(this.rnodes, filtered))
 
       this.commitChanges({ name: 'Delete Link', deleteLinks: linkArr, deleteNodes: toDelete })

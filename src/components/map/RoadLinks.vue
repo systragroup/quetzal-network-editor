@@ -38,19 +38,27 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 
+let historyBusy = ref(false)
+
 function handleKeydown(event: KeyboardEvent) {
   // console.log(event.shiftKey)
   // Check if Ctrl (or Command on Mac) and Z are pressed
+  if (historyBusy.value) return
   const ctrl = event.ctrlKey || event.metaKey
   const key = event.key.toLowerCase()
   const shift = event.shiftKey
+
   if ((ctrl && event.key === 'y') || (ctrl && shift && key === 'z')) {
     event.preventDefault()
     rlinksStore.redo()
+    historyBusy.value = true
+    requestAnimationFrame(() => historyBusy.value = false) // wait do not let user spam
     drawMode.value = false
   } else if (ctrl && key === 'z') {
     event.preventDefault()
     rlinksStore.undo()
+    historyBusy.value = true
+    requestAnimationFrame(() => historyBusy.value = false)// wait do not let user spam
     drawMode.value = false
   }
 }
@@ -77,7 +85,7 @@ onUnmounted(() => {
 })
 
 const rlinks = computed(() => rlinksStore.rlinks)
-const visiblerNodes = computed(() => rlinksStore.rnodes)
+const rnodes = computed(() => rlinksStore.rnodes)
 
 async function initLinks() {
   const links = rlinks.value
@@ -88,7 +96,7 @@ async function initLinks() {
   }
 }
 async function initNodes() {
-  const nodes = visiblerNodes.value
+  const nodes = rnodes.value
   nodes.features.forEach((node) => node.id = node.properties.index)
   const source = map.value.getSource('rnodes') as GeoJSONSource
   if (source) {
@@ -113,7 +121,6 @@ function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
       initNodes()
     }
   } else {
-    // const features = cloneDeep(array)
     array.forEach(el => el.id = el.properties ? el.properties.index : el.id)
     const mapSource = map.value.getSource(source) as GeoJSONSource
     if (!mapSource) return
@@ -144,9 +151,9 @@ watch(visibleNodesIndex, (oldVal, newVal) => {
   if (oldVal.size !== newVal.size) {
     setFilter()
   }
-})
+}, { flush: 'post' })
 
-function setFilter() {
+async function setFilter() {
   const linksFilter = [
     'in',
     ['get', filterCat.value],
@@ -160,8 +167,15 @@ function setFilter() {
     ['get', 'index'],
     ['literal', [...visibleNodesIndex.value]],
   ])
+  await waitMapRender()
 }
-
+function waitMapRender() {
+  return new Promise<void>((resolve) => {
+    map.value.once('idle', () => {
+      resolve()
+    })
+  })
+}
 function queryAnchor() {
   // query links in window and generate Anchor nodes.
   const query = map.value.queryRenderedFeatures({ layers: ['rlinks'] })
@@ -722,7 +736,7 @@ const ArrowDirCondition = computed(() => {
       :source="{
         type: 'geojson',
         dynamic: true,
-        data: visiblerNodes,
+        data: rnodes,
         buffer: 0,
         promoteId: 'index',
       }"
