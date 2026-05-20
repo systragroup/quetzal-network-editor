@@ -111,10 +111,10 @@ function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
   mapSource.updateData({ type: 'FeatureCollection', features: array as any }) // TODO: change any
 }
 
-const updateLinks = computed(() => { return rlinksStore.updateLinks })
-const updateNodes = computed(() => { return rlinksStore.updateNodes })
-watch(updateLinks, (list) => { updateData('rlinks', list) }, { flush: 'sync' })
-watch(updateNodes, (list) => { updateData('rnodes', list) }, { flush: 'sync' })
+const updateLinks = computed(() => rlinksStore.updateLinks)
+const updateNodes = computed(() => rlinksStore.updateNodes)
+watch(updateLinks, list => updateData('rlinks', list))
+watch(updateNodes, list => updateData('rnodes', list))
 
 const selectedPopupContent = computed(() => store.roadsPopupContent)
 //
@@ -129,12 +129,16 @@ watch([filterValues, filterCat], () => {
     setAnchor()
   })
 })
-// visibleNodesIndex change with filterValues, filterCat. so doesnt need to setFilter with those
+
+watch(filterValues, () => {
+  setFilter()
+}, { deep: true })
+
 watch(visibleNodesIndex, (oldVal, newVal) => {
   if (oldVal.size !== newVal.size) {
     setFilter()
   }
-}, { flush: 'post' })
+})
 
 async function setFilter() {
   const linksFilter = [
@@ -142,7 +146,6 @@ async function setFilter() {
     ['to-string', ['get', filterCat.value]], //  we normalized to string for filtering (see normalizeToString)
     ['literal', [...filterValues.value]],
   ]
-
   map.value.setFilter('rlinks', linksFilter)
   map.value.setFilter('arrow-rlinks', linksFilter)
 
