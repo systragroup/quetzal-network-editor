@@ -8,7 +8,6 @@ import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
 import { useForm } from '@src/composables/UseForm'
 import { getDifference } from '@src/utils/utils'
-import { normalizeToString } from '@src/utils/roadNetwork'
 const { openDialog } = useForm()
 
 const store = useIndexStore()
@@ -50,17 +49,15 @@ onMounted(() => {
 })
 
 function propertiesButton (group: string) {
-  const features = rlinksStore.rlinks.features.filter(link =>
-    normalizeToString(link.properties[selectedrFilter.value]) === group)
+  const features = rlinksStore.getFilteredrLinks(group)
   const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function editVisible () {
   const group = rlinksStore.filteredSelected
-  const cat = selectedrFilter.value
-  const filtered = rlinksStore.rlinks.features.filter(link => group.has(normalizeToString(link.properties[cat])))
-  const indexList = filtered.map(link => link.properties.index)
+  const features = rlinksStore.getFilteredrLinks(group)
+  const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 

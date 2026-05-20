@@ -356,19 +356,18 @@ export const userLinksStore = defineStore('rlinks', {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
       // replace undefined with null here. the filter will not work if undefined.
-
-      const choices = new Set(this.rlinks.features.map(item =>
-        normalizeToString(item.properties[this.selectedrFilter])))
+      const cat = this.selectedrFilter
+      const choices = new Set(this.rlinks.features.map(item => normalizeToString(item.properties[cat])))
 
       if (!setsAreEqual(this.filteredChoices, choices)) {
         this.filteredChoices = choices // ex: [motorway,residentials,...]
       }
     },
+
     //  to export
     getVisibleLinks(): LineStringGeoJson {
       const links = baseLineString()
-      links.features = this.rlinks.features.filter(el =>
-        this.filteredSelected.has(normalizeToString(el.properties[this.selectedrFilter])))
+      links.features = this.getFilteredrLinks(this.selectedrFilter)
       return links
     },
     getVisibleNodes(): PointGeoJson {
@@ -660,19 +659,25 @@ export const userLinksStore = defineStore('rlinks', {
   },
 
   getters: {
-    visibleNodesIndex(): Set<string> {
-      // TODO: could also move this to the update function todo that change selectedGroup on commit...
-      const visibleNodeIds = new Set<string>()
-      const key = this.selectedrFilter
-      const group = this.filteredSelected
-      for (const link of this.rlinks.features) {
-        const v = normalizeToString(link.properties[key])
-        if (group.has(v)) {
-          visibleNodeIds.add(link.properties.a)
-          visibleNodeIds.add(link.properties.b)
+    getFilteredrLinks() {
+      // need this getters as we need to normalized values for filtereing (all string, undefined and null are '' )
+      return (group: string | Set<string>): LineStringFeatures[] => {
+        const cat = this.selectedrFilter
+        if (group instanceof Set) {
+          return this.rlinks.features.filter(link => group.has(normalizeToString(link.properties[cat])))
+        } else {
+          return this.rlinks.features.filter(link => normalizeToString(link.properties[cat]) === group)
         }
       }
-
+    },
+    visibleNodesIndex(): Set<string> {
+      // TODO: could also move this to the update function that change selectedGroup on commit...
+      const visibleNodeIds = new Set<string>()
+      const features = this.getFilteredrLinks(this.filteredSelected)
+      for (const link of features) {
+        visibleNodeIds.add(link.properties.a)
+        visibleNodeIds.add(link.properties.b)
+      }
       return visibleNodeIds
     },
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
@@ -694,6 +699,7 @@ export const userLinksStore = defineStore('rlinks', {
         }
       }
     },
+
     hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
     rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
     attributesChoicesChanged: (state) =>
