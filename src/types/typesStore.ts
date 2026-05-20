@@ -291,7 +291,7 @@ export interface RlinksStore {
   variantChoice: NonEmptyArray<string>
   selectedrFilter: string
   filteredSelected: Set<string>
-  filteredChoices: Set<string >
+  filteredChoices: Set<string>
   linksDefaultAttributes: Attributes[]
   nodesDefaultAttributes: Attributes[]
   rlinksAttributesChoices: AttributesChoice

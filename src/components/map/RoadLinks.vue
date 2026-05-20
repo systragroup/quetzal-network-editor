@@ -80,16 +80,16 @@ const rlinks = computed(() => rlinksStore.rlinks)
 const rnodes = computed(() => rlinksStore.rnodes)
 
 async function initLinks() {
-  const links = rlinks.value
-  links.features.forEach((link) => link.id = link.properties.index)
+  const links = baseLineString()
+  links.features = rlinks.value.features.map(el => ({ ...el, id: el.properties.index }))
   const source = map.value.getSource('rlinks') as GeoJSONSource
   if (source) {
     source.setData(links)
   }
 }
 async function initNodes() {
-  const nodes = rnodes.value
-  nodes.features.forEach((node) => node.id = node.properties.index)
+  const nodes = basePoint()
+  nodes.features = rnodes.value.features.map(el => ({ ...el, id: el.properties.index }))
   const source = map.value.getSource('rnodes') as GeoJSONSource
   if (source) {
     source.setData(nodes)
@@ -139,9 +139,10 @@ watch(visibleNodesIndex, (oldVal, newVal) => {
 async function setFilter() {
   const linksFilter = [
     'in',
-    ['get', filterCat.value],
+    ['to-string', ['get', filterCat.value]], //  we normalized to string for filtering (see normalizeToString)
     ['literal', [...filterValues.value]],
   ]
+
   map.value.setFilter('rlinks', linksFilter)
   map.value.setFilter('arrow-rlinks', linksFilter)
 

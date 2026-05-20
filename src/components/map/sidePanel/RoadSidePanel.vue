@@ -8,6 +8,7 @@ import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
 import { useForm } from '@src/composables/UseForm'
 import { getDifference } from '@src/utils/utils'
+import { normalizeToString } from '@src/utils/roadNetwork'
 const { openDialog } = useForm()
 
 const store = useIndexStore()
@@ -49,17 +50,16 @@ onMounted(() => {
 })
 
 function propertiesButton (group: string) {
-  // select the TripId and open dialog
-
-  const features = rlinksStore.rlinks.features.filter(link => link.properties[selectedrFilter.value] === group)
+  const features = rlinksStore.rlinks.features.filter(link =>
+    normalizeToString(link.properties[selectedrFilter.value]) === group)
   const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function editVisible () {
   const group = rlinksStore.filteredSelected
-  const cat = rlinksStore.selectedrFilter
-  const filtered = rlinksStore.rlinks.features.filter(link => group.has(link.properties[cat]))
+  const cat = selectedrFilter.value
+  const filtered = rlinksStore.rlinks.features.filter(link => group.has(normalizeToString(link.properties[cat])))
   const indexList = filtered.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
@@ -100,6 +100,18 @@ const selectedrGoupProxy = computed({
   get: () => [...selectedrGoup.value],
   set: (arr) => selectedrGoup.value = new Set(arr),
 })
+
+function formatName(item: string) {
+  if (item === '') {
+    return 'null'
+  }
+  if (item === ' ') {
+    return '" "'
+  }
+  else {
+    return item
+  }
+}
 
 </script>
 <template>
@@ -223,7 +235,7 @@ const selectedrGoupProxy = computed({
               :value="item"
             />
             <div class="ma-2 item">
-              {{ item }}
+              {{ formatName(item) }}
             </div>
 
             <v-tooltip

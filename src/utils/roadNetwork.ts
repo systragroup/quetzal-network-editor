@@ -12,3 +12,13 @@ export function addReverseProperties(link: LineStringFeatures, reversedAttribute
 export function deleteReverseProperties(link: LineStringFeatures, reversedAttributes: string[]) {
   reversedAttributes.forEach(rkey => delete link.properties[rkey])
 }
+
+export function normalizeToString(value: unknown): string {
+  // for filtering
+  // convert all to string (5=>'5') undefined,null, => ''
+  if (value == null || value === '') {
+    return ''
+  }
+  // convert everything to string so 5 === "5"
+  return String(value)
+}

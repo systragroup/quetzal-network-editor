@@ -7,7 +7,7 @@ import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
   getUnusedNodes,
   setsAreEqual } from '@src/utils/utils'
-import { cloneDeep, isUndefined } from 'lodash'
+import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
 import { AddRoadNodeInlinePayload,
@@ -25,7 +25,7 @@ import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getVariantsChoices,
   snapOnLink } from '@src/utils/network'
-import { addReverseProperties, deleteReverseProperties } from '@src/utils/roadNetwork'
+import { addReverseProperties, deleteReverseProperties, normalizeToString } from '@src/utils/roadNetwork'
 import { nextTick, toRaw } from 'vue'
 const $gettext = (s: string) => s
 import { useIndexStore } from '.'
@@ -356,7 +356,10 @@ export const userLinksStore = defineStore('rlinks', {
       // for a given filter (key) get array of unique value
       // e.g. get ['bus','subway'] for route_type
       // replace undefined with null here. the filter will not work if undefined.
-      const choices = new Set(this.rlinks.features.map(item => item.properties[this.selectedrFilter] || null))
+
+      const choices = new Set(this.rlinks.features.map(item =>
+        normalizeToString(item.properties[this.selectedrFilter])))
+
       if (!setsAreEqual(this.filteredChoices, choices)) {
         this.filteredChoices = choices // ex: [motorway,residentials,...]
       }
@@ -364,7 +367,8 @@ export const userLinksStore = defineStore('rlinks', {
     //  to export
     getVisibleLinks(): LineStringGeoJson {
       const links = baseLineString()
-      links.features = this.rlinks.features.filter(el => this.filteredSelected.has(el.properties[this.selectedrFilter]))
+      links.features = this.rlinks.features.filter(el =>
+        this.filteredSelected.has(normalizeToString(el.properties[this.selectedrFilter])))
       return links
     },
     getVisibleNodes(): PointGeoJson {
@@ -442,7 +446,6 @@ export const userLinksStore = defineStore('rlinks', {
           calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
-
       this.commitChanges({ name: 'Edit Group Properties', updateLinks: selectedLinks })
     },
 
@@ -649,7 +652,7 @@ export const userLinksStore = defineStore('rlinks', {
 
     deleterGroup (group: string) {
       const cat = this.selectedrFilter
-      const filtered = this.rlinks.features.filter(link => link.properties[cat] === group)
+      const filtered = this.rlinks.features.filter(link => link.properties[cat] == group)
       const selectedIndex = filtered.map(link => link.properties.index)
       this.deleteLink(selectedIndex)
     },
@@ -661,11 +664,10 @@ export const userLinksStore = defineStore('rlinks', {
       // TODO: could also move this to the update function todo that change selectedGroup on commit...
       const visibleNodeIds = new Set<string>()
       const key = this.selectedrFilter
-      const group = this.filteredSelected as Set<string | null>
-      const getNull = group.has(null)
+      const group = this.filteredSelected
       for (const link of this.rlinks.features) {
-        const v = link.properties[key]
-        if (group.has(v) || (getNull && isUndefined(v))) {
+        const v = normalizeToString(link.properties[key])
+        if (group.has(v)) {
           visibleNodeIds.add(link.properties.a)
           visibleNodeIds.add(link.properties.b)
         }
