@@ -107,11 +107,14 @@ export const userLinksStore = defineStore('rlinks', {
       const { newLinks, newNodes, deleteLinks, updateLinks, updateNodes, deleteNodes } = commit
       const _updateLinks: UpdateFeatures[] = []
       const _updateNodes: UpdateFeatures[] = []
+      function withId(features: (LineStringFeatures | PointFeatures)[]): UpdateFeatures[] {
+        return features.map(el => ({ ...el, id: el.properties.index }))
+      }
 
-      if (updateLinks) _updateLinks.push(...updateLinks)
-      if (newLinks) _updateLinks.push(...newLinks)
-      if (newNodes) _updateNodes.push(...newNodes)
-      if (updateNodes) _updateNodes.push(...updateNodes)
+      if (updateLinks) _updateLinks.push(...withId(updateLinks))
+      if (newLinks) _updateLinks.push(...withId(newLinks))
+      if (newNodes) _updateNodes.push(...withId(newNodes))
+      if (updateNodes) _updateNodes.push(...withId(updateNodes))
 
       if (deleteLinks) {
         const linksArr: UpdateFeatures[] = Array.from(deleteLinks).map(idx => { return { type: 'Feature', id: idx } })
@@ -377,12 +380,15 @@ export const userLinksStore = defineStore('rlinks', {
     editLinkInfo (payload: EditRoadPayload) {
       // get selected link in editorLinks and modify the changes attributes.
       const { selectedArr, infoArr } = payload
+      const selectedSet = new Set(selectedArr)
+      // we need to copy then edit as we may edit the same link 2 time.
+      // when no oneway, we apply the infoArr 2 times (for normal and _r attr) on the same link, so we need a pointer
+      const linksToEdit = cloneDeep(this.rlinks.features.filter(link => selectedSet.has(link.properties.index)))
 
-      const editedList = []
       for (let i = 0; i < selectedArr.length; i++) {
         const formData = infoArr[i]
         const linkIndex = selectedArr[i]
-        const link = cloneDeep(this.rlinks.features.filter((link) => link.properties.index === linkIndex)[0])
+        const link = linksToEdit.filter(link => link.properties.index === linkIndex)[0]
         // applied all properties.
         Object.keys(formData).forEach((key) => link.properties[key] = formData[key].value)
 
@@ -396,10 +402,8 @@ export const userLinksStore = defineStore('rlinks', {
         } else if (onewayChanged && onewayValue === '1') {
           deleteReverseProperties(link, this.reversedAttributes)
         }
-        // push changes
-        editedList.push(link)
       }
-      this.commitChanges({ name: 'Edit Link Properties', updateLinks: editedList })
+      this.commitChanges({ name: 'Edit Link Properties', updateLinks: linksToEdit })
     },
 
     editNodeInfo (payload: EditRoadPayload) {

@@ -29,27 +29,19 @@ const timeline = computed(() => [
   ...redoStack.value.map(el => ({ name: el.name, type: 'future' })).toReversed(),
 ])
 
-let historyBusy = ref(false)
-
 function undo() {
-  if (historyBusy.value) return
   if (isEditorMode.value) {
     linksStore.undo()
   } else if (isRoadMode.value) {
     rlinksStore.undo()
   }
-  historyBusy.value = true
-  requestAnimationFrame(() => historyBusy.value = false) // wait do not let user spam
 }
 function redo() {
-  if (historyBusy.value) return
   if (isEditorMode.value) {
     linksStore.redo()
   } else if (isRoadMode.value) {
     rlinksStore.redo()
   }
-  historyBusy.value = true
-  requestAnimationFrame(() => historyBusy.value = false) // wait do not let user spam
 }
 
 </script>

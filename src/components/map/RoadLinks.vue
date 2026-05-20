@@ -38,12 +38,8 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 
-let historyBusy = ref(false)
-
 function handleKeydown(event: KeyboardEvent) {
-  // console.log(event.shiftKey)
   // Check if Ctrl (or Command on Mac) and Z are pressed
-  if (historyBusy.value) return
   const ctrl = event.ctrlKey || event.metaKey
   const key = event.key.toLowerCase()
   const shift = event.shiftKey
@@ -51,14 +47,10 @@ function handleKeydown(event: KeyboardEvent) {
   if ((ctrl && event.key === 'y') || (ctrl && shift && key === 'z')) {
     event.preventDefault()
     rlinksStore.redo()
-    historyBusy.value = true
-    requestAnimationFrame(() => historyBusy.value = false) // wait do not let user spam
     drawMode.value = false
   } else if (ctrl && key === 'z') {
     event.preventDefault()
     rlinksStore.undo()
-    historyBusy.value = true
-    requestAnimationFrame(() => historyBusy.value = false)// wait do not let user spam
     drawMode.value = false
   }
 }
@@ -113,19 +105,10 @@ type NetworkFeature = (LineStringFeatures | PointFeatures | UpdateFeatures)
 
 function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
   // update features. if properties is not provided: ex: {type:'Feature',id:'link_1'}. will delete
-  // if its empty. we set Data (refresh all.)
-  if (array.length === 0) {
-    if (source == 'rlinks') {
-      initLinks()
-    } else {
-      initNodes()
-    }
-  } else {
-    array.forEach(el => el.id = el.properties ? el.properties.index : el.id)
-    const mapSource = map.value.getSource(source) as GeoJSONSource
-    if (!mapSource) return
-    mapSource.updateData({ type: 'FeatureCollection', features: array as any }) // TODO: change any
-  }
+  if (array.length === 0) return
+  const mapSource = map.value.getSource(source) as GeoJSONSource
+  if (!mapSource) return
+  mapSource.updateData({ type: 'FeatureCollection', features: array as any }) // TODO: change any
 }
 
 const updateLinks = computed(() => { return rlinksStore.updateLinks })

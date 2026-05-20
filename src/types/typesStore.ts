@@ -264,7 +264,7 @@ export interface CreateRlinkPayload {
 
 export interface UpdateFeatures {
   type: 'Feature'
-  id?: string // should be necessary
+  id: string // should be necessary
   geometry?: LineStringGeometry | PointGeometry
   properties?: GeoJsonProperties
 }
