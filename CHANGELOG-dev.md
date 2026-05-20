@@ -1,3 +1,16 @@
+## [8.0.a] (2026-05-20)
+7.3 will be merged in 8.0 and never release to master as its not enough changes.
+## Features
+* History for PT and Road edition
+    * click ctrl-z and ctrl-y (or ctrl-shift-z) to undo/redo
+
+### changes
+* PT line hovering now show the line in yellow or blue if the line is yellow.
+* road filtering (visible) now using mapbox filtering and simplifies a lot.
+* major refactor of links and rlinks store to commit changes into a single pipeline to be able to undo/redo
+* moving nodes now move a temporary virtual line on the map.
+* side panels CSS redo.
+
 ## [7.3.x] (2026-04-08)
 ### bug fixes
 * cut line before node: was not changing link_sequence
