@@ -36,7 +36,7 @@ const sectionRef = ref()
 const toCollapse = ref(false)
 const smoothResize = ref(false)
 
-const minLeft = ref(400) // in pixels
+const minLeft = ref(420) // in pixels
 const left = ref(0) // in percent
 
 // init left panel size to minValue
