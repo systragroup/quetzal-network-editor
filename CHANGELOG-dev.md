@@ -1,3 +1,7 @@
+## [8.0.c] (2026-05-21)
+### changes
+* when editing a group of rlinks. the dialog show the number of links to edit
+
 ## [8.0.b] (2026-05-21)
 ### changes
 * road links properties edition: reversed props are now in the same form, side to side with the non reversed one.

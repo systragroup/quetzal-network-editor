@@ -38,7 +38,7 @@ const hints: Dict = attributesHints
 const formRef = ref()
 
 const editorForm = ref<GroupForm[]>([])
-const numLinks = computed(() => { return editorForm.value.length })
+const numForm = computed(() => { return editorForm.value.length })
 
 const showHint = ref(false)
 
@@ -255,7 +255,7 @@ watchEffect(() => {
   <v-dialog
     v-model="showDialog"
     scrollable
-    :max-width="`${30*numLinks}rem`"
+    :max-width="`${30*numForm}rem`"
     @keydown.enter="saveAndQuit"
   >
     <v-card
@@ -264,6 +264,9 @@ watchEffect(() => {
       <DialogHeader
         v-model:variant="selectedVariant"
         v-model:prefix="selectedPrefix"
+        :title="action === 'Edit Road Group Info'?
+          $gettext('Edit Properties of %{len} links',{len:String(selectedArr.length) }):
+          $gettext('Edit Properties')"
         :variant-choices="variantChoices"
         :prefixes-choice="prefixesChoice"
       />
@@ -271,11 +274,12 @@ watchEffect(() => {
       <v-card-text class="container">
         <v-row>
           <v-col
-            v-for="(n,idx) in numLinks"
+            v-for="(n,idx) in numForm"
             :key="idx"
           >
             <v-list-item>
               <v-icon
+                v-if="action == 'Edit rLink Info'"
                 :style="{'align-items':'center',
                          'justify-content': 'center',
                          transform: 'rotate('+linkDir[idx]+'deg)'}"
