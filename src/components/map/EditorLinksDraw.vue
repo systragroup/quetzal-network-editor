@@ -46,12 +46,12 @@ watch(isEditorMode, (val) => {
   if (val) {
     map.value.on('mousemove', draw)
     map.value.on('mousedown', clickStopDraw)
-    map.value.on('mousedown', addPoint)
+    map.value.on('click', addPoint)
   }
   else {
     map.value.off('mousemove', draw)
     map.value.off('mousedown', clickStopDraw)
-    map.value.off('mousedown', addPoint)
+    map.value.off('click', addPoint)
   }
 }, { immediate: true })
 

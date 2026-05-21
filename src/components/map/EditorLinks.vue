@@ -10,7 +10,7 @@ import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures
 import { AddNodeTypes } from '@src/types/typesStore'
 import { ActionClick, ContextMenu, CustomMapEvent, HoverState } from '@src/types/mapbox'
 import { useForm } from '@src/composables/UseForm'
-const { openDialog } = useForm()
+const { openDialog, showDialog } = useForm()
 
 const { $gettext } = useGettext()
 
@@ -99,9 +99,8 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 function handleKeydown(event: KeyboardEvent) {
-  // console.log(event.shiftKey)
-  // Check if Ctrl (or Command on Mac) and Z are pressed
-  const ctrl = event.ctrlKey || event.metaKey
+  if (showDialog.value) return // no undo redo when dialog is shown
+  const ctrl = event.ctrlKey || event.metaKey // windows or mac
   const key = event.key.toLowerCase()
   const shift = event.shiftKey
   if ((ctrl && event.key === 'y') || (ctrl && shift && key === 'z')) {

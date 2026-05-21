@@ -17,7 +17,7 @@ import { ActionClickRoad, ContextMenuRoad, CustomMapEvent, HoverStateRoad, MapSe
 import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, PointFeatures } from '@src/types/geojson'
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
 import RoadLinksDraw from './RoadLinksDraw.vue'
-const { openDialog } = useForm()
+const { openDialog, showDialog } = useForm()
 
 interface Props {
   map: Map
@@ -39,8 +39,8 @@ onUnmounted(() => {
 })
 
 function handleKeydown(event: KeyboardEvent) {
-  // Check if Ctrl (or Command on Mac) and Z are pressed
-  const ctrl = event.ctrlKey || event.metaKey
+  if (showDialog.value) return // no undo redo when dialog is shown
+  const ctrl = event.ctrlKey || event.metaKey // mac or windows
   const key = event.key.toLowerCase()
   const shift = event.shiftKey
 

@@ -4,6 +4,10 @@
 * Deleting reversed properties (changing from oneway True to False) now only put undefined to the props.
     * this is because there is no properties deletion / addition in the commit for now.
 
+### bug fixes
+* PT: moving the map created a link. we just want to create a link and node on click.
+* prevent undo/redo when edit dialog in open
+
 ## [8.0.a] (2026-05-20)
 7.3 will be merged in 8.0 and never release to master as its not enough changes.
 ## Features
