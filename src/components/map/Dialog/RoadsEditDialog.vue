@@ -31,8 +31,8 @@ const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
 const typesMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
 const unitsMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
-const attributeNonDeletable = computed(() => rlinksDefaultProperties.map(el => el.name))
-
+// cannot delete reversed attribute (they are deleted with the normal one)
+const attributeNonDeletable = computed(() => [...rlinksDefaultProperties.map(el => el.name), ...reversedAttributes.value])
 const rules = {}
 const hints: Dict = attributesHints
 const formRef = ref()
@@ -62,20 +62,31 @@ const linkDir = ref<number[]>([])
 function createForm() {
   let disabled: string[] = []
   let features: LineStringFeatures[] = []
+  if (selectedArr.value.length === 1) { // when only one is selected. just do a normal link edition.
+    action.value = 'Edit rLink Info'
+  }
   const selectedSet = new Set(selectedArr.value)
   switch (action.value) {
     case 'Edit rLink Info':
       // editorForm.value = selectedArr.value.map(linkId => rlinksStore.rlinksForm(linkId))
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
       disabled = ['a', 'b', 'index']
-      editorForm.value = features.map(feature => getForm(feature, lineAttributes.value, disabled))
-      linkDir.value = features.map(feature => getDirection(feature.geometry.coordinates))
-      features = features.filter(el => el.properties.oneway === '0')
+      editorForm.value = []
       features.forEach(feature => {
-        const linkId = feature.properties.index
-        selectedArr.value.push(linkId)
-        editorForm.value.push(getForm(feature, reversedAttributes.value, disabled))
-        linkDir.value.push(getDirection(feature.geometry.coordinates))
+        const form = getForm(feature, lineAttributes.value, disabled)
+        if (feature.properties.oneway === '0') {
+          const rform = getForm(feature, reversedAttributes.value, disabled)
+          // group together both direction
+          reversedAttributes.value.forEach(key => {
+            rform[key].grouped = true
+            form[key.slice(0, -2)].grouped = true
+          })
+          editorForm.value.push({ ...form, ...rform })
+        } else {
+          editorForm.value.push(form)
+        }
+
+        linkDir.value = features.map(feature => getDirection(feature.geometry.coordinates))
       })
       break
     case 'Edit Road Group Info':
@@ -128,12 +139,12 @@ function addFieldToLinksForms(newFieldName: string) {
   editorForm.value.forEach(form => {
     // If the form is a reversed one. add the field if its not in rcstAttribute
     // (ex: route_width, no route_width_r)
-    if (Object.keys(form)[0].endsWith('_r') && !rlinksConstantProperties.includes(newFieldName)) {
-      form[newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined, show: true }
-    } else {
-      // just a normal link
-      form[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
+    let toAdd = { disabled: false, placeholder: false, value: undefined, show: true, grouped: false }
+    if ((form.oneway.value === '0') && !rlinksConstantProperties.includes(newFieldName)) {
+      toAdd.grouped = true
+      form[newFieldName + '_r'] = toAdd
     }
+    form[newFieldName] = toAdd
   })
 }
 
@@ -263,7 +274,7 @@ watchEffect(() => {
             v-for="(n,idx) in numLinks"
             :key="idx"
           >
-            <v-list-item v-if="numLinks > 1">
+            <v-list-item>
               <v-icon
                 :style="{'align-items':'center',
                          'justify-content': 'center',

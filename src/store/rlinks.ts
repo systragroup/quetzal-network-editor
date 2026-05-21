@@ -382,29 +382,28 @@ export const userLinksStore = defineStore('rlinks', {
 
     editLinkInfo (payload: EditRoadPayload) {
       // get selected link in editorLinks and modify the changes attributes.
+      // reversed attributes are provided in the infoArr just like the normal attributes.
       const { selectedArr, infoArr } = payload
-      const selectedSet = new Set(selectedArr)
-      // we need to copy then edit as we may edit the same link 2 time.
-      // when no oneway, we apply the infoArr 2 times (for normal and _r attr) on the same link, so we need a pointer
-      const linksToEdit = cloneDeep(this.rlinks.features.filter(link => selectedSet.has(link.properties.index)))
+
+      const linksToEdit = []
 
       for (let i = 0; i < selectedArr.length; i++) {
         const formData = infoArr[i]
         const linkIndex = selectedArr[i]
-        const link = linksToEdit.filter(link => link.properties.index === linkIndex)[0]
-        // applied all properties.
-        Object.keys(formData).forEach((key) => link.properties[key] = formData[key].value)
+        const link = cloneDeep(this.rlinks.features.filter(link => link.properties.index === linkIndex)[0])
 
         // if we change a one way to a 2 way, copy oneway properties to the reverse one.
         const onewayValue = formData.oneway?.value
         const onewayChanged = onewayValue !== link.properties.oneway
-
+        // applied all properties.
+        Object.keys(formData).forEach((key) => link.properties[key] = formData[key].value)
         if (onewayChanged && onewayValue === '0') {
           addReverseProperties(link, this.reversedAttributes)
         // if we change from 2way to oneway delete _r attrs
         } else if (onewayChanged && onewayValue === '1') {
           deleteReverseProperties(link, this.reversedAttributes)
         }
+        linksToEdit.push(link)
       }
       this.commitChanges({ name: 'Edit Link Properties', updateLinks: linksToEdit })
     },

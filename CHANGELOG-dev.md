@@ -1,3 +1,9 @@
+## [8.0.b] (2026-05-21)
+### changes
+* road links properties edition: reversed props are now in the same form, side to side with the non reversed one.
+* Deleting reversed properties (changing from oneway True to False) now only put undefined to the props.
+    * this is because there is no properties deletion / addition in the commit for now.
+
 ## [8.0.a] (2026-05-20)
 7.3 will be merged in 8.0 and never release to master as its not enough changes.
 ## Features

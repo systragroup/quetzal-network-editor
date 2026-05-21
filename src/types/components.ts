@@ -3,6 +3,8 @@ export interface FormFormat {
   disabled: boolean
   show: boolean
   placeholder: boolean
+  grouped?: boolean // put values side to side on the same row
+
 }
 
 export type GroupForm = Record<string, FormFormat>

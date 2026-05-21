@@ -89,7 +89,7 @@ function redo() {
               location="top"
               open-delay="250"
             >
-              {{ $gettext('undo') }}
+              {{ $gettext('undo (ctrl-z)') }}
             </v-tooltip>
           </v-btn>
 
@@ -104,7 +104,7 @@ function redo() {
               location="top"
               open-delay="250"
             >
-              {{ $gettext('redo') }}
+              {{ $gettext('redo (ctrl-y)') }}
             </v-tooltip>
           </v-btn>
         </v-btn-group>

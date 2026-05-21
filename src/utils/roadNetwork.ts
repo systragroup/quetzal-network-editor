@@ -10,7 +10,7 @@ export function addReverseProperties(link: LineStringFeatures, reversedAttribute
 }
 
 export function deleteReverseProperties(link: LineStringFeatures, reversedAttributes: string[]) {
-  reversedAttributes.forEach(rkey => delete link.properties[rkey])
+  reversedAttributes.forEach(rkey => link.properties[rkey] = undefined)
 }
 
 export function normalizeToString(value: unknown): string {
