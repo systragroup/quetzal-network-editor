@@ -1,10 +1,12 @@
-## [8.0.c] (2026-05-21)
+## [8.0.c] (2026-05-22)
 ### changes
+* Links and rLinks property type (Number or String) are now parse when loading a network. first value encounter is used between number and string. This way, a number input is used for number. type should not be mixed, so I think its fair to use the first for increased performance.
 * when editing a group of rlinks. the dialog show the number of links to edit
 * add a second arrow on rlink dialog when there is _r props
 
 ### bug fixes
 * fix export zip file last modified metadata to be in the user timezone. This may not 100% work as it apparently depends on the unzip software. in my case, folders are still in UTC or something like last time I opened a file...
+* add calculator on speed_r, time_r dialog. disabled length edition there,
 
 ## [8.0.b] (2026-05-21)
 ### changes

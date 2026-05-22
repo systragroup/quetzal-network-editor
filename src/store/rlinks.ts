@@ -689,7 +689,7 @@ export const userLinksStore = defineStore('rlinks', {
     _getTimeVariants() {
       // return time variant and reversed time variant if it has reverse direction: ex: ['', '_r']
       return (link: LineStringFeatures) => {
-        if (link.properties.time_r) {
+        if (link.properties.oneway === '0') {
           const reversedVariants = this.timeVariants.map(v => `${v}_r`) as NonEmptyArray<string>
           return [...this.timeVariants, ...reversedVariants] as NonEmptyArray<string>
         } else {

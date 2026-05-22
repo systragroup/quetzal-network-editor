@@ -71,7 +71,7 @@ function createForm() {
     case 'Edit rLink Info':
       // editorForm.value = selectedArr.value.map(linkId => rlinksStore.rlinksForm(linkId))
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['a', 'b', 'index']
+      disabled = ['a', 'b', 'index', 'length']
       editorForm.value = []
       features.forEach(feature => {
         const form = getForm(feature, lineAttributes.value, disabled)
@@ -191,9 +191,14 @@ function ToggleDeleteOption () {
 }
 
 function change (key: string, idx: number) {
-  const name = key.split('#')[0]
+  let name = key.split('#')[0]
   let v = key.split('#')[1]
   v = v ? `#${v}` : ''
+  // compute for speed_r too. first condition should be satisfied if variant (time#AM_r), v=#AM_r
+  if (name.endsWith('_r') && v === '') {
+    name = name.slice(0, -2)
+    v = '_r'
+  }
   const formData = editorForm.value[idx]
   switch (name) {
     case 'speed':
@@ -290,7 +295,7 @@ watchEffect(() => {
               <v-icon
                 :style="{transform: 'rotate('+(linkDir[idx]+180)+'deg)'}"
               >
-                {{ editorForm[idx].oneway.value==='0'?'fas fa-long-arrow-alt-up':'' }}
+                {{ editorForm[idx].oneway.value==='0'? 'fas fa-long-arrow-alt-up': '' }}
               </v-icon>
             </div>
             <EditForm

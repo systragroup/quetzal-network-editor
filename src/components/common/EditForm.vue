@@ -71,6 +71,15 @@ const orderedForm = computed (() => {
   return ordered
 })
 
+function hasCalculator(key: string) {
+  if (['length', 'speed', 'time'].includes(key.split('#')[0]))
+    return true
+  else if (['speed_r', 'time_r'].includes(key))
+    return true
+  else
+    return false
+}
+
 defineExpose({
   validate,
 })
@@ -111,7 +120,7 @@ defineExpose({
             :suffix="units[key]"
             :rules="rules[key]"
             :precision="null"
-            :prepend-inner-icon="['length','speed','time'].includes(key.split('#')[0]) ? 'fas fa-calculator' : '' "
+            :prepend-inner-icon="hasCalculator(key) ? 'fas fa-calculator' : '' "
             :label="String(key)"
             @update:model-value="change(key)"
           >
