@@ -57,7 +57,7 @@ function init() {
   showDeleteOption.value = false
 }
 
-const linkDir = ref<number[]>([])
+const linkDir = ref<number[][]>([]) // to put 2 direction per form
 
 function createForm() {
   let disabled: string[] = []
@@ -72,8 +72,10 @@ function createForm() {
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
       disabled = ['a', 'b', 'index']
       editorForm.value = []
+      linkDir.value = []
       features.forEach(feature => {
         const form = getForm(feature, lineAttributes.value, disabled)
+        const dir = getDirection(feature.geometry.coordinates)
         if (feature.properties.oneway === '0') {
           const rform = getForm(feature, reversedAttributes.value, disabled)
           // group together both direction
@@ -82,11 +84,12 @@ function createForm() {
             form[key.slice(0, -2)].grouped = true
           })
           editorForm.value.push({ ...form, ...rform })
+
+          linkDir.value.push([dir, dir + 180])
         } else {
           editorForm.value.push(form)
+          linkDir.value.push([dir])
         }
-
-        linkDir.value = features.map(feature => getDirection(feature.geometry.coordinates))
       })
       break
     case 'Edit Road Group Info':
@@ -277,16 +280,18 @@ watchEffect(() => {
             v-for="(n,idx) in numForm"
             :key="idx"
           >
-            <v-list-item>
+            <div
+              v-if="action == 'Edit rLink Info'"
+              class="arrows-container"
+            >
               <v-icon
-                v-if="action == 'Edit rLink Info'"
-                :style="{'align-items':'center',
-                         'justify-content': 'center',
-                         transform: 'rotate('+linkDir[idx]+'deg)'}"
+                v-for="(direction,i) in linkDir[idx]"
+                :key="i"
+                :style="{transform: 'rotate('+direction+'deg)'}"
               >
                 fas fa-long-arrow-alt-up
               </v-icon>
-            </v-list-item>
+            </div>
             <EditForm
               ref="formRef"
               v-model:editor-form="editorForm[idx]"
@@ -298,7 +303,7 @@ watchEffect(() => {
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"
               :types="typesMap"
-              @change="(key)=>change(key,idx)"
+              @change="(key:string)=>change(key,idx)"
               @delete-field="deleteField"
             />
             <NewFieldForm
@@ -351,4 +356,10 @@ watchEffect(() => {
 .container {
   display: flex;
 }
+.arrows-container{
+  display: flex;
+  padding:0.2rem 1rem ;
+  justify-content: space-between;
+  align-items: center; /* optional, vertical alignment */
+  }
 </style>

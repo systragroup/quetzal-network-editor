@@ -367,6 +367,8 @@ export const useIndexStore = defineStore('index', {
       const runStore = useRunStore()
       const userStore = useUserStore()
       const zip = new JSZip()
+      const now = new Date() // get current datetime in user timezone
+      const date = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
       let links = ''
       let nodes = ''
       let rlinks = ''
@@ -397,46 +399,41 @@ export const useIndexStore = defineStore('index', {
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
         let blob = new Blob([links], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/pt/links.geojson', blob)
+        zip.file('inputs/pt/links.geojson', blob, { date: date })
         blob = new Blob([nodes], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/pt/nodes.geojson', blob)
+        zip.file('inputs/pt/nodes.geojson', blob, { date: date })
       }
       if (JSON.parse(rlinks).features.length > 0) {
         let blob = new Blob([rlinks], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/road/road_links.geojson', blob)
+        zip.file('inputs/road/road_links.geojson', blob, { date: date })
         blob = new Blob([rnodes], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/road/road_nodes.geojson', blob)
+        zip.file('inputs/road/road_nodes.geojson', blob, { date: date })
       }
       if (JSON.parse(od).features.length > 0) {
         const blob = new Blob([od], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/od/od.geojson', blob)
+        zip.file('inputs/od/od.geojson', blob, { date: date })
       }
       if (payload === 'all') {
         if (!runStore.parametersIsEmpty) {
           const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
-          zip.file('inputs/params.json', blob)
+          zip.file('inputs/params.json', blob, { date: date })
         }
         if (this.styles.length > 0) {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
-          zip.file('styles.json', blob)
+          zip.file('styles.json', blob, { date: date })
         }
         if (this.projectInfo) {
           const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
-          zip.file('info.json', blob)
+          zip.file('info.json', blob, { date: date })
         }
         if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged) {
           const attributesChoices = { pt: linksStore.linksAttributesChoices, road: rlinksStore.rlinksAttributesChoices }
           const blob = new Blob([JSON.stringify(attributesChoices)], { type: 'application/json' })
-          zip.file('attributesChoices.json', blob)
+          zip.file('attributesChoices.json', blob, { date: date })
         }
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
           const content = this.getFileContent(file)
-          zip.file(file.path, content)
+          zip.file(file.path, content, { date: date })
         }
       }
       zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
