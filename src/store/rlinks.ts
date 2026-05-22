@@ -259,10 +259,8 @@ export const userLinksStore = defineStore('rlinks', {
           }
         })
         const toSplit = this.rlinks.features.filter(link => link.properties.oneway === '0')
-        // this function only apply the non _r val if it doesnt exist.
-        toSplit.forEach(link => {
-          addReverseProperties(link, this.reversedAttributes)
-        })
+        // this function only apply the non _r val if its undefined.
+        toSplit.forEach(link => addReverseProperties(link, this.reversedAttributes))
       }
     },
 

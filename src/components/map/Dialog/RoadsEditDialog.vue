@@ -57,12 +57,13 @@ function init() {
   showDeleteOption.value = false
 }
 
-const linkDir = ref<number[][]>([]) // to put 2 direction per form
+const linkDir = ref<number[]>([]) // to put 2 direction per form
 
 function createForm() {
   let disabled: string[] = []
   let features: LineStringFeatures[] = []
-  if (selectedArr.value.length === 1) { // when only one is selected. just do a normal link edition.
+  // when only one is selected. just do a normal link edition.
+  if (selectedArr.value.length === 1 && action.value === 'Edit Road Group Info') {
     action.value = 'Edit rLink Info'
   }
   const selectedSet = new Set(selectedArr.value)
@@ -72,10 +73,9 @@ function createForm() {
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
       disabled = ['a', 'b', 'index']
       editorForm.value = []
-      linkDir.value = []
       features.forEach(feature => {
         const form = getForm(feature, lineAttributes.value, disabled)
-        const dir = getDirection(feature.geometry.coordinates)
+        linkDir.value.push(getDirection(feature.geometry.coordinates))
         if (feature.properties.oneway === '0') {
           const rform = getForm(feature, reversedAttributes.value, disabled)
           // group together both direction
@@ -84,11 +84,8 @@ function createForm() {
             form[key.slice(0, -2)].grouped = true
           })
           editorForm.value.push({ ...form, ...rform })
-
-          linkDir.value.push([dir, dir + 180])
         } else {
           editorForm.value.push(form)
-          linkDir.value.push([dir])
         }
       })
       break
@@ -285,11 +282,15 @@ watchEffect(() => {
               class="arrows-container"
             >
               <v-icon
-                v-for="(direction,i) in linkDir[idx]"
-                :key="i"
-                :style="{transform: 'rotate('+direction+'deg)'}"
+                :style="{transform: 'rotate('+linkDir[idx]+'deg)'}"
               >
                 fas fa-long-arrow-alt-up
+              </v-icon>
+              <span>{{ editorForm[idx].index.value }}</span>
+              <v-icon
+                :style="{transform: 'rotate('+(linkDir[idx]+180)+'deg)'}"
+              >
+                {{ editorForm[idx].oneway.value==='0'?'fas fa-long-arrow-alt-up':'' }}
               </v-icon>
             </div>
             <EditForm
@@ -358,8 +359,9 @@ watchEffect(() => {
 }
 .arrows-container{
   display: flex;
-  padding:0.2rem 1rem ;
+  padding: 0rem 1rem 1rem 1rem ;
   justify-content: space-between;
   align-items: center; /* optional, vertical alignment */
+  font-size: large;
   }
 </style>
