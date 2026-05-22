@@ -10,6 +10,7 @@ import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODS
 import { baseLineString, basePoint, createPointFeature, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
 import { ODDefaultProperties } from '@src/constants/properties'
+import { listAllProperties } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 export const useODStore = defineStore('od', {
@@ -71,12 +72,9 @@ export const useODStore = defineStore('od', {
     },
 
     getProperties () {
-      const header: Set<string> = new Set([])
-      this.layer.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
-      })
+      const properties = listAllProperties(this.layer)
       // add all default attributes
-      const newAttrs = getDifference(header, this.layerAttributes)
+      const newAttrs = getDifference(properties, this.layerAttributes)
       newAttrs.forEach(attr => this.defaultAttributes.push({ name: attr, type: 'String' }))
 
       this.selectedFilter = 'name'

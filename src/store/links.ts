@@ -34,7 +34,9 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   snapOnLink,
   _addGeojsonFeatures,
   _editGeojsonFeatures,
-  _deleteGeojsonFeatures } from '@src/utils/network'
+  _deleteGeojsonFeatures,
+  getPropertyType,
+  listAllProperties } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
@@ -176,20 +178,17 @@ export const useLinksStore = defineStore('links', {
     },
 
     getLinksProperties () {
-      const keys: Set<string> = new Set([])
-      this.links.features.forEach(feature => {
-        Object.keys(feature.properties).forEach(key => keys.add(key))
+      const properties = listAllProperties(this.links)
+      const newProps = getDifference(properties, this.lineAttributes)
+      newProps.forEach(prop => {
+        const type = getPropertyType(this.links, prop)
+        this.linksDefaultAttributes.push({ name: prop, type: type })
       })
-      const newAttrs = getDifference(keys, this.lineAttributes)
-      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
     getNodesProperties () {
-      const keys: Set<string> = new Set([])
-      this.nodes.features.forEach(feature => {
-        Object.keys(feature.properties).forEach(key => keys.add(key))
-      })
-      const newAttrs = getDifference(keys, this.nodeAttributes)
+      const properties = listAllProperties(this.nodes)
+      const newAttrs = getDifference(properties, this.nodeAttributes)
       newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
     },
 

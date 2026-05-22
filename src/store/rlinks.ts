@@ -23,7 +23,8 @@ import { rlinksConstantProperties, rnodesDefaultProperties,
 import { simplifyGeometry } from '@src/utils/spatial'
 import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
-  getDefaultLink, getVariantsChoices,
+  getDefaultLink, getPropertyType, getVariantsChoices,
+  listAllProperties,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties, normalizeToString } from '@src/utils/roadNetwork'
 import { nextTick, toRaw } from 'vue'
@@ -223,27 +224,27 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     getrLinksProperties () {
-      const header: Set<string> = new Set([])
-      this.rlinks.features.forEach(feat => {
-        Object.keys(feat.properties).forEach(key => header.add(key))
+      const properties = listAllProperties(this.rlinks)
+      const newProps = getDifference(properties, this.rlineAttributes)
+      newProps.forEach(prop => {
+        const type = getPropertyType(this.rlinks, prop)
+        this.linksDefaultAttributes.push({ name: prop, type: type })
       })
-      const newAttrs = getDifference(header, this.rlineAttributes)
-      newAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
 
       // create _r attributes if they dont exist (like time_r if there is no time_r)
       const toReverse = this.rlineAttributes.filter(attr => !rlinksConstantProperties.includes(attr))
       const reversedAttributes = toReverse.map(attr => attr + '_r')
-      const newReversedAttrs = getDifference(reversedAttributes, this.reversedAttributes)
-      newReversedAttrs.forEach(attr => this.linksDefaultAttributes.push({ name: attr, type: undefined }))
+      const newReversedProps = getDifference(reversedAttributes, this.reversedAttributes)
+      newReversedProps.forEach(prop => {
+        const type = getPropertyType(this.rlinks, prop.slice(0, -2)) //  get type of the non _r property
+        this.linksDefaultAttributes.push({ name: prop, type: type })
+      })
     },
 
     getrNodesProperties () {
-      const header: Set<string> = new Set([])
-      this.rnodes.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
-      })
+      const properties = listAllProperties(this.rnodes)
       // add all default attributes
-      const newAttrs = getDifference(header, this.rnodeAttributes)
+      const newAttrs = getDifference(properties, this.rnodeAttributes)
       newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
     },
 

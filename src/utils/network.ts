@@ -1,5 +1,5 @@
 import { baseLineString, basePoint, GeoJson, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson } from '@src/types/geojson'
-import { Attributes, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
+import { Attributes, AttributeTypes, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
 import short from 'short-uuid'
 
 import length from '@turf/length'
@@ -143,6 +143,36 @@ export function snapOnLink(linksGeometry: number[][], lngLat: LngLat | number[])
   const offset = snapped.properties.location ? snapped.properties.location / dist : 0
   const newCoords = snapped.geometry.coordinates
   return { sliceIndex, offset, newCoords }
+}
+
+export function listAllProperties(geojson: GeoJson): Set<string> {
+  // get all properties keys
+  const keys: Set<string> = new Set([])
+  geojson.features.forEach(feature => {
+    Object.keys(feature.properties).forEach(key => keys.add(key))
+  })
+  return keys
+}
+
+export function getPropertyType(geojson: GeoJson, property: string): AttributeTypes {
+  // return first founded type (string or number) else undefined. this is faster than checking everything
+  for (const feature of geojson.features) {
+    const type = getType(feature.properties[property])
+    if (type)
+      return type
+  }
+  return undefined
+}
+
+export function getType(value: unknown): AttributeTypes {
+  // "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+  const type = typeof value
+  if (type === 'undefined')
+    return undefined
+  else if (['number', 'bigint', 'boolean'].includes(type))
+    return 'Number'
+  else
+    return 'String'
 }
 
 export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): Set<string> {
