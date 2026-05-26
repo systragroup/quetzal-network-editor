@@ -26,6 +26,9 @@ export const linksDefaultProperties: Attributes[] = [
   { name: 'drop_off_type', type: 'Number', value: 0 },
   { name: 'link_sequence', type: 'Number', value: 0 },
   { name: 'direction_id', type: 'Number', value: 0 },
+  { name: 'departures', type: undefined, value: undefined }, //  its an array. dont want to force string on read
+  { name: 'arrivals', type: undefined, value: undefined }, //  its an array. dont want to force string on read
+  { name: 'road_link_list', type: undefined, value: undefined }, //  its an array. dont want to force string on read
 ]
 
 export const nodesDefaultProperties: Attributes[] = [
@@ -45,6 +48,7 @@ export const rlinksDefaultProperties: Attributes[] = [
   { name: 'speed', type: 'Number', value: 20, units: units['speed'] },
   { name: 'highway', type: 'String', value: 'quenedi' },
   { name: 'oneway', type: 'String', value: '0' },
+
 ]
 
 export const rnodesDefaultProperties: Attributes[] = [

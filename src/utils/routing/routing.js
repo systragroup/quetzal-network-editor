@@ -243,7 +243,7 @@ export function useRouting () {
     // [1,2,3,4] => [[1,2], [2,3], [3,4]]
     const geom = [nodeA, ...anchors, nodeB]
     link.geometry.coordinates = geom
-    delete link.properties.road_link_list
+    link.properties.road_link_list = undefined
     return link
   }
   // exposed function

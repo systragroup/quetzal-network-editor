@@ -507,7 +507,7 @@ msgstr "Modifier les infos"
 #: src/components/map/Dialog/ODEditDialog.vue:114
 #: src/components/map/Dialog/RoadsEditDialog.vue:269
 msgid "Edit Properties"
-msgstr "Modifier les propriétés"
+msgstr "Modifier"
 
 #: src/components/map/Dialog/RoadsEditDialog.vue:268
 msgid "Edit Properties of %{len} links"
