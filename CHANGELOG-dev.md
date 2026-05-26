@@ -1,3 +1,7 @@
+## [8.0.d] (2026-05-26)
+### bug fixes
+* arrivals departures and road_link_list type force to undefined. so they stays as array.
+
 ## [8.0.c] (2026-05-22)
 ### changes
 * Links and rLinks property type (Number or String) are now parse when loading a network. first value encounter is used between number and string. This way, a number input is used for number. type should not be mixed, so I think its fair to use the first for increased performance.
