@@ -9,6 +9,7 @@ import createGraph from 'ngraph.graph'
 import path from 'ngraph.path'
 import { shallowRef, toRaw, computed, watch, onMounted } from 'vue'
 import { calcLengthTimeorSpeed } from '../network'
+import { isRoutedLink } from '../utils.js'
 
 // Global state. Can reuuse thoses anywhere in the app.
 // onMounted. only init if null (so we do it only once.)
@@ -282,10 +283,7 @@ export function useRouting () {
   }
 
   const isRouted = computed(() => {
-    if (links.value.features.length === 0) {
-      return false
-    } else {
-      return Object.keys(links.value.features[0].properties).includes('road_link_list') }
+    return isRoutedLink(links.value.features[0])
   })
 
   function toggleRouting() {

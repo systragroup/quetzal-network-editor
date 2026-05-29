@@ -72,6 +72,11 @@ export function isScheduleTrip(link: GeoJsonFeatures | undefined) {
   return Array.isArray(link.properties.arrivals)
 }
 
+export function isRoutedLink(link: GeoJsonFeatures | undefined) {
+  if (link == undefined) { return false }
+  return Array.isArray(link.properties.road_link_list)
+}
+
 export function IndexAreDifferent (geojsonA: GeoJson, geojsonB: GeoJson) {
   // check if index are duplicated between geojsons (to append new links or nodes) (links or nodes)
   // return true if they are all unique

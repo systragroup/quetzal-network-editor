@@ -1,3 +1,7 @@
+## [8.0.e] (2026-05-29)
+### bug fixes
+* fix routing. the unroute/route all was not working anymore.
+
 ## [8.0.d] (2026-05-26)
 ### bug fixes
 * arrivals departures and road_link_list type force to undefined. so they stays as array.
