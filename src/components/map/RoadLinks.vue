@@ -58,15 +58,30 @@ function handleKeydown(event: KeyboardEvent) {
 onMounted(() => {
   if (map.value.getLayer('links')) {
     map.value.moveLayer('rlinks', 'links')
+    map.value.moveLayer('arrow-rlinks', 'links')
+    map.value.moveLayer('static-rlinks', 'links')
     map.value.moveLayer('anchorrNodes', 'links')
     map.value.moveLayer('rnodes', 'links')
   }
   init()
 })
 
+watch(isEditorMode, (val) => {
+  // set the static-rlinks layer (lower opacity) when editing PT.
+  // this is way faster than changing the opacity on the rlinks layer (lots of paints props there)
+  if (val) {
+    map.value.setLayoutProperty('rlinks', 'visibility', 'none')
+    map.value.setLayoutProperty('static-rlinks', 'visibility', 'visible')
+  } else {
+    map.value.setLayoutProperty('rlinks', 'visibility', 'visible')
+    map.value.setLayoutProperty('static-rlinks', 'visibility', 'none')
+  }
+})
+
 onBeforeUnmount(() => {
   // remove arrow layer first as it depend on rlink layer
   map.value.removeLayer('arrow-rlinks')
+  map.value.removeLayer('static-rlinks')
 })
 
 const isRoadMode = computed(() => rlinksStore.editionMode)
@@ -148,6 +163,7 @@ async function setFilter() {
   ]
   map.value.setFilter('rlinks', linksFilter)
   map.value.setFilter('arrow-rlinks', linksFilter)
+  map.value.setFilter('static-rlinks', linksFilter)
 
   map.value.setFilter('rnodes', [
     'in',
@@ -672,8 +688,10 @@ const ArrowDirCondition = computed(() => {
       :layer="{
         type: 'line',
         paint: {
-          'line-color': ['case', ['boolean', ['feature-state', 'select'], false], '#87FFF3', ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary]],
-          'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
+          'line-color': ['case', ['boolean', ['feature-state', 'select'], false], '#87FFF3',
+                         ['case', ['has', 'route_color'],
+                          ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary]],
+          'line-opacity': 1,
           'line-width': ['*',['case', ['boolean', ['feature-state', 'hover'], false], 2*width, width],
                          ['case', ['has', 'route_width'],
                           ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
@@ -695,6 +713,28 @@ const ArrowDirCondition = computed(() => {
       @click="selectClick"
       @contextmenu="linkRightClick"
     />
+    <MglGeojsonLayer
+      source-id="rlinks"
+      :reactive="false"
+      source="rlinks"
+      layer-id="static-rlinks"
+      :layer="{
+        type: 'line',
+        paint: {
+          'line-color': ['case', ['has', 'route_color'],
+                         ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
+          'line-opacity': 0.3,
+          'line-width': ['case', ['has', 'route_width'],
+                         ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
+                          ['to-number', ['get', 'route_width']],
+                          2], 2]
+        },
+        layout: {
+          'line-sort-key': ['to-number',['get', 'route_width']],
+        }
+
+      }"
+    />
     <MglImageLayer
       source-id="rlinks"
       type="symbol"
@@ -712,7 +752,9 @@ const ArrowDirCondition = computed(() => {
           'icon-rotate': ArrowDirCondition,
         },
         paint: {
-          'icon-color': ['case', ['boolean', ['feature-state', 'select'], false], '#87FFF3', ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary]],
+          'icon-color': ['case', ['boolean', ['feature-state', 'select'], false], '#87FFF3',
+                         ['case', ['has', 'route_color'],
+                          ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary]],
         }
       }"
     />
@@ -732,7 +774,7 @@ const ArrowDirCondition = computed(() => {
         type: 'circle',
         minzoom: minZoom.nodes,
         paint: {
-          'circle-color': ['case', ['boolean', isEditorMode, false], $vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
+          'circle-color': $vuetify.theme.current.colors.accent,
           'circle-stroke-color': $vuetify.theme.current.colors.white,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],

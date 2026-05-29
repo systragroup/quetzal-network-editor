@@ -1,6 +1,8 @@
 ## [8.0.e] (2026-05-29)
 ### bug fixes
 * fix routing. the unroute/route all was not working anymore.
+### performances
+* add static rlink layer with low 30% opacity for PT edition. This is way faster than changing the opacity of the rlink layer, where there is a lot of paint attributes that mapbox need to rerender.
 
 ## [8.0.d] (2026-05-26)
 ### bug fixes
