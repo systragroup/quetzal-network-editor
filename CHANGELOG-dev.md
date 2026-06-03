@@ -1,3 +1,8 @@
+## [8.0.f] (2026-06-03)
+### changes
+* Can change the default road oneway in the settings
+
+
 ## [8.0.e] (2026-05-29)
 ### bug fixes
 * fix routing. the unroute/route all was not working anymore.

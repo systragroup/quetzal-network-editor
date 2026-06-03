@@ -51,6 +51,12 @@ export default {
       value: '',
       hint: $gettext('New road links Highway property name'),
     })
+    const roadOneway = ref({
+      name: $gettext('Road Oneway'),
+      type: 'String',
+      value: '0',
+      hint: $gettext('New road links are oneway if set to 1'),
+    })
     const outputName = ref({
       name: $gettext('Export name'),
       type: 'String',
@@ -74,6 +80,7 @@ export default {
       linksPopupContent.value.value = store.linksPopupContent
       roadsPopupContent.value.choices = rlinksStore.rlineAttributes
       roadsPopupContent.value.value = store.roadsPopupContent
+      roadOneway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'oneway')[0].value
       defaultHighway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'highway')[0].value
       outputName.value.value = userStore.outputName
     }
@@ -93,6 +100,7 @@ export default {
           roadsPopupContent: roadsPopupContent.value.value,
           outputName: outputName.value.value,
           defaultHighway: defaultHighway.value.value,
+          roadOneway: roadOneway.value.value,
         }
         store.applySettings(payload)
         context.emit('submit', true)
@@ -113,6 +121,7 @@ export default {
       showHint,
       computeMethod,
       roadSpeed,
+      roadOneway,
       linksPopupContent,
       roadsPopupContent,
       defaultHighway,
@@ -211,6 +220,15 @@ export default {
               :persistent-hint="showHint"
               :rules="zipRules"
               required
+            />
+            <v-select
+              v-model="roadOneway.value"
+              variant="underlined"
+              :items="['0','1']"
+              :label="$gettext(roadOneway.name)"
+              :hint="showHint? $gettext(roadOneway.hint): ''"
+              :persistent-hint="showHint"
+              :menu-props="{ top: true, offsetY: true }"
             />
             <v-text-field
               v-model="outputName.value"

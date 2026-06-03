@@ -571,8 +571,7 @@ export const userLinksStore = defineStore('rlinks', {
       // add length, speed, time now that we have a geometry.
       linkGeometry.coordinates = [toRaw(rnodeA.geometry.coordinates), toRaw(rnodeB.geometry.coordinates)]
       calcLengthTimeorSpeed(linkFeature, this.timeVariants, this.speedTimeMethod)
-      if (this.rlineAttributes.includes('oneway')) {
-        linkFeature.properties.oneway = '0'
+      if (this.rlineAttributes.includes('oneway') && linkFeature.properties.oneway === '0') {
         addReverseProperties(linkFeature, this.reversedAttributes)
       }
 

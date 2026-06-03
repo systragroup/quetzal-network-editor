@@ -54,6 +54,7 @@ export interface SettingsPayload {
   speedTimeMethod: SpeedTimeMethod
   defaultHighway: string
   roadSpeed: number
+  roadOneway: '0' | '1'
   linksPopupContent: string[]
   roadsPopupContent: string[]
   outputName: string

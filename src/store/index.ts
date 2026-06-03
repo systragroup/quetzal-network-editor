@@ -301,7 +301,8 @@ export const useIndexStore = defineStore('index', {
       const rlinksStore = userLinksStore()
       const linksStore = useLinksStore()
       const userStore = useUserStore()
-      rlinksStore.ChangeDefaultValues({ highway: payload.defaultHighway, speed: Number(payload.roadSpeed) })
+      rlinksStore.ChangeDefaultValues(
+        { highway: payload.defaultHighway, speed: Number(payload.roadSpeed), oneway: payload.roadOneway })
 
       this.speedTimeMethod = payload.speedTimeMethod
       linksStore.speedTimeMethod = payload.speedTimeMethod
