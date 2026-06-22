@@ -33,6 +33,8 @@ const typesMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttri
 const unitsMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 // cannot delete reversed attribute (they are deleted with the normal one)
 const attributeNonDeletable = computed(() => [...rlinksDefaultProperties.map(el => el.name), ...reversedAttributes.value])
+const displayUnits = computed(() => store.displayUnits)
+
 const rules = {}
 const hints: Dict = attributesHints
 const formRef = ref()
@@ -305,6 +307,7 @@ watchEffect(() => {
               :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
               :units="unitsMap"
+              :display-units="displayUnits"
               :rules="rules"
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"

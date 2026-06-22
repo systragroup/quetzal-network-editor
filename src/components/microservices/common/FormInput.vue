@@ -46,7 +46,6 @@ function typeMap(type: FormType) {
     :persistent-hint="showHint"
     :variant="item.disabled? 'underlined': 'filled'"
     :disabled="item.disabled"
-    :units="item.units"
     :color="item.type==='boolean'? 'primary': undefined"
     :precision="item.precision === undefined? null : item.precision"
     :suffix="item.units"

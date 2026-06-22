@@ -11,7 +11,7 @@ import { cloneDeep } from 'lodash'
 
 import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
-import { linksDefaultProperties, nodesDefaultProperties, tcDefaultAttributesChoices } from '@src/constants/properties'
+import { linksDefaultProperties, nodesDefaultProperties, ptDefaultAttributesChoices } from '@src/constants/properties'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
@@ -61,7 +61,7 @@ export const useLinksStore = defineStore('links', {
     // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
-    linksAttributesChoices: cloneDeep(tcDefaultAttributesChoices),
+    linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
     // parameters
     speedTimeMethod: 'time',
   }),
@@ -144,15 +144,15 @@ export const useLinksStore = defineStore('links', {
     appendNewLinks (payload: LineStringGeoJson) {
       // append new links to the project. payload = links geojson file
       payload.features.forEach(link => this.links.features.push(link))
-      this.getLinksProperties()
-      this.getTripList()
+      this._getLinksProperties()
+      this._getTripList()
       this.selectedTrips = this.tripList
       this.getVariants()
       // format
       simplifyGeometry(payload)
       this.applyPropertiesTypes(this.links)
       initLengthTimeSpeed(this.links, this.timeVariants)
-      this.getLinksProperties()
+      this._getLinksProperties()
       this.fixAllRoutingList()
 
       this.deleteNonVariantAttributes()
@@ -174,10 +174,10 @@ export const useLinksStore = defineStore('links', {
       simplifyGeometry(payload)
 
       payload.features.forEach(node => this.nodes.features.push(node))
-      this.getNodesProperties()
+      this._getNodesProperties()
     },
 
-    getLinksProperties () {
+    _getLinksProperties () {
       const properties = listAllProperties(this.links)
       const newProps = getDifference(properties, this.lineAttributes)
       newProps.forEach(prop => {
@@ -186,14 +186,13 @@ export const useLinksStore = defineStore('links', {
       })
     },
 
-    getNodesProperties () {
+    _getNodesProperties () {
       const properties = listAllProperties(this.nodes)
       const newAttrs = getDifference(properties, this.nodeAttributes)
       newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
     },
 
     loadLinksAttributesChoices (payload: AttributesChoice) {
-      // eslint-disable-next-line no-return-assign
       Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
       const attrs = Object.keys(this.linksAttributesChoices) // all attrbutes in attributesChoices
       const newAttrs = getDifference(attrs, this.lineAttributes)
@@ -344,10 +343,10 @@ export const useLinksStore = defineStore('links', {
       // push cloned links and nodes
       this.links.features.push(...cloned.features)
 
-      this.getTripList()
+      this._getTripList()
     },
 
-    getTripList () { // this could be remove i think. and be a computed
+    _getTripList () { // this could be remove i think. and be a computed
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
     },
 
@@ -807,7 +806,7 @@ export const useLinksStore = defineStore('links', {
         )
       }
       // get tripId list
-      this.getTripList()
+      this._getTripList()
     },
 
     deleteUnusedNodes () {
@@ -876,8 +875,8 @@ export const useLinksStore = defineStore('links', {
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       }
       // get tripId list
-      this.getTripList()
-      this.getLinksProperties()
+      this._getTripList()
+      this._getLinksProperties()
       this.setEditorTrip(null)
     },
 
@@ -905,7 +904,7 @@ export const useLinksStore = defineStore('links', {
     deleteTrips (tripList: string[]) {
       this.links.features = this.links.features.filter(link => !tripList.includes(link.properties.trip_id))
       this.deleteUnusedNodes()
-      this.getTripList()
+      this._getTripList()
     },
 
     applyPropertiesTypes(links: LineStringGeoJson) {
@@ -983,7 +982,7 @@ export const useLinksStore = defineStore('links', {
     },
 
     attributesChoicesChanged: (state) =>
-      JSON.stringify(state.linksAttributesChoices) !== JSON.stringify(tcDefaultAttributesChoices),
+      JSON.stringify(state.linksAttributesChoices) !== JSON.stringify(ptDefaultAttributesChoices),
   },
 })
 

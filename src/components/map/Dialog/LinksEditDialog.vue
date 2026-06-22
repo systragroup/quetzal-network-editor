@@ -25,20 +25,18 @@ import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
 const { showDialog, action, selectedArr, lingering } = useForm()
 
-// const links = computed(() => linksStore.links)
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const nodeAttributes = computed(() => linksStore.nodeAttributes)
 const tripList = computed(() => linksStore.tripList)
 const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features[0]))
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
+const types = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
+const units = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 
-const typesMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
-const unitsMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
-
+const displayUnits = computed(() => store.displayUnits)
 const formRef = ref()
-
 const initialHash = ref()
 const initialForm = ref<GroupForm>({})
 const editorForm = ref<GroupForm>({})
@@ -318,11 +316,12 @@ async function handleSimpleDialog(response: boolean) {
           :show-hint="showHint"
           :show-delete-option="showDeleteOption"
           :hints="hints"
-          :units="unitsMap"
+          :units="units"
+          :display-units="displayUnits"
           :rules="rules"
           :attribute-non-deletable="attributeNonDeletable"
           :attributes-choices="attributesChoices"
-          :types="typesMap"
+          :types="types"
           @change="change"
           @delete-field="deleteField"
         />

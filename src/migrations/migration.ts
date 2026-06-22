@@ -19,12 +19,3 @@ export function migrateToLatest<T>(raw: any, migrationMap: Map<number, Migration
   }
   return data
 }
-
-import { Style } from '@src/types/typesStore'
-import { styleMigrationMap } from './style'
-
-function migrateStyle(data: Style): Style {
-  return migrateToLatest(data, styleMigrationMap)
-}
-
-export { migrateStyle }

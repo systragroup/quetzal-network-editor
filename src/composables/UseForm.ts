@@ -17,7 +17,6 @@ const action = ref<Action>('')
 const lingering = ref(false)
 
 export function useForm() {
-  // resize map when div change
   function openDialog(payload: OpenFormPayload) {
     action.value = payload.action
     dialogType.value = payload.type

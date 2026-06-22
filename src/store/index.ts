@@ -21,7 +21,8 @@ import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
   Notification, OtherFiles, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
-import { migrateStyle } from '@src/migrations/migration.js'
+import { migrateStyle } from '@src/migrations/style.js'
+import { migrateAttributesChoices } from '@src/migrations/attributesChoices.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -54,6 +55,7 @@ export const useIndexStore = defineStore('index', {
     projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
     docFiles: [], // [{path, content}]
+    displayUnits: {},
     // microservices
     importPoly: null,
     microservicesParams: [],
@@ -261,10 +263,12 @@ export const useIndexStore = defineStore('index', {
     },
 
     loadAttributesChoices (payload: GlobalAttributesChoice) {
+      const attributesChoices = migrateAttributesChoices(payload)
       const links = useLinksStore()
       const rlinks = userLinksStore()
-      links.loadLinksAttributesChoices(payload.pt)
-      rlinks.loadrLinksAttributesChoices(payload.road)
+      links.loadLinksAttributesChoices(attributesChoices.pt)
+      rlinks.loadrLinksAttributesChoices(attributesChoices.road)
+      this.displayUnits = attributesChoices.units
     },
 
     setvisibleLayers (payload: string[]) {
@@ -427,8 +431,13 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
           zip.file('info.json', blob, { date: date })
         }
-        if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged) {
-          const attributesChoices = { pt: linksStore.linksAttributesChoices, road: rlinksStore.rlinksAttributesChoices }
+        if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged || this.displayUnitsChanged) {
+          const attributesChoices: GlobalAttributesChoice = {
+            version: 1,
+            pt: linksStore.linksAttributesChoices,
+            road: rlinksStore.rlinksAttributesChoices,
+            units: this.displayUnits,
+          }
           const blob = new Blob([JSON.stringify(attributesChoices)], { type: 'application/json' })
           zip.file('attributesChoices.json', blob, { date: date })
         }
@@ -587,6 +596,7 @@ export const useIndexStore = defineStore('index', {
         && state.styles.length === 0)
     },
     hasDocs: (state) => state.docFiles.length > 0,
+    displayUnitsChanged: (state) => Object.keys(state.displayUnits).length > 0,
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()
