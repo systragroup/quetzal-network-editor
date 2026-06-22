@@ -1,7 +1,12 @@
-import { baseLineString, LineStringFeatures, LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
-import { Attributes, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
+import { baseLineString, basePoint, GeoJson, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson } from '@src/types/geojson'
+import { Attributes, AttributeTypes, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
+import short from 'short-uuid'
+
 import length from '@turf/length'
+import nearestPointOnLine from '@turf/nearest-point-on-line'
+import { lineString, point as Point } from '@turf/helpers'
 import { round } from './utils'
+import { cloneDeep } from 'lodash'
 const secPerHour = 3600
 
 export function initLengthTimeSpeed(links: LineStringGeoJson, variants: NonEmptyArray<string> = ['']) {
@@ -103,4 +108,96 @@ export function getBaseAttributesWithVariants(attributes: Attributes[]) {
   const variantTuple = variantAttributes.map(el => el.name.split('#'))
   const toDelete = new Set(variantTuple.map(el => el[0]))
   return toDelete
+}
+
+export function getAnchorGeojson(features: LineStringFeatures[]): PointGeoJson {
+  const nodes = basePoint()
+  features.filter(link => link.geometry.coordinates.length > 2).forEach(
+    linkFeature => {
+      const linkIndex = linkFeature.properties.index
+      const linkGeometry = linkFeature.geometry.coordinates.slice(1, -1)
+      linkGeometry.forEach(
+        (pt: number[], idx: number) => {
+          const pointFeature: PointFeatures = {
+            properties: { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
+            geometry: { coordinates: pt, type: 'Point' },
+            type: 'Feature',
+          }
+          nodes.features.push(pointFeature)
+        },
+      )
+    },
+  )
+  return nodes
+}
+
+export function snapOnLink(linksGeometry: number[][], lngLat: LngLat | number[]) {
+  // take geometry.coordinates
+  const linkGeom = lineString(linksGeometry)
+  const clickedPoint = Point(Object.values(lngLat))
+  const snapped = nearestPointOnLine(linkGeom, clickedPoint, { units: 'kilometers' })
+  // we snap on the temp geom for the index:
+  const dist = length(linkGeom, { units: 'kilometers' }) // dist
+  // for multiString, gives the index of the closest one, add +1 for the slice.
+  const sliceIndex = snapped.properties.index ? snapped.properties.index + 1 : 1
+  const offset = snapped.properties.location ? snapped.properties.location / dist : 0
+  const newCoords = snapped.geometry.coordinates
+  return { sliceIndex, offset, newCoords }
+}
+
+export function listAllProperties(geojson: GeoJson): Set<string> {
+  // get all properties keys
+  const keys: Set<string> = new Set([])
+  geojson.features.forEach(feature => {
+    Object.keys(feature.properties).forEach(key => keys.add(key))
+  })
+  return keys
+}
+
+export function getPropertyType(geojson: GeoJson, property: string): AttributeTypes {
+  // return first founded type (string or number) else undefined. this is faster than checking everything
+  for (const feature of geojson.features) {
+    const type = getType(feature.properties[property])
+    if (type)
+      return type
+  }
+  return undefined
+}
+
+export function getType(value: unknown): AttributeTypes {
+  // "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+  const type = typeof value
+  if (type === 'undefined')
+    return undefined
+  else if (['number', 'bigint', 'boolean'].includes(type))
+    return 'Number'
+  else
+    return 'String'
+}
+
+export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): Set<string> {
+  const addedIndexes = new Set(features.map(feat => feat.properties.index))
+  geojson.features.push(...features)
+  return addedIndexes
+}
+
+export function _deleteGeojsonFeatures(geojson: GeoJson, toDelete: Set<string>): GeoJsonFeatures[] {
+  // links or nodes
+  const deleted = cloneDeep(geojson.features.filter(feature => toDelete.has(feature.properties.index)))
+  geojson.features = geojson.features.filter(feature => !toDelete.has(feature.properties.index))
+  return deleted
+}
+
+export function _editGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): GeoJsonFeatures[] {
+  // links or nodes
+  // Create a map from index => modified feature and update every index in the map
+  const beforeFeatures: GeoJsonFeatures[] = []
+  const updateMap = new Map(features.map(feature => [feature.properties.index, feature]))
+  geojson.features.forEach(feature => {
+    const index = feature.properties.index
+    if (updateMap.has(index)) {
+      beforeFeatures.push(cloneDeep(feature))
+      Object.assign(feature, updateMap.get(index)) }
+  })
+  return beforeFeatures
 }

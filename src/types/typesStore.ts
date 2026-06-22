@@ -1,6 +1,10 @@
 import { GroupForm, IsoTimeStringTZ, TimeString } from './components'
 import { LineStringGeoJson, LineStringFeatures,
-  PointGeoJson, PointFeatures, GeoJsonProperties } from './geojson'
+  PointGeoJson, GeoJsonProperties,
+  PointGeometry,
+  LineStringGeometry,
+  PointFeatures,
+} from './geojson'
 
 // indexStore
 
@@ -50,9 +54,16 @@ export interface SettingsPayload {
   speedTimeMethod: SpeedTimeMethod
   defaultHighway: string
   roadSpeed: number
+  roadOneway: '0' | '1'
   linksPopupContent: string[]
   roadsPopupContent: string[]
   outputName: string
+}
+
+export interface Loading {
+  show: boolean
+  progress: number // 0 to 1
+  title: string
 }
 
 export interface IndexStore {
@@ -60,7 +71,7 @@ export interface IndexStore {
   alert: Error | unknown
   darkMode: boolean
   isMobile: boolean
-  loading: boolean
+  loading: Loading
   showLeftPanel: boolean
   anchorMode: boolean
   stickyMode: boolean
@@ -89,10 +100,19 @@ export type LinksAction = ''
   | 'Extend Line Upward'
   | 'Extend Line Downward'
 
+export type LinksAction2 = ''
+  | 'Cut Before Node'
+  | 'Cut After Node'
+  | 'Delete Stop'
+
 export type RoadsAction = ''
   | 'Edit Road Group Info'
   | 'Edit rLink Info'
   | 'Edit rNode Info'
+
+export type RoadsAction2 = ''
+  | 'Delete rLink'
+  | 'Delete Selected'
 
 export type ODAction = ''
   | 'Edit OD Info'
@@ -100,12 +120,6 @@ export type ODAction = ''
 export interface FilesPayload {
   path: string
   content: LineStringGeoJson | PointGeoJson
-}
-
-export interface ConnectedLinks {
-  a: LineStringFeatures[]
-  b: LineStringFeatures[]
-  anchor: LineStringFeatures[]
 }
 
 export interface NewAttribute {
@@ -125,10 +139,9 @@ export interface EditNewLinkPayload {
 }
 
 export interface NewLinkPayload {
-  nodeId: string
   geom: number[]
   action: LinksAction
-  nodeCopyId?: string
+  stickyNodeId?: string
 }
 
 export interface NewNodePayload {
@@ -137,17 +150,18 @@ export interface NewNodePayload {
 }
 
 export interface SelectedNode {
-  selectedNode: GeoJsonProperties
+  selectedNode: PointFeatures
 }
 
-export interface SelectedLink {
-  selectedLink: GeoJsonProperties
+export interface SelectedAnchor {
+  linkIndex: string
+  coordinatedIndex: number
 }
 
-export interface SplitLinkPayload extends SelectedLink {
-  offset: number
-  sliceIndex: number
-  newNode: PointGeoJson
+export interface SplitLinkPayload {
+  linkIndex: string
+  lngLat: LngLat
+
 }
 
 export type AddNodeTypes = 'editorNodes' | 'anchorNodes' | 'anchorRoutingNodes'
@@ -155,22 +169,22 @@ export interface LngLat {
   lng: number
   lat: number
 }
-
-export interface AddNodeInlinePayload extends SelectedLink {
+export interface AddNodeInlinePayload {
+  selectedLink: LineStringFeatures
   lngLat: LngLat
-  nodes: AddNodeTypes
+  nodeType: AddNodeTypes
 }
 
-export interface AnchorPayload extends SelectedLink {
-  coordinates: number[]
-  sliceIndex: number
+export interface AnchorPayload {
+  linkIndex: string
+  lngLat: LngLat
+
 }
 export interface MoveNode extends SelectedNode {
   lngLat: number[]
 }
 
-export interface StickyNodePayload {
-  selectedNodeId: string
+export interface StickyNodePayload extends SelectedNode {
   stickyNodeId: string
 }
 
@@ -208,13 +222,14 @@ export interface LinksStore {
   nodes: PointGeoJson
   visibleNodes: PointGeoJson
   editorNodes: PointGeoJson
+  history: Commit[]
+  redoStack: Commit[]
   editorLinks: LineStringGeoJson
   editorTrip: string | null
   variant: string
   variantChoice: NonEmptyArray<string>
   tripList: string[]
   selectedTrips: string[]
-  connectedLinks: ConnectedLinks
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
@@ -224,46 +239,19 @@ export interface LinksStore {
 
 // road
 
-export interface RoadConnectedLinks {
-  a: LineStringFeatures[]
-  b: LineStringFeatures[]
-  visibleLinksList: LineStringFeatures[]
-}
-
-export type ShowMethod = 'showAll' | 'hideAll' | 'add' | 'remove'
-
-export interface ChangeVisibleLinks {
-  category: string
-  data: string[]
-  method: ShowMethod
-}
-
-export interface ChangeVisibleNodes {
-  method: ShowMethod
-}
-
 export interface EditRoadPayload {
-  info: GroupForm[]
+  infoArr: GroupForm[]
   selectedArr: string[]
 }
 
 export interface SplitRoadPayload {
-  offset: number
-  sliceIndex: number
-  selectedFeature: LineStringFeatures
-  newNode: PointGeoJson
-}
-export interface AddRoadNodeInlinePayload {
-  lngLat: number[]
-  selectedIndex: string[]
-  nodes: 'anchorrNodes' | 'rnodes'
-
-}
-
-export interface AnchorRoadPayload {
-  coordinates: number[]
   sliceIndex: number
   selectedLink: LineStringFeatures
+  newNode: PointFeatures
+}
+export interface AddRoadNodeInlinePayload {
+  lngLat: LngLat
+  selectedIndex: string[]
 }
 
 export interface CreateRlinkPayload {
@@ -277,12 +265,24 @@ export interface CreateRlinkPayload {
 
 export interface UpdateFeatures {
   type: 'Feature'
-  id: string
+  id: string // should be necessary
+  geometry?: LineStringGeometry | PointGeometry
+  properties?: GeoJsonProperties
 }
 
 export interface SavedRoadNetwork {
   rlinks: string
   rnodes: string
+}
+
+export interface Commit {
+  name: string
+  newLinks?: LineStringFeatures[]
+  newNodes?: PointFeatures[]
+  deleteLinks?: Set<string>
+  deleteNodes?: Set<string>
+  updateLinks?: LineStringFeatures[]
+  updateNodes?: PointFeatures[]
 }
 
 export interface RlinksStore {
@@ -291,20 +291,17 @@ export interface RlinksStore {
   variant: string
   variantChoice: NonEmptyArray<string>
   selectedrFilter: string
-  selectedrGroup: string[]
-  filteredrCategory: string[]
+  filteredSelected: Set<string>
+  filteredChoices: Set<string>
   linksDefaultAttributes: Attributes[]
   nodesDefaultAttributes: Attributes[]
-  visiblerLinks: LineStringGeoJson
-  visiblerNodes: PointGeoJson
-  connectedLinks: RoadConnectedLinks
   rlinksAttributesChoices: AttributesChoice
-  updateLinks: (UpdateFeatures | LineStringFeatures)[]
-  updateNodes: (UpdateFeatures | PointFeatures)[]
+  updateLinks: UpdateFeatures[]
+  updateNodes: UpdateFeatures[]
   editionMode: boolean
-  savedNetwork: SavedRoadNetwork
-  networkWasModified: boolean
   speedTimeMethod: SpeedTimeMethod
+  history: Commit[]
+  redoStack: Commit[]
 }
 
 // OD store

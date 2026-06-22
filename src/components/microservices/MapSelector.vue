@@ -120,7 +120,9 @@ function getNodes () {
   const polygon = poly.value.geometry.coordinates[0]
   // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
   polygon.slice(0, polygon.length - 1).forEach(
-    (pt, idx) => tempNodes.features.push(Point(pt, { index: short.generate(), coordinatesIndex: idx })),
+    (pt, idx) => {
+      tempNodes.features.push(createPointFeature(pt, { index: short.generate(), coordinatesIndex: idx }))
+    },
   )
   nodes.value = tempNodes
   emits('change', poly.value)
@@ -183,6 +185,7 @@ import { readFileAsText } from '@src/utils/io'
 import { serializer } from '@src/utils/serializer'
 import saveAs from 'file-saver'
 import { basePoint, basePolygon, basePolygonFeature,
+  createPointFeature,
   GeoJson, GeoJsonFeatures, PolygonFeatures, PolygonGeoJson } from '@src/types/geojson'
 
 function downloadPoly() {

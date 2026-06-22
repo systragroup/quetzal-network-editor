@@ -9,13 +9,13 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
-const props = defineProps(['map', 'isODMode', 'isEditorMode'])
+const props = defineProps(['map', 'active', 'isEditorMode'])
 const header = geojson
 const ODStore = useODStore()
 const layer = computed(() => { return ODStore.visibleLayer })
 const nodes = computed(() => { return ODStore.nodes })
 
-const { isODMode, map } = toRefs(props)
+const { active: isODMode, map } = toRefs(props)
 watch(isODMode, (val) => {
   if (val) {
     map.value.on('click', addPoint)
@@ -126,9 +126,6 @@ function onMove (event) {
       selectedNode: selectedFeature.value,
       lngLat: Object.values(event.lngLat),
     })
-    // rerender the anchor as they are getter and are not directly modified by the moverAnchor mutation.
-    // this.renderedAnchorrNodes.features = this.anchorrNodes.features.filter(node =>
-    //  booleanContains(this.bbox, node))
   }
 }
 function stopMovingNode (event) {
@@ -237,7 +234,7 @@ function actionClick (event) {
           'circle-opacity':0.5,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 5],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-          'circle-stroke-color': $vuetify.theme.current.colors.darkgrey,
+          'circle-stroke-color': $vuetify.theme.current.colors.secondary,
           'circle-stroke-width': 2,
         },
       }"

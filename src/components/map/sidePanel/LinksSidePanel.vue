@@ -54,7 +54,7 @@ watch(tripList, (newVal, oldVal) => {
   }
 })
 // filters (route_type)
-const filterChoices = computed(() => { return linksStore.lineAttributes })
+const attributesList = computed(() => { return linksStore.lineAttributes })
 const selectedFilter = ref('route_type')
 const ShowGroupList = ref<Set<String>>(new Set([]))
 watch(selectedFilter, () => { ShowGroupList.value = new Set([]) })
@@ -216,7 +216,7 @@ function setHighlight(trip: string | null) {
 
 </script>
 <template>
-  <section>
+  <div class="side-panel">
     <div class="text-white bg-secondary header">
       <v-tooltip
         location="bottom"
@@ -245,7 +245,7 @@ function setHighlight(trip: string | null) {
             class="ma-2"
             :style="{color: 'white'}"
 
-            :disabled="selectedTrips.length===0? true: false"
+            :disabled="(selectedTrips.length===0)||(editorTrip!=null)? true: false"
             v-bind="props"
             @click="propertiesButton(selectedTrips,'Edit Group Info')"
           />
@@ -295,8 +295,7 @@ function setHighlight(trip: string | null) {
       </v-menu>
     </div>
     <v-card
-      max-width="100%"
-      min-width="100%"
+      width="100%"
       :style="editorTrip? {'height':'calc(100vh - 305px)'}: {'height':'calc(100vh - 260px)'}"
       class=" mx-auto scrollable"
     >
@@ -307,7 +306,7 @@ function setHighlight(trip: string | null) {
         >
           <v-select
             v-model="selectedFilter"
-            :items="filterChoices.sort()"
+            :items="attributesList.sort()"
             :style="{'flex':1.3}"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"
@@ -608,10 +607,13 @@ function setHighlight(trip: string | null) {
         :label="$gettext('duplicate nodes')"
       />
     </PromiseDialog>
-  </section>
+  </div>
 </template>
 <style lang="scss" scoped>
-
+.side-panel{
+  width:100%;
+  flex-direction: column;
+}
 .header{
   display:flex;
   align-items: center;
@@ -624,7 +626,6 @@ function setHighlight(trip: string | null) {
 }
 .item{
   margin-right: auto;
-  padding-left: 0.5rem;
   white-space: nowrap;     /* Prevents text from wrapping to the next line */
   overflow: hidden;        /* Hides any overflowed content */
   text-overflow: ellipsis; /* Displays an ellipsis (...) when text overflows */
@@ -640,63 +641,9 @@ function setHighlight(trip: string | null) {
   font-weight:bold;
   text-shadow: 0 0 1px rgb(var(--v-theme-black));
 }
-.left-panel {
-  height: 100%;
-  background-color: $primary-dark;
-  transition: 0.3s;
-  position: absolute;
-  display:flex;
-  z-index: 20;
-}
-.left-panel-close {
-transition:0.3s
-}
-.left-panel-content {
-  display:inline-block;
-  width : 100%;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  overflow: auto;
-}
-.v-list__tile {
-  padding: 0
-}
-.left-panel-toggle-btn {
-  left: 100%;
-  width: 25px;
-  z-index: 1;
-  background-color: $primary-dark;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  height: 50px;
-  transition: 0.3s;
-  cursor: pointer;
-}
-.left-panel-title {
-  height: 50px;
-  line-height: 55px;
-  padding-left: 20px;
-  font-size: 1.1em;
-  margin-bottom: 10px;
-}
-.trip-list {
-  height: calc(100vh - 250px);
-  padding-left:20px
-}
+
 .scrollable {
   overflow-y:scroll;
-}
-.virtual-scroll{
-  margin-right: 3px;
-}
-.drawer-list-item {
-  padding: 0 13px !important;
-  justify-content: flex-start !important;
-  flex: 0;
-  transition: 0.3s;
 }
 .list-item-icon {
   display: flex !important;

@@ -43,20 +43,20 @@ export interface PolygonGeometry {
   coordinates: Position[][]
 }
 
-export interface GeoJsonProperties {
-  [key: string]: any
-}
+export type GeoJsonProperties = Record<string, any>
 
 export interface PointFeatures {
   type: 'Feature'
   geometry: PointGeometry
   properties: GeoJsonProperties
+  id?: string
 }
 
 export interface LineStringFeatures {
   type: 'Feature'
   geometry: LineStringGeometry
   properties: GeoJsonProperties
+  id?: string
 }
 
 export interface PolygonFeatures {
@@ -69,6 +69,7 @@ export interface GeoJsonFeatures {
   type: 'Feature'
   geometry: GeoJsonGeometry
   properties: GeoJsonProperties
+  id?: string
 }
 
 // Geojson
@@ -107,11 +108,11 @@ export function basePoint(): PointGeoJson {
   }
 }
 
-export function baseLineString(): LineStringGeoJson {
+export function baseLineString(features: LineStringFeatures[] = []): LineStringGeoJson {
   return {
     type: 'FeatureCollection',
     crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
-    features: [],
+    features: features,
   }
 }
 export function basePolygon(): PolygonGeoJson {
@@ -129,5 +130,29 @@ export function basePolygonFeature(): PolygonFeatures {
       coordinates: [],
     },
     properties: null,
+  }
+}
+
+//
+
+export function createLinestringFeature(coordinates: number[][], properties: GeoJsonProperties = {}): LineStringFeatures {
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'LineString',
+      coordinates: coordinates,
+    },
+    properties: properties,
+  }
+}
+
+export function createPointFeature(coordinates: number[], properties: GeoJsonProperties = {}): PointFeatures {
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: coordinates,
+    },
+    properties: properties,
   }
 }

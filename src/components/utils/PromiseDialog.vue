@@ -21,10 +21,12 @@ const props = defineProps({
 })
 
 const showDialog = ref(false)
+const providedTitle = ref()
 
 let dialogResolver = null
 
-function openDialog() {
+function openDialog(title) {
+  providedTitle.value = title
   showDialog.value = true
   return new Promise((resolve) => {
     dialogResolver = resolve
@@ -71,7 +73,7 @@ defineExpose({ openDialog })
       <v-card-text>
         <span class="text-h5">
           <strong>
-            {{ props.title }}
+            {{ providedTitle? providedTitle: title }}
           </strong>
         </span>
       </v-card-text>
