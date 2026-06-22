@@ -13,7 +13,6 @@ import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
 import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
-import { round } from 'lodash'
 import DialogHeader from './DialogHeader.vue'
 const { $gettext } = useGettext()
 
@@ -21,7 +20,7 @@ type Dict = Record<string, string>
 
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
-const { showDialog, action, selectedArr } = useForm()
+const { showDialog, action, selectedArr, changeLengthTimeSpeed } = useForm()
 
 const rlinks = computed(() => rlinksStore.rlinks)
 const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
@@ -191,40 +190,9 @@ function ToggleDeleteOption () {
     store.changeNotification({ text: '', autoClose: true })
   }
 }
-
+// computed speed, time, length. for individual links only.
 function change (key: string, idx: number) {
-  let name = key.split('#')[0]
-  let v = key.split('#')[1]
-  v = v ? `#${v}` : ''
-  // compute for speed_r too. first condition should be satisfied if variant (time#AM_r), v=#AM_r
-  if (name.endsWith('_r') && v === '') {
-    name = name.slice(0, -2)
-    v = '_r'
-  }
-  const formData = editorForm.value[idx]
-  switch (name) {
-    case 'speed':
-      formData[`speed${v}`].value = round(formData[`speed${v}`].value, 6)
-      const time = formData.length.value / formData[`speed${v}`].value * 3.6
-      if (!formData[`time${v}`].placeholder) {
-        formData[`time${v}`].value = round(time, 0)
-      }
-      break
-    case 'time':
-      formData[`time${v}`].value = round(formData[`time${v}`].value, 0)
-      const speed = formData.length.value / formData[`time${v}`].value * 3.6
-      if (!formData[`speed${v}`].placeholder) {
-        formData[`speed${v}`].value = round(speed, 6)
-      }
-      break
-    case 'length':
-      formData.length.value = round(formData.length.value, 0)
-      const time2 = formData.length.value / formData[`speed${v}`].value * 3.6
-      if (!formData.placeholder) {
-        formData[`time${v}`].value = round(time2, 0)
-      }
-      break
-  }
+  changeLengthTimeSpeed(key, editorForm.value[idx])
 }
 
 // variant and Attr prefix selector

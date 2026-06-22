@@ -174,6 +174,8 @@ export function getType(value: unknown): AttributeTypes {
     return 'String'
 }
 
+// commit functions
+
 export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): Set<string> {
   const addedIndexes = new Set(features.map(feat => feat.properties.index))
   geojson.features.push(...features)
