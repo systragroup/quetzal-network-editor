@@ -41,7 +41,7 @@ const convertedModel = computed({
     v-if="toConvert"
     v-bind="$attrs"
     v-model="convertedModel"
-    :suffix="displayUnits"
+    :suffix="`${displayUnits} (${model} ${units}) ` "
   />
   <v-number-input
     v-else

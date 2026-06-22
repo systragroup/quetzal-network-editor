@@ -13,7 +13,7 @@ import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
 import DialogHeader from './DialogHeader.vue'
 import { getGroupForm, isScheduleTrip, hash, round } from '@src/utils/utils'
-import { linksDefaultProperties } from '@src/constants/properties'
+import { baseUnits, linksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -32,9 +32,9 @@ const tripList = computed(() => linksStore.tripList)
 const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features[0]))
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 const types = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
-const units = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 
 const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
+const units = computed(() => baseUnits)
 const displayUnits = computed(() => store.displayUnits)
 const formRef = ref()
 const initialHash = ref()

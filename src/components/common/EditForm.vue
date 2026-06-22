@@ -73,10 +73,15 @@ const orderedForm = computed (() => {
   return ordered
 })
 
+function getPropertyName(key: string): string {
+  // time, time#AM, time_r, time#AM_r
+  // return time
+  return key.split('#')[0].split('_r')[0]
+}
+
 function hasCalculator(key: string) {
-  if (['length', 'speed', 'time'].includes(key.split('#')[0]))
-    return true
-  else if (['speed_r', 'time_r'].includes(key))
+  const name = getPropertyName(key)
+  if (['length', 'speed', 'time'].includes(name))
     return true
   else
     return false
@@ -118,9 +123,9 @@ defineExpose({
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
             :disabled="item.disabled"
-            :units="units[key]"
-            :display-units="displayUnits[key.split('#')[0]]"
-            :suffix="units[key]"
+            :units="units[getPropertyName(key)]"
+            :display-units="displayUnits[getPropertyName(key)]"
+            :suffix="units[getPropertyName(key)]"
             :rules="rules[key]"
             :precision="null"
             :prepend-inner-icon="hasCalculator(key) ? 'fas fa-calculator' : '' "

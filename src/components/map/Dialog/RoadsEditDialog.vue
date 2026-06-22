@@ -12,7 +12,7 @@ import { getDirection } from '@src/utils/spatial'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
-import { rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
+import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
 import { round } from 'lodash'
 import DialogHeader from './DialogHeader.vue'
 const { $gettext } = useGettext()
@@ -30,10 +30,10 @@ const reversedAttributes = computed(() => rlinksStore.reversedAttributes)
 const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
 const typesMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
-const unitsMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 // cannot delete reversed attribute (they are deleted with the normal one)
 const attributeNonDeletable = computed(() => [...rlinksDefaultProperties.map(el => el.name), ...reversedAttributes.value])
 const displayUnits = computed(() => store.displayUnits)
+const units = computed(() => baseUnits)
 
 const rules = {}
 const hints: Dict = attributesHints
@@ -262,7 +262,7 @@ watchEffect(() => {
   <v-dialog
     v-model="showDialog"
     scrollable
-    :max-width="`${30*numForm}rem`"
+    :max-width="`${40*numForm}rem`"
     @keydown.enter="saveAndQuit"
   >
     <v-card
@@ -306,7 +306,7 @@ watchEffect(() => {
               :show-hint="showHint"
               :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
-              :units="unitsMap"
+              :units="units"
               :display-units="displayUnits"
               :rules="rules"
               :attribute-non-deletable="attributeNonDeletable"
