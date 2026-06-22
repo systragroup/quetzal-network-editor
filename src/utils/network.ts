@@ -97,7 +97,6 @@ export function addDefaultValuesToVariants(attributes: Attributes[]) {
     if (defaultAttribute) {
       attr.value = defaultAttribute.value
       attr.type = defaultAttribute.type
-      attr.units = defaultAttribute.units
     }
   })
 }

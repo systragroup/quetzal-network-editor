@@ -214,7 +214,6 @@ export type AttributeUnits = 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'
 export interface Attributes {
   name: string
   type: AttributeTypes
-  units?: AttributeUnits
   value?: string | number
 }
 
