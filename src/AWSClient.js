@@ -116,7 +116,6 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
     const filesToCopy = [
       prefix + 'inputs/params.json',
       prefix + 'styles.json',
-      prefix + 'attributesChoices.json',
     ]
     response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
   } else {
@@ -225,6 +224,21 @@ async function readInfo (bucket, scen) {
   }
 }
 
+async function checkIfFileExists(bucket, key) {
+  try {
+    // If this succeeds, the file exists
+    await s3Client.headObject({ Bucket: bucket, Key: key })
+    return true
+  } catch (error) {
+    // S3 returns a 'NotFound' error name if the object is missing
+    if (error.name === 'NotFound') {
+      return false
+    }
+    // Re-throw any other errors (e.g., 403 Forbidden / invalid credentials)
+    throw error
+  }
+}
+
 async function getScenario (bucket) {
   // list all files in bucket
   const params = { Bucket: bucket, encodingType: 'url' }
@@ -249,8 +263,6 @@ async function getScenario (bucket) {
     const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
     const isLocked = lockedList.length > 0 || scen === 'base'
 
-    // remove attributesChoices as an admin could changed it on every projects.
-    files = files.filter(file => !file.Key.endsWith('/attributesChoices.json'))
     const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
     const timestamp = maxDateObj.LastModified.getTime()
@@ -322,4 +334,5 @@ export default {
   uploadObject,
   getChecksum,
   readInfo,
+  checkIfFileExists,
 }

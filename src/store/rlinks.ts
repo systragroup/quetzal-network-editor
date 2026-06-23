@@ -699,8 +699,6 @@ export const userLinksStore = defineStore('rlinks', {
 
     hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
     rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
-    attributesChoicesChanged: (state) =>
-      JSON.stringify(state.rlinksAttributesChoices) !== JSON.stringify(roadDefaultAttributesChoices),
   },
 })
 

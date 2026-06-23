@@ -981,8 +981,6 @@ export const useLinksStore = defineStore('links', {
       return (timeVariants.length > 0 ? timeVariants : ['']) as NonEmptyArray<string>
     },
 
-    attributesChoicesChanged: (state) =>
-      JSON.stringify(state.linksAttributesChoices) !== JSON.stringify(ptDefaultAttributesChoices),
   },
 })
 

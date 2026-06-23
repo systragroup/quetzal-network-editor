@@ -18,11 +18,12 @@ import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import { deleteUnusedNodes } from '@src/utils/utils'
-import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
+import { FileFormat, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
+  ModelConfig,
   Notification, OtherFiles, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
 import { migrateStyle } from '@src/migrations/style.js'
-import { migrateAttributesChoices } from '@src/migrations/attributesChoices.js'
+import { defaultModelConfig } from '@src/constants/properties.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -55,7 +56,7 @@ export const useIndexStore = defineStore('index', {
     projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
     docFiles: [], // [{path, content}]
-    displayUnits: {},
+    modelConfig: cloneDeep(defaultModelConfig),
     // microservices
     importPoly: null,
     microservicesParams: [],
@@ -129,9 +130,6 @@ export const useIndexStore = defineStore('index', {
         const stylesFile = otherFiles.filter(el => el.path === 'styles.json')[0]
         otherFiles = otherFiles.filter(el => el !== stylesFile)
 
-        const attributesChoicesFile = otherFiles.filter(el => el.path === 'attributesChoices.json')[0]
-        otherFiles = otherFiles.filter(el => el !== attributesChoicesFile)
-
         const infoFile = otherFiles.filter(el => el.path === 'info.json')[0]
         otherFiles = otherFiles.filter(el => el !== infoFile)
 
@@ -162,7 +160,6 @@ export const useIndexStore = defineStore('index', {
         rlinksStore.loadRoadFiles(roadFiles)
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.loadParameters(paramFile.content)
-        if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
@@ -262,13 +259,13 @@ export const useIndexStore = defineStore('index', {
       return file.content
     },
 
-    loadAttributesChoices (payload: GlobalAttributesChoice) {
-      const attributesChoices = migrateAttributesChoices(payload)
+    loadModelConfig (payload: ModelConfig) {
+      const config = payload
+      this.modelConfig = config
       const links = useLinksStore()
       const rlinks = userLinksStore()
-      links.loadLinksAttributesChoices(attributesChoices.pt)
-      rlinks.loadrLinksAttributesChoices(attributesChoices.road)
-      this.displayUnits = attributesChoices.units
+      links.loadLinksAttributesChoices(config.attributesChoices.pt)
+      rlinks.loadrLinksAttributesChoices(config.attributesChoices.road)
     },
 
     setvisibleLayers (payload: string[]) {
@@ -431,16 +428,6 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
           zip.file('info.json', blob, { date: date })
         }
-        if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged || this.displayUnitsChanged) {
-          const attributesChoices: GlobalAttributesChoice = {
-            version: 1,
-            pt: linksStore.linksAttributesChoices,
-            road: rlinksStore.rlinksAttributesChoices,
-            units: this.displayUnits,
-          }
-          const blob = new Blob([JSON.stringify(attributesChoices)], { type: 'application/json' })
-          zip.file('attributesChoices.json', blob, { date: date })
-        }
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
           const content = this.getFileContent(file)
           zip.file(file.path, content, { date: date })
@@ -488,7 +475,6 @@ export const useIndexStore = defineStore('index', {
         params: scen + 'inputs/params.json',
         styles: scen + 'styles.json',
         info: scen + 'info.json',
-        attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
       if (runStore.parameters.length > 0) {
@@ -500,11 +486,6 @@ export const useIndexStore = defineStore('index', {
       }
       if (this.projectInfo) {
         await s3.putObject(bucket, paths.info, JSON.stringify(this.projectInfo))
-      }
-      // save attributes choices if changed
-      if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged) {
-        const attributesChoices = { pt: linksStore.linksAttributesChoices, road: rlinksStore.rlinksAttributesChoices }
-        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(attributesChoices))
       }
       // save PT
       if (linksStore.links.features.length > 0) {
@@ -596,7 +577,7 @@ export const useIndexStore = defineStore('index', {
         && state.styles.length === 0)
     },
     hasDocs: (state) => state.docFiles.length > 0,
-    displayUnitsChanged: (state) => Object.keys(state.displayUnits).length > 0,
+    displayUnits: (state) => state.modelConfig.units,
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()

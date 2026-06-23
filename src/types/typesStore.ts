@@ -43,10 +43,12 @@ export interface OtherFiles extends FileFormat {
   extension: string
 }
 
-export interface GlobalAttributesChoice {
-  version: 1
-  pt: AttributesChoice
-  road: AttributesChoice
+export interface ModelConfig {
+  version: 0
+  attributesChoices: {
+    pt: AttributesChoice
+    road: AttributesChoice
+  }
   units: Record<string, AttributeUnits>
 }
 
@@ -87,9 +89,9 @@ export interface IndexStore {
   visibleRasters: string[]
   styles: Style[]
   projectInfo: ProjectInfo
+  modelConfig: ModelConfig
   otherFiles: OtherFiles[]
   docFiles: OtherFiles[]
-  displayUnits: Record<string, AttributeUnits>
   microservicesParams: FileFormat[]
 }
 

@@ -1,14 +1,4 @@
-import { Attributes, AttributeUnits } from '@src/types/typesStore'
-
-export const baseUnits: Record<string, AttributeUnits> = {
-  headway: 'sec',
-  time: 'sec',
-  length: 'm',
-  speed: 'km/h',
-}
-
-// can have units in attributesChoice.json to display a different unit than base one.
-// but, we still want to keep those under the hood and in the geojson file to ensure compatibility with apis.
+import { Attributes, AttributesChoice, AttributeUnits, ModelConfig } from '@src/types/typesStore'
 
 export const linksDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
@@ -79,7 +69,24 @@ export const ODDefaultProperties: Attributes[] = [
   { name: 'name', type: 'String' },
 ]
 
-export const ptDefaultAttributesChoices = { pickup_type: [0, 1, 2, 3], drop_off_type: [0, 1, 2, 3] }
-export const roadDefaultAttributesChoices = { oneway: ['0', '1'] }
+export const baseUnits: Record<string, AttributeUnits> = {
+  headway: 'sec',
+  time: 'sec',
+  length: 'm',
+  speed: 'km/h',
+}
+
+export const ptDefaultAttributesChoices: AttributesChoice = { pickup_type: [0, 1, 2, 3], drop_off_type: [0, 1, 2, 3] }
+export const roadDefaultAttributesChoices: AttributesChoice = { oneway: ['0', '1'] }
+const defaultDisplayUnits: Record<string, AttributeUnits> = {}
+
+export const defaultModelConfig: ModelConfig = {
+  version: 0,
+  attributesChoices: {
+    pt: ptDefaultAttributesChoices,
+    road: roadDefaultAttributesChoices,
+  },
+  units: defaultDisplayUnits, // display units: still use baseUnits, but show (and edit) in others units in Forms
+}
 
 export const mapDefaultCenter = () => [-73.570337, 45.498310]
