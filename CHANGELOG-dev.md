@@ -1,7 +1,27 @@
+## [8.0.g] (2026-06-23)
+
+### Features
+* Can specify units for editorForm. ex, Headway in minutes. Data will stay in seconds, but the values will be show in the edition form both in minutes and seconds. in modelConfig. 
+
+### Breaking Changes.
+* moved attributesChoices.json values to _common/modelConfig.json.
+* modelConfig has this form  
+    {
+    version: 0
+    attributesChoices: {
+        pt: AttributesChoice
+        road: AttributesChoice
+    }
+    units: Record<string, AttributeUnits>
+    }
+
+### Refactoring.
+* some refactoring. on the road and pt form to reuse functions (like the length time speed computation).
+* units are from a dict (strip the #var and _r), not from defaultAttributes
+
 ## [8.0.f] (2026-06-03)
 ### changes
 * Can change the default road oneway in the settings
-
 
 ## [8.0.e] (2026-05-29)
 ### bug fixes
