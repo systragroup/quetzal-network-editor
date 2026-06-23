@@ -83,8 +83,8 @@ const defaultDisplayUnits: Record<string, AttributeUnits> = {}
 export const defaultModelConfig: ModelConfig = {
   version: 0,
   attributesChoices: {
-    pt: ptDefaultAttributesChoices,
-    road: roadDefaultAttributesChoices,
+    links: ptDefaultAttributesChoices,
+    road_links: roadDefaultAttributesChoices,
   },
   units: defaultDisplayUnits, // display units: still use baseUnits, but show (and edit) in others units in Forms
 }

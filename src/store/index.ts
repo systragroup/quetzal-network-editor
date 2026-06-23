@@ -264,8 +264,13 @@ export const useIndexStore = defineStore('index', {
       this.modelConfig = config
       const links = useLinksStore()
       const rlinks = userLinksStore()
-      links.loadLinksAttributesChoices(config.attributesChoices.pt)
-      rlinks.loadrLinksAttributesChoices(config.attributesChoices.road)
+      const attributesChoices = config.attributesChoices
+      if (attributesChoices) {
+        const linksConfig = attributesChoices.links
+        if (linksConfig)links.loadLinksAttributesChoices(linksConfig)
+        const rlinksConfig = attributesChoices.road_links
+        if (rlinksConfig) rlinks.loadrLinksAttributesChoices(rlinksConfig)
+      }
     },
 
     setvisibleLayers (payload: string[]) {
@@ -577,7 +582,7 @@ export const useIndexStore = defineStore('index', {
         && state.styles.length === 0)
     },
     hasDocs: (state) => state.docFiles.length > 0,
-    displayUnits: (state) => state.modelConfig.units,
+    displayUnits: (state) => state.modelConfig.units || {},
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()

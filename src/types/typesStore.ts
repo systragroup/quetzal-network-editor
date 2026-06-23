@@ -44,12 +44,12 @@ export interface OtherFiles extends FileFormat {
 }
 
 export interface ModelConfig {
-  version: 0
-  attributesChoices: {
-    pt: AttributesChoice
-    road: AttributesChoice
+  version?: 0
+  attributesChoices?: {
+    links?: AttributesChoice
+    road_links?: AttributesChoice
   }
-  units: Record<string, AttributeUnits>
+  units?: Record<string, AttributeUnits>
 }
 
 export type SpeedTimeMethod = 'speed' | 'time'

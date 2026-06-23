@@ -6,14 +6,23 @@
 ### Breaking Changes.
 * moved attributesChoices.json values to _common/modelConfig.json.
 * modelConfig has this form  
-    {
-    version: 0
-    attributesChoices: {
-        pt: AttributesChoice
-        road: AttributesChoice
+{
+    "version": 0,
+    "attributesChoices": {
+        "links": {}
+        "road_links": {
+            "oneway": [
+                "0",
+                "1"
+            ],
+        }
+    },
+    "units": {
+        "headway": "min",
+        "time": "min",
+        "length": "km"
     }
-    units: Record<string, AttributeUnits>
-    }
+}
 
 ### Refactoring.
 * some refactoring. on the road and pt form to reuse functions (like the length time speed computation).
