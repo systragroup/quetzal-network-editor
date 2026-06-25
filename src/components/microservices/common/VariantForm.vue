@@ -4,7 +4,7 @@ const { $gettext } = useGettext()
 import { computed, ref, toRefs } from 'vue'
 import { VariantFormData } from '@src/types/components'
 import { cloneDeep } from 'lodash'
-import MenuSelector from '../utils/MenuSelector.vue'
+import MenuSelector from '@src/components/utils/MenuSelector.vue'
 import FormInput from './FormInput.vue'
 
 interface Props {

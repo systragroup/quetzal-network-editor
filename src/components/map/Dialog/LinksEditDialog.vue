@@ -12,8 +12,8 @@ import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm } from '@src/types/components'
 import DialogHeader from './DialogHeader.vue'
-import { getGroupForm, isScheduleTrip, hash, round } from '@src/utils/utils'
-import { linksDefaultProperties } from '@src/constants/properties'
+import { getGroupForm, isScheduleTrip, hash } from '@src/utils/utils'
+import { baseUnits, linksDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -23,22 +23,20 @@ const linksStore = useLinksStore()
 
 import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
-const { showDialog, action, selectedArr, lingering } = useForm()
+const { showDialog, action, selectedArr, lingering, changeLengthTimeSpeed } = useForm()
 
-// const links = computed(() => linksStore.links)
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const nodeAttributes = computed(() => linksStore.nodeAttributes)
 const tripList = computed(() => linksStore.tripList)
 const isSchedule = computed(() => isScheduleTrip(linksStore.editorLinks.features[0]))
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
+const types = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
 
-const typesMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
-const unitsMap = computed(() => Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
 const attributeNonDeletable = computed(() => linksDefaultProperties.map(el => el.name))
-
+const units = computed(() => baseUnits)
+const displayUnits = computed(() => store.displayUnits)
 const formRef = ref()
-
 const initialHash = ref()
 const initialForm = ref<GroupForm>({})
 const editorForm = ref<GroupForm>({})
@@ -110,7 +108,7 @@ function createForm() {
   }
 }
 
-async function submitForm() {
+async function submitForm(quitAfter = false) {
   const resp = await formRef.value.validate()
   if (!resp) { return false }
   if (linksStore.editorNodes.features.length === 0) {
@@ -129,8 +127,13 @@ async function submitForm() {
     case 'Edit Node Info':
       linksStore.editNodeInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
   }
+  // If i call this in a function after await submitForm(). Mapbox wont update properly.
+  // I dont know why, maybe its a new bug mapbox
+  if (quitAfter) quit()
+
   return true
 }
+
 function quit() {
   showDialog.value = false
   showSchedule.value = false
@@ -140,9 +143,8 @@ function quit() {
   }
 }
 
-async function saveAndQuit() {
-  await submitForm()
-  quit()
+function saveAndQuit() {
+  submitForm(true)
 }
 
 function cancel() {
@@ -194,34 +196,8 @@ function ToggleDeleteOption () {
 }
 
 // computed speed, time, length. for individual links only.
-
 function change (key: string) {
-  const name = key.split('#')[0]
-  let v = key.split('#')[1]
-  v = v ? `#${v}` : ''
-  switch (name) {
-    case 'speed':
-      editorForm.value[`speed${v}`].value = round(editorForm.value[`speed${v}`].value, 6)
-      const time = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
-      if (editorForm.value[`time${v}`] && !editorForm.value[`time${v}`].placeholder) {
-        editorForm.value[`time${v}`].value = round(time, 0)
-      }
-      break
-    case 'time':
-      editorForm.value[`time${v}`].value = round(editorForm.value[`time${v}`].value, 0)
-      const speed = editorForm.value.length.value / editorForm.value[`time${v}`].value * 3.6
-      if (editorForm.value[`speed${v}`] && !editorForm.value[`speed${v}`].placeholder) {
-        editorForm.value[`speed${v}`].value = round(speed, 6)
-      }
-      break
-    case 'length':
-      editorForm.value.length.value = round(editorForm.value.length.value, 0)
-      const time2 = editorForm.value.length.value / editorForm.value[`speed${v}`].value * 3.6
-      if (editorForm.value[`time${v}`] && !editorForm.value[`time${v}`].placeholder) {
-        editorForm.value[`time${v}`].value = round(time2, 0)
-      }
-      break
-  }
+  changeLengthTimeSpeed(key, editorForm.value)
 }
 
 // variant and Attr prefix selector
@@ -278,7 +254,7 @@ async function handleSimpleDialog(response: boolean) {
   showSaveDialog.value = false
   if (response) {
     const ok = await submitForm()
-    if (ok) { toggleSchedule() }
+    if (ok) toggleSchedule()
   } else {
     toggleSchedule()
   }
@@ -318,11 +294,12 @@ async function handleSimpleDialog(response: boolean) {
           :show-hint="showHint"
           :show-delete-option="showDeleteOption"
           :hints="hints"
-          :units="unitsMap"
+          :units="units"
+          :display-units="displayUnits"
           :rules="rules"
           :attribute-non-deletable="attributeNonDeletable"
           :attributes-choices="attributesChoices"
-          :types="typesMap"
+          :types="types"
           @change="change"
           @delete-field="deleteField"
         />

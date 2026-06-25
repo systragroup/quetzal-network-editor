@@ -4,11 +4,13 @@ const { $gettext } = useGettext()
 import { toRefs, ref, computed } from 'vue'
 import { GroupForm } from '@src/types/components'
 import ColorPicker from '../utils/ColorPicker.vue'
-import { AttributeTypes } from '@src/types/typesStore'
+import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
+import NumberInput from './NumberInput.vue'
 interface Props {
   hints: Record<string, string>
-  units?: Record<string, string | undefined>
+  units?: Record<string, AttributeUnits | undefined>
+  displayUnits?: Record<string, AttributeUnits | undefined>
   types?: Record<string, AttributeTypes >
   attributesChoices?: Record<string, any[]>
   attributeNonDeletable: string[]
@@ -20,7 +22,8 @@ interface Props {
 // Define props with default values
 const props = withDefaults(defineProps<Props>(), {
   hints: () => ({} as Record<string, string>),
-  units: () => ({} as Record<string, string>),
+  units: () => ({} as Record<string, AttributeUnits>),
+  displayUnits: () => ({} as Record<string, AttributeUnits>),
   types: () => ({} as Record<string, AttributeTypes>),
   attributesChoices: () => ({} as Record<string, any[]>),
   rules: () => {},
@@ -28,11 +31,10 @@ const props = withDefaults(defineProps<Props>(), {
   showHint: false,
   showDeleteOption: false,
 })
-const { hints, types, units, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
+const { hints, types, units, displayUnits, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
 const editorForm = defineModel<GroupForm>('editorForm', { default: {} })
 
 const emits = defineEmits(['change', 'deleteField'])
-
 function change(key: string) {
   emits('change', key)
 }
@@ -71,10 +73,15 @@ const orderedForm = computed (() => {
   return ordered
 })
 
+function getPropertyName(key: string): string {
+  // time, time#AM, time_r, time#AM_r
+  // return time
+  return key.split('#')[0].split('_r')[0]
+}
+
 function hasCalculator(key: string) {
-  if (['length', 'speed', 'time'].includes(key.split('#')[0]))
-    return true
-  else if (['speed_r', 'time_r'].includes(key))
+  const name = getPropertyName(key)
+  if (['length', 'speed', 'time'].includes(name))
     return true
   else
     return false
@@ -106,7 +113,7 @@ defineExpose({
             :item="{item:item,key:key}"
           />
           <component
-            :is="types[key]=== 'Number' ? 'v-number-input' : 'v-text-field'"
+            :is="types[key] === 'Number' ? NumberInput : 'v-text-field'"
             v-if="item.show"
             v-model="item.value"
             control-variant="stacked"
@@ -116,8 +123,9 @@ defineExpose({
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
             :disabled="item.disabled"
-            :units="units[key]"
-            :suffix="units[key]"
+            :units="units[getPropertyName(key)]"
+            :display-units="displayUnits[getPropertyName(key)]"
+            :suffix="units[getPropertyName(key)]"
             :rules="rules[key]"
             :precision="null"
             :prepend-inner-icon="hasCalculator(key) ? 'fas fa-calculator' : '' "

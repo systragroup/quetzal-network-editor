@@ -97,7 +97,6 @@ export function addDefaultValuesToVariants(attributes: Attributes[]) {
     if (defaultAttribute) {
       attr.value = defaultAttribute.value
       attr.type = defaultAttribute.type
-      attr.units = defaultAttribute.units
     }
   })
 }
@@ -174,6 +173,8 @@ export function getType(value: unknown): AttributeTypes {
   else
     return 'String'
 }
+
+// commit functions
 
 export function _addGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): Set<string> {
   const addedIndexes = new Set(features.map(feat => feat.properties.index))

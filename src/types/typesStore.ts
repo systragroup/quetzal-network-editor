@@ -43,9 +43,13 @@ export interface OtherFiles extends FileFormat {
   extension: string
 }
 
-export interface GlobalAttributesChoice {
-  pt: AttributesChoice
-  road: AttributesChoice
+export interface ModelConfig {
+  version?: 0
+  attributesChoices?: {
+    links?: AttributesChoice
+    road_links?: AttributesChoice
+  }
+  units?: Record<string, AttributeUnits>
 }
 
 export type SpeedTimeMethod = 'speed' | 'time'
@@ -85,6 +89,7 @@ export interface IndexStore {
   visibleRasters: string[]
   styles: Style[]
   projectInfo: ProjectInfo
+  modelConfig: ModelConfig
   otherFiles: OtherFiles[]
   docFiles: OtherFiles[]
   microservicesParams: FileFormat[]
@@ -206,11 +211,11 @@ export interface SchedulePayload {
 }
 
 export type AttributeTypes = 'String' | 'Number' | undefined
+export type AttributeUnits = 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'
 
 export interface Attributes {
   name: string
   type: AttributeTypes
-  units?: string
   value?: string | number
 }
 

@@ -131,9 +131,6 @@ async function loadFilesFromS3 () {
       } else if (name === 'info.json') {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
-      } else if (name === 'attributesChoices.json') {
-        const content = await s3.readJson(model, file)
-        res.push({ path: name, content })
       } else if (name.endsWith('params.json')) { // microservices params
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
