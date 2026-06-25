@@ -133,6 +133,7 @@ const selectedFeature = ref<GeoJsonFeatures | null>(null)
 // clicks
 
 function selectClick (event: CustomMapEvent) {
+  if (anchorMode.value) return
   if (!hoveredStateId.value) return
   // Get the highlighted feature
   selectedFeature.value = hoveredStateId.value.feature
@@ -152,6 +153,7 @@ function selectClick (event: CustomMapEvent) {
 }
 
 function contextMenuNode (event: CustomMapEvent) {
+  if (anchorMode.value) return
   if (!hoveredStateId.value) return
   if (popupEditor.value.showed && hoveredStateId.value.layerId === 'editorNodes') {
     contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng,
@@ -207,6 +209,7 @@ function contextMenuAnchor() {
 }
 
 function linkRightClick () {
+  if (anchorMode.value) return
   if (!hoveredStateId.value) return
   if (hoveredStateId.value.layerId === 'editorLinks') {
     selectedFeature.value = hoveredStateId.value.feature
@@ -262,6 +265,8 @@ watch(hoveredStateId, (newVal, oldVal) => {
 
 function onCursor (event: CustomMapEvent) {
   // if hover is null or if hover is editorlinks. this make hoveing more natural and avoid collision from node to links
+  console.log(editorLinks.value)
+  console.log(editorNodes.value)
   if (!event.mapboxEvent.features) return
   if (!hoveredStateId.value || hoveredStateId.value.layerId === 'editorLinks') {
     const feature = event.mapboxEvent.features[0] as GeoJsonFeatures
@@ -504,7 +509,7 @@ function stopMovingRouteAnchor () {
       :reactive="false"
       :source="{
         type: 'geojson',
-        data: editorLinks,
+        data: baseLineString(),
         buffer: 0,
         promoteId: 'index',
       }"
@@ -518,7 +523,7 @@ function stopMovingRouteAnchor () {
           'line-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 0]
         }
       }"
-      v-on="anchorMode ? {} : {contextmenu: linkRightClick}"
+      @contextmenu="linkRightClick"
       @click="selectClick"
       @mouseover="onCursor"
       @mouseleave="offCursor"
@@ -589,7 +594,8 @@ function stopMovingRouteAnchor () {
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]
         }
       }"
-      v-on="anchorMode ? {} : {click: selectClick, contextmenu: contextMenuNode}"
+      @click="selectClick"
+      @contextmenu="contextMenuNode"
       @mouseover="onCursor"
       @mouseleave="offCursor"
       @mousedown="moveNode"

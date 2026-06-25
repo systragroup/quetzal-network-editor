@@ -159,7 +159,6 @@ function createNewLine () {
 
 function confirmChanges() {
   linksStore.confirmChanges()
-  linksStore.setEditorTrip(null)
   store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' })
 }
 

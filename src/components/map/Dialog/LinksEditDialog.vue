@@ -108,7 +108,7 @@ function createForm() {
   }
 }
 
-async function submitForm() {
+async function submitForm(quitAfter = false) {
   const resp = await formRef.value.validate()
   if (!resp) { return false }
   if (linksStore.editorNodes.features.length === 0) {
@@ -127,8 +127,13 @@ async function submitForm() {
     case 'Edit Node Info':
       linksStore.editNodeInfo({ selectedIndex: selectedArr.value[0], info: editorForm.value })
   }
+  // If i call this in a function after await submitForm(). Mapbox wont update properly.
+  // I dont know why, maybe its a new bug mapbox
+  if (quitAfter) quit()
+
   return true
 }
+
 function quit() {
   showDialog.value = false
   showSchedule.value = false
@@ -138,9 +143,8 @@ function quit() {
   }
 }
 
-async function saveAndQuit() {
-  await submitForm()
-  quit()
+function saveAndQuit() {
+  submitForm(true)
 }
 
 function cancel() {
@@ -250,7 +254,7 @@ async function handleSimpleDialog(response: boolean) {
   showSaveDialog.value = false
   if (response) {
     const ok = await submitForm()
-    if (ok) { toggleSchedule() }
+    if (ok) toggleSchedule()
   } else {
     toggleSchedule()
   }

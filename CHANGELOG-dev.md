@@ -1,3 +1,7 @@
+## [8.0.h] (2026-06-25)
+### bug fixes
+* edition pt link was still visible on map when we did a save and quit[issue-601]
+
 ## [8.0.g] (2026-06-23)
 
 ### Features
