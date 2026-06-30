@@ -55,7 +55,10 @@ const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advance
     class="box"
     :class="{'shake':shake}"
   >
-    <v-form ref="formRef">
+    <v-form
+      ref="formRef"
+      @submit.prevent="validate"
+    >
       <div
         v-for="(item, key) in sortedForm"
         :key="key"

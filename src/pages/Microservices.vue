@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 
 import { ref, computed, defineAsyncComponent } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
@@ -9,6 +9,7 @@ const GTFSWebImporter = defineAsyncComponent(() => import('@comp/microservices/G
 const GTFSZipImporter = defineAsyncComponent(() => import('@comp/microservices/GTFSZipImporter.vue'))
 const MapMatching = defineAsyncComponent(() => import('@comp/microservices/MapMatching.vue'))
 const Transit = defineAsyncComponent(() => import('@comp/microservices/Transit.vue'))
+const WildTurkey = defineAsyncComponent(() => import('@comp/microservices/WildTurkey.vue'))
 const runGTFS = useGTFSStore()
 const GTFSrunning = computed(() => { return runGTFS.running })
 
@@ -59,6 +60,13 @@ const subtab = ref('Zip importer')
         />
         Transit
       </v-tab>
+      <v-tab value="WildTurkey">
+        <v-icon
+          icon="fas fa-timeline"
+          class="mr-1"
+        />
+        WildTurkey
+      </v-tab>
     </v-tabs>
     <v-tabs
       v-if="tab==='GTFS importer'"
@@ -96,6 +104,7 @@ const subtab = ref('Zip importer')
       <MatrixRoadCaster v-else-if="tab==='Matrix Road Caster'" />
       <MapMatching v-else-if="tab==='MapMatching'" />
       <Transit v-else-if="tab==='Transit'" />
+      <WildTurkey v-else-if="tab==='WildTurkey'" />
     </div>
   </section>
 </template>

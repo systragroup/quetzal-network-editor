@@ -486,7 +486,7 @@ export interface DisplaySettings {
 
 export interface MicroserviceParametersDTO<T> {
   version: number
-  name: 'transit' | 'gtfs' | 'mapmatching' | 'matrixroadcaster'
+  name: 'transit' | 'gtfs' | 'mapmatching' | 'matrixroadcaster' | 'wildturkey'
   parameters: T
 }
 
@@ -504,6 +504,14 @@ export interface MapMatchingParams {
   ptMetrics: boolean
   keepTime: boolean
   exclusions: string[]
+
+  [key: string]: number | boolean | string[]
+}
+
+// WildTurkey
+
+export interface WildTurkeyParams {
+  consumption: number
 
   [key: string]: number | boolean | string[]
 }
