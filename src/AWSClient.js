@@ -191,7 +191,6 @@ async function putObject (bucket, key, body) {
       Key: key,
       Body: body,
       Metadata: { user_email: userStore.cognitoInfo.email, checksum: newChecksum },
-      ContentType: ' application/json',
     }
     const resp = await s3Client.putObject(params)
     return resp
