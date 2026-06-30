@@ -8,6 +8,7 @@ const ResultMap = () => import('@page/ResultMap.vue')
 const Run = () => import('@page/Run.vue')
 const ResultPicture = () => import('@page/ResultPicture.vue')
 const ResultTable = () => import('@page/ResultTable.vue')
+const ResultHtml = () => import('@page/ResultHtml.vue')
 const Microservices = () => import('@page/Microservices.vue')
 const Documentation = () => import('@page/Documentation.vue')
 
@@ -89,7 +90,13 @@ const router = createRouter({
       component: ResultTable,
       icon: 'fas fa-table',
       title: $gettext('Result Table'),
-
+    },
+    {
+      path: '/ResultHtml',
+      name: 'ResultHtml',
+      component: ResultHtml,
+      icon: 'fas fa-file-code',
+      title: $gettext('Result Html'),
     },
 
   ],
