@@ -118,6 +118,7 @@ function addPoint (event: MapMouseEvent) {
       nodeIdB: hoveringId![0], // could be null, a node or a link.
       geom: pointGeom,
     }
+    if (payload.nodeIdA === payload.nodeIdB) return // click on hovering node: dont create a rlink a==b
   } else {
     payload = {
       nodeIdA: selectedNodeId,

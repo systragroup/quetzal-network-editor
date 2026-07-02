@@ -265,8 +265,6 @@ watch(hoveredStateId, (newVal, oldVal) => {
 
 function onCursor (event: CustomMapEvent) {
   // if hover is null or if hover is editorlinks. this make hoveing more natural and avoid collision from node to links
-  console.log(editorLinks.value)
-  console.log(editorNodes.value)
   if (!event.mapboxEvent.features) return
   if (!hoveredStateId.value || hoveredStateId.value.layerId === 'editorLinks') {
     const feature = event.mapboxEvent.features[0] as GeoJsonFeatures

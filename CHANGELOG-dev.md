@@ -1,3 +1,7 @@
+## [8.0.i] (2026-07-02)
+### bug fixes
+* RoadLinks: click on rnodes was creating a rlink with a==b.
+
 ## [8.0.h] (2026-06-25)
 ### bug fixes
 * edition pt link was still visible on map when we did a save and quit[issue-601]
