@@ -115,6 +115,7 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
   if (newScenario) {
     const filesToCopy = [
       prefix + 'inputs/params.json',
+      prefix + 'inputs/steps.json',
       prefix + 'styles.json',
     ]
     response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))

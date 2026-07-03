@@ -1,46 +1,41 @@
-import { defineStore, acceptHMRUpdate } from 'pinia'
+import { defineStore } from 'pinia'
 
 import { paramsSerializer } from '@src/utils/serializer'
 import s3 from '@src/AWSClient'
 import { useIndexStore } from './index'
 import { useUserStore } from './user'
-import { useClient } from '@src/axiosClient.js'
-const { quetzalClient } = useClient()
 import { computed, ref, toRaw, watch } from 'vue'
 import { useAPI } from '../composables/APIComposable'
-import { CategoryParam, Params, ParamsInfo, ParamsVariants, RunLog, Step } from '@src/types/typesStore'
-import { StepFunctionDefinition } from '@src/types/stepFunction'
+import { CategoryParam, Params, ParamsInfo, ParamsVariants, RunLog, Step, StepPayload } from '@src/types/typesStore'
 import { useGettext } from 'vue3-gettext'
-import { RunInputs } from '@src/types/api'
+import { RunPayload, StepStatus } from '@src/types/api'
 import { includesOrEqual } from '@src/utils/utils'
-const BASE_STATEMACHINE_ARN = import.meta.env.VITE_BASE_STATEMACHINE_ARN
 
 export const useRunStore = defineStore('runStore', () => {
   const { $gettext } = useGettext()
   const userStore = useUserStore()
-  const model = computed(() => userStore.model)
-  const stateMachineArn = computed(() => `${BASE_STATEMACHINE_ARN}:${model.value}`)
+  const model = computed(() => userStore.model!)
   const modelTag = ref<string>('')
   const avalaibleStepFunctions = ref<string[]>(['default'])
   const selectedStepFunction = ref<string>('default') // default or comparision,
 
   const currentStep = ref<number>(0)
-  const steps = ref<Step[]>([{ name: 'Loading Steps...', tasks: ['Loading Steps...'] }])
+  const steps = ref<Step[]>([])
+  const stepsPayload = ref<StepPayload[]>([])
 
   const parameters = ref<Params>([])
 
   const hasLogs = ref<boolean>(false)
   const logs = ref<RunLog[]>([])
 
-  const { error, errorMessage, status, history,
-    startExecution, stopExecution, cleanRun, getRunningExecution } = useAPI({ withHistory: true })
+  const { error, errorMessage, status, startExecution,
+    stopExecution, cleanRun, getRunningExecution, getFunctionTag } = useAPI()
 
   function reset() {
     modelTag.value = ''
     avalaibleStepFunctions.value = ['default']
     selectedStepFunction.value = 'default'
     currentStep.value = 0
-    steps.value = [{ name: 'Loading Steps...', tasks: ['Loading Steps...'] }]
     hasLogs.value = false
     logs.value = []
     parameters.value = []
@@ -50,98 +45,43 @@ export const useRunStore = defineStore('runStore', () => {
   // get model_tag
 
   async function getModelTag() {
-    const response = await quetzalClient.get(`/model/version/${model.value}/`)
-    modelTag.value = response.data
+    modelTag.value = await getFunctionTag(model.value)
   }
 
   // Steps
 
-  async function getSteps () {
-    const store = useIndexStore()
-    try {
-      let data = { stateMachineArn: stateMachineArn.value }
-      const response = await quetzalClient.post('/describe/model', JSON.stringify(data))
-      const def = JSON.parse(response.data.definition) as StepFunctionDefinition
-
-      // check if there is a choice in the definition => avalaibleStepFunctions
-      Object.keys(def.States).forEach((key) => {
-        if (def.States[key].Type === 'Choice') {
-        // could be a list of choices
-          avalaibleStepFunctions.value = ['default', ...def.States[key].Choices.map(el => el.StringEquals)]
-          if (selectedStepFunction.value === 'default') {
-            def.States[key].Next = def.States[key].Default
-          } else {
-            // if not default. select the one in the list
-            const choices = def.States[key].Choices
-            def.States[key].Next = choices.filter(el => el.StringEquals === selectedStepFunction.value)[0].Next
-          }
-        }
-      })
-      // if there is a choice
-      function flattenDef(def: StepFunctionDefinition) {
-        const stepsArr: Step[] = []
-        let key = def.StartAt
-        while (true) {
-        // if there is a choice
-          let state = def.States[key]
-          if (state.Type === 'Choice') {
-            key = state.Next
-            state = def.States[key]
-          }
-          if (state.Type === 'Parallel') {
-            let branches = state.Branches.map(el => el.States).map(el => Object.keys(el))
-            branches = branches[0].map((col, i) => branches.map(row => row[i]))
-            for (const ptasks of branches) {
-              stepsArr.push({ name: ptasks.join(' | '), tasks: ptasks })
-            }
-          } else if (state.Type === 'Map') {
-            const mapSteps = flattenDef(state.Iterator)
-            mapSteps.forEach(el => el.name = `${el.name} (parallel)`)
-            stepsArr.push(...mapSteps)
-          }
-          else if (state.Type === 'Task') {
-            stepsArr.push({ name: key, tasks: [key] })
-          }
-          // add Map Here
-          if (state.Next === undefined) break
-          key = state.Next
-        }
-        return stepsArr
-      }
-      const stepsArr = flattenDef(def)
-      // set steps. add saving and loading Step
-      steps.value = stepsArr
-      steps.value.splice(0, 0, { name: 'Saving Networks', tasks: ['Saving Networks'] })
-      steps.value.push({ name: 'Loading Results', tasks: ['Loading Results'] })
-    } catch (err) {
-      store.changeAlert(err)
-    }
+  async function loadSteps (payload: StepPayload[]) {
+    // set steps. add saving and loading Step
+    // TODO: serialized steps.json
+    stepsPayload.value = payload
+    steps.value = payload.map(el => { return { name: el.name, tasks: [el.name] } })
+    steps.value.splice(0, 0, { name: 'Saving Networks', tasks: ['Saving Networks'] })
+    steps.value.push({ name: 'Loading Results', tasks: ['Loading Results'] })
+    console.log(stepsPayload.value)
     checkLogs()
   }
 
   // on polling. Get current step
-  watch(history, (arr) => updateCurrentStep(arr))
-
-  function updateCurrentStep (payload: string[]) {
+  function updateCurrentStep (payload: StepStatus | undefined) {
     // payload contain an order list of all step. first one current. all other one are done (or parallel)
-    const step = payload[0]
+    if (!payload) return
     const stepNames = steps.value.map(a => a.tasks) // for parallel tasks. we have a list for a step.
-    const index = stepNames.map(task => task.includes(step)).indexOf(true)
+    const index = stepNames.map(task => task.includes(payload.step)).indexOf(true)
     currentStep.value = index + 1
   }
 
   // start a simulation
-
-  const running = computed(() => ['RUNNING', 'SUCCEEDED'].includes(status.value))
+  const running = computed(() => ['PREPARING', 'RUNNING', 'STOPPING'].includes(status.value.status))
 
   function initExecution () {
     error.value = false
-    status.value = 'RUNNING'
+    status.value.status = 'PREPARING'
     currentStep.value = 1
   }
 
   watch(status, async (val) => {
-    if (val === 'SUCCEEDED') {
+    updateCurrentStep(val.step_status)
+    if (val.status === 'SUCCESS') {
       currentStep.value = steps.value.length + 1 // put to last step (download results)
       getOutputs()
       checkLogs()
@@ -149,7 +89,7 @@ export const useRunStore = defineStore('runStore', () => {
       const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('simulation executed successfully!'), autoClose: false, color: 'success' })
-      status.value = 'FINISHED'
+      status.value.status = 'FINISHED'
     }
   })
 
@@ -167,12 +107,12 @@ export const useRunStore = defineStore('runStore', () => {
 
     const selectedVariants = variants.value?.variants || []
 
-    const inputs: RunInputs = {
-      authorization: userStore.idToken,
+    const inputs: RunPayload = {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      scenario_path_S3: userStore.scenario + '/',
+      scenario_path: userStore.scenario + '/',
+      function_name: model.value,
+      steps: stepsPayload.value,
       variants: selectedVariants,
-      choice: selectedStepFunction.value,
       launcher_arg: {
         training_folder: '/tmp',
         params: paramsDict,
@@ -180,15 +120,16 @@ export const useRunStore = defineStore('runStore', () => {
       metadata: {
         user_email: userStore.cognitoInfo?.email,
       },
+
     }
-    startExecution(stateMachineArn.value, inputs)
+    startExecution(inputs)
   }
 
   // check if already running from another computer
   const scenario = computed(() => userStore.scenario)
   async function checkRunningExecution() {
     if (scenario.value) {
-      return await getRunningExecution(stateMachineArn.value, scenario.value)
+      return await getRunningExecution(model.value, scenario.value)
     } else return false
   }
 
@@ -296,6 +237,7 @@ export const useRunStore = defineStore('runStore', () => {
     parameters,
     hasLogs,
     steps,
+    stepsPayload,
     logs,
     availableModels,
     parametersIsEmpty,
@@ -310,7 +252,7 @@ export const useRunStore = defineStore('runStore', () => {
     downloadLogs,
     getOutputs,
     getModelTag,
-    getSteps,
+    loadSteps,
     checkRunningExecution,
     error,
     running,
@@ -321,7 +263,3 @@ export const useRunStore = defineStore('runStore', () => {
     reset,
   }
 })
-
-if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useRunStore, import.meta.hot))
-}

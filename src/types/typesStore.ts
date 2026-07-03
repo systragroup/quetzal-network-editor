@@ -410,6 +410,11 @@ export interface RunLog {
   text: string
 }
 
+export interface StepPayload {
+  name: string
+  path: string
+}
+
 export interface Step {
   name: string
   tasks: string[]

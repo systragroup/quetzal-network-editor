@@ -127,6 +127,9 @@ export const useIndexStore = defineStore('index', {
         const paramFile = otherFiles.filter(el => el.path === 'inputs/params.json')[0]
         otherFiles = otherFiles.filter(el => el !== paramFile)
 
+        const stepsFile = otherFiles.filter(el => el.path === 'inputs/steps.json')[0]
+        otherFiles = otherFiles.filter(el => el !== stepsFile)
+
         const stylesFile = otherFiles.filter(el => el.path === 'styles.json')[0]
         otherFiles = otherFiles.filter(el => el !== stylesFile)
 
@@ -160,6 +163,8 @@ export const useIndexStore = defineStore('index', {
         rlinksStore.loadRoadFiles(roadFiles)
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.loadParameters(paramFile.content)
+        if (stepsFile) runStore.loadSteps(stepsFile.content)
+
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
@@ -425,6 +430,11 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
           zip.file('inputs/params.json', blob, { date: date })
         }
+        if (runStore.stepsPayload.length > 0) {
+          const blob = new Blob([JSON.stringify(runStore.stepsPayload)], { type: 'application/json' })
+          zip.file('inputs/steps.json', blob, { date: date })
+        }
+
         if (this.styles.length > 0) {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           zip.file('styles.json', blob, { date: date })
@@ -478,12 +488,16 @@ export const useIndexStore = defineStore('index', {
         rnodes: roadFolder + 'road_nodes.geojson',
         od: odFolder + 'od.geojson',
         params: scen + 'inputs/params.json',
+        steps: scen + 'inputs/steps.json',
         styles: scen + 'styles.json',
         info: scen + 'info.json',
       }
       // save params
       if (runStore.parameters.length > 0) {
         await s3.putObject(bucket, paths.params, JSON.stringify(runStore.parameters))
+      }
+      if (runStore.stepsPayload.length > 0) {
+        await s3.putObject(bucket, paths.steps, JSON.stringify(runStore.stepsPayload))
       }
       // save styles if changed
       if (this.styles.length > 0) {
