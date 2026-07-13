@@ -512,8 +512,12 @@ export interface MapMatchingParams {
 
 export interface WildTurkeyParams {
   consumption: number
+  max_energy: number
+  depot_lon: number
+  depot_lat: number
+  interlining: boolean
 
-  [key: string]: number | boolean | string[]
+  [key: string]: number | boolean
 }
 
 export interface MatrixRoadCasterParams {

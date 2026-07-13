@@ -17,6 +17,10 @@ const NAME = 'wildturkey'
 function baseParameters(): WildTurkeyParams {
   return {
     consumption: 1.8,
+    max_energy: 1000,
+    depot_lon: -73.5724,
+    depot_lat: 45.5612,
+    interlining: true,
   }
 }
 

@@ -31,14 +31,53 @@ const storeParameters = computed(() => wtStore.parameters)
 
 const parameters = ref<FormData[]>([
   {
+    label: 'depot longitude',
+    key: 'depot_lon',
+    value: null,
+    advanced: false,
+    type: 'number',
+    units: 'deg',
+    rules: ['required'],
+    hint: 'depot position',
+  },
+  {
+    label: 'depot latitude',
+    key: 'depot_lat',
+    value: null,
+    advanced: false,
+    type: 'number',
+    units: 'deg',
+    rules: ['required'],
+    hint: 'depot position',
+  },
+  {
     key: 'consumption',
     label: 'consumption',
     value: null,
-    advanced: false,
+    advanced: true,
     type: 'number',
     units: 'kwh',
     rules: ['required'],
     hint: 'vehicle consumption in kwh',
+  },
+  {
+    label: 'Battery Capacity',
+    key: 'max_energy',
+    value: null,
+    advanced: true,
+    type: 'number',
+    units: 'kWh',
+    rules: ['required'],
+    hint: 'bus battery capacity for electric scheduling',
+  },
+  {
+    label: 'interlining',
+    key: 'interlining',
+    value: null,
+    advanced: true,
+    type: 'boolean',
+    rules: ['required'],
+    hint: 'if a bus can perform many different routes (route_id)',
   },
 
 ])
@@ -110,6 +149,8 @@ async function exportFiles() {
 function stopRun () { wtStore.stopExecution() }
 const mdString = `
 # Scheduling
+Return number of vehicles (blocks) and kpis for transit lines.\n
+Deadheads are computed from routing on the road network.
 `
 
 const showWarning = computed(() => rlinksIsEmpty.value || linksIsEmpty.value)
