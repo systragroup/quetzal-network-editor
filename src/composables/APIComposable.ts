@@ -5,7 +5,7 @@ import { ErrorMessage, RunPayload, Status } from '@src/types/api'
 const { quetzalClient } = useClient()
 
 const baseStatus = (): Status => { return {
-  status: '',
+  status: 'UNKNOWN',
   step_status: undefined,
 } }
 
@@ -82,7 +82,7 @@ export function useAPI () {
         } else if (['FAILED'].includes(status.value.status)) {
           clearInterval(intervalId)
           // response.data.cause
-          terminateExecution('err')
+          terminateExecution(status.value.step_status?.error || '')
         }
       } catch (err: unknown) {
         const store = useIndexStore()

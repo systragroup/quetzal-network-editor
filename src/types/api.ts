@@ -5,7 +5,7 @@ import { StepPayload } from './typesStore'
 
 // export type ECSTaskStatus = 'PROVISIONING' | 'PENDING' | 'ACTIVATING' | 'RUNNING' | 'DEACTIVATING' | 'STOPPING' | 'DEPROVISIONING' | 'STOPPED'
 
-export type TaskStatus = '' | 'PREPARING' | 'RUNNING' | 'SUCCESS' | 'STOPPING' | 'FAILED' | 'FINISHED'
+export type TaskStatus = 'UNKNOWN' | 'PREPARING' | 'RUNNING' | 'SUCCESS' | 'STOPPING' | 'FAILED' | 'FINISHED'
 
 export interface StepStatus {
   step: string
