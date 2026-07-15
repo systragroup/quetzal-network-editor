@@ -1,3 +1,7 @@
+## [8.0.j] (2026-07-15)
+### bug fixes
+* fix credentials expiration
+
 ## [8.0.i] (2026-07-02)
 ### bug fixes
 * RoadLinks: click on rnodes was creating a rlink with a==b.
