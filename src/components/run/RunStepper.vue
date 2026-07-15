@@ -42,26 +42,17 @@ onMounted(async () => {
   }
 })
 
-// watch(avalaibleStepFunctions, (val) => {
-//   if (modelIsLoaded.value) {
-//     if (!val.includes(stepFunction.value)) {
-//       stepFunction.value = val[0]
-//       runStore.getSteps()
-//     }
-//   }
-// }, { once: true })
-
-// watch(stepFunction, async (val) => {
-//   if (modelIsLoaded.value) {
-//     if (avalaibleStepFunctions.value.includes(val)) {
-//       stepFunction.value = val
-//       runStore.getSteps()
-//     } else {
-//       stepFunction.value = avalaibleStepFunctions.value[0]
-//       runStore.getSteps()
-//     }
-//   }
-// })
+watch(stepFunction, async (val) => {
+  if (modelIsLoaded.value) {
+    if (avalaibleStepFunctions.value.includes(val)) {
+      stepFunction.value = val
+      runStore.getSteps()
+    } else {
+      stepFunction.value = avalaibleStepFunctions.value[0]
+      runStore.getSteps()
+    }
+  }
+})
 
 async function run() {
   const wasRunning = await runStore.checkRunningExecution()

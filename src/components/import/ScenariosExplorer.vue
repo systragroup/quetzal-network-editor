@@ -115,6 +115,7 @@ async function loadProject() {
   userStore.setScenariosList(scenariosList.value)
   getDocs(localModel.value)
   getModelConfig(localModel.value)
+  getModelSteps(localModel.value)
   localStorage.setItem('model', String(storeModel.value))
   emits('load', 'emit')
 }
@@ -132,6 +133,15 @@ async function getModelConfig(model: string | null) {
   if (fileExist) {
     const json = await s3.readJson(model, fileName)
     store.loadModelConfig(json)
+  }
+}
+
+async function getModelSteps(model: string | null) {
+  const fileName = `${COMMON}/steps.json`
+  const fileExist: Boolean = await s3.checkIfFileExists(model, fileName)
+  if (fileExist) {
+    const json = await s3.readJson(model, fileName)
+    store.loadmodelSteps(json)
   }
 }
 

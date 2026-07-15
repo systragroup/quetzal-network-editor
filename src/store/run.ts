@@ -54,11 +54,17 @@ export const useRunStore = defineStore('runStore', () => {
     // set steps. add saving and loading Step
     // TODO: serialized steps.json
     stepsPayload.value = payload
-    steps.value = payload.map(el => { return { name: el.name, tasks: [el.name] } })
+    avalaibleStepFunctions.value = payload.map(el => el.name)
+    selectedStepFunction.value = avalaibleStepFunctions.value[0]
+    getSteps()
+    checkLogs()
+  }
+
+  function getSteps() {
+    const selectedSteps = stepsPayload.value.filter(el => el.name === selectedStepFunction.value)[0].steps
+    steps.value = selectedSteps.map(el => { return { name: el.name, tasks: [el.name] } })
     steps.value.splice(0, 0, { name: 'Saving Networks', tasks: ['Saving Networks'] })
     steps.value.push({ name: 'Loading Results', tasks: ['Loading Results'] })
-    console.log(stepsPayload.value)
-    checkLogs()
   }
 
   // on polling. Get current step
@@ -106,12 +112,13 @@ export const useRunStore = defineStore('runStore', () => {
     }, {})
 
     const selectedVariants = variants.value?.variants || []
-
+    const selectedSteps = stepsPayload.value.filter(el => el.name === selectedStepFunction.value)[0].steps
+    console.log(selectedSteps)
     const inputs: RunPayload = {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       scenario_path: userStore.scenario + '/',
       function_name: model.value,
-      steps: stepsPayload.value,
+      steps: selectedSteps,
       variants: selectedVariants,
       launcher_arg: {
         training_folder: '/tmp',
@@ -261,5 +268,6 @@ export const useRunStore = defineStore('runStore', () => {
     startExecution,
     stopExecution,
     reset,
+    getSteps,
   }
 })

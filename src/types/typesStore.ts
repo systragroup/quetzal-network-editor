@@ -410,9 +410,14 @@ export interface RunLog {
   text: string
 }
 
-export interface StepPayload {
+export interface ModelStep {
   name: string
   path: string
+}
+
+export interface StepPayload {
+  name: string
+  steps: ModelStep[]
 }
 
 export interface Step {

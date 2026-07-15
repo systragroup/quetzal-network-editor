@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // FINISHED set manually. ex: we want to download result on SUCCEEDED, then something.
 
-import { StepPayload } from './typesStore'
+import { ModelStep } from './typesStore'
 
 // export type ECSTaskStatus = 'PROVISIONING' | 'PENDING' | 'ACTIVATING' | 'RUNNING' | 'DEACTIVATING' | 'STOPPING' | 'DEPROVISIONING' | 'STOPPED'
 
@@ -40,7 +40,7 @@ export interface RunArgs {
 export interface RunPayload {
   scenario_path: string
   function_name: string
-  steps: StepPayload[]
+  steps: ModelStep[]
   launcher_arg: RunArgs
   metadata: RunMetadata
   variants: string[]
