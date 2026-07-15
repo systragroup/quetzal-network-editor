@@ -69,7 +69,7 @@ export const useUserStore = defineStore('userStore', {
         secretAccessKey: payload.secretAccessKey,
         sessionToken: payload.sessionToken,
       }
-      this.credExpTime = payload.expiration
+      this.credExpTime = payload.expiration / 1000
     },
 
     setScenariosList (payload: Scenario[]) {
@@ -98,6 +98,8 @@ export const useUserStore = defineStore('userStore', {
       // IF the refresh token is expired, log out.
       const currentTime = Math.floor(Date.now() / 1000) // Convert to seconds
       if ((currentTime >= this.idExpTime) || (currentTime >= this.credExpTime)) {
+        console.log('id expired:', currentTime >= this.idExpTime)
+        console.log('cred expired:', currentTime >= this.credExpTime)
         console.log('token expired. refresh')
         await auth.login()
         await s3.login()

@@ -1,3 +1,7 @@
+## [7.2.6] (2026-07-15)
+### bug fixes
+* fix credential expiring
+
 ## [7.2.5] (2026-03-20)
 ### bug fixes
 * model tag was set to null in the info.json by the front end.
