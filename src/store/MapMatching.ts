@@ -10,9 +10,8 @@ import { useGettext } from 'vue3-gettext'
 import { userLinksStore } from './rlinks'
 import { MapMatchingParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
-import { RunInputs } from '@src/types/api'
+import { RunPayload } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
-const MAPMATCHING_ARN = import.meta.env.VITE_MAPMATCHING_ARN
 const VERSION = 0
 const NAME = 'mapmatching'
 
@@ -30,14 +29,13 @@ function baseParameters(): MapMatchingParams {
 
 export const useMapMatchingStore = defineStore('runMapMatching', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref<string>(MAPMATCHING_ARN)
   const bucket = ref<string>(MICROSERVICES_BUCKET)
-
   const callID = ref<string>('')
   const timer = ref<number>(0)
   const parameters = ref<MapMatchingParams>(baseParameters())
 
-  const { error, running, errorMessage, startExecution, status, stopExecution, cleanRun } = useAPI()
+  const { error, running, errorMessage, status,
+    initExecution, startExecution, stopExecution, cleanRun } = useAPI()
 
   function reset() {
     callID.value = ''
@@ -66,18 +64,17 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     store.addMicroservicesParameters(payload)
   }
 
-  function start(inputs: RunInputs) {
+  function start(inputs: RunPayload) {
     exportParams()
-    startExecution(stateMachineArn.value, inputs)
+    startExecution(inputs)
   }
 
   watch(status, async (val) => {
-    if (val === 'SUCCEEDED') {
-      running.value = true
+    if (val.status === 'SUCCESS') {
+      // get_outputs()
       await ApplyResults()
       await getCSVs()
-      running.value = false
-      status.value = ''
+      // status.value.status = 'UNKNOWN'
       const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('PT network successfully Mapmatched. See results pages for more details.'),
@@ -124,7 +121,6 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
   }
 
   return {
-    stateMachineArn,
     bucket,
     callID,
     status,
@@ -140,5 +136,6 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     getCSVs,
     reset,
     loadParams,
+    initExecution,
   }
 })

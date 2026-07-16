@@ -1,7 +1,8 @@
+import { computed, ref } from 'vue'
 import { useIndexStore } from '@src/store/index'
-import { ref } from 'vue'
+import { useUserStore } from '@src/store/user'
 import { useClient } from '@src/axiosClient.js'
-import { ErrorMessage, Infra, RunPayload, Status } from '@src/types/api'
+import { CompleteRunPayload, ErrorMessage, Infra, RunPayload, Status } from '@src/types/api'
 const { quetzalClient } = useClient()
 
 const baseStatus = (): Status => { return {
@@ -12,27 +13,26 @@ const baseStatus = (): Status => { return {
 export function useAPI () {
   const infra = ref<Infra>('lambda')
   const status = ref<Status>(baseStatus())
-  const running = ref<boolean>(false)
-  const executionArn = ref<string>('')
+  const jobId = ref<string>('')
   const error = ref<boolean>(false)
   const errorMessage = ref<ErrorMessage>({})
   const timer = ref<number>(0)
   const pollFreq: number = 4000
 
+  const running = computed(() => ['PREPARING', 'RUNNING', 'STOPPING'].includes(status.value.status))
+
   function cleanRun () {
     status.value = baseStatus()
-    running.value = false
-    executionArn.value = ''
+    jobId.value = ''
     error.value = false
     errorMessage.value = {}
     timer.value = 0
   }
 
   function terminateExecution (payload: string | boolean) {
-    running.value = false
     error.value = true
     timer.value = 0
-    executionArn.value = ''
+    jobId.value = ''
     if (typeof payload === 'boolean') return
 
     try {
@@ -43,28 +43,31 @@ export function useAPI () {
   }
 
   function succeedExecution () {
-    running.value = false
-    executionArn.value = ''
+    jobId.value = ''
+  }
+  function initExecution () {
+    error.value = false
+    status.value.status = 'PREPARING'
   }
 
-  // todo: runinputs or some Dict with callId.
-  // type InputWithCallID = (OSMImporterParams) & { callID: string }
-  // type Input = RunInputs | InputWithCallID
-
-  async function startExecution (input: RunPayload) {
-    running.value = true
+  async function startExecution (payload: RunPayload) {
+    const userStore = useUserStore()
     error.value = false
-    const functionName = input.function_name
-    const scenario = input.scenario_path
+    const functionName = payload.function_name
+    const scenario = payload.scenario_path
+    const input: CompleteRunPayload = {
+      ...payload,
+      metadata: { user_email: userStore.cognitoInfo?.email },
+      authorization: userStore.idToken,
+    }
 
     try {
       const response = await quetzalClient.post<string>(`${infra.value}/run/`, input)
-      executionArn.value = response.data
+      jobId.value = response.data
       pollExecution(functionName, scenario)
     } catch (err: unknown) {
       const store = useIndexStore()
       store.changeAlert(err)
-      running.value = false
       status.value.status = 'FAILED'
     }
   }
@@ -73,10 +76,10 @@ export function useAPI () {
     const intervalId = setInterval(async () => {
       timer.value = timer.value - pollFreq / 1000
       try {
-        const url = `${infra.value}/run/${functionName}/job_id/${executionArn.value}/scenario/${scenario}`
+        const url = `${infra.value}/run/${functionName}/job_id/${jobId.value}/scenario/${scenario}`
         const response = await quetzalClient.get<Status>(url)
         status.value = response.data
-        console.log(status.value)
+        console.log(status.value.status)
         if (status.value.status === 'SUCCESS') {
           succeedExecution()
           clearInterval(intervalId)
@@ -94,7 +97,7 @@ export function useAPI () {
 
   async function stopExecution (functionName: string) {
     try {
-      await quetzalClient.post<boolean>(`${infra.value}/run/${functionName}/job_id/${executionArn.value}/stop`)
+      await quetzalClient.post<boolean>(`${infra.value}/run/${functionName}/job_id/${jobId.value}/stop`)
     } catch (err: unknown) {
       const store = useIndexStore()
       store.changeAlert(err)
@@ -109,9 +112,8 @@ export function useAPI () {
         const resp = await quetzalClient.get(`${infra.value}/run/${functionName}/scenario/${scenario}/`)
         if (resp.data !== '') {
           cleanRun()
-          executionArn.value = resp.data
+          jobId.value = resp.data
           status.value.status = 'RUNNING'
-          running.value = true
           pollExecution(functionName, scenario)
           return true
         } else { return false }
@@ -140,6 +142,7 @@ export function useAPI () {
     status,
     errorMessage,
     timer,
+    initExecution,
     startExecution,
     cleanRun,
     stopExecution,

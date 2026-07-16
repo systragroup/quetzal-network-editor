@@ -31,7 +31,7 @@ export const useRunStore = defineStore('runStore', () => {
   const hasLogs = ref<boolean>(false)
   const logs = ref<RunLog[]>([])
 
-  const { error, errorMessage, status, startExecution, getFunctionInfra,
+  const { error, errorMessage, status, running, startExecution, getFunctionInfra,
     stopExecution, cleanRun, getRunningExecution, getFunctionTag, getStepsDefinition } = useAPI()
 
   function reset() {
@@ -88,7 +88,6 @@ export const useRunStore = defineStore('runStore', () => {
   }
 
   // start a simulation
-  const running = computed(() => ['PREPARING', 'RUNNING', 'STOPPING'].includes(status.value.status))
 
   function initExecution () {
     error.value = false
@@ -124,9 +123,8 @@ export const useRunStore = defineStore('runStore', () => {
 
     const selectedVariants = variants.value?.variants || []
     const filteredSteps = stepsPayload.value.filter(el => el.name === selectedStepFunction.value)[0]
-    const selectedSteps = filteredSteps.steps || []
+    const selectedSteps = filteredSteps?.steps || undefined
     const inputs: RunPayload = {
-      authorization: userStore.idToken,
       scenario_path: userStore.scenario + '/',
       function_name: model.value,
       steps: selectedSteps,
@@ -135,9 +133,6 @@ export const useRunStore = defineStore('runStore', () => {
       launcher_arg: {
         training_folder: '/tmp',
         params: paramsDict,
-      },
-      metadata: {
-        user_email: userStore.cognitoInfo?.email,
       },
 
     }

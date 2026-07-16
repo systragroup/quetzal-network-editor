@@ -31,12 +31,15 @@ export interface RunArgs {
 }
 
 export interface RunPayload {
+  function_name: string
   scenario_path: string
   launcher_arg: RunArgs
-  metadata: RunMetadata
   variants: string[]
-  function_name: string // ECS
-  steps: ModelStep[] // ECS
-  authorization?: string // stepfunctions
+  steps?: ModelStep[] // ECS
   choice?: string // stepfunctions
+
+}
+export interface CompleteRunPayload extends RunPayload {
+  authorization: string
+  metadata: RunMetadata // added at the end
 }

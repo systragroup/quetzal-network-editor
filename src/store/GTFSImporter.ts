@@ -5,12 +5,12 @@ import { useAPI } from '../composables/APIComposable'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import s3 from '@src/AWSClient'
-import router from '@src/router/index'
+// import router from '@src/router/index'
 import { useGettext } from 'vue3-gettext'
 import { GTFSParams, MicroserviceParametersDTO, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesStore'
 import { LineStringGeoJson } from '@src/types/geojson'
 import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
-import { RunInputs } from '@src/types/api'
+import { RunPayload } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
 const GTFS_IMPORTER_ARN = import.meta.env.VITE_GTFS_IMPORTER_ARN
 const VERSION = 0
@@ -39,7 +39,8 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   const uploadedGTFS = ref<UploadGTFSInfo[]>([]) // list of upploded gtfs (zip local)
   const selectedGTFS = ref<number[]>([]) // list of index for web Importer
 
-  const { error, running, errorMessage, status, timer, startExecution, stopExecution, cleanRun } = useAPI()
+  const { error, running, errorMessage, status, timer,
+    initExecution, startExecution, stopExecution, cleanRun } = useAPI()
 
   function reset() {
     uploadedGTFS.value = []
@@ -78,9 +79,9 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     store.addMicroservicesParameters(payload)
   }
 
-  function start(inputs: RunInputs) {
+  function start(inputs: RunPayload) {
     exportParams()
-    startExecution(stateMachineArn.value, inputs)
+    startExecution(inputs)
   }
 
   function saveSelectedGTFS (payload: number[]) {
@@ -88,15 +89,12 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   }
 
   watch(status, async (val) => {
-    if (val === 'SUCCEEDED') {
-      running.value = true
+    if (val.status === 'SUCCESS') {
       const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('gtfs imported successfully!'), autoClose: false, color: 'success' })
       await downloadFromS3()
-      running.value = false
-      status.value = ''
-      router.push('/Home').catch(() => {})
+      // router.push('/Home').catch(() => {})
     }
   })
 
@@ -180,5 +178,6 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     addGTFS,
     loadParams,
     exportParams,
+    initExecution,
   }
 })
