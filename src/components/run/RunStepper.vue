@@ -37,8 +37,10 @@ const model = computed(() => userStore.model!)
 
 onMounted(async () => {
   if (modelIsLoaded.value) {
+    await runStore.getSteps()
     await runStore.getModelTag()
     await runStore.checkRunningExecution()
+    await runStore.checkLogs()
   }
 })
 
@@ -46,10 +48,10 @@ watch(stepFunction, async (val) => {
   if (modelIsLoaded.value) {
     if (avalaibleStepFunctions.value.includes(val)) {
       stepFunction.value = val
-      runStore.getSteps()
+      runStore.setSteps()
     } else {
       stepFunction.value = avalaibleStepFunctions.value[0]
-      runStore.getSteps()
+      runStore.setSteps()
     }
   }
 })

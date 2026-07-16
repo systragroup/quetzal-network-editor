@@ -125,9 +125,6 @@ async function loadFilesFromS3 () {
       if (name === 'inputs/params.json') {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
-      } else if (name === 'inputs/steps.json') {
-        const content = await s3.readJson(model, file)
-        res.push({ path: name, content })
       } else if (name === 'styles.json') {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })

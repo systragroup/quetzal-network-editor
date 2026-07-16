@@ -123,6 +123,11 @@ export function useAPI () {
     return resp.data
   }
 
+  async function getStepsDefinition(functionName: string) {
+    const resp = await quetzalClient.get(`run/${functionName}/steps/default`)
+    return resp.data
+  }
+
   return {
     running,
     error,
@@ -135,6 +140,7 @@ export function useAPI () {
     pollExecution,
     getRunningExecution,
     getFunctionTag,
+    getStepsDefinition,
 
   }
 }

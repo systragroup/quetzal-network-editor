@@ -420,6 +420,8 @@ export interface StepPayload {
   steps: ModelStep[]
 }
 
+export type StepsDefinition = Record<string, Step[]>
+
 export interface Step {
   name: string
   tasks: string[]

@@ -28,21 +28,13 @@ export interface RunArgs {
   params: Record<string, any>
 }
 
-// export interface RunInputs {
-//   scenario_path_S3: string
-//   launcher_arg: RunArgs
-//   metadata: RunMetadata
-//   authorization?: string
-//   choice?: string
-//   variants?: string[]
-// }
-
 export interface RunPayload {
   scenario_path: string
-  function_name: string
-  steps: ModelStep[]
   launcher_arg: RunArgs
   metadata: RunMetadata
   variants: string[]
-
+  function_name: string // ECS
+  steps: ModelStep[] // ECS
+  authorization?: string // stepfunctions
+  choice?: string // stepfunctions
 }

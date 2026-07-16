@@ -6,10 +6,11 @@ import { useIndexStore } from './index'
 import { useUserStore } from './user'
 import { computed, ref, toRaw, watch } from 'vue'
 import { useAPI } from '../composables/APIComposable'
-import { CategoryParam, Params, ParamsInfo, ParamsVariants, RunLog, Step, StepPayload } from '@src/types/typesStore'
+import { CategoryParam, Params, ParamsInfo, ParamsVariants, RunLog, Step, StepPayload, StepsDefinition } from '@src/types/typesStore'
 import { useGettext } from 'vue3-gettext'
 import { RunPayload, StepStatus } from '@src/types/api'
 import { includesOrEqual } from '@src/utils/utils'
+import { cloneDeep } from 'lodash'
 
 export const useRunStore = defineStore('runStore', () => {
   const { $gettext } = useGettext()
@@ -19,8 +20,10 @@ export const useRunStore = defineStore('runStore', () => {
   const avalaibleStepFunctions = ref<string[]>(['default'])
   const selectedStepFunction = ref<string>('default') // default or comparision,
 
-  const currentStep = ref<number>(0)
+  const stepsDefinition = ref<StepsDefinition>({})
   const steps = ref<Step[]>([])
+  const currentStep = ref<number>(0)
+
   const stepsPayload = ref<StepPayload[]>([])
 
   const parameters = ref<Params>([])
@@ -29,13 +32,16 @@ export const useRunStore = defineStore('runStore', () => {
   const logs = ref<RunLog[]>([])
 
   const { error, errorMessage, status, startExecution,
-    stopExecution, cleanRun, getRunningExecution, getFunctionTag } = useAPI()
+    stopExecution, cleanRun, getRunningExecution, getFunctionTag, getStepsDefinition } = useAPI()
 
   function reset() {
     modelTag.value = ''
     avalaibleStepFunctions.value = ['default']
     selectedStepFunction.value = 'default'
+    stepsDefinition.value = {}
+    steps.value = []
     currentStep.value = 0
+    stepsPayload.value = []
     hasLogs.value = false
     logs.value = []
     parameters.value = []
@@ -48,21 +54,22 @@ export const useRunStore = defineStore('runStore', () => {
     modelTag.value = await getFunctionTag(model.value)
   }
 
-  // Steps
-
-  async function loadSteps (payload: StepPayload[]) {
-    // set steps. add saving and loading Step
-    // TODO: serialized steps.json
-    stepsPayload.value = payload
-    avalaibleStepFunctions.value = payload.map(el => el.name)
+  async function getSteps() {
+    stepsDefinition.value = await getStepsDefinition(model.value)
+    avalaibleStepFunctions.value = Object.keys(stepsDefinition.value)
     selectedStepFunction.value = avalaibleStepFunctions.value[0]
-    getSteps()
-    checkLogs()
+    setSteps()
   }
 
-  function getSteps() {
-    const selectedSteps = stepsPayload.value.filter(el => el.name === selectedStepFunction.value)[0].steps
-    steps.value = selectedSteps.map(el => { return { name: el.name, tasks: [el.name] } })
+  // Steps
+
+  async function loadModelSteps (payload: StepPayload[]) {
+    // set steps. add saving and loading Step
+    stepsPayload.value = payload
+  }
+
+  function setSteps() {
+    steps.value = cloneDeep(stepsDefinition.value[selectedStepFunction.value])
     steps.value.splice(0, 0, { name: 'Saving Networks', tasks: ['Saving Networks'] })
     steps.value.push({ name: 'Loading Results', tasks: ['Loading Results'] })
   }
@@ -112,14 +119,15 @@ export const useRunStore = defineStore('runStore', () => {
     }, {})
 
     const selectedVariants = variants.value?.variants || []
-    const selectedSteps = stepsPayload.value.filter(el => el.name === selectedStepFunction.value)[0].steps
-    console.log(selectedSteps)
+    const filteredSteps = stepsPayload.value.filter(el => el.name === selectedStepFunction.value)[0]
+    const selectedSteps = filteredSteps.steps || []
     const inputs: RunPayload = {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+      authorization: userStore.idToken,
       scenario_path: userStore.scenario + '/',
       function_name: model.value,
       steps: selectedSteps,
       variants: selectedVariants,
+      choice: selectedStepFunction.value,
       launcher_arg: {
         training_folder: '/tmp',
         params: paramsDict,
@@ -259,7 +267,7 @@ export const useRunStore = defineStore('runStore', () => {
     downloadLogs,
     getOutputs,
     getModelTag,
-    loadSteps,
+    loadModelSteps,
     checkRunningExecution,
     error,
     running,
@@ -268,6 +276,8 @@ export const useRunStore = defineStore('runStore', () => {
     startExecution,
     stopExecution,
     reset,
+    setSteps,
     getSteps,
+    checkLogs,
   }
 })
