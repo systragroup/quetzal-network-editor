@@ -1,7 +1,7 @@
 import { useIndexStore } from '@src/store/index'
 import { ref } from 'vue'
 import { useClient } from '@src/axiosClient.js'
-import { ErrorMessage, RunPayload, Status } from '@src/types/api'
+import { ErrorMessage, Infra, RunPayload, Status } from '@src/types/api'
 const { quetzalClient } = useClient()
 
 const baseStatus = (): Status => { return {
@@ -10,6 +10,7 @@ const baseStatus = (): Status => { return {
 } }
 
 export function useAPI () {
+  const infra = ref<Infra>('lambda')
   const status = ref<Status>(baseStatus())
   const running = ref<boolean>(false)
   const executionArn = ref<string>('')
@@ -57,7 +58,7 @@ export function useAPI () {
     const scenario = input.scenario_path
 
     try {
-      const response = await quetzalClient.post<string>('run/', input)
+      const response = await quetzalClient.post<string>(`${infra.value}/run/`, input)
       executionArn.value = response.data
       pollExecution(functionName, scenario)
     } catch (err: unknown) {
@@ -72,7 +73,7 @@ export function useAPI () {
     const intervalId = setInterval(async () => {
       timer.value = timer.value - pollFreq / 1000
       try {
-        const url = `/run/${functionName}/job_id/${executionArn.value}/scenario/${scenario}`
+        const url = `${infra.value}/run/${functionName}/job_id/${executionArn.value}/scenario/${scenario}`
         const response = await quetzalClient.get<Status>(url)
         status.value = response.data
         console.log(status.value)
@@ -93,7 +94,7 @@ export function useAPI () {
 
   async function stopExecution (functionName: string) {
     try {
-      await quetzalClient.post<boolean>(`/run/${functionName}/job_id/${executionArn.value}/stop`)
+      await quetzalClient.post<boolean>(`${infra.value}/run/${functionName}/job_id/${executionArn.value}/stop`)
     } catch (err: unknown) {
       const store = useIndexStore()
       store.changeAlert(err)
@@ -105,7 +106,7 @@ export function useAPI () {
     // return true if there is a model running (usefull to check before running.)
     try {
       if (!running.value) {
-        const resp = await quetzalClient.get(`run/${functionName}/scenario/${scenario}/`)
+        const resp = await quetzalClient.get(`${infra.value}/run/${functionName}/scenario/${scenario}/`)
         if (resp.data !== '') {
           cleanRun()
           executionArn.value = resp.data
@@ -118,13 +119,18 @@ export function useAPI () {
     } catch { return false }
   }
 
+  async function getFunctionInfra(functionName: string) {
+    const resp = await quetzalClient.get(`/run/${functionName}/infra`)
+    infra.value = resp.data
+  }
+
   async function getFunctionTag(functionName: string) {
-    const resp = await quetzalClient.get(`run/${functionName}/tag`)
+    const resp = await quetzalClient.get(`${infra.value}/run/${functionName}/tag`)
     return resp.data
   }
 
   async function getStepsDefinition(functionName: string) {
-    const resp = await quetzalClient.get(`run/${functionName}/steps/default`)
+    const resp = await quetzalClient.get(`${infra.value}/run/${functionName}/steps`)
     return resp.data
   }
 
@@ -141,6 +147,7 @@ export function useAPI () {
     getRunningExecution,
     getFunctionTag,
     getStepsDefinition,
+    getFunctionInfra,
 
   }
 }

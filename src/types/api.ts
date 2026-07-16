@@ -7,6 +7,8 @@ import { ModelStep } from './typesStore'
 
 export type TaskStatus = 'UNKNOWN' | 'PREPARING' | 'RUNNING' | 'SUCCESS' | 'STOPPING' | 'FAILED' | 'FINISHED'
 
+export type Infra = 'ecs' | 'lambda'
+
 export interface StepStatus {
   step: string
   error?: string

@@ -31,7 +31,7 @@ export const useRunStore = defineStore('runStore', () => {
   const hasLogs = ref<boolean>(false)
   const logs = ref<RunLog[]>([])
 
-  const { error, errorMessage, status, startExecution,
+  const { error, errorMessage, status, startExecution, getFunctionInfra,
     stopExecution, cleanRun, getRunningExecution, getFunctionTag, getStepsDefinition } = useAPI()
 
   function reset() {
@@ -62,6 +62,9 @@ export const useRunStore = defineStore('runStore', () => {
   }
 
   // Steps
+  async function getInfra() {
+    await getFunctionInfra(model.value)
+  }
 
   async function loadModelSteps (payload: StepPayload[]) {
     // set steps. add saving and loading Step
@@ -279,5 +282,6 @@ export const useRunStore = defineStore('runStore', () => {
     setSteps,
     getSteps,
     checkLogs,
+    getInfra,
   }
 })

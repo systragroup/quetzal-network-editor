@@ -37,6 +37,7 @@ const model = computed(() => userStore.model!)
 
 onMounted(async () => {
   if (modelIsLoaded.value) {
+    await runStore.getInfra()
     await runStore.getSteps()
     await runStore.getModelTag()
     await runStore.checkRunningExecution()
