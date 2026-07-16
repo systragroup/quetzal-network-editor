@@ -38,10 +38,12 @@ const model = computed(() => userStore.model!)
 onMounted(async () => {
   if (modelIsLoaded.value) {
     await runStore.getInfra()
-    await runStore.getSteps()
-    await runStore.getModelTag()
-    await runStore.checkRunningExecution()
-    await runStore.checkLogs()
+    const promises = []
+    promises.push(runStore.getSteps())
+    promises.push(runStore.getModelTag())
+    promises.push(runStore.checkRunningExecution())
+    promises.push(runStore.checkLogs())
+    await Promise.all(promises)
   }
 })
 

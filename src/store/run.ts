@@ -48,22 +48,22 @@ export const useRunStore = defineStore('runStore', () => {
     cleanRun()
   }
 
+  async function getInfra() {
+    await getFunctionInfra(model.value)
+  }
+
   // get model_tag
 
   async function getModelTag() {
     modelTag.value = await getFunctionTag(model.value)
   }
+  // Steps
 
   async function getSteps() {
     stepsDefinition.value = await getStepsDefinition(model.value)
     avalaibleStepFunctions.value = Object.keys(stepsDefinition.value)
     selectedStepFunction.value = avalaibleStepFunctions.value[0]
     setSteps()
-  }
-
-  // Steps
-  async function getInfra() {
-    await getFunctionInfra(model.value)
   }
 
   async function loadModelSteps (payload: StepPayload[]) {
@@ -81,6 +81,7 @@ export const useRunStore = defineStore('runStore', () => {
   function updateCurrentStep (payload: StepStatus | undefined) {
     // payload contain an order list of all step. first one current. all other one are done (or parallel)
     if (!payload) return
+    if (payload.step === '') return
     const stepNames = steps.value.map(a => a.tasks) // for parallel tasks. we have a list for a step.
     const index = stepNames.map(task => task.includes(payload.step)).indexOf(true)
     currentStep.value = index + 1

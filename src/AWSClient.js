@@ -244,15 +244,14 @@ async function getScenario (bucket) {
   const params = { Bucket: bucket, encodingType: 'url' }
   let moreToLoad = true
   const list = []
-  try {
-    while (moreToLoad) {
-      const { Contents, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
-      list.push(...Contents)
-      moreToLoad = IsTruncated
-      params.ContinuationToken = NextContinuationToken
-    }
-  } catch (err) { return [] }
 
+  while (moreToLoad) {
+    const { Contents, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
+    list.push(...Contents)
+    moreToLoad = IsTruncated
+    params.ContinuationToken = NextContinuationToken
+  }
+  if (list.length === 0) return []
   // get list of scenarios (unique prefix)
   const scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))
   // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
