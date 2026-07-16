@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useClient } from '@src/axiosClient.js'
-import { CompleteRunPayload, ErrorMessage, Infra, RunPayload, Status } from '@src/types/api'
+import { ErrorMessage, Infra, RunPayload, RunPayloadWithMetaData, Status } from '@src/types/api'
 const { quetzalClient } = useClient()
 
 const baseStatus = (): Status => { return {
@@ -55,10 +55,9 @@ export function useAPI () {
     error.value = false
     const functionName = payload.function_name
     const scenario = payload.scenario_path
-    const input: CompleteRunPayload = {
+    const input: RunPayloadWithMetaData = {
       ...payload,
       metadata: { user_email: userStore.cognitoInfo?.email },
-      authorization: userStore.idToken,
     }
 
     try {

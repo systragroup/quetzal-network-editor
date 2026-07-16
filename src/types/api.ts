@@ -39,7 +39,6 @@ export interface RunPayload {
   choice?: string // stepfunctions
 
 }
-export interface CompleteRunPayload extends RunPayload {
-  authorization: string
+export interface RunPayloadWithMetaData extends RunPayload {
   metadata: RunMetadata // added at the end
 }

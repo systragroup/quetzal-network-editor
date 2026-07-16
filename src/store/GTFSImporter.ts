@@ -12,7 +12,6 @@ import { LineStringGeoJson } from '@src/types/geojson'
 import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
 import { RunPayload } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
-const GTFS_IMPORTER_ARN = import.meta.env.VITE_GTFS_IMPORTER_ARN
 const VERSION = 0
 const NAME = 'gtfs'
 
@@ -31,7 +30,6 @@ function baseParameters(): GTFSParams {
 
 export const useGTFSStore = defineStore('runGTFS', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref(GTFS_IMPORTER_ARN)
   const bucket = ref(MICROSERVICES_BUCKET)
 
   const callID = ref(uuid())
@@ -158,7 +156,6 @@ export const useGTFSStore = defineStore('runGTFS', () => {
   }
 
   return {
-    stateMachineArn,
     bucket,
     callID,
     setCallID,
