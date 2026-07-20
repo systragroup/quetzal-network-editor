@@ -12,8 +12,9 @@ import Warning from '../utils/Warning.vue'
 import SimpleForm from '../common/SimpleForm.vue'
 import Markdown from '../utils/Markdown.vue'
 import { getRules } from '@src/utils/form'
-import { RunInputs } from '@src/types/api'
+import { RunPayload } from '@src/types/api'
 const { $gettext } = useGettext()
+const FUNCTION_NAME = import.meta.env.VITE_MATRIXROADCASTER_NAME
 
 const runMRC = useMRCStore()
 const running = computed(() => runMRC.running)
@@ -22,7 +23,6 @@ const errorMessage = computed(() => runMRC.errorMessage)
 const bucket = computed(() => runMRC.bucket)
 const callID = computed(() => runMRC.callID)
 const timer = computed(() => runMRC.timer)
-const status = computed(() => runMRC.status)
 const storeParameters = computed(() => runMRC.parameters)
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 
@@ -191,28 +191,24 @@ const formRef = ref()
 async function start () {
   const resp = await formRef.value.validate()
   if (!resp) { return }
-  const userStore = useUserStore()
-
+  runMRC.initExecution()
   runMRC.setCallID()
-  runMRC.running = true
   runMRC.saveParams(parameters.value)
   getApproxTimer()
   await exportFiles()
   const params = runMRC.parameters
-  const inputs: RunInputs = {
-    scenario_path_S3: callID.value,
+  const inputs: RunPayload = {
+    scenario_path: callID.value,
+    variants: [],
     launcher_arg: {
       training_folder: '/tmp',
       params: params,
     },
-    metadata: {
-      user_email: userStore.cognitoInfo?.email,
-    },
   }
-  runMRC.start(inputs)
+  runMRC.startExecution(FUNCTION_NAME, inputs)
 }
 
-function stopRun () { runMRC.stopExecution() }
+function stopRun () { runMRC.stopExecution(FUNCTION_NAME) }
 
 // rules
 
@@ -294,7 +290,7 @@ const mdString = $gettext(`
           {{ $gettext("Process") }}
         </v-btn>
         <v-btn
-          v-show="running && status === 'RUNNING'"
+          v-show="running"
           color="grey"
           variant="text"
           @click="stopRun()"

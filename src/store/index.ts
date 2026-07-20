@@ -21,7 +21,7 @@ import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
   ModelConfig,
-  Notification, OtherFiles, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
+  Notification, OtherFiles, ProjectInfo, SettingsPayload, StepPayload, Style } from '@src/types/typesStore.js'
 import { migrateStyle } from '@src/migrations/style.js'
 import { defaultModelConfig } from '@src/constants/properties.js'
 const $gettext = (s: string) => s
@@ -160,6 +160,7 @@ export const useIndexStore = defineStore('index', {
         rlinksStore.loadRoadFiles(roadFiles)
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.loadParameters(paramFile.content)
+
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
@@ -271,6 +272,10 @@ export const useIndexStore = defineStore('index', {
         const rlinksConfig = attributesChoices.road_links
         if (rlinksConfig) rlinks.loadrLinksAttributesChoices(rlinksConfig)
       }
+    },
+    loadmodelSteps(payload: StepPayload[]) {
+      const runstore = useRunStore()
+      runstore.loadModelSteps(payload)
     },
 
     setvisibleLayers (payload: string[]) {

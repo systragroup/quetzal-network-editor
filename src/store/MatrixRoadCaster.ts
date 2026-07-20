@@ -9,9 +9,7 @@ import { useGettext } from 'vue3-gettext'
 import { MatrixRoadCasterParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 import { cloneDeep } from 'lodash'
-import { RunInputs } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
-const MATRIXROADCASTER_ARN = import.meta.env.VITE_MATRIXROADCASTER_ARN
 const VERSION = 0
 const NAME = 'matrixroadcaster'
 
@@ -31,7 +29,6 @@ function baseParameters(): MatrixRoadCasterParams {
 
 export const useMRCStore = defineStore('runMRC', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref(MATRIXROADCASTER_ARN)
   const bucket = ref(MICROSERVICES_BUCKET)
 
   const callID = ref('')
@@ -40,7 +37,7 @@ export const useMRCStore = defineStore('runMRC', () => {
   const zoneFile = ref('')
 
   const { error, running, errorMessage, status, timer,
-    startExecution, stopExecution, cleanRun } = useAPI()
+    initExecution, startExecution, stopExecution, cleanRun } = useAPI()
 
   function reset() {
     callID.value = ''
@@ -69,18 +66,10 @@ export const useMRCStore = defineStore('runMRC', () => {
     store.addMicroservicesParameters(payload)
   }
 
-  function start(inputs: RunInputs) {
-    exportParams()
-    startExecution(stateMachineArn.value, inputs)
-  }
-
   watch(status, async (val) => {
-    if (val === 'SUCCEEDED') {
-      running.value = true
+    if (val.status === 'SUCCESS') {
       await ApplyResults()
       await getOutputs()
-      running.value = false
-      status.value = ''
       const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('Road network successfully calibrated. See results images pages for more details.'),
@@ -90,6 +79,7 @@ export const useMRCStore = defineStore('runMRC', () => {
 
   function saveParams (payload: FormData[]) {
     payload.forEach(param => parameters.value[param.key] = param.value)
+    exportParams()
   }
 
   function saveParam(payload: FormData) {
@@ -125,7 +115,6 @@ export const useMRCStore = defineStore('runMRC', () => {
   }
 
   return {
-    stateMachineArn,
     bucket,
     callID,
     setCallID,
@@ -134,7 +123,7 @@ export const useMRCStore = defineStore('runMRC', () => {
     errorMessage,
     status,
     timer,
-    start,
+    startExecution,
     stopExecution,
     reset,
     parameters,
@@ -142,5 +131,6 @@ export const useMRCStore = defineStore('runMRC', () => {
     saveParams,
     saveParam,
     loadParams,
+    initExecution,
   }
 })

@@ -13,9 +13,9 @@ import TimeSeriesSelector from './TimeSeriesSelector.vue'
 import Warning from '../utils/Warning.vue'
 import { useGettext } from 'vue3-gettext'
 import { basePolygonFeature, GeoJsonFeatures, PolygonFeatures } from '@src/types/geojson'
-import { RunInputs } from '@src/types/api'
-import { useUserStore } from '@src/store/user'
+import { RunPayload } from '@src/types/api'
 import { StringTimeserie } from '@src/types/typesStore'
+const FUNCTION_NAME = import.meta.env.VITE_GTFS_IMPORTER_NAME
 
 const { $gettext } = useGettext()
 
@@ -91,7 +91,7 @@ async function getGTFSList() {
   gtfsList.value = await fetchCSV()
   // filter out GTFS without bounding box.
   gtfsList.value = gtfsList.value.filter(el => el['location.bounding_box.minimum_longitude'])
-  gtfsList.value.forEach((el, idx) => {
+  gtfsList.value.forEach((el: any, idx) => {
     el.bbox = bboxPolygon(
       [el['location.bounding_box.minimum_longitude'],
         el['location.bounding_box.minimum_latitude'],
@@ -163,20 +163,18 @@ async function importGTFS () {
   }
   if (linksIsEmpty.value) {
     runGTFS.setCallID()
+    runGTFS.initExecution()
     save()
     const params = toRaw(storeParameters.value)
-    const userStore = useUserStore()
-    const inputs: RunInputs = {
-      scenario_path_S3: callID.value,
+    const inputs: RunPayload = {
+      scenario_path: callID.value,
+      variants: [],
       launcher_arg: {
         training_folder: '/tmp',
         params: params,
       },
-      metadata: {
-        user_email: userStore.cognitoInfo?.email,
-      },
     }
-    runGTFS.start(inputs)
+    runGTFS.startExecution(FUNCTION_NAME, inputs)
   } else {
     showOverwriteDialog.value = true
   }

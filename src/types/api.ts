@@ -1,7 +1,23 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // FINISHED set manually. ex: we want to download result on SUCCEEDED, then something.
-export type StepFunctionStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'TIMED_OUT' | 'ABORTED' | 'PENDING_REDRIVE'
-export type Status = StepFunctionStatus | '' | 'FINISHED'
+
+import { ModelStep } from './typesStore'
+
+// export type ECSTaskStatus = 'PROVISIONING' | 'PENDING' | 'ACTIVATING' | 'RUNNING' | 'DEACTIVATING' | 'STOPPING' | 'DEPROVISIONING' | 'STOPPED'
+
+export type TaskStatus = 'UNKNOWN' | 'PREPARING' | 'RUNNING' | 'SUCCESS' | 'STOPPING' | 'FAILED' | 'FINISHED'
+
+export type Infra = 'ecs' | 'lambda'
+
+export interface StepStatus {
+  step: string
+  error?: string
+}
+
+export interface Status {
+  status: TaskStatus
+  step_status?: StepStatus
+}
 
 export type ErrorMessage = Record<string, string>
 
@@ -14,16 +30,22 @@ export interface RunArgs {
   params: Record<string, any>
 }
 
-export interface RunInputs {
-  scenario_path_S3: string
+export interface RunPayload {
+  scenario_path: string
   launcher_arg: RunArgs
-  metadata: RunMetadata
-  authorization?: string
-  choice?: string
-  variants?: string[]
+  variants: string[]
+  steps?: ModelStep[] // ECS
+  choice?: string // stepfunctions
 }
 
-export interface RunPayload {
-  input: string // its json.stringify of RunInputs
-  stateMachineArn: string
+export interface RunPayloadWithMetaData extends RunPayload {
+  metadata: RunMetadata // added at the end
+}
+
+export interface PollPayload {
+  scenario_path: string
+  job_id: string
+}
+export interface StopPayload {
+  job_id: string
 }

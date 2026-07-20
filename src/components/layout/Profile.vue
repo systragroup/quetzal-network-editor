@@ -69,7 +69,7 @@ watch(selectedGroup, async (_, oldVal) => {
 async function listGroup () {
   try {
     const { quetzalClient } = useClient()
-    const resp = await quetzalClient.get('listGroups/')
+    const resp = await quetzalClient.get('listGroups')
     groups.value = resp.data
   } catch (err) {
     store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
@@ -78,7 +78,7 @@ async function listGroup () {
 async function listUser (group) {
   try {
     const { quetzalClient } = useClient()
-    const resp = await quetzalClient.get(`listUser/${group}/`)
+    const resp = await quetzalClient.get(`listUser/${group}`)
     users.value = resp.data
   } catch (err) {
     store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })
@@ -99,7 +99,7 @@ const rules = {
 async function createUser () {
   try {
     const { quetzalClient } = useClient()
-    await quetzalClient.post(`createUser/${selectedGroup.value}/`, userForm.value)
+    await quetzalClient.post(`createUser/${selectedGroup.value}`, userForm.value)
     store.changeNotification(
       { text: $gettext('User created!'), autoClose: true, color: 'success' })
   } catch (err) {
@@ -111,7 +111,7 @@ async function createUser () {
 async function deleteUser (username) {
   try {
     const { quetzalClient } = useClient()
-    await quetzalClient.post('deleteUser/', { username })
+    await quetzalClient.post('deleteUser', { username })
     store.changeNotification({ text: $gettext('User permanently delete'), autoClose: true, color: 'success' })
   } catch (err) {
     store.changeAlert({ name: 'Cognito Client error', message: err.response.data.detail })

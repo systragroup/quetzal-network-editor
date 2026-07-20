@@ -3,16 +3,17 @@ import { useMapMatchingStore } from '@src/store/MapMatching'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { useUserStore } from '@src/store/user'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import s3 from '@src/AWSClient'
 import { useGettext } from 'vue3-gettext'
 import { FormData } from '@src/types/components'
 import SimpleForm from '../common/SimpleForm.vue'
-import { RunInputs } from '@src/types/api'
+import { RunPayload } from '@src/types/api'
 import Warning from '../utils/Warning.vue'
 import Markdown from '../utils/Markdown.vue'
 const { $gettext } = useGettext()
+
+const FUNCTION_NAME = import.meta.env.VITE_MAPMATCHING_NAME
 
 const runMapMatching = useMapMatchingStore()
 const rlinksStore = userLinksStore()
@@ -20,7 +21,6 @@ const linksStore = useLinksStore()
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const running = computed(() => runMapMatching.running)
-const status = computed(() => runMapMatching.status)
 const error = computed(() => runMapMatching.error)
 const errorMessage = computed(() => runMapMatching.errorMessage)
 const timer = computed(() => runMapMatching.timer)
@@ -115,24 +115,21 @@ const formRef = ref()
 async function start () {
   const resp = await formRef.value.validate()
   if (!resp) { return }
-  const userStore = useUserStore()
+  runMapMatching.initExecution()
   runMapMatching.saveParams(parameters.value)
-  runMapMatching.running = true
   runMapMatching.setCallID()
   getApproxTimer()
   await exportFiles()
   const params = runMapMatching.parameters
-  const inputs: RunInputs = {
-    scenario_path_S3: callID.value,
+  const inputs: RunPayload = {
+    scenario_path: callID.value,
+    variants: [],
     launcher_arg: {
       training_folder: '/tmp',
       params: params,
     },
-    metadata: {
-      user_email: userStore.cognitoInfo?.email,
-    },
   }
-  runMapMatching.start(inputs)
+  runMapMatching.startExecution(FUNCTION_NAME, inputs)
 }
 
 function getApproxTimer () {
@@ -190,7 +187,7 @@ async function exportFiles() {
   }
 }
 
-function stopRun () { runMapMatching.stopExecution() }
+function stopRun () { runMapMatching.stopExecution(FUNCTION_NAME) }
 const mdString = `
 # Match PT network on road network
 $Probability = Emission + Transmission$ , or\n 
@@ -236,7 +233,7 @@ const showWarning = computed(() => rlinksIsEmpty.value || linksIsEmpty.value)
             {{ $gettext("Process") }}
           </v-btn>
           <v-btn
-            v-show="running && status === 'RUNNING'"
+            v-show="running"
             color="grey"
             variant="text"
             @click="stopRun()"

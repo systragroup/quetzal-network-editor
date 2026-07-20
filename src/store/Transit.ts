@@ -8,9 +8,8 @@ import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
 import { TransitParams, TransitParamsCategory, MicroserviceParametersDTO, Style } from '@src/types/typesStore'
 import { VariantFormData } from '@src/types/components'
-import { RunInputs } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
-const TRANSIT_ARN = import.meta.env.VITE_TRANSIT_ARN
+
 const VERSION = 0
 const NAME = 'transit'
 
@@ -57,14 +56,14 @@ function baseParameters(): TransitParams[] {
 
 export const useTransitStore = defineStore('runTransit', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref<string>(TRANSIT_ARN)
   const bucket = ref<string>(MICROSERVICES_BUCKET)
 
   const callID = ref<string>('')
   const timer = ref<number>(0)
   const parameters = ref<TransitParams[]>(baseParameters())
 
-  const { error, running, errorMessage, startExecution, status, stopExecution, cleanRun } = useAPI()
+  const { error, running, errorMessage, status,
+    initExecution, startExecution, stopExecution, cleanRun } = useAPI()
 
   function reset() {
     callID.value = ''
@@ -104,6 +103,7 @@ export const useTransitStore = defineStore('runTransit', () => {
         variant: param.variant,
       } as TransitParams
     })
+    exportParams()
   }
 
   function loadParams(payload: MicroserviceParametersDTO<TransitParams[]>) {
@@ -120,18 +120,9 @@ export const useTransitStore = defineStore('runTransit', () => {
     const store = useIndexStore()
     store.addMicroservicesParameters(payload)
   }
-
-  function start(inputs: RunInputs) {
-    exportParams()
-    startExecution(stateMachineArn.value, inputs)
-  }
-
   watch(status, async (val) => {
-    if (val === 'SUCCEEDED') {
-      running.value = true
+    if (val.status === 'SUCCESS') {
       await downloadResults()
-      running.value = false
-      status.value = ''
       const store = useIndexStore()
       store.changeNotification(
         { text: $gettext('Success. See results pages for more details.'),
@@ -169,7 +160,6 @@ export const useTransitStore = defineStore('runTransit', () => {
   }
 
   return {
-    stateMachineArn,
     bucket,
     callID,
     status,
@@ -178,12 +168,13 @@ export const useTransitStore = defineStore('runTransit', () => {
     errorMessage,
     parameters,
     timer,
+    initExecution,
     addCatchmentRadius,
     deleteParam,
     deleteVariant,
     saveParams,
     setCallID,
-    start,
+    startExecution,
     stopExecution,
     reset,
     loadParams,

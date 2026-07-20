@@ -7,6 +7,9 @@ import { userLinksStore } from '@src/store/rlinks'
 import { basePolygonFeature, PolygonFeatures } from '@src/types/geojson'
 import Warning from '../utils/Warning.vue'
 import { OSMImporterParams } from '@src/types/typesStore'
+import { RunPayload } from '@src/types/api.ts'
+
+const FUNCTION_NAME = import.meta.env.VITE_OSM_IMPORTER_NAME
 
 const runOSM = useOSMStore()
 const rlinksStore = userLinksStore()
@@ -14,7 +17,6 @@ const showOverwriteDialog = ref(false)
 const poly = ref<PolygonFeatures>(basePolygonFeature())
 
 const rlinksIsEmpty = computed(() => rlinksStore.rlinksIsEmpty)
-const stateMachineArn = computed(() => runOSM.stateMachineArn)
 const callID = computed(() => runOSM.callID)
 const running = computed(() => runOSM.running)
 const error = computed(() => runOSM.error)
@@ -26,6 +28,7 @@ function getBBOX (val: PolygonFeatures) {
 
 function importOSM () {
   if (rlinksIsEmpty.value) {
+    runOSM.initExecution()
     runOSM.setCallID()
     const params: OSMImporterParams = {
       poly: toRaw(poly.value.geometry.coordinates[0]),
@@ -34,8 +37,15 @@ function importOSM () {
       extended_cycleway: runOSM.extendedCycleway,
     }
 
-    const input = { callID: callID.value, ...params }
-    runOSM.startExecution(stateMachineArn.value, input)
+    const inputs: RunPayload = {
+      scenario_path: callID.value,
+      variants: [],
+      launcher_arg: {
+        training_folder: '/tmp',
+        params: params,
+      },
+    }
+    runOSM.startExecution(FUNCTION_NAME, inputs)
   } else {
     showOverwriteDialog.value = true
   }

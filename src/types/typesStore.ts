@@ -410,6 +410,18 @@ export interface RunLog {
   text: string
 }
 
+export interface ModelStep {
+  name: string
+  path: string
+}
+
+export interface StepPayload {
+  name: string
+  steps: ModelStep[]
+}
+
+export type StepsDefinition = Record<string, Step[]>
+
 export interface Step {
   name: string
   tasks: string[]
