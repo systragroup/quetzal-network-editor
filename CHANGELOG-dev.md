@@ -1,3 +1,11 @@
+## [8.1.a] (2026-07-20)
+### Features
+* ECS (fargate) api support. 
+
+### Changes
+* Quetzal fastApi now used instead of aws CLI for stepfunction start/stop/describe/status.
+* Same api endpoints are used for both infra (lambda+stepfunctions and fargate+ECS)
+
 ## [8.0.j] (2026-07-15)
 ### bug fixes
 * fix credentials expiration
