@@ -96,7 +96,6 @@ async function importGTFS () {
     save()
     const params = toRaw(storeParameters.value)
     const inputs: RunPayload = {
-      function_name: FUNCTION_NAME,
       scenario_path: callID.value,
       variants: [],
       launcher_arg: {
@@ -104,7 +103,7 @@ async function importGTFS () {
         params: params,
       },
     }
-    runGTFS.start(inputs)
+    runGTFS.startExecution(FUNCTION_NAME, inputs)
   } else {
     showOverwriteDialog.value = true
   }

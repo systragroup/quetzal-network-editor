@@ -167,7 +167,6 @@ async function start () {
   await exportFiles()
   const params = formatParams()
   const inputs: RunPayload = {
-    function_name: FUNCTION_NAME,
     scenario_path: callID.value,
     variants: selectedVariants.value,
     launcher_arg: {
@@ -175,7 +174,7 @@ async function start () {
       params: params,
     },
   }
-  runTransit.start(inputs)
+  runTransit.startExecution(FUNCTION_NAME, inputs)
 }
 
 async function exportFiles() {

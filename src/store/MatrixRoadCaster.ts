@@ -9,9 +9,7 @@ import { useGettext } from 'vue3-gettext'
 import { MatrixRoadCasterParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
 import { cloneDeep } from 'lodash'
-import { RunPayload } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
-const MATRIXROADCASTER_ARN = import.meta.env.VITE_MATRIXROADCASTER_ARN
 const VERSION = 0
 const NAME = 'matrixroadcaster'
 
@@ -31,7 +29,6 @@ function baseParameters(): MatrixRoadCasterParams {
 
 export const useMRCStore = defineStore('runMRC', () => {
   const { $gettext } = useGettext()
-  const stateMachineArn = ref(MATRIXROADCASTER_ARN)
   const bucket = ref(MICROSERVICES_BUCKET)
 
   const callID = ref('')
@@ -69,11 +66,6 @@ export const useMRCStore = defineStore('runMRC', () => {
     store.addMicroservicesParameters(payload)
   }
 
-  function start(inputs: RunPayload) {
-    exportParams()
-    startExecution(inputs)
-  }
-
   watch(status, async (val) => {
     if (val.status === 'SUCCESS') {
       await ApplyResults()
@@ -87,6 +79,7 @@ export const useMRCStore = defineStore('runMRC', () => {
 
   function saveParams (payload: FormData[]) {
     payload.forEach(param => parameters.value[param.key] = param.value)
+    exportParams()
   }
 
   function saveParam(payload: FormData) {
@@ -122,7 +115,6 @@ export const useMRCStore = defineStore('runMRC', () => {
   }
 
   return {
-    stateMachineArn,
     bucket,
     callID,
     setCallID,
@@ -131,7 +123,7 @@ export const useMRCStore = defineStore('runMRC', () => {
     errorMessage,
     status,
     timer,
-    start,
+    startExecution,
     stopExecution,
     reset,
     parameters,

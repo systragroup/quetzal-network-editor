@@ -198,7 +198,6 @@ async function start () {
   await exportFiles()
   const params = runMRC.parameters
   const inputs: RunPayload = {
-    function_name: FUNCTION_NAME,
     scenario_path: callID.value,
     variants: [],
     launcher_arg: {
@@ -206,7 +205,7 @@ async function start () {
       params: params,
     },
   }
-  runMRC.start(inputs)
+  runMRC.startExecution(FUNCTION_NAME, inputs)
 }
 
 function stopRun () { runMRC.stopExecution(FUNCTION_NAME) }

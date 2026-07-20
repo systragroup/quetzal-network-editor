@@ -10,7 +10,6 @@ import { useGettext } from 'vue3-gettext'
 import { userLinksStore } from './rlinks'
 import { MapMatchingParams, MicroserviceParametersDTO } from '@src/types/typesStore'
 import { FormData } from '@src/types/components'
-import { RunPayload } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
 const VERSION = 0
 const NAME = 'mapmatching'
@@ -47,7 +46,9 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
   function setCallID() { callID.value = uuid() }
 
   function saveParams (payload: FormData[]) {
-    payload.forEach(param => parameters.value[param.key] = param.value) }
+    payload.forEach(param => parameters.value[param.key] = param.value)
+    exportParams()
+  }
 
   function loadParams(payload: MicroserviceParametersDTO<MapMatchingParams>) {
     // TODO: migration
@@ -62,11 +63,6 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     }
     const store = useIndexStore()
     store.addMicroservicesParameters(payload)
-  }
-
-  function start(inputs: RunPayload) {
-    exportParams()
-    startExecution(inputs)
   }
 
   watch(status, async (val) => {
@@ -131,7 +127,7 @@ export const useMapMatchingStore = defineStore('runMapMatching', () => {
     timer,
     saveParams,
     setCallID,
-    start,
+    startExecution,
     stopExecution,
     getCSVs,
     reset,

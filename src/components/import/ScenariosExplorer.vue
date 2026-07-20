@@ -68,7 +68,7 @@ watch(loggedIn, async (val) => {
   if (val) {
     try {
       const { quetzalClient } = useClient()
-      const resp = await quetzalClient.get('buckets/')
+      const resp = await quetzalClient.get('buckets')
       userStore.setModelsList(resp.data)
     } catch (err: any) {
       const store = useIndexStore()

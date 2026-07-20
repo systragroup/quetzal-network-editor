@@ -10,7 +10,6 @@ import { useGettext } from 'vue3-gettext'
 import { GTFSParams, MicroserviceParametersDTO, UploadGTFSInfo, UploadGTFSPayload } from '@src/types/typesStore'
 import { LineStringGeoJson } from '@src/types/geojson'
 import { routeTypeWidth, routeTypeColor } from '@src/constants/gtfs'
-import { RunPayload } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
 const VERSION = 0
 const NAME = 'gtfs'
@@ -58,6 +57,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
         parameters.value[key] = params[key]!
       }
     })
+    exportParams()
   }
 
   function loadParams(payload: MicroserviceParametersDTO<GTFSParams>) {
@@ -75,11 +75,6 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     }
     const store = useIndexStore()
     store.addMicroservicesParameters(payload)
-  }
-
-  function start(inputs: RunPayload) {
-    exportParams()
-    startExecution(inputs)
   }
 
   function saveSelectedGTFS (payload: number[]) {
@@ -164,7 +159,7 @@ export const useGTFSStore = defineStore('runGTFS', () => {
     errorMessage,
     status,
     timer,
-    start,
+    startExecution,
     stopExecution,
     reset,
     parameters,

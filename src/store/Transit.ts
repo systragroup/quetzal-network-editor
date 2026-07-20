@@ -8,8 +8,8 @@ import { useIndexStore } from '@src/store/index'
 import { useGettext } from 'vue3-gettext'
 import { TransitParams, TransitParamsCategory, MicroserviceParametersDTO, Style } from '@src/types/typesStore'
 import { VariantFormData } from '@src/types/components'
-import { RunPayload } from '@src/types/api'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
+
 const VERSION = 0
 const NAME = 'transit'
 
@@ -103,6 +103,7 @@ export const useTransitStore = defineStore('runTransit', () => {
         variant: param.variant,
       } as TransitParams
     })
+    exportParams()
   }
 
   function loadParams(payload: MicroserviceParametersDTO<TransitParams[]>) {
@@ -119,12 +120,6 @@ export const useTransitStore = defineStore('runTransit', () => {
     const store = useIndexStore()
     store.addMicroservicesParameters(payload)
   }
-
-  function start(inputs: RunPayload) {
-    exportParams()
-    startExecution(inputs)
-  }
-
   watch(status, async (val) => {
     if (val.status === 'SUCCESS') {
       await downloadResults()
@@ -179,7 +174,7 @@ export const useTransitStore = defineStore('runTransit', () => {
     deleteVariant,
     saveParams,
     setCallID,
-    start,
+    startExecution,
     stopExecution,
     reset,
     loadParams,

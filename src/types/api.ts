@@ -31,14 +31,21 @@ export interface RunArgs {
 }
 
 export interface RunPayload {
-  function_name: string
   scenario_path: string
   launcher_arg: RunArgs
   variants: string[]
   steps?: ModelStep[] // ECS
   choice?: string // stepfunctions
-
 }
+
 export interface RunPayloadWithMetaData extends RunPayload {
   metadata: RunMetadata // added at the end
+}
+
+export interface PollPayload {
+  scenario_path: string
+  job_id: string
+}
+export interface StopPayload {
+  job_id: string
 }

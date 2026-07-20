@@ -38,7 +38,6 @@ function importOSM () {
     }
 
     const inputs: RunPayload = {
-      function_name: FUNCTION_NAME,
       scenario_path: callID.value,
       variants: [],
       launcher_arg: {
@@ -46,7 +45,7 @@ function importOSM () {
         params: params,
       },
     }
-    runOSM.startExecution(inputs)
+    runOSM.startExecution(FUNCTION_NAME, inputs)
   } else {
     showOverwriteDialog.value = true
   }

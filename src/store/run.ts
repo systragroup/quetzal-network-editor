@@ -126,7 +126,6 @@ export const useRunStore = defineStore('runStore', () => {
     const selectedSteps = filteredSteps?.steps || undefined
     const inputs: RunPayload = {
       scenario_path: userStore.scenario + '/',
-      function_name: model.value,
       steps: selectedSteps,
       variants: selectedVariants,
       choice: selectedStepFunction.value,
@@ -136,7 +135,7 @@ export const useRunStore = defineStore('runStore', () => {
       },
 
     }
-    startExecution(inputs)
+    startExecution(model.value, inputs)
   }
 
   // check if already running from another computer

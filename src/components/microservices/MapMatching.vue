@@ -122,7 +122,6 @@ async function start () {
   await exportFiles()
   const params = runMapMatching.parameters
   const inputs: RunPayload = {
-    function_name: FUNCTION_NAME,
     scenario_path: callID.value,
     variants: [],
     launcher_arg: {
@@ -130,7 +129,7 @@ async function start () {
       params: params,
     },
   }
-  runMapMatching.start(inputs)
+  runMapMatching.startExecution(FUNCTION_NAME, inputs)
 }
 
 function getApproxTimer () {
