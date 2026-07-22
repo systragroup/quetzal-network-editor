@@ -62,7 +62,8 @@ export const useRunStore = defineStore('runStore', () => {
   async function getSteps() {
     stepsDefinition.value = await getStepsDefinition(model.value)
     avalaibleStepFunctions.value = Object.keys(stepsDefinition.value)
-    selectedStepFunction.value = avalaibleStepFunctions.value[0]
+    const selected = avalaibleStepFunctions.value.filter(name => availableModels.value.has(name))[0]
+    selectedStepFunction.value = selected || 'default'
     setSteps()
   }
 

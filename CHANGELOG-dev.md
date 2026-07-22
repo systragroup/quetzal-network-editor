@@ -6,6 +6,9 @@
 * roadLinks editDialog: uses rnodes types when editing rnodes. (also for the nondelitable attributes).
 * isCentroid: rnodes with isCentroid === true are shown in white (rnode in black)
 
+### bug fixes
+* stetp function choice was set to default when default s not in params.
+
 ## [8.1.a] (2026-07-20)
 ### Features
 * ECS (fargate) api support. 
