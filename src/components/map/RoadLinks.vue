@@ -774,8 +774,8 @@ const ArrowDirCondition = computed(() => {
         type: 'circle',
         minzoom: minZoom.nodes,
         paint: {
-          'circle-color': $vuetify.theme.current.colors.accent,
-          'circle-stroke-color': $vuetify.theme.current.colors.white,
+          'circle-color': ['case', ['get', 'isCentroid'], $vuetify.theme.current.colors.white, $vuetify.theme.current.colors.accent],
+          'circle-stroke-color':['case', ['get', 'isCentroid'], $vuetify.theme.current.colors.black, $vuetify.theme.current.colors.white,],
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]

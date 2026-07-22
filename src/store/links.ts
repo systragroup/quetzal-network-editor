@@ -921,6 +921,8 @@ export const useLinksStore = defineStore('links', {
             props[key] = Number(props[key])
           } else if (type === 'String') {
             props[key] = String(props[key])
+          } else if (type === 'Boolean') {
+            props[key] = Boolean(props[key])
           }
         }
       })

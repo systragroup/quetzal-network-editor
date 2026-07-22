@@ -12,7 +12,7 @@ import { getDirection } from '@src/utils/spatial'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
-import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
+import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultProperties } from '@src/constants/properties'
 import DialogHeader from './DialogHeader.vue'
 const { $gettext } = useGettext()
 
@@ -23,14 +23,25 @@ const rlinksStore = userLinksStore()
 const { showDialog, action, selectedArr, changeLengthTimeSpeed } = useForm()
 
 const rlinks = computed(() => rlinksStore.rlinks)
-const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
 const lineAttributes = computed(() => rlinksStore.rlineAttributes)
 const reversedAttributes = computed(() => rlinksStore.reversedAttributes)
 const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
-const typesMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
-// cannot delete reversed attribute (they are deleted with the normal one)
-const attributeNonDeletable = computed(() => [...rlinksDefaultProperties.map(el => el.name), ...reversedAttributes.value])
+
+// const editLinks = ref<boolean>(true) // if its links are nodes that are edited.
+const editLinks = computed(() => action.value !== 'Edit rNode Info')
+
+const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
+const typesMap = computed(() => {
+  if (editLinks.value) return Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
+  else return Object.fromEntries(rlinksStore.nodesDefaultAttributes.map(el => [el.name, el.type]))
+})
+
+const attributeNonDeletable = computed(() => {
+  if (editLinks.value) return [...rlinksDefaultProperties.map(el => el.name), ...reversedAttributes.value]
+  else return [...rnodesDefaultProperties.map(el => el.name)]
+})
+
 const displayUnits = computed(() => store.displayUnits)
 const units = computed(() => baseUnits)
 
@@ -70,7 +81,6 @@ function createForm() {
   const selectedSet = new Set(selectedArr.value)
   switch (action.value) {
     case 'Edit rLink Info':
-      // editorForm.value = selectedArr.value.map(linkId => rlinksStore.rlinksForm(linkId))
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
       disabled = ['a', 'b', 'index', 'length']
       editorForm.value = []
@@ -207,7 +217,12 @@ const selectedPrefix = ref<string>('')
 const variantChoices = computed(() => rlinksStore.variantChoice)
 
 const prefixesChoice = computed(() => {
-  const prefixes = rlinksStore.rlineAttributes.map(el => el.split('#')[0])
+  let prefixes = []
+  if (editLinks.value) {
+    prefixes = rlinksStore.rlineAttributes.map(el => el.split('#')[0])
+  } else {
+    prefixes = rlinksStore.rnodeAttributes.map(el => el.split('#')[0])
+  }
   return Array.from(new Set(prefixes))
 })
 

@@ -1,3 +1,11 @@
+## [8.1.b] (2026-07-22)
+### Features
+* add Boolean attribute type. boolean are editable ina special dialog with only true and false.
+
+### Changes
+* roadLinks editDialog: uses rnodes types when editing rnodes. (also for the nondelitable attributes).
+* isCentroid: rnodes with isCentroid === true are shown in white (rnode in black)
+
 ## [8.1.a] (2026-07-20)
 ### Features
 * ECS (fargate) api support. 

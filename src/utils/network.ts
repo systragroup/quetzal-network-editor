@@ -156,22 +156,17 @@ export function listAllProperties(geojson: GeoJson): Set<string> {
 export function getPropertyType(geojson: GeoJson, property: string): AttributeTypes {
   // return first founded type (string or number) else undefined. this is faster than checking everything
   for (const feature of geojson.features) {
-    const type = getType(feature.properties[property])
-    if (type)
-      return type
+    return getType(feature.properties[property])
   }
-  return undefined
 }
 
 export function getType(value: unknown): AttributeTypes {
   // "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
   const type = typeof value
-  if (type === 'undefined')
-    return undefined
-  else if (['number', 'bigint', 'boolean'].includes(type))
-    return 'Number'
-  else
-    return 'String'
+  if (type === 'undefined') return undefined
+  else if (type === 'boolean') return 'Boolean'
+  else if (['number', 'bigint'].includes(type)) return 'Number'
+  else return 'String'
 }
 
 // commit functions

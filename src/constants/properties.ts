@@ -46,6 +46,7 @@ export const rlinksDefaultProperties: Attributes[] = [
 
 export const rnodesDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
+  // { name: 'isCentroid', type: 'Boolean' },
 ]
 
 // do not reversed those ones

@@ -15,8 +15,7 @@ import { AddRoadNodeInlinePayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload,
   UpdateFeatures } from '@src/types/typesStore'
-import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson,
-  PointFeatures,
+import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
   PointGeoJson } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
@@ -244,8 +243,11 @@ export const userLinksStore = defineStore('rlinks', {
     getrNodesProperties () {
       const properties = listAllProperties(this.rnodes)
       // add all default attributes
-      const newAttrs = getDifference(properties, this.rnodeAttributes)
-      newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
+      const newProps = getDifference(properties, this.rnodeAttributes)
+      newProps.forEach(prop => {
+        const type = getPropertyType(this.rnodes, prop)
+        this.nodesDefaultAttributes.push({ name: prop, type: type })
+      })
     },
 
     _initOneways () {
@@ -280,6 +282,7 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     ChangeDefaultValues(payload: Record<string, any>) {
+      // when we apply settings on the map
       Object.keys(payload).forEach(key => {
         this.linksDefaultAttributes.filter(el => el.name === key)[0].value = payload[key]
       })

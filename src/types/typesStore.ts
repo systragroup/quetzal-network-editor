@@ -210,7 +210,7 @@ export interface SchedulePayload {
   [key: string]: TimeString[]
 }
 
-export type AttributeTypes = 'String' | 'Number' | undefined
+export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined
 export type AttributeUnits = 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'
 
 export interface Attributes {

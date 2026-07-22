@@ -7,6 +7,7 @@ import ColorPicker from '../utils/ColorPicker.vue'
 import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
 import NumberInput from './NumberInput.vue'
+import BooleanInput from './BooleanInput.vue'
 interface Props {
   hints: Record<string, string>
   units?: Record<string, AttributeUnits | undefined>
@@ -33,7 +34,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const { hints, types, units, displayUnits, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
 const editorForm = defineModel<GroupForm>('editorForm', { default: {} })
-
 const emits = defineEmits(['change', 'deleteField'])
 function change(key: string) {
   emits('change', key)
@@ -41,7 +41,6 @@ function change(key: string) {
 function deleteField(key: string) {
   emits('deleteField', key)
 }
-
 const shake = ref(false)
 
 const formRef = ref()
@@ -91,6 +90,12 @@ defineExpose({
   validate,
 })
 
+function componentType(type: AttributeTypes) {
+  if (type === 'Number') return NumberInput
+  if (type === 'Boolean') return BooleanInput
+  else return 'v-text-field'
+}
+
 </script>
 <template>
   <div
@@ -113,7 +118,7 @@ defineExpose({
             :item="{item:item,key:key}"
           />
           <component
-            :is="types[key] === 'Number' ? NumberInput : 'v-text-field'"
+            :is="componentType(types[key])"
             v-if="item.show"
             v-model="item.value"
             control-variant="stacked"
