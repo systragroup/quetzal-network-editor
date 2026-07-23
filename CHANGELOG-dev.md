@@ -1,3 +1,17 @@
+## [8.1.c] (2026-07-23)
+### Features
+* Can chose the dtype when creating a new property in the dialogs. (string,number,boolean,undefined)
+
+### Changes
+* add Boolean edition support undefined. so undefined is not set to False in the dialog.
+* let undefined be undefined when applying types on PT network (we had undefined => 'undefined' for String.)
+* new props are initialized to undefined and not null anymore.
+
+### bug fixes
+* fix a regression returning undefined for dtypes when loading a network.
+* new props on roadlinks _r prop, was using the same pointer as the non_r one.
+
+
 ## [8.1.b] (2026-07-22)
 ### Features
 * add Boolean attribute type. boolean are editable ina special dialog with only true and false.

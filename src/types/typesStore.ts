@@ -129,6 +129,7 @@ export interface FilesPayload {
 
 export interface NewAttribute {
   name: string
+  type: AttributeTypes
 }
 
 export interface CloneTrip {

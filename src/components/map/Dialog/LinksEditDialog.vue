@@ -23,6 +23,7 @@ const linksStore = useLinksStore()
 
 import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
+import { AttributeTypes } from '@src/types/typesStore.ts'
 const { showDialog, action, selectedArr, lingering, changeLengthTimeSpeed } = useForm()
 
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
@@ -157,13 +158,13 @@ function cancel() {
 
 // add
 
-function addField (newFieldName: string) {
+function addField (newFieldName: string, dtype: AttributeTypes) {
   if (newFieldName) {
     editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
     if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
-      linksStore.addLinksPropertie({ name: newFieldName })
+      linksStore.addLinksPropertie({ name: newFieldName, type: dtype })
     } else if (action.value === 'Edit Node Info') {
-      linksStore.addNodesPropertie({ name: newFieldName })
+      linksStore.addNodesPropertie({ name: newFieldName, type: dtype })
     }
   }
 }
@@ -175,9 +176,9 @@ const showDeleteOption = ref(false)
 function deleteField (field: string) {
   delete editorForm.value[field]
   if (['Edit Line Info', 'Edit Link Info', 'Edit Group Info'].includes(action.value)) {
-    linksStore.deleteLinksPropertie({ name: field })
+    linksStore.deleteLinksPropertie(field)
   } else if (action.value === 'Edit Node Info') {
-    linksStore.deleteNodesPropertie({ name: field })
+    linksStore.deleteNodesPropertie(field)
   }
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }

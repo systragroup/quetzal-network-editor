@@ -14,6 +14,8 @@ import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
 import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultProperties } from '@src/constants/properties'
 import DialogHeader from './DialogHeader.vue'
+import { AttributeTypes } from '@src/types/typesStore.ts'
+import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -153,20 +155,20 @@ function addFieldToLinksForms(newFieldName: string) {
     let toAdd = { disabled: false, placeholder: false, value: undefined, show: true, grouped: false }
     if ((form.oneway.value === '0') && !rlinksConstantProperties.includes(newFieldName)) {
       toAdd.grouped = true
-      form[newFieldName + '_r'] = toAdd
+      form[newFieldName + '_r'] = cloneDeep(toAdd)
     }
-    form[newFieldName] = toAdd
+    form[newFieldName] = cloneDeep(toAdd)
   })
 }
 
-function addField (newFieldName: string) {
+function addField (newFieldName: string, dtype: AttributeTypes) {
   if (newFieldName) {
     if (['Edit rLink Info', 'Edit Road Group Info'].includes(action.value)) {
       addFieldToLinksForms(newFieldName)
-      rlinksStore.addLinksPropertie({ name: newFieldName })
+      rlinksStore.addLinksPropertie({ name: newFieldName, type: dtype })
     } else if (action.value === 'Edit rNode Info') {
       editorForm.value[0][newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
-      rlinksStore.addNodesPropertie({ name: newFieldName })
+      rlinksStore.addNodesPropertie({ name: newFieldName, type: dtype })
     }
   }
 }
@@ -181,9 +183,9 @@ function deleteField (field: string) {
     delete form[field + '_r']
   })
   if (['Edit rLink Info', 'Edit Road Group Info'].includes(action.value)) {
-    rlinksStore.deleteLinksPropertie({ name: field })
+    rlinksStore.deleteLinksPropertie(field)
   } else if (action.value === 'Edit rNode Info') {
-    rlinksStore.deleteNodesPropertie({ name: field })
+    rlinksStore.deleteNodesPropertie(field)
   }
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }

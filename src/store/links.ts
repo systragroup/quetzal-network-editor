@@ -5,7 +5,8 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
   hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage,
-  getModifiedKeys } from '@src/utils/utils'
+  getModifiedKeys,
+  isUndefined } from '@src/utils/utils'
 import { simplifyGeometry } from '@src/utils/spatial'
 import { cloneDeep } from 'lodash'
 
@@ -36,7 +37,8 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   _editGeojsonFeatures,
   _deleteGeojsonFeatures,
   getPropertyType,
-  listAllProperties } from '@src/utils/network'
+  listAllProperties,
+  getType } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
@@ -166,7 +168,7 @@ export const useLinksStore = defineStore('links', {
     deleteNonVariantAttributes() {
       // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
       const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
-      toDelete.forEach(attr => this.deleteLinksPropertie({ name: attr }))
+      toDelete.forEach(attr => this.deleteLinksPropertie(attr))
     },
 
     appendNewNodes (payload: PointGeoJson) {
@@ -188,43 +190,47 @@ export const useLinksStore = defineStore('links', {
 
     _getNodesProperties () {
       const properties = listAllProperties(this.nodes)
-      const newAttrs = getDifference(properties, this.nodeAttributes)
-      newAttrs.forEach(attr => this.nodesDefaultAttributes.push({ name: attr, type: undefined }))
+      const newProps = getDifference(properties, this.nodeAttributes)
+      newProps.forEach(prop => {
+        const type = getPropertyType(this.nodes, prop)
+        this.nodesDefaultAttributes.push({ name: prop, type: type }) })
     },
 
     loadLinksAttributesChoices (payload: AttributesChoice) {
       Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
       const attrs = Object.keys(this.linksAttributesChoices) // all attrbutes in attributesChoices
       const newAttrs = getDifference(attrs, this.lineAttributes)
-      newAttrs.forEach(attr => this.addLinksPropertie({ name: attr }))
+      newAttrs.forEach(attr => {
+        const dtype = getType(this.linksAttributesChoices[attr])
+        this.addLinksPropertie({ name: attr, type: dtype }) })
     },
 
     addLinksPropertie (payload: NewAttribute) {
-      // when a new line properties is added (in dataframe page)
-      this.links.features.forEach(link => link.properties[payload.name] = null)
-      this.editorLinks.features.forEach(link => link.properties[payload.name] = null)
-      this.linksDefaultAttributes.push({ name: payload.name, type: undefined })
+      // when a new line properties is added
+      this.links.features.forEach(link => link.properties[payload.name] = undefined)
+      this.editorLinks.features.forEach(link => link.properties[payload.name] = undefined)
+      this.linksDefaultAttributes.push({ name: payload.name, type: payload.type })
     },
 
     addNodesPropertie (payload: NewAttribute) {
-      this.nodes.features.forEach(node => node.properties[payload.name] = null)
-      this.editorNodes.features.forEach(node => node.properties[payload.name] = null)
-      this.nodesDefaultAttributes.push({ name: payload.name, type: undefined })
+      this.nodes.features.forEach(node => node.properties[payload.name] = undefined)
+      this.editorNodes.features.forEach(node => node.properties[payload.name] = undefined)
+      this.nodesDefaultAttributes.push({ name: payload.name, type: payload.type })
     },
 
-    deleteLinksPropertie (payload: NewAttribute) {
-      this.links.features.forEach(link => delete link.properties[payload.name])
-      this.editorLinks.features.forEach(link => delete link.properties[payload.name])
-      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
+    deleteLinksPropertie (name: string) {
+      this.links.features.forEach(link => delete link.properties[name])
+      this.editorLinks.features.forEach(link => delete link.properties[name])
+      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== name)
     },
-    deleteEditorLinksPropertie (payload: NewAttribute) {
-      this.editorLinks.features.forEach(link => delete link.properties[payload.name])
+    deleteEditorLinksPropertie (name: string) {
+      this.editorLinks.features.forEach(link => delete link.properties[name])
     },
 
-    deleteNodesPropertie (payload: NewAttribute) {
-      this.nodes.features.forEach(node => delete node.properties[payload.name])
-      this.editorNodes.features.forEach(node => delete node.properties[payload.name])
-      this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
+    deleteNodesPropertie (name: string) {
+      this.nodes.features.forEach(node => delete node.properties[name])
+      this.editorNodes.features.forEach(node => delete node.properties[name])
+      this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== name)
     },
 
     setEditorTrip (selectedTrip: string | null) {
@@ -916,6 +922,7 @@ export const useLinksStore = defineStore('links', {
       links.features.forEach(link => {
         const props = link.properties
         for (const key in attrMap) {
+          if (isUndefined(props[key])) continue // let undefined as undefined
           const type = attrMap[key]
           if (type === 'Number') {
             props[key] = Number(props[key])

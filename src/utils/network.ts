@@ -156,8 +156,11 @@ export function listAllProperties(geojson: GeoJson): Set<string> {
 export function getPropertyType(geojson: GeoJson, property: string): AttributeTypes {
   // return first founded type (string or number) else undefined. this is faster than checking everything
   for (const feature of geojson.features) {
-    return getType(feature.properties[property])
+    const type = getType(feature.properties[property])
+    if (type)
+      return type
   }
+  return undefined
 }
 
 export function getType(value: unknown): AttributeTypes {
@@ -168,6 +171,22 @@ export function getType(value: unknown): AttributeTypes {
   else if (['number', 'bigint'].includes(type)) return 'Number'
   else return 'String'
 }
+// WIP
+// export function getNextAvailableIndex(allIndex: string[], desiredIndex: string): string {
+//   function toNumber(str: string): number {
+//     return Number(str.split('_')[1])
+//   }
+//   const used = new Set(allIndex.map(idx => toNumber(idx)))
+//   let index = toNumber(desiredIndex)
+//   const prefix = desiredIndex.split('_')[0]
+//   if (Number.isNaN(index)) return `${prefix}_${short.generate()}`
+
+//   while (used.has(index)) {
+//     index++
+//   }
+
+//   return `${prefix}_${index}`
+// }
 
 // commit functions
 

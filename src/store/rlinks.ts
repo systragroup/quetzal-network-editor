@@ -22,7 +22,7 @@ import { rlinksConstantProperties, rnodesDefaultProperties,
 import { simplifyGeometry } from '@src/utils/spatial'
 import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
-  getDefaultLink, getPropertyType, getVariantsChoices,
+  getDefaultLink, getPropertyType, getType, getVariantsChoices,
   listAllProperties,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties, normalizeToString } from '@src/utils/roadNetwork'
@@ -278,7 +278,11 @@ export const userLinksStore = defineStore('rlinks', {
       newAttrs = newAttrs.filter(item => !item.endsWith('_r'))
       // if an attribute is not desined in its _r variant. we do not create a _r attrivbute
       // add eeach not _r attributes in the attributes.
-      newAttrs.forEach(item => this.addLinksPropertie({ name: item }))
+
+      newAttrs.forEach(attr => {
+        const type = getType(this.rlinksAttributesChoices[attr])
+        this.addLinksPropertie({ name: attr, type: type })
+      })
     },
 
     ChangeDefaultValues(payload: Record<string, any>) {
@@ -296,7 +300,7 @@ export const userLinksStore = defineStore('rlinks', {
     deleteNonVariantAttributes() {
       // delete normal defaults Attributes if variants. (ex: no speed in defaultAttributes if speed#AM)
       const toDelete = getBaseAttributesWithVariants(this.linksDefaultAttributes)
-      toDelete.forEach(attr => this.deleteLinksPropertie({ name: attr }))
+      toDelete.forEach(attr => this.deleteLinksPropertie(attr))
     },
 
     //
@@ -305,39 +309,39 @@ export const userLinksStore = defineStore('rlinks', {
 
     addLinksPropertie (payload: NewAttribute) {
       // TODO _editLinkArray
-      const { name } = payload
+      const { name, type } = payload
       const newAttr: Record<string, null> = { [name]: null }
       this.rlinks.features.forEach(link => Object.assign(link.properties, newAttr))
       // this.rlinks.features.map(link => link.properties[payload.name] = null)
-      this.linksDefaultAttributes.push({ name: name, type: undefined })
+      this.linksDefaultAttributes.push({ name: name, type: type })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
       if (!rlinksConstantProperties.includes(name)) {
-        this.linksDefaultAttributes.push({ name: name + '_r', type: undefined })
+        this.linksDefaultAttributes.push({ name: name + '_r', type: type })
       }
     },
 
     addNodesPropertie (payload: NewAttribute) {
       // todo: _editNodeArray
-      const { name } = payload
+      const { name, type } = payload
       const newAttr: Record<string, null> = { [name]: null }
       this.rnodes.features.forEach(node => Object.assign(node.properties, newAttr))
-      this.nodesDefaultAttributes.push({ name: name, type: undefined })
+      this.nodesDefaultAttributes.push({ name: name, type: type })
     },
 
-    deleteLinksPropertie (payload: NewAttribute) {
+    deleteLinksPropertie (name: string) {
       // TODO _editLinkArray
 
-      this.rlinks.features.forEach(link => delete link.properties[payload.name])
-      this.rlinks.features.forEach(link => delete link.properties[payload.name + '_r'])
+      this.rlinks.features.forEach(link => delete link.properties[name])
+      this.rlinks.features.forEach(link => delete link.properties[name + '_r'])
 
-      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name)
-      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== payload.name + '_r')
+      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== name)
+      this.linksDefaultAttributes = this.linksDefaultAttributes.filter(item => item.name !== name + '_r')
     },
 
-    deleteNodesPropertie (payload: NewAttribute) {
+    deleteNodesPropertie (name: string) {
       // todo: _editNodeArray
-      this.rnodes.features.forEach(node => delete node.properties[payload.name])
-      this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== payload.name)
+      this.rnodes.features.forEach(node => delete node.properties[name])
+      this.nodesDefaultAttributes = this.nodesDefaultAttributes.filter(item => item.name !== name)
     },
 
     //
