@@ -1,3 +1,7 @@
+## [8.1.d] (2026-08-10)
+### bug fixes
+* Road links form edition: when selecting multiple links, order was not always maintain when applying the changes on each rlinks. so changes on link_x could had been apply to link_y. [#609](https://github.com/systragroup/quetzal-network-editor/issues/609)
+
 ## [8.1.c] (2026-07-23)
 ### Features
 * Can chose the dtype when creating a new property in the dialogs. (string,number,boolean,undefined)

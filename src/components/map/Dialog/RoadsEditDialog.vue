@@ -76,6 +76,7 @@ const linkDir = ref<number[]>([]) // to put 2 direction per form
 function createForm() {
   let disabled: string[] = []
   let features: LineStringFeatures[] = []
+  linkDir.value = []
   // when only one is selected. just do a normal link edition.
   if (selectedArr.value.length === 1 && action.value === 'Edit Road Group Info') {
     action.value = 'Edit rLink Info'
@@ -86,7 +87,8 @@ function createForm() {
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
       disabled = ['a', 'b', 'index', 'length']
       editorForm.value = []
-      features.forEach(feature => {
+      selectedArr.value.forEach(index => {
+        const feature = features.filter(link => link.properties.index === index)[0]
         const form = getForm(feature, lineAttributes.value, disabled)
         linkDir.value.push(getDirection(feature.geometry.coordinates))
         if (feature.properties.oneway === '0') {
