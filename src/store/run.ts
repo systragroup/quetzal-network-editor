@@ -130,10 +130,7 @@ export const useRunStore = defineStore('runStore', () => {
       steps: selectedSteps,
       variants: selectedVariants,
       choice: selectedStepFunction.value,
-      launcher_arg: {
-        training_folder: '/tmp',
-        params: paramsDict,
-      },
+      params: paramsDict,
 
     }
     startExecution(model.value, inputs)

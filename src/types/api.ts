@@ -25,14 +25,9 @@ export interface RunMetadata {
   user_email: string
 }
 
-export interface RunArgs {
-  training_folder: '/tmp'
-  params: Record<string, any>
-}
-
 export interface RunPayload {
   scenario_path: string
-  launcher_arg: RunArgs
+  params: Record<string, any>
   variants: string[]
   steps?: ModelStep[] // ECS
   choice?: string // stepfunctions

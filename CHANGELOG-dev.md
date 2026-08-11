@@ -1,3 +1,7 @@
+## [8.1.e] (2026-08-11)
+### Changes
+* Change RunPayload to pass params instead of laucher_args. the backend api will create the lauch_args for Lambda or ECS
+
 ## [8.1.d] (2026-08-10)
 ### bug fixes
 * Road links form edition: when selecting multiple links, order was not always maintain when applying the changes on each rlinks. so changes on link_x could had been apply to link_y. [#609](https://github.com/systragroup/quetzal-network-editor/issues/609)

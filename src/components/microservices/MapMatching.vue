@@ -124,10 +124,8 @@ async function start () {
   const inputs: RunPayload = {
     scenario_path: callID.value,
     variants: [],
-    launcher_arg: {
-      training_folder: '/tmp',
-      params: params,
-    },
+    params: params,
+
   }
   runMapMatching.startExecution(FUNCTION_NAME, inputs)
 }

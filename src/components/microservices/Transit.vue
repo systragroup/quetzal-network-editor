@@ -169,10 +169,8 @@ async function start () {
   const inputs: RunPayload = {
     scenario_path: callID.value,
     variants: selectedVariants.value,
-    launcher_arg: {
-      training_folder: '/tmp',
-      params: params,
-    },
+    params: params,
+
   }
   runTransit.startExecution(FUNCTION_NAME, inputs)
 }
