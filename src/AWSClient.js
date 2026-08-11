@@ -254,7 +254,6 @@ async function getScenario (bucket) {
   if (list.length === 0) return []
   // get list of scenarios (unique prefix)
   const scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))
-  // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
   const scenList = []
   for (const scen of scenarios) {
     let files = list.filter(item => item.Key.startsWith(scen + '/'))

@@ -48,6 +48,11 @@ export function serializer (geojson: GeoJson, name: string, type: string | null 
       err.name = 'ImportError'
       throw err }
   }
+  // const indexType = new Set(geojson.features.map(el => typeof el.properties.index))
+  // if (indexType.size > 1) {
+  //   const err = new Error($gettext('Index should be all of the same dtype in: ') + name)
+  //   err.name = 'ImportError'
+  //   throw err }
 
   // all good. return geojson.
   return geojson

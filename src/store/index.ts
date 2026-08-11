@@ -164,6 +164,8 @@ export const useIndexStore = defineStore('index', {
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
+        const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
+        if (configFile) this.loadModelConfig(configFile.content)
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
@@ -262,6 +264,7 @@ export const useIndexStore = defineStore('index', {
 
     loadModelConfig (payload: ModelConfig) {
       const config = payload
+      // migrate
       this.modelConfig = config
       const links = useLinksStore()
       const rlinks = userLinksStore()

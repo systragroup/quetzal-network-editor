@@ -1,3 +1,7 @@
+## [8.1.f] (2026-08-11)
+### Changes
+* inputs/modelConfig.json will be read instead of _common/modelConfig.json if present in model, zip or just uploaded in inputs 
+
 ## [8.1.e] (2026-08-11)
 ### Changes
 * Change RunPayload to pass params instead of laucher_args. the backend api will create the lauch_args for Lambda or ECS
