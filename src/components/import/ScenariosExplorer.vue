@@ -46,24 +46,29 @@ async function getScenarios() {
   loading.value = true
   const scenarios = await s3.listScenarios(bucket)
   const locks: string[] = await getLocks(bucket)
-  console.time('getInfo')
-  const promises = scenarios.map((scenario) => s3.readInfo(bucket, scenario))
-  let metadatas = await Promise.all(promises).then(resp => resp)
-  console.timeEnd('getInfo')
-
-  scenariosList.value = scenarios.map((scenario, i) => {
-    const metadata = infoSerializer(metadatas[i])
-    const date = new Date(metadata.last_modified_date)
-    const lastModified = date.toLocaleDateString('en-CA') + ' ' + date.toLocaleTimeString('en-CA', { hour12: false })
+  scenariosList.value = scenarios.map((scenario) => {
     return {
       model: bucket,
       scenario: scenario,
-      lastModified: lastModified,
-      timestamp: date.getTime(),
-      userEmail: metadata.last_modified_email || 'idns-canada@systra.com',
-      description: metadata.description,
       protected: locks.includes(scenario),
+      lastModified: '', // to be done async
+      timestamp: 0,
+      userEmail: '...',
+      description: '',
     }
+  })
+  // resolve metadata async without waiting.
+  scenariosList.value.forEach((el) => {
+    s3.readInfo(bucket, el.scenario).then((resp) => {
+      const metadata = infoSerializer(resp)
+      const date = new Date(metadata.last_modified_date)
+      const lastModified = date.toLocaleDateString('en-CA') + ' ' + date.toLocaleTimeString('en-CA', { hour12: false })
+      el.lastModified = lastModified
+      el.timestamp = date.getTime()
+      el.userEmail = metadata.last_modified_email || 'idns-canada@systra.com'
+      el.description = metadata.description
+    }).catch(
+      err => console.log(err))
   })
 
   loading.value = false
