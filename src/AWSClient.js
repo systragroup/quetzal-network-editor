@@ -240,7 +240,6 @@ async function checkIfFileExists(bucket, key) {
 const COMMON = '_common'
 
 async function listScenarios(bucket) {
-  console.time('list')
   const params = { Bucket: bucket, Delimiter: '/' }
   let moreToLoad = true
   const scenarios = []
@@ -253,15 +252,12 @@ async function listScenarios(bucket) {
     moreToLoad = IsTruncated
     params.ContinuationToken = NextContinuationToken
   }
-  console.timeEnd('list')
   return scenarios.filter(el => el !== COMMON)
 }
 
 async function getLocks(bucket, scenarios) {
-  console.time('getLock')
   const promises = scenarios.map((scenario) => checkIfFileExists(bucket, `${scenario}/.lock`))
   const results = await Promise.all(promises).then(resp => resp)
-  console.timeEnd('getLock')
 
   return results
 }
