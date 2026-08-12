@@ -31,6 +31,8 @@ export interface Style {
 export interface ProjectInfo {
   description: string
   model_tag: string
+  last_modified_date: string
+  last_modified_email: string
 }
 
 export interface FileFormat {
@@ -370,8 +372,7 @@ export interface Scenario {
   lastModified: string
   timestamp: number
   userEmail: string
-  userEmailPromise: Promise<string>
-  info: Promise<InfoPreview>
+  description: string
   [key: string]: any // to allow for additional properties
 }
 

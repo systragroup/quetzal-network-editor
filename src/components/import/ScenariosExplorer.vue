@@ -9,6 +9,7 @@ import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import { Scenario, ScenarioPayload } from '@src/types/typesStore'
+import { infoSerializer } from '@src/utils/serializer.ts'
 const { $gettext } = useGettext()
 const emits = defineEmits(['load', 'unload'])
 
@@ -30,19 +31,47 @@ const modelScen = computed(() => { return `${storeModel.value}${storeScenario.va
 const modelsList = computed(() => { return userStore.modelsList }) // list of model cognito API.
 const scenariosList = ref<Scenario[]>(userStore.scenariosList)
 
+async function getLocks(model: string | null) {
+  const fileName = `${COMMON}/lock.json`
+  const fileExist: Boolean = await s3.checkIfFileExists(model, fileName)
+  if (fileExist) {
+    return await s3.readJson(model, fileName)
+  }
+  else return ['base']
+}
+
 async function getScenarios() {
   if (!localModel.value) return
+  const bucket = localModel.value
   loading.value = true
-  const tempList = await s3.getScenario(localModel.value)
-  scenariosList.value = tempList.filter(el => el.scenario !== COMMON)
-  // change email when promise resolve. fetching email il slow. so we lazy load them
-  scenariosList.value.forEach((scen) => {
-    scen.userEmailPromise.then((val) => { scen.userEmail = val }).catch(
+  const scenarios = await s3.listScenarios(bucket)
+  const locks: string[] = await getLocks(bucket)
+  scenariosList.value = scenarios.map((scenario) => {
+    return {
+      model: bucket,
+      scenario: scenario,
+      protected: locks.includes(scenario),
+      lastModified: '', // to be done async
+      timestamp: 0,
+      userEmail: '...',
+      description: '',
+    }
+  })
+  // resolve metadata async without waiting.
+  scenariosList.value.forEach((el) => {
+    s3.readInfo(bucket, el.scenario).then((resp) => {
+      const metadata = infoSerializer(resp)
+      const date = new Date(metadata.last_modified_date)
+      const lastModified = date.toLocaleDateString('en-CA') + ' ' + date.toLocaleTimeString('en-CA', { hour12: false })
+      el.lastModified = lastModified
+      el.timestamp = date.getTime()
+      el.userEmail = metadata.last_modified_email || 'idns-canada@systra.com'
+      el.description = metadata.description
+    }).catch(
       err => console.log(err))
   })
+
   loading.value = false
-  // refresh store scenario list if we are on the selected model
-  if (localModel.value === storeModel.value) { userStore.setScenariosList(scenariosList.value) }
 }
 
 watch(localModel, async () => {

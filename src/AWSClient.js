@@ -12,7 +12,6 @@ const REGION = import.meta.env.VITE_COGNITO_REGION
 
 let s3Client = new S3({
   apiVersion: '2006-03-01',
-  signatureVersion: 'v4',
   region: REGION,
   requestChecksumCalculation: 'WHEN_REQUIRED',
 
@@ -217,20 +216,19 @@ async function readInfo (bucket, scen) {
     // const params = { Bucket: bucket, Key: key }
     const response = await s3Client.getObject(params) // await the promise
     const str = await response.Body.transformToString('utf-8')
-    const fileContent = JSON.parse(str.trim())
-    return fileContent
+    const content = JSON.parse(str.trim())
+    return content
   } catch (err) {
-    return { description: '', model_tag: '' }
+    return {}
   }
 }
 
 async function checkIfFileExists(bucket, key) {
   try {
-    // If this succeeds, the file exists
     await s3Client.headObject({ Bucket: bucket, Key: key })
     return true
   } catch (error) {
-    // S3 returns a 'NotFound' error name if the object is missing
+    //  object is missing
     if (error.name === 'NotFound') {
       return false
     }
@@ -239,57 +237,35 @@ async function checkIfFileExists(bucket, key) {
   }
 }
 
-async function getScenario (bucket) {
-  // list all files in bucket
-  const params = { Bucket: bucket, encodingType: 'url' }
-  let moreToLoad = true
-  const list = []
+const COMMON = '_common'
 
+async function listScenarios(bucket) {
+  console.time('list')
+  const params = { Bucket: bucket, Delimiter: '/' }
+  let moreToLoad = true
+  const scenarios = []
   while (moreToLoad) {
-    const { Contents, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
-    list.push(...Contents)
+    const { CommonPrefixes, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
+    if (CommonPrefixes) {
+      const ls = CommonPrefixes.map(el => el.Prefix.replace('/', ''))
+      scenarios.push(...ls)
+    }
     moreToLoad = IsTruncated
     params.ContinuationToken = NextContinuationToken
   }
-  if (list.length === 0) return []
-  // get list of scenarios (unique prefix)
-  const scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))
-  const scenList = []
-  for (const scen of scenarios) {
-    let files = list.filter(item => item.Key.startsWith(scen + '/'))
-    // if there is .lock file in the root dir of the scen. it is protected.
-    const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
-    const isLocked = lockedList.length > 0 || scen === 'base'
-
-    const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
-    const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
-    const timestamp = maxDateObj.LastModified.getTime()
-
-    // get user email metadata on newest object.
-    // if there is no email. it was a manual changed on S3 by an admin so we put idns-canada.
-    const response = s3Client.headObject({ Bucket: bucket, Key: maxDateObj.Key })
-    const userEmailPromise = response.then((resp) => {
-      return resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
-    }).catch((err) => {
-      console.log(err)
-      return 'idns-canada@systra.com'
-    })
-    const infoPromise = readInfo(bucket, scen).then(resp => resp).catch(() => {})
-
-    scenList.push({
-      model: bucket,
-      scenario: scen,
-      lastModified: maxDate,
-      timestamp,
-      userEmail: '...',
-      userEmailPromise,
-      info: infoPromise,
-      protected: isLocked,
-    })
-  }
-
-  return scenList
+  console.timeEnd('list')
+  return scenarios.filter(el => el !== COMMON)
 }
+
+async function getLocks(bucket, scenarios) {
+  console.time('getLock')
+  const promises = scenarios.map((scenario) => checkIfFileExists(bucket, `${scenario}/.lock`))
+  const results = await Promise.all(promises).then(resp => resp)
+  console.timeEnd('getLock')
+
+  return results
+}
+
 async function getChecksum (bucket, key) {
   try {
     const resp = await s3Client.headObject({ Bucket: bucket, Key: key })
@@ -318,7 +294,6 @@ export default {
     )
   },
 
-  getScenario,
   readJson,
   readBytes,
   listFiles,
@@ -333,4 +308,6 @@ export default {
   getChecksum,
   readInfo,
   checkIfFileExists,
+  listScenarios,
+  getLocks,
 }
