@@ -38,7 +38,7 @@ const emits = defineEmits(['confirmChanges', 'abortChanges', 'edit'])
         <v-btn
           color="primary"
           class="mx-2"
-          width="55%"
+          width="50%"
           prepend-icon="fas fa-save"
           @click="emits('confirmChanges')"
         >

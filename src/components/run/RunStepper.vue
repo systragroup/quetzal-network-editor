@@ -33,33 +33,28 @@ const errorMessage = computed(() => runStore.errorMessage)
 
 const isProtected = computed(() => userStore.protected)
 const modelIsLoaded = computed(() => userStore.model !== null)
-const model = computed(() => userStore.model)
+const model = computed(() => userStore.model!)
 
 onMounted(async () => {
   if (modelIsLoaded.value) {
-    await runStore.getModelTag()
-    await runStore.getSteps()
-    await runStore.checkRunningExecution()
+    await runStore.getInfra()
+    const promises = []
+    promises.push(runStore.getSteps())
+    promises.push(runStore.getModelTag())
+    promises.push(runStore.checkRunningExecution())
+    promises.push(runStore.checkLogs())
+    await Promise.all(promises)
   }
 })
-
-watch(avalaibleStepFunctions, (val) => {
-  if (modelIsLoaded.value) {
-    if (!val.includes(stepFunction.value)) {
-      stepFunction.value = val[0]
-      runStore.getSteps()
-    }
-  }
-}, { once: true })
 
 watch(stepFunction, async (val) => {
   if (modelIsLoaded.value) {
     if (avalaibleStepFunctions.value.includes(val)) {
       stepFunction.value = val
-      runStore.getSteps()
+      runStore.setSteps()
     } else {
       stepFunction.value = avalaibleStepFunctions.value[0]
-      runStore.getSteps()
+      runStore.setSteps()
     }
   }
 })
@@ -80,7 +75,7 @@ async function run() {
     store.deleteOutputs()
     runStore.start()
   } catch (err) {
-    runStore.stopExecution()
+    runStore.stopExecution(model.value)
     console.log(err)
     store.changeAlert(err)
   }
@@ -89,7 +84,7 @@ async function run() {
 // audio
 
 const endSignal = ref(true)
-watch(status, (v) => { if (v === 'FINISHED') playAudio() })
+watch(status, (v) => { if (v.status === 'FINISHED') playAudio() })
 
 function playAudio() {
   if (endSignal.value) {
@@ -158,8 +153,8 @@ function playAudio() {
 
       <div class="buttons-row ma-2">
         <v-btn
-          :loading="running"
-          :disabled="running || isProtected || !modelIsLoaded"
+          v-if="!running"
+          :disabled="isProtected || !modelIsLoaded"
           color="success"
           prepend-icon="fa-solid fa-play"
           @click="run()"
@@ -167,13 +162,20 @@ function playAudio() {
           {{ $gettext("Run Simulation") }}
         </v-btn>
         <v-btn
-          v-show="running && currentStep!==1"
+          v-show="running"
           color="grey"
-          variant="text"
-          @click="runStore.stopExecution()"
+          @click="runStore.stopExecution(model)"
         >
           {{ $gettext("Abort") }}
         </v-btn>
+        <v-progress-circular
+          v-if="running"
+          indeterminate
+          color="success"
+        />
+        <span>
+          {{ status.status }}
+        </span>
         <v-switch
           v-model="endSignal"
           class="switch"
@@ -251,6 +253,7 @@ function playAudio() {
   display: flex;
   gap:1rem;
   flex-direction: row;
+  align-items: center;
 }
 .switch{
   margin-left:auto;

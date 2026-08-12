@@ -12,33 +12,47 @@ import { getDirection } from '@src/utils/spatial'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
-import { rlinksConstantProperties, rlinksDefaultProperties } from '@src/constants/properties'
-import { round } from 'lodash'
+import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultProperties } from '@src/constants/properties'
 import DialogHeader from './DialogHeader.vue'
+import { AttributeTypes } from '@src/types/typesStore.ts'
+import { cloneDeep } from 'lodash'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
 
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
-const { showDialog, action, selectedArr } = useForm()
+const { showDialog, action, selectedArr, changeLengthTimeSpeed } = useForm()
 
 const rlinks = computed(() => rlinksStore.rlinks)
-const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
 const lineAttributes = computed(() => rlinksStore.rlineAttributes)
 const reversedAttributes = computed(() => rlinksStore.reversedAttributes)
 const rnodeAttributes = computed(() => rlinksStore.rnodeAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
-const typesMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type])))
-const unitsMap = computed(() => Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.units])))
-const attributeNonDeletable = computed(() => rlinksDefaultProperties.map(el => el.name))
+
+// const editLinks = ref<boolean>(true) // if its links are nodes that are edited.
+const editLinks = computed(() => action.value !== 'Edit rNode Info')
+
+const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
+const typesMap = computed(() => {
+  if (editLinks.value) return Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
+  else return Object.fromEntries(rlinksStore.nodesDefaultAttributes.map(el => [el.name, el.type]))
+})
+
+const attributeNonDeletable = computed(() => {
+  if (editLinks.value) return [...rlinksDefaultProperties.map(el => el.name), ...reversedAttributes.value]
+  else return [...rnodesDefaultProperties.map(el => el.name)]
+})
+
+const displayUnits = computed(() => store.displayUnits)
+const units = computed(() => baseUnits)
 
 const rules = {}
 const hints: Dict = attributesHints
 const formRef = ref()
 
 const editorForm = ref<GroupForm[]>([])
-const numLinks = computed(() => { return editorForm.value.length })
+const numForm = computed(() => { return editorForm.value.length })
 
 const showHint = ref(false)
 
@@ -57,25 +71,37 @@ function init() {
   showDeleteOption.value = false
 }
 
-const linkDir = ref<number[]>([])
+const linkDir = ref<number[]>([]) // to put 2 direction per form
 
 function createForm() {
   let disabled: string[] = []
   let features: LineStringFeatures[] = []
+  linkDir.value = []
+  // when only one is selected. just do a normal link edition.
+  if (selectedArr.value.length === 1 && action.value === 'Edit Road Group Info') {
+    action.value = 'Edit rLink Info'
+  }
   const selectedSet = new Set(selectedArr.value)
   switch (action.value) {
     case 'Edit rLink Info':
-      // editorForm.value = selectedArr.value.map(linkId => rlinksStore.rlinksForm(linkId))
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['a', 'b', 'index']
-      editorForm.value = features.map(feature => getForm(feature, lineAttributes.value, disabled))
-      linkDir.value = features.map(feature => getDirection(feature.geometry.coordinates))
-      features = features.filter(el => el.properties.oneway == '0')
-      features.forEach(feature => {
-        const linkId = feature.properties.index
-        selectedArr.value.push(linkId)
-        editorForm.value.push(getForm(feature, reversedAttributes.value, disabled))
+      disabled = ['a', 'b', 'index', 'length']
+      editorForm.value = []
+      selectedArr.value.forEach(index => {
+        const feature = features.filter(link => link.properties.index === index)[0]
+        const form = getForm(feature, lineAttributes.value, disabled)
         linkDir.value.push(getDirection(feature.geometry.coordinates))
+        if (feature.properties.oneway === '0') {
+          const rform = getForm(feature, reversedAttributes.value, disabled)
+          // group together both direction
+          reversedAttributes.value.forEach(key => {
+            rform[key].grouped = true
+            form[key.slice(0, -2)].grouped = true
+          })
+          editorForm.value.push({ ...form, ...rform })
+        } else {
+          editorForm.value.push(form)
+        }
       })
       break
     case 'Edit Road Group Info':
@@ -86,7 +112,7 @@ function createForm() {
 
     case 'Edit rNode Info':
       const selectedNode = selectedArr.value[0]
-      const nodeFeatures = rlinksStore.visiblerNodes.features.filter((node) => node.properties.index === selectedNode)
+      const nodeFeatures = rlinksStore.rnodes.features.filter((node) => node.properties.index === selectedNode)
       disabled = ['index', 'route_width']
       editorForm.value = [getGroupForm(nodeFeatures, rnodeAttributes.value, disabled)]
 
@@ -101,13 +127,13 @@ async function submitForm() {
   if (resp.includes(false)) { return false }
   switch (action.value) {
     case 'Edit rLink Info':
-      rlinksStore.editrLinkInfo({ selectedArr: selectedArr.value, info: editorForm.value })
+      rlinksStore.editLinkInfo({ selectedArr: selectedArr.value, infoArr: editorForm.value })
       break
     case 'Edit Road Group Info':
-      rlinksStore.editrGroupInfo({ selectedArr: selectedArr.value, info: editorForm.value })
+      rlinksStore.editGroupInfo({ selectedArr: selectedArr.value, infoArr: editorForm.value })
       break
     case 'Edit rNode Info':
-      rlinksStore.editrNodeInfo({ selectedArr: selectedArr.value, info: editorForm.value })
+      rlinksStore.editNodeInfo({ selectedArr: selectedArr.value, infoArr: editorForm.value })
       break
   }
   return true
@@ -128,23 +154,23 @@ function addFieldToLinksForms(newFieldName: string) {
   editorForm.value.forEach(form => {
     // If the form is a reversed one. add the field if its not in rcstAttribute
     // (ex: route_width, no route_width_r)
-    if (Object.keys(form)[0].endsWith('_r') && !rlinksConstantProperties.includes(newFieldName)) {
-      form[newFieldName + '_r'] = { disabled: false, placeholder: false, value: undefined, show: true }
-    } else {
-      // just a normal link
-      form[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
+    let toAdd = { disabled: false, placeholder: false, value: undefined, show: true, grouped: false }
+    if ((form.oneway.value === '0') && !rlinksConstantProperties.includes(newFieldName)) {
+      toAdd.grouped = true
+      form[newFieldName + '_r'] = cloneDeep(toAdd)
     }
+    form[newFieldName] = cloneDeep(toAdd)
   })
 }
 
-function addField (newFieldName: string) {
+function addField (newFieldName: string, dtype: AttributeTypes) {
   if (newFieldName) {
     if (['Edit rLink Info', 'Edit Road Group Info'].includes(action.value)) {
       addFieldToLinksForms(newFieldName)
-      rlinksStore.addLinksPropertie({ name: newFieldName })
+      rlinksStore.addLinksPropertie({ name: newFieldName, type: dtype })
     } else if (action.value === 'Edit rNode Info') {
       editorForm.value[0][newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
-      rlinksStore.addNodesPropertie({ name: newFieldName })
+      rlinksStore.addNodesPropertie({ name: newFieldName, type: dtype })
     }
   }
 }
@@ -159,9 +185,9 @@ function deleteField (field: string) {
     delete form[field + '_r']
   })
   if (['Edit rLink Info', 'Edit Road Group Info'].includes(action.value)) {
-    rlinksStore.deleteLinksPropertie({ name: field })
+    rlinksStore.deleteLinksPropertie(field)
   } else if (action.value === 'Edit rNode Info') {
-    rlinksStore.deleteNodesPropertie({ name: field })
+    rlinksStore.deleteNodesPropertie(field)
   }
   store.changeNotification({ text: $gettext('Field deleted'), autoClose: true, color: 'success' })
 }
@@ -178,35 +204,9 @@ function ToggleDeleteOption () {
     store.changeNotification({ text: '', autoClose: true })
   }
 }
-
+// computed speed, time, length. for individual links only.
 function change (key: string, idx: number) {
-  const name = key.split('#')[0]
-  let v = key.split('#')[1]
-  v = v ? `#${v}` : ''
-  const formData = editorForm.value[idx]
-  switch (name) {
-    case 'speed':
-      formData[`speed${v}`].value = round(formData[`speed${v}`].value, 6)
-      const time = formData.length.value / formData[`speed${v}`].value * 3.6
-      if (!formData[`time${v}`].placeholder) {
-        formData[`time${v}`].value = round(time, 0)
-      }
-      break
-    case 'time':
-      formData[`time${v}`].value = round(formData[`time${v}`].value, 0)
-      const speed = formData.length.value / formData[`time${v}`].value * 3.6
-      if (!formData[`speed${v}`].placeholder) {
-        formData[`speed${v}`].value = round(speed, 6)
-      }
-      break
-    case 'length':
-      formData.length.value = round(formData.length.value, 0)
-      const time2 = formData.length.value / formData[`speed${v}`].value * 3.6
-      if (!formData.placeholder) {
-        formData[`time${v}`].value = round(time2, 0)
-      }
-      break
-  }
+  changeLengthTimeSpeed(key, editorForm.value[idx])
 }
 
 // variant and Attr prefix selector
@@ -221,7 +221,12 @@ const selectedPrefix = ref<string>('')
 const variantChoices = computed(() => rlinksStore.variantChoice)
 
 const prefixesChoice = computed(() => {
-  const prefixes = rlinksStore.rlineAttributes.map(el => el.split('#')[0])
+  let prefixes = []
+  if (editLinks.value) {
+    prefixes = rlinksStore.rlineAttributes.map(el => el.split('#')[0])
+  } else {
+    prefixes = rlinksStore.rnodeAttributes.map(el => el.split('#')[0])
+  }
   return Array.from(new Set(prefixes))
 })
 
@@ -244,7 +249,7 @@ watchEffect(() => {
   <v-dialog
     v-model="showDialog"
     scrollable
-    :max-width="`${30*numLinks}rem`"
+    :max-width="`${40*numForm}rem`"
     @keydown.enter="saveAndQuit"
   >
     <v-card
@@ -253,6 +258,9 @@ watchEffect(() => {
       <DialogHeader
         v-model:variant="selectedVariant"
         v-model:prefix="selectedPrefix"
+        :title="action === 'Edit Road Group Info'?
+          $gettext('Edit Properties of %{len} links',{len:String(selectedArr.length) }):
+          $gettext('Edit Properties')"
         :variant-choices="variantChoices"
         :prefixes-choice="prefixesChoice"
       />
@@ -260,30 +268,38 @@ watchEffect(() => {
       <v-card-text class="container">
         <v-row>
           <v-col
-            v-for="(n,idx) in numLinks"
+            v-for="(n,idx) in numForm"
             :key="idx"
           >
-            <v-list-item v-if="numLinks > 1">
+            <div
+              v-if="action == 'Edit rLink Info'"
+              class="arrows-container"
+            >
               <v-icon
-                :style="{'align-items':'center',
-                         'justify-content': 'center',
-                         transform: 'rotate('+linkDir[idx]+'deg)'}"
+                :style="{transform: 'rotate('+linkDir[idx]+'deg)'}"
               >
                 fas fa-long-arrow-alt-up
               </v-icon>
-            </v-list-item>
+              <span>{{ editorForm[idx].index.value }}</span>
+              <v-icon
+                :style="{transform: 'rotate('+(linkDir[idx]+180)+'deg)'}"
+              >
+                {{ editorForm[idx].oneway.value==='0'? 'fas fa-long-arrow-alt-up': '' }}
+              </v-icon>
+            </div>
             <EditForm
               ref="formRef"
               v-model:editor-form="editorForm[idx]"
               :show-hint="showHint"
               :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
-              :units="unitsMap"
+              :units="units"
+              :display-units="displayUnits"
               :rules="rules"
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"
               :types="typesMap"
-              @change="(key)=>change(key,idx)"
+              @change="(key:string)=>change(key,idx)"
               @delete-field="deleteField"
             />
             <NewFieldForm
@@ -336,4 +352,11 @@ watchEffect(() => {
 .container {
   display: flex;
 }
+.arrows-container{
+  display: flex;
+  padding: 0rem 1rem 1rem 1rem ;
+  justify-content: space-between;
+  align-items: center; /* optional, vertical alignment */
+  font-size: large;
+  }
 </style>

@@ -5,14 +5,14 @@ import { ref, computed, onBeforeUnmount, toRaw } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
 import { useLinksStore } from '@src/store/links'
 import { useIndexStore } from '@src/store/index'
-import { useUserStore } from '@src/store/user'
 
 import { useGettext } from 'vue3-gettext'
 import Warning from '../utils/Warning.vue'
 import TimeSeriesSelector from './TimeSeriesSelector.vue'
-import { RunInputs } from '@src/types/api'
+import { RunPayload } from '@src/types/api'
 import { StringTimeserie } from '@src/types/typesStore'
 const { $gettext } = useGettext()
+const FUNCTION_NAME = import.meta.env.VITE_GTFS_IMPORTER_NAME
 
 const runGTFS = useGTFSStore()
 const linksStore = useLinksStore()
@@ -92,20 +92,16 @@ async function importGTFS () {
     return
   }
   if (linksIsEmpty.value) {
+    runGTFS.initExecution()
     save()
     const params = toRaw(storeParameters.value)
-    const userStore = useUserStore()
-    const inputs: RunInputs = {
-      scenario_path_S3: callID.value,
-      launcher_arg: {
-        training_folder: '/tmp',
-        params: params,
-      },
-      metadata: {
-        user_email: userStore.cognitoInfo?.email,
-      },
+    const inputs: RunPayload = {
+      scenario_path: callID.value,
+      variants: [],
+      params: params,
+
     }
-    runGTFS.start(inputs)
+    runGTFS.startExecution(FUNCTION_NAME, inputs)
   } else {
     showOverwriteDialog.value = true
   }

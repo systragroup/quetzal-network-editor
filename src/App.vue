@@ -1,13 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import Toolbar from '@comp/layout/Toolbar.vue'
 import NavigationDrawer from '@comp/layout/NavigationDrawer.vue'
-import Alert from '@comp/utils/Alert.vue'
+import Alert from '@src/components/layout/Alert.vue'
 import { useIndexStore } from '@src/store/index'
 import { computed, ref, watch } from 'vue'
 
 const store = useIndexStore()
 const loading = computed(() => store.loading)
-
 const snackbar = ref(false)
 const notification = computed(() => store.notification)
 watch(notification, () => snackbar.value = !!notification.value.text)
@@ -26,14 +25,18 @@ const showRail = ref(false)
       <Toolbar v-model="showRail" />
       <NavigationDrawer v-model="showRail" />
       <v-overlay
-        :model-value="loading"
+        :model-value="loading.show"
         persistent
         class="align-center justify-center"
       >
-        <v-progress-circular
-          indeterminate
-          size="64"
-        />
+        <div class="loading">
+          <v-progress-circular
+            :indeterminate="loading.progress===0"
+            :model-value="100*loading.progress"
+            size="64"
+          />
+          <span class="text-h6"> {{ $gettext(loading.title) }}</span>
+        </div>
       </v-overlay>
       <v-main>
         <RouterView />
@@ -70,5 +73,9 @@ const showRail = ref(false)
   height: 100vh;
   overflow: hidden;
 }
-
+.loading{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
 </style>

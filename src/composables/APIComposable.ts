@@ -1,143 +1,141 @@
+import { computed, ref } from 'vue'
 import { useIndexStore } from '@src/store/index'
-import { ref } from 'vue'
+import { useUserStore } from '@src/store/user'
 import { useClient } from '@src/axiosClient.js'
-import { ErrorMessage, RunInputs, RunPayload, Status } from '@src/types/api'
-import { OSMImporterParams } from '@src/types/typesStore'
+import { ErrorMessage, Infra, PollPayload, RunPayload, RunPayloadWithMetaData, Status, StopPayload } from '@src/types/api'
 const { quetzalClient } = useClient()
 
-export function useAPI (params = { withHistory: false }) {
-  const withHistory = ref(params.withHistory)
-  const status = ref<Status>('')
-  const running = ref<boolean>(false)
-  const executionArn = ref<string>('')
+const baseStatus = (): Status => { return {
+  status: 'UNKNOWN',
+  step_status: undefined,
+} }
+
+export function useAPI () {
+  const infra = ref<Infra>('lambda')
+  const status = ref<Status>(baseStatus())
+  const jobId = ref<string>('')
   const error = ref<boolean>(false)
   const errorMessage = ref<ErrorMessage>({})
-  const history = ref<string[]>([])
   const timer = ref<number>(0)
   const pollFreq: number = 4000
 
+  const running = computed(() => ['PREPARING', 'RUNNING', 'STOPPING'].includes(status.value.status))
+
   function cleanRun () {
-    status.value = ''
-    running.value = false
-    executionArn.value = ''
+    status.value = baseStatus()
+    jobId.value = ''
     error.value = false
     errorMessage.value = {}
-    history.value = []
     timer.value = 0
   }
 
-  function terminateExecution (payload: string) {
-    running.value = false
+  function terminateExecution (payload: string | boolean) {
     error.value = true
     timer.value = 0
+    jobId.value = ''
+    if (typeof payload === 'boolean') return
+
     try {
       errorMessage.value = JSON.parse(payload)
     } catch {
       errorMessage.value = { error: payload }
     }
-    executionArn.value = ''
   }
 
   function succeedExecution () {
-    running.value = false
-    executionArn.value = ''
+    jobId.value = ''
+  }
+  function initExecution () {
+    error.value = false
+    status.value.status = 'PREPARING'
   }
 
-  // todo: runinputs or some Dict with callId.
-  type InputWithCallID = (OSMImporterParams) & { callID: string }
-  type Input = RunInputs | InputWithCallID
-  async function startExecution (stateMachineArn: string, input: Input) {
-    running.value = true
+  async function startExecution (functionName: string, payload: RunPayload) {
+    const userStore = useUserStore()
     error.value = false
-    const data: RunPayload = {
-      input: JSON.stringify(input),
-      stateMachineArn: stateMachineArn,
+    const scenario = payload.scenario_path
+    const input: RunPayloadWithMetaData = {
+      ...payload,
+      metadata: { user_email: userStore.cognitoInfo?.email },
     }
 
     try {
-      const response = await quetzalClient.post('', data)
-      executionArn.value = response.data.executionArn
-      pollExecution()
+      const response = await quetzalClient.post<string>(`run/${functionName}/${infra.value}`, input)
+      jobId.value = response.data
+      pollExecution(functionName, scenario)
     } catch (err: unknown) {
       const store = useIndexStore()
       store.changeAlert(err)
-      running.value = false
-      status.value = 'FAILED'
+      status.value.status = 'FAILED'
     }
   }
 
-  function pollExecution () {
+  function pollExecution (functionName: string, scenario: string) {
     const intervalId = setInterval(async () => {
-      let data = { executionArn: executionArn.value }
       timer.value = timer.value - pollFreq / 1000
       try {
-        const response = await quetzalClient.post('/describe', data)
-        status.value = response.data.status
-        console.log(status.value)
-        if (status.value === 'SUCCEEDED') {
+        const payload: PollPayload = {
+          scenario_path: scenario,
+          job_id: jobId.value,
+        }
+        const response = await quetzalClient.post<Status>(`run/${functionName}/${infra.value}/status`, payload)
+        status.value = response.data
+        console.log(status.value.status)
+        if (status.value.status === 'SUCCESS') {
           succeedExecution()
           clearInterval(intervalId)
-        } else if (['FAILED', 'TIMED_OUT', 'ABORTED'].includes(status.value)) {
+        } else if (['FAILED'].includes(status.value.status)) {
           clearInterval(intervalId)
-          terminateExecution(response.data.cause)
-        }
-        else if (status.value !== 'RUNNING') {
-          clearInterval(intervalId)
+          // response.data.cause
+          terminateExecution(status.value.step_status?.error || '')
         }
       } catch (err: unknown) {
         const store = useIndexStore()
         store.changeAlert(err)
       }
-      if (withHistory.value) { getHistory() }
     }, pollFreq)
   }
 
-  async function stopExecution () {
-    let data = { executionArn: executionArn.value }
+  async function stopExecution (functionName: string) {
     try {
-      const response = await quetzalClient.post('/abort', data)
-      terminateExecution(response.data)
+      const payload: StopPayload = { job_id: jobId.value }
+      await quetzalClient.post<boolean>(`run/${functionName}/${infra.value}/stop`, payload)
     } catch (err: unknown) {
       const store = useIndexStore()
       store.changeAlert(err)
     }
   }
 
-  async function getHistory () {
-    try {
-      let data = { executionArn: executionArn.value, includeExecutionData: false, reverseOrder: true }
-      const response = await quetzalClient.post('/history', JSON.stringify(data))
-      const arr = []
-      for (const event of response.data.events) {
-        if (['TaskStateEntered'].includes(event.type)) {
-          arr.push(event.stateEnteredEventDetails.name)
-        }
-      }
-      history.value = arr
-    } catch { }
-  }
-
-  async function getRunningExecution(stateMachineArn: string, scenario: string) {
+  async function getRunningExecution(functionName: string, scenario: string) {
     // get Running model (on another pc start polling it if there is one)
     // return true if there is a model running (usefull to check before running.)
     try {
       if (!running.value) {
-        const resp = await quetzalClient.post(`model/running/${stateMachineArn}/${scenario}/`)
+        const scen = scenario.replace(/\/+$/, '') // make sure there is no trailling slash
+        const resp = await quetzalClient.get(`run/${functionName}/${infra.value}/job_id/${scen}`)
         if (resp.data !== '') {
           cleanRun()
-          executionArn.value = resp.data
-          status.value = 'RUNNING'
-          running.value = true
-          if (withHistory.value) { getHistory() }
-          pollExecution()
+          jobId.value = resp.data
+          status.value.status = 'RUNNING'
+          pollExecution(functionName, scenario)
           return true
         } else { return false }
       } else { return false }
     } catch { return false }
   }
 
+  async function getFunctionInfra(functionName: string) {
+    const resp = await quetzalClient.get(`/run/${functionName}/infra`)
+    infra.value = resp.data
+  }
+
   async function getFunctionTag(functionName: string) {
-    const resp = await quetzalClient.get(`model/version/${functionName}/`)
+    const resp = await quetzalClient.get(`run/${functionName}/${infra.value}/tag`)
+    return resp.data
+  }
+
+  async function getStepsDefinition(functionName: string) {
+    const resp = await quetzalClient.get(`run/${functionName}/${infra.value}/steps`)
     return resp.data
   }
 
@@ -147,14 +145,15 @@ export function useAPI (params = { withHistory: false }) {
     status,
     errorMessage,
     timer,
-    history,
+    initExecution,
     startExecution,
     cleanRun,
     stopExecution,
     pollExecution,
-    getHistory,
     getRunningExecution,
     getFunctionTag,
+    getStepsDefinition,
+    getFunctionInfra,
 
   }
 }

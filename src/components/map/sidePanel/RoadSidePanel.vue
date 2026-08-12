@@ -1,93 +1,73 @@
 <script setup lang="ts">
-import { toRaw, ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
-import { cloneDeep } from 'lodash'
 import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
 import { useForm } from '@src/composables/UseForm'
-import { ShowMethod } from '@src/types/typesStore'
+import { getDifference } from '@src/utils/utils'
 const { openDialog } = useForm()
 
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
-const selectedrGoup = computed(() => { return rlinksStore.selectedrGroup })
-const localSelectedTrip = ref(cloneDeep(selectedrGoup.value))
 
-watch(localSelectedTrip, (newVal, oldVal) => {
-  let changes: string | string[] = ''
-  let method: ShowMethod = 'add'
-  if (JSON.stringify(newVal) === JSON.stringify(filteredCat.value)) {
-    changes = newVal
-    method = 'showAll'
-  } else if (newVal.length === 0) {
-    changes = []
-    method = 'hideAll'
-  } else if (newVal.length < oldVal.length) {
-    // if a tripis unchecked. we remove it
-    changes = oldVal.filter(item => !newVal.includes(item))
-    method = 'remove'
-  } else if (newVal.length > oldVal.length) {
-    // if a trip is added, we add it!
-    changes = newVal.filter(item => !oldVal.includes(item))
-    method = 'add'
-  }
-  if (typeof changes !== 'string') {
-    rlinksStore.changeVisibleRoads({ category: vmodelSelectedFilter.value, data: changes, method })
-  }
-})
-watch(selectedrGoup, (newVal) => {
-  // check selected group in store. if it changes from another component
-  const a = new Set(newVal)
-  const b = new Set(localSelectedTrip.value)
-  if (!(a.size === b.size && new Set([...a, ...b]).size === a.size)) {
-    localSelectedTrip.value = toRaw(newVal)
-  }
+const selectedrGoup = computed({
+  get: () => rlinksStore.filteredSelected,
+  set: (set) => rlinksStore.filteredSelected = set,
 })
 
-const selectedFilter = ref(cloneDeep(rlinksStore.selectedrFilter))
-const vmodelSelectedFilter = ref(selectedFilter.value)
-const filterChoices = computed(() => { return rlinksStore.rlineAttributes })
-const filteredCat = computed(() => { return rlinksStore.filteredrCategory })
-// this.rlinksStore.changeSelectedrFilter(this.selectedFilter)
-watch(vmodelSelectedFilter, (newVal, oldVal) => {
-  selectedFilter.value = newVal
-  // only reset if we change the filter.
-  rlinksStore.changeSelectedrFilter(selectedFilter.value)
-  // when the component is loaded, oldVal is null and we dont want to overwrite localSelectedTrip to [].
-  if (oldVal) {
-    localSelectedTrip.value = []
+const selectedrFilter = computed({
+  get: () => rlinksStore.selectedrFilter,
+  set: (val) => rlinksStore.selectedrFilter = val,
+})
+
+watch(selectedrFilter, (v) => rlinksStore.changeSelectedrFilter(v))
+
+// lists for filter and virtual-scroll
+const attributesList = computed(() => { return rlinksStore.rlineAttributes })
+const filteredChoices = computed(() => { return rlinksStore.filteredChoices })
+watch(filteredChoices, (newVal, oldVal) => {
+  // when add or delete. add the new group to the visible rlinks (or remove)
+  const added = getDifference(newVal, oldVal)
+  const removed = getDifference(oldVal, newVal)
+  if (added.length > 0) {
+    added.forEach(el => selectedrGoup.value.add(el))
+  } else if (removed.length > 0) {
+    removed.forEach(el => selectedrGoup.value.delete(el))
   }
 })
 
 onMounted(() => {
-  if (linksStore.links.features.length === 0
+  if (linksStore.linksIsEmpty
     && !store.projectIsEmpty
-    && selectedrGoup.value.length === 0) {
+    && selectedrGoup.value.size === 0) {
     showAll()
   }
 })
 
 function propertiesButton (group: string) {
-  // select the TripId and open dialog
-  const features = rlinksStore.grouprLinks(vmodelSelectedFilter.value, group)
+  const features = rlinksStore.getFilteredrLinks(group)
   const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function editVisible () {
-  const indexList = rlinksStore.visiblerLinks.features.map(link => link.properties.index)
+  const group = rlinksStore.filteredSelected
+  const features = rlinksStore.getFilteredrLinks(group)
+  const indexList = features.map(link => link.properties.index)
   openDialog({ action: 'Edit Road Group Info', selectedArr: indexList, lingering: true, type: 'road' })
 }
 
 function showAll () {
-  if (localSelectedTrip.value.length === filteredCat.value.length) {
-    localSelectedTrip.value = []
+  if (selectedrGoup.value.size === filteredChoices.value.size) {
+    // hideAll
+    selectedrGoup.value = new Set([])
   } else {
-    localSelectedTrip.value = filteredCat.value
+    // showAll
+    selectedrGoup.value = filteredChoices.value
   }
 }
 
@@ -113,9 +93,26 @@ async function deleteButton (group: string, message: string) {
   }
 }
 
+const selectedrGoupProxy = computed({
+  get: () => [...selectedrGoup.value],
+  set: (arr) => selectedrGoup.value = new Set(arr),
+})
+
+function formatName(item: string) {
+  if (item === '') {
+    return 'null'
+  }
+  if (item === ' ') {
+    return '" "'
+  }
+  else {
+    return item
+  }
+}
+
 </script>
 <template>
-  <section>
+  <div class="side-panel">
     <div class="text-white bg-secondary header">
       <v-tooltip
         location="bottom"
@@ -124,14 +121,14 @@ async function deleteButton (group: string, message: string) {
         <template v-slot:activator="{ props }">
           <v-btn
             variant="text"
-            :icon="localSelectedTrip.length === filteredCat.length? 'fa-eye fa' : 'fa-eye-slash fa'"
+            :icon="selectedrGoup.size === filteredChoices.size? 'fa-eye fa' : 'fa-eye-slash fa'"
             class="ma-2"
             :style="{color: 'white'}"
             v-bind="props"
             @click="showAll()"
           />
         </template>
-        <span>{{ localSelectedTrip.length ===filteredCat.length ? $gettext("Hide All"): $gettext("Show All") }}</span>
+        <span>{{ selectedrGoup.size ===filteredChoices.size ? $gettext("Hide All"): $gettext("Show All") }}</span>
       </v-tooltip>
       <v-tooltip
         location="bottom"
@@ -143,7 +140,7 @@ async function deleteButton (group: string, message: string) {
             icon="fas fa-list"
             class="ma-2"
             :style="{color: 'white'}"
-            :disabled="localSelectedTrip.length===0? true: false"
+            :disabled="selectedrGoup.size===0? true: false"
 
             v-bind="props"
             @click="editVisible()"
@@ -204,8 +201,8 @@ async function deleteButton (group: string, message: string) {
       <v-list-item>
         <div :style="{'padding-top': '0.5rem'}">
           <v-select
-            v-model="vmodelSelectedFilter"
-            :items="filterChoices.sort()"
+            v-model="selectedrFilter"
+            :items="attributesList.sort()"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"
             variant="outlined"
@@ -217,17 +214,17 @@ async function deleteButton (group: string, message: string) {
       </v-list-item>
 
       <v-virtual-scroll
-        :items="filteredCat"
+        :items="[...filteredChoices]"
         :item-height="45"
         :max-height="roadEditionMode? 'calc(100vh - 250px - 110px)': 'calc(100vh - 250px - 70px)'"
       >
         <template v-slot="{ item }">
           <div
-            :key="vmodelSelectedFilter.concat(item)"
+            :key="selectedrFilter.concat(item)"
             class="container"
           >
             <v-checkbox-btn
-              v-model="localSelectedTrip"
+              v-model="selectedrGoupProxy"
               class="ma-2 pl-2"
               :true-icon="'fa-eye fa'"
               :false-icon="'fa-eye-slash fa'"
@@ -235,7 +232,7 @@ async function deleteButton (group: string, message: string) {
               :value="item"
             />
             <div class="ma-2 item">
-              {{ item }}
+              {{ formatName(item) }}
             </div>
 
             <v-tooltip
@@ -271,7 +268,7 @@ async function deleteButton (group: string, message: string) {
                   @click="deleteButton(item, item)"
                 />
               </template>
-              <span>{{ $gettext("Delete Line") }}</span>
+              <span>{{ $gettext("Delete All") }}</span>
             </v-tooltip>
           </div>
         </template>
@@ -332,9 +329,14 @@ async function deleteButton (group: string, message: string) {
       :confirm-button="$gettext('Delete')"
       confirm-color="primary"
     />
-  </section>
+  </div>
 </template>
 <style lang="scss" scoped>
+
+.side-panel{
+  width:100%;
+  flex-direction: column;
+}
 
 .header{
   display:flex;
@@ -377,19 +379,7 @@ async function deleteButton (group: string, message: string) {
 .v-list__tile {
   padding: 0
 }
-.left-panel-toggle-btn {
-  left: 100%;
-  width: 25px;
-  z-index: 1;
-  background-color: $primary-dark;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  height: 50px;
-  transition: 0.3s;
-  cursor: pointer;
-}
+
 .left-panel-title {
   height: 50px;
   line-height: 55px;

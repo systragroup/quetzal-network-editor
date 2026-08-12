@@ -9,6 +9,7 @@ import { useForm } from '@src/composables/UseForm'
 import { getGroupForm } from '@src/utils/utils'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
+import { AttributeTypes } from '@src/types/typesStore'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -20,6 +21,8 @@ const { showDialog, selectedArr } = useForm()
 const layer = computed(() => odStore.layer)
 const lineAttributes = computed(() => odStore.layerAttributes)
 const exclusionList = computed(() => Object.keys(editorForm.value) || [])
+
+const typesMap = computed(() => Object.fromEntries(odStore.defaultAttributes.map(el => [el.name, el.type])))
 
 const attributeNonDeletable = ref(['index'])
 const rules = {}
@@ -68,10 +71,10 @@ async function saveAndQuit() {
 }
 
 // add
-function addField (newFieldName: string) {
+function addField (newFieldName: string, dtype: AttributeTypes) {
   if (newFieldName) {
     editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
-    odStore.addPropertie(newFieldName)
+    odStore.addPropertie({ name: newFieldName, type: dtype })
   }
 }
 
@@ -122,6 +125,8 @@ function ToggleDeleteOption () {
           :show-delete-option="showDeleteOption"
           :hints="hints"
           :rules="rules"
+          :types="typesMap"
+
           :attribute-non-deletable="attributeNonDeletable"
           @delete-field="deleteField"
         />

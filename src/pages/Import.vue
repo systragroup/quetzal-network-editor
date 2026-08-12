@@ -119,25 +119,16 @@ async function loadFilesFromS3 () {
   try {
     let filesList = await s3.listFiles(model, scen)
     filesList = filesList.filter(name => !name.endsWith('/'))
+    // only read files we want to read (not others inputs and outputs)
+    const filesToRead = ['inputs/params.json', 'styles.json', 'info.json', 'params.json', 'inputs/modelConfig.json']
     for (const file of filesList) {
       const name = file.slice(scen.length) // remove scen name from file
-      // take knowned files (styles and attributesChoices, params.json)
-      if (name === 'inputs/params.json') {
-        const content = await s3.readJson(model, file)
-        res.push({ path: name, content })
-      } else if (name === 'styles.json') {
-        const content = await s3.readJson(model, file)
-        res.push({ path: name, content })
-      } else if (name === 'info.json') {
-        const content = await s3.readJson(model, file)
-        res.push({ path: name, content })
-      } else if (name === 'attributesChoices.json') {
+      if (filesToRead.includes(name)) {
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
       } else if (name.endsWith('params.json')) { // microservices params
         const content = await s3.readJson(model, file)
         res.push({ path: name, content })
-        // take PT and road network and od (ending en geojson)
       } else if ((name.startsWith('inputs/pt/') || name.startsWith('inputs/road/') || name.startsWith('inputs/od/'))
       && (name.endsWith('.geojson'))) {
         const content = await s3.readJson(model, file)

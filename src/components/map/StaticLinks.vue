@@ -1,25 +1,37 @@
 <!-- eslint-disable no-return-assign -->
-<script setup>
+<script setup lang="ts">
 import { MglGeojsonLayer, MglPopup, MglImageLayer } from 'vue-mapbox3'
-import mapboxgl from 'mapbox-gl'
+import mapboxgl, { GeoJSONSource, Map, MapMouseEvent, PointLike, Popup } from 'mapbox-gl'
 import { deleteUnusedNodes } from '@src/utils/utils'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
 import { useHighlight } from '../../composables/useHighlight'
-import { baseLineString, basePoint } from '@src/types/geojson'
-const props = defineProps(['map', 'isEditorMode', 'mode'])
-const store = useIndexStore()
-const linksStore = useLinksStore()
+import { baseLineString, basePoint, LineStringFeatures } from '@src/types/geojson'
+interface Props {
+  map: Map
+  isEditorMode: boolean
+  mode: 'pt' | 'road' | 'od'
+}
+const props = defineProps<Props>()
 const { map, isEditorMode, mode } = toRefs(props)
 
-const contextMenu = ref({
+const store = useIndexStore()
+const linksStore = useLinksStore()
+
+interface ContextMenu {
+  coordinates: number[]
+  showed: boolean
+  featuresIndex: string[]
+  action?: 'editTrip' | 'editProperties'
+}
+
+const contextMenu = ref<ContextMenu>({
   coordinates: [0, 0],
   showed: false,
-  features: [],
+  featuresIndex: [],
 })
 
-// immediate necessary to trigger this (add doubleClick) when component is remounted (changing there for example)
 watch(isEditorMode, (val) => {
   if (val) {
     contextMenu.value.showed = false
@@ -27,12 +39,16 @@ watch(isEditorMode, (val) => {
   } else {
     map.value.on('dblclick', selectLine)
   }
-}, { immediate: true })
-
-watch(mode, (val) => {
-  val !== 'pt' ? map.value.off('dblclick', selectLine) : map.value.on('dblclick', selectLine)
-  contextMenu.value.showed = false
 })
+// immediate to add dblclick on mount
+watch(mode, (val) => {
+  if (val === 'pt') {
+    map.value.on('dblclick', selectLine)
+  } else {
+    map.value.off('dblclick', selectLine)
+  }
+  contextMenu.value.showed = false
+}, { immediate: true })
 
 const links = computed(() => { return linksStore.links })
 const nodes = computed(() => { return linksStore.nodes })
@@ -43,7 +59,7 @@ watch(showedTrips, () => { setHiddenFeatures() })
 const visibleNodes = ref(basePoint())
 const visibleLinks = ref(baseLineString())
 
-const selectedFeatures = ref([])
+const selectedFeatures = ref<LineStringFeatures[]>([])
 
 onMounted(() => {
   setHiddenFeatures()
@@ -57,7 +73,7 @@ function setHiddenFeatures () {
   // get all unique width
   const widthArr = [...new Set(visibleLinks.value.features.map(item => Number(item.properties.route_width)))]
   // create a dict {width:[node_index]}
-  const widthDict = {}
+  const widthDict: Record<string, Set<number>> = {}
   widthArr.forEach(key => widthDict[key] = new Set())
   visibleLinks.value.features.map(item =>
     [item.properties.a, item.properties.b].forEach(
@@ -77,70 +93,73 @@ function setHiddenFeatures () {
     visibleNodes.value.features.push(...newNodes)
   })
   linksStore.setVisibleNodes(visibleNodes.value)
-  map.value.getSource('links').setData(visibleLinks.value)
-  map.value.getSource('nodes').setData(visibleNodes.value)
+  const linkSource = map.value.getSource('links') as GeoJSONSource
+  if (linkSource) linkSource.setData(visibleLinks.value)
+  const nodeSource = map.value.getSource('nodes') as GeoJSONSource
+  if (nodeSource) nodeSource.setData(visibleNodes.value)
 }
 
-const popup = ref(null)
+const popup = ref<Popup>()
 
-function enterLink (event) {
+function enterLink (event: CustomMapEvent) {
   event.map.getCanvas().style.cursor = 'pointer'
-  selectedFeatures.value = event.mapboxEvent.features
-
+  const features = event.mapboxEvent.features
+  if (features) {
+    selectedFeatures.value = features as LineStringFeatures[]
+  }
   if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
   if (selectedPopupContent.value.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
     // if multiple map element under the mouse. show them all in the popup
-    let htmlContent = []
+    let htmlContent: string[] = []
     selectedFeatures.value.forEach(feature => {
       const text = selectedPopupContent.value.map(prop => `${prop}: <b>${feature.properties[prop]}</b>`)
       htmlContent.push(...text)
     })
-    htmlContent = htmlContent.join('<br> ')
+    const content = htmlContent.join('<br> ')
     popup.value = new mapboxgl.Popup({ closeButton: false })
       .setLngLat([event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat])
-      .setHTML(`<p>${htmlContent}</p>`)
+      .setHTML(`<p>${content}</p>`)
       .addTo(event.map)
   }
 }
-function leaveLink (event) {
+function leaveLink (event: CustomMapEvent) {
   selectedFeatures.value = []
   if (popup.value?.isOpen()) popup.value.remove()
   event.map.getCanvas().style.cursor = ''
 }
 
-function selectLine (e) {
+function selectLine (e: MapMouseEvent) {
   if (mode.value === 'pt') {
     e.preventDefault() // prevent map control
     // if we are not hovering. select closest link (within 5 pixels)
     if (selectedFeatures.value.length === 0) {
       // Set `bbox` as 5px reactangle area around clicked point.
-      const bbox = [
+      const bbox: [PointLike, PointLike] = [
         [e.point.x - 5, e.point.y - 5],
         [e.point.x + 5, e.point.y + 5],
       ]
       // Find features intersecting the bounding box.
-      selectedFeatures.value = map.value.queryRenderedFeatures(bbox, {
-        layers: ['links'],
-      })
+      const queryFeatures = map.value.queryRenderedFeatures(bbox, { layers: ['links'] }) as LineStringFeatures[]
+      selectedFeatures.value = queryFeatures
     }
     // do nothing if nothing is clicked (clicking on map, not on a link)
     if (selectedFeatures.value.length == 1) {
       linksStore.setEditorTrip(selectedFeatures.value[0].properties.trip_id)
       store.changeNotification({ text: '', autoClose: true })
     } else if (selectedFeatures.value.length > 1) {
-      let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
+      let selectedTrips: string[] = selectedFeatures.value.map(el => el.properties.trip_id)
       selectedTrips = Array.from(new Set(selectedTrips))
       contextMenu.value.coordinates = [e.lngLat.lng, e.lngLat.lat]
       contextMenu.value.showed = true
       contextMenu.value.action = 'editTrip'
-      contextMenu.value.features = selectedTrips
+      contextMenu.value.featuresIndex = selectedTrips
     }
   }
 }
 
-function rightClick (event) {
+function rightClick (event: CustomMapEvent) {
   if (mode.value === 'pt') {
-    let selectedTrips = selectedFeatures.value.map(el => el.properties.trip_id)
+    let selectedTrips: string[] = selectedFeatures.value.map(el => el.properties.trip_id)
     selectedTrips = Array.from(new Set(selectedTrips))
     leaveLink(event)
     if (selectedTrips.length === 1) {
@@ -149,22 +168,24 @@ function rightClick (event) {
       contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
       contextMenu.value.showed = true
       contextMenu.value.action = 'editProperties'
-      contextMenu.value.features = selectedTrips
+      contextMenu.value.featuresIndex = selectedTrips
     }
   }
 }
 
 import { useForm } from '@src/composables/UseForm'
+import { CustomMapEvent } from '@src/types/mapbox'
+import { cloneDeep } from 'lodash'
 const { openDialog } = useForm()
 
-function editLineProperties (selectedTrip) {
+function editLineProperties (selectedTrip: string) {
   linksStore.setEditorTrip(selectedTrip)
   openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false, type: 'pt' })
 }
 
-const { highlightTrip, setHighlightTrip } = useHighlight()
+const { highlightTrip, setHighlightTrip, getColor } = useHighlight()
 
-function contextMenuClick(trip) {
+function contextMenuClick(trip: string) {
   if (contextMenu.value.action === 'editProperties') {
     editLineProperties(trip)
     contextMenu.value.showed = false
@@ -176,10 +197,16 @@ function contextMenuClick(trip) {
     setHighlightTrip(null)
   }
 }
+
+const highlightColor = ref<string>(getColor(undefined))
+
 watch(highlightTrip, (trip) => {
   const highlightLinks = baseLineString()
-  highlightLinks.features = visibleLinks.value.features.filter(el => el.properties.trip_id === trip)
-  map.value.getSource('highlightLink').setData(highlightLinks)
+  const selected = cloneDeep(visibleLinks.value.features.filter(el => el.properties.trip_id === trip))
+  highlightLinks.features = selected
+  highlightColor.value = getColor(selected[0]?.properties.route_color)
+  const source = map.value.getSource('highlightLink') as GeoJSONSource
+  if (source) source.setData(highlightLinks)
 })
 
 </script>
@@ -250,7 +277,6 @@ watch(highlightTrip, (trip) => {
       :source="{
         type: 'geojson',
         data: baseLineString(),
-        promoteId: 'index',
       }"
       layer-id="highlightLink"
       :layer="{
@@ -258,15 +284,13 @@ watch(highlightTrip, (trip) => {
         minzoom: 1,
         maxzoom: 18,
         paint: {
-          'line-color': $vuetify.theme.current.colors.linksprimary,
+          'line-color': highlightColor,
           'line-opacity': 1,
           'line-width': 5,
         },
-        layout: { 'line-cap': 'round', }
       }"
-      v-on="isEditorMode ? {mouseenter:()=>{},mouseleave:()=>{},contextmenu:()=>{} } :
-        { mouseenter: enterLink, mouseleave: leaveLink, contextmenu:rightClick }"
     />
+
     <MglImageLayer
       source-id="highlightLink"
       type="symbol"
@@ -284,7 +308,7 @@ watch(highlightTrip, (trip) => {
           'icon-rotate': 90
         },
         paint: {
-          'icon-color': $vuetify.theme.current.colors.linksprimary,
+          'icon-color':highlightColor,
         }
       }"
     />
@@ -301,7 +325,7 @@ watch(highlightTrip, (trip) => {
         >
           <v-list-item-title class="title">{{ $gettext('Select a Trip') }}</v-list-item-title>
           <v-list-item
-            v-for="(trip,key) in contextMenu.features"
+            v-for="(trip,key) in contextMenu.featuresIndex"
             :key="key"
             class="popup-content"
           >
@@ -311,7 +335,7 @@ watch(highlightTrip, (trip) => {
               class="popup-content"
               block
               @mouseenter="setHighlightTrip(trip)"
-              @mouseleave="setHighlightTrip()"
+              @mouseleave="setHighlightTrip(null)"
               @click="contextMenuClick(trip)"
             >
               {{ $gettext(trip) }}

@@ -116,7 +116,6 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
     const filesToCopy = [
       prefix + 'inputs/params.json',
       prefix + 'styles.json',
-      prefix + 'attributesChoices.json',
     ]
     response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
   } else {
@@ -225,23 +224,36 @@ async function readInfo (bucket, scen) {
   }
 }
 
+async function checkIfFileExists(bucket, key) {
+  try {
+    // If this succeeds, the file exists
+    await s3Client.headObject({ Bucket: bucket, Key: key })
+    return true
+  } catch (error) {
+    // S3 returns a 'NotFound' error name if the object is missing
+    if (error.name === 'NotFound') {
+      return false
+    }
+    // Re-throw any other errors (e.g., 403 Forbidden / invalid credentials)
+    throw error
+  }
+}
+
 async function getScenario (bucket) {
   // list all files in bucket
   const params = { Bucket: bucket, encodingType: 'url' }
   let moreToLoad = true
   const list = []
-  try {
-    while (moreToLoad) {
-      const { Contents, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
-      list.push(...Contents)
-      moreToLoad = IsTruncated
-      params.ContinuationToken = NextContinuationToken
-    }
-  } catch (err) { return [] }
 
+  while (moreToLoad) {
+    const { Contents, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
+    list.push(...Contents)
+    moreToLoad = IsTruncated
+    params.ContinuationToken = NextContinuationToken
+  }
+  if (list.length === 0) return []
   // get list of scenarios (unique prefix)
   const scenarios = Array.from(new Set(list.map(name => name.Key.split('/')[0])))
-  // scenarios = scenarios.filter(scen => scen !== 'quenedi.config.json')
   const scenList = []
   for (const scen of scenarios) {
     let files = list.filter(item => item.Key.startsWith(scen + '/'))
@@ -249,8 +261,6 @@ async function getScenario (bucket) {
     const lockedList = files.filter(item => item.Key.startsWith(scen + '/.lock'))
     const isLocked = lockedList.length > 0 || scen === 'base'
 
-    // remove attributesChoices as an admin could changed it on every projects.
-    files = files.filter(file => !file.Key.endsWith('/attributesChoices.json'))
     const maxDateObj = files.reduce((prev, current) => (prev.LastModified > current.LastModified) ? prev : current, [])
     const maxDate = maxDateObj.LastModified.toLocaleDateString() + ' ' + maxDateObj.LastModified.toLocaleTimeString()
     const timestamp = maxDateObj.LastModified.getTime()
@@ -322,4 +332,5 @@ export default {
   uploadObject,
   getChecksum,
   readInfo,
+  checkIfFileExists,
 }

@@ -13,7 +13,7 @@ msgstr ""
 "Generated-By: easygettext\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/components/microservices/MatrixRoadCaster.vue:215
+#: src/components/microservices/MatrixRoadCaster.vue:229
 msgid ""
 "\n"
 "# ML Matrix Road Caster\n"
@@ -40,7 +40,7 @@ msgid " deleted"
 msgstr " supprimé "
 
 #: src/components/microservices/MapMatching.vue:247
-#: src/components/microservices/MatrixRoadCaster.vue:290
+#: src/components/microservices/MatrixRoadCaster.vue:305
 msgid " minutes remaining"
 msgstr " minutes restantes"
 
@@ -109,7 +109,7 @@ msgstr ""
 
 #: src/components/map/sidePanel/SidePanelBottom.vue:36
 #: src/components/microservices/MapMatching.vue:244
-#: src/components/microservices/MatrixRoadCaster.vue:287
+#: src/components/microservices/MatrixRoadCaster.vue:302
 #: src/components/microservices/Transit.vue:294
 #: src/components/run/RunStepper.vue:175
 msgid "Abort"
@@ -133,12 +133,12 @@ msgstr "Ajouter les indicateurs sur les liens routiers"
 msgid "already exist"
 msgstr "Le champ existe déjà"
 
-#: src/pages/Import.vue:202
+#: src/pages/Import.vue:201
 msgid "An error occur fetching example on github"
 msgstr ""
 "Une erreur s'est produite lors de la récupération de l'exemple sur github"
 
-#: src/components/import/ScenariosExplorer.vue:490
+#: src/components/import/ScenariosExplorer.vue:500
 msgid "Any unsaved changes to %{sc} will be lost"
 msgstr "Toutes les modifications non enregistrées à %{sc} seront perdues"
 
@@ -158,7 +158,7 @@ msgstr "Arrivées"
 msgid "at least 8 character long"
 msgstr "Au moins 8 caractères de long"
 
-#: src/components/map/Settings.vue:19
+#: src/components/map/Settings.vue:21
 msgid "Automatically Compute"
 msgstr "Calculé automatiquement"
 
@@ -181,8 +181,8 @@ msgstr "Annuler"
 #: src/components/map/Dialog/LinksEditDialog.vue:355
 #: src/components/map/Dialog/LinksEditDialog.vue:390
 #: src/components/map/Dialog/ODEditDialog.vue:154
-#: src/components/map/Dialog/RoadsEditDialog.vue:318
-#: src/components/map/Settings.vue:248
+#: src/components/map/Dialog/RoadsEditDialog.vue:333
+#: src/components/map/Settings.vue:250
 #: src/components/results/ResultsSettings.vue:490
 msgid "Cancel"
 msgstr "Annuler"
@@ -191,11 +191,11 @@ msgstr "Annuler"
 msgid "cannot add empty field"
 msgstr "impossible d'ajouter un champ vide"
 
-#: src/components/microservices/MapSelector.vue:150
+#: src/components/microservices/MapSelector.vue:152
 msgid "Cannot delete anymore"
 msgstr "Nombre de point minimum. Impossible de supprimer d'avantage"
 
-#: src/components/microservices/MapSelector.vue:153
+#: src/components/microservices/MapSelector.vue:155
 msgid "cannot delete first point of polygon"
 msgstr "Le premier point du polygone ne peut pas être supprimé"
 
@@ -203,18 +203,18 @@ msgstr "Le premier point du polygone ne peut pas être supprimé"
 msgid "Cannot duplicate: trip_id already exist"
 msgstr "duplication impossible. Le trip_id existe déjà"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:336
+#: src/components/map/sidePanel/LinksSidePanel.vue:335
 msgid ""
 "Cannot filter by this field as it result in %{res} groups. max is %{maxSize} "
 msgstr ""
 "Impossible de filtrer par ce champ puisqu'il crée {res} groupes sur un "
 "maximum de %{maxSize}"
 
-#: src/components/import/ScenariosExplorer.vue:155
+#: src/components/import/ScenariosExplorer.vue:165
 msgid "cannot have / in name"
 msgstr "Interdit d'avoir / dans le nom"
 
-#: src/components/import/ScenariosExplorer.vue:156
+#: src/components/import/ScenariosExplorer.vue:166
 msgid "cannot have # in name"
 msgstr "interdit d'avoir # dans le nom"
 
@@ -246,7 +246,7 @@ msgstr "Cliquer sur la carte pour commencer"
 msgid "Click to add points. Right click de remove"
 msgstr "Clique pour ajouter un point, clique droit pour supprimer"
 
-#: src/App.vue:60
+#: src/App.vue:62
 msgid "Close"
 msgstr "Fermer"
 
@@ -278,11 +278,11 @@ msgstr "confirmer mot de passe"
 msgid "convert"
 msgstr "convertir"
 
-#: src/components/import/ScenariosExplorer.vue:190
+#: src/components/import/ScenariosExplorer.vue:201
 msgid "copy"
 msgstr "copier"
 
-#: src/components/import/ScenariosExplorer.vue:189
+#: src/components/import/ScenariosExplorer.vue:200
 msgid "Copy %{sc}?"
 msgstr "Copier %{sc}?"
 
@@ -293,7 +293,7 @@ msgstr ""
 "La simulation n'a pas pu être lancé ou sauvegardé. Déjà lancé par un autre "
 "utilisateur."
 
-#: src/components/import/ScenariosExplorer.vue:162
+#: src/components/import/ScenariosExplorer.vue:173
 #: src/components/layout/Profile.vue:373
 msgid "create"
 msgstr "Créer"
@@ -302,7 +302,7 @@ msgstr "Créer"
 msgid "create a new user in your user group"
 msgstr ""
 
-#: src/pages/ResultMap.vue:330
+#: src/pages/ResultMap.vue:364
 msgid "Create or modify preset"
 msgstr "Créer ou modifier un préréglage"
 
@@ -326,11 +326,11 @@ msgstr "échelle personnalisée"
 msgid "customize to inputs values"
 msgstr "personnaliser l'échelle"
 
-#: src/components/map/EditorLinks.vue:198
+#: src/components/map/EditorLinks.vue:183
 msgid "Cut After Node"
 msgstr "Couper après l'arrêt"
 
-#: src/components/map/EditorLinks.vue:197
+#: src/components/map/EditorLinks.vue:182
 msgid "Cut Before Node"
 msgstr "Couper avant l'arrêt"
 
@@ -342,7 +342,7 @@ msgstr "Données récupérées de"
 msgid "Data not found: "
 msgstr "Données introuvables: "
 
-#: src/components/microservices/MatrixRoadCaster.vue:212
+#: src/components/microservices/MatrixRoadCaster.vue:226
 msgid "datetime must be in the future"
 msgstr "la date et l'heure doivent être dans le future"
 
@@ -354,49 +354,52 @@ msgstr "jour"
 msgid "delete"
 msgstr "Supprimer "
 
-#: src/components/import/ScenariosExplorer.vue:270
-#: src/components/map/sidePanel/LinksSidePanel.vue:589
+#: src/components/import/ScenariosExplorer.vue:281
+#: src/components/map/sidePanel/LinksSidePanel.vue:588
 #: src/components/map/sidePanel/ODSidePanel.vue:250
-#: src/components/map/sidePanel/RoadSidePanel.vue:332
-#: src/pages/ResultMap.vue:342
+#: src/components/map/sidePanel/RoadSidePanel.vue:329
+#: src/pages/ResultMap.vue:376
 msgid "Delete"
 msgstr "Supprimer "
 
-#: src/pages/ResultMap.vue:341
+#: src/pages/ResultMap.vue:375
 msgid "Delete %{name}?"
 msgstr "Supprimer %{name}?"
 
-#: src/components/import/ScenariosExplorer.vue:269
-#: src/components/map/sidePanel/LinksSidePanel.vue:588
+#: src/components/import/ScenariosExplorer.vue:280
+#: src/components/map/sidePanel/LinksSidePanel.vue:587
 #: src/components/map/sidePanel/ODSidePanel.vue:249
-#: src/components/map/sidePanel/RoadSidePanel.vue:331
+#: src/components/map/sidePanel/RoadSidePanel.vue:328
 msgid "Delete %{sc}?"
 msgstr "Supprimer %{sc}?"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:411
+#: src/components/map/sidePanel/RoadSidePanel.vue:271
+msgid "Delete All"
+msgstr "Supprimer tout "
+
+#: src/components/map/sidePanel/LinksSidePanel.vue:410
 msgid "Delete Group"
 msgstr "Supprimer le groupe"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:511
+#: src/components/map/sidePanel/LinksSidePanel.vue:510
 #: src/components/map/sidePanel/ODSidePanel.vue:234
-#: src/components/map/sidePanel/RoadSidePanel.vue:274
 msgid "Delete Line"
 msgstr "Supprimer"
 
-#: src/components/map/ODMap.vue:166
+#: src/components/map/ODMap.vue:163
 msgid "Delete OD"
 msgstr "Supprimer "
 
-#: src/components/map/RoadLinks.vue:343
+#: src/components/map/RoadLinks.vue:414
 msgid "Delete rLink"
 msgstr "Supprimer"
 
-#: src/components/map/RoadLinks.vue:334 src/components/map/RoadLinks.vue:367
+#: src/components/map/RoadLinks.vue:405 src/components/map/RoadLinks.vue:438
 msgid "Delete Selected"
 msgstr "Supprimer la selection"
 
-#: src/components/map/EditorLinks.vue:191
-#: src/components/map/EditorLinks.vue:199
+#: src/components/map/EditorLinks.vue:176
+#: src/components/map/EditorLinks.vue:184
 msgid "Delete Stop"
 msgstr "Supprimer l'arrêt"
 
@@ -426,11 +429,15 @@ msgstr ""
 msgid "display zones as 3D extrusion"
 msgstr "afficher les zones en extrusion 3D"
 
-#: src/components/map/Settings.vue:63
+#: src/components/map/Settings.vue:65
 msgid "do not add .zip to the end"
 msgstr "n'ajouté pas de .zip à la fin"
 
-#: src/components/results/ResultsSidePanel.vue:186
+#: src/router/index.js:26
+msgid "Docs"
+msgstr ""
+
+#: src/components/results/ResultsSidePanel.vue:148
 msgid "Dowload presets"
 msgstr "Télécharger les Préréglages"
 
@@ -443,23 +450,23 @@ msgstr "Télécharger"
 msgid "Download"
 msgstr "Télécharger"
 
-#: src/components/microservices/MapSelector.vue:258
+#: src/components/microservices/MapSelector.vue:261
 msgid "Download polygon"
 msgstr "Télécharger le Polygone"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:595
+#: src/components/map/sidePanel/LinksSidePanel.vue:594
 msgid "duplicate"
 msgstr "Dupliquer"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:594
+#: src/components/map/sidePanel/LinksSidePanel.vue:593
 msgid "Duplicate %{sc}?"
 msgstr "Dupliquer %{sc}?"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:492
+#: src/components/map/sidePanel/LinksSidePanel.vue:491
 msgid "Duplicate and reverse"
 msgstr "Dupliquer et inverser"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:608
+#: src/components/map/sidePanel/LinksSidePanel.vue:607
 msgid "duplicate nodes"
 msgstr "Dupliquer les noeuds"
 
@@ -467,41 +474,46 @@ msgstr "Dupliquer les noeuds"
 msgid "duration"
 msgstr "durée"
 
-#: src/components/map/sidePanel/RoadSidePanel.vue:283
+#: src/components/map/sidePanel/RoadSidePanel.vue:280
 msgid "Edit"
 msgstr "Modifier"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:395
+#: src/components/map/sidePanel/LinksSidePanel.vue:394
 msgid "Edit Group Properties"
 msgstr "Modifier les propriétés du groupe"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:541
-#: src/components/map/sidePanel/RoadSidePanel.vue:307
+#: src/components/map/sidePanel/LinksSidePanel.vue:540
+#: src/components/map/sidePanel/RoadSidePanel.vue:304
 msgid "Edit Line geometry"
 msgstr "Modifier La géométrie de la ligne"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:473
+#: src/components/map/sidePanel/LinksSidePanel.vue:472
 #: src/components/map/sidePanel/ODSidePanel.vue:215
-#: src/components/map/sidePanel/RoadSidePanel.vue:256
+#: src/components/map/sidePanel/RoadSidePanel.vue:253
 msgid "Edit Line Properties"
 msgstr "Modifier les propriétés"
 
-#: src/components/map/EditorLinks.vue:190
-#: src/components/map/EditorLinks.vue:196
+#: src/components/map/EditorLinks.vue:170
+#: src/components/map/EditorLinks.vue:175
+#: src/components/map/EditorLinks.vue:181
 msgid "Edit Node Info"
 msgstr "Modifier les infos"
 
-#: src/components/map/ODMap.vue:165
+#: src/components/map/ODMap.vue:162
 msgid "Edit OD Info"
 msgstr "Modifier les infos"
 
-#: src/components/map/Dialog/DialogHeader.vue:22
 #: src/components/map/Dialog/EditScheduleDialog.vue:304
 #: src/components/map/Dialog/ODEditDialog.vue:114
+#: src/components/map/Dialog/RoadsEditDialog.vue:269
 msgid "Edit Properties"
 msgstr "Modifier"
 
-#: src/components/map/RoadLinks.vue:342
+#: src/components/map/Dialog/RoadsEditDialog.vue:268
+msgid "Edit Properties of %{len} links"
+msgstr "Modifier les propriétés de %{len} links"
+
+#: src/components/map/RoadLinks.vue:413
 msgid "Edit rLink Info"
 msgstr "Modifier les infos"
 
@@ -510,13 +522,13 @@ msgstr "Modifier les infos"
 msgid "Edit Schedule"
 msgstr "Modifier l'horaire"
 
-#: src/components/map/RoadLinks.vue:333 src/components/map/RoadLinks.vue:366
+#: src/components/map/RoadLinks.vue:404 src/components/map/RoadLinks.vue:437
 msgid "Edit selected Info"
 msgstr "Modifier la selection"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:253
 #: src/components/map/sidePanel/ODSidePanel.vue:99
-#: src/components/map/sidePanel/RoadSidePanel.vue:152
+#: src/components/map/sidePanel/RoadSidePanel.vue:149
 msgid "Edit Visibles Properties"
 msgstr "Modifier les propriétés des visibles"
 
@@ -528,11 +540,11 @@ msgstr "adresse courriel"
 msgid "email or username"
 msgstr "courriel ou nom d'utilisateur"
 
-#: src/pages/Import.vue:313
+#: src/pages/Import.vue:312
 msgid "Empty all"
 msgstr "Tout vider"
 
-#: src/pages/Import.vue:316
+#: src/pages/Import.vue:315
 msgid "Empty all loaded files and start from scratch"
 msgstr "Vider tout et partir de zéro"
 
@@ -550,17 +562,17 @@ msgstr "Exporter"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:283
 #: src/components/map/sidePanel/ODSidePanel.vue:131
-#: src/components/map/sidePanel/RoadSidePanel.vue:184
+#: src/components/map/sidePanel/RoadSidePanel.vue:181
 msgid "Export All"
 msgstr "Exporter tout"
 
-#: src/components/map/Settings.vue:53
+#: src/components/map/Settings.vue:55
 msgid "Export name"
 msgstr "Nom du fichier"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:291
 #: src/components/map/sidePanel/ODSidePanel.vue:139
-#: src/components/map/sidePanel/RoadSidePanel.vue:192
+#: src/components/map/sidePanel/RoadSidePanel.vue:189
 msgid "Export Only Visible"
 msgstr "Exporter les visibles"
 
@@ -583,7 +595,7 @@ msgstr "le champs ne peut terminer en _r"
 
 #: src/components/map/Dialog/LinksEditDialog.vue:180
 #: src/components/map/Dialog/ODEditDialog.vue:86
-#: src/components/map/Dialog/RoadsEditDialog.vue:166
+#: src/components/map/Dialog/RoadsEditDialog.vue:177
 msgid "Field deleted"
 msgstr "Champ ajouté"
 
@@ -599,10 +611,10 @@ msgstr "Fichier(s) ajouté(s)"
 msgid "Files unloaded"
 msgstr "Fichiers déchargés"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:313
+#: src/components/map/sidePanel/LinksSidePanel.vue:312
 #: src/components/map/sidePanel/ODSidePanel.vue:157
-#: src/components/map/sidePanel/RoadSidePanel.vue:210
-#: src/components/results/ResultsSidePanel.vue:267
+#: src/components/map/sidePanel/RoadSidePanel.vue:207
+#: src/components/results/ResultsSidePanel.vue:229
 msgid "filter"
 msgstr "filtre"
 
@@ -610,7 +622,7 @@ msgstr "filtre"
 msgid "first name"
 msgstr "prénom"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:573
+#: src/components/map/sidePanel/LinksSidePanel.vue:572
 msgid "Follow roads"
 msgstr "Suivre les routes"
 
@@ -640,11 +652,11 @@ msgstr ""
 "Nom complet d'un itinéraire. Ce nom est généralement plus descriptif que "
 "route_short_name et inclut souvent la destination ou l'arrêt de l'itinéraire"
 
-#: src/components/import/ScenariosExplorer.vue:348
+#: src/components/import/ScenariosExplorer.vue:358
 msgid "Go back to model selection"
 msgstr ""
 
-#: src/pages/Import.vue:323
+#: src/pages/Import.vue:322
 msgid "Go!"
 msgstr "Aller!"
 
@@ -654,10 +666,10 @@ msgid "GTFS importer"
 msgstr "GTFS importer"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:235
-#: src/components/map/sidePanel/LinksSidePanel.vue:370
+#: src/components/map/sidePanel/LinksSidePanel.vue:369
 #: src/components/map/sidePanel/ODSidePanel.vue:81
-#: src/components/map/sidePanel/RoadSidePanel.vue:134
-#: src/components/results/ResultsSidePanel.vue:204
+#: src/components/map/sidePanel/RoadSidePanel.vue:131
+#: src/components/results/ResultsSidePanel.vue:166
 msgid "Hide All"
 msgstr "Cacher Tout"
 
@@ -665,7 +677,11 @@ msgstr "Cacher Tout"
 msgid "Hide NaN on map and color map"
 msgstr "Masquer les NaN sur la carte et la légende"
 
-#: src/components/map/EditorLinks.vue:538
+#: src/components/utils/HistorySelector.vue:76
+msgid "History"
+msgstr ""
+
+#: src/components/map/EditorLinks.vue:676
 msgid "Hold left click to drag"
 msgstr "Click gauche pour glisser"
 
@@ -686,7 +702,7 @@ msgstr ""
 msgid "if the road contain a bike path. either yes, no or shared"
 msgstr "si la route contient une piste cyclable. soit oui, non ou partagé"
 
-#: src/router/index.js:25
+#: src/router/index.js:33
 msgid "Import"
 msgstr "Importer"
 
@@ -706,7 +722,7 @@ msgstr ""
 "Indique le type de transport utilisé sur un itinéraire.\n"
 "         subway, metro, rail, bus, ferry, tram, etc"
 
-#: src/components/microservices/MatrixRoadCaster.vue:210
+#: src/components/microservices/MatrixRoadCaster.vue:224
 msgid "invalid date time"
 msgstr "date invalide"
 
@@ -731,7 +747,7 @@ msgstr "Étiquettes"
 msgid "last name"
 msgstr "nom"
 
-#: src/components/results/ResultsSidePanel.vue:225
+#: src/components/results/ResultsSidePanel.vue:187
 msgid "Layer"
 msgstr "Couche"
 
@@ -739,11 +755,11 @@ msgstr "Couche"
 msgid "Layer have no index. Cannot show properties"
 msgstr ""
 
-#: src/components/map/EditorLinks.vue:537
+#: src/components/map/EditorLinks.vue:675
 msgid "Left click to add a stop"
 msgstr "Clique gauche ajouter un arrêt"
 
-#: src/components/map/Map.vue:164
+#: src/components/map/Map.vue:111
 msgid "Left click to add an anchor point, right click to delete"
 msgstr "Clique gauche pour ajouter une ancre, clique droit pour supprimer"
 
@@ -760,7 +776,7 @@ msgid "Legend title"
 msgstr "Title de la légende"
 
 #: src/components/microservices/MapMatching.vue:247
-#: src/components/microservices/MatrixRoadCaster.vue:290
+#: src/components/microservices/MatrixRoadCaster.vue:305
 msgid "less than 1"
 msgstr "moins que 1"
 
@@ -776,15 +792,15 @@ msgstr ""
 msgid "Lines"
 msgstr "Lignes"
 
-#: src/components/map/Settings.vue:37
+#: src/components/map/Settings.vue:39
 msgid "Link field to display when hovering a trip on the map"
 msgstr "Propriété des liens TC à afficher lorsqu'on survole sur la carte"
 
-#: src/components/map/Settings.vue:44
+#: src/components/map/Settings.vue:46
 msgid "Link field to display when hovering road link on the map"
 msgstr "Propriété des routes à afficher lorsqu'on survole sur la carte"
 
-#: src/pages/ResultMap.vue:300
+#: src/pages/ResultMap.vue:334
 msgid "link Properties"
 msgstr "Modifier"
 
@@ -801,15 +817,15 @@ msgstr "longueur de la géometrie (lineString) du liens (mètres)"
 msgid "List of Trips"
 msgstr "Liste des départs"
 
-#: src/components/import/ScenariosExplorer.vue:485
+#: src/components/import/ScenariosExplorer.vue:495
 msgid "Load %{sc} ?"
 msgstr "Charger %{sc}?"
 
-#: src/pages/Import.vue:271
+#: src/pages/Import.vue:270
 msgid "Load Example"
 msgstr "Charger l'exemple"
 
-#: src/pages/Import.vue:261
+#: src/pages/Import.vue:260
 msgid "Load Zip File"
 msgstr "fichier Zip"
 
@@ -817,7 +833,7 @@ msgstr "fichier Zip"
 msgid "login"
 msgstr "Connection"
 
-#: src/components/import/ScenariosExplorer.vue:302
+#: src/components/import/ScenariosExplorer.vue:312
 msgid "Login to access projects"
 msgstr "Se connecter pour les projets"
 
@@ -838,7 +854,7 @@ msgstr ""
 msgid "Manage"
 msgstr "Modifier"
 
-#: src/router/index.js:53
+#: src/router/index.js:61
 msgid "Map"
 msgstr "Carte"
 
@@ -855,7 +871,7 @@ msgstr "valeur maximal sur la palette de couleur"
 msgid "maxWidth"
 msgstr "Largeur max"
 
-#: src/router/index.js:32
+#: src/router/index.js:40
 msgid "Microservices"
 msgstr "Microservices"
 
@@ -873,24 +889,24 @@ msgid "modification aborted"
 msgstr "Modification annulée"
 
 #: src/components/map/Dialog/LinksEditDialog.vue:139
-#: src/components/map/Dialog/RoadsEditDialog.vue:123
-#: src/components/map/Settings.vue:99
+#: src/components/map/Dialog/RoadsEditDialog.vue:134
+#: src/components/map/Settings.vue:101
 #: src/components/map/sidePanel/LinksSidePanel.vue:163
 msgid "modification applied"
 msgstr "Modification Appliquée"
 
-#: src/components/common/EditForm.vue:104
+#: src/components/common/EditForm.vue:106
 msgid "multiple Values"
 msgstr "Valeurs multiples"
 
-#: src/router/index.js:39
+#: src/router/index.js:47
 msgid "Must be logged in"
 msgstr "Doit être connecté"
 
-#: src/components/import/ScenariosExplorer.vue:378
-#: src/components/import/ScenariosExplorer.vue:510
+#: src/components/import/ScenariosExplorer.vue:388
+#: src/components/import/ScenariosExplorer.vue:520
 #: src/components/microservices/GTFSZipImporter.vue:164
-#: src/pages/ResultMap.vue:336
+#: src/pages/ResultMap.vue:370
 msgid "name"
 msgstr "nom"
 
@@ -911,7 +927,7 @@ msgstr "Réseau TC Nécessaire"
 msgid "new field name"
 msgstr "nouveau champ"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:600
+#: src/components/map/sidePanel/LinksSidePanel.vue:599
 msgid "New name"
 msgstr "Nouveau nom"
 
@@ -925,24 +941,24 @@ msgstr "Nouveau mot de passe"
 msgid "New Password"
 msgstr "Nouveau mot de passe"
 
-#: src/components/map/Settings.vue:50
+#: src/components/map/Settings.vue:52
 msgid "New road links Highway property name"
 msgstr "Type de route (Highway) des nouveux liens routiers"
 
-#: src/components/import/ScenariosExplorer.vue:473
+#: src/components/import/ScenariosExplorer.vue:483
 msgid "new scenario"
 msgstr "Nouveau scénario"
 
-#: src/components/import/ScenariosExplorer.vue:162
+#: src/components/import/ScenariosExplorer.vue:173
 msgid "New Scenario"
 msgstr "Nouveau Scénario"
 
-#: src/components/import/ScenariosExplorer.vue:488
+#: src/components/import/ScenariosExplorer.vue:498
 #: src/components/map/Dialog/EditScheduleDialog.vue:497
 #: src/components/map/Dialog/LinksEditDialog.vue:383
 #: src/components/microservices/GTFSWebImporter.vue:301
 #: src/components/microservices/GTFSZipImporter.vue:228
-#: src/components/microservices/OSMImporter.vue:119 src/pages/Import.vue:353
+#: src/components/microservices/OSMImporter.vue:119 src/pages/Import.vue:352
 msgid "No"
 msgstr "Non"
 
@@ -950,7 +966,8 @@ msgstr "Non"
 msgid "No parameters"
 msgstr "Aucun paramètres"
 
-#: src/components/map/Map.vue:360
+#: src/components/map/EditorLinks.vue:389
+#: src/components/map/EditorLinksDraw.vue:142
 msgid "Node already in use by the trip. Cannot replace"
 msgstr "Noeud déjà utilisé par le Trip. Imposible de remplacer"
 
@@ -963,11 +980,11 @@ msgstr "Noeuds"
 msgid "nothing to display"
 msgstr "Rien à afficher"
 
-#: src/pages/ResultPicture.vue:98
+#: src/components/utils/MarkDownViewer.vue:105
 msgid "Nothing to display"
 msgstr "Rien à afficher"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:340
+#: src/components/map/sidePanel/LinksSidePanel.vue:339
 msgid "Nothing to display."
 msgstr "Rien à afficher"
 
@@ -977,11 +994,11 @@ msgid "numStep"
 msgstr "nombre de pas "
 
 #: src/components/map/sidePanel/ODSidePanel.vue:104
-#: src/components/map/sidePanel/SidePanel.vue:117
+#: src/components/map/sidePanel/SidePanel.vue:57
 msgid "OD"
 msgstr "OD"
 
-#: src/components/layout/Profile.vue:373 src/pages/ResultMap.vue:323
+#: src/components/layout/Profile.vue:373 src/pages/ResultMap.vue:357
 msgid "ok"
 msgstr "ok"
 
@@ -1019,7 +1036,7 @@ msgstr ""
 msgid "Parameters"
 msgstr "Paramètres"
 
-#: src/router/index.js:61
+#: src/router/index.js:69
 msgid "Parameters and Run"
 msgstr "Parametres et execution"
 
@@ -1043,7 +1060,7 @@ msgstr ""
 msgid "periods"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:154
+#: src/components/import/ScenariosExplorer.vue:164
 msgid "Please enter a name"
 msgstr "entrer un nom s.v.p"
 
@@ -1067,29 +1084,29 @@ msgstr "La couche du préréglage n'existe pas"
 msgid "Preset Saved"
 msgstr "Préréglage sauvegardé"
 
-#: src/components/results/ResultsSidePanel.vue:135
+#: src/components/results/ResultsSidePanel.vue:97
 msgid "Presets"
 msgstr "Préréglages"
 
 #: src/components/microservices/MapMatching.vue:236
-#: src/components/microservices/MatrixRoadCaster.vue:279
+#: src/components/microservices/MatrixRoadCaster.vue:294
 #: src/components/microservices/Transit.vue:286
 msgid "Process"
 msgstr "Lancer"
 
-#: src/components/import/ScenariosExplorer.vue:157
+#: src/components/import/ScenariosExplorer.vue:168
 msgid "project already exist"
 msgstr "le project existe déjà"
 
-#: src/components/map/Dialog/DialogHeader.vue:31
+#: src/components/map/Dialog/DialogHeader.vue:33
 msgid "property"
 msgstr ""
 
-#: src/components/map/sidePanel/SidePanel.vue:111
+#: src/components/map/sidePanel/SidePanel.vue:51
 msgid "PT"
 msgstr "TC"
 
-#: src/pages/Import.vue:280
+#: src/pages/Import.vue:279
 msgid "PT & Road"
 msgstr "TC et Routes"
 
@@ -1097,11 +1114,11 @@ msgstr "TC et Routes"
 msgid "PT Network"
 msgstr "Réseau TC"
 
-#: src/components/map/Settings.vue:33
+#: src/components/map/Settings.vue:35
 msgid "PT Popup Content"
 msgstr "Contenu du Popup TC"
 
-#: src/pages/Import.vue:288
+#: src/pages/Import.vue:287
 msgid "PT, Road, Zones, OD & Results"
 msgstr "TC, Routes, Zones, OD et Résultats"
 
@@ -1113,17 +1130,22 @@ msgstr "plage de couleurs"
 msgid "Rasters"
 msgstr ""
 
-#: src/components/import/ScenariosExplorer.vue:215
+#: src/components/utils/HistorySelector.vue:107
+msgid "redo (ctrl-y)"
+msgstr ""
+
+#: src/components/import/ScenariosExplorer.vue:226
 msgid "rename"
 msgstr "renommer"
 
-#: src/components/import/ScenariosExplorer.vue:214
+#: src/components/import/ScenariosExplorer.vue:225
 msgid "Rename %{sc}?"
 msgstr "Supprimer %{sc}?"
 
-#: src/components/map/Map.vue:371
-msgid "Replace %{index}"
-msgstr "Remplacer %{index}"
+#: src/components/map/EditorLinks.vue:383
+#: src/components/map/EditorLinksDraw.vue:138
+msgid "Replace %{node} with %{b}?"
+msgstr "Remplacer %{node} avec %{b}?"
 
 #: src/components/import/TreeView.vue:145
 msgid "Replace file inplace"
@@ -1132,9 +1154,13 @@ msgstr "Remplacer le fichier en place"
 #: src/components/common/PasswordInput.vue:16
 #: src/components/layout/Profile.vue:94
 #: src/components/login/ResetPassword.vue:20 src/components/login/Signin.vue:15
-#: src/components/map/Settings.vue:60
+#: src/components/map/Settings.vue:62
 msgid "Required"
 msgstr "Requis"
+
+#: src/components/import/ScenariosExplorer.vue:167
+msgid "reserved name."
+msgstr "nom réservé"
 
 #: src/components/login/ResetPassword.vue:77
 msgid "reset code"
@@ -1144,19 +1170,19 @@ msgstr "code de réinitialisation"
 msgid "Reset Password"
 msgstr "réinitialiser"
 
-#: src/router/index.js:83
+#: src/router/index.js:91
 msgid "Result Table"
 msgstr "Table des Résultats"
 
-#: src/router/index.js:69
+#: src/router/index.js:77
 msgid "Results Map"
 msgstr "Carte des Résultats"
 
-#: src/router/index.js:76
+#: src/router/index.js:84
 msgid "Results Pictures"
 msgstr "images des Résultats"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:604
+#: src/components/map/sidePanel/LinksSidePanel.vue:603
 msgid "reverse"
 msgstr "inverser"
 
@@ -1172,19 +1198,19 @@ msgstr "inverse la palette de couleur"
 msgid "Right click and drag to tilt the map"
 msgstr "Clique droit et glisser pour incliner la carte"
 
-#: src/components/map/EditorLinks.vue:542
+#: src/components/map/EditorLinks.vue:680
 msgid "Right click for context menu"
 msgstr "Clique droit pour modifier"
 
-#: src/components/map/EditorLinks.vue:541
+#: src/components/map/EditorLinks.vue:679
 msgid "Right click to edit properties"
 msgstr "Clique droit pour modifier"
 
-#: src/components/map/sidePanel/SidePanel.vue:114
+#: src/components/map/sidePanel/SidePanel.vue:54
 msgid "Road"
 msgstr "Routes"
 
-#: src/components/map/Settings.vue:47
+#: src/components/map/Settings.vue:49
 msgid "Road Highway name"
 msgstr "Category Highway des nouvelles routes"
 
@@ -1192,15 +1218,15 @@ msgstr "Category Highway des nouvelles routes"
 msgid "Road Network"
 msgstr "Réseau Routier"
 
-#: src/components/map/Settings.vue:40
+#: src/components/map/Settings.vue:42
 msgid "Road Popup Content"
 msgstr "Contenu du Popup routier"
 
-#: src/components/map/Settings.vue:26
+#: src/components/map/Settings.vue:28
 msgid "Road speed"
 msgstr "Vitesse route"
 
-#: src/components/map/sidePanel/RoadSidePanel.vue:157
+#: src/components/map/sidePanel/RoadSidePanel.vue:154
 msgid "Roads"
 msgstr "Routes"
 
@@ -1221,8 +1247,8 @@ msgstr "Sauv..."
 #: src/components/map/Dialog/EditScheduleDialog.vue:486
 #: src/components/map/Dialog/LinksEditDialog.vue:363
 #: src/components/map/Dialog/ODEditDialog.vue:162
-#: src/components/map/Dialog/RoadsEditDialog.vue:326
-#: src/components/map/Settings.vue:256
+#: src/components/map/Dialog/RoadsEditDialog.vue:341
+#: src/components/map/Settings.vue:258
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -1244,15 +1270,15 @@ msgstr "Échelle"
 msgid "scale min"
 msgstr "Échelle"
 
-#: src/components/import/ScenariosExplorer.vue:173
+#: src/components/import/ScenariosExplorer.vue:184
 msgid "Scenario created"
 msgstr "Scénario créé"
 
-#: src/components/import/ScenariosExplorer.vue:278
+#: src/components/import/ScenariosExplorer.vue:289
 msgid "Scenario deleted"
 msgstr "Scénario supprimé"
 
-#: src/components/import/ScenariosExplorer.vue:226
+#: src/components/import/ScenariosExplorer.vue:237
 msgid "scenario renamed"
 msgstr "Scénario renommé"
 
@@ -1264,24 +1290,24 @@ msgstr "Scénario sauvegardé"
 msgid "Scenario Settings"
 msgstr "Paramètres de simulation"
 
-#: src/components/import/ScenariosExplorer.vue:198
+#: src/components/import/ScenariosExplorer.vue:209
 msgid "Scenario successfully copied"
 msgstr "Scénario copié avec succès"
 
-#: src/components/import/ScenariosExplorer.vue:363
-#: src/components/map/sidePanel/LinksSidePanel.vue:326
+#: src/components/import/ScenariosExplorer.vue:373
+#: src/components/map/sidePanel/LinksSidePanel.vue:325
 msgid "search"
 msgstr "recherche"
 
-#: src/components/import/ScenariosExplorer.vue:302
+#: src/components/import/ScenariosExplorer.vue:312
 msgid "Select a Model"
 msgstr "Sélectionner un Modèle"
 
-#: src/components/import/ScenariosExplorer.vue:302
+#: src/components/import/ScenariosExplorer.vue:312
 msgid "Select a Project"
 msgstr "Sélectionner un Projet"
 
-#: src/components/map/StaticLinks.vue:302
+#: src/components/map/StaticLinks.vue:326
 msgid "Select a Trip"
 msgstr "Sélectionner un trip"
 
@@ -1310,7 +1336,7 @@ msgstr "envoyer courriel"
 msgid "set new password"
 msgstr "Envoyer"
 
-#: src/components/map/Settings.vue:160
+#: src/components/map/Settings.vue:162
 #: src/components/results/ResultsSettings.vue:250
 msgid "Settings"
 msgstr "Paramètres"
@@ -1323,7 +1349,7 @@ msgstr ""
 "nom court d'une route. Souvent un identifiant abstrait\n"
 "          et court comme \"32\", \"100X\", or \"verte\""
 
-#: src/components/map/Settings.vue:61
+#: src/components/map/Settings.vue:63
 msgid "should be larger than 0"
 msgstr "devrait être plus grand que 0"
 
@@ -1332,14 +1358,14 @@ msgid "show"
 msgstr "Afficher"
 
 #: src/components/map/sidePanel/LinksSidePanel.vue:235
-#: src/components/map/sidePanel/LinksSidePanel.vue:371
+#: src/components/map/sidePanel/LinksSidePanel.vue:370
 #: src/components/map/sidePanel/ODSidePanel.vue:81
-#: src/components/map/sidePanel/RoadSidePanel.vue:134
-#: src/components/results/ResultsSidePanel.vue:204
+#: src/components/map/sidePanel/RoadSidePanel.vue:131
+#: src/components/results/ResultsSidePanel.vue:166
 msgid "Show All"
 msgstr "Montrer Tout"
 
-#: src/components/map/sidePanel/RoadSidePanel.vue:326
+#: src/components/map/sidePanel/RoadSidePanel.vue:323
 msgid "Show Cycleway direction instead of road"
 msgstr "Montrer la direction des pistes cyclables au lieu des routes"
 
@@ -1380,7 +1406,7 @@ msgstr ""
 "SVP, executer la simulation de nouveau. Si le problème persiste, veuillez "
 "nous contacter."
 
-#: src/components/map/Settings.vue:236
+#: src/components/map/Settings.vue:238
 msgid "Speed"
 msgstr "Vitesse TC"
 
@@ -1388,7 +1414,7 @@ msgstr "Vitesse TC"
 msgid "speed on the link (Km/h)"
 msgstr "vitesse sur le lien (Km/h)"
 
-#: src/components/map/Settings.vue:30
+#: src/components/map/Settings.vue:32
 msgid "Speed used to calculate road travel time when a link is drawn"
 msgstr ""
 "Vitesse utilisé pour calculer le temps de parcours lorsqu'un lien est "
@@ -1410,7 +1436,7 @@ msgstr "Couches Statiques"
 msgid "Station Label"
 msgstr "Étiquette des stations"
 
-#: src/components/map/sidePanel/LinksSidePanel.vue:557
+#: src/components/map/sidePanel/LinksSidePanel.vue:556
 msgid "stick nodes on existing nodes"
 msgstr "coller les noeds aux noeds existant"
 
@@ -1426,17 +1452,17 @@ msgstr "Équipe"
 msgid "temporary password"
 msgstr "mot de passe temporaire"
 
-#: src/components/map/Settings.vue:57
+#: src/components/map/Settings.vue:59
 msgid "the name of the exported zip file"
 msgstr "Le nom du fichier .zip à l'export."
 
-#: src/components/import/ScenariosExplorer.vue:498
+#: src/components/import/ScenariosExplorer.vue:508
 msgid "The scenario will be permanently deleted"
 msgstr "Le scénario sera supprimé définitivement"
 
 #: src/components/map/Dialog/LinksEditDialog.vue:187
 #: src/components/map/Dialog/ODEditDialog.vue:93
-#: src/components/map/Dialog/RoadsEditDialog.vue:173
+#: src/components/map/Dialog/RoadsEditDialog.vue:184
 msgid "This action will delete properties on every links or nodes"
 msgstr "Cette action supprimera les propriétés sur tous les liens"
 
@@ -1452,7 +1478,7 @@ msgstr "Ce scénario est protégé. L'execution de la simulation est bloquée."
 msgid "This will permanently delete the user account."
 msgstr "le compte utilisateur sera supprimé définitivement"
 
-#: src/components/map/Settings.vue:232
+#: src/components/map/Settings.vue:234
 msgid "Time"
 msgstr "Temps"
 
@@ -1484,15 +1510,19 @@ msgstr "Trip dupliqué"
 msgid "undefined"
 msgstr "indéfini"
 
-#: src/pages/Import.vue:346
+#: src/components/utils/HistorySelector.vue:92
+msgid "undo (ctrl-z)"
+msgstr ""
+
+#: src/pages/Import.vue:345
 msgid "Unload all files ?"
 msgstr "Décharger tous les fichiers ?"
 
-#: src/components/import/ScenariosExplorer.vue:485
+#: src/components/import/ScenariosExplorer.vue:495
 msgid "Unload Scenario?"
 msgstr "Décharger le scénario?"
 
-#: src/components/microservices/MapSelector.vue:258
+#: src/components/microservices/MapSelector.vue:261
 msgid "Upload a polygon"
 msgstr "Téléversé un Polygone"
 
@@ -1524,11 +1554,11 @@ msgstr "Utilisateur supprimé définitivement"
 msgid "username"
 msgstr "nom d'utilisateur"
 
-#: src/components/map/Dialog/DialogHeader.vue:43
+#: src/components/map/Dialog/DialogHeader.vue:45
 msgid "variant"
 msgstr ""
 
-#: src/components/map/Settings.vue:23
+#: src/components/map/Settings.vue:25
 msgid ""
 "When editing or drawing a network. We can compute (with the length) the time "
 "with the speed or the speed with the time."
@@ -1538,22 +1568,21 @@ msgstr ""
 msgid "width to display on the map"
 msgstr "Largeur à afficher sur la carte"
 
-#: src/components/map/Map.vue:372
-msgid "with %{index}?"
-msgstr "avec %{index}?"
-
-#: src/components/import/ScenariosExplorer.vue:487
+#: src/components/import/ScenariosExplorer.vue:497
 #: src/components/map/Dialog/EditScheduleDialog.vue:496
 #: src/components/map/Dialog/LinksEditDialog.vue:382
 #: src/components/microservices/GTFSWebImporter.vue:308
 #: src/components/microservices/GTFSZipImporter.vue:235
-#: src/components/microservices/OSMImporter.vue:126 src/pages/Import.vue:360
+#: src/components/microservices/OSMImporter.vue:126 src/pages/Import.vue:359
 msgid "Yes"
 msgstr "Oui"
 
 #: src/components/microservices/Transit.vue:70
 msgid "zone connectors"
 msgstr "connecteurs de zone"
+
+#~ msgid "with %{index}?"
+#~ msgstr "avec %{index}?"
 
 #~ msgid "Create"
 #~ msgstr "Créer"
@@ -1798,9 +1827,6 @@ msgstr "connecteurs de zone"
 
 #~ msgid "Continue Without Project"
 #~ msgstr "Continuer sans Projet"
-
-#~ msgid "delete all"
-#~ msgstr "effacer tout "
 
 #~ msgid "Load Zip"
 #~ msgstr "Charger un Zip"

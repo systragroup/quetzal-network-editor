@@ -172,6 +172,9 @@ function zoneHover (event) {
 function zoneLeave (event) {
   event.map.getCanvas().style.cursor = ''
 }
+
+const textSize = ref(20)
+
 </script>
 
 <template>
@@ -273,12 +276,10 @@ function zoneLeave (event) {
           layout: {
             'symbol-placement': 'line',
             'symbol-spacing': 200,
-            'icon-ignore-placement': true,
             'icon-image':'arrow',
             'icon-size': ['*',0.1,['to-number', ['get', 'display_width']]],
             'icon-rotate': 90,
-            'icon-offset': [offsetValue*5,5],
-
+            'icon-offset': [offsetValue*5,0],
           },
           paint: {
             'icon-color':['get', 'display_color'],
@@ -369,12 +370,15 @@ function zoneLeave (event) {
         :layer="{
           type: 'symbol',
           layout: {
+            'text-size':textSize,
             'text-field': ['get', labels],
-            'text-variable-anchor': ['top'],
-            'text-radial-offset': 0.6,
-            'text-justify': 'auto',
+            'symbol-placement': layerType == 'LineString'? 'line-center': 'point',
+            'text-allow-overlap': true,
+            'text-offset': [0, ['+', offsetValue * 0.5, ['*', offsetValue / textSize, ['to-number', ['get', 'display_width']]]]],
           },
-          paint:{'text-color':$vuetify.theme.current.colors.black,}
+          paint:{
+            'text-color':$vuetify.theme.current.colors.black,
+          }
         }"
       />
     </MglMap>

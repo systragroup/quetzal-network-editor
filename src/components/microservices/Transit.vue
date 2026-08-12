@@ -6,14 +6,15 @@ import { useUserStore } from '@src/store/user'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import s3 from '@src/AWSClient'
 import { VariantFormData } from '@src/types/components'
-import VariantForm from '../common/VariantForm.vue'
-import { RunInputs } from '@src/types/api'
+import VariantForm from './common/VariantForm.vue'
+import { RunPayload } from '@src/types/api'
 import Warning from '../utils/Warning.vue'
 import { useODStore } from '@src/store/od'
 import Markdown from '../utils/Markdown.vue'
 import { useGettext } from 'vue3-gettext'
 import { cloneDeep } from 'lodash'
 import { TransitParams, TransitParamsCategory } from '@src/types/typesStore'
+const FUNCTION_NAME = import.meta.env.VITE_TRANSIT_NAME
 
 const { $gettext } = useGettext()
 const indexStore = useIndexStore()
@@ -25,7 +26,6 @@ const odStore = useODStore()
 const linksIsEmpty = computed(() => linksStore.linksIsEmpty)
 const odIsEmpty = computed(() => odStore.layerIsEmpty)
 const running = computed(() => runTransit.running)
-const status = computed(() => runTransit.status)
 const error = computed(() => runTransit.error)
 const errorMessage = computed(() => runTransit.errorMessage)
 const callID = computed(() => runTransit.callID)
@@ -161,24 +161,18 @@ function formatParams() {
 async function start () {
   const resp = await formRef.value.validate()
   if (!resp) { return }
+  runTransit.initExecution()
   saveParams()
-  const userStore = useUserStore()
-  runTransit.running = true
   runTransit.setCallID()
   await exportFiles()
   const params = formatParams()
-  const inputs: RunInputs = {
-    scenario_path_S3: callID.value,
+  const inputs: RunPayload = {
+    scenario_path: callID.value,
     variants: selectedVariants.value,
-    launcher_arg: {
-      training_folder: '/tmp',
-      params: params,
-    },
-    metadata: {
-      user_email: userStore.cognitoInfo?.email,
-    },
+    params: params,
+
   }
-  runTransit.start(inputs)
+  runTransit.startExecution(FUNCTION_NAME, inputs)
 }
 
 async function exportFiles() {
@@ -217,11 +211,10 @@ async function exportFiles() {
   } catch (err: unknown) {
     const store = useIndexStore()
     store.changeAlert(err)
-    runTransit.running = false
   }
 }
 
-function stopRun () { runTransit.stopExecution() }
+function stopRun () { runTransit.stopExecution(FUNCTION_NAME) }
 
 const formRef = ref()
 
@@ -286,7 +279,7 @@ const mdString = `
             {{ $gettext("Process") }}
           </v-btn>
           <v-btn
-            v-show="running && status === 'RUNNING'"
+            v-show="running"
             color="grey"
             variant="text"
             @click="stopRun()"

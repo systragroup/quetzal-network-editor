@@ -8,15 +8,13 @@ import { highwayColor, highwayWidth } from '@constants/highway.js'
 import s3 from '@src/AWSClient'
 import { LineStringGeoJson } from '@src/types/geojson'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET
-const OSM_IMPORTER_ARN = import.meta.env.VITE_OSM_IMPORTER_ARN
 
 export const useOSMStore = defineStore('runOSM', () => {
-  const stateMachineArn = ref(OSM_IMPORTER_ARN)
   const bucket = ref(MICROSERVICES_BUCKET)
   const callID = ref('')
   function setCallID() { callID.value = uuid() }
 
-  const { error, running, errorMessage, status,
+  const { error, running, errorMessage, status, initExecution,
     startExecution, stopExecution, cleanRun } = useAPI()
 
   function reset() {
@@ -25,11 +23,8 @@ export const useOSMStore = defineStore('runOSM', () => {
   }
 
   watch(status, async (val) => {
-    if (val === 'SUCCEEDED') {
-      running.value = true
+    if (val.status === 'SUCCESS') {
       await downloadOSMFromS3()
-      running.value = false
-      status.value = ''
       router.push('/Home').catch(() => {})
     }
   })
@@ -69,7 +64,6 @@ export const useOSMStore = defineStore('runOSM', () => {
   }
 
   return {
-    stateMachineArn,
     bucket,
     selectedHighway,
     extendedCycleway,
@@ -79,6 +73,7 @@ export const useOSMStore = defineStore('runOSM', () => {
     error,
     errorMessage,
     setCallID,
+    initExecution,
     startExecution,
     stopExecution,
     reset,

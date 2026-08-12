@@ -2,6 +2,19 @@ import { FormFormat, GroupForm } from '@src/types/components'
 import { GeoJson, GeoJsonFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
 import { createHash } from 'sha256-uint8array'
 
+export function isDefined<T>(value: T | null | undefined): value is T {
+  // Check if a value is defined (not null or undefined)
+  return value !== null && value !== undefined
+}
+export function isUndefined<T>(value: T | null | undefined): value is T {
+  // Check if a value is defined (not null or undefined)
+  return value === null || value === undefined
+}
+
+export function setsAreEqual<T>(a: Set<T>, b: Set<T>) {
+  return a.size === b.size && [...a].every(x => b.has(x))
+}
+
 // Links Used in all
 
 export function getGroupForm (features: GeoJsonFeatures[], lineAttributes: string[], uneditable: string[]) {
@@ -44,10 +57,24 @@ export function getModifiedKeys(form: GroupForm) {
   },
   )
 }
+export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, any> {
+  return properties.reduce(
+    (dict: Record<string, any>, key: string) => {
+      dict[key] = groupInfo[key].value
+      return dict
+    },
+    {},
+  )
+}
 
 export function isScheduleTrip(link: GeoJsonFeatures | undefined) {
   if (link == undefined) { return false }
   return Array.isArray(link.properties.arrivals)
+}
+
+export function isRoutedLink(link: GeoJsonFeatures | undefined) {
+  if (link == undefined) { return false }
+  return Array.isArray(link.properties.road_link_list)
 }
 
 export function IndexAreDifferent (geojsonA: GeoJson, geojsonB: GeoJson) {
@@ -64,6 +91,15 @@ export function deleteUnusedNodes (nodes: PointGeoJson, links: LineStringGeoJson
   const b = links.features.map(item => item.properties.b)
   const ab = new Set([...a, ...b])
   return nodes.features.filter(node => ab.has(node.properties.index))
+}
+
+export function getUnusedNodes (nodes: PointGeoJson, links: LineStringGeoJson): string[] {
+  // delete every every nodes not in links. return nodes.feautures
+  const a = links.features.map(item => item.properties.a)
+  const b = links.features.map(item => item.properties.b)
+  const ab: Set<string> = new Set([...a, ...b])
+  const indexArr: string[] = nodes.features.map(node => node.properties.index)
+  return getDifference(indexArr, ab)
 }
 
 export function hhmmssToSeconds(timeString: string) {
@@ -134,7 +170,7 @@ function getDuplicates(arr: string[]) {
   return new Set(results)
 }
 
-export function dropDuplicatesIndex(features: any[]) {
+export function dropDuplicatesIndex(features: GeoJsonFeatures[]) {
   // from a list of features (geojson.features) find duplicated index and drop them
   // if everything else is equal. (will not drop nodes with same index but diff geometry)
   const set = getDuplicates(features.map(item => item.properties.index))

@@ -18,10 +18,12 @@ import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
 import { deleteUnusedNodes } from '@src/utils/utils'
-import { FileFormat, GlobalAttributesChoice, ImportPoly, IndexStore,
+import { FileFormat, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
-  Notification, OtherFiles, ProjectInfo, SettingsPayload, Style } from '@src/types/typesStore.js'
-import { migrateStyle } from '@src/migrations/migration.js'
+  ModelConfig,
+  Notification, OtherFiles, ProjectInfo, SettingsPayload, StepPayload, Style } from '@src/types/typesStore.js'
+import { migrateStyle } from '@src/migrations/style.js'
+import { defaultModelConfig } from '@src/constants/properties.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -32,7 +34,11 @@ export const useIndexStore = defineStore('index', {
     alert: {},
     darkMode: false,
     isMobile: false,
-    loading: false,
+    loading: {
+      show: false,
+      progress: 0,
+      title: '',
+    },
     // edition params
     showLeftPanel: true,
     anchorMode: false,
@@ -50,6 +56,7 @@ export const useIndexStore = defineStore('index', {
     projectInfo: { description: '', model_tag: '' },
     otherFiles: [], // [{path, content}]
     docFiles: [], // [{path, content}]
+    modelConfig: cloneDeep(defaultModelConfig),
     // microservices
     importPoly: null,
     microservicesParams: [],
@@ -72,11 +79,10 @@ export const useIndexStore = defineStore('index', {
     changeMobile (payload: boolean) {
       this.isMobile = payload
     },
-    changeLoading (payload: boolean) {
-      this.loading = payload
-    },
-    changeLeftPanel () {
-      this.showLeftPanel = !this.showLeftPanel
+    changeLoading (show: boolean, progress: number = 0, title: string = '') {
+      this.loading.show = show
+      this.loading.progress = progress
+      this.loading.title = title
     },
     setAnchorMode (payload: boolean) {
       this.anchorMode = payload
@@ -124,9 +130,6 @@ export const useIndexStore = defineStore('index', {
         const stylesFile = otherFiles.filter(el => el.path === 'styles.json')[0]
         otherFiles = otherFiles.filter(el => el !== stylesFile)
 
-        const attributesChoicesFile = otherFiles.filter(el => el.path === 'attributesChoices.json')[0]
-        otherFiles = otherFiles.filter(el => el !== attributesChoicesFile)
-
         const infoFile = otherFiles.filter(el => el.path === 'info.json')[0]
         otherFiles = otherFiles.filter(el => el !== infoFile)
 
@@ -157,10 +160,12 @@ export const useIndexStore = defineStore('index', {
         rlinksStore.loadRoadFiles(roadFiles)
         ODStore.loadODFiles(ODFiles)
         if (paramFile) runStore.loadParameters(paramFile.content)
-        if (attributesChoicesFile) { this.loadAttributesChoices(attributesChoicesFile.content) }
+
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
+        const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
+        if (configFile) this.loadModelConfig(configFile.content)
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
@@ -257,11 +262,23 @@ export const useIndexStore = defineStore('index', {
       return file.content
     },
 
-    loadAttributesChoices (payload: GlobalAttributesChoice) {
+    loadModelConfig (payload: ModelConfig) {
+      const config = payload
+      // migrate
+      this.modelConfig = config
       const links = useLinksStore()
       const rlinks = userLinksStore()
-      links.loadLinksAttributesChoices(payload.pt)
-      rlinks.loadrLinksAttributesChoices(payload.road)
+      const attributesChoices = config.attributesChoices
+      if (attributesChoices) {
+        const linksConfig = attributesChoices.links
+        if (linksConfig)links.loadLinksAttributesChoices(linksConfig)
+        const rlinksConfig = attributesChoices.road_links
+        if (rlinksConfig) rlinks.loadrLinksAttributesChoices(rlinksConfig)
+      }
+    },
+    loadmodelSteps(payload: StepPayload[]) {
+      const runstore = useRunStore()
+      runstore.loadModelSteps(payload)
     },
 
     setvisibleLayers (payload: string[]) {
@@ -298,7 +315,8 @@ export const useIndexStore = defineStore('index', {
       const rlinksStore = userLinksStore()
       const linksStore = useLinksStore()
       const userStore = useUserStore()
-      rlinksStore.ChangeDefaultValues({ highway: payload.defaultHighway, speed: Number(payload.roadSpeed) })
+      rlinksStore.ChangeDefaultValues(
+        { highway: payload.defaultHighway, speed: Number(payload.roadSpeed), oneway: payload.roadOneway })
 
       this.speedTimeMethod = payload.speedTimeMethod
       linksStore.speedTimeMethod = payload.speedTimeMethod
@@ -364,6 +382,8 @@ export const useIndexStore = defineStore('index', {
       const runStore = useRunStore()
       const userStore = useUserStore()
       const zip = new JSZip()
+      const now = new Date() // get current datetime in user timezone
+      const date = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
       let links = ''
       let nodes = ''
       let rlinks = ''
@@ -380,9 +400,8 @@ export const useIndexStore = defineStore('index', {
         const tempNodes = cloneDeep(linksStore.nodes)
         tempNodes.features = deleteUnusedNodes(tempNodes, tempLinks)
         nodes = JSON.stringify(tempNodes)
-
-        rlinks = JSON.stringify(rlinksStore.visiblerLinks)
-        rnodes = JSON.stringify(rlinksStore.visiblerNodes)
+        rlinks = JSON.stringify(rlinksStore.getVisibleLinks())
+        rnodes = JSON.stringify(rlinksStore.getVisibleNodes())
         od = JSON.stringify(ODStore.visibleLayer)
       // export everything
       } else {
@@ -395,46 +414,36 @@ export const useIndexStore = defineStore('index', {
       // export only if not empty
       if (JSON.parse(links).features.length > 0) {
         let blob = new Blob([links], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/pt/links.geojson', blob)
+        zip.file('inputs/pt/links.geojson', blob, { date: date })
         blob = new Blob([nodes], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/pt/nodes.geojson', blob)
+        zip.file('inputs/pt/nodes.geojson', blob, { date: date })
       }
       if (JSON.parse(rlinks).features.length > 0) {
         let blob = new Blob([rlinks], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/road/road_links.geojson', blob)
+        zip.file('inputs/road/road_links.geojson', blob, { date: date })
         blob = new Blob([rnodes], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/road/road_nodes.geojson', blob)
+        zip.file('inputs/road/road_nodes.geojson', blob, { date: date })
       }
       if (JSON.parse(od).features.length > 0) {
         const blob = new Blob([od], { type: 'application/json' })
-        // use folder.file if you want to add it to a folder
-        zip.file('inputs/od/od.geojson', blob)
+        zip.file('inputs/od/od.geojson', blob, { date: date })
       }
       if (payload === 'all') {
         if (!runStore.parametersIsEmpty) {
           const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
-          zip.file('inputs/params.json', blob)
+          zip.file('inputs/params.json', blob, { date: date })
         }
         if (this.styles.length > 0) {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
-          zip.file('styles.json', blob)
+          zip.file('styles.json', blob, { date: date })
         }
         if (this.projectInfo) {
           const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
-          zip.file('info.json', blob)
-        }
-        if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged) {
-          const attributesChoices = { pt: linksStore.linksAttributesChoices, road: rlinksStore.rlinksAttributesChoices }
-          const blob = new Blob([JSON.stringify(attributesChoices)], { type: 'application/json' })
-          zip.file('attributesChoices.json', blob)
+          zip.file('info.json', blob, { date: date })
         }
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
           const content = this.getFileContent(file)
-          zip.file(file.path, content)
+          zip.file(file.path, content, { date: date })
         }
       }
       zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
@@ -479,7 +488,6 @@ export const useIndexStore = defineStore('index', {
         params: scen + 'inputs/params.json',
         styles: scen + 'styles.json',
         info: scen + 'info.json',
-        attributesChoices: scen + 'attributesChoices.json',
       }
       // save params
       if (runStore.parameters.length > 0) {
@@ -491,11 +499,6 @@ export const useIndexStore = defineStore('index', {
       }
       if (this.projectInfo) {
         await s3.putObject(bucket, paths.info, JSON.stringify(this.projectInfo))
-      }
-      // save attributes choices if changed
-      if (linksStore.attributesChoicesChanged || rlinksStore.attributesChoicesChanged) {
-        const attributesChoices = { pt: linksStore.linksAttributesChoices, road: rlinksStore.rlinksAttributesChoices }
-        await s3.putObject(bucket, paths.attributesChoices, JSON.stringify(attributesChoices))
       }
       // save PT
       if (linksStore.links.features.length > 0) {
@@ -587,6 +590,7 @@ export const useIndexStore = defineStore('index', {
         && state.styles.length === 0)
     },
     hasDocs: (state) => state.docFiles.length > 0,
+    displayUnits: (state) => state.modelConfig.units || {},
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()

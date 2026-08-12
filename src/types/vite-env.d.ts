@@ -18,3 +18,5 @@ declare module '*.png' {
 }
 
 declare module 'vue-mapbox3'
+
+declare module 'mapbox-gl/dist/mapbox-gl.css'

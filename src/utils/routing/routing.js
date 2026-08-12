@@ -7,8 +7,9 @@ import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import createGraph from 'ngraph.graph'
 import path from 'ngraph.path'
-import { shallowRef, toRaw, computed, watch } from 'vue'
+import { shallowRef, toRaw, computed, watch, onMounted } from 'vue'
 import { calcLengthTimeorSpeed } from '../network'
+import { isRoutedLink } from '../utils.js'
 
 // Global state. Can reuuse thoses anywhere in the app.
 // onMounted. only init if null (so we do it only once.)
@@ -18,9 +19,12 @@ const kdTree = shallowRef(null)
 export function useRouting () {
   const store = useIndexStore()
   const routingMode = computed(() => store.routingMode)
-  watch(routingMode, (val) => {
-    // update graph and tree when routing mode activated. only once (if !kdTree.value)
-    if (val) {
+
+  onMounted(() => init())
+  watch(routingMode, () => init())
+
+  function init() {
+    if (routingMode.value) {
       if (!kdTree.value) {
         updateGraph()
         updateTree()
@@ -29,14 +33,12 @@ export function useRouting () {
       graph.value = createGraph()
       kdTree.value = null
     }
-  })
+  }
 
   const rlinksStore = userLinksStore()
   const linksStore = useLinksStore()
   const rlinks = rlinksStore.rlinks
   const rnodes = rlinksStore.rnodes
-  const links = linksStore.editorLinks
-  const nodes = linksStore.editorNodes
 
   function updateGraph() {
     rlinks.features.forEach(link => {
@@ -212,11 +214,10 @@ export function useRouting () {
     nodeB.geometry.coordinates = snappedB.geometry.coordinates
   }
 
-  function routeLink(link) {
-    const indexA = link.properties.a
-    const indexB = link.properties.b
-    const nodeA = nodes.features.filter(node => node.properties.index === indexA)[0]
-    const nodeB = nodes.features.filter(node => node.properties.index === indexB)[0]
+  function _routeLink(link) {
+    // dont modify object directly
+    const nodeA = link.geometry.coordinates[0]
+    const nodeB = link.geometry.coordinates.slice(-1)[0]
     const anchors = link.properties.anchors || []
     // [1,2,3,4] => [[1,2], [2,3], [3,4]]
     const nodesList = [nodeA, ...anchors, nodeB]
@@ -232,48 +233,64 @@ export function useRouting () {
     link.geometry.coordinates = geomTot
     link.properties.road_link_list = rlinksList
 
-    // this move the nodes on links and crop the Linestring to the nodes.
-    snapToGeom(nodeA, nodeB, link)
-
-    calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
+    return link
   }
 
-  function routing() {
+  function _unrouteLink(link) {
+    // dont modify object directly
+    const nodeA = link.geometry.coordinates[0]
+    const nodeB = link.geometry.coordinates.slice(-1)[0]
+    const anchors = link.properties.anchors || []
+    // [1,2,3,4] => [[1,2], [2,3], [3,4]]
+    const geom = [nodeA, ...anchors, nodeB]
+    link.geometry.coordinates = geom
+    link.properties.road_link_list = undefined
+    return link
+  }
+  // exposed function
+  const links = computed(() => linksStore.editorLinks)
+  const nodes = computed(() => linksStore.editorNodes)
+
+  function routeLink(link) {
+    // route a link. commit changes
+    const routedLink = _routeLink(cloneDeep(link))
+    calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
+
+    const nodeA = cloneDeep(nodes.value.features.filter(node => node.properties.index === routedLink.properties.a)[0])
+    const nodeB = cloneDeep(nodes.value.features.filter(node => node.properties.index === routedLink.properties.b)[0])
+    // this move the nodes on links and crop the Linestring to the nodes.
+    snapToGeom(nodeA, nodeB, routedLink)
+    linksStore.commitChanges({ name: 'Route Link', updateLinks: [routedLink], updateNodes: [nodeA, nodeB] })
+  }
+
+  function unroute(link) {
+    const modifiedLink = _unrouteLink(cloneDeep(link))
+    calcLengthTimeorSpeed(modifiedLink, linksStore.variantChoice, linksStore.speedTimeMethod)
+    linksStore.commitChanges({ name: 'Route Link', updateLinks: [modifiedLink] })
+  }
+
+  function routeAll() {
     if (routingMode.value) {
-      for (const link of links.features) {
+      for (const link of links.value.features) {
         routeLink(link)
       }
     }
   }
-
-  function unRoute() {
-    for (const link of links.features) {
-      const indexA = link.properties.a
-      const indexB = link.properties.b
-      const nodeA = nodes.features.filter(node => node.properties.index === indexA)[0]
-      const nodeB = nodes.features.filter(node => node.properties.index === indexB)[0]
-      const anchors = link.properties.anchors || []
-      // [1,2,3,4] => [[1,2], [2,3], [3,4]]
-      const geom = [nodeA.geometry.coordinates, ...anchors, nodeB.geometry.coordinates]
-      link.geometry.coordinates = geom
-      delete link.properties.road_link_list
-      // delete link.properties.anchors
+  function unrouteAll() {
+    for (const link of links.value.features) {
+      unroute(link)
     }
   }
 
   const isRouted = computed(() => {
-    if (links.features.length === 0) {
-      return false
-    } else {
-      return Object.keys(links.features[0].properties).includes('road_link_list') }
+    return isRoutedLink(links.value.features[0])
   })
 
   function toggleRouting() {
     if (isRouted.value) {
-      unRoute()
+      unrouteAll()
     } else {
-      // maybe, add anchor to anchors props
-      routing()
+      routeAll()
     }
   }
 

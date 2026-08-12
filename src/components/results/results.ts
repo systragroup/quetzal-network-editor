@@ -248,17 +248,24 @@ export function useResult () {
   function simplifyLayer() {
     const key = displaySettings.value.selectedFeature
     const label = displaySettings.value.labels
+
     visibleLayer.value.features = visibleLayer.value.features.map(feat => {
       return {
         type: 'Feature',
         geometry: feat.geometry,
         properties: {
           [key]: feat.properties[key],
-          [label]: feat.properties[label],
+          [label]: round(feat.properties[label]),
           index: feat.properties?.index, // index for OD
         },
       }
     })
+  }
+  function round(v: number | string) {
+    if (typeof (v) == 'number') {
+      return Math.round(v)
+    }
+    else { return v }
   }
 
   function getNaNLayer() {

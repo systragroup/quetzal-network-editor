@@ -10,7 +10,7 @@ const { openDialog } = useForm()
 
 const store = useIndexStore()
 const odStore = useODStore()
-const filterChoices = computed(() => { return odStore.layerAttributes })
+const attributesList = computed(() => { return odStore.layerAttributes })
 const selectedFilter = computed(() => { return odStore.selectedFilter })
 const selectedCat = computed(() => { return odStore.selectedCategory })
 const filteredCat = computed(() => { return odStore.filteredCategory })
@@ -152,7 +152,7 @@ async function deleteButton (group: string, message: string) {
         <div :style="{'padding-top': '0.5rem'}">
           <v-select
             v-model="vmodelSelectedFilter"
-            :items="filterChoices.sort()"
+            :items="attributesList.sort()"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"
             variant="outlined"

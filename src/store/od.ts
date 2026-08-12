@@ -1,16 +1,16 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable no-return-assign */
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 
-import { point as Point } from '@turf/helpers'
 import { serializer, CRSis4326 } from '@src/utils/serializer'
 import { getModifiedKeys, getDifference, IndexAreDifferent } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 import short from 'short-uuid'
-import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewODPayload, ODStore } from '@src/types/typesStore'
-import { baseLineString, basePoint, LineStringFeatures,
+import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewAttribute, NewODPayload, ODStore } from '@src/types/typesStore'
+import { baseLineString, basePoint, createPointFeature, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
 import { ODDefaultProperties } from '@src/constants/properties'
+import { getPropertyType, listAllProperties } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 export const useODStore = defineStore('od', {
@@ -72,13 +72,13 @@ export const useODStore = defineStore('od', {
     },
 
     getProperties () {
-      const header: Set<string> = new Set([])
-      this.layer.features.forEach(element => {
-        Object.keys(element.properties).forEach(key => header.add(key))
-      })
+      const properties = listAllProperties(this.layer)
       // add all default attributes
-      const newAttrs = getDifference(header, this.layerAttributes)
-      newAttrs.forEach(attr => this.defaultAttributes.push({ name: attr, type: 'String' }))
+      const newProps = getDifference(properties, this.layerAttributes)
+      newProps.forEach(prop => {
+        const type = getPropertyType(this.layer, prop)
+        this.defaultAttributes.push({ name: prop, type: type })
+      })
 
       this.selectedFilter = 'name'
     },
@@ -156,12 +156,11 @@ export const useODStore = defineStore('od', {
       this.getFilteredCategory()
       this.refreshVisibleLayer()
     },
-    addPropertie (name: string) {
-      // payload = name
-      // when a new line properties is added (in dataframe page)
-      this.layer.features.map(link => link.properties[name] = null)
-      this.visibleLayer.features.map(link => link.properties[name] = null)
-      this.defaultAttributes.push({ name: name, type: 'String' })
+    addPropertie (payload: NewAttribute) {
+      const { name, type } = payload
+      this.layer.features.map(link => link.properties[name] = undefined)
+      this.visibleLayer.features.map(link => link.properties[name] = undefined)
+      this.defaultAttributes.push({ name: name, type: type })
     },
     deletePropertie (name: string) {
       // when a link property is deleted
@@ -181,20 +180,21 @@ export const useODStore = defineStore('od', {
       const nodes = basePoint()
       state.visibleLayer.features.forEach(
         feature => {
-          const Index = feature.properties.index
+          const index = feature.properties.index
           feature.geometry.coordinates.forEach(
-            (pt, idx) => nodes.features.push(Point(
-              pt,
-              { index: short.generate(), linkIndex: Index, coordinatedIndex: idx },
-            ),
-            ),
-
+            (geom: number[], idx: number) => {
+              const pt = createPointFeature(geom, { index: short.generate(), linkIndex: index, coordinatedIndex: idx })
+              nodes.features.push(pt)
+            },
           )
         },
       )
-
       return nodes
     },
 
   },
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useODStore, import.meta.hot))
+}
