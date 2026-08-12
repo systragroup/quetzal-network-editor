@@ -26,7 +26,7 @@
 
 ## [8.1.b] (2026-07-22)
 ### Features
-* add Boolean attribute type. boolean are editable ina special dialog with only true and false.
+* add Boolean attribute type. boolean are editable in special dialog with only true and false.
 
 ### Changes
 * roadLinks editDialog: uses rnodes types when editing rnodes. (also for the nondelitable attributes).
