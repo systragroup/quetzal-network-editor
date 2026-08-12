@@ -53,7 +53,12 @@ export const useIndexStore = defineStore('index', {
     visibleLayers: [], // list of layersFiles path.
     visibleRasters: [], // list of tif files
     styles: [], // list of styling for results [{name,layer, displaySettings:{...}}, ...]
-    projectInfo: { description: '', model_tag: '' },
+    projectInfo: {
+      description: '',
+      model_tag: '',
+      last_modified_date: '',
+      last_modified_email: '',
+    },
     otherFiles: [], // [{path, content}]
     docFiles: [], // [{path, content}]
     modelConfig: cloneDeep(defaultModelConfig),
@@ -353,6 +358,11 @@ export const useIndexStore = defineStore('index', {
       const json = infoSerializer(payload)
       this.projectInfo = json
     },
+    updateInfo() {
+      const userStore = useUserStore()
+      this.projectInfo.last_modified_date = new Date().toISOString()
+      this.projectInfo.last_modified_email = userStore.cognitoInfo.email
+    },
 
     saveImportPoly (payload: ImportPoly) {
       this.importPoly = payload
@@ -437,10 +447,9 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           zip.file('styles.json', blob, { date: date })
         }
-        if (this.projectInfo) {
-          const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
-          zip.file('info.json', blob, { date: date })
-        }
+        const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
+        zip.file('info.json', blob, { date: date })
+
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
           const content = this.getFileContent(file)
           zip.file(file.path, content, { date: date })
@@ -497,9 +506,9 @@ export const useIndexStore = defineStore('index', {
       if (this.styles.length > 0) {
         await s3.putObject(bucket, paths.styles, JSON.stringify(this.styles))
       }
-      if (this.projectInfo) {
-        await s3.putObject(bucket, paths.info, JSON.stringify(this.projectInfo))
-      }
+      this.updateInfo()
+      await s3.putObject(bucket, paths.info, JSON.stringify(this.projectInfo))
+
       // save PT
       if (linksStore.links.features.length > 0) {
         await s3.putObject(bucket, paths.links, JSON.stringify(linksStore.links))

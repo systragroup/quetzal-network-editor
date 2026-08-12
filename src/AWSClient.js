@@ -217,15 +217,9 @@ async function readInfo (bucket, scen) {
     const response = await s3Client.getObject(params) // await the promise
     const str = await response.Body.transformToString('utf-8')
     const content = JSON.parse(str.trim())
-    return {
-      description: content.description,
-      model_tag: content.model_tag,
-      last_modified_date: content.last_modified_date,
-      last_modified_email: content.last_modified_email || 'resolve',
-      lock: content.lock || true,
-    }
+    return content
   } catch (err) {
-    return { description: '', model_tag: '', last_modified_date: '', last_modified_email: 'salut@gmail.com', lock: false }
+    return {}
   }
 }
 
@@ -272,56 +266,6 @@ async function getLocks(bucket, scenarios) {
   return results
 }
 
-async function getScenario (bucket) {
-  // list all files in bucket
-  const params = { Bucket: bucket, Delimiter: '/' }
-  let moreToLoad = true
-  const scenarios = []
-  console.time('list')
-  while (moreToLoad) {
-    const { CommonPrefixes, IsTruncated, NextContinuationToken } = await s3Client.listObjectsV2(params)
-    if (CommonPrefixes) {
-      const ls = CommonPrefixes.map(el => el.Prefix.replace('/', ''))
-      scenarios.push(...ls)
-    }
-    moreToLoad = IsTruncated
-    params.ContinuationToken = NextContinuationToken
-  }
-  console.timeEnd('list')
-  if (scenarios.length === 0) return []
-  console.time('readLock')
-  const isProtected = await getScenarioMetadata(bucket, scenarios)
-  console.timeEnd('readLock')
-
-  console.time('readInfo')
-  const res = scenarios.map((scenario, i) => {
-    const info = readInfo(bucket, scenario)
-    return {
-      scenario,
-      protected: isProtected[i] || scenario === 'base',
-      info,
-    }
-  })
-  console.timeEnd('readInfo')
-
-  return res
-}
-
-async function getScenarioMetadata(bucket, scenarios) {
-  const promises = scenarios.map((scenario) => checkIfFileExists(bucket, `${scenario}/.lock`))
-  const results = await Promise.all(promises).then(resp => resp)
-  return results
-}
-async function getUserEmail(bucket, key) {
-  const response = s3Client.headObject({ Bucket: bucket, Key: key })
-  const userEmailPromise = response.then((resp) => {
-    return resp.Metadata.user_email ? resp.Metadata.user_email : 'idns-canada@systra.com'
-  }).catch(() => {
-    return 'unknown'
-  })
-  return userEmailPromise
-}
-
 async function getChecksum (bucket, key) {
   try {
     const resp = await s3Client.headObject({ Bucket: bucket, Key: key })
@@ -350,7 +294,6 @@ export default {
     )
   },
 
-  getScenario,
   readJson,
   readBytes,
   listFiles,
@@ -364,7 +307,6 @@ export default {
   uploadObject,
   getChecksum,
   readInfo,
-  getUserEmail,
   checkIfFileExists,
   listScenarios,
   getLocks,

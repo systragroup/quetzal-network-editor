@@ -9,6 +9,7 @@ import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import { Scenario, ScenarioPayload } from '@src/types/typesStore'
+import { infoSerializer } from '@src/utils/serializer.ts'
 const { $gettext } = useGettext()
 const emits = defineEmits(['load', 'unload'])
 
@@ -30,61 +31,38 @@ const modelScen = computed(() => { return `${storeModel.value}${storeScenario.va
 const modelsList = computed(() => { return userStore.modelsList }) // list of model cognito API.
 const scenariosList = ref<Scenario[]>(userStore.scenariosList)
 
-// async function getScenarios() {
-//   if (!localModel.value) return
-//   const bucket = localModel.value
-//   loading.value = true
-//   let tempList: ScenarioList[] = await s3.getScenario(bucket)
-//   tempList = tempList.filter(el => el.scenario !== COMMON)
-//   console.log(tempList)
-//   scenariosList.value = tempList.map(el => {
-//     return {
-//       model: bucket,
-//       scenario: el.scenario,
-//       lastModified: '',
-//       timestamp: 0,
-//       userEmail: '...',
-//       info: el.info,
-//       protected: el.protected,
-//     }
-//   })
-//   // change email when promise resolve. fetching email il slow. so we lazy load them
-//   scenariosList.value.forEach((scen) => {
-//     scen.info.then((val: ProjectInfo) => {
-//       scen.userEmail = val.last_modified_email
-//       scen.lastModified = val.last_modified_date
-//     }).catch(
-//       err => console.log(err))
-//   })
-//   loading.value = false
-//   // refresh store scenario list if we are on the selected model
-//   if (localModel.value === storeModel.value) { userStore.setScenariosList(scenariosList.value) }
-// }
+async function getLocks(model: string | null) {
+  const fileName = `${COMMON}/lock.json`
+  const fileExist: Boolean = await s3.checkIfFileExists(model, fileName)
+  if (fileExist) {
+    return await s3.readJson(model, fileName)
+  }
+  else return ['base']
+}
 
 async function getScenarios() {
   if (!localModel.value) return
   const bucket = localModel.value
   loading.value = true
   const scenarios = await s3.listScenarios(bucket)
-  console.log(scenarios)
-  const locks = await s3.getLocks(bucket, scenarios)
-  console.log(locks)
+  const locks: string[] = await getLocks(bucket)
   console.time('getInfo')
   const promises = scenarios.map((scenario) => s3.readInfo(bucket, scenario))
-  const metadatas = await Promise.all(promises).then(resp => resp)
-  console.log(metadatas)
+  let metadatas = await Promise.all(promises).then(resp => resp)
   console.timeEnd('getInfo')
 
   scenariosList.value = scenarios.map((scenario, i) => {
-    const metadata = metadatas[i]
+    const metadata = infoSerializer(metadatas[i])
+    const date = new Date(metadata.last_modified_date)
+    const lastModified = date.toLocaleDateString('en-CA') + ' ' + date.toLocaleTimeString('en-CA', { hour12: false })
     return {
       model: bucket,
       scenario: scenario,
-      lastModified: metadata.last_modified_date,
-      timestamp: 0,
-      userEmail: metadata.last_modified_email,
+      lastModified: lastModified,
+      timestamp: date.getTime(),
+      userEmail: metadata.last_modified_email || 'idns-canada@systra.com',
       description: metadata.description,
-      protected: metadata.lock,
+      protected: locks.includes(scenario),
     }
   })
 

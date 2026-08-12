@@ -30,7 +30,6 @@ export interface Style {
 
 export interface ProjectInfo {
   description: string
-  protected: boolean
   model_tag: string
   last_modified_date: string
   last_modified_email: string

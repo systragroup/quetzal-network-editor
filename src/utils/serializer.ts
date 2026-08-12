@@ -104,5 +104,7 @@ export function infoSerializer (json: ProjectInfo): ProjectInfo {
   return {
     description: json.description || '',
     model_tag: json.model_tag || '',
+    last_modified_date: json.last_modified_date || '',
+    last_modified_email: json.last_modified_email || '',
   }
 }
