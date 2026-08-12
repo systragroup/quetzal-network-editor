@@ -344,8 +344,7 @@ async function deleteScenario (scenarioToDelete: string) {
 }
 
 async function mouseOn(val: Scenario) {
-  const info = await val.info
-  userStore.setInfoPreview(info)
+  userStore.setInfoPreview({ description: val.description })
 }
 async function mouseOff() {
   userStore.setInfoPreview(null)
