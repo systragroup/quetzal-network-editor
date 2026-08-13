@@ -1,3 +1,10 @@
+## [8.1.2] (2026-08-13)
+### Changes
+* scenario list is now a virtual scroll. fetch first 10 metadata then load the rest in the background
+
+### bug fixes
+* Anchor in PT edition was disabled
+
 ## [7.2.6] (2026-07-15)
 ### bug fixes
 * fix credential expiring

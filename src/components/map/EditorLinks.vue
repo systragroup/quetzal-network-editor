@@ -133,7 +133,6 @@ const selectedFeature = ref<GeoJsonFeatures | null>(null)
 // clicks
 
 function selectClick (event: CustomMapEvent) {
-  if (anchorMode.value) return
   if (!hoveredStateId.value) return
   // Get the highlighted feature
   selectedFeature.value = hoveredStateId.value.feature

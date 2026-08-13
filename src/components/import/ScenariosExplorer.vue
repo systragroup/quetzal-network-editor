@@ -40,38 +40,52 @@ async function getLocks(model: string | null) {
   else return ['base']
 }
 
+async function getScenarioMetadata(bucket: string, scenario: Scenario) {
+  const resp = await s3.readInfo(bucket, scenario.scenario)
+  const metadata = infoSerializer(resp)
+  const date = new Date(metadata.last_modified_date)
+  const lastModified = date.toLocaleDateString('en-CA') + ' ' + date.toLocaleTimeString('en-CA', { hour12: false })
+  scenario.lastModified = lastModified
+  scenario.timestamp = date.getTime()
+  scenario.userEmail = metadata.last_modified_email || 'idns-canada@systra.com'
+  scenario.description = metadata.description
+}
+
 async function getScenarios() {
   if (!localModel.value) return
   const bucket = localModel.value
   loading.value = true
   const scenarios = await s3.listScenarios(bucket)
   const locks: string[] = await getLocks(bucket)
-  scenariosList.value = scenarios.map((scenario) => {
+  let tempList = scenarios.map((scenario) => {
     return {
       model: bucket,
       scenario: scenario,
+      key: `${bucket}${scenario}`,
       protected: locks.includes(scenario),
-      lastModified: '', // to be done async
+      lastModified: '...', // all of them to be done async
       timestamp: 0,
       userEmail: '...',
       description: '',
     }
   })
-  // resolve metadata async without waiting.
-  scenariosList.value.forEach((el) => {
-    s3.readInfo(bucket, el.scenario).then((resp) => {
-      const metadata = infoSerializer(resp)
-      const date = new Date(metadata.last_modified_date)
-      const lastModified = date.toLocaleDateString('en-CA') + ' ' + date.toLocaleTimeString('en-CA', { hour12: false })
-      el.lastModified = lastModified
-      el.timestamp = date.getTime()
-      el.userEmail = metadata.last_modified_email || 'idns-canada@systra.com'
-      el.description = metadata.description
-    }).catch(
-      err => console.log(err))
+  // sort to alphabetically with locked on top.
+  tempList.sort((a, b) => {
+    if (a.protected !== b.protected) {
+      return a.protected ? -1 : 1
+    }
+    return a.scenario.localeCompare(b.scenario)
   })
+  // Get metadata for the first 10 values
+  const first = tempList.slice(0, 10)
+  await Promise.allSettled(first.map((scenario) => getScenarioMetadata(bucket, scenario)))// .then(resp => resp)
+  scenariosList.value = tempList // then set, scenarioList, so scenario appears with metadata loaded (10 first)
 
-  loading.value = false
+  // load the rest of the metadata in the background
+  const rest = scenariosList.value.slice(10)
+  Promise.allSettled(rest.map((scenario) => getScenarioMetadata(bucket, scenario)))
+    .then(() => loading.value = false)
+    .catch(() => loading.value = false)
 }
 
 watch(localModel, async () => {
@@ -344,6 +358,7 @@ async function deleteScenario (scenarioToDelete: string) {
 }
 
 async function mouseOn(val: Scenario) {
+  // TODO use a composable maybe? no need to store this in store...
   userStore.setInfoPreview({ description: val.description })
 }
 async function mouseOff() {
@@ -465,67 +480,69 @@ function selectModel(v: string) {
       />
     </div>
     <v-divider />
-    <div
-      class="v-card-content"
-    >
-      <v-list-item
-        v-for="scen in sortedScenariosList"
-        :id="scen.model + scen.scenario"
-        :key="scen.model + scen.scenario"
-        :value="scen.model + scen.scenario"
-        class="list-item"
-        :class="{'is-active': modelScen === scen.model + scen.scenario}"
-        lines="two"
-        @click="(e)=>selectScenario(e,scen)"
-        @mouseenter="mouseOn(scen)"
-        @mouseleave="mouseOff()"
-      >
-        <v-list-item-title class="name-wrap">
-          {{ scen.scenario }}
-        </v-list-item-title>
-        <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
-        <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
-        <template v-slot:append>
-          <v-btn
-            v-if="modelScen === scen.model + scen.scenario && !scen.protected"
-            variant="text"
-            icon="fas fa-pen"
-            class="ma-1"
-            size="small"
-            @click.stop="renameProject"
-          />
-          <v-btn
-            variant="text"
-            icon="fas fa-copy"
-            class="ma-1"
-            size="small"
-            @click.stop="copyProject(scen.scenario)"
-          />
-          <v-btn
-            variant="text"
-            :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
-            :disabled="(scen.model+scen.scenario===modelScen) || (scen.protected)"
-            class="ma-1"
-            size="small"
-            @click.stop="deleteScenario(scen.scenario)"
-          />
-        </template>
-      </v-list-item>
-      <v-spacer />
+    <!--  -->
+    <div class="v-card-content">
       <v-progress-linear
         v-if="loading"
         color="primary"
         indeterminate
       />
-      <v-spacer />
+      <v-virtual-scroll
+        :items="sortedScenariosList"
+      >
+        <template v-slot="{item:scen}">
+          <v-list-item
+            :id="scen.key"
+            :key="scen.key"
+            :value="scen.key"
+            class="list-item"
+            :class="{'is-active': modelScen === scen.key}"
+            lines="two"
+            @click="(e)=>selectScenario(e,scen)"
+            @mouseenter="mouseOn(scen)"
+            @mouseleave="mouseOff()"
+          >
+            <v-list-item-title class="name-wrap">
+              {{ scen.scenario }}
+            </v-list-item-title>
+            <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
+            <template v-slot:append>
+              <v-btn
+                v-if="modelScen === scen.key && !scen.protected"
+                variant="text"
+                icon="fas fa-pen"
+                class="ma-1"
+                size="small"
+                @click.stop="renameProject"
+              />
+              <v-btn
+                variant="text"
+                icon="fas fa-copy"
+                class="ma-1"
+                size="small"
+                @click.stop="copyProject(scen.scenario)"
+              />
+              <v-btn
+                variant="text"
+                :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
+                :disabled="(scen.key === modelScen) || (scen.protected)"
+                class="ma-1"
+                size="small"
+                @click.stop="deleteScenario(scen.scenario)"
+              />
+            </template>
+          </v-list-item>
+        </template>
+      </v-virtual-scroll>
     </div>
+    <!--  -->
     <v-divider />
     <div>
       <v-btn
         width="100%"
         class="mt-2"
         prepend-icon="fa-solid fa-cloud-arrow-up"
-
         @click="createProject"
       >
         {{ $gettext('new scenario') }}

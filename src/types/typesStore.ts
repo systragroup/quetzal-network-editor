@@ -368,6 +368,7 @@ export interface IdentityCredentialsPayload extends IdentityCredentials {
 export interface Scenario {
   model: string
   scenario: string
+  key: string
   protected: boolean
   lastModified: string
   timestamp: number
