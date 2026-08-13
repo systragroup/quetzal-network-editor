@@ -5,6 +5,106 @@
 ### bug fixes
 * Anchor in PT edition was disabled
 
+## [8.1.1] (2026-08-12)
+load scenario faster with metadata in info.json and _common/lock.json
+
+### Breaking Changes
+* lock scenario are now specified in a common fille _common/lock.json. This is way faster to fetch.
+* scenario metadata is now specified in the info.json file. This is also way faster than finding the last modified object on s3.
+
+## [8.1.0] (2026-08-11)
+Big changes in the backend. All of the interaction with the model (step-function) are now done through the quetzal backend api.
+We also support ECS (fargate), through the same api.
+
+### Features
+* ECS (fargate) api support. 
+    * models can be run on a new infra for more power
+
+* New properties dtypes
+    * Can chose the dtype when creating a new property in the dialogs. (string, number, boolean, undefined)
+    * add Boolean attribute type. boolean are editable in special dialog with only true and false.
+    
+* Road network Centroid
+    * rnodes with isCentroid === true are shown in white (rnode in black).
+    * usefull to add zones and connector to the road network.
+
+* Model Config 
+    * config file modelConfig.json, can be loaded in the zip under inputs/modelConfig.json to overwrite the common one
+
+### Changes
+* Change RunPayload to pass params instead of laucher_args. the backend api will create the lauch_args for Lambda or ECS
+* let undefined be undefined when applying types on PT network (we had undefined => 'undefined' for String.)
+* new props are initialized to undefined and not null anymore.
+
+* roadLinks editDialog: uses rnodes types when editing rnodes. (also for the nondelitable attributes).
+
+* Quetzal fastApi now used instead of aws CLI for stepfunction start/stop/describe/status.
+* Same api endpoints are used for both infra (lambda+stepfunctions and fargate+ECS)
+
+
+### bug fixes
+* Road links form edition: when selecting multiple links, order was not always maintain when applying the changes on each rlinks. so changes on link_x could had been apply to link_y. [#609](https://github.com/systragroup/quetzal-network-editor/issues/609)
+
+
+## [8.0.0] (2026-07-15)
+This major release add do undo to network edition.
+
+### Features
+* History
+    * can do / undo actions when editing PT and road networks
+    * click ctrl-z and ctrl-y (or ctrl-shift-z) to undo/redo
+
+* Display Units
+    * Can specify units for editorForm. ex, Headway in minutes. Data will stay in seconds, but the values will be show in the edition form both in minutes and seconds. in modelConfig. 
+  
+* Model Config 
+    * config file under _common/modelConfig.json.
+
+### bug fixes
+* RoadLinks: click on rnodes was creating a rlink with a==b.
+* arrivals departures and road_link_list type force to undefined. so they stays as array.
+* fix export zip file last modified metadata to be in the user timezone. This may not 100% work as it apparently depends on the unzip software. in my case, folders are still in UTC or something like last time I opened a file...
+* add calculator on speed_r, time_r dialog. disabled length edition there,
+* cut line before node: was not changing link_sequence
+
+### Changes.
+* moved attributesChoices.json values to _common/modelConfig.json.
+* moving nodes now move a temporary virtual line on the map.
+* Links and rLinks property type (Number or String) are now parse when loading a network. first value encounter is used between number and string. This way, a number input is used for number. type should not be mixed, so I think its fair to use the first for increased performance.
+
+* PT line hovering now show the line in yellow or blue if the line is yellow.
+
+* can change the default road oneway in the side setting
+* when editing a group of rlinks. the dialog show the number of links to edit
+* add a second arrow on rlink dialog when there is _r props
+* road links properties edition: reversed props are now in the same form, side to side with the non reversed one.
+* Deleting reversed properties (changing from oneway True to False) now only put undefined to the props.
+    * this is because there is no properties deletion / addition in the commit (history) for now.
+
+* Fix labels on result map. for linestring, they are well offset and follows links
+* Labels on result map: labels are rounded to 0 decimal for now (if number)
+
+
+### Refactoring.
+* major refactor of links and rlinks store to commit changes into a single pipeline to be able to undo/redo
+* some refactoring. on the road and pt form to reuse functions (like the length time speed computation).
+* units are from a dict (strip the #var and _r), not from defaultAttributes
+* side panels CSS redo.
+
+
+### performances
+* add static rlink layer with low 30% opacity for PT edition. This is way faster than changing the opacity of the rlink layer, where there is a lot of paint attributes that mapbox need to rerender.
+* road filtering (visible) now using mapbox filtering and simplified a lot.
+
+
+
+
+
+
+
+
+
+
 ## [7.2.6] (2026-07-15)
 ### bug fixes
 * fix credential expiring
