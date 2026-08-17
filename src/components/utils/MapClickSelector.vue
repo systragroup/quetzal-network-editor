@@ -83,7 +83,7 @@ function query() {
     :reactive="false"
     :source="{
       type: 'geojson',
-      data: geojson,
+      data: basePolygon(),
     }"
     layer-id="poly"
     :layer="{
