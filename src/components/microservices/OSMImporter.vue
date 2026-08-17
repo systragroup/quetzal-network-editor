@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, toRaw } from 'vue'
-import { highwayList } from '@constants/highway.js'
+import { highwayList } from '@constants/highway'
 import MapSelector from './MapSelector.vue'
 import { useOSMStore } from '@src/store/OSMImporter.ts'
 import { userLinksStore } from '@src/store/rlinks'

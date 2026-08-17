@@ -1,8 +1,8 @@
 // this file contains Hints on the different editable attributes
 
-const $gettext = s => s
+const $gettext = (s: string) => s
 
-const hints = {
+export const hints = {
   agency_id: $gettext('transit brand or transit agency'),
   direction_id: $gettext(`direction of travel for a trip. used to separate trips by directions.
      ex: 0 - Travel in one direction. 1 - Travel in the opposite direction.`),
