@@ -17,13 +17,6 @@ export default {
     const userStore = useUserStore()
     const showHint = ref(false)
     const order = ref(0)
-    const indexingMethod = ref({
-      name: $gettext('indexing method'),
-      type: 'String',
-      value: 'uuid',
-      units: '',
-      hint: $gettext('index new links and nodes with a uuid or with integers (rlink_1 or link_dRzEHnD5k9qpEKZBFZWAk7)'),
-    })
     const computeMethod = ref({
       name: $gettext('Automatically Compute'),
       type: 'radio',
@@ -82,7 +75,6 @@ export default {
       // we want to get the value each time we show the settings.
       // if not, Cancel will not work as the state here and in the store will differ.
       computeMethod.value.value = store.speedTimeMethod
-      indexingMethod.value.value = store.indexingMethod
       roadSpeed.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'speed')[0].value
       linksPopupContent.value.choices = linksStore.lineAttributes
       linksPopupContent.value.value = store.linksPopupContent
@@ -103,7 +95,6 @@ export default {
       if (resp.valid) {
         const payload = {
           speedTimeMethod: computeMethod.value.value,
-          indexingMethod: indexingMethod.value.value,
           roadSpeed: roadSpeed.value.value,
           linksPopupContent: linksPopupContent.value.value,
           roadsPopupContent: roadsPopupContent.value.value,
@@ -129,7 +120,6 @@ export default {
     return {
       showHint,
       computeMethod,
-      indexingMethod,
       roadSpeed,
       roadOneway,
       linksPopupContent,
@@ -186,15 +176,6 @@ export default {
       >
         <v-container>
           <v-col>
-            <v-select
-              v-model="indexingMethod.value"
-              variant="underlined"
-              :items="['uuid','int']"
-              :label="$gettext(indexingMethod.name)"
-              :hint="showHint? $gettext(indexingMethod.hint): ''"
-              :persistent-hint="showHint"
-              :menu-props="{ top: true, offsetY: true }"
-            />
             <v-text-field
               v-model="roadSpeed.value"
               variant="underlined"

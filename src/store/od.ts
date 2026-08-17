@@ -8,7 +8,7 @@ import { cloneDeep } from 'lodash'
 import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewAttribute, NewODPayload, ODStore } from '@src/types/typesStore'
 import { baseLineString, basePoint, createPointFeature, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
-import { ODDefaultProperties } from '@src/constants/properties'
+import { defaultIndexingMethod, ODDefaultProperties } from '@src/constants/properties'
 import { getPropertyType, getUUID, listAllProperties } from '@src/utils/network'
 const $gettext = (s: string) => s
 
@@ -20,7 +20,7 @@ export const useODStore = defineStore('od', {
     filteredCategory: [], // all possible category (to be in selectedCat)
     selectedFilter: '', // ex: highway
     selectedCategory: [], // ex: [motorway, residential] visible one.
-    indexingMethod: 'uuid',
+    indexingMethod: cloneDeep(defaultIndexingMethod),
 
   }),
 

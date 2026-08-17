@@ -47,6 +47,7 @@ export interface OtherFiles extends FileFormat {
 
 export interface ModelConfig {
   version?: 0
+  indexingMethod?: IndexingMethod
   attributesChoices?: {
     links?: AttributesChoice
     road_links?: AttributesChoice
@@ -59,7 +60,6 @@ export type IndexingMethod = 'uuid' | 'int'
 
 export interface SettingsPayload {
   speedTimeMethod: SpeedTimeMethod
-  indexingMethod: IndexingMethod
   defaultHighway: string
   roadSpeed: number
   roadOneway: '0' | '1'
@@ -85,7 +85,6 @@ export interface IndexStore {
   stickyMode: boolean
   routingMode: boolean
   speedTimeMethod: SpeedTimeMethod
-  indexingMethod: IndexingMethod
   linksPopupContent: string[]
   roadsPopupContent: string[]
   cyclewayMode: boolean

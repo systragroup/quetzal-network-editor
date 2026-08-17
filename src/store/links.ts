@@ -11,7 +11,7 @@ import { simplifyGeometry } from '@src/utils/spatial'
 import { cloneDeep } from 'lodash'
 
 import { GroupForm } from '@src/types/components'
-import { linksDefaultProperties, nodesDefaultProperties, ptDefaultAttributesChoices } from '@src/constants/properties'
+import { defaultIndexingMethod, linksDefaultProperties, nodesDefaultProperties, ptDefaultAttributesChoices } from '@src/constants/properties'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
@@ -68,7 +68,7 @@ export const useLinksStore = defineStore('links', {
     linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
     // parameters
     speedTimeMethod: 'time',
-    indexingMethod: 'uuid',
+    indexingMethod: cloneDeep(defaultIndexingMethod),
   }),
 
   actions: {

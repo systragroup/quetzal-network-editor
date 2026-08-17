@@ -46,7 +46,6 @@ export const useIndexStore = defineStore('index', {
     routingMode: false,
     cyclewayMode: false,
     speedTimeMethod: 'time',
-    indexingMethod: 'uuid',
     // general viz
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
@@ -270,16 +269,24 @@ export const useIndexStore = defineStore('index', {
 
     loadModelConfig (payload: ModelConfig) {
       const config = payload
-      // migrate
+      // TODO migrate
       this.modelConfig = config
       const links = useLinksStore()
       const rlinks = userLinksStore()
+      const odStore = useODStore()
       const attributesChoices = config.attributesChoices
       if (attributesChoices) {
         const linksConfig = attributesChoices.links
         if (linksConfig)links.loadLinksAttributesChoices(linksConfig)
         const rlinksConfig = attributesChoices.road_links
         if (rlinksConfig) rlinks.loadrLinksAttributesChoices(rlinksConfig)
+        const indexingMethod = config.indexingMethod
+        console.log(indexingMethod)
+        if (indexingMethod) {
+          rlinks.indexingMethod = indexingMethod
+          links.indexingMethod = indexingMethod
+          odStore.indexingMethod = indexingMethod
+        }
       }
     },
     loadmodelSteps(payload: StepPayload[]) {
@@ -321,18 +328,12 @@ export const useIndexStore = defineStore('index', {
       const rlinksStore = userLinksStore()
       const linksStore = useLinksStore()
       const userStore = useUserStore()
-      const odStore = useODStore()
       rlinksStore.ChangeDefaultValues(
         { highway: payload.defaultHighway, speed: Number(payload.roadSpeed), oneway: payload.roadOneway })
 
       this.speedTimeMethod = payload.speedTimeMethod
-      this.indexingMethod = payload.indexingMethod
       linksStore.speedTimeMethod = payload.speedTimeMethod
       rlinksStore.speedTimeMethod = payload.speedTimeMethod
-
-      linksStore.indexingMethod = payload.indexingMethod
-      rlinksStore.indexingMethod = payload.indexingMethod
-      odStore.indexingMethod = payload.indexingMethod
 
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent
