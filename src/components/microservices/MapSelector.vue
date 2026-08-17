@@ -10,7 +10,6 @@ import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { useMapStore } from '../../store/map'
 import { cloneDeep } from 'lodash'
-import geojson from '@constants/geojson'
 
 import short from 'short-uuid'
 import { useGettext } from 'vue3-gettext'
@@ -26,7 +25,7 @@ const map = ref<Map | null>(null)
 const mapIsLoaded = ref(false)
 const poly = ref<PolygonFeatures>(basePolygonFeature())
 const nodes = ref({})
-const header = geojson
+const header = basePoint()
 const freeForm = ref(false)
 
 const mapStyle = computed(() => { return mapStore.mapStyle })

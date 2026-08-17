@@ -1,8 +1,8 @@
 <script setup>
 import { MglGeojsonLayer } from 'vue-mapbox3'
 import { polygon } from '@turf/helpers'
-import geojson from '@constants/geojson'
 import { onMounted, onUnmounted, toRefs, ref } from 'vue'
+import { basePolygon } from '@src/types/geojson'
 
 const props = defineProps(['map'])
 const emits = defineEmits(['mousedown', 'mouseup', 'mousemove'])
@@ -51,7 +51,7 @@ function onMove (event) {
 }
 function stopSelect (event) {
   // stop tracking position (moving node.)
-  map.value.getSource('selectPolygon').setData(geojson)
+  map.value.getSource('selectPolygon').setData(basePolygon())
   map.value.getCanvas().style.cursor = 'pointer'
   map.value.off('mousemove', onMove)
   map.value.off('mouseup', stopSelect)

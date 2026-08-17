@@ -4,13 +4,13 @@ import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
 import short from 'short-uuid'
 import { computed, watch, toRefs, ref, onUnmounted } from 'vue'
 import { useODStore } from '@src/store/od'
-import geojson from '@constants/geojson'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { useForm } from '@src/composables/UseForm'
+import { basePoint } from '@src/types/geojson'
 const { openDialog } = useForm()
 const props = defineProps(['map', 'active', 'isEditorMode'])
-const header = geojson
+const header = basePoint()
 const ODStore = useODStore()
 const layer = computed(() => { return ODStore.visibleLayer })
 const nodes = computed(() => { return ODStore.nodes })
