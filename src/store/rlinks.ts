@@ -9,7 +9,6 @@ import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
   setsAreEqual } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 
-import short from 'short-uuid'
 import { AddRoadNodeInlinePayload,
   AttributesChoice, Commit, CreateRlinkPayload,
   EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
@@ -22,7 +21,7 @@ import { rlinksConstantProperties, rnodesDefaultProperties,
 import { simplifyGeometry } from '@src/utils/spatial'
 import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
-  getDefaultLink, getPropertyType, getType, getVariantsChoices,
+  getDefaultLink, getNewIndex, getPropertyType, getType, getVariantsChoices,
   listAllProperties,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties, normalizeToString } from '@src/utils/roadNetwork'
@@ -53,6 +52,7 @@ export const userLinksStore = defineStore('rlinks', {
     editionMode: false,
     // params
     speedTimeMethod: 'time',
+    indexingMethod: 'uuid',
 
   }),
 
@@ -457,13 +457,12 @@ export const userLinksStore = defineStore('rlinks', {
     // edition (geometry)
     //
 
-    _getNewNode (payload: NewNodePayload) {
+    _getNewNode (payload: NewNodePayload): PointFeatures {
       const { nodeCopyId, coordinates } = payload
-      const newNode = basePoint()
       const features = cloneDeep(this.rnodes.features.filter(node => node.properties.index === nodeCopyId)[0])
-      features.properties.index = 'rnode_' + short.generate()
+      const usedIndexList = this.rnodes.features.map(el => el.properties.index)
+      features.properties.index = getNewIndex(nodeCopyId, usedIndexList, this.indexingMethod)
       features.geometry.coordinates = coordinates
-      newNode.features = [features]
       return features
     },
 
@@ -473,8 +472,8 @@ export const userLinksStore = defineStore('rlinks', {
 
       const link1 = cloneDeep(selectedLink)
       const link2 = cloneDeep(link1)
-
-      link2.properties.index = 'rlink_' + short.generate() // link2.properties.index+ '-2'
+      const usedIndexList = this.rlinks.features.map(el => el.properties.index)
+      link2.properties.index = getNewIndex(link1.properties.index, usedIndexList, this.indexingMethod)
 
       link1.properties.b = newNode.properties.index
       link2.properties.a = newNode.properties.index
@@ -570,13 +569,13 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       const linkFeature = getDefaultLink(this.linksDefaultAttributes).features[0]
-      const linkGeometry = linkFeature.geometry
+      const usedIndexList = this.rlinks.features.map(el => el.properties.index)
+      linkFeature.properties.index = getNewIndex('rlink_0', usedIndexList, this.indexingMethod)
 
-      linkFeature.properties.index = 'rlink_' + short.generate()
       linkFeature.properties.a = nodeIdA
       linkFeature.properties.b = rnodeB.properties.index
       // add length, speed, time now that we have a geometry.
-      linkGeometry.coordinates = [toRaw(rnodeA.geometry.coordinates), toRaw(rnodeB.geometry.coordinates)]
+      linkFeature.geometry.coordinates = [toRaw(rnodeA.geometry.coordinates), toRaw(rnodeB.geometry.coordinates)]
       calcLengthTimeorSpeed(linkFeature, this.timeVariants, this.speedTimeMethod)
       if (this.rlineAttributes.includes('oneway') && linkFeature.properties.oneway === '0') {
         addReverseProperties(linkFeature, this.reversedAttributes)

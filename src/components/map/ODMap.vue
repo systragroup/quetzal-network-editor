@@ -1,7 +1,6 @@
 <!-- eslint-disable no-return-assign -->
 <script setup>
 import { MglGeojsonLayer, MglImageLayer, MglPopup } from 'vue-mapbox3'
-import short from 'short-uuid'
 import { computed, watch, toRefs, ref, onUnmounted } from 'vue'
 import { useODStore } from '@src/store/od'
 import { useGettext } from 'vue3-gettext'
@@ -48,8 +47,7 @@ const contextMenu = ref({
 function addPoint (event) {
   if (isODMode.value) {
     if (!drawMode.value) {
-      const index = 'OD_' + short.generate()
-      ODStore.createNewLink({ lngLat: Object.values(event.lngLat), index })
+      const index = ODStore.createNewLink({ lngLat: Object.values(event.lngLat) })
       dragNode.value = true
       selectedFeature.value = { properties: { linkIndex: index, coordinatedIndex: 1 } }
       // get position

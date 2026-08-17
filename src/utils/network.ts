@@ -1,5 +1,5 @@
-import { baseLineString, basePoint, GeoJson, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson } from '@src/types/geojson'
-import { Attributes, AttributeTypes, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
+import { baseLineString, basePoint, GeoJson, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
+import { Attributes, AttributeTypes, IndexingMethod, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
 import short from 'short-uuid'
 
 import length from '@turf/length'
@@ -73,10 +73,22 @@ export function getDefaultLink (defaultAttributes: Attributes[]): LineStringGeoJ
     return dict
   }, {})
 
-  const linkGeometry: LineStringGeometry = { coordinates: [[0, 0], [0, 0]], type: 'LineString' }
+  const geometry: LineStringGeometry = { coordinates: [[0, 0], [0, 0]], type: 'LineString' }
   const link = baseLineString()
-  link.features = [{ properties: properties, geometry: linkGeometry, type: 'Feature' }]
+  link.features = [{ properties: properties, geometry: geometry, type: 'Feature' }]
   return link
+}
+export function getDefaultNode (defaultAttributes: Attributes[]): PointGeoJson {
+  // empty trip, when its a newLine. those are the default Values.
+  const properties = defaultAttributes.reduce((dict: Record<string, any>, attr: Attributes) => {
+    dict[attr.name] = attr.value
+    return dict
+  }, {})
+
+  const geometry: PointGeometry = { coordinates: [0, 0], type: 'Point' }
+  const node = basePoint()
+  node.features = [{ properties: properties, geometry: geometry, type: 'Feature' }]
+  return node
 }
 
 export function getVariantsChoices(attributes: Attributes[]): NonEmptyArray<string> {
@@ -111,6 +123,7 @@ export function getBaseAttributesWithVariants(attributes: Attributes[]) {
 
 export function getAnchorGeojson(features: LineStringFeatures[]): PointGeoJson {
   const nodes = basePoint()
+  let i = 0
   features.filter(link => link.geometry.coordinates.length > 2).forEach(
     linkFeature => {
       const linkIndex = linkFeature.properties.index
@@ -118,7 +131,7 @@ export function getAnchorGeojson(features: LineStringFeatures[]): PointGeoJson {
       linkGeometry.forEach(
         (pt: number[], idx: number) => {
           const pointFeature: PointFeatures = {
-            properties: { index: short.generate(), linkIndex, coordinatedIndex: idx + 1 },
+            properties: { index: i++, linkIndex, coordinatedIndex: idx + 1 },
             geometry: { coordinates: pt, type: 'Point' },
             type: 'Feature',
           }
@@ -171,22 +184,39 @@ export function getType(value: unknown): AttributeTypes {
   else if (['number', 'bigint'].includes(type)) return 'Number'
   else return 'String'
 }
-// WIP
-// export function getNextAvailableIndex(allIndex: string[], desiredIndex: string): string {
-//   function toNumber(str: string): number {
-//     return Number(str.split('_')[1])
-//   }
-//   const used = new Set(allIndex.map(idx => toNumber(idx)))
-//   let index = toNumber(desiredIndex)
-//   const prefix = desiredIndex.split('_')[0]
-//   if (Number.isNaN(index)) return `${prefix}_${short.generate()}`
 
-//   while (used.has(index)) {
-//     index++
-//   }
+// indexing
 
-//   return `${prefix}_${index}`
-// }
+export function getNewIndex(desiredIndex: string, allIndex: string[], method: IndexingMethod) {
+  if (method === 'uuid') {
+    const prefix = desiredIndex.split('_')[0]
+    return getUUID(prefix)
+  } else {
+    return getNextAvailableIndex(desiredIndex, allIndex)
+  }
+}
+
+export function getUUID(prefix: string) {
+  // generate a short uuid index
+  return `${prefix}_${short.generate()}`
+}
+
+// type SnakeCase = `${string}_${string}`
+export function getNextAvailableIndex(desiredIndex: string, allIndex: string[]): string {
+  // generage an integger index, getting next available value (after desired index)
+  const toNumber = (str: string): number => Number(str.split('_')[1])
+
+  let index = toNumber(desiredIndex)
+  const prefix = desiredIndex.split('_')[0]
+  if (Number.isNaN(index)) return getUUID(prefix)
+
+  const used = new Set(allIndex.map(idx => toNumber(idx)))
+  while (used.has(index)) {
+    index++
+  }
+
+  return `${prefix}_${index}`
+}
 
 // commit functions
 
