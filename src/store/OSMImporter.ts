@@ -4,7 +4,7 @@ import { ref, watch } from 'vue'
 import { userLinksStore } from '@src/store/rlinks'
 import { useAPI } from '../composables/APIComposable'
 import router from '@src/router/index'
-import { highwayColor, highwayWidth } from '@constants/highway.js'
+import { highwayColor, highwayWidth } from '@constants/highway'
 import s3 from '@src/AWSClient'
 import { LineStringGeoJson } from '@src/types/geojson'
 const MICROSERVICES_BUCKET = import.meta.env.VITE_MICROSERVICES_BUCKET

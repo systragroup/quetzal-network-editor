@@ -3,7 +3,7 @@
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { computed, onMounted, ref, watch, watchEffect } from 'vue'
-import attributesHints from '@constants/hints.js'
+import attributesHints from '@constants/hints'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
