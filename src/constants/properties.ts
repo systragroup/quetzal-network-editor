@@ -1,4 +1,4 @@
-import { Attributes, AttributesChoice, AttributeUnits, ModelConfig } from '@src/types/typesStore'
+import { Attributes, AttributesChoice, AttributeUnits, IndexingMethod, ModelConfig } from '@src/types/typesStore'
 
 export const linksDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
@@ -78,10 +78,12 @@ export const baseUnits: Record<string, AttributeUnits> = {
 
 export const ptDefaultAttributesChoices: AttributesChoice = { pickup_type: [0, 1, 2, 3], drop_off_type: [0, 1, 2, 3] }
 export const roadDefaultAttributesChoices: AttributesChoice = { oneway: ['0', '1'] }
-const defaultDisplayUnits: Record<string, AttributeUnits> = {}
+export const defaultDisplayUnits: Record<string, AttributeUnits> = {}
+export const defaultIndexingMethod: IndexingMethod = 'uuid'
 
 export const defaultModelConfig: ModelConfig = {
   version: 0,
+  indexingMethod: defaultIndexingMethod,
   attributesChoices: {
     links: ptDefaultAttributesChoices,
     road_links: roadDefaultAttributesChoices,

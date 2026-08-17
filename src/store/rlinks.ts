@@ -17,7 +17,8 @@ import { AddRoadNodeInlinePayload,
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
   PointGeoJson } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties,
-  rlinksDefaultProperties, roadDefaultAttributesChoices } from '@src/constants/properties'
+  rlinksDefaultProperties, roadDefaultAttributesChoices,
+  defaultIndexingMethod } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
 import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
@@ -52,8 +53,7 @@ export const userLinksStore = defineStore('rlinks', {
     editionMode: false,
     // params
     speedTimeMethod: 'time',
-    indexingMethod: 'uuid',
-
+    indexingMethod: cloneDeep(defaultIndexingMethod),
   }),
 
   actions: {
