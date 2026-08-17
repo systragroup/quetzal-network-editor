@@ -11,7 +11,6 @@ import { useIndexStore } from '@src/store/index'
 import { useMapStore } from '../../store/map'
 import { cloneDeep } from 'lodash'
 
-import short from 'short-uuid'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
@@ -117,10 +116,11 @@ function offHover () {
 function getNodes () {
   const tempNodes = basePoint()
   const polygon = poly.value.geometry.coordinates[0]
+  let i = 0
   // create points from poly. skip last one which is duplicated of the first one (square is 5 points)
   polygon.slice(0, polygon.length - 1).forEach(
     (pt, idx) => {
-      tempNodes.features.push(createPointFeature(pt, { index: short.generate(), coordinatesIndex: idx }))
+      tempNodes.features.push(createPointFeature(pt, { index: i++, coordinatesIndex: idx }))
     },
   )
   nodes.value = tempNodes

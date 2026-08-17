@@ -5,12 +5,11 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import { serializer, CRSis4326 } from '@src/utils/serializer'
 import { getModifiedKeys, getDifference, IndexAreDifferent } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
-import short from 'short-uuid'
 import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewAttribute, NewODPayload, ODStore } from '@src/types/typesStore'
 import { baseLineString, basePoint, createPointFeature, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
 import { ODDefaultProperties } from '@src/constants/properties'
-import { getPropertyType, listAllProperties } from '@src/utils/network'
+import { getPropertyType, getUUID, listAllProperties } from '@src/utils/network'
 const $gettext = (s: string) => s
 
 export const useODStore = defineStore('od', {
@@ -21,6 +20,7 @@ export const useODStore = defineStore('od', {
     filteredCategory: [], // all possible category (to be in selectedCat)
     selectedFilter: '', // ex: highway
     selectedCategory: [], // ex: [motorway, residential] visible one.
+    indexingMethod: 'uuid',
 
   }),
 
@@ -125,9 +125,10 @@ export const useODStore = defineStore('od', {
         dict[attr.name] = attr.value
         return dict
       }, {})
+      const index = getUUID('OD')
 
-      linkProperties.index = payload.index
-      linkProperties.name = payload.index
+      linkProperties.index = index
+      linkProperties.name = index
       const linkFeature: LineStringFeatures = { geometry: linkGeometry, properties: linkProperties, type: 'Feature' }
       this.layer.features.push(linkFeature)
 
@@ -139,6 +140,7 @@ export const useODStore = defineStore('od', {
         this.selectedCategory.push(newCat)
       }
       this.refreshVisibleLayer()
+      return index
     },
 
     editGroupInfo (payload: EditGroupPayload) {
@@ -178,12 +180,13 @@ export const useODStore = defineStore('od', {
     },
     nodes: (state) => {
       const nodes = basePoint()
+      let i = 0
       state.visibleLayer.features.forEach(
         feature => {
           const index = feature.properties.index
           feature.geometry.coordinates.forEach(
             (geom: number[], idx: number) => {
-              const pt = createPointFeature(geom, { index: short.generate(), linkIndex: index, coordinatedIndex: idx })
+              const pt = createPointFeature(geom, { index: i++, linkIndex: index, coordinatedIndex: idx })
               nodes.features.push(pt)
             },
           )

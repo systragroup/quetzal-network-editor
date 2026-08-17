@@ -10,7 +10,6 @@ import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
 import { simplifyGeometry } from '@src/utils/spatial'
 import { cloneDeep } from 'lodash'
 
-import short from 'short-uuid'
 import { GroupForm } from '@src/types/components'
 import { linksDefaultProperties, nodesDefaultProperties, ptDefaultAttributesChoices } from '@src/constants/properties'
 
@@ -27,7 +26,7 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
 import { baseLineString, basePoint,
   createLinestringFeature,
   LineStringFeatures,
-  LineStringGeoJson, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
+  LineStringGeoJson, PointFeatures, PointGeoJson } from '@src/types/geojson'
 import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   getVariantsChoices, addDefaultValuesToVariants, getBaseAttributesWithVariants,
   getDefaultLink,
@@ -38,7 +37,10 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
   _deleteGeojsonFeatures,
   getPropertyType,
   listAllProperties,
-  getType } from '@src/utils/network'
+  getType,
+  getDefaultNode,
+  getNewIndex,
+} from '@src/utils/network'
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
@@ -66,6 +68,7 @@ export const useLinksStore = defineStore('links', {
     linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
     // parameters
     speedTimeMethod: 'time',
+    indexingMethod: 'uuid',
   }),
 
   actions: {
@@ -280,8 +283,13 @@ export const useLinksStore = defineStore('links', {
       // change tripId.
       cloned.features.forEach(link => link.properties.trip_id = payload.name)
       // change index name
-      cloned.features.forEach(link => link.properties.index = 'link_' + short.generate())
+      const usedIndex = [...this.linksIndexes]
 
+      cloned.features.forEach(link => {
+        const newIndex = getNewIndex(link.properties.index, usedIndex, this.indexingMethod)
+        link.properties.index = newIndex
+        usedIndex.push(newIndex)
+      })
       if (payload.reverse) {
         // sort links by sequence by inverse link_sequence
         cloned.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
@@ -337,8 +345,15 @@ export const useLinksStore = defineStore('links', {
         const clonedNodes = cloneDeep(this.nodes)
         clonedNodes.features = deleteUnusedNodes(clonedNodes, cloned)
         const indexList = clonedNodes.features.map(node => node.properties.index)
+
+        const usedIndex = [...this.nodesIndexes]
         const newName: Record<string, string> = {}
-        indexList.forEach(node => newName[node] = 'node_' + short.generate())
+        for (const idx of indexList) {
+          const newIndex = getNewIndex(idx, usedIndex, this.indexingMethod)
+          newName[idx] = newIndex
+          usedIndex.push(newIndex)
+        }
+
         clonedNodes.features.forEach(node => node.properties.index = newName[node.properties.index])
 
         cloned.features.forEach(link => link.properties.a = newName[link.properties.a])
@@ -378,17 +393,13 @@ export const useLinksStore = defineStore('links', {
 
     createNewNode (geometry: number[]) {
       // only used to create the first node of a new Line
-      const nodeProperties: Record<string, any> = {}
-      this.nodeAttributes.forEach(key => {
-        nodeProperties[key] = null
-      })
-      nodeProperties.index = 'node_' + short.generate()
-      const nodeGeometry: PointGeometry = {
-        coordinates: toRaw(geometry),
-        type: 'Point',
-      }
+      const node = getDefaultNode(this.nodesDefaultAttributes)
+      const nodeFeature = node.features[0]
+      nodeFeature.geometry.coordinates = toRaw(geometry)
+
+      nodeFeature.properties.index = getNewIndex('node_0', this.nodesIndexes, this.indexingMethod)
+
       // Copy specified nodenewNode
-      const nodeFeature: PointFeatures = { geometry: nodeGeometry, properties: nodeProperties, type: 'Feature' }
       this.commitChanges({ name: 'New Node', newNodes: [nodeFeature] })
     },
 
@@ -396,7 +407,8 @@ export const useLinksStore = defineStore('links', {
       const { nodeCopyId, coordinates } = payload
       const newNode = basePoint()
       const features = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === nodeCopyId)[0])
-      features.properties.index = 'node_' + short.generate()
+      features.properties.index = getNewIndex(nodeCopyId, this.nodesIndexes, this.indexingMethod)
+
       features.geometry.coordinates = coordinates
       newNode.features = [features]
       return newNode
@@ -442,8 +454,8 @@ export const useLinksStore = defineStore('links', {
         newLinkFeature.properties.b = fromNodeFeature.properties.index
         newLinkFeature.properties.a = toNodeFeature.properties.index
       }
-
-      newLinkFeature.properties.index = 'link_' + short.generate()
+      const desiredIndex = newLinkFeature.properties.index || 'link_0' // will be undified for new line. so link_0
+      newLinkFeature.properties.index = getNewIndex(desiredIndex, this.linksIndexes, this.indexingMethod)
 
       calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
       this.calcSchedule(newLink, payload.action)
@@ -529,7 +541,8 @@ export const useLinksStore = defineStore('links', {
       const newNode = this.getNewNode({ coordinates: newCoords, nodeCopyId }).features[0]
 
       const link2 = cloneDeep(link1)
-      link2.properties.index = 'link_' + short.generate() // link2.properties.index+ '-2'
+      link2.properties.index = getNewIndex(link2.properties.index, this.linksIndexes, this.indexingMethod)
+
       link1.properties.b = newNode.properties.index
       link2.properties.a = newNode.properties.index
 
@@ -948,16 +961,27 @@ export const useLinksStore = defineStore('links', {
     anchorNodes: (state) => {
       return getAnchorGeojson(state.editorLinks.features)
     },
+    linksIndexes: (state) => {
+      const _editorIndex = state.editorLinks.features.map(link => link.properties.index)
+      const _otherIndex = state.links.features.map(link => link.properties.index)
+      return [..._editorIndex, ..._otherIndex]
+    },
+    nodesIndexes: (state) => {
+      const _editorIndex = state.editorNodes.features.map(node => node.properties.index)
+      const _otherIndex = state.nodes.features.map(node => node.properties.index)
+      return [..._editorIndex, ..._otherIndex]
+    },
     routeAnchorNodes: (state) => {
       // cannot use the getAnchorGeojson as we dont work on geometry and idx is not +1
       const nodes: PointGeoJson = basePoint()
       let lineIndex = 0 // position of the node in the complete linetring
+      let i = 0
       state.editorLinks.features.forEach(feature => {
         const linkIndex = feature.properties.index
         lineIndex += 1
         feature.properties.anchors?.forEach((pt: number[], idx: number) => {
           const node: PointFeatures = {
-            properties: { index: short.generate(), linkIndex, coordinatedIndex: idx, lineIndex: lineIndex },
+            properties: { index: i++, linkIndex, coordinatedIndex: idx, lineIndex: lineIndex },
             geometry: { coordinates: pt, type: 'Point' },
             type: 'Feature',
           }

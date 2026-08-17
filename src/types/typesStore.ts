@@ -55,9 +55,11 @@ export interface ModelConfig {
 }
 
 export type SpeedTimeMethod = 'speed' | 'time'
+export type IndexingMethod = 'uuid' | 'int'
 
 export interface SettingsPayload {
   speedTimeMethod: SpeedTimeMethod
+  indexingMethod: IndexingMethod
   defaultHighway: string
   roadSpeed: number
   roadOneway: '0' | '1'
@@ -83,6 +85,7 @@ export interface IndexStore {
   stickyMode: boolean
   routingMode: boolean
   speedTimeMethod: SpeedTimeMethod
+  indexingMethod: IndexingMethod
   linksPopupContent: string[]
   roadsPopupContent: string[]
   cyclewayMode: boolean
@@ -242,6 +245,7 @@ export interface LinksStore {
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
   speedTimeMethod: SpeedTimeMethod
+  indexingMethod: IndexingMethod
 
 }
 
@@ -296,6 +300,8 @@ export interface Commit {
 export interface RlinksStore {
   rlinks: LineStringGeoJson
   rnodes: PointGeoJson
+  history: Commit[]
+  redoStack: Commit[]
   variant: string
   variantChoice: NonEmptyArray<string>
   selectedrFilter: string
@@ -308,14 +314,13 @@ export interface RlinksStore {
   updateNodes: UpdateFeatures[]
   editionMode: boolean
   speedTimeMethod: SpeedTimeMethod
-  history: Commit[]
-  redoStack: Commit[]
+  indexingMethod: IndexingMethod
+
 }
 
 // OD store
 
 export interface NewODPayload {
-  index: string
   lngLat: number[]
 }
 
@@ -326,6 +331,8 @@ export interface ODStore {
   filteredCategory: string[]
   selectedFilter: string
   selectedCategory: string[]
+  indexingMethod: IndexingMethod
+
 }
 
 // map store

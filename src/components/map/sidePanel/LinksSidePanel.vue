@@ -1,12 +1,13 @@
 <script setup lang="ts">
-
-import short from 'short-uuid'
 import { ref, computed, watch } from 'vue'
+import { LinksAction } from '@src/types/typesStore'
+import { getNewIndex } from '@src/utils/network.ts'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useGettext } from 'vue3-gettext'
 import { useRouting } from '@src/utils/routing/routing.js'
 import { userLinksStore } from '@src/store/rlinks'
+
 import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 const rlinksStore = userLinksStore()
@@ -152,7 +153,7 @@ function propertiesButton (value: string[], action: LinksAction) {
 }
 
 function createNewLine () {
-  const name = 'trip_' + short.generate()
+  const name = getNewIndex('trip_0', tripList.value, linksStore.indexingMethod)
   linksStore.setEditorTrip(name)
   openDialog({ action: 'Edit Line Info', selectedArr: [name], lingering: true, type: 'pt' })
 }
@@ -203,7 +204,6 @@ async function deleteButton (trips: string[], message: string) {
 // Highlight
 
 import { useHighlight } from '../../../composables/useHighlight'
-import { LinksAction } from '@src/types/typesStore'
 const { setHighlightTrip } = useHighlight()
 function setHighlight(trip: string | null) {
   if (!editorTrip.value) {
