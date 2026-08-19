@@ -1,3 +1,8 @@
+## [8.1.4] (2026-08-19)
+### bug fixes
+* scenario explorer reset the list when exiting a model and reclicking it
+* stop polling when unloading a scenario.
+
 ## [8.1.3] (2026-08-19)
 ### Changes
 * Fix scenario explorer. 

@@ -72,6 +72,10 @@ export function useAPI () {
 
   function pollExecution (functionName: string, scenario: string) {
     const intervalId = setInterval(async () => {
+      if (jobId.value === '') { // stop polling if reset store
+        clearInterval(intervalId)
+        return
+      }
       timer.value = timer.value - pollFreq / 1000
       try {
         const payload: PollPayload = {

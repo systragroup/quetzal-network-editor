@@ -399,7 +399,6 @@ function selectModel(v: string) {
   localModel.value = v
   showScenario.value = true
   sortModel.value = 'scenario'
-  scenariosList.value = []
 }
 
 </script>
