@@ -13,6 +13,9 @@ export interface FormOption {
   continue: boolean
 }
 
+type RuleFunction = (_: string) => true | string
+export type Rule = string | RuleFunction
+
 export type FormType = 'number' | 'string' | 'boolean' | 'select' | 'time'
 
 export type FormObject = Record<string, Omit<FormData, 'key'>>
@@ -28,7 +31,7 @@ export interface FormData {
   disabled?: boolean
   hint?: string
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  rules?: (string | Function)[]
+  rules?: Rule[]
   multiple?: boolean
   items?: any[] | undefined
   min?: number

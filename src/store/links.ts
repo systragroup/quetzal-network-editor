@@ -79,8 +79,8 @@ export const useLinksStore = defineStore('links', {
 
       if (newLinks) history.deleteLinks = _addGeojsonFeatures(this.editorLinks, newLinks)
       if (newNodes) history.deleteNodes = _addGeojsonFeatures(this.editorNodes, newNodes)
-      if (updateLinks) history.updateLinks = _editGeojsonFeatures(this.editorLinks, updateLinks) as LineStringFeatures[]
-      if (updateNodes) history.updateNodes = _editGeojsonFeatures(this.editorNodes, updateNodes) as PointFeatures[]
+      if (updateLinks) history.updateLinks = _editGeojsonFeatures(this.editorLinks, updateLinks)
+      if (updateNodes) history.updateNodes = _editGeojsonFeatures(this.editorNodes, updateNodes)
       if (deleteLinks) history.newLinks = _deleteGeojsonFeatures(this.editorLinks, deleteLinks) as LineStringFeatures[]
       if (deleteNodes) history.newNodes = _deleteGeojsonFeatures(this.editorNodes, deleteNodes) as PointFeatures[]
 
@@ -260,12 +260,12 @@ export const useLinksStore = defineStore('links', {
         console.error('Payload length should be same length as editorLinks.features')
         return
       }
-      const toUpdate = []
+      const toUpdate = new Map()
       for (let i = 0; i < payload.length; i++) {
         const linkSchedule = payload[i]
         const link = cloneDeep(this.editorLinks.features[i])
         Object.keys(linkSchedule).forEach(key => link.properties[key] = linkSchedule[key])
-        toUpdate.push(link)
+        toUpdate.set(link.properties.index, link)
       }
       this.commitChanges({ name: 'Edit Schedule', updateLinks: toUpdate })
     },
@@ -471,7 +471,10 @@ export const useLinksStore = defineStore('links', {
         const modified = cloneDeep(this.editorLinks.features)
         modified.forEach(link => link.properties.link_sequence += 1)
         this.commitChanges(
-          { name: 'Extend Line Downward', newLinks: [feature], updateLinks: modified, newNodes: [toNodeFeature],
+          { name: 'Extend Line Downward',
+            newLinks: [feature],
+            updateLinks: new Map(modified.map(f => [f.properties.index, f])),
+            newNodes: [toNodeFeature],
 
           })
       }
@@ -519,7 +522,7 @@ export const useLinksStore = defineStore('links', {
 
       this.commitChanges({
         name: 'Delete Node',
-        updateLinks: toEdit,
+        updateLinks: new Map(toEdit.map(f => [f.properties.index, f])),
         deleteLinks: new Set(toDelete),
         deleteNodes: new Set([nodeIndex]),
       })
@@ -572,7 +575,7 @@ export const useLinksStore = defineStore('links', {
       modified.forEach(link => link.properties.link_sequence += 1)
       this.commitChanges(
         { name: 'New Node',
-          updateLinks: [link1, ...modified],
+          updateLinks: new Map([link1, ...modified].map(f => [f.properties.index, f])),
           newLinks: [link2],
           newNodes: [newNode] })
     },
@@ -606,7 +609,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter((link) => link.properties.index === linkIndex)[0])
       const { sliceIndex, newCoords } = snapOnLink(link.geometry.coordinates, lngLat)
       link.geometry.coordinates.splice(sliceIndex, 0, newCoords)
-      this.commitChanges({ name: 'Add Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Add Anchor', updateLinks: new Map([[linkIndex, link]]) })
     },
 
     addRoutingAnchorNode (payload: AnchorPayload) {
@@ -630,7 +633,7 @@ export const useLinksStore = defineStore('links', {
       } else {
         link.properties.anchors = [newCoords]
       }
-      this.commitChanges({ name: 'Add Routing Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Add Routing Anchor', updateLinks: new Map([[linkIndex, link]]) })
     },
 
     deleteAnchorNode (payload: SelectedAnchor) {
@@ -639,7 +642,7 @@ export const useLinksStore = defineStore('links', {
       link.geometry.coordinates = [...link.geometry.coordinates.slice(0, coordinatedIndex),
         ...link.geometry.coordinates.slice(coordinatedIndex + 1)]
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      this.commitChanges({ name: 'Delete Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Delete Anchor', updateLinks: new Map([[linkIndex, link]]) })
     },
 
     deleteRoutingAnchorNode (payload: SelectedAnchor) {
@@ -672,9 +675,12 @@ export const useLinksStore = defineStore('links', {
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       })
       // for routing
-      this.commitChanges({ name: 'Move Node', updateLinks: [...linksA, ...linksB], updateNodes: [node] })
+      const linksToUpdate = [...linksA, ...linksB]
+      const updateLinks = new Map(linksToUpdate.map(f => [f.properties.index, f]))
+      const updateNodes = new Map([[nodeIndex, node]])
+      this.commitChanges({ name: 'Move Node', updateLinks: updateLinks, updateNodes: updateNodes })
 
-      return [...linksA, ...linksB]
+      return linksToUpdate
     },
 
     moveAnchor(payload: MoveNode) {
@@ -685,7 +691,7 @@ export const useLinksStore = defineStore('links', {
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
 
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      this.commitChanges({ name: 'Move Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Move Anchor', updateLinks: new Map([[linkIndex, link]]) })
 
       return link
     },
@@ -727,9 +733,11 @@ export const useLinksStore = defineStore('links', {
           link.geometry.coordinates[link.geometry.coordinates.length - 1] = geom
           calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
         })
+
+      const updateLinks = new Map([...linksA, ...linksB].map(f => [f.properties.index, f]))
       this.commitChanges({
         name: 'Use Sticky Node',
-        updateLinks: [...linksA, ...linksB],
+        updateLinks: updateLinks,
         newNodes: [newNodeFeatures],
         deleteNodes: new Set([oldNodeIndex]),
       })
@@ -759,8 +767,9 @@ export const useLinksStore = defineStore('links', {
       const linksToDelete = new Set(toDelete.map(link => link.properties.index))
       const nodesToDelete = new Set(toDelete.map(link => link.properties.a))
 
+      const updateLinks = new Map(toModify.map(f => [f.properties.index, f]))
       this.commitChanges({
-        name: 'Cut Line Before Node', deleteLinks: linksToDelete, deleteNodes: nodesToDelete, updateLinks: toModify,
+        name: 'Cut Line Before Node', deleteLinks: linksToDelete, deleteNodes: nodesToDelete, updateLinks: updateLinks,
       })
     },
 
@@ -778,7 +787,8 @@ export const useLinksStore = defineStore('links', {
           calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
-      this.commitChanges({ name: 'Edit Line Properties', updateLinks: features })
+      const updateMap = new Map(features.map(f => [f.properties.index, f])) // index should not change
+      this.commitChanges({ name: 'Edit Line Properties', updateLinks: updateMap })
       // New line
       // change LinksDefault values. so drawing a link uses those inputed values
       if (this.editorLinks.features.length === 0) {
@@ -796,19 +806,33 @@ export const useLinksStore = defineStore('links', {
       const props = Object.keys(info)
       const link = cloneDeep(this.editorLinks.features.filter(link => link.properties.index === selectedIndex)[0])
       props.forEach(key => link.properties[key] = info[key].value)
-      this.commitChanges({ name: 'Edit Link Properties', updateLinks: [link] })
+
+      this.commitChanges({ name: 'Edit Link Properties', updateLinks: new Map([[selectedIndex, link]]) })
     },
 
     editNodeInfo (payload: EditLinkPayload) {
       // get selected node in editorNodes and modify the changes attributes.
       const { selectedIndex, info } = payload
-      const props = Object.keys(info)
       const node = cloneDeep(this.editorNodes.features.filter(node => node.properties.index === selectedIndex)[0])
-      props.forEach(key => node.properties[key] = info[key].value)
-      this.commitChanges({ name: 'Edit Node Properties', updateNodes: [node] })
+      Object.keys(info).forEach(key => node.properties[key] = info[key].value)
+      const updateNodes = new Map([[selectedIndex, node]])
+      // update Links if node index changed
+
+      const updatedLinks = new Map()
+      const newIndex = node.properties.index
+      if (newIndex !== selectedIndex) {
+        const linksA = cloneDeep(this.editorLinks.features.filter(link => link.properties.a === selectedIndex))
+        const linksB = cloneDeep(this.editorLinks.features.filter(link => link.properties.b === selectedIndex))
+        linksA.forEach(link => link.properties.a = newIndex)
+        linksB.forEach(link => link.properties.b = newIndex)
+        linksA.forEach(link => updatedLinks.set(link.properties.index, link))
+        linksB.forEach(link => updatedLinks.set(link.properties.index, link))
+      }
+      this.commitChanges({ name: 'Edit Node Properties', updateNodes: updateNodes, updateLinks: updatedLinks })
     },
 
     editGroupInfo (payload: EditGroupPayload) {
+      // TODO: add to history. but, this action is only available when not in edition mode. so there is still no history there.
       // edit line info on multiple trips at once.
       const editorGroupInfo = payload.info
       const groupTripIds = new Set(payload.selectedArray)

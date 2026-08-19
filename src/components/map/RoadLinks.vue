@@ -17,6 +17,7 @@ import { ActionClickRoad, ContextMenuRoad, CustomMapEvent, HoverStateRoad, MapSe
 import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, PointFeatures } from '@src/types/geojson'
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
 import RoadLinksDraw from './RoadLinksDraw.vue'
+import { setsAreEqual } from '@src/utils/utils.ts'
 const { openDialog, showDialog } = useForm()
 
 interface Props {
@@ -150,9 +151,9 @@ watch(filterValues, () => {
 }, { deep: true })
 
 watch(visibleNodesIndex, (oldVal, newVal) => {
-  if (oldVal.size !== newVal.size) {
-    setFilter()
-  }
+  if (setsAreEqual(oldVal, newVal)) return
+  // else
+  setFilter()
 })
 
 async function setFilter() {

@@ -2,7 +2,7 @@
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { toRefs, ref, computed } from 'vue'
-import { GroupForm } from '@src/types/components'
+import { GroupForm, Rule } from '@src/types/components'
 import ColorPicker from '../utils/ColorPicker.vue'
 import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
@@ -15,7 +15,7 @@ interface Props {
   types?: Record<string, AttributeTypes >
   attributesChoices?: Record<string, any[]>
   attributeNonDeletable: string[]
-  rules: any
+  rules: Record<string, Rule[]>
   showDeleteOption: boolean
   showHint: boolean
 }
@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   displayUnits: () => ({} as Record<string, AttributeUnits>),
   types: () => ({} as Record<string, AttributeTypes>),
   attributesChoices: () => ({} as Record<string, any[]>),
-  rules: () => {},
+  rules: () => ({} as Record<string, Rule[]>),
   attributeNonDeletable: () => [],
   showHint: false,
   showDeleteOption: false,
@@ -131,7 +131,7 @@ function componentType(type: AttributeTypes) {
             :units="units[getPropertyName(key)]"
             :display-units="displayUnits[getPropertyName(key)]"
             :suffix="units[getPropertyName(key)]"
-            :rules="rules[key]"
+            :rules="item.disabled?[]: rules[key]"
             :precision="null"
             :prepend-inner-icon="hasCalculator(key) ? 'fas fa-calculator' : '' "
             :label="String(key)"

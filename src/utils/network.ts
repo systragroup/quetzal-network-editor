@@ -1,5 +1,5 @@
 import { baseLineString, basePoint, GeoJson, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, LineStringGeometry, PointFeatures, PointGeoJson, PointGeometry } from '@src/types/geojson'
-import { Attributes, AttributeTypes, IndexingMethod, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
+import { Attributes, AttributeTypes, EditMap, IndexingMethod, LngLat, NonEmptyArray, SpeedTimeMethod } from '@src/types/typesStore'
 import short from 'short-uuid'
 
 import length from '@turf/length'
@@ -233,16 +233,19 @@ export function _deleteGeojsonFeatures(geojson: GeoJson, toDelete: Set<string>):
   return deleted
 }
 
-export function _editGeojsonFeatures(geojson: GeoJson, features: GeoJsonFeatures[]): GeoJsonFeatures[] {
-  // links or nodes
+export function _editGeojsonFeatures<T extends GeoJsonFeatures>(geojson: GeoJson, updateMap: EditMap<T>): EditMap<T> {
   // Create a map from index => modified feature and update every index in the map
-  const beforeFeatures: GeoJsonFeatures[] = []
-  const updateMap = new Map(features.map(feature => [feature.properties.index, feature]))
+  // update with a map, so we can update the index value (feature.properties.index)
+  const beforeMap: EditMap<T> = new Map()
+  // const updateMap = new Map(features.map(feature => [feature.properties.index, feature]))
   geojson.features.forEach(feature => {
     const index = feature.properties.index
-    if (updateMap.has(index)) {
-      beforeFeatures.push(cloneDeep(feature))
-      Object.assign(feature, updateMap.get(index)) }
+    const newFeature = updateMap.get(index) // faster than doing a if has then get. just get once
+    if (newFeature) {
+      const newIndex = newFeature.properties.index
+      beforeMap.set(newIndex, cloneDeep(feature) as T)
+      Object.assign(feature, newFeature)
+    }
   })
-  return beforeFeatures
+  return beforeMap
 }
