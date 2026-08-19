@@ -4,13 +4,15 @@ import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useClient } from '@src/axiosClient.js'
 
-import { computed, ref, watch, onMounted, nextTick } from 'vue'
+import { computed, ref, watch, onMounted, nextTick, toRaw } from 'vue'
 
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import { Scenario, ScenarioPayload } from '@src/types/typesStore'
 import { infoSerializer } from '@src/utils/serializer.ts'
 const { $gettext } = useGettext()
+// const controller = new AbortController()
+// const { signal } = controller
 const emits = defineEmits(['load', 'unload'])
 
 const COMMON = '_common'
@@ -86,6 +88,30 @@ async function getScenarios() {
   Promise.allSettled(rest.map((scenario) => getScenarioMetadata(bucket, scenario)))
     .then(() => loading.value = false)
     .catch(() => loading.value = false)
+}
+
+async function updateScenarioList(scenarioName: string) {
+  // add or delete a scenario from the list
+  if (!localModel.value) return
+  const bucket = localModel.value
+
+  const scenariosName = new Set(scenariosList.value.map(el => el.scenario))
+  if (scenariosName.has(scenarioName)) {
+    scenariosList.value = scenariosList.value.filter(el => el.scenario !== scenarioName)
+  } else {
+    const scenario = {
+      model: bucket,
+      scenario: scenarioName,
+      key: `${bucket}${scenarioName}`,
+      protected: false,
+      lastModified: '...', // all of them to be done async
+      timestamp: 0,
+      userEmail: '...',
+      description: '',
+    }
+    await getScenarioMetadata(bucket, scenario)
+    scenariosList.value.push(scenario)
+  }
 }
 
 watch(localModel, async () => {
@@ -189,7 +215,7 @@ async function getModelSteps(model: string | null) {
 }
 
 const searchString = ref('')
-const sortModel = ref<string>('scenario')
+const sortModel = ref<'scenario' | 'timestamp' | 'userEmail'>('scenario')
 const sortDirection = ref(true)
 const sortedScenariosList = computed(() => {
   // sort by alphabetical order, with protectedScens one one top
@@ -197,7 +223,7 @@ const sortedScenariosList = computed(() => {
   if (searchString.value) {
     arr = arr.filter(el => el.scenario.toLowerCase().includes(searchString.value.toLowerCase()))
   }
-  return arr.sort((a, b) => {
+  const sorted = arr.sort((a, b) => {
     if (a.protected === b.protected) { // both true or both false. we go alphabetically
       const res = String(a[sortModel.value]).localeCompare(String(b[sortModel.value]),
         undefined, { sensitivity: 'base' })
@@ -208,6 +234,7 @@ const sortedScenariosList = computed(() => {
       return 1 // `b` comes before `a`
     }
   })
+  return sorted
 })
 
 interface DialogProps {
@@ -243,16 +270,16 @@ async function createProject() {
       const protectedList = scenariosList.value.filter(scen => scen.protected)
       const base = protectedList[0].scenario
       await s3.copyFolder(localModel.value, base, input.value, true)
+      await updateScenarioList(input.value)
       store.changeNotification(
         { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
-
       selectScenario(null, { scenario: input.value, protected: false })
     } catch (err) {
       store.changeAlert(err)
+      await getScenarios()
     } finally {
       input.value = ''
       store.changeLoading(false)
-      await getScenarios()
     }
   }
 }
@@ -268,16 +295,16 @@ async function copyProject (selectedScenario: string) {
     try {
       store.changeLoading(true)
       await s3.copyFolder(localModel.value, selectedScenario + '/', input.value, false)
+      await updateScenarioList(input.value)
+      selectScenario(null, { scenario: input.value, protected: false })
       store.changeNotification(
         { text: $gettext('Scenario successfully copied'), autoClose: true, color: 'success' })
-
-      selectScenario(null, { scenario: input.value, protected: false })
     } catch (err) {
       store.changeAlert(err)
+      await getScenarios()
     } finally {
       input.value = ''
       store.changeLoading(false)
-      await getScenarios()
     }
   }
 }
@@ -292,20 +319,22 @@ async function renameProject() {
   if (resp) {
     try {
       store.changeLoading(true)
-      const oldPath = storeScenario.value + '/'
+      const oldName = toRaw(storeScenario.value)!
+      const oldPath = oldName + '/'
       const newName = input.value
       await s3.copyFolder(storeModel.value, oldPath, newName, false)
       await s3.deleteFolder(storeModel.value, oldPath)
+      await updateScenarioList(newName) // add new
+      await updateScenarioList(oldName) // delete old
+      userStore.setScenario({ scenario: newName, protected: false })
       store.changeNotification(
         { text: $gettext('scenario renamed'), autoClose: true, color: 'success' })
-
-      userStore.setScenario({ scenario: newName, protected: false })
     } catch (err) {
       store.changeAlert(err)
+      await getScenarios()
     } finally {
       input.value = ''
       store.changeLoading(false)
-      await getScenarios()
     }
   }
 }
@@ -348,10 +377,11 @@ async function deleteScenario (scenarioToDelete: string) {
   try {
     store.changeLoading(true)
     await s3.deleteFolder(localModel.value, scenarioToDelete + '/')
-    await getScenarios()
+    await updateScenarioList(scenarioToDelete) // add new
     store.changeNotification({ text: $gettext('Scenario deleted'), autoClose: true, color: 'success' })
   } catch (err) {
     store.changeAlert(err)
+    await getScenarios()
   } finally {
     store.changeLoading(false)
   }
@@ -367,7 +397,10 @@ async function mouseOff() {
 const showScenario = ref(false)
 function selectModel(v: string) {
   localModel.value = v
-  showScenario.value = true }
+  showScenario.value = true
+  sortModel.value = 'scenario'
+  scenariosList.value = []
+}
 
 </script>
 <template>
@@ -456,6 +489,7 @@ function selectModel(v: string) {
         <v-btn
           value="timestamp"
           size="small"
+          :disabled="loading"
         >
           <span class="hidden-sm-and-down lowercase-text">date</span>
           <v-icon end>
@@ -465,6 +499,7 @@ function selectModel(v: string) {
         <v-btn
           value="userEmail"
           size="small"
+          :disabled="loading"
         >
           <span class="hidden-sm-and-down lowercase-text">email</span>
           <v-icon end>
@@ -481,14 +516,16 @@ function selectModel(v: string) {
     </div>
     <v-divider />
     <!--  -->
+    <v-progress-linear
+      v-if="loading"
+      color="primary"
+      indeterminate
+    />
     <div class="v-card-content">
-      <v-progress-linear
-        v-if="loading"
-        color="primary"
-        indeterminate
-      />
       <v-virtual-scroll
         :items="sortedScenariosList"
+        class="virtual-scroll"
+        height="100%"
       >
         <template v-slot="{item:scen}">
           <v-list-item
@@ -505,32 +542,39 @@ function selectModel(v: string) {
             <v-list-item-title class="name-wrap">
               {{ scen.scenario }}
             </v-list-item-title>
-            <v-list-item-subtitle>{{ scen.lastModified }}</v-list-item-subtitle>
-            <v-list-item-subtitle>{{ scen.userEmail }}</v-list-item-subtitle>
+            <v-list-item-subtitle>
+              {{ scen.lastModified }}
+            </v-list-item-subtitle>
+            <v-list-item-subtitle>
+              {{ scen.userEmail }}
+            </v-list-item-subtitle>
+
             <template v-slot:append>
-              <v-btn
-                v-if="modelScen === scen.key && !scen.protected"
-                variant="text"
-                icon="fas fa-pen"
-                class="ma-1"
-                size="small"
-                @click.stop="renameProject"
-              />
-              <v-btn
-                variant="text"
-                icon="fas fa-copy"
-                class="ma-1"
-                size="small"
-                @click.stop="copyProject(scen.scenario)"
-              />
-              <v-btn
-                variant="text"
-                :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
-                :disabled="(scen.key === modelScen) || (scen.protected)"
-                class="ma-1"
-                size="small"
-                @click.stop="deleteScenario(scen.scenario)"
-              />
+              <v-list-item-action end>
+                <v-btn
+                  v-if="modelScen === scen.key && !scen.protected"
+                  variant="text"
+                  icon="fas fa-pen"
+                  class="ma-1"
+                  size="small"
+                  @click.stop="renameProject"
+                />
+                <v-btn
+                  variant="text"
+                  icon="fas fa-copy"
+                  class="ma-1"
+                  size="small"
+                  @click.stop="copyProject(scen.scenario)"
+                />
+                <v-btn
+                  variant="text"
+                  :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
+                  :disabled="(scen.key === modelScen) || (scen.protected)"
+                  class="ma-1"
+                  size="small"
+                  @click.stop="deleteScenario(scen.scenario)"
+                />
+              </v-list-item-action>
             </template>
           </v-list-item>
         </template>
@@ -611,7 +655,7 @@ function selectModel(v: string) {
 .scenario-container{
   display:flex;
   flex-direction: column;
-  height:calc(100% - 100px);
+  height:calc(100vh - 208px);
 }
 .item{
   flex:1;
@@ -625,7 +669,10 @@ function selectModel(v: string) {
   background-color: rgb(var(--v-theme-primary));
 }
 .list-item{
+  width:100%;
+  min-width: 100%;
   border-top: 1px solid rgb(var(--v-theme-lightgrey));
+
 }
 .lowercase-text {
   text-transform: lowercase;
@@ -634,8 +681,17 @@ function selectModel(v: string) {
   justify-content: end;
 }
 .v-card-content {
-  overflow: auto; /* Enable scrolling if the content overflows */
-  max-height:calc(100% - 10rem);
+  display: flex;
+  height:100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.virtual-scroll{
+  width:100%;
+  min-width: 100%;
+  min-height: 0;
+
 }
 .name-wrap{
   text-wrap: wrap;

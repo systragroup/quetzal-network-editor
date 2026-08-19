@@ -1,3 +1,10 @@
+## [8.1.3] (2026-08-19)
+### Changes
+* Fix scenario explorer. 
+    * virtual scroll fix. 
+    * when adding, changing or delinting a project, just update the list, no refetch.
+    * cannot sort with dates and email when its still loading.
+
 ## [8.1.2] (2026-08-13)
 ### Changes
 * scenario list is now a virtual scroll. fetch first 10 metadata then load the rest in the background

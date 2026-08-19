@@ -107,6 +107,8 @@ async function getImagesURL (bucket, key) {
 }
 
 async function copyFolder (bucket, prefix, newName, newScenario = false) {
+  const res = await checkIfFolderExists(bucket, newName)
+  if (res) throw new Error('Scenario already exist')
   const userStore = useUserStore()
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
@@ -237,6 +239,20 @@ async function checkIfFileExists(bucket, key) {
   }
 }
 
+async function checkIfFolderExists(bucket, prefix) {
+  try {
+    const response = await s3Client.listObjectsV2({
+      Bucket: bucket,
+      Prefix: prefix,
+      MaxKeys: 1,
+    })
+
+    return (response.KeyCount ?? 0) > 0
+  } catch (error) {
+    throw error
+  }
+}
+
 const COMMON = '_common'
 
 async function listScenarios(bucket) {
@@ -304,6 +320,7 @@ export default {
   getChecksum,
   readInfo,
   checkIfFileExists,
+  checkIfFolderExists,
   listScenarios,
   getLocks,
 }
