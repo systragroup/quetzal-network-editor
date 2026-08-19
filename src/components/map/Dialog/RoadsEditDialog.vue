@@ -39,15 +39,35 @@ const typesMap = computed(() => {
   else return Object.fromEntries(rlinksStore.nodesDefaultAttributes.map(el => [el.name, el.type]))
 })
 
-const attributeNonDeletable = computed(() => {
+const attributeNonDeletable = computed<string[]>(() => {
   if (editLinks.value) return [...rlinksDefaultProperties.map(el => el.name), ...reversedAttributes.value]
   else return [...rnodesDefaultProperties.map(el => el.name)]
+})
+
+const usedIndex = computed<Set<string>>(() => {
+  if (editLinks.value) return new Set(rlinks.value.features.map(el => el.properties.index))
+  else return new Set(rlinksStore.rnodes.features.map(el => el.properties.index))
 })
 
 const displayUnits = computed(() => store.displayUnits)
 const units = computed(() => baseUnits)
 
-const rules = {}
+const rules = computed(() => selectedArr.value.map(idx => {
+  const prefix = idx.split('_')[0] + '_'
+  return {
+    index: [
+      (val: string) => ((val === idx) || (!usedIndex.value.has(val))) || $gettext('already exist'),
+      (val: string) => val.startsWith(prefix) || $gettext('must start with prefix %{prefix}', { prefix }),
+      () => { //  check that all indexes are differents (only needed for 1 of the form. done too all for simplicity)
+        const uniqueIndexes = new Set(editorForm.value.map(form => form.index?.value))
+        return (uniqueIndexes.size === editorForm.value.length) || $gettext('indexes must be different')
+      },
+
+    ],
+  }
+}),
+)
+
 const hints: Dict = attributesHints
 const formRef = ref()
 
@@ -85,7 +105,7 @@ function createForm() {
   switch (action.value) {
     case 'Edit rLink Info':
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['a', 'b', 'index', 'length']
+      disabled = ['a', 'b', 'length']
       editorForm.value = []
       selectedArr.value.forEach(index => {
         const feature = features.filter(link => link.properties.index === index)[0]
@@ -113,7 +133,7 @@ function createForm() {
     case 'Edit rNode Info':
       const selectedNode = selectedArr.value[0]
       const nodeFeatures = rlinksStore.rnodes.features.filter((node) => node.properties.index === selectedNode)
-      disabled = ['index', 'route_width']
+      disabled = ['route_width']
       editorForm.value = [getGroupForm(nodeFeatures, rnodeAttributes.value, disabled)]
 
       break
@@ -122,7 +142,7 @@ function createForm() {
   }
 }
 
-async function submitForm() {
+async function submitForm(quitAfter = false) {
   const resp = await Promise.all(formRef.value.map((f: any) => f.validate()))
   if (resp.includes(false)) { return false }
   switch (action.value) {
@@ -136,17 +156,19 @@ async function submitForm() {
       rlinksStore.editNodeInfo({ selectedArr: selectedArr.value, infoArr: editorForm.value })
       break
   }
+  // If i call this in a function after await submitForm(). Mapbox wont update properly.
+  // I dont know why, maybe its a new bug mapbox
+  if (quitAfter) quit()
   return true
 }
 function quit() {
   showDialog.value = false
+
+  store.changeNotification({ text: $gettext('modification applied'), autoClose: true, color: 'success' })
 }
 
-async function saveAndQuit() {
-  await submitForm()
-  showDialog.value = false
-  store.changeNotification(
-    { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+function saveAndQuit() {
+  submitForm(true)
 }
 
 // add
@@ -295,7 +317,7 @@ watchEffect(() => {
               :hints="hints"
               :units="units"
               :display-units="displayUnits"
-              :rules="rules"
+              :rules="rules[idx]"
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"
               :types="typesMap"

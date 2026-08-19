@@ -63,8 +63,8 @@ export const userLinksStore = defineStore('rlinks', {
       const history: Commit = { name: name }
       if (newLinks) history.deleteLinks = _addGeojsonFeatures(this.rlinks, newLinks)
       if (newNodes) history.deleteNodes = _addGeojsonFeatures(this.rnodes, newNodes)
-      if (updateLinks) history.updateLinks = _editGeojsonFeatures(this.rlinks, updateLinks) as LineStringFeatures[]
-      if (updateNodes) history.updateNodes = _editGeojsonFeatures(this.rnodes, updateNodes) as PointFeatures[]
+      if (updateLinks) history.updateLinks = _editGeojsonFeatures(this.rlinks, updateLinks)
+      if (updateNodes) history.updateNodes = _editGeojsonFeatures(this.rnodes, updateNodes)
       if (deleteLinks) history.newLinks = _deleteGeojsonFeatures(this.rlinks, deleteLinks) as LineStringFeatures[]
       if (deleteNodes) history.newNodes = _deleteGeojsonFeatures(this.rnodes, deleteNodes) as PointFeatures[]
 
@@ -107,14 +107,29 @@ export const userLinksStore = defineStore('rlinks', {
       const { newLinks, newNodes, deleteLinks, updateLinks, updateNodes, deleteNodes } = commit
       const _updateLinks: UpdateFeatures[] = []
       const _updateNodes: UpdateFeatures[] = []
+
       function withId(features: (LineStringFeatures | PointFeatures)[]): UpdateFeatures[] {
         return features.map(el => ({ ...el, id: el.properties.index }))
       }
 
-      if (updateLinks) _updateLinks.push(...withId(updateLinks))
       if (newLinks) _updateLinks.push(...withId(newLinks))
       if (newNodes) _updateNodes.push(...withId(newNodes))
-      if (updateNodes) _updateNodes.push(...withId(updateNodes))
+
+      if (updateLinks) {
+        _updateLinks.push(...withId([...updateLinks.values()]))
+        // if index change. delete old index
+        const modifedIndex = [...updateLinks.entries()].filter(([index, feature]) => index !== feature.properties.index)
+        const toDelete: UpdateFeatures[] = modifedIndex.map(([idx]) => { return { type: 'Feature', id: idx } })
+        _updateLinks.push(...toDelete)
+      }
+
+      if (updateNodes) {
+        _updateNodes.push(...withId([...updateNodes.values()]))
+        // if index change. delete old index
+        const modifedIndex = [...updateNodes.entries()].filter(([index, feature]) => index !== feature.properties.index)
+        const toDelete: UpdateFeatures[] = modifedIndex.map(([idx]) => { return { type: 'Feature', id: idx } })
+        _updateNodes.push(...toDelete)
+      }
 
       if (deleteLinks) {
         const linksArr: UpdateFeatures[] = Array.from(deleteLinks).map(idx => { return { type: 'Feature', id: idx } })
@@ -125,6 +140,7 @@ export const userLinksStore = defineStore('rlinks', {
         let nodesArr: UpdateFeatures[] = Array.from(deleteNodes).map(idx => { return { type: 'Feature', id: idx } })
         _updateNodes.push(...nodesArr)
       }
+
       this.updateLinks = cloneDeep(_updateLinks)
       this.updateNodes = cloneDeep(_updateNodes)
     },
@@ -391,7 +407,7 @@ export const userLinksStore = defineStore('rlinks', {
       // reversed attributes are provided in the infoArr just like the normal attributes.
       const { selectedArr, infoArr } = payload
 
-      const linksToEdit = []
+      const linksToEdit = new Map()
 
       for (let i = 0; i < selectedArr.length; i++) {
         const formData = infoArr[i]
@@ -409,7 +425,7 @@ export const userLinksStore = defineStore('rlinks', {
         } else if (onewayChanged && onewayValue === '1') {
           deleteReverseProperties(link, this.reversedAttributes)
         }
-        linksToEdit.push(link)
+        linksToEdit.set(linkIndex, link)
       }
       this.commitChanges({ name: 'Edit Link Properties', updateLinks: linksToEdit })
     },
@@ -421,8 +437,20 @@ export const userLinksStore = defineStore('rlinks', {
       const formData = infoArr[0]
       const node = cloneDeep(this.rnodes.features.filter(node => node.properties.index === selectedIndex)[0])
       Object.keys(formData).forEach(key => node.properties[key] = formData[key].value)
+      const updateNodes = new Map([[selectedIndex, node]])
 
-      this.commitChanges({ name: 'Edit Node Properties', updateNodes: [node] })
+      // update Links if node index changed
+      const updatedLinks = new Map()
+      const newIndex = node.properties.index
+      if (newIndex !== selectedIndex) {
+        const linksA = cloneDeep(this.rlinks.features.filter(link => link.properties.a === selectedIndex))
+        const linksB = cloneDeep(this.rlinks.features.filter(link => link.properties.b === selectedIndex))
+        linksA.forEach(link => link.properties.a = newIndex)
+        linksB.forEach(link => link.properties.b = newIndex)
+        linksB.forEach(link => updatedLinks.set(link.properties.index, link))
+        linksA.forEach(link => updatedLinks.set(link.properties.index, link))
+      }
+      this.commitChanges({ name: 'Edit Node Properties', updateNodes: updateNodes, updateLinks: updatedLinks })
     },
 
     editGroupInfo (payload: EditRoadPayload) {
@@ -450,7 +478,9 @@ export const userLinksStore = defineStore('rlinks', {
           calcLengthTimeorSpeed(link, modifiedSpeeds as NonEmptyArray<string>, this.speedTimeMethod),
         )
       }
-      this.commitChanges({ name: 'Edit Group Properties', updateLinks: selectedLinks })
+      this.commitChanges({
+        name: 'Edit Group Properties',
+        updateLinks: new Map(selectedLinks.map(f => [f.properties.index, f])) })
     },
 
     //
@@ -493,7 +523,11 @@ export const userLinksStore = defineStore('rlinks', {
 
     addNodeInline (payload: AddRoadNodeInlinePayload) {
       const { newLinks, modifiedLinks, newNode } = this._addNodeInline(payload)
-      this.commitChanges({ name: 'Add Node', newLinks: newLinks, updateLinks: modifiedLinks, newNodes: [newNode] })
+      this.commitChanges({
+        name: 'Add Node',
+        newLinks: newLinks,
+        updateLinks: new Map(modifiedLinks.map(f => [f.properties.index, f])),
+        newNodes: [newNode] })
     },
 
     _addNodeInline (payload: AddRoadNodeInlinePayload) {
@@ -531,7 +565,7 @@ export const userLinksStore = defineStore('rlinks', {
         modifiedLinks.push(link)
       }
 
-      this.commitChanges({ name: 'Add Anchor', updateLinks: modifiedLinks })
+      this.commitChanges({ name: 'Add Anchor', updateLinks: new Map(modifiedLinks.map(f => [f.properties.index, f])) })
     },
 
     createLink (payload: CreateRlinkPayload) {
@@ -582,7 +616,11 @@ export const userLinksStore = defineStore('rlinks', {
       }
 
       newLinksArr.push(linkFeature)
-      const commit: Commit = { name: 'Add Link', newLinks: newLinksArr, updateLinks: modifiedLinksArr }
+      const commit: Commit = {
+        name: 'Add Link',
+        newLinks: newLinksArr,
+        updateLinks: new Map(modifiedLinksArr.map(f => [f.properties.index, f])),
+      }
       if (newNodeArr.length > 0) commit.newNodes = newNodeArr
       this.commitChanges(commit)
       return rnodeB
@@ -610,7 +648,11 @@ export const userLinksStore = defineStore('rlinks', {
         calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
       })
 
-      this.commitChanges({ name: 'Move Node', updateLinks: [...linksA, ...linksB], updateNodes: [node] })
+      this.commitChanges({
+        name: 'Move Node',
+        updateLinks: new Map([...linksA, ...linksB].map(f => [f.properties.index, f])),
+        updateNodes: new Map([node].map(f => [f.properties.index, f])),
+      })
     },
 
     moverAnchor (payload: MoveNode) {
@@ -622,7 +664,7 @@ export const userLinksStore = defineStore('rlinks', {
       link.geometry.coordinates[coordinatedIndex] = lngLat // replace value
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
-      this.commitChanges({ name: 'move Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'move Anchor', updateLinks: new Map([link].map(f => [f.properties.index, f])) })
     },
 
     //
@@ -638,7 +680,7 @@ export const userLinksStore = defineStore('rlinks', {
 
       const variants = this._getTimeVariants(link)
       calcLengthTimeorSpeed(link, variants, this.speedTimeMethod)
-      this.commitChanges({ name: 'Delete Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Delete Anchor', updateLinks: new Map([link].map(f => [f.properties.index, f])) })
     },
 
     deleteLink (selectedIndexes: string[]) {

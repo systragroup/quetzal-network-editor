@@ -99,6 +99,18 @@ export interface IndexStore {
   microservicesParams: FileFormat[]
 }
 
+export type EditMap<T> = Map<string, T>
+
+export interface Commit {
+  name: string
+  newLinks?: LineStringFeatures[]
+  newNodes?: PointFeatures[]
+  deleteLinks?: Set<string>
+  deleteNodes?: Set<string>
+  updateLinks?: EditMap<LineStringFeatures>
+  updateNodes?: EditMap<PointFeatures>
+}
+
 // payloads
 
 export type LinksAction = ''
@@ -284,16 +296,6 @@ export interface UpdateFeatures {
 export interface SavedRoadNetwork {
   rlinks: string
   rnodes: string
-}
-
-export interface Commit {
-  name: string
-  newLinks?: LineStringFeatures[]
-  newNodes?: PointFeatures[]
-  deleteLinks?: Set<string>
-  deleteNodes?: Set<string>
-  updateLinks?: LineStringFeatures[]
-  updateNodes?: PointFeatures[]
 }
 
 export interface RlinksStore {

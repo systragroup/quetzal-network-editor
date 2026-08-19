@@ -69,6 +69,7 @@ export const useRunStore = defineStore('runStore', () => {
 
   async function loadModelSteps (payload: StepPayload[]) {
     // set steps. add saving and loading Step
+    // TODO: read steps from s3, here. could have change after the scenario was loaded.
     stepsPayload.value = payload
   }
 
