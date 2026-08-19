@@ -113,21 +113,23 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
   if (prefix.slice(-1) !== '/') { prefix = prefix + '/' }
   const params = { Bucket: bucket, Prefix: prefix }
   const response = await s3Client.listObjectsV2(params)
+  let files = response.Contents
   if (newScenario) {
     const filesToCopy = [
       prefix + 'inputs/params.json',
       prefix + 'styles.json',
+      prefix + 'info.json',
     ]
-    response.Contents = response.Contents.filter(el => filesToCopy.includes(el.Key))
+    files = files.filter(el => filesToCopy.includes(el.Key))
   } else {
-    response.Contents = response.Contents.filter(el => el.Key !== (prefix + '.lock'))
-    response.Contents = response.Contents.filter(el => !el.Key.startsWith(prefix + './'))
+    files = files.filter(el => el.Key !== (prefix + '.lock')) // not used anymore. could remove .lock
+    files = files.filter(el => !el.Key.startsWith(prefix + './'))
   }
-  if (response.Contents.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
+  if (files.length === 0) throw new Error('Nothing to copy in base scenario (params.json at least)')
   // get all metaData [{key,metadata}]. dont need response.Contents after that.
-  const metaDataList = await getMetaData(bucket, response.Contents.map(el => el.Key))
+  // const metaDataList = await getMetaData(bucket, response.Contents.map(el => el.Key))
   const promises = []
-  for (const file of metaDataList) {
+  for (const file of files) {
     let newFile = file.Key.split('/')
     newFile[0] = newName
     newFile = newFile.join('/')
@@ -135,32 +137,20 @@ async function copyFolder (bucket, prefix, newName, newScenario = false) {
     let oldPath = file.Key.split('/')
     oldPath = oldPath.map(str => encodeURIComponent(str))
     oldPath = oldPath.join('/')
-    // get old metadata and change the user email.
-    const metadata = file.Metadata
-    metadata.user_email = userStore.cognitoInfo.email
-
     const copyParams = {
       Bucket: bucket,
       CopySource: bucket + '/' + oldPath,
       Key: newFile,
-      MetadataDirective: 'REPLACE',
-      Metadata: metadata,
 
     }
     promises.push(s3Client.copyObject(copyParams))
   }
-  await Promise.all(promises).then(resp => resp)
-}
-
-async function getMetaData (bucket, keys) {
-  // keys: list of keys. return a list [{key,metadata}]
-  // fetch all heads at once. which is faster than looping each head.
-  const promises = []
-  for (const key of keys) {
-    const response = s3Client.headObject({ Bucket: bucket, Key: key })
-    promises.push(response.then(resp => { return { Key: key, Metadata: resp.Metadata } }))
-  }
-  return Promise.all(promises).then(resp => resp)
+  await Promise.allSettled(promises).then(resp => resp)
+  // update info with date and email
+  const info = await readInfo(bucket, newName)
+  info.last_modified_date = new Date().toISOString()
+  info.last_modified_email = userStore.cognitoInfo.email
+  await putObject(bucket, `${newName}/info.json`, JSON.stringify(info))
 }
 
 async function deleteFolder (bucket, prefix) {

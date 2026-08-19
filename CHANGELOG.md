@@ -1,7 +1,13 @@
+
+## [8.1.5] (2026-08-19)
+### bug fixes
+* Copy scenario (and new scenario) change info.json userEmail and Date. do not touch s3 metadata anymore.
+
 ## [8.1.4] (2026-08-19)
 ### bug fixes
 * scenario explorer reset the list when exiting a model and reclicking it
 * stop polling when unloading a scenario.
+* Copy scenario (and new scenario) change info.json userEmail and Date. do not touch s3 metadata anymore.
 
 ## [8.1.3] (2026-08-19)
 ### Changes

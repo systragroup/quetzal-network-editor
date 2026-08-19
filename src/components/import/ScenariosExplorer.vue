@@ -114,12 +114,6 @@ async function updateScenarioList(scenarioName: string) {
   }
 }
 
-watch(localModel, async () => {
-  // when we click on a tab (model), fetch the scenario list.
-  scenariosList.value = []
-  await getScenarios()
-})
-
 onMounted(async () => {
   // a scenario is selected: scroll to it.
   if (modelScen.value !== 'nullnull') {
@@ -145,6 +139,7 @@ watch(loggedIn, async (val) => {
     }
   } else { // logout
     localModel.value = null
+    scenariosList.value = []
     localScen.value = null
     showScenario.value = false
     userStore.setModelsList([])
@@ -395,10 +390,12 @@ async function mouseOff() {
   userStore.setInfoPreview(null)
 }
 const showScenario = ref(false)
-function selectModel(v: string) {
+async function selectModel(v: string) {
+  scenariosList.value = []
   localModel.value = v
   showScenario.value = true
   sortModel.value = 'scenario'
+  await getScenarios()
 }
 
 </script>
