@@ -1,3 +1,6 @@
+## [8.1.6] (2026-08-19)
+### bug fixes
+* check if scneario exist. prefix needed a trailling slash
 
 ## [8.1.5] (2026-08-19)
 ### bug fixes

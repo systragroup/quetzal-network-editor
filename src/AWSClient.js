@@ -230,6 +230,7 @@ async function checkIfFileExists(bucket, key) {
 }
 
 async function checkIfFolderExists(bucket, prefix) {
+  prefix = prefix.endsWith('/') ? prefix : `${prefix}/`
   try {
     const response = await s3Client.listObjectsV2({
       Bucket: bucket,
