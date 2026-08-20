@@ -95,7 +95,7 @@ function init() {
 }
 
 function createForm() {
-  let disabled = []
+  let disabled: string[] = []
   let features = []
   switch (action.value) {
     case 'Edit Line Info':
@@ -129,7 +129,7 @@ function createForm() {
     case 'Edit Node Info':
       const selectedNode = selectedArr.value[0]
       features = linksStore.editorNodes.features.filter((node) => node.properties.index === selectedNode)
-      disabled = ['route_width']
+      disabled = []
       editorForm.value = getGroupForm(features, nodeAttributes.value, disabled)
       break
   }

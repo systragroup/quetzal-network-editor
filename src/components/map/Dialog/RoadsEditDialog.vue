@@ -133,7 +133,7 @@ function createForm() {
     case 'Edit rNode Info':
       const selectedNode = selectedArr.value[0]
       const nodeFeatures = rlinksStore.rnodes.features.filter((node) => node.properties.index === selectedNode)
-      disabled = ['route_width']
+      disabled = []
       editorForm.value = [getGroupForm(nodeFeatures, rnodeAttributes.value, disabled)]
 
       break

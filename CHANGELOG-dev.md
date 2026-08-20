@@ -1,3 +1,10 @@
+## [8.2.b] (2026-08-20)
+### bug fixes
+* Highligh line was bugg on some scenario, because there was a space in the color hex. add a  trim()
+* fix loading in scenario selection. copying (and selecting) a scenario stopped the loading before it was loaded.
+### Changes
+* VisibleNodes are dont have a route_with added to them anymore. uses a mnapbox FeatureState
+
 ## [8.2.a] (2026-08-20)
 ### Features
 * ECS: can chose a model tag to run (revision)

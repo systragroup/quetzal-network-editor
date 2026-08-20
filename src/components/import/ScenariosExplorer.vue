@@ -268,13 +268,14 @@ async function createProject() {
       await updateScenarioList(input.value)
       store.changeNotification(
         { text: $gettext('Scenario created'), autoClose: true, color: 'success' })
+
       selectScenario(null, { scenario: input.value, protected: false })
     } catch (err) {
       store.changeAlert(err)
       await getScenarios()
+      store.changeLoading(false)
     } finally {
       input.value = ''
-      store.changeLoading(false)
     }
   }
 }
@@ -297,9 +298,9 @@ async function copyProject (selectedScenario: string) {
     } catch (err) {
       store.changeAlert(err)
       await getScenarios()
+      store.changeLoading(false)
     } finally {
       input.value = ''
-      store.changeLoading(false)
     }
   }
 }
@@ -357,6 +358,7 @@ function applySelectDialog () {
 function cancelSelectDialog () {
   // reset vmodel back to loaded scenario
   localScen.value = storeScenario.value
+  store.changeLoading(false)
 }
 
 // Delete dialog

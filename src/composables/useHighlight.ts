@@ -13,7 +13,7 @@ export function useHighlight() {
 
   function getColor(color: string | undefined) {
     if (!color) return YELLOW
-    const diff = chroma.distance(color, YELLOW)
+    const diff = chroma.distance(color.trim(), YELLOW)
     return diff > 50 ? YELLOW : BLUE
   }
   return {
