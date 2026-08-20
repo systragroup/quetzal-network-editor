@@ -1,15 +1,14 @@
 <!-- eslint-disable no-return-assign -->
 <script setup lang="ts">
 import { MglGeojsonLayer, MglPopup, MglImageLayer } from 'vue-mapbox3'
-import mapboxgl, { GeoJSONSource, Map, MapMouseEvent, PointLike, Popup } from 'mapbox-gl'
-import { deleteUnusedNodes } from '@src/utils/utils'
+import mapboxgl, { GeoJSONSource, MapMouseEvent, PointLike, Popup } from 'mapbox-gl'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
 import { useHighlight } from '../../composables/useHighlight'
 import { baseLineString, basePoint, LineStringFeatures } from '@src/types/geojson'
 interface Props {
-  map: Map
+  map: mapboxgl.Map
   isEditorMode: boolean
   mode: 'pt' | 'road' | 'od'
 }
@@ -50,11 +49,11 @@ watch(mode, (val) => {
   contextMenu.value.showed = false
 }, { immediate: true })
 
-const links = computed(() => { return linksStore.links })
-const nodes = computed(() => { return linksStore.nodes })
-const selectedPopupContent = computed(() => { return store.linksPopupContent })
+const links = computed(() => linksStore.links)
+const nodes = computed(() => linksStore.nodes)
+const selectedPopupContent = computed(() => store.linksPopupContent)
 const showedTrips = computed(() => new Set(linksStore.selectedTrips))
-watch(showedTrips, () => { setHiddenFeatures() })
+watch(showedTrips, () => setHiddenFeatures())
 
 const visibleNodes = ref(basePoint())
 const visibleLinks = ref(baseLineString())
@@ -68,31 +67,24 @@ onMounted(() => {
 function setHiddenFeatures () {
   // get visible links and nodes.
   visibleLinks.value.features = links.value.features.filter(link => showedTrips.value.has(link.properties.trip_id))
-  visibleNodes.value.features = deleteUnusedNodes(visibleNodes.value, visibleLinks.value)
 
-  // get all unique width
-  const widthArr = [...new Set(visibleLinks.value.features.map(item => Number(item.properties.route_width)))]
-  // create a dict {width:[node_index]}
-  const widthDict: Record<string, Set<number>> = {}
-  widthArr.forEach(key => widthDict[key] = new Set())
-  visibleLinks.value.features.map(item =>
-    [item.properties.a, item.properties.b].forEach(
-      node => widthDict[Number(item.properties.route_width)].add(node)))
-  // remove duplicated nodes. only keep larger one (if node_1 is in a line of size 5 and 3, only keep the 5 one.)
-  let totSet = new Set()
-  for (let i = 0; i < widthArr.length - 1; i++) {
-    const a = widthDict[widthArr[i + 1]]
-    const b = widthDict[widthArr[i]]
-    totSet = new Set([...totSet, ...b])
-    widthDict[widthArr[i + 1]] = new Set([...a].filter(x => !totSet.has(x)))
-  }
-  // for each width, get the nodes and add the width to the properties for rendering.
-  widthArr.forEach(key => {
-    const newNodes = nodes.value.features.filter(node => widthDict[key].has(node.properties.index))
-    newNodes.map(node => node.properties.route_width = key)
-    visibleNodes.value.features.push(...newNodes)
+  // get node with from the biggest links with this node
+  let widthMap: Map<string, number> = new Map()
+  visibleLinks.value.features.forEach(link => {
+    const linkWidth: number = Number(link.properties.route_width) || 3
+    for (const node of [link.properties.a, link.properties.b]) {
+      const actualWidth = widthMap.get(node) || -1
+      if (linkWidth > actualWidth) widthMap.set(node, linkWidth)
+    }
   })
+  const nodeSet = new Set(widthMap.keys())
+  visibleNodes.value.features = nodes.value.features.filter(node => nodeSet.has(node.properties.index))
   linksStore.setVisibleNodes(visibleNodes.value)
+
+  for (const [index, width] of widthMap.entries()) {
+    map.value.setFeatureState({ source: 'nodes', id: index }, { route_width: width })
+  }
+
   const linkSource = map.value.getSource('links') as GeoJSONSource
   if (linkSource) linkSource.setData(visibleLinks.value)
   const nodeSource = map.value.getSource('nodes') as GeoJSONSource
@@ -264,10 +256,8 @@ watch(highlightTrip, (trip) => {
           'circle-color': ['case', ['boolean', isEditorMode, false],$vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
           'circle-stroke-color': $vuetify.theme.current.colors.white,
           'circle-stroke-width': 1,
-          'circle-radius': ['case', ['has', 'route_width'],
-                            ['case', ['to-boolean', ['to-number', ['get', 'route_width']]],
-                             ['to-number', ['get', 'route_width']],
-                             3], 3],
+          'circle-radius': ['coalesce', ['feature-state', 'route_width'], 3]
+
         },
       }"
     />
