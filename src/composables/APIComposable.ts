@@ -3,6 +3,7 @@ import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useClient } from '@src/axiosClient.js'
 import { ErrorMessage, Infra, PollPayload, RunPayload, RunPayloadWithMetaData, Status, StopPayload } from '@src/types/api'
+import { Revision, StepsDefinition } from '@src/types/typesStore'
 const { quetzalClient } = useClient()
 
 const baseStatus = (): Status => { return {
@@ -116,7 +117,7 @@ export function useAPI () {
     try {
       if (!running.value) {
         const scen = scenario.replace(/\/+$/, '') // make sure there is no trailling slash
-        const resp = await quetzalClient.get(`run/${functionName}/${infra.value}/job_id/${scen}`)
+        const resp = await quetzalClient.get<string>(`run/${functionName}/${infra.value}/job_id/${scen}`)
         if (resp.data !== '') {
           cleanRun()
           jobId.value = resp.data
@@ -129,17 +130,29 @@ export function useAPI () {
   }
 
   async function getFunctionInfra(functionName: string) {
-    const resp = await quetzalClient.get(`/run/${functionName}/infra`)
+    const resp = await quetzalClient.get<Infra>(`/run/${functionName}/infra`)
     infra.value = resp.data
   }
 
-  async function getFunctionTag(functionName: string) {
-    const resp = await quetzalClient.get(`run/${functionName}/${infra.value}/tag`)
-    return resp.data
+  // async function getFunctionTags(functionName: string): Promise<Revision[]> {
+  //   const resp = await quetzalClient.get<Revision[]>(`run/${functionName}/${infra.value}/tags`)
+  //   return resp.data
+  // }
+  // TO DELETE in next deployment. only for smooth deployment with old API
+  async function getFunctionTags(functionName: string): Promise<Revision[]> {
+    let revisions: Revision[] = []
+    try {
+      const resp = await quetzalClient.get<Revision[]>(`run/${functionName}/${infra.value}/tags`)
+      revisions = resp.data
+    } catch {
+      const resp = await quetzalClient.get<string>(`run/${functionName}/${infra.value}/tag`)
+      revisions = [{ tag: resp.data, revision: '' }]
+    }
+    return revisions
   }
 
-  async function getStepsDefinition(functionName: string) {
-    const resp = await quetzalClient.get(`run/${functionName}/${infra.value}/steps`)
+  async function getStepsDefinition(functionName: string): Promise<StepsDefinition> {
+    const resp = await quetzalClient.get<StepsDefinition>(`run/${functionName}/${infra.value}/steps`)
     return resp.data
   }
 
@@ -155,7 +168,7 @@ export function useAPI () {
     stopExecution,
     pollExecution,
     getRunningExecution,
-    getFunctionTag,
+    getFunctionTags,
     getStepsDefinition,
     getFunctionInfra,
 

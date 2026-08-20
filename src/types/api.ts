@@ -30,6 +30,7 @@ export interface RunPayload {
   params: Record<string, any>
   variants: string[]
   steps?: ModelStep[] // ECS
+  revision?: string // ECS
   choice?: string // stepfunctions
 }
 
