@@ -415,6 +415,11 @@ export interface UserStore {
 
 // Run
 
+export interface Revision {
+  revision: string
+  tag: string
+}
+
 export interface RunLog {
   name: string
   time: Date

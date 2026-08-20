@@ -6,7 +6,7 @@ import { useIndexStore } from './index'
 import { useUserStore } from './user'
 import { computed, ref, toRaw, watch } from 'vue'
 import { useAPI } from '../composables/APIComposable'
-import { CategoryParam, Params, ParamsInfo, ParamsVariants, RunLog, Step, StepPayload, StepsDefinition } from '@src/types/typesStore'
+import { CategoryParam, Params, ParamsInfo, ParamsVariants, Revision, RunLog, Step, StepPayload, StepsDefinition } from '@src/types/typesStore'
 import { useGettext } from 'vue3-gettext'
 import { RunPayload, StepStatus } from '@src/types/api'
 import { includesOrEqual } from '@src/utils/utils'
@@ -16,6 +16,7 @@ export const useRunStore = defineStore('runStore', () => {
   const { $gettext } = useGettext()
   const userStore = useUserStore()
   const model = computed(() => userStore.model!)
+  const modelRevision = ref<Revision[]>([{ revision: '', tag: '' }])
   const modelTag = ref<string>('')
   const avalaibleStepFunctions = ref<string[]>(['default'])
   const selectedStepFunction = ref<string>('default') // default or comparision,
@@ -32,10 +33,11 @@ export const useRunStore = defineStore('runStore', () => {
   const logs = ref<RunLog[]>([])
 
   const { error, errorMessage, status, running, startExecution, getFunctionInfra,
-    stopExecution, cleanRun, getRunningExecution, getFunctionTag, getStepsDefinition } = useAPI()
+    stopExecution, cleanRun, getRunningExecution, getFunctionTags, getStepsDefinition } = useAPI()
 
   function reset() {
     modelTag.value = ''
+    modelRevision.value = [{ revision: '', tag: '' }]
     avalaibleStepFunctions.value = ['default']
     selectedStepFunction.value = 'default'
     stepsDefinition.value = {}
@@ -54,9 +56,12 @@ export const useRunStore = defineStore('runStore', () => {
 
   // get model_tag
 
-  async function getModelTag() {
-    modelTag.value = await getFunctionTag(model.value)
+  async function getModelTags() {
+    modelRevision.value = await getFunctionTags(model.value)
+    // on first load. set tag to latest
+    if (modelTag.value === '') modelTag.value = modelRevision.value[0].tag
   }
+
   // Steps
 
   async function getSteps() {
@@ -126,12 +131,14 @@ export const useRunStore = defineStore('runStore', () => {
     const selectedVariants = variants.value?.variants || []
     const filteredSteps = stepsPayload.value.filter(el => el.name === selectedStepFunction.value)[0]
     const selectedSteps = filteredSteps?.steps || undefined
+    const revision = modelRevision.value.filter(el => el.tag == modelTag.value)[0].revision
     const inputs: RunPayload = {
       scenario_path: userStore.scenario + '/',
       steps: selectedSteps,
       variants: selectedVariants,
       choice: selectedStepFunction.value,
       params: paramsDict,
+      revision: revision,
 
     }
     startExecution(model.value, inputs)
@@ -245,6 +252,7 @@ export const useRunStore = defineStore('runStore', () => {
     selectedStepFunction,
     avalaibleStepFunctions,
     modelTag,
+    modelRevision,
     currentStep,
     parameters,
     hasLogs,
@@ -263,7 +271,7 @@ export const useRunStore = defineStore('runStore', () => {
     getLogs,
     downloadLogs,
     getOutputs,
-    getModelTag,
+    getModelTags,
     loadModelSteps,
     checkRunningExecution,
     error,

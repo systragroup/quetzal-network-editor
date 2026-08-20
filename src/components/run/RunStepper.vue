@@ -8,13 +8,21 @@ import { useRunStore } from '@src/store/run'
 import { useUserStore } from '@src/store/user'
 import { useGettext } from 'vue3-gettext'
 import Warning from '../utils/Warning.vue'
+import MenuSelector from '../utils/MenuSelector.vue'
 const { $gettext } = useGettext()
 const store = useIndexStore()
 const runStore = useRunStore()
 const userStore = useUserStore()
 
+const modelTag = computed({
+  get: () => runStore.modelTag,
+  set: (tag: string) => runStore.modelTag = tag,
+})
+// order should be preserved in set
+const tagChoices = computed(() => Array.from(new Set(runStore.modelRevision.map(el => el.tag))))
+
 const steps = computed(() => { return runStore.steps })
-const modelTag = computed(() => runStore.modelTag)
+
 const avalaibleStepFunctions = computed(() => {
   const modelsSet = runStore.availableModels
   return runStore.avalaibleStepFunctions.filter(el => modelsSet.has(el))
@@ -40,10 +48,10 @@ onMounted(async () => {
     await runStore.getInfra()
     const promises = []
     promises.push(runStore.getSteps())
-    promises.push(runStore.getModelTag())
+    promises.push(runStore.getModelTags())
     promises.push(runStore.checkRunningExecution())
     promises.push(runStore.checkLogs())
-    await Promise.all(promises)
+    await Promise.allSettled(promises)
   }
 })
 
@@ -114,6 +122,12 @@ function playAudio() {
       <v-card-subtitle class="model-tag">
         {{ modelTag }}
       </v-card-subtitle>
+      <MenuSelector
+        v-if="tagChoices.length>1"
+        v-model="modelTag"
+        :items="tagChoices"
+        size="x-small"
+      />
 
       <Logs :disabled="running || !modelIsLoaded" />
     </div>
@@ -174,7 +188,7 @@ function playAudio() {
           color="success"
         />
         <span>
-          {{ status.status }}
+          {{ status.status === 'UNKNOWN'? '':status.status }}
         </span>
         <v-switch
           v-model="endSignal"
@@ -238,7 +252,7 @@ function playAudio() {
   background-color: rgb(var(--v-theme-lightergrey));
 }
 .model-tag{
-
+font-size:1em;
 }
 .subtitle {
   font-size: 2em;
