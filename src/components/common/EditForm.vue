@@ -192,7 +192,6 @@ function componentType(type: AttributeTypes) {
 .full-width {
   grid-column: 1 / -1;
 }
-
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
   transform: translate3d(0, 0, 0);

@@ -290,9 +290,6 @@ transition:0.3s
   height: 100%;
   overflow: auto;
 }
-.v-list__tile {
-  padding: 0
-}
 .left-panel-toggle-btn {
   left: 100%;
   width: 25px;

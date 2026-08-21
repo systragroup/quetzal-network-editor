@@ -337,7 +337,6 @@ function formatName(item: string) {
   width:100%;
   flex-direction: column;
 }
-
 .header{
   display:flex;
   align-items: center;
@@ -376,10 +375,6 @@ function formatName(item: string) {
   height: 100%;
   overflow: auto;
 }
-.v-list__tile {
-  padding: 0
-}
-
 .left-panel-title {
   height: 50px;
   line-height: 55px;
@@ -393,7 +388,6 @@ function formatName(item: string) {
 }
 .scrollable {
    overflow-y:scroll;
-
 }
 .drawer-list-item {
   padding: 0 13px !important;

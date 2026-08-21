@@ -273,7 +273,6 @@ onMounted(() => {
   width:100%;
   display:flex;
 }
-
 .left-panel-content {
   display:inline-block;
   flex-direction: column;
@@ -306,7 +305,6 @@ onMounted(() => {
 .custom-title {
   text-align: center;
   font-size: x-large;
-
 }
 .crop {
   white-space: nowrap;     /* Prevents text from wrapping to the next line */
@@ -315,7 +313,6 @@ onMounted(() => {
   cursor:pointer;
   font-size:0.875rem;
   opacity:var(--v-medium-emphasis-opacity);
-
 }
 .preset {
   padding: 0.5rem 0.5rem 0.5rem 1rem;
@@ -332,11 +329,6 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
 }
-
-.v-list__tile {
-  padding: 0
-}
-
 .left-panel-title {
   height: 50px;
   line-height: 55px;
@@ -346,7 +338,6 @@ onMounted(() => {
 }
 .scrollable {
    overflow-y:scroll;
-
 }
 .drawer-list-item {
   padding: 0 13px !important;
