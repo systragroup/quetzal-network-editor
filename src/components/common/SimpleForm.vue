@@ -4,7 +4,7 @@ const { $gettext } = useGettext()
 import { computed, ref } from 'vue'
 import { FormData, FormType } from '@src/types/components'
 import { getRules } from '@src/utils/form'
-const editorForm = defineModel<FormData[]>({ default: [] })
+const editorForm = defineModel<FormData[]>({ default: () => [] })
 const emits = defineEmits(['change'])
 
 const shake = ref(false)

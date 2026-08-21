@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const { variants } = toRefs(props)
 
-const editorForm = defineModel<VariantFormData[]>({ default: [] })
+const editorForm = defineModel<VariantFormData[]>({ default: () => [] })
 const emits = defineEmits(['change'])
 
 // form stuff
