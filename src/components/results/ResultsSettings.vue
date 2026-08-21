@@ -523,7 +523,6 @@ function cancel () {
   z-index: 2;
   position: absolute;
 }
-
 .gradient-preview {
   width: 8rem;
   white-space: nowrap;

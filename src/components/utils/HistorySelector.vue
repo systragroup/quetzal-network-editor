@@ -149,9 +149,8 @@ function redo() {
 }
 .history-current {
   font-weight: bold;
-  background: rgba(0, 150, 255, 0.1);
+  background: rgb(0 150 255 / 10%);
 }
-
 .history-future {
   opacity: 0.5;
 }

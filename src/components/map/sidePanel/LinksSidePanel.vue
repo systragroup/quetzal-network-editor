@@ -640,7 +640,6 @@ function setHighlight(trip: string | null) {
   font-weight:bold;
   text-shadow: 0 0 1px rgb(var(--v-theme-black));
 }
-
 .scrollable {
   overflow-y:scroll;
 }

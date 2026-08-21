@@ -191,7 +191,6 @@ function collapse() {
   align-items: center;
   flex-shrink: 0;
 }
-
 .resize-grip {
   width: 3px;
   height: 40px;
@@ -202,7 +201,6 @@ function collapse() {
     opacity 0.2s ease;
   opacity: 0.7;
 }
-
 .resize-handle:hover .resize-grip {
   background-color:rgb(var(--v-theme-darkgrey));
   opacity: 1;

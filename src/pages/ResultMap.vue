@@ -400,7 +400,6 @@ watchEffect(() => {
   display: flex;
   transition: width 0.5s ease;
 }
-
 .floating-toggle {
   position: absolute;
   width: 25px;
@@ -412,7 +411,6 @@ watchEffect(() => {
   background-color: rgb(var(--v-theme-primarydark));
   cursor: pointer;
 }
-
 .legend {
   position:absolute
 }

@@ -376,7 +376,7 @@ watchEffect(() => {
 }
 .arrows-container{
   display: flex;
-  padding: 0rem 1rem 1rem 1rem ;
+  padding: 0 1rem 1rem ;
   justify-content: space-between;
   align-items: center; /* optional, vertical alignment */
   font-size: large;
