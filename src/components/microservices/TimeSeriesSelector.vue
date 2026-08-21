@@ -11,7 +11,7 @@ import { hhmmssToSeconds } from '@src/utils/utils'
 const { $gettext } = useGettext()
 
 // form data
-const data = defineModel<StringTimeserie[]>({ default: [] })
+const data = defineModel<StringTimeserie[]>({ default: () => [] })
 
 onMounted(() => {
   data.value.forEach(per => {

@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   showDeleteOption: false,
 })
 const { hints, types, units, displayUnits, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
-const editorForm = defineModel<GroupForm>('editorForm', { default: {} })
+const editorForm = defineModel<GroupForm>('editorForm', { default: () => ({}) })
 const emits = defineEmits(['change', 'deleteField'])
 function change(key: string) {
   emits('change', key)
