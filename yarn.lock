@@ -1885,6 +1885,14 @@
   resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-6.5.0.tgz#f79af094bd6b8ce7ed2bd3e089a8493ee6cae82e"
   integrity sha512-VbI1dV5bLFzohYYdgqwikdMVpe7pJ9X3E+dlr425wa2/sMJqYDhTO++ec38/pcPvPE6oD9WEEeU3Xu3gza+VPw==
 
+"@turf/helpers@7.4.0", "@turf/helpers@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-7.4.0.tgz#5589f04812ac95f8985e9396db01d9e70f4a35d5"
+  integrity sha512-7PAwLZqOdRzTI5g9bHvUwlloAXPDH/mlajtryk0tw4ZwGMtmXsAyF4QundsAMfy4u48Fyd3AUqMXY0SMxqJGWg==
+  dependencies:
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
 "@turf/helpers@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-7.0.0.tgz#22dc2335e8b82db2a21b8c873ea10b3fb3dc5158"
@@ -1893,11 +1901,12 @@
     deep-equal "^2.2.3"
     tslib "^2.6.2"
 
-"@turf/helpers@^7.4.0":
+"@turf/invariant@7.4.0":
   version "7.4.0"
-  resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-7.4.0.tgz#5589f04812ac95f8985e9396db01d9e70f4a35d5"
-  integrity sha512-7PAwLZqOdRzTI5g9bHvUwlloAXPDH/mlajtryk0tw4ZwGMtmXsAyF4QundsAMfy4u48Fyd3AUqMXY0SMxqJGWg==
+  resolved "https://registry.yarnpkg.com/@turf/invariant/-/invariant-7.4.0.tgz#b96eb3a1965cca126fcf15571058d126cc7a32e2"
+  integrity sha512-OAsc3qdNx+tRqzWmMNFMnVlWWACIqnYqIejZKvb2oKkKPYJJrURPXZ6OdrGD58ljJMolLoqwIZGSx3VndaEjxg==
   dependencies:
+    "@turf/helpers" "7.4.0"
     "@types/geojson" "^7946.0.10"
     tslib "^2.8.1"
 
@@ -1928,6 +1937,17 @@
     "@turf/meta" "^6.5.0"
     geojson-rbush "3.x"
 
+"@turf/line-offset@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/line-offset/-/line-offset-7.4.0.tgz#8dcde3aae6a43a331b2a975b652b74bea5303a8a"
+  integrity sha512-vAF3tNvHfo6efcrDwhjSL7UgAt2QjPyCKhIWO0g5xvuGMw9v3DZDErla3fVNT/b+DG01UmNmYQWvMzlUWcTLoQ==
+  dependencies:
+    "@turf/helpers" "7.4.0"
+    "@turf/invariant" "7.4.0"
+    "@turf/meta" "7.4.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
 "@turf/line-segment@^6.5.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@turf/line-segment/-/line-segment-6.5.0.tgz#ee73f3ffcb7c956203b64ed966d96af380a4dd65"
@@ -1943,6 +1963,15 @@
   integrity sha512-RrArvtsV0vdsCBegoBtOalgdSOfkBrTJ07VkpiCnq/491W67hnMWmDu7e6Ztw0C3WldRYTXkg3SumfdzZxLBHA==
   dependencies:
     "@turf/helpers" "^6.5.0"
+
+"@turf/meta@7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/meta/-/meta-7.4.0.tgz#99c3b3af4c2e5a7ef0b4f99c9f42120e82a91e62"
+  integrity sha512-3cLUvlEyDuSnMSzrjhaLAEiYR8xhbfWyTVQlrlEw40xL81d4KF4PqUWbjTXKpXZStdYbet2GCurl79KMypNw6g==
+  dependencies:
+    "@turf/helpers" "7.4.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
 
 "@turf/meta@^7.0.0":
   version "7.0.0"
