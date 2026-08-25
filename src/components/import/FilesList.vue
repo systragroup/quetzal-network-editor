@@ -4,6 +4,9 @@ import { useIndexStore } from '@src/store/index'
 import { computed, ref } from 'vue'
 import { useGettext } from 'vue3-gettext'
 import TreeView from './TreeView.vue'
+import PromiseDialog from '../utils/PromiseDialog.vue'
+import { cloneDeep } from 'lodash'
+import { Rule } from '@src/types/components.ts'
 const { $gettext } = useGettext()
 
 const emit = defineEmits(['filesLoaded'])
@@ -68,13 +71,39 @@ async function readOtherFiles (event: Event) {
   emit('filesLoaded', fileList)
 }
 
-function deleteFile (file: string) {
-  store.deleteotherFiles([file])
-  store.changeNotification(
-    { text: file + $gettext(' deleted'), autoClose: true, color: 'success' })
+function deleteFile (filePath: string) {
+  store.deleteotherFiles([filePath])
+  store.changeNotification({ text: filePath + $gettext(' deleted'), autoClose: true, color: 'success' })
 }
-function downloadFile(file: string) {
-  store.exportFile(file)
+
+function downloadFile(filePath: string) {
+  store.exportFile(filePath)
+}
+
+const newPath = ref('')
+const rules = ref<Rule[]>([])
+const renameDialog = ref()
+
+async function renameFile(filePath: string) {
+  newPath.value = cloneDeep(filePath)
+  const prefix = filePath.split('/')[0] + '/'
+  const suffix = '.' + filePath.split('.').slice(-1)[0]
+  rules.value = [
+    (val: string) => val.startsWith(prefix) || $gettext('must start with prefix %{prefix}', { prefix: prefix }),
+    (val: string) => val.endsWith(suffix) || $gettext('must end with extension %{suffix}', { suffix: suffix }),
+  ]
+
+  const resp = await renameDialog.value.openDialog()
+  if (newPath.value === filePath) return
+  if (resp) {
+    try {
+      await store.renameOtherFile(filePath, newPath.value)
+    } catch (err) {
+      store.changeAlert(err)
+    } finally {
+      newPath.value = ''
+    }
+  }
 }
 
 </script>
@@ -118,8 +147,10 @@ function downloadFile(file: string) {
         :files="inputFiles"
         :show-delete="true"
         :show-upload="true"
+        :show-rename="true"
         @delete="deleteFile"
         @upload="buttonHandle"
+        @rename="renameFile"
       />
     </div>
     <div class="files-container">
@@ -143,11 +174,24 @@ function downloadFile(file: string) {
         :files="outputFiles"
         :show-delete="true"
         :show-download="true"
+        :show-rename="false"
         @delete="deleteFile"
         @download="downloadFile"
       />
     </div>
   </div>
+  <PromiseDialog
+    ref="renameDialog"
+    confirm-color="primary"
+  >
+    <v-text-field
+      v-model="newPath"
+      variant="underlined"
+      autofocus
+      :rules="rules"
+      :label="$gettext('name')"
+    />
+  </PromiseDialog>
 </template>
 <style lang="scss" scoped>
 .container{

@@ -2,7 +2,7 @@
 const $gettext = (s: string) => s
 import { GeoJson } from '@src/types/geojson'
 import { indexAreUnique, dropDuplicatesIndex } from './utils'
-import { Params, ProjectInfo, Style } from '@src/types/typesStore'
+import { FileFormat, OtherFiles, Params, ProjectInfo, Style } from '@src/types/typesStore'
 
 export function CRSis4326(geojson: GeoJson) {
   const arr = ['urn:ogc:def:crs:OGC:1.3:CRS84', 'EPSG:4326', 'urn:ogc:def:crs:EPSG:4326']
@@ -107,4 +107,10 @@ export function infoSerializer (json: ProjectInfo): ProjectInfo {
     last_modified_date: json.last_modified_date || '',
     last_modified_email: json.last_modified_email || '',
   }
+}
+
+export function FileSerializer(file: FileFormat): OtherFiles {
+  const extension = file.path.split('.').slice(-1)[0]
+  const name = file.path.split('.').slice(-2)[0]
+  return { ...file, name, extension }
 }

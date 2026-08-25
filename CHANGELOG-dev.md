@@ -1,3 +1,10 @@
+## [8.2.c] (2026-08-25)
+### Features
+* Files: can rename files to add path or change the name
+    * first prefix must stay unchanged (inputs/) 
+    * extension must stay unchanged
+    * fetch files on S3 if content is null. so old file will be delete on save and new name uploaded
+
 ## [8.2.b] (2026-08-20)
 ### bug fixes
 * Highligh line was bugg on some scenario, because there was a space in the color hex. add a  trim()
