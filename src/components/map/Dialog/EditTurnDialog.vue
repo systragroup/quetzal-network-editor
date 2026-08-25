@@ -1,38 +1,52 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, Ref } from 'vue'
+import { ref, watch, nextTick, Ref, toRefs } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import { userLinksStore } from '@src/store/rlinks'
 import { useMapStore } from '@src/store/map'
 import arrowImage from '@static/arrow.png'
 import { lineOffset } from '@turf/line-offset'
-
 import { cloneDeep } from 'lodash'
 import { computed } from 'vue'
 import { baseLineString, LineStringFeatures } from '@src/types/geojson'
 import { useTheme } from 'vuetify'
-import { getDirection } from '@src/utils/spatial'
-
+import RoadChip from '@src/components/common/RoadChip.vue'
+import DialogHeader from './DialogHeader.vue'
 const theme = useTheme()
+
 const SELECTEDCOLOR = theme.current.value.colors.linksprimary
 const HIGHLIGHTCOLOR = '#FFD400'
 const SUCCESSCOLOR = theme.current.value.colors.success
 const ERRORCOLOR = theme.current.value.colors.error
-// const offset = 0
 const UNITS = 'meters'
 const OFFSET = 5
 
+interface Props {
+  nodeId: string
+}
+const props = defineProps<Props>()
+const { nodeId } = toRefs(props)
+const showDialog = defineModel<boolean>()
+
 const rlinksStore = userLinksStore()
+const mapStore = useMapStore()
+
 const rlinks = computed(() => rlinksStore.rlinks)
 const rnodes = computed(() => rlinksStore.rnodes)
-const mapStore = useMapStore()
+
+// variant and Attr prefix selector
+
+const selectedVariant = computed({
+  get: () => rlinksStore.variant,
+  set: (val) => rlinksStore.variant = val,
+})
+
+const variantChoices = computed(() => rlinksStore.variantChoice)
+console.log(variantChoices.value)
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<mapboxgl.Map>() as Ref<mapboxgl.Map>
-const nodeId = ref('rnode_682902') // rnode_631905 rnode_682902
-const selectedLinkId = ref('')
 
-const selectedNode = computed(() => rnodes.value.features.filter(node => node.properties.index === nodeId.value)[0])
-// const selectedLink = computed(() => rlinks.value.features.filter(node => node.properties.index === linkId.value)[0])
-const center = computed(() => selectedNode.value.geometry.coordinates)
+const selectedLinkId = ref('') // click on links
+
 const linksIn = computed(() => {
   const filtered = baseLineString()
   filtered.features = cloneDeep(rlinks.value.features.filter(node => node.properties.b === nodeId.value))
@@ -50,9 +64,10 @@ const linksOut = computed(() => {
   return filtered
 })
 
-// const directions = computed(()=>{
-
-// })
+function save() {
+  console.log(turnRestrictions)
+  // rlinksStore.editTurnRestrictions()
+}
 
 const turnRestrictions = ref<Record<string, string[] | undefined>>({})
 const displayRestrictions = computed(() => turnRestrictions.value[selectedLinkId.value] || [])
@@ -67,9 +82,8 @@ watch(displayRestrictions, (vals) => {
 
 function init() {
   selectedLinkId.value = linksIn.value.features[0].properties.index
-
   turnRestrictions.value = linksIn.value.features.reduce((dict: Record<string, string[]>, link) => {
-    dict[link.properties.index] = link.properties['tp#AM'] || []
+    dict[link.properties.index] = link.properties[`tp${selectedVariant.value}`] || undefined
     return dict
   }, {})
 }
@@ -89,14 +103,19 @@ function setRestriction(fromLink: LineStringFeatures, toLink: LineStringFeatures
   const fromIndex = fromLink.properties.index
   let restrictions = turnRestrictions.value[fromIndex]
   const toIndex = toLink.properties.index
-  if (!restrictions) return
-  if (restrictions.includes(toIndex)) restrictions = restrictions.filter(el => el !== toIndex)
+  if (!restrictions) restrictions = [toIndex]
+  else if (restrictions.includes(toIndex)) restrictions = restrictions.filter(el => el !== toIndex)
   else restrictions.push(toIndex)
+  if (restrictions.length == 0) restrictions = undefined
   turnRestrictions.value[fromIndex] = restrictions
 }
-const dialog = ref(true)
 
-watch(dialog, async (open) => {
+const center = computed(() => {
+  const node = rnodes.value.features.filter(node => node.properties.index === nodeId.value)[0]
+  return node.geometry.coordinates
+})
+
+watch(showDialog, async (open) => {
   if (!open) return
 
   await nextTick()
@@ -136,7 +155,7 @@ watch(dialog, async (open) => {
     // toggleTurn(from, to)
     console.log(from, to)
   })
-}, { immediate: true })
+})
 
 function mapLoad() {
   addTurnLayers()
@@ -224,16 +243,17 @@ function addTurnLayers() {
 </script>
 <template>
   <v-dialog
-    v-model="dialog"
+    v-model="showDialog"
     persistent
     max-width="700"
     height="700"
   >
     <v-card class="container">
-      <v-card-title>
-        Edit turns — Node {{ nodeId }}
-      </v-card-title>
-
+      <DialogHeader
+        v-model:variant="selectedVariant"
+        :title="`Edit turns restrictions (${nodeId})`"
+        :variant-choices="variantChoices"
+      />
       <div
         ref="mapContainer"
         class="turn-map"
@@ -241,22 +261,15 @@ function addTurnLayers() {
 
       <!-- Turn editor -->
       <v-container>
-        <v-row>
+        <v-row class="chips-row">
           <!-- Outgoing links (cols)-->
-          <v-col class="matrix-corner" />
+          <v-col class="link-chip" />
           <v-col
             v-for="to in linksOut.features"
             :key="to.properties.index"
             class="matrix-header"
           >
-            <v-chip variant="outlined">
-              {{ to.properties.index }}
-              <template v-slot:prepend>
-                <v-icon :style="{transform: 'rotate('+getDirection(to.geometry.coordinates)+'deg)'}">
-                  fas fa-long-arrow-alt-up
-                </v-icon>
-              </template>
-            </v-chip>
+            <road-chip :link="to" />
           </v-col>
         </v-row>
 
@@ -268,18 +281,12 @@ function addTurnLayers() {
           :class="{'is-active':selectedLinkId === from.properties.index}"
         >
           <v-col class="matrix-header">
-            <v-chip
+            <road-chip
+              :link="from"
               :color="selectedLinkId === from.properties.index? SELECTEDCOLOR : 'default'"
               :variant="selectedLinkId === from.properties.index? 'flat' : 'tonal'"
               @click="selectedLinkId = from.properties.index"
-            >
-              {{ from.properties.index }}
-              <template v-slot:prepend>
-                <v-icon :style="{transform: 'rotate('+getDirection(from.geometry.coordinates)+'deg)'}">
-                  fas fa-long-arrow-alt-up
-                </v-icon>
-              </template>
-            </v-chip>
+            />
           </v-col>
           <!-- buttons -->
           <v-col
@@ -299,10 +306,13 @@ function addTurnLayers() {
       </v-container>
       <v-card-actions>
         <v-spacer />
-        <v-btn @click="dialog = false">
+        <v-btn @click="showDialog = false">
           Cancel
         </v-btn>
-        <v-btn color="primary">
+        <v-btn
+          color="primary"
+          @click="save"
+        >
           Save
         </v-btn>
       </v-card-actions>
@@ -317,22 +327,22 @@ function addTurnLayers() {
 .container{
  padding:1em;
 }
+.chips-row {
+  flex-wrap: nowrap !important;
+}
 .matrix-cell{
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
 .matrix-row:hover {
   background-color: rgba(var(--v-theme-primary), 0.06);
 }
-
 .matrix-row.is-active {
   opacity:1;
   background-color: rgb(var(--v-theme-primary),0.12);
   border-radius: 4px;
 }
-
 .matrix-row.is-active:hover {
   background-color: rgba(var(--v-theme-primary), 0.12);
 }

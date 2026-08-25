@@ -239,7 +239,10 @@ const selectedVariant = computed({
 
 const selectedPrefix = ref<string>('')
 
-const variantChoices = computed(() => rlinksStore.variantChoice)
+const variantChoices = computed(() => {
+  const variants = rlinksStore.variantChoice
+  return variants.length > 1 ? ['', ...variants] : variants
+})
 
 const prefixesChoice = computed(() => {
   let prefixes = []

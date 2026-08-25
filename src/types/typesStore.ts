@@ -134,6 +134,7 @@ export type RoadsAction = ''
 export type RoadsAction2 = ''
   | 'Delete rLink'
   | 'Delete Selected'
+  | 'Edit Turn Restrictions'
 
 export type ODAction = ''
   | 'Edit OD Info'

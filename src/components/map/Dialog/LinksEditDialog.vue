@@ -235,7 +235,10 @@ const selectedVariant = computed({
 
 const selectedPrefix = ref<string>('')
 
-const variantChoices = computed(() => linksStore.variantChoice)
+const variantChoices = computed(() => {
+  const variants = linksStore.variantChoice
+  return variants.length > 1 ? ['', ...variants] : variants
+})
 
 const prefixesChoice = computed(() => {
   const prefixes = linksStore.lineAttributes.map(el => el.split('#')[0])

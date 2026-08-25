@@ -18,6 +18,7 @@ import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures, Li
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
 import RoadLinksDraw from './RoadLinksDraw.vue'
 import { setsAreEqual } from '@src/utils/utils.ts'
+import EditTurnDialog from './Dialog/EditTurnDialog.vue'
 const { openDialog, showDialog } = useForm()
 
 interface Props {
@@ -333,14 +334,16 @@ const contextMenu = ref<ContextMenuRoad>({
   type: null, // link of node
 
 })
-
+const showTurnDialog = ref(false)
 function actionClick (event: ActionClickRoad) {
   if (['Delete rLink', 'Delete Selected'].includes(event.action)) {
     rlinksStore.deleteLink(event.feature)
-    // emit this click to remove the drawlink.
-  } else {
-    // edit rlinks info
-    const action = event.action as RoadsAction
+  } else if (event.action === 'Edit Turn Restrictions') {
+    showTurnDialog.value = true
+  }
+  else {
+    // edit rlinks info, rnodes info. group info
+    const action = event.action as RoadsAction// 'Edit Road Group Info' 'Edit rLink Info' 'Edit rNode Info'
     openDialog({ action: action, selectedArr: Array.from(event.feature), lingering: true, type: 'road' })
   }
   contextMenu.value.showed = false
@@ -358,8 +361,14 @@ function contextMenuNode (event: CustomMapEvent) {
     if (selectedFeature.value.length > 0) {
       const point = selectedFeature.value[0] as PointFeatures
       if (hoveredStateId.value?.layerId === 'rnodes') {
-        const index = point.properties.index
-        openDialog({ action: 'Edit rNode Info', selectedArr: [index], lingering: true, type: 'road' })
+        const index = point.properties.index as string
+        contextMenu.value.ids = cloneDeep([index])
+        contextMenu.value.actions = [
+          { name: 'Edit rNode Info', text: $gettext('Edit rNode Info') },
+          { name: 'Edit Turn Restrictions', text: $gettext('Edit Turn Restrictions') },
+        ]
+        contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
+        contextMenu.value.showed = true
       } else if (hoveredStateId.value?.layerId === 'anchorrNodes') {
         rlinksStore.deleteAnchorNode({
           linkIndex: point.properties.linkIndex,
@@ -871,6 +880,10 @@ const ArrowDirCondition = computed(() => {
         </v-list-item>
       </v-list>
     </v-snackbar>
+    <EditTurnDialog
+      v-model="showTurnDialog"
+      :node-id="contextMenu.ids[0]"
+    />
   </section>
 </template>
 <style lang="scss" scoped>
