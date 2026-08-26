@@ -384,7 +384,7 @@ export const userLinksStore = defineStore('rlinks', {
     //  to export
     getVisibleLinks(): LineStringGeoJson {
       const links = baseLineString()
-      links.features = this.getFilteredrLinks(this.selectedrFilter)
+      links.features = this.getFilteredrLinks(this.filteredSelected)
       return links
     },
     getVisibleNodes(): PointGeoJson {
@@ -476,6 +476,11 @@ export const userLinksStore = defineStore('rlinks', {
       this.commitChanges({
         name: 'Edit Group Properties',
         updateLinks: new Map(selectedLinks.map(f => [f.properties.index, f])) })
+    },
+
+    editTurnRestrictions (modifiedLinks: LineStringGeoJson) {
+      const updateLinks = new Map(modifiedLinks.features.map(f => [f.properties.index, f]))
+      this.commitChanges({ name: 'Edit Turn Restriction', updateLinks: updateLinks })
     },
 
     //

@@ -41,7 +41,6 @@ const selectedVariant = computed({
 })
 
 const variantChoices = computed(() => rlinksStore.variantChoice)
-console.log(variantChoices.value)
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<mapboxgl.Map>() as Ref<mapboxgl.Map>
 
@@ -65,27 +64,34 @@ const linksOut = computed(() => {
 })
 
 function save() {
-  console.log(turnRestrictions)
-  // rlinksStore.editTurnRestrictions()
+  applyTurnRestrictions(selectedVariant.value)
+  rlinksStore.editTurnRestrictions(linksIn.value)
+  showDialog.value = false
 }
+watch(selectedVariant, (newVal, oldVal) => {
+  applyTurnRestrictions(oldVal)
+  initTurnRestrictions(newVal)
+})
 
 const turnRestrictions = ref<Record<string, string[] | undefined>>({})
-const displayRestrictions = computed(() => turnRestrictions.value[selectedLinkId.value] || [])
 
-watch(displayRestrictions, (vals) => {
-  linksOut.value.features.forEach(link => {
-    const idx = link.properties.index
-    const restricted = vals.includes(idx)
-    map.value.setFeatureState({ source: 'linksOut', id: idx }, { restricted: restricted })
-  })
-}, { deep: true })
-
-function init() {
-  selectedLinkId.value = linksIn.value.features[0].properties.index
+function initTurnRestrictions(variant: string) {
   turnRestrictions.value = linksIn.value.features.reduce((dict: Record<string, string[]>, link) => {
-    dict[link.properties.index] = link.properties[`tp${selectedVariant.value}`] || undefined
+    dict[link.properties.index] = link.properties[`tp${variant}`] || undefined
     return dict
   }, {})
+}
+
+function applyTurnRestrictions(variant: string) {
+  linksIn.value.features.forEach(link => {
+    link.properties[`tp${variant}`] = cloneDeep(turnRestrictions.value[link.properties.index])
+  })
+}
+
+function init() {
+  if (!variantChoices.value.includes(selectedVariant.value)) selectedVariant.value = variantChoices.value[0]
+  selectedLinkId.value = linksIn.value.features[0].properties.index
+  initTurnRestrictions(selectedVariant.value)
 }
 
 watch(selectedLinkId, (newVal, oldVal) => {
@@ -115,9 +121,17 @@ const center = computed(() => {
   return node.geometry.coordinates
 })
 
+const displayRestrictions = computed(() => turnRestrictions.value[selectedLinkId.value] || [])
+watch(displayRestrictions, (vals) => {
+  linksOut.value.features.forEach(link => {
+    const idx = link.properties.index
+    const restricted = vals.includes(idx)
+    map.value.setFeatureState({ source: 'linksOut', id: idx }, { restricted: restricted })
+  })
+}, { deep: true })
+
 watch(showDialog, async (open) => {
   if (!open) return
-
   await nextTick()
   if (!mapContainer.value) return
 
@@ -146,14 +160,6 @@ watch(showDialog, async (open) => {
   map.value.on('load', () => {
     mapLoad()
     init()
-  })
-  map.value.on('click', 'turns', (event) => {
-    const feature = event.features?.[0]
-    if (!feature) return
-    const from = feature.properties?.from
-    const to = feature.properties?.to
-    // toggleTurn(from, to)
-    console.log(from, to)
   })
 })
 
