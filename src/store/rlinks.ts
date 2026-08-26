@@ -478,8 +478,8 @@ export const userLinksStore = defineStore('rlinks', {
         updateLinks: new Map(selectedLinks.map(f => [f.properties.index, f])) })
     },
 
-    editTurnRestrictions (modifiedLinks: LineStringGeoJson) {
-      const updateLinks = new Map(modifiedLinks.features.map(f => [f.properties.index, f]))
+    editTurnRestrictions (modifiedLinks: LineStringFeatures[]) {
+      const updateLinks = new Map(modifiedLinks.map(f => [f.properties.index, f]))
       this.commitChanges({ name: 'Edit Turn Restriction', updateLinks: updateLinks })
     },
 

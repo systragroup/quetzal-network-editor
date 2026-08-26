@@ -31,8 +31,7 @@ const showDialog = defineModel<boolean>()
 const rlinksStore = userLinksStore()
 const mapStore = useMapStore()
 
-const rlinks = computed(() => rlinksStore.rlinks)
-const rnodes = computed(() => rlinksStore.rnodes)
+const _rlinks = computed(() => rlinksStore.rlinks)
 
 // variant and Attr prefix selector
 
@@ -47,22 +46,22 @@ const map = ref<mapboxgl.Map>() as Ref<mapboxgl.Map>
 
 const selectedLinkId = ref('') // click on links
 
+// const twoWayLinks = computed(() => {
+//   return _rlinks.value.features.filter(node => node.properties.oneway === '0')
+// })
+// console.log(twoWayLinks.value)
+
 const linksIn = computed(() => {
-  const filtered = baseLineString()
-  filtered.features = cloneDeep(rlinks.value.features.filter(node => node.properties.b === nodeId.value))
-  return filtered
+  return cloneDeep(_rlinks.value.features.filter(link => link.properties.b === nodeId.value))
 })
 
 const linksOut = computed(() => {
-  const filtered = baseLineString()
-  filtered.features = cloneDeep(rlinks.value.features.filter(node => node.properties.a === nodeId.value))
-  filtered.features.forEach(link => link.geometry = lineOffset(link.geometry, OFFSET, { units: UNITS }).geometry)
-  return filtered
+  return _rlinks.value.features.filter(link => link.properties.a === nodeId.value)
 })
 
 const linksGeojson = computed(() => {
   const geojson = baseLineString()
-  for (const link of [...linksIn.value.features, ...linksOut.value.features]) {
+  for (const link of [...linksIn.value, ...linksOut.value]) {
     geojson.features.push({
       geometry: lineOffset(link.geometry, OFFSET, { units: UNITS }).geometry,
       type: 'Feature',
@@ -86,21 +85,21 @@ watch(selectedVariant, (newVal, oldVal) => {
 const turnRestrictions = ref<Record<string, string[] | undefined>>({})
 
 function initTurnRestrictions(variant: string) {
-  turnRestrictions.value = linksIn.value.features.reduce((dict: Record<string, string[]>, link) => {
+  turnRestrictions.value = linksIn.value.reduce((dict: Record<string, string[]>, link) => {
     dict[link.properties.index] = link.properties[`tp${variant}`] || undefined
     return dict
   }, {})
 }
 
 function applyTurnRestrictions(variant: string) {
-  linksIn.value.features.forEach(link => {
+  linksIn.value.forEach(link => {
     link.properties[`tp${variant}`] = cloneDeep(turnRestrictions.value[link.properties.index])
   })
 }
 
 function init() {
   if (!variantChoices.value.includes(selectedVariant.value)) selectedVariant.value = variantChoices.value[0]
-  selectedLinkId.value = linksIn.value.features[0].properties.index
+  selectedLinkId.value = linksIn.value[0].properties.index
   initTurnRestrictions(selectedVariant.value)
 }
 
@@ -125,13 +124,13 @@ function setRestriction(fromLink: LineStringFeatures, toLink: LineStringFeatures
 // map styles
 //
 const center = computed(() => {
-  const node = rnodes.value.features.filter(node => node.properties.index === nodeId.value)[0]
+  const node = rlinksStore.rnodes.features.filter(node => node.properties.index === nodeId.value)[0]
   return node.geometry.coordinates
 })
 
 const displayRestrictions = computed(() => turnRestrictions.value[selectedLinkId.value] || [])
 watch(displayRestrictions, (vals) => {
-  linksOut.value.features.forEach(link => {
+  linksOut.value.forEach(link => {
     const idx = link.properties.index
     const restricted = vals.includes(idx)
     const color = restricted ? ERRORCOLOR : SUCCESSCOLOR
@@ -253,7 +252,7 @@ function addTurnLayers() {
           <!-- Outgoing links (cols)-->
           <v-col class="link-chip" />
           <v-col
-            v-for="to in linksOut.features"
+            v-for="to in linksOut"
             :key="to.properties.index"
             class="matrix-header"
           >
@@ -263,7 +262,7 @@ function addTurnLayers() {
 
         <!-- Incoming links (rows) -->
         <v-row
-          v-for="from in linksIn.features"
+          v-for="from in linksIn"
           :key="from.properties.index"
           class="matrix-row"
           :class="{'is-active':selectedLinkId === from.properties.index}"
@@ -278,7 +277,7 @@ function addTurnLayers() {
           </v-col>
           <!-- buttons -->
           <v-col
-            v-for="to in linksOut.features"
+            v-for="to in linksOut"
             :key="to.properties.index"
             class="matrix-cell"
           >
