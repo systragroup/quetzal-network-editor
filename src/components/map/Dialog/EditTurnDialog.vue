@@ -14,6 +14,7 @@ import DialogHeader from './DialogHeader.vue'
 const theme = useTheme()
 
 const SELECTEDCOLOR = theme.current.value.colors.linksprimary
+const GREY = 'grey'
 const HIGHLIGHTCOLOR = '#FFD400'
 const SUCCESSCOLOR = theme.current.value.colors.success
 const ERRORCOLOR = theme.current.value.colors.error
@@ -49,18 +50,27 @@ const selectedLinkId = ref('') // click on links
 const linksIn = computed(() => {
   const filtered = baseLineString()
   filtered.features = cloneDeep(rlinks.value.features.filter(node => node.properties.b === nodeId.value))
-  // filtered.features = filtered.features.map(link => lineOffset(link, 20, { units: 'meters' }))
-  filtered.features.forEach(link => link.geometry = lineOffset(link.geometry, OFFSET, { units: UNITS }).geometry)
   return filtered
 })
 
 const linksOut = computed(() => {
   const filtered = baseLineString()
   filtered.features = cloneDeep(rlinks.value.features.filter(node => node.properties.a === nodeId.value))
-  // const nodeA = linksIn.value.features.filter(link => link.properties.index === linkId.value)[0].properties.a
-  // filtered.features = filtered.features.filter(link => link.properties.b !== nodeA)
   filtered.features.forEach(link => link.geometry = lineOffset(link.geometry, OFFSET, { units: UNITS }).geometry)
   return filtered
+})
+
+const linksGeojson = computed(() => {
+  const geojson = baseLineString()
+  for (const link of [...linksIn.value.features, ...linksOut.value.features]) {
+    geojson.features.push({
+      geometry: lineOffset(link.geometry, OFFSET, { units: UNITS }).geometry,
+      type: 'Feature',
+      properties: { index: cloneDeep(link.properties.index) },
+    })
+  }
+
+  return geojson
 })
 
 function save() {
@@ -94,11 +104,6 @@ function init() {
   initTurnRestrictions(selectedVariant.value)
 }
 
-watch(selectedLinkId, (newVal, oldVal) => {
-  if (oldVal) map.value.setFeatureState({ source: 'linksIn', id: oldVal }, { selected: false })
-  map.value.setFeatureState({ source: 'linksIn', id: newVal }, { selected: true })
-})
-
 function isRestricted(fromLink: LineStringFeatures, toLink: LineStringFeatures) {
   const restrictions = turnRestrictions.value[fromLink.properties.index]
   if (!restrictions) return false
@@ -116,6 +121,9 @@ function setRestriction(fromLink: LineStringFeatures, toLink: LineStringFeatures
   turnRestrictions.value[fromIndex] = restrictions
 }
 
+//
+// map styles
+//
 const center = computed(() => {
   const node = rnodes.value.features.filter(node => node.properties.index === nodeId.value)[0]
   return node.geometry.coordinates
@@ -126,9 +134,17 @@ watch(displayRestrictions, (vals) => {
   linksOut.value.features.forEach(link => {
     const idx = link.properties.index
     const restricted = vals.includes(idx)
-    map.value.setFeatureState({ source: 'linksOut', id: idx }, { restricted: restricted })
+    const color = restricted ? ERRORCOLOR : SUCCESSCOLOR
+    map.value.setFeatureState({ source: 'turnLinks', id: idx }, { color: color, opacity: 1 })
   })
 }, { deep: true })
+
+watch(selectedLinkId, (newVal, oldVal) => {
+  if (oldVal) map.value.setFeatureState({ source: 'turnLinks', id: oldVal }, { color: GREY, opacity: 0.5 })
+  map.value.setFeatureState({ source: 'turnLinks', id: newVal }, { color: HIGHLIGHTCOLOR, opacity: 1 })
+})
+
+// mout component
 
 watch(showDialog, async (open) => {
   if (!open) return
@@ -175,25 +191,27 @@ function mapLoad() {
 }
 
 function addTurnLayers() {
-  map.value.addSource('linksOut', {
+  map.value.addSource('turnLinks', {
     type: 'geojson',
-    data: linksOut.value,
+    data: linksGeojson.value,
     promoteId: 'index',
   })
 
   map.value.addLayer({
-    id: 'linksOut',
+    id: 'turnLinks',
     type: 'line',
-    source: 'linksOut',
+    source: 'turnLinks',
     paint: {
       'line-width': 4,
-      'line-color': ['case', ['boolean', ['feature-state', 'restricted'], false], ERRORCOLOR, SUCCESSCOLOR],
+      'line-color': ['coalesce', ['feature-state', 'color'], GREY],
+      'line-opacity': ['coalesce', ['feature-state', 'opacity'], 0.5],
+
     },
   })
 
   map.value.addLayer({
-    id: 'linksOut-arrows',
-    source: 'linksOut',
+    id: 'turnLinks-arrows',
+    source: 'turnLinks',
     type: 'symbol',
     layout: {
       'symbol-placement': 'line',
@@ -203,47 +221,11 @@ function addTurnLayers() {
       'icon-rotate': 90,
     },
     paint: {
-      'icon-color': ['case', ['boolean', ['feature-state', 'restricted'], false], ERRORCOLOR, SUCCESSCOLOR],
+      'icon-color': ['coalesce', ['feature-state', 'color'], GREY],
+      'icon-opacity': ['coalesce', ['feature-state', 'opacity'], 0.5],
 
     },
   })
-  //
-
-  map.value.addSource('linksIn', {
-    type: 'geojson',
-    promoteId: 'index',
-    data: linksIn.value,
-  })
-
-  map.value.addLayer({
-    id: 'linksIn',
-    type: 'line',
-    source: 'linksIn',
-    paint: {
-      'line-width': 6,
-      'line-color': ['case', ['boolean', ['feature-state', 'selected'], false], HIGHLIGHTCOLOR, 'grey'],
-      'line-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 1, 0.5],
-    },
-  })
-  map.value.addLayer({
-    id: 'linksIn-arrows',
-    source: 'linksIn',
-    type: 'symbol',
-    layout: {
-      'symbol-placement': 'line',
-      'symbol-spacing': 100,
-      'icon-image': 'arrow',
-      'icon-size': 0.5,
-      'icon-rotate': 90,
-    },
-    paint: {
-      'icon-color': ['case', ['boolean', ['feature-state', 'selected'], false], HIGHLIGHTCOLOR, 'grey'],
-      'icon-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 1, 0.5],
-
-    },
-  })
-
-  //
 }
 
 </script>
@@ -252,7 +234,7 @@ function addTurnLayers() {
     v-model="showDialog"
     persistent
     max-width="700"
-    height="700"
+    height="80%"
   >
     <v-card class="container">
       <DialogHeader
