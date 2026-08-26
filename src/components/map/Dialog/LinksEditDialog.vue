@@ -13,7 +13,7 @@ import { useGettext } from 'vue3-gettext'
 import { GroupForm, Rule } from '@src/types/components'
 import DialogHeader from './DialogHeader.vue'
 import { getGroupForm, isScheduleTrip, hash } from '@src/utils/utils'
-import { baseUnits, linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties'
+import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -50,7 +50,6 @@ const usedIndex = computed<Set<string>>(() => {
   else return new Set(linksStore.nodesIndexes)
 })
 
-const units = computed(() => baseUnits)
 const displayUnits = computed(() => store.displayUnits)
 
 const formRef = ref()
@@ -321,7 +320,6 @@ async function handleSimpleDialog(response: boolean) {
           :show-hint="showHint"
           :show-delete-option="showDeleteOption"
           :hints="hints"
-          :units="units"
           :display-units="displayUnits"
           :rules="rules"
           :attribute-non-deletable="attributeNonDeletable"

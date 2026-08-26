@@ -108,7 +108,7 @@ export function infoSerializer (json: ProjectInfo): ProjectInfo {
     last_modified_email: json.last_modified_email || '',
   }
 }
-
+// TODO rename Mapper
 export function FileSerializer(file: FileFormat): OtherFiles {
   const extension = file.path.split('.').slice(-1)[0]
   const name = file.path.split('.').slice(-2)[0]

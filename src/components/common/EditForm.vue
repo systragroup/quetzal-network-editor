@@ -8,9 +8,11 @@ import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
 import NumberInput from './NumberInput.vue'
 import BooleanInput from './BooleanInput.vue'
+import { baseUnits } from '@src/constants/properties'
+import { cloneDeep } from 'lodash'
+
 interface Props {
   hints: Record<string, string>
-  units?: Record<string, AttributeUnits | undefined>
   displayUnits?: Record<string, AttributeUnits | undefined>
   types?: Record<string, AttributeTypes >
   attributesChoices?: Record<string, any[]>
@@ -23,7 +25,6 @@ interface Props {
 // Define props with default values
 const props = withDefaults(defineProps<Props>(), {
   hints: () => ({} as Record<string, string>),
-  units: () => ({} as Record<string, AttributeUnits>),
   displayUnits: () => ({} as Record<string, AttributeUnits>),
   types: () => ({} as Record<string, AttributeTypes>),
   attributesChoices: () => ({} as Record<string, any[]>),
@@ -32,7 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   showHint: false,
   showDeleteOption: false,
 })
-const { hints, types, units, displayUnits, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
+const { hints, types, displayUnits, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
 const editorForm = defineModel<GroupForm>('editorForm', { default: () => ({}) })
 const emits = defineEmits(['change', 'deleteField'])
 function change(key: string) {
@@ -42,6 +43,8 @@ function deleteField(key: string) {
   emits('deleteField', key)
 }
 const shake = ref(false)
+
+const suffix = computed(() => Object.assign(cloneDeep(baseUnits), displayUnits.value))
 
 const formRef = ref()
 async function validate() {
@@ -128,9 +131,9 @@ function componentType(type: AttributeTypes) {
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
             :disabled="item.disabled"
-            :units="units[getPropertyName(key)]"
+            :base-units="baseUnits[getPropertyName(key)]"
             :display-units="displayUnits[getPropertyName(key)]"
-            :suffix="units[getPropertyName(key)]"
+            :suffix="suffix[getPropertyName(key)]"
             :rules="item.disabled?[]: rules[key]"
             :precision="null"
             :prepend-inner-icon="hasCalculator(key) ? 'fas fa-calculator' : '' "

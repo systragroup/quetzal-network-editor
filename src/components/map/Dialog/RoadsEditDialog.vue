@@ -12,7 +12,7 @@ import { getDirection } from '@src/utils/spatial'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
-import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultProperties } from '@src/constants/properties'
+import { rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultProperties } from '@src/constants/properties'
 import DialogHeader from './DialogHeader.vue'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { cloneDeep } from 'lodash'
@@ -50,7 +50,6 @@ const usedIndex = computed<Set<string>>(() => {
 })
 
 const displayUnits = computed(() => store.displayUnits)
-const units = computed(() => baseUnits)
 
 const rules = computed(() => selectedArr.value.map(idx => {
   const prefix = idx.split('_')[0] + '_'
@@ -315,7 +314,6 @@ watchEffect(() => {
               :show-hint="showHint"
               :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
-              :units="units"
               :display-units="displayUnits"
               :rules="rules[idx]"
               :attribute-non-deletable="attributeNonDeletable"

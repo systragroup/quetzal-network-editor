@@ -1,3 +1,9 @@
+## [8.2.d] (2026-08-26)
+### Features
+* modelConfig: units used to show units in editDialog. some baseUnits are hardcoded for computed field (ex: time in sec. if min provided, will compute it)
+### bug fixes
+* indexing method: adding a road node inline was creating duplicates index (for int)
+
 ## [8.2.c] (2026-08-25)
 ### Features
 * Files: can rename files to add path or change the name

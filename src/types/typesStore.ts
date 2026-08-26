@@ -271,6 +271,7 @@ export interface SplitRoadPayload {
   sliceIndex: number
   selectedLink: LineStringFeatures
   newNode: PointFeatures
+  newIndex: string
 }
 export interface AddRoadNodeInlinePayload {
   lngLat: LngLat
