@@ -13,7 +13,7 @@ import { useMapMatchingStore } from './MapMatching.js'
 import { useTransitStore } from './Transit.js'
 import { useMapStore } from './map'
 
-import { infoSerializer, stylesSerializer } from '@src/utils/serializer'
+import { FileSerializer, infoSerializer, stylesSerializer } from '@src/utils/serializer'
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
@@ -183,9 +183,7 @@ export const useIndexStore = defineStore('index', {
       // push files
       const res: OtherFiles[] = []
       for (const file of payload) {
-        const extension = file.path.split('.').slice(-1)[0]
-        const name = file.path.split('.').slice(-2)[0]
-        res.push({ ...file, name, extension })
+        res.push(FileSerializer(file))
       }
       this.docFiles = res
     },
@@ -197,9 +195,7 @@ export const useIndexStore = defineStore('index', {
       this.otherFiles = this.otherFiles.filter(file => !newPaths.includes(file.path))
       // push files
       for (const file of payload) {
-        const extension = file.path.split('.').slice(-1)[0]
-        const name = file.path.split('.').slice(-2)[0]
-        this.otherFiles.push({ ...file, name, extension })
+        this.otherFiles.push(FileSerializer(file))
       }
     },
 
@@ -253,11 +249,22 @@ export const useIndexStore = defineStore('index', {
       this.otherFiles = this.otherFiles.filter(file => !paths.includes(file.path))
     },
 
+    async renameOtherFile(oldPath: string, newPath: string) {
+      // replace in place. fetch on s3 first if not loaded.
+      // then, content will not be null, so on save, the old one will be deleted and new uploaded.
+      // if content is loaded, no need to fetch the oldpath on s3 anymore also
+      const index = this.otherFiles.findIndex(file => file.path === oldPath)
+      const file = this.otherFiles[index]
+      const content = await this.getOtherFile(file.name, file.extension)
+      const newFile: FileFormat = { path: newPath, content: content }
+      this.otherFiles[index] = (FileSerializer(newFile))
+    },
+
     async getOtherFile (name: string, extension: string) {
       const files = this.otherFiles.filter(file => file.name === name)
       const file = files.filter(file => file.extension === extension)[0]
+      if (!file) return null
       // if its null. fetch it!
-      if (!file) { return null }
       if (!file.content) {
         this.changeLoading(true)
         const userStore = useUserStore()

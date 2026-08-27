@@ -497,13 +497,12 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     _splitLink (payload: SplitRoadPayload) {
-      const { newNode, selectedLink, sliceIndex } = payload
+      const { newNode, selectedLink, sliceIndex, newIndex } = payload
       const newCoords = newNode.geometry.coordinates
 
       const link1 = cloneDeep(selectedLink)
       const link2 = cloneDeep(link1)
-      const usedIndexList = this.rlinks.features.map(el => el.properties.index)
-      link2.properties.index = getNewIndex(link1.properties.index, usedIndexList, this.indexingMethod)
+      link2.properties.index = newIndex
 
       link1.properties.b = newNode.properties.index
       link2.properties.a = newNode.properties.index
@@ -535,6 +534,8 @@ export const userLinksStore = defineStore('rlinks', {
       const { lngLat, selectedIndex } = payload
       const selectedLinks = this.rlinks.features.filter((link) => selectedIndex.includes(link.properties.index))
       let newNode = basePoint().features[0]
+      let usedIndexList = this.rlinks.features.map(el => el.properties.index)
+
       const newLinks = []
       const modifiedLinks = []
       // for each selected links add the node and split.
@@ -545,7 +546,9 @@ export const userLinksStore = defineStore('rlinks', {
         if (i === 0) {
           newNode = this._getNewNode({ nodeCopyId: link.properties.b, coordinates: newCoords })
         }
-        const [link1, link2] = this._splitLink({ selectedLink: link, sliceIndex, newNode })
+        const newIndex = getNewIndex(link.properties.index, usedIndexList, this.indexingMethod)
+        usedIndexList.push(newIndex)
+        const [link1, link2] = this._splitLink({ selectedLink: link, sliceIndex, newNode, newIndex })
         modifiedLinks.push(link1)
         newLinks.push(link2)
       }

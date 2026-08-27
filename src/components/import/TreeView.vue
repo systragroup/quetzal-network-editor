@@ -41,6 +41,7 @@ interface Props {
   showDelete?: boolean
   showUpload?: boolean
   showDownload?: boolean
+  showRename?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,11 +49,12 @@ const props = withDefaults(defineProps<Props>(), {
   showDelete: false,
   showDownload: false,
   showUpload: false,
+  showRename: false,
 })
 
-const { files, showDelete, showDownload, showUpload } = toRefs(props)
+const { files, showDelete, showDownload, showUpload, showRename } = toRefs(props)
 
-const emits = defineEmits(['filesLoaded', 'delete', 'upload', 'download'])
+const emits = defineEmits(['filesLoaded', 'delete', 'upload', 'download', 'rename'])
 
 const treeData = computed(() => buildTree(files.value.map(el => el.path)))
 
@@ -132,13 +134,29 @@ const selected = ref([])
           location="top"
           open-delay="250"
         >
-          <template v-slot:activator="{ props }">
+          <template v-slot:activator="{ props:slotProps }">
+            <v-btn
+              v-if="showRename"
+              variant="text"
+              icon="fa-solid fa-pen"
+              size="small"
+              v-bind="slotProps"
+              @click="()=>emits('rename', item.fullpath as string)"
+            />
+          </template>
+          <span>{{ $gettext('rename file') }}</span>
+        </v-tooltip>
+        <v-tooltip
+          location="top"
+          open-delay="250"
+        >
+          <template v-slot:activator="{ props:slotProps }">
             <v-btn
               v-if="showUpload"
               variant="text"
               icon="fa-solid fa-upload"
               size="small"
-              v-bind="props"
+              v-bind="slotProps"
               @click="()=>emits('upload',item.fullpath as string)"
             />
           </template>
