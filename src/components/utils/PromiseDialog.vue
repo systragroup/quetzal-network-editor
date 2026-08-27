@@ -58,7 +58,7 @@ async function cancel() {
   }
 }
 
-defineExpose({ openDialog })
+defineExpose({ openDialog, confirm })
 
 </script>
 <template>

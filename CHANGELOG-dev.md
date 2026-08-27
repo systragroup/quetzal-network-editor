@@ -1,3 +1,7 @@
+## [8.2.e] (2026-08-27)
+### changes
+* improve Schedule dialog. creating new ttrip: startTime is the one selected. autofocus and enter on dialog.
+
 ## [8.2.d] (2026-08-26)
 ### Features
 * modelConfig: units used to show units in editDialog. some baseUnits are hardcoded for computed field (ex: time in sec. if min provided, will compute it)

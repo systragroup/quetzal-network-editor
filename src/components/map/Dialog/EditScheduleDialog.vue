@@ -11,6 +11,9 @@ import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 import { baseLineString, LineStringGeoJson } from '@src/types/geojson'
 import { TimeString } from '@src/types/components'
 import { SchedulePayload } from '@src/types/typesStore'
+import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
 
 // Chart Dataset
 interface Data {
@@ -44,8 +47,9 @@ const links = ref<LineStringGeoJson>(baseLineString())
 const nodes = computed(() => linksStore.editorNodes)
 const tripKey = ref(0)
 const startTime = ref('08:00:00')
-
 const initialHash = ref()
+const label = ref('index')
+const datasets = ref<Dataset[]>([])
 
 function toSchedule(links: LineStringGeoJson) {
   let currentTime = hhmmssToSeconds(startTime.value)
@@ -57,19 +61,29 @@ function toSchedule(links: LineStringGeoJson) {
 }
 
 watch(showSchedule, (val) => {
-  if (val) { store.changeNotification({ text: '', autoClose: true })
-    links.value = cloneDeep(linksStore.editorLinks)
-    initialHash.value = hash(JSON.stringify(links.value))
-    tripKey.value = 0
-    if (!isScheduleTrip(links.value.features[0])) {
-      // arrivals are undefined. Probably a headway based trip
-      // Convert temporarely to schedule based trips
-      toSchedule(links.value)
-    }
-
-    buildChartDataset()
-  }
+  if (val) mount()
+  else unmount()
 })
+
+function mount() {
+  store.changeNotification({ text: '', autoClose: true })
+  links.value = cloneDeep(linksStore.editorLinks)
+  initialHash.value = hash(JSON.stringify(links.value))
+  tripKey.value = 0
+  if (!isScheduleTrip(links.value.features[0])) {
+    // crete chedule based trips when arrivals is undefined
+    toSchedule(links.value)
+  }
+  buildChartDataset()
+}
+
+function unmount() {
+  datasets.value = []
+  tripKey.value = 0
+  startTime.value = '08:00:00'
+  initialHash.value = undefined
+  // label.value = 'index'
+}
 
 // Station Label
 const labelsChoices = computed(() => {
@@ -77,26 +91,28 @@ const labelsChoices = computed(() => {
     return Object.keys(nodes.value.features[0].properties)
   } else { return [] }
 })
-const label = ref('index')
 
 // List of Trip
 const listOfTrips = computed(() => {
-  const list = datasets.value.map(d => { return { title: d.data[0].x } })
-  return list
+  if (datasets.value.length === 0) return []
+  else return datasets.value.map(d => d.data[0].x)
 })
 
 // Create New Trip
-const showDialog = ref(false)
-function openCreateNewTripDialog() {
-  showDialog.value = true
+const rules = ref([
+  (val: string) => !listOfTrips.value.includes(val) || $gettext('departures time already used'),
+])
+
+const newTripDialog = ref()
+async function openCreateNewTripDialog() {
+  startTime.value = datasets.value[tripKey.value].data[0].x
+  const resp = await newTripDialog.value.openDialog()
+  if (resp) {
+    createNewTrip()
+  }
 }
 
-function cancelNewTrip() {
-  showDialog.value = false
-  startTime.value = '08:00:00'
-}
-
-function findInsertIndex(arr: number[], num: number) {
+function _findInsertIndex(arr: number[], num: number) {
   // return index to insert
   // ex: arr = [8,10,12,16] & num = 9 => return 1. if smaller return 0 if larger return len(arr)
   const index = arr.findIndex(element => element >= num)
@@ -105,11 +121,10 @@ function findInsertIndex(arr: number[], num: number) {
 }
 
 function createNewTrip() {
-  showDialog.value = false
   const departuresList = links.value.features[0].properties.departures.map((el: TimeString) => hhmmssToSeconds(el))
   const startTimeSecs = hhmmssToSeconds(startTime.value)
   // get the position to append the new Ttrip (if we add 9h to [8h, 10h], we have [8h, 9h, 10h])
-  const index = findInsertIndex(departuresList, startTimeSecs)
+  const index = _findInsertIndex(departuresList, startTimeSecs)
 
   // Compute the time differencial between template trip departure and new start time
   const templateStartTime = hhmmssToSeconds(links.value.features[0].properties.departures[tripKey.value])
@@ -121,8 +136,8 @@ function createNewTrip() {
     let newArrival = hhmmssToSeconds(link.properties.arrivals[tripKey.value]) + timeDiff
     link.properties.arrivals.splice(index, 0, secondsTohhmmss(newArrival))
   })
-  startTime.value = '08:00:00'
   buildChartDataset()
+  tripKey.value = index
 }
 
 function deleteTrip(val: number) {
@@ -137,6 +152,7 @@ function deleteTrip(val: number) {
 
 // Checks on Schedule
 const formErrorKey = computed(() => {
+  if (datasets.value.length === 0) return []
   const timeData = datasets.value[tripKey.value].data.map(d => d.x)
   let scheduleErrorKey = []
   for (let i = 0; i < timeData.length - 1; i++) {
@@ -167,6 +183,7 @@ function applyChanges() {
 
 function saveAndQuit() {
   applyChanges()
+  startTime.value = '08:00:00'
   emit('applyAction')
 }
 
@@ -181,8 +198,6 @@ function cancel() {
   emit('cancelAction')
 }
 
-const datasets = ref<Dataset[]>([])
-
 function buildChartDataset() {
   let stackedData: StackedData[] = []
   links.value.features.forEach(f => {
@@ -195,7 +210,7 @@ function buildChartDataset() {
       y: f.properties.b,
     })
   })
-  let datas = []
+  let datas: Dataset[] = []
   for (let i = 0; i < stackedData[0].x.length; i++) {
     // Node
     let pointRadius = Array(stackedData.length).fill(4)
@@ -341,7 +356,7 @@ function handleSimpleDialog(event: boolean) {
                   @mouseleave="onMouseLeaveTripList"
                 >
                   <v-list-item-title>
-                    {{ item.title }}
+                    {{ item }}
                   </v-list-item-title>
                   <template v-slot:append>
                     <v-btn
@@ -420,43 +435,22 @@ function handleSimpleDialog(event: boolean) {
             </v-form>
           </v-col>
         </v-row>
-        <v-dialog
-          v-model="showDialog"
-          max-width="20rem"
-          persistent
+        <PromiseDialog
+          ref="newTripDialog"
+          confirm-color="primary"
+          :title="$gettext('Create New Trip')"
         >
-          <v-card>
-            <v-card-text>
-              <h4>Create New Trip</h4>
-            </v-card-text>
-            <v-card-text>
-              <v-text-field
-                v-model="startTime"
-                :label="$gettext('Start Time')"
-                type="time"
-                step="1"
-              />
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer />
-              <v-btn
-                color="grey"
-                variant="text"
-                @click="cancelNewTrip"
-              >
-                {{ $gettext("Cancel") }}
-              </v-btn>
-
-              <v-btn
-                color="green-darken-1"
-                variant="text"
-                @click="createNewTrip"
-              >
-                {{ $gettext("Save") }}
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+          <v-text-field
+            v-model="startTime"
+            variant="underlined"
+            autofocus
+            :rules="rules"
+            :label="$gettext('Start Time')"
+            type="time"
+            step="1"
+            @keydown.enter="newTripDialog.confirm"
+          />
+        </PromiseDialog>
       </v-card-text>
       <v-divider />
       <v-card-actions>

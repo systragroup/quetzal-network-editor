@@ -183,6 +183,7 @@ async function renameFile(filePath: string) {
   <PromiseDialog
     ref="renameDialog"
     confirm-color="primary"
+    :title="$gettext('rename')"
   >
     <v-text-field
       v-model="newPath"
