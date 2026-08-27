@@ -18,7 +18,7 @@ import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures, Li
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
 import RoadLinksDraw from './RoadLinksDraw.vue'
 import { setsAreEqual } from '@src/utils/utils.ts'
-import EditTurnDialog from './Dialog/EditTurnDialog.vue'
+import EditTurnDialog from './turnEditor/EditTurnDialog.vue'
 const { openDialog, showDialog } = useForm()
 
 interface Props {

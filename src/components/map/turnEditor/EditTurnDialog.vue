@@ -4,13 +4,12 @@ import mapboxgl from 'mapbox-gl'
 import { userLinksStore } from '@src/store/rlinks'
 import { useMapStore } from '@src/store/map'
 import arrowImage from '@static/arrow.png'
-import { lineOffset } from '@turf/line-offset'
 import { cloneDeep } from 'lodash'
 import { computed } from 'vue'
 import { baseLineString, LineStringFeatures } from '@src/types/geojson'
 import { useTheme } from 'vuetify'
-import RoadChip from '@src/components/common/RoadChip.vue'
-import DialogHeader from './DialogHeader.vue'
+import RoadChip from './RoadChip.vue'
+import DialogHeader from '../Dialog/DialogHeader.vue'
 import { reverserLink } from '@src/utils/roadNetwork.ts'
 const theme = useTheme()
 
@@ -19,8 +18,6 @@ const GREY = 'grey'
 const HIGHLIGHTCOLOR = '#FFD400'
 const SUCCESSCOLOR = theme.current.value.colors.success
 const ERRORCOLOR = theme.current.value.colors.error
-const UNITS = 'meters'
-const OFFSET = 5
 
 interface Props {
   nodeId: string
@@ -33,7 +30,6 @@ const rlinksStore = userLinksStore()
 const mapStore = useMapStore()
 
 const _rlinks = computed(() => rlinksStore.rlinks)
-const rAttributes = computed(() => variantChoices.value.map((variant) => `tp${variant}_r`))
 
 // variant and Attr prefix selector
 
@@ -43,10 +39,7 @@ const selectedVariant = computed({
 })
 
 const variantChoices = computed(() => rlinksStore.variantChoice)
-const mapContainer = ref<HTMLElement | null>(null)
-const map = ref<mapboxgl.Map>() as Ref<mapboxgl.Map>
-
-const selectedLinkId = ref('') // click on links
+const rAttributes = computed(() => variantChoices.value.map((variant) => `tp${variant}_r`))
 
 const twoWayLinks = computed(() => {
   return _rlinks.value.features.filter(node => node.properties.oneway === '0')
@@ -66,35 +59,14 @@ const linksOut = computed(() => {
   return [...links, ...reversed].sort((a, b) => a.properties.b.localeCompare(b.properties.b))
 })
 
-const linksGeojson = computed(() => {
-  const geojson = baseLineString()
-  for (const link of [...linksIn.value, ...linksOut.value]) {
-    geojson.features.push({
-      geometry: lineOffset(link.geometry, OFFSET, { units: UNITS }).geometry,
-      type: 'Feature',
-      properties: { index: cloneDeep(link.properties.index) },
-    })
-  }
-  return geojson
-})
+// we have a dict of turn restriction for a selected variant.
+// when changing the variant: save the change in the rlinks and change the turnRestrictionDict
+const turnRestrictions = ref<Record<string, string[] | undefined>>({})
 
-function save() {
-  applyTurnRestrictions(selectedVariant.value)
-
-  const links = linksIn.value.filter(link => !link.properties.index.endsWith('_r'))
-  const rindexes: string[] = linksIn.value.filter(link => link.properties.index.endsWith('_r'))
-    .map(el => el.properties.index).map(el => el.slice(0, -2))
-  const rlinks = linksOut.value.filter(link => rindexes.includes(link.properties.index))
-  rlinksStore.editTurnRestrictions([...links, ...rlinks])
-
-  showDialog.value = false
-}
 watch(selectedVariant, (newVal, oldVal) => {
   applyTurnRestrictions(oldVal)
   initTurnRestrictions(newVal)
 })
-
-const turnRestrictions = ref<Record<string, string[] | undefined>>({})
 
 function initTurnRestrictions(variant: string) {
   turnRestrictions.value = linksIn.value.reduce((dict: Record<string, string[]>, link) => {
@@ -120,14 +92,7 @@ function applyTurnRestrictions(variant: string) {
 
 function init() {
   if (!variantChoices.value.includes(selectedVariant.value)) selectedVariant.value = variantChoices.value[0]
-  selectedLinkId.value = linksIn.value[0].properties.index
   initTurnRestrictions(selectedVariant.value)
-}
-
-function isRestricted(fromLink: LineStringFeatures, toLink: LineStringFeatures) {
-  const restrictions = turnRestrictions.value[fromLink.properties.index]
-  if (!restrictions) return false
-  return restrictions.includes(toLink.properties.index)
 }
 
 function setRestriction(fromLink: LineStringFeatures, toLink: LineStringFeatures) {
@@ -141,13 +106,49 @@ function setRestriction(fromLink: LineStringFeatures, toLink: LineStringFeatures
   turnRestrictions.value[fromIndex] = restrictions
 }
 
+function save() {
+  applyTurnRestrictions(selectedVariant.value)
+
+  const links = linksIn.value.filter(link => !link.properties.index.endsWith('_r'))
+  const rindexes: string[] = linksIn.value.filter(link => link.properties.index.endsWith('_r'))
+    .map(el => el.properties.index).map(el => el.slice(0, -2))
+  const rlinks = linksOut.value.filter(link => rindexes.includes(link.properties.index))
+  rlinksStore.editTurnRestrictions([...links, ...rlinks])
+
+  showDialog.value = false
+}
+
+// for button color
+function isRestricted(fromLink: LineStringFeatures, toLink: LineStringFeatures) {
+  const restrictions = turnRestrictions.value[fromLink.properties.index]
+  if (!restrictions) return false
+  return restrictions.includes(toLink.properties.index)
+}
+
 //
 // map styles
 //
+const mapContainer = ref<HTMLElement | null>(null)
+const map = ref<mapboxgl.Map>() as Ref<mapboxgl.Map>
+
+const linksGeojson = computed(() => {
+  const geojson = baseLineString()
+  for (const link of [...linksIn.value, ...linksOut.value]) {
+    geojson.features.push({
+      geometry: cloneDeep(link.geometry),
+      type: 'Feature',
+      properties: { index: cloneDeep(link.properties.index) },
+    })
+  }
+  return geojson
+})
+
 const center = computed(() => {
   const node = rlinksStore.rnodes.features.filter(node => node.properties.index === nodeId.value)[0]
   return node.geometry.coordinates
 })
+
+const selectedLinkId = ref('') // click on links
 
 const displayRestrictions = computed(() => turnRestrictions.value[selectedLinkId.value] || [])
 watch(displayRestrictions, (vals) => {
@@ -167,7 +168,10 @@ watch(selectedLinkId, (newVal, oldVal) => {
 // mout component
 
 watch(showDialog, async (open) => {
-  if (!open) return
+  if (!open) {
+    selectedLinkId.value = ''
+    return
+  }
   await nextTick()
   if (!mapContainer.value) return
 
@@ -193,21 +197,15 @@ watch(showDialog, async (open) => {
     touchZoomRotate: false,
   })
 
-  map.value.on('load', () => {
-    mapLoad()
-    init()
-  })
+  map.value.on('load', mapLoad)
+  // map.value.on('unload'()=>{console.log('yolo')})
 })
 
 function mapLoad() {
+  selectedLinkId.value = linksIn.value[0].properties.index
   addTurnLayers()
-  map.value.loadImage(arrowImage, function (err, image: any) {
-    if (err) {
-      console.error('err image', err)
-      return
-    }
-    map.value.addImage('arrow', image, { sdf: true })
-  })
+  map.value.loadImage(arrowImage, (err, image: any) => map.value.addImage('arrow', image, { sdf: true }))
+  init()
 }
 
 function addTurnLayers() {
@@ -225,6 +223,7 @@ function addTurnLayers() {
       'line-width': 4,
       'line-color': ['coalesce', ['feature-state', 'color'], GREY],
       'line-opacity': ['coalesce', ['feature-state', 'opacity'], 0.5],
+      'line-offset': 4,
 
     },
   })
@@ -239,6 +238,7 @@ function addTurnLayers() {
       'icon-image': 'arrow',
       'icon-size': 0.5,
       'icon-rotate': 90,
+      'icon-offset': [8, 0],
     },
     paint: {
       'icon-color': ['coalesce', ['feature-state', 'color'], GREY],
