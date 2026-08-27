@@ -11,6 +11,7 @@ import { baseLineString, LineStringFeatures } from '@src/types/geojson'
 import { useTheme } from 'vuetify'
 import RoadChip from '@src/components/common/RoadChip.vue'
 import DialogHeader from './DialogHeader.vue'
+import { reverserLink } from '@src/utils/roadNetwork.ts'
 const theme = useTheme()
 
 const SELECTEDCOLOR = theme.current.value.colors.linksprimary
@@ -32,6 +33,7 @@ const rlinksStore = userLinksStore()
 const mapStore = useMapStore()
 
 const _rlinks = computed(() => rlinksStore.rlinks)
+const rAttributes = computed(() => variantChoices.value.map((variant) => `tp${variant}_r`))
 
 // variant and Attr prefix selector
 
@@ -46,17 +48,22 @@ const map = ref<mapboxgl.Map>() as Ref<mapboxgl.Map>
 
 const selectedLinkId = ref('') // click on links
 
-// const twoWayLinks = computed(() => {
-//   return _rlinks.value.features.filter(node => node.properties.oneway === '0')
-// })
-// console.log(twoWayLinks.value)
+const twoWayLinks = computed(() => {
+  return _rlinks.value.features.filter(node => node.properties.oneway === '0')
+})
 
 const linksIn = computed(() => {
-  return cloneDeep(_rlinks.value.features.filter(link => link.properties.b === nodeId.value))
+  const links = cloneDeep(_rlinks.value.features.filter(link => link.properties.b === nodeId.value))
+  const reversed = cloneDeep(twoWayLinks.value.filter(link => link.properties.a === nodeId.value))
+  reversed.forEach(link => reverserLink(link, rAttributes.value))
+  return [...links, ...reversed].sort((a, b) => a.properties.a.localeCompare(b.properties.a))
 })
 
 const linksOut = computed(() => {
-  return _rlinks.value.features.filter(link => link.properties.a === nodeId.value)
+  const links = cloneDeep(_rlinks.value.features.filter(link => link.properties.a === nodeId.value))
+  const reversed = cloneDeep(twoWayLinks.value.filter(link => link.properties.b === nodeId.value))
+  reversed.forEach(link => reverserLink(link, rAttributes.value))
+  return [...links, ...reversed].sort((a, b) => a.properties.b.localeCompare(b.properties.b))
 })
 
 const linksGeojson = computed(() => {
@@ -68,13 +75,18 @@ const linksGeojson = computed(() => {
       properties: { index: cloneDeep(link.properties.index) },
     })
   }
-
   return geojson
 })
 
 function save() {
   applyTurnRestrictions(selectedVariant.value)
-  rlinksStore.editTurnRestrictions(linksIn.value)
+
+  const links = linksIn.value.filter(link => !link.properties.index.endsWith('_r'))
+  const rindexes: string[] = linksIn.value.filter(link => link.properties.index.endsWith('_r'))
+    .map(el => el.properties.index).map(el => el.slice(0, -2))
+  const rlinks = linksOut.value.filter(link => rindexes.includes(link.properties.index))
+  rlinksStore.editTurnRestrictions([...links, ...rlinks])
+
   showDialog.value = false
 }
 watch(selectedVariant, (newVal, oldVal) => {
@@ -93,7 +105,16 @@ function initTurnRestrictions(variant: string) {
 
 function applyTurnRestrictions(variant: string) {
   linksIn.value.forEach(link => {
-    link.properties[`tp${variant}`] = cloneDeep(turnRestrictions.value[link.properties.index])
+    const index = link.properties.index
+    const restrictions = cloneDeep(turnRestrictions.value[index])
+    link.properties[`tp${variant}`] = restrictions
+  })
+  linksOut.value.forEach(link => {
+    const index = link.properties.index + '_r'
+    if (Object.keys(turnRestrictions.value).includes(index)) { // check. need to set to undefined if all allow
+      const restrictions = cloneDeep(turnRestrictions.value[index])
+      link.properties[`tp${variant}_r`] = restrictions
+    }
   })
 }
 
