@@ -102,6 +102,7 @@ export function getVariantsChoices(attributes: Attributes[]): NonEmptyArray<stri
 }
 
 export function addDefaultValuesToVariants(attributes: Attributes[]) {
+  // get values like headway#AM and add the default value and type of headway
   const variantAttributes = attributes.filter(el => el.name.includes('#'))
   variantAttributes.forEach(attr => {
     const defaultName = attr.name.split('#')[0]

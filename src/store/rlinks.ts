@@ -18,7 +18,9 @@ import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, Point
   PointGeoJson } from '@src/types/geojson'
 import { rlinksConstantProperties, rnodesDefaultProperties,
   rlinksDefaultProperties, roadDefaultAttributesChoices,
-  defaultIndexingMethod } from '@src/constants/properties'
+  defaultIndexingMethod,
+  reservedrLinkProperties,
+  reservedrNodesProperties } from '@src/constants/properties'
 import { simplifyGeometry } from '@src/utils/spatial'
 import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
@@ -243,7 +245,7 @@ export const userLinksStore = defineStore('rlinks', {
       const newProps = getDifference(properties, this.rlineAttributes)
       newProps.forEach(prop => {
         const type = getPropertyType(this.rlinks, prop)
-        this.linksDefaultAttributes.push({ name: prop, type: type })
+        this.addLinksPropertie({ name: prop, type: type })
       })
 
       // create _r attributes if they dont exist (like time_r if there is no time_r)
@@ -252,7 +254,7 @@ export const userLinksStore = defineStore('rlinks', {
       const newReversedProps = getDifference(reversedAttributes, this.reversedAttributes)
       newReversedProps.forEach(prop => {
         const type = getPropertyType(this.rlinks, prop.slice(0, -2)) //  get type of the non _r property
-        this.linksDefaultAttributes.push({ name: prop, type: type })
+        this.addLinksPropertie({ name: prop, type: type })
       })
     },
 
@@ -324,29 +326,23 @@ export const userLinksStore = defineStore('rlinks', {
     //
 
     addLinksPropertie (payload: NewAttribute) {
-      // TODO _editLinkArray
       const { name, type } = payload
-      const newAttr: Record<string, null> = { [name]: null }
-      this.rlinks.features.forEach(link => Object.assign(link.properties, newAttr))
-      // this.rlinks.features.map(link => link.properties[payload.name] = null)
-      this.linksDefaultAttributes.push({ name: name, type: type })
+      const castedType = (Object.hasOwn(reservedrLinkProperties, name)) ? reservedrLinkProperties[name] : type
+      this.linksDefaultAttributes.push({ name: name, type: castedType })
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
       if (!rlinksConstantProperties.includes(name)) {
-        this.linksDefaultAttributes.push({ name: name + '_r', type: type })
+        this.linksDefaultAttributes.push({ name: name + '_r', type: castedType })
       }
     },
 
     addNodesPropertie (payload: NewAttribute) {
-      // todo: _editNodeArray
       const { name, type } = payload
-      const newAttr: Record<string, null> = { [name]: null }
-      this.rnodes.features.forEach(node => Object.assign(node.properties, newAttr))
-      this.nodesDefaultAttributes.push({ name: name, type: type })
+      const castedType = (Object.hasOwn(reservedrNodesProperties, name)) ? reservedrNodesProperties[name] : type
+      this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
 
     deleteLinksPropertie (name: string) {
       // TODO _editLinkArray
-
       this.rlinks.features.forEach(link => delete link.properties[name])
       this.rlinks.features.forEach(link => delete link.properties[name + '_r'])
 

@@ -1,3 +1,7 @@
+## [8.2.f] (2026-08-28)
+### changes
+* move departures, arrivals, road_link_list out of default attributes but a list of reserved name/types. we still used their defined tag when adding the value, reading the value in a file, but we dont show them if not present (as defaultAttributes) in dialogs.
+
 ## [8.2.e] (2026-08-27)
 ### changes
 * improve Schedule dialog. creating new ttrip: startTime is the one selected. autofocus and enter on dialog.

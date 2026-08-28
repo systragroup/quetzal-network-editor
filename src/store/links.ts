@@ -11,7 +11,9 @@ import { simplifyGeometry } from '@src/utils/spatial'
 import { cloneDeep } from 'lodash'
 
 import { GroupForm } from '@src/types/components'
-import { defaultIndexingMethod, linksDefaultProperties, nodesDefaultProperties, ptDefaultAttributesChoices } from '@src/constants/properties'
+import { defaultIndexingMethod, linksDefaultProperties,
+  nodesDefaultProperties, ptDefaultAttributesChoices, reservedLinkProperties,
+  reservedNodesProperties } from '@src/constants/properties'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
@@ -187,7 +189,7 @@ export const useLinksStore = defineStore('links', {
       const newProps = getDifference(properties, this.lineAttributes)
       newProps.forEach(prop => {
         const type = getPropertyType(this.links, prop)
-        this.linksDefaultAttributes.push({ name: prop, type: type })
+        this.addLinksPropertie({ name: prop, type: type })
       })
     },
 
@@ -196,7 +198,7 @@ export const useLinksStore = defineStore('links', {
       const newProps = getDifference(properties, this.nodeAttributes)
       newProps.forEach(prop => {
         const type = getPropertyType(this.nodes, prop)
-        this.nodesDefaultAttributes.push({ name: prop, type: type }) })
+        this.addNodesPropertie({ name: prop, type: type }) })
     },
 
     loadLinksAttributesChoices (payload: AttributesChoice) {
@@ -209,16 +211,17 @@ export const useLinksStore = defineStore('links', {
     },
 
     addLinksPropertie (payload: NewAttribute) {
-      // when a new line properties is added
-      this.links.features.forEach(link => link.properties[payload.name] = undefined)
-      this.editorLinks.features.forEach(link => link.properties[payload.name] = undefined)
-      this.linksDefaultAttributes.push({ name: payload.name, type: payload.type })
+      const { name, type } = payload
+      // some values like departures are reserved and must be undefined (array).
+      const castedType = (Object.hasOwn(reservedLinkProperties, name)) ? reservedLinkProperties[name] : type
+      this.linksDefaultAttributes.push({ name: name, type: castedType })
     },
 
     addNodesPropertie (payload: NewAttribute) {
-      this.nodes.features.forEach(node => node.properties[payload.name] = undefined)
-      this.editorNodes.features.forEach(node => node.properties[payload.name] = undefined)
-      this.nodesDefaultAttributes.push({ name: payload.name, type: payload.type })
+      const { name, type } = payload
+      // some values like departures are reserved and must be undefined (array).
+      const castedType = (Object.hasOwn(reservedNodesProperties, name)) ? reservedLinkProperties[name] : type
+      this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
 
     deleteLinksPropertie (name: string) {

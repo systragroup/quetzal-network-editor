@@ -1,4 +1,5 @@
-import { Attributes, AttributesChoice, AttributeUnits, IndexingMethod, ModelConfig } from '@src/types/typesStore'
+import { Attributes, AttributesChoice, AttributeTypes,
+  AttributeUnits, IndexingMethod, ModelConfig } from '@src/types/typesStore'
 
 export const linksDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
@@ -19,10 +20,15 @@ export const linksDefaultProperties: Attributes[] = [
   { name: 'drop_off_type', type: 'Number', value: 0 },
   { name: 'link_sequence', type: 'Number', value: 0 },
   { name: 'direction_id', type: 'Number', value: 0 },
-  { name: 'departures', type: undefined, value: undefined }, //  its an array. dont want to force string on read
-  { name: 'arrivals', type: undefined, value: undefined }, //  its an array. dont want to force string on read
-  { name: 'road_link_list', type: undefined, value: undefined }, //  its an array. dont want to force string on read
 ]
+// Those must be arrays and have special functions in the app.
+// dont want to force to string on read. dont want to add them to every form either if not used.
+export const reservedLinkProperties: Record<string, AttributeTypes> = {
+  departures: undefined,
+  arrivals: undefined,
+  road_link_list: undefined,
+}
+export const reservedNodesProperties: Record<string, AttributeTypes> = {}
 
 export const nodesDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
@@ -41,14 +47,20 @@ export const rlinksDefaultProperties: Attributes[] = [
   { name: 'speed', type: 'Number', value: 20 },
   { name: 'highway', type: 'String', value: 'quenedi' },
   { name: 'oneway', type: 'String', value: '0' },
-
 ]
 
 export const rnodesDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
 ]
 
-// do not reversed those ones
+// Those must be arrays and have special functions in the app.
+// dont want to force to string on read. dont want to add them to every form either if not used.
+export const reservedrLinkProperties: Record<string, AttributeTypes> = {
+  // TODO: add turn_restructions
+}
+export const reservedrNodesProperties: Record<string, AttributeTypes> = {}
+
+// do not reverse those ones
 export const rlinksConstantProperties = [
   'a',
   'b',
