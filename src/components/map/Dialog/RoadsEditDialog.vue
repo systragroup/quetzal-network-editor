@@ -104,7 +104,7 @@ function createForm() {
   switch (action.value) {
     case 'Edit rLink Info':
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['a', 'b', 'length', 'turn_restrictions', 'turn_restrictions_r']
+      disabled = ['a', 'b', 'length']
       editorForm.value = []
       selectedArr.value.forEach(index => {
         const feature = features.filter(link => link.properties.index === index)[0]
@@ -125,7 +125,7 @@ function createForm() {
       break
     case 'Edit Road Group Info':
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['index', 'length', 'time', 'a', 'b', 'turn_restrictions', 'turn_restrictions_r']
+      disabled = ['index', 'length', 'time', 'a', 'b']
       editorForm.value = [getGroupForm(features, lineAttributes.value, disabled)]
       break
 

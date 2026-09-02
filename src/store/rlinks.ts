@@ -479,9 +479,10 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     editTurnRestrictions (modifiedLinks: LineStringFeatures[]) {
-      // add turn_restrictions column if not present yet
-      if (!this.rlineAttributes.includes('turn_restrictions')) {
-        this.addLinksPropertie({ name: 'turn_restrictions', type: undefined }) }
+      // add turn_restrictions column if not present yet. add all variants too.
+      const turnAttrs = Object.keys(modifiedLinks[0].properties).filter(name => name.startsWith('turn_restrictions'))
+      const newProps = getDifference(turnAttrs, this.rlineAttributes)
+      newProps.forEach(name => this.addLinksPropertie({ name: name, type: undefined }))
 
       const updateLinks = new Map(modifiedLinks.map(f => [f.properties.index, f]))
       this.commitChanges({ name: 'Edit Turn Restriction', updateLinks: updateLinks })
