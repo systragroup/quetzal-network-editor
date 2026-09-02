@@ -35,7 +35,7 @@ const { routeLink } = useRouting()
 import { useDrawLink } from '@src/composables/useDrawLink'
 import { HoverState } from '@src/types/mapbox'
 
-const { drawLink, updateDrawLink, stopDraw, showDraw, hideDraw } = useDrawLink(map.value)
+const { drawLink, updateDrawLink, stopDraw, showDraw, hideDraw } = useDrawLink(map)
 const drawMode = ref(false)
 
 watch(drawMode, (val) => val ? showDraw() : stopDraw())

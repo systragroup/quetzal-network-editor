@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, Ref, toRefs } from 'vue'
-import mapboxgl from 'mapbox-gl'
+import { ref, watch, nextTick, Ref, toRefs, shallowRef } from 'vue'
+import mapboxgl, { MapMouseEvent } from 'mapbox-gl'
 import { userLinksStore } from '@src/store/rlinks'
 import { useMapStore } from '@src/store/map'
 import arrowImage from '@static/arrow.png'
 import { cloneDeep } from 'lodash'
 import { computed } from 'vue'
-import { baseLineString, basePoint, createLinestringFeature, createPointFeature, LineStringFeatures, PointFeatures, PolygonFeatures } from '@src/types/geojson'
+import { baseLineString, basePoint, createLinestringFeature, createPointFeature, LineStringFeatures, LineStringGeoJson, PointFeatures, PolygonFeatures } from '@src/types/geojson'
 import { useTheme } from 'vuetify'
 import RoadChip from './RoadChip.vue'
 import DialogHeader from '../Dialog/DialogHeader.vue'
@@ -20,6 +20,9 @@ const BLACK = 'black'
 // const HIGHLIGHTCOLOR = '#FFD400'
 const SUCCESSCOLOR = theme.current.value.colors.success
 const ERRORCOLOR = theme.current.value.colors.error
+
+const BASESOURCEID = 'baseLinks'
+const TURNLINESID = 'turnLines'
 
 interface Props {
   nodeId: string
@@ -97,10 +100,8 @@ function init() {
   initTurnRestrictions(selectedVariant.value)
 }
 
-function setRestriction(fromLink: LineStringFeatures, toLink: LineStringFeatures) {
-  const fromIndex = fromLink.properties.index
+function setRestriction(fromIndex: string, toIndex: string) {
   let restrictions = turnRestrictions.value[fromIndex]
-  const toIndex = toLink.properties.index
   if (!restrictions) restrictions = [toIndex]
   else if (restrictions.includes(toIndex)) restrictions = restrictions.filter(el => el !== toIndex)
   else restrictions.push(toIndex)
@@ -130,7 +131,7 @@ function isRestricted(fromLink: LineStringFeatures, toLink: LineStringFeatures) 
 // map styles
 //
 const mapContainer = ref<HTMLElement | null>(null)
-const map = ref<mapboxgl.Map>() as Ref<mapboxgl.Map>
+const map = shallowRef<mapboxgl.Map>() as Ref<mapboxgl.Map>
 
 const linksGeojson = computed(() => {
   const geojson = baseLineString()
@@ -154,7 +155,7 @@ watch(turnRestrictions, () => {
     linksOut.value.forEach(linkOut => {
       const color = isRestricted(linkIn, linkOut) ? ERRORCOLOR : SUCCESSCOLOR
       const idx = linkIn.properties.index + linkOut.properties.index
-      map.value.setFeatureState({ source: 'curves', id: idx }, { color: color, opacity: 1 })
+      map.value.setFeatureState({ source: TURNLINESID, id: idx }, { color: color })
     })
   })
 }, { deep: true })
@@ -179,7 +180,7 @@ watch(showDialog, async (open) => {
 
     style: mapStore.mapStyle,
     center: center.value as any,
-    zoom: 15,
+    zoom: 17,
     attributionControl: false,
     boxZoom: false,
     scrollZoom: true,
@@ -191,26 +192,29 @@ watch(showDialog, async (open) => {
   })
 
   map.value.on('load', mapLoad)
+  map.value.on('mouseover', TURNLINESID, onHover)
+  map.value.on('mouseleave', TURNLINESID, offHover)
+  map.value.on('click', TURNLINESID, clickOnLine)
 })
 
 function mapLoad() {
   addBaseLayer()
-  test()
+  addTurnLayer()
   map.value.loadImage(arrowImage, (err, image: any) => map.value.addImage('arrow', image, { sdf: true }))
   init()
 }
 
 function addBaseLayer() {
-  map.value.addSource('turnLinks', {
+  map.value.addSource(BASESOURCEID, {
     type: 'geojson',
     data: linksGeojson.value,
     promoteId: 'index',
   })
 
   map.value.addLayer({
-    id: 'turnLinks',
+    id: BASESOURCEID,
     type: 'line',
-    source: 'turnLinks',
+    source: BASESOURCEID,
     paint: {
       'line-width': 4,
       'line-color': GREY,
@@ -221,16 +225,16 @@ function addBaseLayer() {
 }
 
 function addPointsLayer() {
-  map.value.addSource('points', {
+  map.value.addSource('turnPoints', {
     type: 'geojson',
     data: pointsGeojson.value,
     promoteId: 'index',
   })
 
   map.value.addLayer({
-    id: 'points',
+    id: 'turnPoints',
     type: 'circle',
-    source: 'points',
+    source: 'turnPoints',
     paint: {
       'circle-radius': 5,
       'circle-color': ['get', 'color'],
@@ -238,24 +242,24 @@ function addPointsLayer() {
     },
   })
 
-  map.value.addSource('curves', {
+  map.value.addSource(TURNLINESID, {
     type: 'geojson',
     data: curvesGeojson.value,
     promoteId: 'index',
   })
 
   map.value.addLayer({
-    id: 'curves',
+    id: TURNLINESID,
     type: 'line',
-    source: 'curves',
+    source: TURNLINESID,
     paint: {
-      'line-width': 4,
+      'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 8, 4],
       'line-color': ['coalesce', ['feature-state', 'color'], GREY],
     },
   })
   map.value.addLayer({
-    id: 'curves-arrows',
-    source: 'curves',
+    id: `${TURNLINESID}-arrows`,
+    source: TURNLINESID,
     type: 'symbol',
     layout: {
       'symbol-placement': 'line',
@@ -271,12 +275,104 @@ function addPointsLayer() {
     },
   })
 }
+
+import { useHover } from '@src/composables/useMapBox.ts'
+const { onHover, offHover, hoveringFeature } = useHover(map)
+
+watch(hoveringFeature, selected => {
+  if (selected) {
+    const feature = curvesGeojson.value.features.filter(link => link.properties.index === selected.featureId)[0]
+    feature.properties
+  }
+})
+
+function isHovering(fromLink: LineStringFeatures, toLink: LineStringFeatures) {
+  const idx = fromLink.properties.index + toLink.properties.index
+  return hoveringFeature.value?.featureId === idx
+}
+
+function onHoverButton(fromIndex: string, toIndex: string) {
+  hoveringFeature.value = { sourceId: TURNLINESID, featureId: fromIndex + toIndex }
+}
+
+function offHoverButton() {
+  hoveringFeature.value = null
+}
+
+function clickOnLine(event: MapMouseEvent) {
+  // 0,1,2 left, wheel right
+  if (event.originalEvent.button === 0) {
+    const features = event.features
+    if (features) {
+      const hoveringFeature = features.filter(el => el.state?.hover)[0]
+      if (hoveringFeature) {
+        event.preventDefault() // prevent map control
+        const props = hoveringFeature.properties as CurvesProps
+        setRestriction(props.fromIndex, props.toIndex)
+      }
+    }
+  }
+}
+
 import circle from '@turf/circle'
 import lineIntersect from '@turf/line-intersect'
 import length from '@turf/length'
+
+interface CurvesProps {
+  index: string
+  fromIndex: string
+  toIndex: string
+}
+
 const pointsGeojson = ref(basePoint())
-const curvesGeojson = ref(baseLineString())
+const curvesGeojson = ref<LineStringGeoJson<CurvesProps>>(baseLineString())
 const UNITS = 'meters'
+
+function addTurnLayer () {
+  const circlePolygon = circle(center.value, radius.value, {
+    units: 'meters',
+    steps: 64,
+  })
+  let intersectionsIn = linksIn.value.map(link => getIntersection(link, circlePolygon))
+  let intersectionsOut = linksOut.value.map(link => getIntersection(link, circlePolygon))
+
+  intersectionsIn = intersectionsIn.filter(el => el)
+  intersectionsOut = intersectionsOut.filter(el => el)
+  // intersections.forEach(pt => {})
+  const points: PointFeatures[] = []
+  const curves: LineStringFeatures<CurvesProps>[] = []
+  intersectionsIn.forEach((inPoint) => {
+    const inGeom = inPoint.geometry.coordinates
+    const inNode = inPoint.properties.a
+    // get drawing order base on left,right,straight
+    intersectionsOut.forEach(point => {
+      point.properties.order = crossProduct(inGeom, point.geometry.coordinates, center.value)
+      if (inNode == point.properties.b) point.properties.order = 10 // uturns is first
+    })
+    intersectionsOut.sort((a, b) => b.properties.order - a.properties.order)
+    // get all points pair in the order (uturn,left,straight,right)
+    intersectionsOut.forEach((outPoint, j) => {
+      const fromPoint = createPointFeature(
+        rotatePoint(inGeom, center.value, 0.05 * (j + 1)),
+        { color: BLACK, direction: 'in', index: inPoint.properties.index })
+      const toPoint = createPointFeature(
+        rotatePoint(outPoint.geometry.coordinates, center.value, -0.05 * (j + 1)),
+        { color: GREY, direction: 'out', index: outPoint.properties.index })
+
+      points.push(fromPoint, toPoint)
+      const coords = circleArc(center.value, fromPoint.geometry.coordinates, toPoint.geometry.coordinates)
+      const props: CurvesProps = { index: inPoint.properties.index + outPoint.properties.index,
+        fromIndex: inPoint.properties.index,
+        toIndex: outPoint.properties.index,
+      }
+      curves.push(createLinestringFeature(coords, props))
+    })
+  },
+  )
+  pointsGeojson.value.features = points
+  curvesGeojson.value.features = curves
+  addPointsLayer()
+}
 
 const radius = computed(() => {
   const lengths = [...linksIn.value, ...linksOut.value].map(link => length(link, { units: UNITS }))
@@ -302,56 +398,13 @@ function getNorm(vect: number[]): number {
   return Math.sqrt(vect[0] ** 2 + vect[1] ** 2)
 }
 
-function test () {
-  const circlePolygon = circle(center.value, radius.value, {
-    units: 'meters',
-    steps: 64,
-  })
-  let intersectionsIn = linksIn.value.map(link => getIntersection(link, circlePolygon))
-  let intersectionsOut = linksOut.value.map(link => getIntersection(link, circlePolygon))
-
-  intersectionsIn = intersectionsIn.filter(el => el)
-  intersectionsOut = intersectionsOut.filter(el => el)
-  // intersections.forEach(pt => {})
-  const points: PointFeatures[] = []
-  const curves: LineStringFeatures[] = []
-  intersectionsIn.forEach((inPoint) => {
-    const inGeom = inPoint.geometry.coordinates
-    const inNode = inPoint.properties.a
-    // get drawing order base on left,right,straight
-    intersectionsOut.forEach(point => {
-      point.properties.order = crossProduct(inGeom, point.geometry.coordinates, center.value)
-      if (inNode == point.properties.b) point.properties.order = 10 // uturns is first
-    })
-    intersectionsOut.sort((a, b) => b.properties.order - a.properties.order)
-    // get all points pair in the order (uturn,left,straight,right)
-    intersectionsOut.forEach((outPoint, j) => {
-      const fromPoint = createPointFeature(
-        rotatePoint(inGeom, center.value, 0.05 * (j + 1)),
-        { color: BLACK, direction: 'in', index: inPoint.properties.index })
-      const toPoint = createPointFeature(
-        rotatePoint(outPoint.geometry.coordinates, center.value, -0.05 * (j + 1)),
-        { color: GREY, direction: 'out', index: outPoint.properties.index })
-
-      points.push(...[fromPoint, toPoint])
-      const coords = circleArc(center.value, fromPoint.geometry.coordinates, toPoint.geometry.coordinates)
-
-      curves.push(createLinestringFeature(coords, { index: inPoint.properties.index + outPoint.properties.index }))
-    })
-  },
-  )
-  pointsGeojson.value.features = points
-  curvesGeojson.value.features = curves
-  addPointsLayer()
-}
-
-function rotatePoint(point: number[], center: number[], deg: number) {
+function rotatePoint(point: number[], center: number[], theta: number) {
   // offset points on a circle
   const [x, y] = toMeters(point, center)
   const [cx, cy] = toMeters(center, center)
   const rotated = [
-    Math.cos(deg) * (x - cx) - Math.sin(deg) * (y - cy) + cx,
-    Math.sin(deg) * (x - cx) + Math.cos(deg) * (y - cy) + cy,
+    Math.cos(theta) * (x - cx) - Math.sin(theta) * (y - cy) + cx,
+    Math.sin(theta) * (x - cx) + Math.cos(theta) * (y - cy) + cy,
   ]
   return fromMeters(rotated, center)
 }
@@ -479,9 +532,11 @@ function circleArc(
             <v-btn
               :icon="isRestricted(from,to)? 'fas fa-x': 'fas fa-check'"
               size="x-small"
-              variant="outlined"
+              :variant="isHovering(from,to)? 'elevated': 'outlined'"
               :color="isRestricted(from,to)? ERRORCOLOR:SUCCESSCOLOR"
-              @click="setRestriction(from,to)"
+              @mouseenter="()=>onHoverButton(from.properties.index,to.properties.index)"
+              @mouseleave="offHoverButton"
+              @click="setRestriction(from.properties.index,to.properties.index)"
             />
           </v-col>
         </v-row>
@@ -520,13 +575,4 @@ function circleArc(
 .matrix-row:hover {
   background-color: rgba(var(--v-theme-primary), 0.06);
 }
-.matrix-row.is-active {
-  opacity:1;
-  background-color: rgb(var(--v-theme-primary),0.12);
-  border-radius: 4px;
-}
-.matrix-row.is-active:hover {
-  background-color: rgba(var(--v-theme-primary), 0.12);
-}
-
 </style>

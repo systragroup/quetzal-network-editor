@@ -27,7 +27,7 @@ const anchorMode = computed(() => { return store.anchorMode })
 import { useDrawLink } from '@src/composables/useDrawLink'
 import { HoverStateRoad } from '@src/types/mapbox'
 
-const { drawLink, updateDrawLink, stopDraw, showDraw } = useDrawLink(map.value, 'drawrlink')
+const { drawLink, updateDrawLink, stopDraw, showDraw } = useDrawLink(map, 'drawrlink')
 
 const connectedDrawLink = ref(false)
 
