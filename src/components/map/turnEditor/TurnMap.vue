@@ -16,7 +16,6 @@ import { cross, getNorm, rotatePoint, toDegrees, toMeters } from '@src/utils/spa
 
 import circle from '@turf/circle'
 import lineIntersect from '@turf/line-intersect'
-import length from '@turf/length'
 
 interface CurvesProps {
   index: string
@@ -56,7 +55,7 @@ const selectedVariant = computed({
 })
 
 const variantChoices = computed(() => rlinksStore.variantChoice)
-const rAttributes = computed(() => variantChoices.value.map((variant) => `tp${variant}_r`))
+const rAttributes = computed(() => variantChoices.value.map((variant) => `turn_restrictions${variant}_r`))
 
 const twoWayLinks = computed(() => {
   return _rlinks.value.features.filter(node => node.properties.oneway === '0')
@@ -146,14 +145,16 @@ function isRestricted(fromLink: LineStringFeatures, toLink: LineStringFeatures) 
 const pointsGeojson = ref(basePoint())
 const curvesGeojson = ref<LineStringGeoJson<CurvesProps>>(baseLineString())
 
-const radius = computed(() => {
-  const lengths = [...linksIn.value, ...linksOut.value].map(link => length(link, { units: 'meters' }))
-  return Math.min(100, ...lengths) // max 100m radius
-})
-
 const center = computed(() => {
   const node = rlinksStore.rnodes.features.filter(node => node.properties.index === nodeId.value)[0]
   return node.geometry.coordinates
+})
+
+const radius = computed(() => {
+  // projecting to meter gives the center as [0,0]. so this is the length ([x,y] - [0,0]) when getting norm
+  const lengthsIn = linksIn.value.map(link => getNorm(toMeters(link.geometry.coordinates[0], center.value)))
+  const lengthsOut = linksOut.value.map(link => getNorm(toMeters(link.geometry.coordinates.slice(-1)[0], center.value)))
+  return Math.min(100, ...lengthsIn, ...lengthsOut) // max 100m radius
 })
 
 function addTurnLayer () {
@@ -316,7 +317,7 @@ watch(showDialog, async (open) => {
     boxZoom: false,
     scrollZoom: true,
     dragPan: true,
-    dragRotate: false,
+    dragRotate: true,
     keyboard: false,
     doubleClickZoom: false,
     touchZoomRotate: false,
