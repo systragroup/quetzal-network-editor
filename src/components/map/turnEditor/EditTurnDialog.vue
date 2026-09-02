@@ -114,7 +114,7 @@ function init() {
 function setRestriction(fromIndex: string, toIndex: string) {
   let restrictions = turnRestrictions.value[fromIndex]
   if (!restrictions) restrictions = [toIndex]
-  if (!Array.isArray(restrictions)) restrictions = [toIndex] // if, for some reason its not an array (user manual edit)
+  else if (!Array.isArray(restrictions)) restrictions = [toIndex] // if not an array (manual edit)
   else if (restrictions.includes(toIndex)) restrictions = restrictions.filter(el => el !== toIndex)
   else restrictions.push(toIndex)
   if (restrictions.length == 0) restrictions = undefined
