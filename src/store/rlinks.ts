@@ -247,15 +247,6 @@ export const userLinksStore = defineStore('rlinks', {
         const type = getPropertyType(this.rlinks, prop)
         this.addLinksPropertie({ name: prop, type: type })
       })
-
-      // create _r attributes if they dont exist (like time_r if there is no time_r)
-      const toReverse = this.rlineAttributes.filter(attr => !rlinksConstantProperties.includes(attr))
-      const reversedAttributes = toReverse.map(attr => attr + '_r')
-      const newReversedProps = getDifference(reversedAttributes, this.reversedAttributes)
-      newReversedProps.forEach(prop => {
-        const type = getPropertyType(this.rlinks, prop.slice(0, -2)) //  get type of the non _r property
-        this.addLinksPropertie({ name: prop, type: type })
-      })
     },
 
     getrNodesProperties () {
@@ -327,12 +318,20 @@ export const userLinksStore = defineStore('rlinks', {
 
     addLinksPropertie (payload: NewAttribute) {
       const { name, type } = payload
+      const nameSet = new Set(this.linksDefaultAttributes.map(attr => attr.name))
+      if (nameSet.has(name)) return // already exist
+
       const castedType = (Object.hasOwn(reservedrLinkProperties, name)) ? reservedrLinkProperties[name] : type
       this.linksDefaultAttributes.push({ name: name, type: castedType })
+
+      // check to add the reversed attr. (if we manually add an attr in the app for example )
+      if (name.endsWith('_r')) return
       // add reverse attribute if its not one we dont want to duplicated (ex: route_width)
-      if (!rlinksConstantProperties.includes(name)) {
-        this.linksDefaultAttributes.push({ name: name + '_r', type: castedType })
-      }
+      if (rlinksConstantProperties.includes(name)) return
+      const rname = name + '_r'
+      // add if doesnt exist already
+      if (nameSet.has(rname)) return
+      this.linksDefaultAttributes.push({ name: name + '_r', type: castedType })
     },
 
     addNodesPropertie (payload: NewAttribute) {

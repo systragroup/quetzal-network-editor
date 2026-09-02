@@ -1,3 +1,7 @@
+## [8.2.g] (2026-09-02)
+### bug fixes
+* roadLinks _r attributes were duplicates on import (time_r => time_r_r was added)
+
 ## [8.2.f] (2026-08-28)
 ### changes
 * move departures, arrivals, road_link_list out of default attributes but a list of reserved name/types. we still used their defined tag when adding the value, reading the value in a file, but we dont show them if not present (as defaultAttributes) in dialogs.
