@@ -6,11 +6,23 @@ import { useMapStore } from '@src/store/map'
 import arrowImage from '@static/arrow.png'
 import { cloneDeep } from 'lodash'
 import { computed } from 'vue'
-import { baseLineString, basePoint, createLinestringFeature, createPointFeature, LineStringFeatures, LineStringGeoJson, PointFeatures, PolygonFeatures } from '@src/types/geojson'
+import { baseLineString, basePoint, createLinestringFeature, createPointFeature,
+  LineStringFeatures, LineStringGeoJson, PointFeatures, PolygonFeatures } from '@src/types/geojson'
 import { useTheme } from 'vuetify'
 import RoadChip from './RoadChip.vue'
 import DialogHeader from '../Dialog/DialogHeader.vue'
 import { reverserLink } from '@src/utils/roadNetwork.ts'
+import { cross, getNorm, rotatePoint, toDegrees, toMeters } from '@src/utils/spatial.ts'
+
+import circle from '@turf/circle'
+import lineIntersect from '@turf/line-intersect'
+import length from '@turf/length'
+
+interface CurvesProps {
+  index: string
+  fromIndex: string
+  toIndex: string
+}
 
 const theme = useTheme()
 
@@ -128,6 +140,130 @@ function isRestricted(fromLink: LineStringFeatures, toLink: LineStringFeatures) 
 }
 
 //
+// curves drawing
+//
+
+const pointsGeojson = ref(basePoint())
+const curvesGeojson = ref<LineStringGeoJson<CurvesProps>>(baseLineString())
+
+const radius = computed(() => {
+  const lengths = [...linksIn.value, ...linksOut.value].map(link => length(link, { units: 'meters' }))
+  return Math.min(100, ...lengths) // max 100m radius
+})
+
+const center = computed(() => {
+  const node = rlinksStore.rnodes.features.filter(node => node.properties.index === nodeId.value)[0]
+  return node.geometry.coordinates
+})
+
+function addTurnLayer () {
+  const circlePolygon = circle(center.value, radius.value, {
+    units: 'meters',
+    steps: 64,
+  })
+  let intersectionsIn = linksIn.value.map(link => _getIntersection(link, circlePolygon))
+  let intersectionsOut = linksOut.value.map(link => _getIntersection(link, circlePolygon))
+
+  intersectionsIn = intersectionsIn.filter(el => el)
+  intersectionsOut = intersectionsOut.filter(el => el)
+  // intersections.forEach(pt => {})
+  const points: PointFeatures[] = []
+  const curves: LineStringFeatures<CurvesProps>[] = []
+  const center_m = toMeters(center.value, center.value) // [0, 0]
+  intersectionsIn.forEach((inPoint) => {
+    const inGeom = inPoint.geometry.coordinates
+    const inNode = inPoint.properties.a
+    // get drawing order base on left,right,straight
+    intersectionsOut.forEach(point => {
+      point.properties.order = _crossFromPoints(inGeom, point.geometry.coordinates, center.value)
+      if (inNode == point.properties.b) point.properties.order = 10 // uturns is first
+    })
+    intersectionsOut.sort((a, b) => b.properties.order - a.properties.order)
+    // get all points pair in the order (uturn,left,straight,right)
+    // create a circle arc connecting them
+    intersectionsOut.forEach((outPoint, j) => {
+      const inGeom_m = toMeters(inGeom, center.value)
+      const inPosition_m = rotatePoint(inGeom_m, center_m, 0.05 * (j + 1))
+
+      const outGeom = outPoint.geometry.coordinates
+      const outGeom_m = toMeters(outGeom, center.value)
+      const outPosition_m = rotatePoint(outGeom_m, center_m, -0.05 * (j + 1))
+
+      const coords_m = circleArc(inPosition_m, outPosition_m, center_m)
+      const props: CurvesProps = {
+        index: inPoint.properties.index + outPoint.properties.index,
+        fromIndex: inPoint.properties.index,
+        toIndex: outPoint.properties.index,
+      }
+
+      const curvedLine = createLinestringFeature(coords_m.map(el => toDegrees(el, center.value)), props)
+      const fromPoint = createPointFeature(toDegrees(inPosition_m, center.value), { color: BLACK })
+      const toPoint = createPointFeature(toDegrees(outPosition_m, center.value), { color: GREY })
+      points.push(fromPoint, toPoint)
+      curves.push(curvedLine)
+    })
+  })
+  pointsGeojson.value.features = points
+  curvesGeojson.value.features = curves
+  addPointsLayer()
+}
+
+function circleArc(p1: number[], p2: number[], center: number[]): number[][] {
+  const [cx, cy] = center
+  const [p1x, p1y] = p1
+  const [p2x, p2y] = p2
+  const v1 = [p1x - cx, p1y - cy]
+  const v2 = [p2x - cx, p2y - cy]
+  let n1 = [-v1[1], v1[0]]
+  let n2 = [-v2[1], v2[0]]
+  const denom = cross(n1, n2)
+  if (Math.abs(denom) < 1e-10) {
+    return [p1, p2]
+  }
+  const d = [p2x - p1x, p2y - p1y]
+
+  const t = cross(d, n2) / denom
+  const newCenter = [
+    p1x + t * n1[0],
+    p1y + t * n1[1],
+  ]
+  const [ncx, ncy] = newCenter
+  const newRarius = getNorm([p2x - ncx, p2y - ncy])
+
+  const a1 = Math.atan2(p1y - ncy, p1x - ncx)
+  const a2 = Math.atan2(p2y - ncy, p2x - ncx)
+  let delta = a2 - a1
+  if (delta > Math.PI) {
+    delta -= 2 * Math.PI
+  } else if (delta < -Math.PI) {
+    delta += 2 * Math.PI
+  }
+
+  const coords = []
+  const numPoints = 20
+  for (let i = 0; i < numPoints; i++) {
+    const inc = i / (numPoints - 1)
+    const angle = a1 + delta * inc
+    const x = ncx + newRarius * Math.cos(angle)
+    const y = ncy + newRarius * Math.sin(angle)
+    coords.push([x, y])
+  }
+
+  return coords
+}
+function _crossFromPoints(ptIn: number[], ptOut: number[], center: number[]): number {
+  // get "angle" between 2 vector. AxB = |A||B|sin(theta). not angle but proportional to angle.
+  const v1 = [ptIn[0] - center[0], ptIn[1] - center[1]]
+  const v2 = [center[0] - ptOut[0], center[1] - ptOut[1]]
+  return cross(v1, v2)
+}
+
+function _getIntersection(link: LineStringFeatures, circle: PolygonFeatures) {
+  const geom = lineIntersect(link, circle).features[0].geometry.coordinates
+  return createPointFeature(geom, { ...link.properties })
+}
+
+//
 // map styles
 //
 const mapContainer = ref<HTMLElement | null>(null)
@@ -143,11 +279,6 @@ const linksGeojson = computed(() => {
     })
   }
   return geojson
-})
-
-const center = computed(() => {
-  const node = rlinksStore.rnodes.features.filter(node => node.properties.index === nodeId.value)[0]
-  return node.geometry.coordinates
 })
 
 watch(turnRestrictions, () => {
@@ -276,6 +407,8 @@ function addPointsLayer() {
   })
 }
 
+// Hovering
+
 import { useHover } from '@src/composables/useMapBox.ts'
 const { onHover, offHover, hoveringFeature } = useHover(map)
 
@@ -312,169 +445,6 @@ function clickOnLine(event: MapMouseEvent) {
       }
     }
   }
-}
-
-import circle from '@turf/circle'
-import lineIntersect from '@turf/line-intersect'
-import length from '@turf/length'
-
-interface CurvesProps {
-  index: string
-  fromIndex: string
-  toIndex: string
-}
-
-const pointsGeojson = ref(basePoint())
-const curvesGeojson = ref<LineStringGeoJson<CurvesProps>>(baseLineString())
-const UNITS = 'meters'
-
-function addTurnLayer () {
-  const circlePolygon = circle(center.value, radius.value, {
-    units: 'meters',
-    steps: 64,
-  })
-  let intersectionsIn = linksIn.value.map(link => getIntersection(link, circlePolygon))
-  let intersectionsOut = linksOut.value.map(link => getIntersection(link, circlePolygon))
-
-  intersectionsIn = intersectionsIn.filter(el => el)
-  intersectionsOut = intersectionsOut.filter(el => el)
-  // intersections.forEach(pt => {})
-  const points: PointFeatures[] = []
-  const curves: LineStringFeatures<CurvesProps>[] = []
-  intersectionsIn.forEach((inPoint) => {
-    const inGeom = inPoint.geometry.coordinates
-    const inNode = inPoint.properties.a
-    // get drawing order base on left,right,straight
-    intersectionsOut.forEach(point => {
-      point.properties.order = crossProduct(inGeom, point.geometry.coordinates, center.value)
-      if (inNode == point.properties.b) point.properties.order = 10 // uturns is first
-    })
-    intersectionsOut.sort((a, b) => b.properties.order - a.properties.order)
-    // get all points pair in the order (uturn,left,straight,right)
-    intersectionsOut.forEach((outPoint, j) => {
-      const fromPoint = createPointFeature(
-        rotatePoint(inGeom, center.value, 0.05 * (j + 1)),
-        { color: BLACK, direction: 'in', index: inPoint.properties.index })
-      const toPoint = createPointFeature(
-        rotatePoint(outPoint.geometry.coordinates, center.value, -0.05 * (j + 1)),
-        { color: GREY, direction: 'out', index: outPoint.properties.index })
-
-      points.push(fromPoint, toPoint)
-      const coords = circleArc(center.value, fromPoint.geometry.coordinates, toPoint.geometry.coordinates)
-      const props: CurvesProps = { index: inPoint.properties.index + outPoint.properties.index,
-        fromIndex: inPoint.properties.index,
-        toIndex: outPoint.properties.index,
-      }
-      curves.push(createLinestringFeature(coords, props))
-    })
-  },
-  )
-  pointsGeojson.value.features = points
-  curvesGeojson.value.features = curves
-  addPointsLayer()
-}
-
-const radius = computed(() => {
-  const lengths = [...linksIn.value, ...linksOut.value].map(link => length(link, { units: UNITS }))
-  return Math.min(100, ...lengths)
-})
-
-function getIntersection(link: LineStringFeatures, circle: PolygonFeatures) {
-  const geom = lineIntersect(link, circle).features[0].geometry.coordinates
-  return createPointFeature(geom, { ...link.properties })
-}
-function crossProduct(ptIn: number[], ptOut: number[], center: number[]): number {
-  const v1 = [ptIn[0] - center[0], ptIn[1] - center[1]]
-  const v2 = [center[0] - ptOut[0], center[1] - ptOut[1]]
-  const norm = getNorm(v1) * getNorm(v2)
-  return cross(v1, v2) / norm
-}
-
-function cross(v1: number[], v2: number[]): number {
-  return (v1[0] * v2[1] - v1[1] * v2[0])
-}
-
-function getNorm(vect: number[]): number {
-  return Math.sqrt(vect[0] ** 2 + vect[1] ** 2)
-}
-
-function rotatePoint(point: number[], center: number[], theta: number) {
-  // offset points on a circle
-  const [x, y] = toMeters(point, center)
-  const [cx, cy] = toMeters(center, center)
-  const rotated = [
-    Math.cos(theta) * (x - cx) - Math.sin(theta) * (y - cy) + cx,
-    Math.sin(theta) * (x - cx) + Math.cos(theta) * (y - cy) + cy,
-  ]
-  return fromMeters(rotated, center)
-}
-
-function toMeters(point: number[], origin: number[]): number[] {
-  const R = 6371000 // Earth radius
-  const [lon, lat] = point
-  const [lon0, lat0] = origin
-  const latRad = lat0 * Math.PI / 180
-  const x = (lon - lon0) * Math.PI / 180 * R * Math.cos(latRad)
-  const y = (lat - lat0) * Math.PI / 180 * R
-  return [x, y]
-}
-
-function fromMeters(point: number[], origin: number[]): number[] {
-  const R = 6371000 // Earth radius
-  const [x, y] = point
-  const [lon0, lat0] = origin
-  const latRad = lat0 * Math.PI / 180
-  const lon = lon0 + (x / (R * Math.cos(latRad))) * 180 / Math.PI
-  const lat = lat0 + (y / R) * 180 / Math.PI
-  return [lon, lat]
-}
-
-function circleArc(
-  center: number[],
-  p1: number[],
-  p2: number[],
-) {
-  const [cx, cy] = toMeters(center, center)
-  const [p1x, p1y] = toMeters(p1, center)
-  const [p2x, p2y] = toMeters(p2, center)
-  const v1 = [p1x - cx, p1y - cy]
-  const v2 = [p2x - cx, p2y - cy]
-  let n1 = [-v1[1], v1[0]]
-  let n2 = [-v2[1], v2[0]]
-  const denom = cross(n1, n2)
-  if (Math.abs(denom) < 1e-10) {
-    return [p1, p2]
-  }
-  const d = [p2x - p1x, p2y - p1y]
-
-  const t = cross(d, n2) / denom
-  const newCenter = [
-    p1x + t * n1[0],
-    p1y + t * n1[1],
-  ]
-  const [ncx, ncy] = newCenter
-  const newRarius = getNorm([p2x - ncx, p2y - ncy])
-
-  const a1 = Math.atan2(p1y - ncy, p1x - ncx)
-  const a2 = Math.atan2(p2y - ncy, p2x - ncx)
-  let delta = a2 - a1
-  if (delta > Math.PI) {
-    delta -= 2 * Math.PI
-  } else if (delta < -Math.PI) {
-    delta += 2 * Math.PI
-  }
-
-  const res = []
-  const numPoints = 20
-  for (let i = 0; i < numPoints; i++) {
-    const inc = i / (numPoints - 1)
-    const angle = a1 + delta * inc
-    const x = ncx + newRarius * Math.cos(angle)
-    const y = ncy + newRarius * Math.sin(angle)
-    res.push(fromMeters([x, y], center))
-  }
-
-  return res
 }
 
 </script>
