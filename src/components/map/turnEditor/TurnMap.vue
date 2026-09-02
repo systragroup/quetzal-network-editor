@@ -86,7 +86,7 @@ watch(selectedVariant, (newVal, oldVal) => {
 
 function initTurnRestrictions(variant: string) {
   turnRestrictions.value = linksIn.value.reduce((dict: Record<string, string[]>, link) => {
-    dict[link.properties.index] = link.properties[`tp${variant}`] || undefined
+    dict[link.properties.index] = link.properties[`turn_restrictions${variant}`] || undefined
     return dict
   }, {})
 }
@@ -95,13 +95,13 @@ function applyTurnRestrictions(variant: string) {
   linksIn.value.forEach(link => {
     const index = link.properties.index
     const restrictions = cloneDeep(turnRestrictions.value[index])
-    link.properties[`tp${variant}`] = restrictions
+    link.properties[`turn_restrictions${variant}`] = restrictions
   })
   linksOut.value.forEach(link => {
     const index = link.properties.index + '_r'
     if (Object.hasOwn(turnRestrictions.value, index)) { // check. need to set to undefined if all allow
       const restrictions = cloneDeep(turnRestrictions.value[index])
-      link.properties[`tp${variant}_r`] = restrictions
+      link.properties[`turn_restrictions${variant}_r`] = restrictions
     }
   })
 }

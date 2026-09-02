@@ -57,6 +57,8 @@ export const rnodesDefaultProperties: Attributes[] = [
 // dont want to force to string on read. dont want to add them to every form either if not used.
 export const reservedrLinkProperties: Record<string, AttributeTypes> = {
   turn_restrictions: undefined,
+  turn_restrictions_r: undefined,
+
 }
 export const reservedrNodesProperties: Record<string, AttributeTypes> = {}
 
@@ -74,7 +76,6 @@ export const rlinksConstantProperties = [
   'cycleway_reverse',
   'incline',
   'name',
-  'turn_restrictions',
 ]
 
 export const ODDefaultProperties: Attributes[] = [
