@@ -52,8 +52,10 @@ async function downloadFolder (bucket, prefix, zipName) {
   const response = await s3Client.listObjectsV2(params)
   if (response.Contents.length === 0) throw new Error('nothing to download')
   for (const file of response.Contents) {
-    const fileName = file.Key.split('/').slice(-1)[0]
-    const content = await readBytes(bucket, file.Key)
+    const fileName = file.Key.split('/').slice(1).join('/')
+    // skip files under ./ no file should be there, but sometime there is on old project (old in deployment/migration?)
+    if (fileName.startsWith('./')) continue
+    const content = await readBytes(bucket, file.Key, 10000) // 10gb limit
     const blob = new Blob([content]) // { type: 'text/csv' }
     zip.file(fileName, blob)
   }

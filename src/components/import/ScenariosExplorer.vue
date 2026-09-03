@@ -4,7 +4,7 @@ import { useIndexStore } from '@src/store/index'
 import { useUserStore } from '@src/store/user'
 import { useClient } from '@src/axiosClient.js'
 
-import { computed, ref, watch, onMounted, nextTick, toRaw } from 'vue'
+import { computed, ref, watch, onMounted, toRaw } from 'vue'
 
 import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
@@ -113,17 +113,20 @@ async function updateScenarioList(scenarioName: string) {
     scenariosList.value.push(scenario)
   }
 }
+const scenarioIsLoaded = computed(() => modelScen.value !== 'nullnull')
+
+const virtualScroll = ref()
 
 onMounted(async () => {
   // a scenario is selected: scroll to it.
-  if (modelScen.value !== 'nullnull') {
-    showScenario.value = true
-    nextTick(() => {
-      const elem = document.getElementById(modelScen.value)
-      if (elem) { elem.scrollIntoView() }
-    })
+  if (scenarioIsLoaded.value) {
+    showScenarios.value = true
     // update scenario list
     await getScenarios()
+    if (scenarioIsLoaded.value) { // scroll to selected scenario
+      const index = scenariosList.value.map(el => el.key).indexOf(modelScen.value)
+      virtualScroll.value.scrollToIndex(index, 'center')
+    }
   }
 })
 
@@ -141,7 +144,7 @@ watch(loggedIn, async (val) => {
     localModel.value = null
     scenariosList.value = []
     localScen.value = null
-    showScenario.value = false
+    showScenarios.value = false
     userStore.setModelsList([])
   }
   // set model
@@ -383,6 +386,28 @@ async function deleteScenario (scenarioToDelete: string) {
     store.changeLoading(false)
   }
 }
+const checkedScenarios = ref<string[]>([])
+const showGroupAction = computed(() => checkedScenarios.value.length > 0)
+
+async function downloadSelected() {
+  const total = checkedScenarios.value.length
+  const errors = []
+  let i = 0
+  for (const scen of checkedScenarios.value) {
+    store.changeLoading(true, i++ / total, `downloading ${scen}...`)
+    try {
+      await s3.downloadFolder(localModel.value, scen, `${scen}.zip`)
+    } catch (err) {
+      console.error(err)
+      errors.push(scen)
+    }
+  }
+  store.changeLoading(false)
+  if (errors.length > 0) {
+    store.changeAlert({ name: 'Download error', message: `could not download: ${errors}` })
+  }
+  //
+}
 
 async function mouseOn(val: Scenario) {
   // TODO use a composable maybe? no need to store this in store...
@@ -391,22 +416,24 @@ async function mouseOn(val: Scenario) {
 async function mouseOff() {
   userStore.setInfoPreview(null)
 }
-const showScenario = ref(false)
+const showScenarios = ref(false)
 async function selectModel(v: string) {
   scenariosList.value = []
   localModel.value = v
-  showScenario.value = true
+  showScenarios.value = true
   sortModel.value = 'scenario'
+  checkedScenarios.value = []
   await getScenarios()
 }
 
 </script>
 <template>
   <div class="custom-title">
-    {{ loggedIn? showScenario? $gettext("Select a Project"): $gettext("Select a Model"): $gettext("Login to access projects") }}
+    {{ loggedIn? showScenarios? $gettext("Select a Project"): $gettext("Select a Model"): $gettext("Login to access projects") }}
   </div>
+
   <div
-    v-if="loggedIn && !showScenario"
+    v-if="loggedIn && !showScenarios"
     class="model-container"
   >
     <v-list-item
@@ -428,7 +455,7 @@ async function selectModel(v: string) {
     </v-list-item>
   </div>
   <div
-    v-if="loggedIn && showScenario"
+    v-if="loggedIn && showScenarios"
     class="scenario-container"
   >
     <div>
@@ -444,7 +471,7 @@ async function selectModel(v: string) {
             block
             variant="outlined"
             size="large"
-            @click="showScenario=false"
+            @click="showScenarios=false"
           >
             {{ formatTab(String(localModel)) }}
           </v-btn>
@@ -452,6 +479,7 @@ async function selectModel(v: string) {
         <span>{{ $gettext('Go back to model selection') }}</span>
       </v-tooltip>
     </div>
+
     <v-divider />
     <div
       class="container"
@@ -512,7 +540,9 @@ async function selectModel(v: string) {
         @click="sortDirection=!sortDirection"
       />
     </div>
+
     <v-divider />
+
     <!--  -->
     <v-progress-linear
       v-if="loading"
@@ -521,69 +551,112 @@ async function selectModel(v: string) {
     />
     <div class="v-card-content">
       <v-virtual-scroll
+        ref="virtualScroll"
         :items="sortedScenariosList"
         class="virtual-scroll"
         height="100%"
       >
         <template v-slot="{item:scen}">
-          <v-list-item
-            :id="scen.key"
-            :key="scen.key"
-            :value="scen.key"
-            class="list-item"
+          <div
+            class="list"
             :class="{'is-active': modelScen === scen.key}"
-            lines="two"
-            @click="(e)=>selectScenario(e,scen)"
-            @mouseenter="mouseOn(scen)"
-            @mouseleave="mouseOff()"
           >
-            <v-list-item-title class="name-wrap">
-              {{ scen.scenario }}
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              {{ scen.lastModified }}
-            </v-list-item-subtitle>
-            <v-list-item-subtitle>
-              {{ scen.userEmail }}
-            </v-list-item-subtitle>
-
-            <template v-slot:append>
-              <v-list-item-action end>
-                <v-btn
-                  v-if="modelScen === scen.key && !scen.protected"
-                  variant="text"
-                  icon="fas fa-pen"
-                  class="ma-1"
-                  size="small"
-                  @click.stop="renameProject"
-                />
-                <v-btn
-                  variant="text"
-                  icon="fas fa-copy"
-                  class="ma-1"
-                  size="small"
-                  @click.stop="copyProject(scen.scenario)"
-                />
-                <v-btn
-                  variant="text"
-                  :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
-                  :disabled="(scen.key === modelScen) || (scen.protected)"
-                  class="ma-1"
-                  size="small"
-                  @click.stop="deleteScenario(scen.scenario)"
-                />
-              </v-list-item-action>
-            </template>
-          </v-list-item>
+            <v-checkbox
+              v-if="!scenarioIsLoaded"
+              :key="scen.key"
+              v-model="checkedScenarios"
+              :value="scen.scenario"
+              class="checkbox"
+              density="compact"
+              :hide-details="true"
+              @click.stop
+            />
+            <v-list-item
+              :id="scen.key"
+              :key="scen.key"
+              :value="scen.key"
+              class="list-item"
+              lines="two"
+              :disabled="showGroupAction"
+              @click="(e)=>selectScenario(e,scen)"
+              @mouseenter="mouseOn(scen)"
+              @mouseleave="mouseOff()"
+            >
+              <v-list-item-title class="name-wrap">
+                {{ scen.scenario }}
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                {{ scen.lastModified }}
+              </v-list-item-subtitle>
+              <v-list-item-subtitle>
+                {{ scen.userEmail }}
+              </v-list-item-subtitle>
+              <template v-slot:append>
+                <v-list-item-action end>
+                  <v-btn
+                    v-if="modelScen === scen.key && !scen.protected"
+                    variant="text"
+                    icon="fas fa-pen"
+                    size="small"
+                    @click.stop="renameProject"
+                  />
+                  <v-btn
+                    variant="text"
+                    icon="fas fa-copy"
+                    size="small"
+                    @click.stop="copyProject(scen.scenario)"
+                  />
+                  <v-btn
+                    variant="text"
+                    :icon=" scen.protected? 'fas fa-lock':'fas fa-trash'"
+                    :disabled="(scen.key === modelScen) || (scen.protected)"
+                    size="small"
+                    @click.stop="deleteScenario(scen.scenario)"
+                  />
+                </v-list-item-action>
+              </template>
+            </v-list-item>
+          </div>
         </template>
       </v-virtual-scroll>
     </div>
     <!--  -->
     <v-divider />
-    <div>
+    <div
+      v-if="showGroupAction"
+      class="mt-2 list"
+    >
+      <v-tooltip
+        location="right"
+        open-delay="250"
+      >
+        <template v-slot:activator="{ props }">
+          <v-checkbox
+            v-if="!scenarioIsLoaded"
+            v-bind="props"
+            density="compact"
+            class="pr-2"
+            :indeterminate="true"
+            :hide-details="true"
+            @click.stop="()=>checkedScenarios=[]"
+          />
+        </template>
+        <span>{{ $gettext('deselect all') }}</span>
+      </v-tooltip>
+
+      <v-btn
+        :prepend-icon="'fas fa-download'"
+        @click="downloadSelected"
+      >
+        {{ $gettext('download all') }}
+      </v-btn>
+    </div>
+    <div
+      v-else
+      class="mt-2"
+    >
       <v-btn
         width="100%"
-        class="mt-2"
         prepend-icon="fa-solid fa-cloud-arrow-up"
         @click="createProject"
       >
@@ -666,9 +739,11 @@ async function selectModel(v: string) {
   opacity:1;
   background-color: rgb(var(--v-theme-primary));
 }
+.list{
+  display: flex;
+}
 .list-item{
-  width:100%;
-  min-width: 100%;
+  flex:1;
   border-top: 1px solid rgb(var(--v-theme-lightgrey));
 
 }

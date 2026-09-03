@@ -35,7 +35,7 @@ const showRail = ref(false)
             :model-value="100*loading.progress"
             size="64"
           />
-          <span class="text-h6"> {{ $gettext(loading.title) }}</span>
+          <span class="text-h6 loading-text"> {{ $gettext(loading.title) }}</span>
         </div>
       </v-overlay>
       <v-main>
@@ -76,6 +76,14 @@ const showRail = ref(false)
 .loading{
   display: flex;
   align-items: center;
+  padding: 1rem;
   flex-direction: column;
+}
+.loading-text{
+  color: black;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 0px 10px;
+  margin:0.5rem;
+  border-radius: 6px;
 }
 </style>
