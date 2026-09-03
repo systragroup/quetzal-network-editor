@@ -1,3 +1,12 @@
+## [8.2.h] (2026-09-02)
+### Features
+* Can now select multiple scenarios and download them. all action disabled when doing so. can only be performed when no scneario are selected.
+
+### changes
+* ScheduleEditor: add tripId in the dialog title [#614](https://github.com/systragroup/quetzal-network-editor/issues/614)
+### bug fixes
+* scroll to selected scenario when loading scenario page, and a scenario is selected
+
 ## [8.2.g] (2026-09-02)
 ### bug fixes
 * roadLinks _r attributes were duplicates on import (time_r => time_r_r was added)
