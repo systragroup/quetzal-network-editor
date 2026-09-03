@@ -18,6 +18,10 @@ const props = defineProps({
     type: String,
     default: 'cancel',
   },
+  subtitle: {
+    type: String,
+    default: '',
+  },
 })
 
 const showDialog = ref(false)
@@ -83,7 +87,10 @@ defineExpose({ openDialog, confirm })
           validate-on="submit lazy"
           @submit.prevent="confirm"
         >
-          <slot />
+          <p v-if="subtitle">
+            {{ subtitle }}
+          </p>
+          <slot v-else />
         </v-form>
       </v-card-text>
       <v-card-actions>

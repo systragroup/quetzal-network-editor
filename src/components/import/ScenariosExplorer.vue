@@ -237,7 +237,10 @@ const sortedScenariosList = computed(() => {
 
 interface DialogProps {
   title: string
-  confirmButton: string
+  confirmButton?: string
+  cancelButton?: string
+  subtitle?: string
+  confirmColor?: string
 }
 
 const copyDialog = ref()
@@ -245,7 +248,6 @@ const input = ref('')
 
 const dialogProps = ref<DialogProps>({
   title: '',
-  confirmButton: '',
 })
 
 const rules = ref({
@@ -339,10 +341,19 @@ async function renameProject() {
 }
 
 // select project when 1 is already loaded
-const selectDialog = ref()
+const dialogRef = ref()
 
 async function showSelectDialog () {
-  const resp = await selectDialog.value.openDialog()
+  const title = modelScen.value === `${localModel.value}${localScen.value}`
+    ? $gettext('Unload Scenario?')
+    : $gettext('Load %{sc} ?', { sc: String(localScen.value) })
+  dialogProps.value = {
+    title: title,
+    confirmButton: $gettext('Yes'),
+    cancelButton: $gettext('No'),
+    subtitle: $gettext('Any unsaved changes to %{sc} will be lost', { sc: String(storeScenario.value) }),
+  }
+  const resp = await dialogRef.value.openDialog()
   if (resp) {
     applySelectDialog()
   } else {
@@ -365,14 +376,15 @@ function cancelSelectDialog () {
 }
 
 // Delete dialog
-const deleteDialog = ref()
 
 async function deleteScenario (scenarioToDelete: string) {
   dialogProps.value = {
     title: $gettext('Delete %{sc}?', { sc: scenarioToDelete }),
+    subtitle: $gettext('The scenario will be permanently deleted'),
     confirmButton: $gettext('Delete'),
+    confirmColor: 'error',
   }
-  const resp = await deleteDialog.value.openDialog()
+  const resp = await dialogRef.value.openDialog()
   if (!resp) return
   try {
     store.changeLoading(true)
@@ -671,22 +683,11 @@ async function selectModel(v: string) {
   </div>
 
   <PromiseDialog
-    ref="selectDialog"
-    :title="modelScen === `${localModel}${localScen}`? $gettext('Unload Scenario?'): $gettext('Load %{sc} ?', {sc: String(localScen)})"
+    ref="dialogRef"
     confirm-color="primary"
-    :confirm-button="$gettext('Yes')"
-    :cancel-button="$gettext('No')"
-  >
-    {{ $gettext('Any unsaved changes to %{sc} will be lost', {sc: String(storeScenario)}) }}
-  </PromiseDialog>
-
-  <PromiseDialog
-    ref="deleteDialog"
     v-bind="dialogProps"
-    confirm-color="error"
-  >
-    {{ $gettext('The scenario will be permanently deleted') }}
-  </PromiseDialog>
+  />
+
   <PromiseDialog
     ref="copyDialog"
     v-bind="dialogProps"
