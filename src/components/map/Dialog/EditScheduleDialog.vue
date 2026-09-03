@@ -318,6 +318,9 @@ function handleSimpleDialog(event: boolean) {
         >
           {{ $gettext("Edit Properties") }}
         </v-btn>
+        <span class="title">
+          {{ linksStore.editorTrip }}
+        </span>
       </v-card-title>
 
       <v-divider />
@@ -505,5 +508,8 @@ function handleSimpleDialog(event: boolean) {
   padding: 1.2rem;
   align-items: center;
   justify-content: space-between;
+}
+.title{
+  padding: 1rem;
 }
 </style>
