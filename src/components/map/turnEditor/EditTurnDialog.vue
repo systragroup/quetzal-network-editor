@@ -34,6 +34,7 @@ const ERRORCOLOR = theme.current.value.colors.error
 
 const BASESOURCEID = 'baseLinks'
 const TURNLINESID = 'turnLines'
+const INTERSECTIONID = 'centerNode'
 
 interface Props {
   nodeId: string
@@ -146,9 +147,12 @@ function isRestricted(fromLink: LineStringFeatures, toLink: LineStringFeatures) 
 const pointsGeojson = ref(basePoint())
 const curvesGeojson = ref<LineStringGeoJson<CurvesProps>>(baseLineString())
 
+const selectedNode = computed(() => {
+  return rlinksStore.rnodes.features.filter(node => node.properties.index === nodeId.value)[0]
+})
+
 const center = computed(() => {
-  const node = rlinksStore.rnodes.features.filter(node => node.properties.index === nodeId.value)[0]
-  return node.geometry.coordinates
+  return selectedNode.value.geometry.coordinates
 })
 
 const radius = computed(() => {
@@ -305,12 +309,6 @@ watch(showDialog, async (open) => {
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
     accessToken: mapStore.key,
-    // style: {
-    //   version: 8,
-    //   sources: {},
-    //   layers: [],
-    // },
-
     style: mapStore.mapStyle,
     center: center.value as any,
     zoom: 17,
@@ -352,7 +350,40 @@ function addBaseLayer() {
       'line-width': 4,
       'line-color': GREY,
       'line-opacity': 0.5,
+    },
+  })
 
+  map.value.addLayer({
+    id: `${BASESOURCEID}-arrows`,
+    source: BASESOURCEID,
+    type: 'symbol',
+    layout: {
+      'symbol-placement': 'line',
+      'symbol-spacing': 100,
+      'icon-image': 'arrow',
+      'icon-size': 0.5,
+      'icon-rotate': 90,
+    },
+    paint: {
+      'icon-color': GREY,
+      'icon-opacity': 0.5,
+
+    },
+  })
+
+  map.value.addSource(INTERSECTIONID, {
+    type: 'geojson',
+    data: selectedNode.value,
+    promoteId: 'index',
+  })
+
+  map.value.addLayer({
+    id: INTERSECTIONID,
+    type: 'circle',
+    source: INTERSECTIONID,
+    paint: {
+      'circle-radius': 10,
+      'circle-color': GREY,
     },
   })
 }
