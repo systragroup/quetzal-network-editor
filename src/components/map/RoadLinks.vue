@@ -237,7 +237,7 @@ watch(isRoadMode, (val) => {
     map.value.on('dragend', setAnchor)
     map.value.on('zoomend', getZoom)
     getZoom() // call function immediatly so line width are update at current zoom.
-    minZoom.value.nodes = 12 // set to visible
+    minZoom.value.nodes = 10 // set to visible
   } else {
     store.setAnchorMode(false)
     map.value.off('dragend', setAnchor)
@@ -674,10 +674,10 @@ const theme = useTheme()
 const WHITE = theme.current.value.colors.white
 const ACCENT = theme.current.value.colors.accent
 const BLACK = theme.current.value.colors.black
-const hasTurnRestrictions = ref(true)
+const showTurnRestrictions = computed(() => rlinksStore.showTurnRestrictions)
 
 const restrictedNodes = computed<string[]>(() => {
-  if (!hasTurnRestrictions.value) return []
+  if (!showTurnRestrictions.value) return []
   const turnRestrictionProps = rlinksStore.variantChoice.map(variant => `turn_restrictions${variant}`)
   const filtered = rlinks.value.features.filter(link => turnRestrictionProps.some(prop => link.properties[prop]))
   const nodes = filtered.map(link => link.properties.b)

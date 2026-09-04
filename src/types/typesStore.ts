@@ -316,6 +316,7 @@ export interface RlinksStore {
   updateNodes: UpdateFeatures[]
   editionMode: boolean
   cyclewayMode: boolean
+  showTurnRestrictions: boolean
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 

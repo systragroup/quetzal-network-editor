@@ -54,6 +54,7 @@ export const userLinksStore = defineStore('rlinks', {
     // to Cancel edition
     editionMode: false,
     cyclewayMode: false,
+    showTurnRestrictions: false,
     // params
     speedTimeMethod: 'time',
     indexingMethod: cloneDeep(defaultIndexingMethod),

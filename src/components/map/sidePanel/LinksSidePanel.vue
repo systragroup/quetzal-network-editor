@@ -545,7 +545,7 @@ function setHighlight(trip: string | null) {
         <template v-slot:activator="{ props }">
           <v-btn
             class="mx-1"
-            :color="store.anchorMode? 'grey':'regular'"
+            :color="store.anchorMode? 'primary':'regular'"
             v-bind="props"
             size="small"
             icon="fas fa-anchor"
