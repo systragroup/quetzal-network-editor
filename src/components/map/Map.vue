@@ -101,8 +101,6 @@ const isEditorMode = computed(() => editorTrip.value !== null)
 
 watch(editorTrip, () => {
   store.setAnchorMode(false)
-  store.setStickyMode(false)
-  store.setRoutingMode(false)
 })
 
 watch(anchorMode, (val) => {

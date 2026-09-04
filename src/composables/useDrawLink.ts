@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { createLinestringFeature } from '@src/types/geojson'
+import { createLinestringFeature, LineStringFeatures } from '@src/types/geojson'
 import { GeoJSONSource, Map, MapMouseEvent } from 'mapbox-gl'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, Ref, ref } from 'vue'
 import { useTheme } from 'vuetify'
 
-export function useDrawLink(currentMap: Map, instanceName = 'drawlink') {
-  const map = ref(currentMap)
+interface DrawLinkProps {
+  nodeId: string | null
+}
+
+export function useDrawLink(map: Ref<Map>, instanceName = 'drawlink') {
   const name = instanceName
   const layerId = `layer-${name}`
   const sourceId = `source-${name}`
 
-  const drawLink = ref(createLinestringFeature([[0, 0], [0, 0]], { nodeId: null }))
+  const drawLink = ref <LineStringFeatures<DrawLinkProps>>(createLinestringFeature([[0, 0], [0, 0]], { nodeId: null }))
 
   function updateDrawLink (event: MapMouseEvent) {
     drawLink.value.geometry.coordinates[1] = Object.values(event.lngLat)

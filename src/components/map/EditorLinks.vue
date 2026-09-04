@@ -34,20 +34,20 @@ const { map } = toRefs(props)
 const store = useIndexStore()
 
 const linksStore = useLinksStore()
-const editorLinks = computed(() => { return linksStore.editorLinks })
-const editorNodes = computed(() => { return linksStore.editorNodes })
+const editorLinks = computed(() => linksStore.editorLinks)
+const editorNodes = computed(() => linksStore.editorNodes)
 
-const stickyMode = computed(() => { return store.stickyMode })
-const showedTrips = computed(() => { return linksStore.selectedTrips })
+const stickyMode = computed(() => linksStore.stickyMode)
+const showedTrips = computed(() => linksStore.selectedTrips)
 
-const visibleNodes = computed(() => { return stickyMode.value ? linksStore.visibleNodes : basePoint() })
+const visibleNodes = computed(() => stickyMode.value ? linksStore.visibleNodes : basePoint())
 
 onMounted(() => setSourceData('stickyNodes', visibleNodes.value))
 watch(stickyMode, () => setSourceData('stickyNodes', visibleNodes.value))
 watch(showedTrips, () => setSourceData('stickyNodes', visibleNodes.value))
 
-const anchorMode = computed(() => { return store.anchorMode })
-const routingMode = computed(() => { return store.routingMode })
+const anchorMode = computed(() => store.anchorMode)
+const routingMode = computed(() => linksStore.routingMode)
 
 import { useRouting } from '@src/utils/routing/routing.js'
 import { cloneDeep } from 'lodash'
@@ -228,7 +228,7 @@ function actionClick (event: ActionClick) {
       break
     case 'Delete Stop':
       const modLink = linksStore.deleteNode({ selectedNode: selectedNode })
-      if (store.routingMode && modLink) { routeLink(modLink) }
+      if (routingMode.value && modLink) { routeLink(modLink) }
       break
     case 'Edit Node Info':
       const selectedIndex = selectedNode.properties.index

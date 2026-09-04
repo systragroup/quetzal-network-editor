@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
@@ -13,6 +13,15 @@ const { openDialog } = useForm()
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
+
+const cyclewayMode = computed<boolean>({
+  get: () => rlinksStore.cyclewayMode,
+  set: (val: boolean) => rlinksStore.cyclewayMode = val,
+})
+const showTurnRestrictions = computed<boolean>({
+  get: () => rlinksStore.showTurnRestrictions,
+  set: (val: boolean) => rlinksStore.showTurnRestrictions = val,
+})
 
 const selectedrGoup = computed({
   get: () => rlinksStore.filteredSelected,
@@ -46,6 +55,11 @@ onMounted(() => {
     && selectedrGoup.value.size === 0) {
     showAll()
   }
+})
+
+onUnmounted(() => {
+  console.log('tyolo')
+  if (cyclewayMode.value) cyclewayMode.value = false
 })
 
 function propertiesButton (group: string) {
@@ -290,16 +304,13 @@ function formatName(item: string) {
       >
         <template v-slot:activator="{ props }">
           <v-btn
-
-            class="mx-2"
-            :color="store.anchorMode? 'grey':'regular'"
+            class="mx-1"
+            :color="store.anchorMode? 'primary':'regular'"
             v-bind="props"
+            size="small"
+            icon="fas fa-anchor"
             @click="store.changeAnchorMode()"
-          >
-            <v-icon size="small">
-              fas fa-anchor
-            </v-icon>
-          </v-btn>
+          />
         </template>
         <span> {{ $gettext("Edit Line geometry") }} </span>
       </v-tooltip>
@@ -309,16 +320,30 @@ function formatName(item: string) {
       >
         <template v-slot:activator="{ props }">
           <v-btn
-            class="mx-2"
-            :disabled="!rlinksStore.hasCycleway"
-            :color="store.cyclewayMode? 'green':'regular'"
+            class="mx-1"
+            :color="showTurnRestrictions? 'green':'regular'"
+            icon="fas fa-diamond-turn-right"
+            size="small"
             v-bind="props"
-            @click="store.changeCyclewayMode()"
-          >
-            <v-icon size="small">
-              fas fa-biking
-            </v-icon>
-          </v-btn>
+            @click="showTurnRestrictions = !showTurnRestrictions"
+          />
+        </template>
+        <span> {{ $gettext("Show nodes with turn restrictions") }}</span>
+      </v-tooltip>
+      <v-tooltip
+        location="right"
+        open-delay="500"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
+            class="mx-1"
+            :disabled="!rlinksStore.hasCycleway"
+            :color="cyclewayMode? 'green':'regular'"
+            icon="fas fa-biking"
+            size="small"
+            v-bind="props"
+            @click="cyclewayMode = !cyclewayMode"
+          />
         </template>
         <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
       </v-tooltip>

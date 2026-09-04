@@ -1,3 +1,12 @@
+## [8.2.i] (2026-09-04)
+### Features
+* Turn Editor:
+    * turn_restrictions keyword reserved for that. string[]
+    * show nodes with turn restriction with a red stroke.
+# Refactoring
+    * some refactoring wasw done along this new component.
+    * add possibility to type Geojson Linetring properties
+
 ## [8.2.h] (2026-09-02)
 ### Features
 * Can now select multiple scenarios and download them. all action disabled when doing so. can only be performed when no scneario are selected.

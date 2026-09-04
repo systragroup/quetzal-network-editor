@@ -56,9 +56,14 @@ export const rnodesDefaultProperties: Attributes[] = [
 // Those must be arrays and have special functions in the app.
 // dont want to force to string on read. dont want to add them to every form either if not used.
 export const reservedrLinkProperties: Record<string, AttributeTypes> = {
-  // TODO: add turn_restructions
+  turn_restrictions: undefined,
+  turn_restrictions_r: undefined,
+
 }
-export const reservedrNodesProperties: Record<string, AttributeTypes> = {}
+export const reservedrNodesProperties: Record<string, AttributeTypes> = {
+  isCentroid: 'Boolean',
+
+}
 
 // do not reverse those ones
 export const rlinksConstantProperties = [

@@ -19,11 +19,11 @@ const { map, hoveredStateId, stickyStateId, hide } = toRefs(props)
 const store = useIndexStore()
 
 const linksStore = useLinksStore()
-const editorNodes = computed(() => { return linksStore.editorNodes })
+const editorNodes = computed(() => linksStore.editorNodes)
 const isEditorMode = computed(() => linksStore.editorTrip !== null)
 
-const anchorMode = computed(() => { return store.anchorMode })
-const routingMode = computed(() => { return store.routingMode })
+const anchorMode = computed(() => store.anchorMode)
+const routingMode = computed(() => linksStore.routingMode)
 
 import { useRouting } from '@src/utils/routing/routing.js'
 import { cloneDeep } from 'lodash'
@@ -35,7 +35,7 @@ const { routeLink } = useRouting()
 import { useDrawLink } from '@src/composables/useDrawLink'
 import { HoverState } from '@src/types/mapbox'
 
-const { drawLink, updateDrawLink, stopDraw, showDraw, hideDraw } = useDrawLink(map.value)
+const { drawLink, updateDrawLink, stopDraw, showDraw, hideDraw } = useDrawLink(map)
 const drawMode = ref(false)
 
 watch(drawMode, (val) => val ? showDraw() : stopDraw())

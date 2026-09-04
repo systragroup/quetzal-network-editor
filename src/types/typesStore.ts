@@ -82,12 +82,9 @@ export interface IndexStore {
   loading: Loading
   showLeftPanel: boolean
   anchorMode: boolean
-  stickyMode: boolean
-  routingMode: boolean
   speedTimeMethod: SpeedTimeMethod
   linksPopupContent: string[]
   roadsPopupContent: string[]
-  cyclewayMode: boolean
   importPoly: ImportPoly | null
   visibleLayers: string[]
   visibleRasters: string[]
@@ -134,6 +131,7 @@ export type RoadsAction = ''
 export type RoadsAction2 = ''
   | 'Delete rLink'
   | 'Delete Selected'
+  | 'Edit Turn Restrictions'
 
 export type ODAction = ''
   | 'Edit OD Info'
@@ -255,6 +253,8 @@ export interface LinksStore {
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  stickyMode: boolean
+  routingMode: boolean
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 
@@ -315,6 +315,8 @@ export interface RlinksStore {
   updateLinks: UpdateFeatures[]
   updateNodes: UpdateFeatures[]
   editionMode: boolean
+  cyclewayMode: boolean
+  showTurnRestrictions: boolean
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 

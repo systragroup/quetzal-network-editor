@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { isDefined } from '@src/utils/utils'
 import { toRefs } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 interface Props {
   variantChoices: string[]
-  prefixesChoice: string[]
+  prefixesChoice?: string[]
   title?: string
 }
 
@@ -16,8 +17,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { variantChoices, prefixesChoice, title } = toRefs(props)
 
-const prefix = defineModel<string>('prefix', { default: '' })
+const prefix = defineModel<string | undefined>('prefix')
 const variant = defineModel<string>('variant', { default: '' })
+
 </script>
 <template>
   <v-card-title class="text-h5">
@@ -26,6 +28,7 @@ const variant = defineModel<string>('variant', { default: '' })
   </v-card-title>
   <div class="filter-container">
     <v-select
+      v-if="isDefined(prefix)"
       v-model="prefix"
       :items="['',...prefixesChoice]"
       :style="{'flex':1.3}"
@@ -39,7 +42,7 @@ const variant = defineModel<string>('variant', { default: '' })
     <v-select
       v-if="variantChoices.length>1"
       v-model="variant"
-      :items="['',...variantChoices]"
+      :items="variantChoices"
       :style="{'flex':1.3}"
       prepend-inner-icon="fas fa-filter"
       :label="$gettext('variant')"

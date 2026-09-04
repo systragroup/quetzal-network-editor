@@ -18,7 +18,8 @@ const kdTree = shallowRef(null)
 
 export function useRouting () {
   const store = useIndexStore()
-  const routingMode = computed(() => store.routingMode)
+  const linksStore = useLinksStore()
+  const routingMode = computed(() => linksStore.routingMode)
 
   onMounted(() => init())
   watch(routingMode, () => init())
@@ -36,7 +37,6 @@ export function useRouting () {
   }
 
   const rlinksStore = userLinksStore()
-  const linksStore = useLinksStore()
   const rlinks = rlinksStore.rlinks
   const rnodes = rlinksStore.rnodes
 

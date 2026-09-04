@@ -53,6 +53,8 @@ export const userLinksStore = defineStore('rlinks', {
     updateNodes: [],
     // to Cancel edition
     editionMode: false,
+    cyclewayMode: false,
+    showTurnRestrictions: false,
     // params
     speedTimeMethod: 'time',
     indexingMethod: cloneDeep(defaultIndexingMethod),
@@ -384,7 +386,7 @@ export const userLinksStore = defineStore('rlinks', {
     //  to export
     getVisibleLinks(): LineStringGeoJson {
       const links = baseLineString()
-      links.features = this.getFilteredrLinks(this.selectedrFilter)
+      links.features = this.getFilteredrLinks(this.filteredSelected)
       return links
     },
     getVisibleNodes(): PointGeoJson {
@@ -476,6 +478,16 @@ export const userLinksStore = defineStore('rlinks', {
       this.commitChanges({
         name: 'Edit Group Properties',
         updateLinks: new Map(selectedLinks.map(f => [f.properties.index, f])) })
+    },
+
+    editTurnRestrictions (modifiedLinks: LineStringFeatures[]) {
+      // add turn_restrictions column if not present yet. add all variants too.
+      const turnAttrs = Object.keys(modifiedLinks[0].properties).filter(name => name.startsWith('turn_restrictions'))
+      const newProps = getDifference(turnAttrs, this.rlineAttributes)
+      newProps.forEach(name => this.addLinksPropertie({ name: name, type: undefined }))
+
+      const updateLinks = new Map(modifiedLinks.map(f => [f.properties.index, f]))
+      this.commitChanges({ name: 'Edit Turn Restriction', updateLinks: updateLinks })
     },
 
     //
