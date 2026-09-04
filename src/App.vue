@@ -81,8 +81,8 @@ const showRail = ref(false)
 }
 .loading-text{
   color: black;
-  background: rgba(255, 255, 255, 0.75);
-  padding: 0px 10px;
+  background: rgb(255 255 255 / 75%);
+  padding: 0 10px;
   margin:0.5rem;
   border-radius: 6px;
 }
