@@ -42,9 +42,6 @@ export const useIndexStore = defineStore('index', {
     // edition params
     showLeftPanel: true,
     anchorMode: false,
-    stickyMode: false,
-    routingMode: false,
-    cyclewayMode: false,
     speedTimeMethod: 'time',
     // general viz
     linksPopupContent: ['trip_id'],
@@ -94,21 +91,6 @@ export const useIndexStore = defineStore('index', {
     },
     changeAnchorMode () {
       this.anchorMode = !this.anchorMode
-    },
-    setStickyMode(payload: boolean) {
-      this.stickyMode = payload
-    },
-    changeStickyMode () {
-      this.stickyMode = !this.stickyMode
-    },
-    setRoutingMode(payload: boolean) {
-      this.routingMode = payload
-    },
-    changeRoutingMode () {
-      this.routingMode = !this.routingMode
-    },
-    changeCyclewayMode () {
-      this.cyclewayMode = !this.cyclewayMode
     },
 
     loadFiles (payload: FileFormat[]) {

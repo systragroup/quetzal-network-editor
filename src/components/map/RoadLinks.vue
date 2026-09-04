@@ -591,7 +591,7 @@ function stopMovingAnchor() {
 // Cycleway
 //
 
-const cyclewayMode = computed(() => { return store.cyclewayMode })
+const cyclewayMode = computed(() => rlinksStore.cyclewayMode)
 
 const ArrowSizeCondition = computed(() => {
   // when we want to show the cycleway direction.

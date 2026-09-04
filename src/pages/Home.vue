@@ -24,7 +24,6 @@ onUnmounted(() => {
   linksStore.setEditorTrip(null)
   rlinksStore.editionMode = false
   if (store.anchorMode) { store.changeAnchorMode() }
-  if (store.cyclewayMode) { store.changeCyclewayMode() }
 })
 
 const showLeftPanel = computed({

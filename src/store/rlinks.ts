@@ -53,6 +53,7 @@ export const userLinksStore = defineStore('rlinks', {
     updateNodes: [],
     // to Cancel edition
     editionMode: false,
+    cyclewayMode: false,
     // params
     speedTimeMethod: 'time',
     indexingMethod: cloneDeep(defaultIndexingMethod),

@@ -69,6 +69,8 @@ export const useLinksStore = defineStore('links', {
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
     // parameters
+    routingMode: false,
+    stickyMode: false,
     speedTimeMethod: 'time',
     indexingMethod: cloneDeep(defaultIndexingMethod),
   }),

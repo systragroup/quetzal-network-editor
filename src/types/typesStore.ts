@@ -82,12 +82,9 @@ export interface IndexStore {
   loading: Loading
   showLeftPanel: boolean
   anchorMode: boolean
-  stickyMode: boolean
-  routingMode: boolean
   speedTimeMethod: SpeedTimeMethod
   linksPopupContent: string[]
   roadsPopupContent: string[]
-  cyclewayMode: boolean
   importPoly: ImportPoly | null
   visibleLayers: string[]
   visibleRasters: string[]
@@ -256,6 +253,8 @@ export interface LinksStore {
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  stickyMode: boolean
+  routingMode: boolean
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 
@@ -316,6 +315,7 @@ export interface RlinksStore {
   updateLinks: UpdateFeatures[]
   updateNodes: UpdateFeatures[]
   editionMode: boolean
+  cyclewayMode: boolean
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 

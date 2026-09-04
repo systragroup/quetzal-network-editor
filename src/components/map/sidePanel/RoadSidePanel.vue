@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
@@ -13,6 +13,11 @@ const { openDialog } = useForm()
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
 const linksStore = useLinksStore()
+
+const cyclewayMode = computed<boolean>({
+  get: () => rlinksStore.cyclewayMode,
+  set: (val: boolean) => rlinksStore.cyclewayMode = val,
+})
 
 const selectedrGoup = computed({
   get: () => rlinksStore.filteredSelected,
@@ -46,6 +51,11 @@ onMounted(() => {
     && selectedrGoup.value.size === 0) {
     showAll()
   }
+})
+
+onUnmounted(() => {
+  console.log('tyolo')
+  if (cyclewayMode.value) cyclewayMode.value = false
 })
 
 function propertiesButton (group: string) {
@@ -311,9 +321,9 @@ function formatName(item: string) {
           <v-btn
             class="mx-2"
             :disabled="!rlinksStore.hasCycleway"
-            :color="store.cyclewayMode? 'green':'regular'"
+            :color="cyclewayMode? 'green':'regular'"
             v-bind="props"
-            @click="store.changeCyclewayMode()"
+            @click="cyclewayMode = !cyclewayMode"
           >
             <v-icon size="small">
               fas fa-biking

@@ -19,8 +19,24 @@ const maxSize = 200
 const store = useIndexStore()
 const linksStore = useLinksStore()
 
+const routingMode = computed<boolean>({
+  get: () => linksStore.routingMode,
+  set: (val: boolean) => linksStore.routingMode = val,
+})
+
+const stickyMode = computed<boolean>({
+  get: () => linksStore.stickyMode,
+  set: (val: boolean) => linksStore.stickyMode = val,
+})
+
 const editorTrip = computed(() => linksStore.editorTrip)
 const tripList = computed(() => linksStore.tripList)
+
+watch(editorTrip, () => {
+  store.setAnchorMode(false)
+  routingMode.value = false
+  stickyMode.value = false
+})
 
 const selectedTrips = computed({
   get: () => linksStore.selectedTrips,
@@ -546,10 +562,10 @@ function setHighlight(trip: string | null) {
           <v-btn
             class="mx-1"
             size="small"
-            :color="store.stickyMode? 'green':'regular'"
+            :color="stickyMode? 'green':'regular'"
             v-bind="props"
             icon="fa-solid fa-magnet"
-            @click="store.changeStickyMode()"
+            @click="stickyMode = !stickyMode"
           />
         </template>
         <span> {{ $gettext("stick nodes on existing nodes") }}</span>
@@ -563,16 +579,16 @@ function setHighlight(trip: string | null) {
             size="small"
             v-bind="props"
             :disabled="rlinksIsEmpty"
-            :color="store.routingMode? 'green':'regular'"
+            :color="routingMode? 'green':'regular'"
             icon="fas fa-route"
-            @click="store.changeRoutingMode()"
+            @click="routingMode = !routingMode"
           />
         </template>
         <span> {{ $gettext("Follow roads") }}</span>
       </v-tooltip>
 
       <v-btn
-        v-if="store.routingMode"
+        v-if="routingMode"
         class="ml-2"
         color="regular"
         append-icon="fas fa-road"
