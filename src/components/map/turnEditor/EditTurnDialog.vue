@@ -297,7 +297,7 @@ watch(turnRestrictions, () => {
   })
 }, { deep: true })
 
-// mout component
+// mount component
 
 watch(showDialog, async (open) => {
   if (!open) {
@@ -305,13 +305,12 @@ watch(showDialog, async (open) => {
   }
   await nextTick()
   if (!mapContainer.value) return
-
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
     accessToken: mapStore.key,
     style: mapStore.mapStyle,
     center: center.value as any,
-    zoom: 17,
+    zoom: getZoomLevel(),
     attributionControl: false,
     boxZoom: false,
     scrollZoom: true,
@@ -327,6 +326,14 @@ watch(showDialog, async (open) => {
   map.value.on('mouseleave', TURNLINESID, offHover)
   map.value.on('click', TURNLINESID, clickOnLine)
 })
+
+function getZoomLevel() {
+  if (!mapContainer.value) return
+  const mapSize = Math.min(mapContainer.value.clientWidth, mapContainer.value.clientHeight)
+  const metersPerPixel = (2.5 * radius.value) / mapSize
+  const lat = center.value[1]
+  return Math.log2((40075016.686 * Math.cos(lat * Math.PI / 180)) / (512 * metersPerPixel))
+}
 
 function mapLoad() {
   addBaseLayer()
