@@ -14,7 +14,8 @@ const { $gettext } = useGettext()
 import { useForm } from '@src/composables/UseForm'
 import { getAnchorGeojson } from '@src/utils/network'
 import { ActionClickRoad, ContextMenuRoad, CustomMapEvent, HoverStateRoad, MapSelectorEvent } from '@src/types/mapbox'
-import { baseLineString, basePoint, createLinestringFeature, GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, PointFeatures } from '@src/types/geojson'
+import { baseLineString, basePoint, createLinestringFeature,
+  GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, PointFeatures } from '@src/types/geojson'
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
 import RoadLinksDraw from './RoadLinksDraw.vue'
 import { setsAreEqual } from '@src/utils/utils.ts'
@@ -30,9 +31,9 @@ const { map, isEditorMode } = toRefs(props)
 
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
-
+//
 // ctrl-z
-
+//
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
 })
@@ -56,6 +57,8 @@ function handleKeydown(event: KeyboardEvent) {
     drawMode.value = false
   }
 }
+
+// init
 
 onMounted(() => {
   if (map.value.getLayer('links')) {
@@ -84,6 +87,7 @@ onBeforeUnmount(() => {
   // remove arrow layer first as it depend on rlink layer
   map.value.removeLayer('arrow-rlinks')
   map.value.removeLayer('static-rlinks')
+  // map.value.removeLayer('rnodes-symbol')
 })
 
 const isRoadMode = computed(() => rlinksStore.editionMode)
@@ -92,6 +96,10 @@ watch(isRoadMode, () => init())
 onUnmounted(() => {
   if (isRoadMode.value) { rlinksStore.cancelEdition() } // if page change. we cancel.
 })
+
+//
+// links / nodes update
+//
 
 const rlinks = computed(() => rlinksStore.rlinks)
 const rnodes = computed(() => rlinksStore.rnodes)
@@ -118,9 +126,7 @@ function init() {
   setFilter()
 }
 
-type NetworkFeature = (LineStringFeatures | PointFeatures | UpdateFeatures)
-
-function updateData(source: 'rlinks' | 'rnodes', array: NetworkFeature[]) {
+function updateData(source: 'rlinks' | 'rnodes', array: UpdateFeatures[]) {
   // update features. if properties is not provided: ex: {type:'Feature',id:'link_1'}. will delete
   if (array.length === 0) return
   const mapSource = map.value.getSource(source) as GeoJSONSource
@@ -133,7 +139,6 @@ const updateNodes = computed(() => rlinksStore.updateNodes)
 watch(updateLinks, list => updateData('rlinks', list))
 watch(updateNodes, list => updateData('rnodes', list))
 
-const selectedPopupContent = computed(() => store.roadsPopupContent)
 //
 // filtering
 //
@@ -242,6 +247,10 @@ watch(isRoadMode, (val) => {
   }
 })
 
+//
+// map interections
+//
+
 const popup = ref <Popup>()
 const disablePopup = ref(false)
 
@@ -261,6 +270,8 @@ watch(hoveredStateId, (newVal, oldVal) => {
 })
 
 // hovering
+const selectedPopupContent = computed(() => store.roadsPopupContent)
+
 function setPopup(coords: LngLat, feature: any) {
   if (popup.value?.isOpen()) popup.value.remove()
   if (!disablePopup.value && selectedPopupContent.value.length > 0) {
@@ -576,6 +587,10 @@ function stopMovingAnchor() {
   map.value.off('mouseup', stopMovingAnchor)
 }
 
+//
+// Cycleway
+//
+
 const cyclewayMode = computed(() => { return store.cyclewayMode })
 
 const ArrowSizeCondition = computed(() => {
@@ -649,6 +664,29 @@ const ArrowDirCondition = computed(() => {
     return 90
   }
 })
+
+//
+// nodes (Turn Restrictions Centroid)
+//
+
+import { useTheme } from 'vuetify'
+const theme = useTheme()
+const WHITE = theme.current.value.colors.white
+const ACCENT = theme.current.value.colors.accent
+const BLACK = theme.current.value.colors.black
+const hasTurnRestrictions = ref(true)
+
+const restrictedNodes = computed<string[]>(() => {
+  if (!hasTurnRestrictions.value) return []
+  const turnRestrictionProps = rlinksStore.variantChoice.map(variant => `turn_restrictions${variant}`)
+  const filtered = rlinks.value.features.filter(link => turnRestrictionProps.some(prop => link.properties[prop]))
+  const nodes = filtered.map(link => link.properties.b)
+  return nodes
+})
+const isCentroid = ['boolean', ['get', 'isCentroid'], false]
+const isRestricted = computed(() => ['in', ['get', 'index'], ['literal', restrictedNodes.value]])
+const circleColorExpr = ['case', isCentroid, WHITE, ACCENT]
+const circleStrokeExpr = computed(() => ['case', isRestricted.value, 'red', ['case', isCentroid, BLACK, WHITE]])
 
 </script>
 <template>
@@ -776,7 +814,6 @@ const ArrowDirCondition = computed(() => {
         type: 'geojson',
         dynamic: true,
         data: rnodes,
-        buffer: 0,
         promoteId: 'index',
       }"
       layer-id="rnodes"
@@ -784,8 +821,8 @@ const ArrowDirCondition = computed(() => {
         type: 'circle',
         minzoom: minZoom.nodes,
         paint: {
-          'circle-color': ['case', ['get', 'isCentroid'], $vuetify.theme.current.colors.white, $vuetify.theme.current.colors.accent],
-          'circle-stroke-color':['case', ['get', 'isCentroid'], $vuetify.theme.current.colors.black, $vuetify.theme.current.colors.white,],
+          'circle-color': circleColorExpr,
+          'circle-stroke-color':circleStrokeExpr,
           'circle-stroke-width': 1,
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6*width, 3*width],
           'circle-blur': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0]

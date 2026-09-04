@@ -60,7 +60,10 @@ export const reservedrLinkProperties: Record<string, AttributeTypes> = {
   turn_restrictions_r: undefined,
 
 }
-export const reservedrNodesProperties: Record<string, AttributeTypes> = {}
+export const reservedrNodesProperties: Record<string, AttributeTypes> = {
+  isCentroid: 'Boolean',
+
+}
 
 // do not reverse those ones
 export const rlinksConstantProperties = [
