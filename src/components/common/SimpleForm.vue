@@ -2,8 +2,9 @@
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { computed, ref } from 'vue'
-import { FormData, FormType } from '@src/types/components'
-import { getRules } from '@src/utils/form'
+import { FormData } from '@src/types/components'
+import FormInput from './FormInput.vue'
+
 const editorForm = defineModel<FormData[]>({ default: () => [] })
 const emits = defineEmits(['change'])
 
@@ -28,19 +29,6 @@ function change(item: FormData) {
 defineExpose({
   validate,
 })
-
-function typeMap(type: FormType) {
-  switch (type) {
-    case 'number':
-      return 'v-number-input'
-    case 'boolean':
-      return 'v-switch'
-    case 'select':
-      return 'v-select'
-    default:
-      return 'v-text-field'
-  }
-}
 
 // logic to hide and show advanced parameters
 const showAdvanced = ref(false)
@@ -75,25 +63,11 @@ const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advance
           :show-hint="showHint"
           @update:model-value="change(item)"
         >
-          <component
-            :is="typeMap(item.type)"
+          <FormInput
             v-show="!item.advanced || showAdvanced"
-            v-model="item.value"
-            control-variant="stacked"
-            :hint="showHint? item.hint: ''"
-            :density="item.type==='boolean'? 'compact': 'default'"
-            :persistent-hint="showHint"
-            :variant="item.disabled? 'underlined': 'filled'"
-            :disabled="item.disabled"
-            :units="item.units"
-            :color="item.type==='boolean'? 'primary': undefined"
-            :precision="item.precision === undefined? null : item.precision"
-            :suffix="item.units"
-            :items="item.items"
-            :rules="getRules(item.rules)"
-            :label="$gettext(item.label)"
-            :multiple="item.multiple"
-            @update:model-value="change(item)"
+            :item="item"
+            v-bind="$attrs"
+            :show-hint="showHint"
           />
         </slot>
       </div>

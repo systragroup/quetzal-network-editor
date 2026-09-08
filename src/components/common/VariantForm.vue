@@ -5,8 +5,7 @@ import { computed, ref, toRefs } from 'vue'
 import { VariantFormData } from '@src/types/components'
 import { cloneDeep } from 'lodash'
 import MenuSelector from '@src/components/utils/MenuSelector.vue'
-import FormInput from './FormInput.vue'
-
+import FormInput from '@src/components/common/FormInput.vue'
 interface Props {
   variants?: string[]
 }
@@ -17,8 +16,6 @@ const { variants } = toRefs(props)
 
 const editorForm = defineModel<VariantFormData[]>({ default: () => [] })
 const emits = defineEmits(['change'])
-
-// form stuff
 
 const shake = ref(false)
 const formRef = ref()
@@ -33,9 +30,20 @@ async function validate() {
   return resp.valid
 }
 
+function change(item: VariantFormData) {
+  emits('change', item)
+}
+
 defineExpose({
   validate,
 })
+
+// logic to hide and show advanced parameters
+const showAdvanced = ref(false)
+const sortedForm = computed(() => [...editorForm.value].sort((a, b) => {
+  return (a.advanced === b.advanced) ? 0 : a.advanced ? 1 : -1
+}))
+const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advanced))
 
 // variants logic: display add delete
 const showEdit = ref(false)
@@ -68,13 +76,6 @@ function deleteItem(item: VariantFormData) {
   editorForm.value = editorForm.value.filter(el => el !== item)
 }
 
-// logic to hide and show advanced parameters
-const showAdvanced = ref(false)
-const sortedForm = computed(() => [...editorForm.value].sort((a, b) => {
-  return (a.advanced === b.advanced) ? 0 : a.advanced ? 1 : -1
-}))
-const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advanced))
-
 </script>
 <template>
   <div
@@ -99,11 +100,12 @@ const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advance
           :name="item.key"
           :item="item"
           :show-hint="showHint"
-          @update:model-value="emits('change', item)"
+          @update:model-value="change(item)"
         >
           <FormInput
             v-show="!item.advanced || showAdvanced"
             :item="item"
+            :prefix="item.variant"
             v-bind="$attrs"
             :show-hint="showHint"
           >

@@ -2,11 +2,12 @@
 
 import { toRefs } from 'vue'
 import { getRules } from '@src/utils/form'
-import { FormType, VariantFormData } from '@src/types/components'
+import { FormData, FormType } from '@src/types/components'
 
 interface Props {
-  item: VariantFormData
+  item: FormData
   showHint: boolean
+  prefix?: string
 }
 
 // Define props with default values
@@ -18,7 +19,7 @@ const { item, showHint } = toRefs(props)
 
 const emits = defineEmits(['change'])
 
-function change(item: VariantFormData) {
+function change(item: FormData) {
   emits('change', item)
 }
 
@@ -49,7 +50,7 @@ function typeMap(type: FormType) {
     :color="item.type==='boolean'? 'primary': undefined"
     :precision="item.precision === undefined? null : item.precision"
     :suffix="item.units"
-    :prefix="item.variant"
+    :prefix="prefix"
     :items="item.items"
     :min="item.min"
     :max="item.max"
