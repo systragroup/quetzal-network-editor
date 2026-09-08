@@ -237,7 +237,7 @@ watch(isRoadMode, (val) => {
     map.value.on('dragend', setAnchor)
     map.value.on('zoomend', getZoom)
     getZoom() // call function immediatly so line width are update at current zoom.
-    minZoom.value.nodes = 10 // set to visible
+    minZoom.value.nodes = 12 // set to visible
   } else {
     store.setAnchorMode(false)
     map.value.off('dragend', setAnchor)
@@ -688,6 +688,17 @@ const isRestricted = computed(() => ['in', ['get', 'index'], ['literal', restric
 const circleColorExpr = ['case', isCentroid, WHITE, ACCENT]
 const circleStrokeExpr = computed(() => ['case', isRestricted.value, 'red', ['case', isCentroid, BLACK, WHITE]])
 
+// flyto
+import { useFlyTo } from '@src/composables/useFlyTo.ts'
+const { flyToId, flyTo } = useFlyTo()
+watch(flyToId, (val) => {
+  if (val) {
+    // == because we may compare string to number. (should cast to string?)
+    const features = rlinks.value.features.filter(el => el.properties[filterCat.value] == val)
+    flyTo(map, features)
+    flyToId.value = null // reset. so if we reclick the same, we rexzoom
+  }
+})
 </script>
 <template>
   <section>

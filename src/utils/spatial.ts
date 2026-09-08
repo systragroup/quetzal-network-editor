@@ -1,6 +1,7 @@
-import { LineStringGeoJson, PointGeoJson, GeoJson } from '@src/types/geojson'
+import { LineStringGeoJson, PointGeoJson, GeoJson, GeoJsonFeatures } from '@src/types/geojson'
 import bearing from '@turf/bearing'
 import { round } from './utils'
+import { LngLatBounds } from 'mapbox-gl'
 
 function isLineStringGeoJson(geojson: GeoJson): geojson is LineStringGeoJson {
   return geojson.features[0].geometry.type === 'LineString'
@@ -22,6 +23,28 @@ export function getDirection(geom: number[][], reversed = false) {
   } else {
     return bearing(geom[0], geom[geom.length - 1])
   }
+}
+
+export function getBounds(features: GeoJsonFeatures[]) {
+  const bounds = new LngLatBounds()
+  features.forEach(feature => {
+    if (feature.geometry) {
+      const coords = feature.geometry.coordinates
+      const type = feature.geometry.type
+      try {
+        if (type === 'Point') {
+          bounds.extend(coords)
+        } else if (type === 'LineString' || type === 'MultiPoint') {
+          bounds.extend([coords[0], coords[coords.length - 1]])
+        } else if (type === 'Polygon' || type === 'MultiLineString') {
+          bounds.extend(coords[0][0])
+        } else if (type === 'MultiPolygon') {
+          bounds.extend(coords[0][0][0])
+        }
+      } catch { console.log('error getting bounds') }
+    }
+  })
+  return bounds
 }
 
 export type Point = number[]

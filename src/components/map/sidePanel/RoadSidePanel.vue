@@ -7,7 +7,8 @@ import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 
 import { useForm } from '@src/composables/UseForm'
-import { getDifference } from '@src/utils/utils'
+import { getDifference, numericSort } from '@src/utils/utils'
+import SidePanelFilter from './SidePanelFilter.vue'
 const { openDialog } = useForm()
 
 const store = useIndexStore()
@@ -33,7 +34,10 @@ const selectedrFilter = computed({
   set: (val) => rlinksStore.selectedrFilter = val,
 })
 
-watch(selectedrFilter, (v) => rlinksStore.changeSelectedrFilter(v))
+watch(selectedrFilter, (v) => {
+  rlinksStore.changeSelectedrFilter(v)
+  searchString.value = '' // reset search when changing the filtering
+})
 
 // lists for filter and virtual-scroll
 const attributesList = computed(() => { return rlinksStore.rlineAttributes })
@@ -49,6 +53,14 @@ watch(filteredChoices, (newVal, oldVal) => {
   }
 })
 
+const searchString = ref('')
+
+const filteredList = computed(() => {
+  return [...filteredChoices.value]
+    .filter(el => el.toLowerCase().includes(searchString.value.toLowerCase()))
+    .sort(numericSort)
+})
+
 onMounted(() => {
   if (linksStore.linksIsEmpty
     && !store.projectIsEmpty
@@ -58,7 +70,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  console.log('tyolo')
   if (cyclewayMode.value) cyclewayMode.value = false
 })
 
@@ -86,6 +97,7 @@ function showAll () {
 }
 
 const roadEditionMode = computed(() => rlinksStore.editionMode)
+
 function edit() {
   rlinksStore.startEditing()
 }
@@ -107,7 +119,7 @@ async function deleteButton (group: string, message: string) {
   }
 }
 
-const selectedrGoupProxy = computed({
+const selectedrGoupSet = computed({
   get: () => [...selectedrGoup.value],
   set: (arr) => selectedrGoup.value = new Set(arr),
 })
@@ -123,6 +135,10 @@ function formatName(item: string) {
     return item
   }
 }
+
+// Highlight
+import { useFlyTo } from '@src/composables/useFlyTo.ts'
+const { setFlyToId } = useFlyTo()
 
 </script>
 <template>
@@ -182,7 +198,6 @@ function formatName(item: string) {
             icon="fa-solid fa-download"
             class="ma-2"
             :style="{color: 'white'}"
-
             v-bind="props"
           />
         </template>
@@ -213,32 +228,25 @@ function formatName(item: string) {
       class="mx-auto scrollable"
     >
       <v-list-item>
-        <div :style="{'padding-top': '0.5rem'}">
-          <v-select
-            v-model="selectedrFilter"
-            :items="attributesList.sort()"
-            prepend-inner-icon="fas fa-filter"
-            :label="$gettext('filter')"
-            variant="outlined"
-            hide-details
-            density="compact"
-            color="secondarydark"
-          />
-        </div>
+        <SidePanelFilter
+          v-model:search-string="searchString"
+          v-model:selected-filter="selectedrFilter"
+          :filter-choices="attributesList"
+        />
       </v-list-item>
 
       <v-virtual-scroll
-        :items="[...filteredChoices]"
+        :items="filteredList"
         :item-height="45"
         :max-height="roadEditionMode? 'calc(100vh - 250px - 110px)': 'calc(100vh - 250px - 70px)'"
       >
         <template v-slot="{ item }">
           <div
             :key="selectedrFilter.concat(item)"
-            class="container"
+            class="container hover"
           >
             <v-checkbox-btn
-              v-model="selectedrGoupProxy"
+              v-model="selectedrGoupSet"
               class="ma-2 pl-2"
               :true-icon="'fa-eye fa'"
               :false-icon="'fa-eye-slash fa'"
@@ -248,6 +256,22 @@ function formatName(item: string) {
             <div class="ma-2 item">
               {{ formatName(item) }}
             </div>
+            <v-tooltip
+              location="bottom"
+              open-delay="500"
+            >
+              <template v-slot:activator="{ props }">
+                <v-btn
+                  variant="text"
+                  icon="fas fa-magnifying-glass"
+
+                  :disabled="false"
+                  v-bind="props"
+                  @click="setFlyToId(item)"
+                />
+              </template>
+              <span>{{ $gettext("Fly to") }}</span>
+            </v-tooltip>
 
             <v-tooltip
               location="bottom"
@@ -257,7 +281,6 @@ function formatName(item: string) {
                 <v-btn
                   variant="text"
                   icon="fas fa-list"
-                  class="ma-1"
 
                   :disabled="false"
                   v-bind="props"
@@ -275,7 +298,6 @@ function formatName(item: string) {
                 <v-btn
                   variant="text"
                   icon="fas fa-trash"
-                  class="ma-1"
                   size="small"
                   :disabled="false"
                   v-bind="props"
@@ -372,6 +394,10 @@ function formatName(item: string) {
   justify-content:flex-end;
   align-items: center;
 }
+.hover:hover{
+  background-color:  rgb(var(--v-theme-hover));
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
 .item{
   flex:1;
   white-space: nowrap;     /* Prevents text from wrapping to the next line */
@@ -381,51 +407,8 @@ function formatName(item: string) {
 .v-selection-control{
   flex:0 !important;
 }
-.left-panel {
-  height: 100%;
-  background-color: $primary-dark;
-  transition: 0.3s;
-  position: absolute;
-  display:flex;
-  z-index: 20;
-}
-.left-panel-close {
-  transition:0.3s
-}
-.left-panel-content {
-  display:inline-block;
-  width : 100%;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  overflow: auto;
-}
-.left-panel-title {
-  height: 50px;
-  line-height: 55px;
-  padding-left: 20px;
-  font-size: 1.1em;
-  margin-bottom: 10px;
-}
-.trip-list {
-  height: calc(100vh - 250px);
-  padding-left:20px
-}
 .scrollable {
    overflow-y:scroll;
-}
-.drawer-list-item {
-  padding: 0 13px !important;
-  justify-content: flex-start !important;
-  flex: 0;
-  transition: 0.3s;
-}
-.list-item-icon {
-  display: flex !important;
-  flex-flow: row !important;
-  justify-content: center !important;
-  margin: 0 !important;
-  color: white;
 }
 
 </style>

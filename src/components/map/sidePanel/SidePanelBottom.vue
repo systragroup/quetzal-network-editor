@@ -1,22 +1,19 @@
-<script setup>
+<script setup lang="ts">
 
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 
-const props = defineProps({
-  isEdition: {
-    type: Boolean,
-    default: false,
-  },
-  title: {
-    type: String,
-    default: 'New Line',
-  },
-  prependIcon: {
-    type: String,
-    default: 'fas fa-plus',
-  },
+interface Props {
+  isEdition: boolean
+  title?: string
+  prependIcon?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: 'New Line',
+  prependIcon: 'fas fa-plus',
 })
+
 const emits = defineEmits(['confirmChanges', 'abortChanges', 'edit'])
 
 </script>

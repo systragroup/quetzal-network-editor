@@ -42,13 +42,11 @@ const mapIsLoaded = ref(false)
 onMounted(() => {
   fitBounds()
 })
-
 function fitBounds() {
   // for empty (new) project, do not fit bounds around the links geometries.
   // only use first and last point. seems to bug when there is anchor...
   const layer = linksStore.linksIsEmpty ? rlinksStore.rlinks : linksStore.links
-  const bounds = mapStore.getBounds(layer)
-  mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
+  mapStore.getZoomAndCenter(layer.features, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
 }
 
 function onMapLoaded (event: CustomMapEvent) {

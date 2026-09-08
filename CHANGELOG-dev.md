@@ -1,11 +1,25 @@
+## [8.2.j] (2026-09-04)
+### Features
+* can filter RoadLink with an input string 
+* can click on a road link (side panel) and fly to it
+
+### changes
+* numeric sorting for  (we had 1,10,11...2,20,21...etc instead of 1,2,3...)
+    * scenarios, PT sidePanel, road sidePanel
+
+# Refactoring
+* HighlightLink refactor
+* SidePanels, MapStore, utils, spatials utils, Logs
+
+
 ## [8.2.i] (2026-09-04)
 ### Features
 * Turn Editor:
     * turn_restrictions keyword reserved for that. string[]
     * show nodes with turn restriction with a red stroke.
 # Refactoring
-    * some refactoring wasw done along this new component.
-    * add possibility to type Geojson Linetring properties
+* some refactoring wasw done along this new component.
+* add possibility to type Geojson Linetring properties
 
 ## [8.2.h] (2026-09-02)
 ### Features

@@ -1,7 +1,7 @@
 import { mapDefaultCenter } from '@src/constants/properties'
-import { GeoJson } from '@src/types/geojson'
+import { GeoJsonFeatures } from '@src/types/geojson'
 import { MapPositionPayload, MapStore } from '@src/types/typesStore'
-import { LngLatBounds } from 'mapbox-gl'
+import { getBounds } from '@src/utils/spatial'
 
 import { defineStore, acceptHMRUpdate } from 'pinia'
 const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
@@ -24,11 +24,10 @@ export const useMapStore = defineStore('mapStore', {
       this.mapStyle = payload
     },
 
-    getZoomAndCenter(bounds: LngLatBounds, mapWidth: number, mapHeight: number) {
-      // if no bound. quit
-      if (Object.keys(bounds).length === 0) {
-        return
-      }
+    getZoomAndCenter(features: GeoJsonFeatures[], mapWidth: number, mapHeight: number) {
+      const bounds = getBounds(features)
+      if (Object.keys(bounds).length === 0) return // if no bound. quit
+
       const minLng = bounds._sw.lng
       const minLat = bounds._sw.lat
       const maxLng = bounds._ne.lng
@@ -54,28 +53,6 @@ export const useMapStore = defineStore('mapStore', {
       const zoomLat = Math.log2((mapHeight * 170) / (latDiff * WORLD_DIM.height)) // Approx. for Mercator
 
       this.mapZoom = Math.min(zoomLng, zoomLat) || 16// Use the smaller zoom to fit both dimensions
-    },
-
-    getBounds(geojson: GeoJson) {
-      const bounds = new LngLatBounds()
-      geojson.features.forEach(feature => {
-        if (feature.geometry) {
-          const coords = feature.geometry.coordinates
-          const type = feature.geometry.type
-          try {
-            if (type === 'Point') {
-              bounds.extend(coords)
-            } else if (type === 'LineString' || type === 'MultiPoint') {
-              bounds.extend([coords[0], coords[coords.length - 1]])
-            } else if (type === 'Polygon' || type === 'MultiLineString') {
-              bounds.extend(coords[0][0])
-            } else if (type === 'MultiPolygon') {
-              bounds.extend(coords[0][0][0])
-            }
-          } catch { console.log('error getting bounds') }
-        }
-      })
-      return bounds
     },
   },
   getters: {

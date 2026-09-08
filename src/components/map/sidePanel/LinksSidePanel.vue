@@ -10,6 +10,8 @@ import { userLinksStore } from '@src/store/rlinks'
 
 import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
+import SidePanelFilter from './SidePanelFilter.vue'
+
 const rlinksStore = userLinksStore()
 const rlinksIsEmpty = computed(() => { return rlinksStore.rlinksIsEmpty })
 const { toggleRouting, isRouted } = useRouting()
@@ -36,6 +38,7 @@ watch(editorTrip, () => {
   store.setAnchorMode(false)
   routingMode.value = false
   stickyMode.value = false
+  setHighlightTrip(null)
 })
 
 const selectedTrips = computed({
@@ -90,11 +93,12 @@ function toggleGroup (e: Group) {
 
 const searchString = ref('')
 const arrayUniqueTripId = computed(() => {
-  // drop duplicates links trips. each line is a trip here.
-  const arrayUniqueByKey = [...new Map(linksStore.links.features.map(item =>
-    [item.properties.trip_id, item.properties])).values()].filter(
-    (item) => item.trip_id.toLowerCase().includes(searchString.value.toLowerCase()))
-  return arrayUniqueByKey
+  // filter then return 1 trip per links
+  const filtered = linksStore.links.features
+    .filter(link => link.properties.trip_id.toLowerCase().includes(searchString.value.toLowerCase()))
+  const uniqueTrip = [...new Map(filtered.map(link => [link.properties.trip_id, link.properties])).values()]
+
+  return uniqueTrip
 })
 const filteredCat = computed(() => {
   // for a given filter (key) get array of unique value
@@ -109,7 +113,7 @@ interface ClassifiedTripList {
   tripId: string[]
 }
 
-const classifiedTripId = computed(() => {
+const classifiedTripId = computed<ClassifiedTripList[]>(() => {
   // return this list of object, {cat_name, tripId list}
   // if >500. we do not change and we will rerun this with the old value
   // see watch(selectedFilter)
@@ -117,23 +121,23 @@ const classifiedTripId = computed(() => {
   if (filteredCat.value.length > maxSize) { return [] }
   const classifiedTripId: ClassifiedTripList[] = []
   const undefinedCat: ClassifiedTripList = { name: $gettext('undefined'), tripId: [] }
-  filteredCat.value.forEach(c => {
-    const arr = arrayUniqueTripId.value.filter(
-      item => item[selectedFilter.value] === c,
-    ).map((item) => item.trip_id).sort()
+  filteredCat.value.forEach(cat => {
+    const arr = arrayUniqueTripId.value
+      .filter(item => item[selectedFilter.value] === cat)
+      .map((item) => item.trip_id).sort(numericSort)
 
     // regroup all null values into a single list 'undefined'
-    if (c === null || c === '' || c === undefined) {
+    if (cat === null || cat === '' || cat === undefined) {
       undefinedCat.tripId.push(...arr)
     } else {
-      classifiedTripId.push({ name: c, tripId: arr })
+      classifiedTripId.push({ name: String(cat), tripId: arr })
     }
   })
   // if there was undefined Categories, append it at the end.
   if (undefinedCat.tripId.length > 0) {
     classifiedTripId.push(undefinedCat)
   }
-  return classifiedTripId
+  return classifiedTripId.sort((a, b) => numericSort(a.name, b.name))
 })
 
 function showGroup (val: string[]) {
@@ -219,14 +223,12 @@ async function deleteButton (trips: string[], message: string) {
 
 // Highlight
 
-import { useHighlight } from '../../../composables/useHighlight'
+import { useHighlight } from '@src/composables/useHighlight.ts'
+import { numericSort } from '@src/utils/utils.ts'
 const { setHighlightTrip } = useHighlight()
 function setHighlight(trip: string | null) {
-  if (!editorTrip.value) {
-    setHighlightTrip(trip)
-  } else {
-    setHighlightTrip(null)
-  }
+  if (editorTrip.value) return
+  setHighlightTrip(trip)
 }
 
 </script>
@@ -315,35 +317,11 @@ function setHighlight(trip: string | null) {
       class=" mx-auto scrollable"
     >
       <v-list-item>
-        <div
-          class="container"
-          :style="{'padding-top': '0.5rem'}"
-        >
-          <v-select
-            v-model="selectedFilter"
-            :items="attributesList.sort()"
-            :style="{'flex':1.3}"
-            prepend-inner-icon="fas fa-filter"
-            :label="$gettext('filter')"
-            variant="outlined"
-            hide-details
-            density="compact"
-            color="secondarydark"
-          />
-          <v-text-field
-            v-model="searchString"
-            :style="{'padding-right': '0.5rem','flex':1}"
-            density="compact"
-            variant="outlined"
-            clear-icon="fas fa-times-circle"
-            clearable
-            :label="$gettext('search')"
-            hide-details
-            persistent-clear
-            prepend-inner-icon="fas fa-search"
-            @click:clear="searchString=''"
-          />
-        </div>
+        <SidePanelFilter
+          v-model:selected-filter="selectedFilter"
+          v-model:search-string="searchString"
+          :filter-choices="attributesList"
+        />
       </v-list-item>
       <v-list>
         <v-list-item v-if=" filteredCat.length > maxSize">
@@ -355,13 +333,13 @@ function setHighlight(trip: string | null) {
         </v-list-item>
         <v-list-group
           v-for="(value, key) in classifiedTripId"
-          :key="String(value.name) + String(key)"
+          :key="value.name + String(key)"
           color="secondarydark"
         >
           <template v-slot:activator="{ props,isOpen }">
             <v-list-item
               v-bind="props"
-              @click="()=>toggleGroup({key: value.name + key,isOpen:!isOpen})"
+              @click="()=>toggleGroup({key: value.name + String(key),isOpen:!isOpen})"
             >
               <div class="container">
                 <v-tooltip
@@ -428,7 +406,7 @@ function setHighlight(trip: string | null) {
             </v-list-item>
           </template>
           <v-virtual-scroll
-            v-if="ShowGroupList.has(value.name + key)"
+            v-if="ShowGroupList.has(value.name + String(key))"
             :items="value.tripId"
             :item-height="45"
             :max-height="editorTrip? 'calc(100vh - 250px - 190px)': 'calc(100vh - 250px - 150px)'"
@@ -437,7 +415,7 @@ function setHighlight(trip: string | null) {
             <template v-slot="{ item }">
               <div
                 :key="item"
-                class="container cell"
+                class="container hover"
                 @mouseenter="setHighlight(item)"
                 @mouseleave="setHighlight(null)"
               >
@@ -648,7 +626,7 @@ function setHighlight(trip: string | null) {
 .clickable{
   cursor: pointer;
 }
-.cell:hover{
+.hover:hover{
   background-color:  rgb(var(--v-theme-hover));
   transition: background-color 0.3s ease; /* Smooth transition */
 }

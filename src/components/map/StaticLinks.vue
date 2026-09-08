@@ -1,11 +1,11 @@
 <!-- eslint-disable no-return-assign -->
 <script setup lang="ts">
-import { MglGeojsonLayer, MglPopup, MglImageLayer } from 'vue-mapbox3'
+import { MglGeojsonLayer, MglPopup } from 'vue-mapbox3'
 import mapboxgl, { GeoJSONSource, MapMouseEvent, PointLike, Popup } from 'mapbox-gl'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
-import { useHighlight } from '../../composables/useHighlight'
+import { useHighlight } from '@src/composables/useHighlight'
 import { baseLineString, basePoint, LineStringFeatures } from '@src/types/geojson'
 interface Props {
   map: mapboxgl.Map
@@ -167,7 +167,7 @@ function rightClick (event: CustomMapEvent) {
 
 import { useForm } from '@src/composables/UseForm'
 import { CustomMapEvent } from '@src/types/mapbox'
-import { cloneDeep } from 'lodash'
+
 const { openDialog } = useForm()
 
 function editLineProperties (selectedTrip: string) {
@@ -175,30 +175,23 @@ function editLineProperties (selectedTrip: string) {
   openDialog({ action: 'Edit Line Info', selectedArr: [selectedTrip], lingering: false, type: 'pt' })
 }
 
-const { highlightTrip, setHighlightTrip, getColor } = useHighlight()
-
 function contextMenuClick(trip: string) {
   if (contextMenu.value.action === 'editProperties') {
     editLineProperties(trip)
     contextMenu.value.showed = false
-    setHighlightTrip(null)
   }
   else if (contextMenu.value.action === 'editTrip') {
     linksStore.setEditorTrip(trip)
     contextMenu.value.showed = false
-    setHighlightTrip(null)
   }
 }
 
-const highlightColor = ref<string>(getColor(undefined))
-
-watch(highlightTrip, (trip) => {
-  const highlightLinks = baseLineString()
-  const selected = cloneDeep(visibleLinks.value.features.filter(el => el.properties.trip_id === trip))
-  highlightLinks.features = selected
-  highlightColor.value = getColor(selected[0]?.properties.route_color)
-  const source = map.value.getSource('highlightLink') as GeoJSONSource
-  if (source) source.setData(highlightLinks)
+// Highlight
+const { highlightTrip, setHighlightTrip, setHighlightData, initLayer } = useHighlight()
+onMounted(() => initLayer(map))
+watch(highlightTrip, async (trip) => {
+  const features = visibleLinks.value.features.filter(el => el.properties.trip_id === trip)
+  setHighlightData(map, features)
 })
 
 </script>
@@ -261,47 +254,7 @@ watch(highlightTrip, (trip) => {
         },
       }"
     />
-    <MglGeojsonLayer
-      source-id="highlightLink"
-      :reactive="false"
-      :source="{
-        type: 'geojson',
-        data: baseLineString(),
-      }"
-      layer-id="highlightLink"
-      :layer="{
-        type: 'line',
-        minzoom: 1,
-        maxzoom: 18,
-        paint: {
-          'line-color': highlightColor,
-          'line-opacity': 1,
-          'line-width': 5,
-        },
-      }"
-    />
 
-    <MglImageLayer
-      source-id="highlightLink"
-      type="symbol"
-      source="highlightLink"
-      layer-id="highlight-arrow-layer"
-      :layer="{
-        type: 'symbol',
-        minzoom: 5,
-        layout: {
-          'symbol-placement': 'line',
-          'symbol-spacing': 30,
-          'icon-ignore-placement': true,
-          'icon-image':'arrow',
-          'icon-size': 0.5,
-          'icon-rotate': 90
-        },
-        paint: {
-          'icon-color':highlightColor,
-        }
-      }"
-    />
     <MglPopup
       :close-button="false"
       :showed="contextMenu.showed"

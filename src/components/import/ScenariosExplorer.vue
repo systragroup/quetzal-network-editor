@@ -10,6 +10,7 @@ import { useGettext } from 'vue3-gettext'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import { Scenario, ScenarioPayload } from '@src/types/typesStore'
 import { infoSerializer } from '@src/utils/serializer.ts'
+import { numericSort } from '@src/utils/utils.ts'
 const { $gettext } = useGettext()
 // const controller = new AbortController()
 // const { signal } = controller
@@ -223,8 +224,7 @@ const sortedScenariosList = computed(() => {
   }
   const sorted = arr.sort((a, b) => {
     if (a.protected === b.protected) { // both true or both false. we go alphabetically
-      const res = String(a[sortModel.value]).localeCompare(String(b[sortModel.value]),
-        undefined, { sensitivity: 'base' })
+      const res = numericSort(String(a[sortModel.value]), String(b[sortModel.value]))
       return sortDirection.value ? res : -res
     } else if (a.protected) {
       return -1 // `a` comes before `b`

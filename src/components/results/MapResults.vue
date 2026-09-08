@@ -102,8 +102,7 @@ function setTerrain() {
 }
 
 function fitBounds (layer) {
-  const bounds = mapStore.getBounds(layer)
-  mapStore.getZoomAndCenter(bounds, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
+  mapStore.getZoomAndCenter(layer.features, canvasDiv.value.clientWidth, canvasDiv.value.clientHeight)
 }
 
 import { useMapResize } from '@src/composables/useMapResize.js'

@@ -449,7 +449,7 @@ function addPointsLayer() {
 
 // Hovering
 
-import { useHover } from '@src/composables/useMapBox.ts'
+import { useHover } from '@src/composables/useMapbox.ts'
 const { onHover, offHover, hoveringFeature } = useHover(map)
 
 watch(hoveringFeature, selected => {

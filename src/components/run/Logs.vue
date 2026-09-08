@@ -1,7 +1,9 @@
-<script setup>
+<script setup lang="ts">
 
 import { computed, ref, toRefs } from 'vue'
 import { useRunStore } from '@src/store/run'
+import { numericSort } from '@src/utils/utils'
+import { RunLog } from '@src/types/typesStore'
 
 const props = defineProps({
   disabled: {
@@ -14,15 +16,12 @@ const runStore = useRunStore()
 
 const showLogsDialog = ref(false)
 const hasLogs = computed(() => runStore.hasLogs)
-const logs = ref([])
+const logs = ref<RunLog[]>([])
 
 async function showLogs() {
   await runStore.getLogs()
   logs.value = runStore.logs
-  logs.value.sort((a, b) => {
-    return String(a.time).localeCompare(String(b.time),
-      undefined, { sensitivity: 'base' })
-  })
+  logs.value.sort((a, b) => numericSort(String(a.time), String(b.time)))
 
   showLogsDialog.value = true
 }
