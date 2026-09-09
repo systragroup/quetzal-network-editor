@@ -370,6 +370,7 @@ function onMove (event: MapMouseEvent) {
     isMoving.value = true
   }
 }
+const stickyTitle = ref<string>('title')
 
 async function stopMovingNode () {
   if (isMoving.value) { // only move node is we moved
@@ -381,8 +382,8 @@ async function stopMovingNode () {
       const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
       const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
       if (!nodesList.has(stickyNodeId)) {
-        const resp = await stickyDialog.value.openDialog(
-          $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId }))
+        stickyTitle.value = $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId })
+        const resp = await stickyDialog.value.openDialog()
         if (resp) {
           modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
         }
@@ -494,6 +495,7 @@ function stopMovingRouteAnchor () {
   <section>
     <PromiseDialog
       ref="stickyDialog"
+      :title="stickyTitle"
     />
     <EditorLinksDraw
       :map="map"

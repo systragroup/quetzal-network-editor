@@ -11,6 +11,7 @@ import PromiseDialog from '../utils/PromiseDialog.vue'
 import { Scenario, ScenarioPayload } from '@src/types/typesStore'
 import { infoSerializer } from '@src/utils/serializer.ts'
 import { numericSort } from '@src/utils/utils.ts'
+import { DialogProps } from '@src/types/components.ts'
 const { $gettext } = useGettext()
 // const controller = new AbortController()
 // const { signal } = controller
@@ -234,14 +235,6 @@ const sortedScenariosList = computed(() => {
   })
   return sorted
 })
-
-interface DialogProps {
-  title: string
-  confirmButton?: string
-  cancelButton?: string
-  subtitle?: string
-  confirmColor?: string
-}
 
 const copyDialog = ref()
 const input = ref('')

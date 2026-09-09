@@ -31,6 +31,8 @@ function typeMap(type: FormType) {
       return 'v-switch'
     case 'select':
       return 'v-select'
+    case 'combo':
+      return 'v-combobox'
     default:
       return 'v-text-field'
   }
@@ -57,6 +59,7 @@ function typeMap(type: FormType) {
     :rules="getRules(item.rules)"
     :label="$gettext(item.label)"
     :multiple="item.multiple"
+    :chips="item.multiple"
     @update:model-value="change(item)"
   >
     <template

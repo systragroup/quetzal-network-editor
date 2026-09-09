@@ -1,27 +1,16 @@
-<script setup>
+<script setup lang="ts">
+import { DialogProps } from '@src/types/components.ts'
+import BaseDialog from './BaseDialog.vue'
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Title',
-  },
-  body: {
-    type: String,
-    default: 'Body',
-  },
-  confirmColor: {
-    type: String,
-    default: 'success',
-  },
-  confirmButton: {
-    type: String,
-    default: 'ok',
-  },
-  cancelButton: {
-    type: String,
-    default: 'cancel',
-  },
+withDefaults(defineProps<DialogProps>(), {
+  confirmColor: 'success',
+  confirmButton: 'ok',
+  cancelButton: 'cancel',
+  maxWidth: 350,
+  subtitle: undefined,
+
 })
+
 const emits = defineEmits(['confirm', 'cancel'])
 const showDialog = defineModel({ type: Boolean, default: true })
 function confirm() {
@@ -33,40 +22,34 @@ function cancel() {
 
 </script>
 <template>
-  <v-dialog
+  <BaseDialog
     v-model="showDialog"
+    :title="title"
+    :max-width="maxWidth"
     persistent
-    max-width="350"
   >
-    <v-card>
-      <v-card-text>
-        <span class="text-h5">
-          <strong>
-            {{ props.title }}
-          </strong>
-        </span>
-      </v-card-text>
-      <v-card-text class="text-h6">
-        {{ props.body }}
-      </v-card-text>
-      <v-card-actions>
-        <slot />
-        <v-spacer />
-        <v-btn
-          @click="cancel"
-        >
-          {{ $gettext(props.cancelButton) }}
-        </v-btn>
-
-        <v-btn
-          :color="props.confirmColor"
-          @click="confirm"
-        >
-          {{ $gettext(props.confirmButton) }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <v-card-text class="text-h6">
+      <p v-if="subtitle ">
+        {{ subtitle }}
+      </p>
+      <slot v-else />
+    </v-card-text>
+    <template #action>
+      <slot name="action" />
+      <v-spacer />
+      <v-btn
+        @click="cancel"
+      >
+        {{ $gettext(cancelButton) }}
+      </v-btn>
+      <v-btn
+        :color="confirmColor"
+        @click="confirm"
+      >
+        {{ $gettext(confirmButton) }}
+      </v-btn>
+    </template>
+  </BaseDialog>
 </template>
 <style lang="scss" scoped>
 

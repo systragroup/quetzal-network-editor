@@ -1,36 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
+import BaseDialog from './BaseDialog.vue'
+import { DialogProps } from '@src/types/components.ts'
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Title',
-  },
-  confirmColor: {
-    type: String,
-    default: 'success',
-  },
-  confirmButton: {
-    type: String,
-    default: 'ok',
-  },
-  cancelButton: {
-    type: String,
-    default: 'cancel',
-  },
-  subtitle: {
-    type: String,
-    default: '',
-  },
+const props = withDefaults(defineProps<DialogProps>(), {
+  confirmColor: 'success',
+  confirmButton: 'ok',
+  cancelButton: 'cancel',
+  subtitle: undefined,
+  maxWidth: undefined,
 })
 
 const showDialog = ref(false)
-const providedTitle = ref()
+type Resolver = ((_value: boolean) => void)
+let dialogResolver: Resolver | null = null
 
-let dialogResolver = null
-
-function openDialog(title) {
-  providedTitle.value = title
+function openDialog() {
   showDialog.value = true
   return new Promise((resolve) => {
     dialogResolver = resolve
@@ -62,55 +47,44 @@ async function cancel() {
   }
 }
 
-defineExpose({ openDialog, confirm })
+defineExpose({ openDialog, confirm, cancel })
 
 </script>
 <template>
-  <v-dialog
+  <BaseDialog
     v-if="showDialog"
     v-model="showDialog"
-    persistent
+    :title="title"
+    :max-width="maxWidth"
     :class="{'shake':shake}"
-    max-width="350"
   >
-    <v-card>
-      <v-card-text>
-        <span class="text-h5">
-          <strong>
-            {{ providedTitle? providedTitle: title }}
-          </strong>
-        </span>
-      </v-card-text>
-      <v-card-text class="text-h6">
-        <v-form
-          ref="formRef"
-          validate-on="submit lazy"
-          @submit.prevent="confirm"
-        >
-          <p v-if="subtitle">
-            {{ subtitle }}
-          </p>
-          <slot v-else />
-        </v-form>
-      </v-card-text>
-      <v-card-actions>
-        <slot name="action" />
-        <v-spacer />
-        <v-btn
-          @click="cancel()"
-        >
-          {{ $gettext(props.cancelButton) }}
-        </v-btn>
+    <v-form
+      ref="formRef"
+      validate-on="submit lazy"
+      @submit.prevent="confirm"
+    >
+      <p v-if="subtitle">
+        {{ subtitle }}
+      </p>
+      <slot v-else />
+    </v-form>
+    <template #action>
+      <slot name="action" />
+      <v-spacer />
+      <v-btn
+        @click="cancel()"
+      >
+        {{ $gettext(props.cancelButton) }}
+      </v-btn>
 
-        <v-btn
-          :color="props.confirmColor"
-          @click="confirm()"
-        >
-          {{ $gettext(props.confirmButton) }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+      <v-btn
+        :color="props.confirmColor"
+        @click="confirm()"
+      >
+        {{ $gettext(props.confirmButton) }}
+      </v-btn>
+    </template>
+  </BaseDialog>
 </template>
 <style lang="scss" scoped>
 

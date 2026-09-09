@@ -459,7 +459,9 @@ export interface ParamsVariants {
   model?: string | string[]
 }
 
-export type ParamsType = 'Number' | 'String' | 'Boolean'
+// can enum all types with this form
+export const PARAM_TYPES = ['Number', 'String', 'Boolean'] as const
+export type ParamsType = typeof PARAM_TYPES[number]
 
 export interface SingleParam {
   name: string

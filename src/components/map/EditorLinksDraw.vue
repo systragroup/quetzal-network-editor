@@ -134,8 +134,8 @@ async function addPointPT(event: MapMouseEvent) {
       const stickyNodeId = cloneDeep(stickyStateId.value?.featureId)
       const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
       if (!nodesList.has(stickyNodeId)) { // cannot reuse same node
-        const resp = await stickyDialog.value.openDialog(
-          $gettext('Replace %{node} with %{b}?', { node: selectedNodeId, b: stickyNodeId }))
+        dialogTitle.value = $gettext('Replace %{node} with %{b}?', { node: selectedNodeId, b: stickyNodeId })
+        const resp = await stickyDialog.value.openDialog()
         if (resp) { linksStore.addNewLink({ geom: pointGeom, action: action, stickyNodeId: stickyNodeId }) }
       } else {
         store.changeNotification(
@@ -154,12 +154,14 @@ async function addPointPT(event: MapMouseEvent) {
 }
 
 const stickyDialog = ref()
+const dialogTitle = ref<string>('')
 
 </script>
 <template>
   <section>
     <PromiseDialog
       ref="stickyDialog"
+      :title="dialogTitle"
     />
   </section>
 </template>

@@ -382,18 +382,19 @@ async function handleSimpleDialog(response: boolean) {
   <SimpleDialog
     v-model="showSaveDialog"
     :title="$gettext('Save Changes?')"
-    body=""
     confirm-color="primary"
     :confirm-button="$gettext('Yes')"
     :cancel-button="$gettext('No')"
     @confirm="handleSimpleDialog(true)"
     @cancel="handleSimpleDialog(false)"
   >
-    <v-btn
-      @click="showSaveDialog=false"
-    >
-      {{ $gettext('Cancel') }}
-    </v-btn>
+    <template #action>
+      <v-btn
+        @click="showSaveDialog=false"
+      >
+        {{ $gettext('Cancel') }}
+      </v-btn>
+    </template>
   </SimpleDialog>
 </template>
 <style lang="scss" scoped>

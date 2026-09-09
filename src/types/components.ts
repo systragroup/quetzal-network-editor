@@ -9,14 +9,10 @@ export interface FormFormat {
 
 export type GroupForm = Record<string, FormFormat>
 
-export interface FormOption {
-  continue: boolean
-}
-
 type RuleFunction = (_: string) => true | string
 export type Rule = string | RuleFunction
 
-export type FormType = 'number' | 'string' | 'boolean' | 'select' | 'time'
+export type FormType = 'number' | 'string' | 'boolean' | 'select' | 'time' | 'combo'
 
 export type FormObject = Record<string, Omit<FormData, 'key'>>
 
@@ -44,6 +40,15 @@ export interface VariantFormData extends FormData {
   category: string
   showVariant?: boolean
 
+}
+
+export interface DialogProps {
+  title: string
+  confirmColor?: string
+  confirmButton?: string
+  cancelButton?: string
+  subtitle?: string
+  maxWidth?: string | number
 }
 
 export type TimeString = string // HH:MM:SS
