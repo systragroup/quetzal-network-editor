@@ -8,6 +8,9 @@ import { CategoryParam, SingleParam } from '@src/types/typesStore'
 
 import ParamInput from './ParamInput.vue'
 import MenuSelector from '../utils/MenuSelector.vue'
+import NewParamDialog from './NewParamDialog.vue'
+import PromiseDialog from '../utils/PromiseDialog.vue'
+import TooltipButton from '../utils/TooltipButton.vue'
 const { $gettext } = useGettext()
 const runStore = useRunStore()
 const userStore = useUserStore()
@@ -142,8 +145,6 @@ function deleteParam(category: string, name: string) {
 }
 
 // for new Field
-import NewParamDialog from './NewParamDialog.vue'
-import PromiseDialog from '../utils/PromiseDialog.vue'
 
 function addParam(newParam: SingleParam, newCategory: string) {
   runStore.addParameter(newParam, newCategory)
@@ -169,12 +170,13 @@ const showNewParamForm = ref(false)
       <span>
         {{ $gettext('Scenario Settings') }}
       </span>
-      <v-btn
+      <TooltipButton
         v-if="showEdit"
         variant="flat"
         color="primary"
         size="small"
         icon="fas fa-plus"
+        :tooltip="$gettext('Add a new parameter')"
         @click.stop="showNewParamForm = true"
       />
     </v-card-title>
