@@ -16,8 +16,10 @@ const modelIsLoaded = computed(() => userStore.model !== null)
 const parameters = computed(() => runStore.filteredParameters)
 const info = computed(() => runStore.selectedInfo)
 
-function reset () {
-  runStore.resetParameters()
+const resetDialog = ref()
+async function reset () {
+  const resp = await resetDialog.value.openDialog()
+  if (resp) runStore.resetParameters()
 }
 
 // resizable div
@@ -134,17 +136,47 @@ function addItem(group: CategoryParam, item: SingleParam) {
   }
 }
 
-function deleteItem(group: CategoryParam, item: SingleParam) {
-  group.params = group.params.filter(el => el !== item)
+function deleteParam(category: string, name: string) {
+  // delete param withh all its variant
+  runStore.deleteParameter(category, name)
 }
+
+// for new Field
+import NewParamDialog from './NewParamDialog.vue'
+import PromiseDialog from '../utils/PromiseDialog.vue'
+
+function addParam(newParam: SingleParam, newCategory: string) {
+  runStore.addParameter(newParam, newCategory)
+}
+const categories = computed(() => parameters.value.map(el => el.category))
+const namesMap = computed(() => new Map(parameters.value.map(el => [el.category, el.params.map(p => p.name)])))
+
+const showNewParamForm = ref(false)
 
 </script>
 <template>
+  <NewParamDialog
+    v-if="showNewParamForm"
+    v-model="showNewParamForm"
+    :categories="categories"
+    :names-map="namesMap"
+    @add="addParam"
+  />
   <v-card
     class="card"
   >
     <v-card-title class="subtitle">
-      {{ $gettext('Scenario Settings') }}
+      <span>
+        {{ $gettext('Scenario Settings') }}
+      </span>
+      <v-btn
+        v-if="showEdit"
+        variant="flat"
+        color="primary"
+        size="small"
+        icon="fas fa-plus"
+        @click.stop="showNewParamForm = true"
+      />
     </v-card-title>
     <div
       v-show="info"
@@ -174,10 +206,14 @@ function deleteItem(group: CategoryParam, item: SingleParam) {
           <v-expansion-panel
             v-for="(group, key) in parameters"
             :key="key"
+            class="categorie"
           >
-            <v-expansion-panel-title class="categorie">
-              {{ group.category }}
-            </v-expansion-panel-title>
+            <template v-slot:title>
+              <div class="title">
+                {{ group.category }}
+              </div>
+            </template>
+
             <v-expansion-panel-text
               style="background-color:rgb(var(--v-theme-lightgrey));"
             >
@@ -217,7 +253,7 @@ function deleteItem(group: CategoryParam, item: SingleParam) {
                       />
                     </template>
                     <template
-                      v-if="showEdit && isVariant(item)"
+                      v-if="showEdit"
                       v-slot:append
                     >
                       <v-btn
@@ -225,7 +261,7 @@ function deleteItem(group: CategoryParam, item: SingleParam) {
                         color="error"
                         size="small"
                         icon="fas fa-trash"
-                        @click="deleteItem(group, item)"
+                        @click="deleteParam(group.category, item.name)"
                       />
                     </template>
                   </ParamInput>
@@ -269,7 +305,6 @@ function deleteItem(group: CategoryParam, item: SingleParam) {
 
       <v-spacer />
       <v-btn
-        v-if="variants"
         prepend-icon="fas fa-plus"
         variant="text"
         :active="showEdit"
@@ -291,6 +326,11 @@ function deleteItem(group: CategoryParam, item: SingleParam) {
       />
     </v-card-actions>
   </v-card>
+  <PromiseDialog
+    ref="resetDialog"
+    :title="$gettext('Reset parameters?')"
+    :subtitle="$gettext('this will reset all parameters to the last saved version. new parameters will be lost')"
+  />
 </template>
 <style lang="scss" scoped>
 // card style come from parent component.
@@ -321,14 +361,20 @@ function deleteItem(group: CategoryParam, item: SingleParam) {
 .subtitle {
   font-size: 2em;
   font-weight: bold;
+  align-items: center;
+  justify-content: space-between;
+  display:flex
 }
 .v-form {
   max-height: 80%;
 }
 .categorie {
-  font-size: 1.5em;
-  font-weight: bold;
   background: rgb(var(--v-theme-mediumgrey)) ;
+}
+.title {
+  margin-bottom:auto;
+  font-size: 1.6em;
+  font-weight: bold;
 }
 .categorie-info{
   padding-bottom: 1rem;

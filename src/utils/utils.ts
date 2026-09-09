@@ -1,4 +1,4 @@
-import { FormFormat, GroupForm } from '@src/types/components'
+import { FormData, FormFormat, FormObject, GroupForm } from '@src/types/components'
 import { GeoJson, GeoJsonFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
 import { createHash } from 'sha256-uint8array'
 
@@ -233,4 +233,10 @@ export function arrayMinMax(arr: number[]) {
 
 export function numericSort(a: string, b: string) {
   return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })
+}
+
+export function formDataToRecord(formData: FormData[]): FormObject {
+  const obj: FormObject = {}
+  formData.forEach(el => obj[el.key] = el)
+  return obj
 }

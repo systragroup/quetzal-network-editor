@@ -26,8 +26,8 @@ export interface FormData {
   precision?: number
   disabled?: boolean
   hint?: string
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   rules?: Rule[]
+  placeholder?: string
   multiple?: boolean
   items?: any[] | undefined
   min?: number

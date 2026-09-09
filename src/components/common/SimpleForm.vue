@@ -68,6 +68,7 @@ const advancedIndex = computed(() => sortedForm.value.findIndex(el => el.advance
             :item="item"
             v-bind="$attrs"
             :show-hint="showHint"
+            @update:model-value="change(item)"
           />
         </slot>
       </div>

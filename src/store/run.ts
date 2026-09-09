@@ -6,7 +6,7 @@ import { useIndexStore } from './index'
 import { useUserStore } from './user'
 import { computed, ref, toRaw, watch } from 'vue'
 import { useAPI } from '../composables/APIComposable'
-import { CategoryParam, Params, ParamsInfo, ParamsVariants, Revision, RunLog, Step, StepPayload, StepsDefinition } from '@src/types/typesStore'
+import { CategoryParam, Params, ParamsInfo, ParamsVariants, Revision, RunLog, SingleParam, Step, StepPayload, StepsDefinition } from '@src/types/typesStore'
 import { useGettext } from 'vue3-gettext'
 import { RunPayload, StepStatus } from '@src/types/api'
 import { includesOrEqual } from '@src/utils/utils'
@@ -205,6 +205,36 @@ export const useRunStore = defineStore('runStore', () => {
     payload = paramsSerializer(payload)
     parameters.value = payload
   }
+  function addParameter(newParam: SingleParam, category: string) {
+    // create cat if not existant
+    const filtered = parameters.value.filter((param): param is CategoryParam => 'category' in param)
+    const group = filtered.filter(param => param.category === category)[0]
+    if (group) { // add param to category
+      group.params.push(newParam)
+    } else {
+      // add new category
+      const catParam: CategoryParam = {
+        category: category,
+        model: selectedStepFunction.value,
+        params: [newParam],
+      }
+      parameters.value.push(catParam)
+    }
+  }
+  function deleteParameter(category: string, name: string) {
+    let filtered = parameters.value.filter((param): param is CategoryParam => 'category' in param)
+    const group = filtered.filter(param => param.category === category)[0]
+    if (name.includes('#')) { // delete a variant
+      group.params = group.params.filter(el => el.name !== name)
+    } else { // delete a param and all its variant
+      group.params = group.params.filter(el => el.name.split('#')[0] !== name)
+    }
+    if (group.params.length === 0) {
+      // const indexToDelete = parameters.value.indexOf(group)
+      // parameters.value.splice
+      parameters.value = parameters.value.filter(el => el !== group)
+    }
+  }
 
   async function resetParameters () {
     // only for the reset button.
@@ -254,14 +284,16 @@ export const useRunStore = defineStore('runStore', () => {
     modelTag,
     modelRevision,
     currentStep,
-    parameters,
     hasLogs,
     steps,
     stepsPayload,
     logs,
     availableModels,
+    parameters,
     parametersIsEmpty,
     filteredParameters,
+    addParameter,
+    deleteParameter,
     selectedInfo,
     variants,
     start,

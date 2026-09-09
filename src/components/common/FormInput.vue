@@ -51,6 +51,8 @@ function typeMap(type: FormType) {
     :disabled="item.disabled"
     :color="item.type==='boolean'? 'primary': undefined"
     :precision="item.precision === undefined? null : item.precision"
+    :placeholder="item.placeholder"
+    :persistent-placeholder="item.placeholder"
     :suffix="item.units"
     :prefix="prefix"
     :items="item.items"
