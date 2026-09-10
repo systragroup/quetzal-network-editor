@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, toRefs, watch } from 'vue'
 import { OtherFiles } from '@src/types/typesStore'
+import TooltipButton from '../utils/TooltipButton.vue'
 
 function buildTree(paths: string[]): TreeData[] {
   const result: TreeData[] = []
@@ -122,51 +123,43 @@ const selected = ref([])
         v-if="item.fullpath"
         class="list-button"
       >
-        <v-btn
+        <TooltipButton
           v-if="showDownload"
           variant="text"
           icon="fa-solid fa-download"
           size="small"
+          :tooltip=" $gettext('Download file') "
+          location="top"
           @click="()=>emits('download',item.fullpath as string)"
         />
 
-        <v-tooltip
+        <TooltipButton
+          v-if="showRename"
+          variant="text"
+          icon="fa-solid fa-pen"
+          size="small"
+          :tooltip="$gettext('rename file')"
           location="top"
-          open-delay="250"
-        >
-          <template v-slot:activator="{ props:slotProps }">
-            <v-btn
-              v-if="showRename"
-              variant="text"
-              icon="fa-solid fa-pen"
-              size="small"
-              v-bind="slotProps"
-              @click="()=>emits('rename', item.fullpath as string)"
-            />
-          </template>
-          <span>{{ $gettext('rename file') }}</span>
-        </v-tooltip>
-        <v-tooltip
+          @click="()=>emits('rename', item.fullpath as string)"
+        />
+
+        <TooltipButton
+          v-if="showUpload"
+          variant="text"
+          icon="fa-solid fa-upload"
+          size="small"
+          :tooltip=" $gettext('Replace file inplace') "
           location="top"
-          open-delay="250"
-        >
-          <template v-slot:activator="{ props:slotProps }">
-            <v-btn
-              v-if="showUpload"
-              variant="text"
-              icon="fa-solid fa-upload"
-              size="small"
-              v-bind="slotProps"
-              @click="()=>emits('upload',item.fullpath as string)"
-            />
-          </template>
-          <span>{{ $gettext('Replace file inplace') }}</span>
-        </v-tooltip>
-        <v-btn
+          @click="()=>emits('upload',item.fullpath as string)"
+        />
+
+        <TooltipButton
           v-if="showDelete"
           variant="text"
           size="small"
           icon="fa-solid fa-trash"
+          :tooltip=" $gettext('Delete file') "
+          location="top"
           @click.stop="()=>emits('delete',item.fullpath as string)"
         />
       </div>

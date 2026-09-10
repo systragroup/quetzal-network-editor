@@ -2,6 +2,7 @@
 import { useIndexStore } from '@src/store/index'
 import { ref, watch, toRefs, onMounted } from 'vue'
 import { useGettext } from 'vue3-gettext'
+import TooltipButton from '../utils/TooltipButton.vue'
 const { $gettext } = useGettext()
 
 const props = defineProps(['selectedCategory',
@@ -131,40 +132,26 @@ onMounted(() => {
             </v-list-item>
           </v-list>
         </v-menu>
-        <v-tooltip
+        <TooltipButton
+          variant="text"
+          :disabled="presetChoices.length===0"
+          :style="{color: 'white'}"
+          icon="fas fa-download"
           location="bottom"
-          open-delay="300"
-        >
-          <template v-slot:activator="{ props:p }">
-            <v-btn
-              variant="text"
-              v-bind="p"
-              :disabled="presetChoices.length===0"
-              :style="{color: 'white'}"
-              icon="fas fa-download"
-              @click="store.exportFile('styles.json')"
-            />
-          </template>
-          <span>{{ $gettext("Dowload presets") }}</span>
-        </v-tooltip>
+          :tooltip="$gettext('Dowload presets')"
+          @click="store.exportFile('styles.json')"
+        />
       </div>
       <div class="layer">
-        <v-tooltip
+        <TooltipButton
+          :style="{color: 'white', flex:0, 'padding-left':'1.1rem','padding-right':'1.5rem'}"
+          class="eye-button"
+          :icon=" selectedCat.length == filteredCat.length ? 'fa-eye-slash fa' : 'fa-eye fa'"
+          variant="text"
           location="bottom"
-          open-delay="500"
-        >
-          <template v-slot:activator="{ props:p }">
-            <v-btn
-              :style="{color: 'white', flex:0, 'padding-left':'1.1rem','padding-right':'1.5rem'}"
-              class="eye-button"
-              :icon=" selectedCat.length == filteredCat.length ? 'fa-eye-slash fa' : 'fa-eye fa'"
-              variant="text"
-              v-bind="p"
-              @click="showAll()"
-            />
-          </template>
-          <span>{{ selectedCat.length == filteredCat.length ? $gettext("Hide All"): $gettext("Show All") }}</span>
-        </v-tooltip>
+          :tooltip="selectedCat.length == filteredCat.length ? $gettext('Hide All'): $gettext('Show All')"
+          @click="showAll()"
+        />
 
         <v-menu
           v-model="openMenu"

@@ -11,6 +11,7 @@ const show = ref(false)
 import { useLinksStore } from '@src/store/links'
 const linksStore = useLinksStore()
 import { userLinksStore } from '@src/store/rlinks'
+import TooltipButton from './TooltipButton.vue'
 const rlinksStore = userLinksStore()
 
 const isRoadMode = computed(() => rlinksStore.editionMode)
@@ -78,35 +79,25 @@ function redo() {
           variant="outlined"
           divided
         >
-          <v-btn
+          <TooltipButton
             icon="fas fa-rotate-left"
             size="x-small"
+            location="top"
+            :tooltip="$gettext('undo (ctrl-z)') "
             @click="undo"
           >
             <v-icon />
-            <v-tooltip
-              activator="parent"
-              location="top"
-              open-delay="250"
-            >
-              {{ $gettext('undo (ctrl-z)') }}
-            </v-tooltip>
-          </v-btn>
+          </TooltipButton>
 
-          <v-btn
+          <TooltipButton
             icon="fas fa-rotate-right"
             size="x-small"
+            location="top"
+            :tooltip="$gettext('redo (ctrl-y)')"
             @click="redo"
           >
             <v-icon />
-            <v-tooltip
-              activator="parent"
-              location="top"
-              open-delay="250"
-            >
-              {{ $gettext('redo (ctrl-y)') }}
-            </v-tooltip>
-          </v-btn>
+          </TooltipButton>
         </v-btn-group>
       </v-card-title>
 

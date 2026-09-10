@@ -12,6 +12,7 @@ import { Scenario, ScenarioPayload } from '@src/types/typesStore'
 import { infoSerializer } from '@src/utils/serializer.ts'
 import { numericSort } from '@src/utils/utils.ts'
 import { DialogProps } from '@src/types/components.ts'
+import TooltipButton from '../utils/TooltipButton.vue'
 const { $gettext } = useGettext()
 // const controller = new AbortController()
 // const { signal } = controller
@@ -127,7 +128,7 @@ onMounted(async () => {
     await getScenarios()
     if (scenarioIsLoaded.value) { // scroll to selected scenario
       const index = scenariosList.value.map(el => el.key).indexOf(modelScen.value)
-      virtualScroll.value.scrollToIndex(index, 'center')
+      if (virtualScroll.value) virtualScroll.value.scrollToIndex(index, 'center')
     }
   }
 })
@@ -464,25 +465,19 @@ async function selectModel(v: string) {
     class="scenario-container"
   >
     <div>
-      <v-tooltip
+      <TooltipButton
+        style="border-color:rgb(var(--v-theme-lightgrey))"
+        prepend-icon="fas fa-arrow-left"
+        block
+        variant="outlined"
+        size="large"
         location="right"
         open-delay="250"
+        :tooltip=" $gettext('Go back to model selection')"
+        @click="showScenarios=false"
       >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            style="border-color:rgb(var(--v-theme-lightgrey))"
-            v-bind="props"
-            prepend-icon="fas fa-arrow-left"
-            block
-            variant="outlined"
-            size="large"
-            @click="showScenarios=false"
-          >
-            {{ formatTab(String(localModel)) }}
-          </v-btn>
-        </template>
-        <span>{{ $gettext('Go back to model selection') }}</span>
-      </v-tooltip>
+        {{ formatTab(String(localModel)) }}
+      </TooltipButton>
     </div>
 
     <v-divider />
@@ -631,23 +626,22 @@ async function selectModel(v: string) {
       v-if="showGroupAction"
       class="mt-2 list"
     >
-      <v-tooltip
-        location="right"
-        open-delay="250"
+      <v-checkbox
+        v-if="!scenarioIsLoaded"
+        density="compact"
+        class="pr-2"
+        :indeterminate="true"
+        :hide-details="true"
+        @click.stop="()=>checkedScenarios=[]"
       >
-        <template v-slot:activator="{ props }">
-          <v-checkbox
-            v-if="!scenarioIsLoaded"
-            v-bind="props"
-            density="compact"
-            class="pr-2"
-            :indeterminate="true"
-            :hide-details="true"
-            @click.stop="()=>checkedScenarios=[]"
-          />
-        </template>
-        <span>{{ $gettext('deselect all') }}</span>
-      </v-tooltip>
+        <v-tooltip
+          activator="parent"
+          location="top"
+          open-delay="250"
+        >
+          {{ $gettext('deselect all') }}
+        </v-tooltip>
+      </v-checkbox>
 
       <v-btn
         :prepend-icon="'fas fa-download'"

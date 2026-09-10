@@ -98,21 +98,18 @@ function moveLayer (name) {
               :disabled="!availableLayers.includes(item.layer)"
             />
           </template>
-          <v-tooltip
-            location="top"
-            open-delay="300"
-          >
-            <template v-slot:activator="{ props:ttprops }">
-              <v-list-item-title
-                :style="{'cursor': 'default','padding-left':'1rem'}"
-                v-bind="ttprops"
-              >
-                {{ item.name }}
-              </v-list-item-title>
-            </template>
-            <span v-if="!availableLayers.includes(item.layer)">{{ $gettext('Data not found: ') + item.layer }}</span>
-            <span v-else>{{ item.displaySettings.selectedFeature + ' ' + $gettext('from') + ' ' + item.layer }}</span>
-          </v-tooltip>
+
+          <v-list-item-title :style="{'cursor': 'default','padding-left':'1rem'}">
+            {{ item.name }}
+            <v-tooltip
+              activator="parent"
+              location="top"
+              open-delay="300"
+            >
+              <span v-if="!availableLayers.includes(item.layer)">{{ $gettext('Data not found: ') + item.layer }}</span>
+              <span v-else>{{ item.displaySettings.selectedFeature + ' ' + $gettext('from') + ' ' + item.layer }}</span>
+            </v-tooltip>
+          </v-list-item-title>
           <template v-slot:append>
             <v-icon
               :style="{'cursor':'grab'}"

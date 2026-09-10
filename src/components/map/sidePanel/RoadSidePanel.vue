@@ -5,6 +5,7 @@ import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import SidePanelBottom from './SidePanelBottom.vue'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
+import TooltipButton from '@src/components/utils/TooltipButton.vue'
 
 import { useForm } from '@src/composables/UseForm'
 import { getDifference, numericSort } from '@src/utils/utils'
@@ -144,40 +145,26 @@ const { setFlyToId } = useFlyTo()
 <template>
   <div class="side-panel">
     <div class="text-white bg-secondary header">
-      <v-tooltip
+      <TooltipButton
+        variant="text"
+        :icon="selectedrGoup.size === filteredChoices.size? 'fa-eye fa' : 'fa-eye-slash fa'"
+        class="ma-2"
+        :style="{color: 'white'}"
         location="bottom"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            variant="text"
-            :icon="selectedrGoup.size === filteredChoices.size? 'fa-eye fa' : 'fa-eye-slash fa'"
-            class="ma-2"
-            :style="{color: 'white'}"
-            v-bind="props"
-            @click="showAll()"
-          />
-        </template>
-        <span>{{ selectedrGoup.size ===filteredChoices.size ? $gettext("Hide All"): $gettext("Show All") }}</span>
-      </v-tooltip>
-      <v-tooltip
-        location="bottom"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            variant="text"
-            icon="fas fa-list"
-            class="ma-2"
-            :style="{color: 'white'}"
-            :disabled="selectedrGoup.size===0? true: false"
+        :tooltip="selectedrGoup.size ===filteredChoices.size ? $gettext('Hide All'): $gettext('Show All')"
+        @click="showAll()"
+      />
 
-            v-bind="props"
-            @click="editVisible()"
-          />
-        </template>
-        <span>{{ $gettext("Edit Visibles Properties") }}</span>
-      </v-tooltip>
+      <TooltipButton
+        variant="text"
+        icon="fas fa-list"
+        class="ma-2"
+        :style="{color: 'white'}"
+        :disabled="selectedrGoup.size===0? true: false"
+        location="bottom"
+        :tooltip="$gettext('Edit Visibles Properties')"
+        @click="editVisible()"
+      />
 
       <v-spacer />
       <span :style="{color: 'white'}">
@@ -192,13 +179,13 @@ const { setFlyToId } = useFlyTo()
         close-delay="100"
         transition="slide-y-transition"
       >
-        <template v-slot:activator="{ props }">
+        <template v-slot:activator="{ props:slotProps }">
           <v-btn
             variant="text"
             icon="fa-solid fa-download"
             class="ma-2"
             :style="{color: 'white'}"
-            v-bind="props"
+            v-bind="slotProps"
           />
         </template>
         <v-list>
@@ -256,56 +243,31 @@ const { setFlyToId } = useFlyTo()
             <div class="ma-2 item">
               {{ formatName(item) }}
             </div>
-            <v-tooltip
+
+            <TooltipButton
+              variant="text"
+              icon="fas fa-magnifying-glass"
               location="bottom"
-              open-delay="500"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  variant="text"
-                  icon="fas fa-magnifying-glass"
+              :tooltip="$gettext('Fly to')"
+              @click="setFlyToId(item)"
+            />
 
-                  :disabled="false"
-                  v-bind="props"
-                  @click="setFlyToId(item)"
-                />
-              </template>
-              <span>{{ $gettext("Fly to") }}</span>
-            </v-tooltip>
-
-            <v-tooltip
+            <TooltipButton
+              variant="text"
+              icon="fas fa-list"
               location="bottom"
-              open-delay="500"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  variant="text"
-                  icon="fas fa-list"
+              :tooltip="$gettext('Edit Line Properties')"
+              @click="propertiesButton(item)"
+            />
 
-                  :disabled="false"
-                  v-bind="props"
-                  @click="propertiesButton(item)"
-                />
-              </template>
-              <span>{{ $gettext("Edit Line Properties") }}</span>
-            </v-tooltip>
-
-            <v-tooltip
+            <TooltipButton
+              variant="text"
+              icon="fas fa-trash"
+              size="small"
               location="bottom"
-              open-delay="500"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  variant="text"
-                  icon="fas fa-trash"
-                  size="small"
-                  :disabled="false"
-                  v-bind="props"
-                  @click="deleteButton(item, item)"
-                />
-              </template>
-              <span>{{ $gettext("Delete All") }}</span>
-            </v-tooltip>
+              :tooltip="$gettext('Delete All')"
+              @click="deleteButton(item, item)"
+            />
           </div>
         </template>
       </v-virtual-scroll>
@@ -320,55 +282,36 @@ const { setFlyToId } = useFlyTo()
       @confirm-changes="confirmChanges"
       @abort-changes="abortChanges"
     >
-      <v-tooltip
+      <TooltipButton
+        class="mx-1"
+        :color="store.anchorMode? 'primary':'regular'"
+        size="small"
+        icon="fas fa-anchor"
         location="right"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            class="mx-1"
-            :color="store.anchorMode? 'primary':'regular'"
-            v-bind="props"
-            size="small"
-            icon="fas fa-anchor"
-            @click="store.changeAnchorMode()"
-          />
-        </template>
-        <span> {{ $gettext("Edit Line geometry") }} </span>
-      </v-tooltip>
-      <v-tooltip
+        :tooltip="$gettext('Edit Line geometry')"
+        @click="store.changeAnchorMode()"
+      />
+
+      <TooltipButton
+        class="mx-1"
+        :color="showTurnRestrictions? 'green':'regular'"
+        icon="fas fa-diamond-turn-right"
+        size="small"
         location="right"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            class="mx-1"
-            :color="showTurnRestrictions? 'green':'regular'"
-            icon="fas fa-diamond-turn-right"
-            size="small"
-            v-bind="props"
-            @click="showTurnRestrictions = !showTurnRestrictions"
-          />
-        </template>
-        <span> {{ $gettext("Show nodes with turn restrictions") }}</span>
-      </v-tooltip>
-      <v-tooltip
+        :tooltip="$gettext('Show nodes with turn restrictions')"
+        @click="showTurnRestrictions = !showTurnRestrictions"
+      />
+
+      <TooltipButton
+        class="mx-1"
+        :disabled="!rlinksStore.hasCycleway"
+        :color="cyclewayMode? 'green':'regular'"
+        icon="fas fa-biking"
+        size="small"
         location="right"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            class="mx-1"
-            :disabled="!rlinksStore.hasCycleway"
-            :color="cyclewayMode? 'green':'regular'"
-            icon="fas fa-biking"
-            size="small"
-            v-bind="props"
-            @click="cyclewayMode = !cyclewayMode"
-          />
-        </template>
-        <span> {{ $gettext("Show Cycleway direction instead of road") }}</span>
-      </v-tooltip>
+        :tooltip="$gettext('Show Cycleway direction instead of road')"
+        @click="cyclewayMode = !cyclewayMode"
+      />
     </SidePanelBottom>
     <PromiseDialog
       ref="deleteDialog"

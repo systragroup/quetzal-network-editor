@@ -149,6 +149,9 @@ function showGroup (val: string[]) {
     selectedTrips.value = Array.from(new Set([...selectedTrips.value, ...val]))
   }
 }
+function isChecked(tripsList: string[]) {
+  return tripsList.some(val => selectedTrips.value.includes(val))
+}
 
 function editButton (tripId: string) {
   if (!editorTrip.value) {
@@ -225,6 +228,7 @@ async function deleteButton (trips: string[], message: string) {
 
 import { useHighlight } from '@src/composables/useHighlight.ts'
 import { numericSort } from '@src/utils/utils.ts'
+import TooltipButton from '@src/components/utils/TooltipButton.vue'
 const { setHighlightTrip } = useHighlight()
 function setHighlight(trip: string | null) {
   if (editorTrip.value) return
@@ -235,40 +239,26 @@ function setHighlight(trip: string | null) {
 <template>
   <div class="side-panel">
     <div class="text-white bg-secondary header">
-      <v-tooltip
+      <TooltipButton
+        variant="text"
+        :icon="selectedTrips.length === tripList.length ? 'fa-eye fa' : 'fa-eye-slash fa' "
+        class="ma-2 "
+        :style="{color: 'white'}"
+        :tooltip="selectedTrips.length === tripList.length? $gettext('Hide All'): $gettext('Show All')"
         location="bottom"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            variant="text"
-            :icon="selectedTrips.length === tripList.length ? 'fa-eye fa' : 'fa-eye-slash fa' "
-            class="ma-2 "
-            :style="{color: 'white'}"
-            v-bind="props"
-            @click="showAll()"
-          />
-        </template>
-        <span>{{ selectedTrips.length === tripList.length? $gettext("Hide All"): $gettext("Show All") }}</span>
-      </v-tooltip>
-      <v-tooltip
-        location="bottom"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            variant="text"
-            icon="fas fa-list"
-            class="ma-2"
-            :style="{color: 'white'}"
+        @click="showAll()"
+      />
 
-            :disabled="(selectedTrips.length===0)||(editorTrip!=null)? true: false"
-            v-bind="props"
-            @click="propertiesButton(selectedTrips,'Edit Group Info')"
-          />
-        </template>
-        <span>{{ $gettext("Edit Visibles Properties") }}</span>
-      </v-tooltip>
+      <TooltipButton
+        variant="text"
+        icon="fas fa-list"
+        class="ma-2"
+        :style="{color: 'white'}"
+        :disabled="(selectedTrips.length===0)||(editorTrip!=null)? true: false"
+        :tooltip="$gettext('Edit Visibles Properties')"
+        location="bottom"
+        @click="propertiesButton(selectedTrips,'Edit Group Info')"
+      />
 
       <v-spacer />
       <span :style="{color: 'white'}">
@@ -342,27 +332,13 @@ function setHighlight(trip: string | null) {
               @click="()=>toggleGroup({key: value.name + String(key),isOpen:!isOpen})"
             >
               <div class="container">
-                <v-tooltip
+                <TooltipButton
+                  variant="text"
+                  :icon="isChecked(value.tripId)? 'fa-eye fa' :'fa-eye-slash fa' "
+                  :tooltip="isChecked(value.tripId)? $gettext('Hide All'): $gettext('Show All')"
                   location="bottom"
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ props:hover }">
-                    <v-btn
-                      variant="text"
-                      :icon="value.tripId.some(val => selectedTrips.includes(val))
-                        ? 'fa-eye fa' :
-                          'fa-eye-slash fa' "
-
-                      v-bind="hover"
-                      @click.stop="showGroup(value.tripId)"
-                    />
-                  </template>
-                  <span>
-                    {{ value.tripId.some(val => selectedTrips.includes(val))
-                      ? $gettext("Hide All"):
-                        $gettext("Show All") }}
-                  </span>
-                </v-tooltip>
+                  @click.stop="showGroup(value.tripId)"
+                />
 
                 <div class="item">
                   <strong>
@@ -370,38 +346,25 @@ function setHighlight(trip: string | null) {
                   </strong>
                 </div>
 
-                <v-tooltip
+                <TooltipButton
+                  variant="text"
+                  icon="fas fa-list"
+                  class="ma-1"
+                  :disabled="editorTrip!=null? true: false"
+                  :tooltip="$gettext('Edit Group Properties')"
                   location="bottom"
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ props:hover }">
-                    <v-btn
-                      variant="text"
-                      icon="fas fa-list"
-                      class="ma-1"
-                      :disabled="editorTrip!=null? true: false"
-                      v-bind="hover"
-                      @click.stop="propertiesButton(value.tripId,'Edit Group Info')"
-                    />
-                  </template>
-                  <span>{{ $gettext("Edit Group Properties") }}</span>
-                </v-tooltip>
-                <v-tooltip
+                  @click.stop="propertiesButton(value.tripId,'Edit Group Info')"
+                />
+
+                <TooltipButton
+                  variant="text"
+                  icon="fas fa-trash"
+                  class="ma-1"
+                  :disabled="editorTrip ? true: false"
+                  :tooltip="$gettext('Delete Group')"
                   location="bottom"
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ props:hover }">
-                    <v-btn
-                      variant="text"
-                      icon="fas fa-trash"
-                      class="ma-1"
-                      :disabled="editorTrip ? true: false"
-                      v-bind="hover"
-                      @click.stop="deleteButton(value.tripId, value.name)"
-                    />
-                  </template>
-                  <span>{{ $gettext("Delete Group") }}</span>
-                </v-tooltip>
+                  @click.stop="deleteButton(value.tripId, value.name)"
+                />
               </div>
             </v-list-item>
           </template>
@@ -429,79 +392,57 @@ function setHighlight(trip: string | null) {
                   :value="item"
                   hide-details
                 />
-                <v-tooltip
-                  location="right"
-                  open-delay="300"
-                >
-                  <template v-slot:activator="{ props }">
-                    <v-list-item-title
-                      v-bind="props"
-                      :style="{'font-weight' : item===editorTrip? 'bold':'normal'}"
-                      :class="editorTrip?'item': 'item clickable'"
-                      @click="editButton(item)"
-                    >
-                      {{ item }}
-                    </v-list-item-title>
-                  </template>
-                  <span>{{ item }}</span>
-                </v-tooltip>
 
-                <v-tooltip
-                  location="bottom"
-                  open-delay="500"
+                <v-list-item-title
+                  :style="{'font-weight' : item===editorTrip? 'bold':'normal'}"
+                  :class="editorTrip?'item': 'item clickable'"
+                  @click="editButton(item)"
                 >
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      variant="text"
-                      icon="fas fa-list"
-                      size="small"
-                      density="compact"
-                      class="ma-1"
-                      :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
-                      v-bind="props"
-                      @click="propertiesButton([item],'Edit Line Info')"
-                    />
-                  </template>
-                  <span>{{ $gettext("Edit Line Properties") }}</span>
-                </v-tooltip>
+                  {{ item }}
+                  <v-tooltip
+                    activator="parent"
+                    location="right"
+                    open-delay="250"
+                  >
+                    {{ item }}
+                  </v-tooltip>
+                </v-list-item-title>
 
-                <v-tooltip
+                <TooltipButton
+                  variant="text"
+                  icon="fas fa-list"
+                  size="small"
+                  density="compact"
+                  class="ma-1"
+                  :disabled="(item != editorTrip) && (editorTrip!=null) ? true: false"
+                  :tooltip="$gettext('Edit Line Properties') "
                   location="bottom"
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      variant="text"
-                      icon="fas fa-clone"
-                      size="small"
-                      density="compact"
-                      class="ma-1"
-                      :disabled="editorTrip ? true: false"
-                      v-bind="props"
-                      @click="cloneButton(item)"
-                    />
-                  </template>
-                  <span>{{ $gettext("Duplicate and reverse") }}</span>
-                </v-tooltip>
+                  @click="propertiesButton([item],'Edit Line Info')"
+                />
 
-                <v-tooltip
+                <TooltipButton
+                  variant="text"
+                  icon="fas fa-clone"
+                  size="small"
+                  density="compact"
+                  class="ma-1"
+                  :disabled="editorTrip ? true: false"
+                  :tooltip="$gettext('Duplicate and reverse') "
                   location="bottom"
-                  open-delay="500"
-                >
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      variant="text"
-                      size="small"
-                      density="compact"
-                      class="ml-1 mr-3"
-                      icon="fas fa-trash"
-                      :disabled="editorTrip ? true: false"
-                      v-bind="props"
-                      @click="deleteButton([item], item)"
-                    />
-                  </template>
-                  <span>{{ $gettext("Delete Line") }}</span>
-                </v-tooltip>
+                  @click="cloneButton(item)"
+                />
+
+                <TooltipButton
+                  variant="text"
+                  size="small"
+                  density="compact"
+                  class="ml-1 mr-3"
+                  icon="fas fa-trash"
+                  :disabled="editorTrip ? true: false"
+                  :tooltip="$gettext('Delete Line') "
+                  location="bottom"
+                  @click="deleteButton([item], item)"
+                />
               </div>
             </template>
           </v-virtual-scroll>
@@ -512,58 +453,41 @@ function setHighlight(trip: string | null) {
     </v-card>
     <SidePanelBottom
       :is-edition="typeof editorTrip === 'string'"
+      :title="$gettext('New Line')"
       @edit="createNewLine"
       @confirm-changes="confirmChanges"
       @abort-changes="abortChanges"
     >
-      <v-tooltip
+      <TooltipButton
+        class="mx-1"
+        :color="store.anchorMode? 'primary':'regular'"
+        size="small"
+        icon="fas fa-anchor"
+        location="right"
+        :tooltip="$gettext('Edit Line geometry')"
+        @click="store.changeAnchorMode()"
+      />
+
+      <TooltipButton
+        class="mx-1"
+        size="small"
+        :color="stickyMode? 'green':'regular'"
+        icon="fa-solid fa-magnet"
         location="right"
         open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            class="mx-1"
-            :color="store.anchorMode? 'primary':'regular'"
-            v-bind="props"
-            size="small"
-            icon="fas fa-anchor"
-            @click="store.changeAnchorMode()"
-          />
-        </template>
-        <span> {{ $gettext("Edit Line geometry") }} </span>
-      </v-tooltip>
-      <v-tooltip
+        :tooltip="$gettext('stick nodes on existing nodes')"
+        @click="stickyMode = !stickyMode"
+      />
+
+      <TooltipButton
+        size="small"
+        :disabled="rlinksIsEmpty"
+        :color="routingMode? 'green':'regular'"
+        icon="fas fa-route"
         location="right"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            class="mx-1"
-            size="small"
-            :color="stickyMode? 'green':'regular'"
-            v-bind="props"
-            icon="fa-solid fa-magnet"
-            @click="stickyMode = !stickyMode"
-          />
-        </template>
-        <span> {{ $gettext("stick nodes on existing nodes") }}</span>
-      </v-tooltip>
-      <v-tooltip
-        location="right"
-        open-delay="500"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            size="small"
-            v-bind="props"
-            :disabled="rlinksIsEmpty"
-            :color="routingMode? 'green':'regular'"
-            icon="fas fa-route"
-            @click="routingMode = !routingMode"
-          />
-        </template>
-        <span> {{ $gettext("Follow roads") }}</span>
-      </v-tooltip>
+        :tooltip="$gettext('Follow roads')"
+        @click="routingMode = !routingMode"
+      />
 
       <v-btn
         v-if="routingMode"
