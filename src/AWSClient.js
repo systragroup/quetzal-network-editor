@@ -219,7 +219,7 @@ async function readInfo (bucket, scen) {
 
 async function checkIfFileExists(bucket, key) {
   try {
-    await s3Client.headObject({ Bucket: bucket, Key: key })
+    await s3Client.headObject({ Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' })
     return true
   } catch (error) {
     //  object is missing
@@ -273,7 +273,7 @@ async function getLocks(bucket, scenarios) {
 
 async function getChecksum (bucket, key) {
   try {
-    const resp = await s3Client.headObject({ Bucket: bucket, Key: key })
+    const resp = await s3Client.headObject({ Bucket: bucket, Key: key, ResponseCacheControl: 'no-cache' })
     return resp.Metadata.checksum
   } catch (err) { return null }
 }
