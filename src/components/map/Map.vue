@@ -192,6 +192,7 @@ import { CustomMapEvent } from '@src/types/mapbox'
 <style lang="scss" scoped>
 .map{
   width: 100%;
+  height:100%;
 }
 .my-custom-dialog {
   position: absolute !important;
