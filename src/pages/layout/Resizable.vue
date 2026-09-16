@@ -1,18 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted, toRefs } from 'vue'
+import { ref, onMounted, toRefs, computed } from 'vue'
 
 interface Props {
-  minLeft?: number
+  minLeftPx?: number
+  maxLeft?: number
 
 }
 
 // Define props with default values
 const props = withDefaults(defineProps<Props>(), {
-  minLeft: 420,
+  minLeftPx: 420, // px
+  maxLeft: 50, // %
 })
 
 const show = defineModel<boolean>({ default: true })
-const { minLeft } = toRefs(props)
+const { maxLeft } = toRefs(props)
+
+const minLeft = computed(() => {
+  const rect = sectionRef.value.getBoundingClientRect()
+  return (props.minLeftPx / rect.width) * 100
+})
+
 const sectionRef = ref()
 const toCollapse = ref(false)
 const smoothResize = ref(false)
@@ -20,14 +28,9 @@ const left = ref(0) // in percent
 
 // init left panel size to minValue
 onMounted(() => {
-  left.value = show.value ? pixelToPercent(minLeft.value) : 0
+  left.value = show.value ? minLeft.value : 0
   toCollapse.value = !show.value // init to grey if hidden
 })
-
-function pixelToPercent(pixels: number) {
-  const rect = sectionRef.value.getBoundingClientRect()
-  return (pixels / rect.width) * 100
-}
 
 function startResize() {
   if (left.value <= 1) {
@@ -40,13 +43,13 @@ function startResize() {
 
 function onResize(e: MouseEvent) {
   const rect = sectionRef.value.getBoundingClientRect()
-  const pixels = e.clientX - rect.left
+  const parentWidth = rect.width
+  const position = e.clientX - rect.left //  offset
 
-  let percent = (pixels / rect.width) * 100
-  percent = Math.min(50, percent) // clip to max of 50%
-  left.value = percent
+  const percent = (position / parentWidth) * 100
+  left.value = Math.min(maxLeft.value, percent) // clip to max of 50%
   // grey out and collapse on mouseup
-  toCollapse.value = pixels <= minLeft.value
+  toCollapse.value = left.value <= minLeft.value
 }
 
 function stopResize() {
@@ -69,20 +72,21 @@ function toggle() {
 function expand() {
   show.value = true
   smoothResize.value = true
+  left.value = minLeft.value + 1
+
   setTimeout(() => {
     smoothResize.value = false
     toCollapse.value = false
   }, 500)
-  left.value = pixelToPercent(minLeft.value + 1)
 }
 function collapse() {
   smoothResize.value = true
+  left.value = 0
   setTimeout(() => {
     smoothResize.value = false
     show.value = false
     toCollapse.value = true
   }, 500)
-  left.value = 0
 }
 defineExpose({ toggle })
 
@@ -92,7 +96,7 @@ defineExpose({ toggle })
     ref="sectionRef"
     class="layout-row"
   >
-    <!-- Left containter (side Panel) -->
+    <!-- Left containter -->
     <div
       class="container left-content"
       :class="{ fading: toCollapse, smooth: smoothResize }"
@@ -112,7 +116,7 @@ defineExpose({ toggle })
       <div class="resize-grip" />
     </div>
 
-    <!-- Right containter (Map and button) -->
+    <!-- Right containter -->
     <div
       class="layout-col"
       :style="{ flexBasis: (100 - left) + '%' }"
@@ -135,7 +139,6 @@ defineExpose({ toggle })
   height: 100%;
   width:100%;
   display: flex;
-  border:1px solid red;
   flex-direction: column;
 }
 .container {

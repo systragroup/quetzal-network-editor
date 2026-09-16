@@ -37,7 +37,7 @@ const showLeftPanel = computed({
   <section class="container">
     <Resizable
       v-model="showLeftPanel"
-      :min-left="420"
+      :min-left-px="420"
     >
       <template #left>
         <SidePanel
