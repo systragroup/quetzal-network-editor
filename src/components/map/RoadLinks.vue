@@ -929,6 +929,7 @@ watch(flyToId, (val) => {
       </v-list>
     </v-snackbar>
     <EditTurnDialog
+      v-if="showTurnDialog"
       v-model="showTurnDialog"
       :node-id="contextMenu.ids[0]"
     />

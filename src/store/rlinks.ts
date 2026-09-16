@@ -25,6 +25,7 @@ import { simplifyGeometry } from '@src/utils/spatial'
 import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getNewIndex, getPropertyType, getType, getVariantsChoices,
+  initLengthTimeSpeed,
   listAllProperties,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties, normalizeToString } from '@src/utils/roadNetwork'
@@ -233,11 +234,11 @@ export const userLinksStore = defineStore('rlinks', {
       this.deleteNonVariantAttributes()
       this._initOneways()
       this.initSelectedrFilter()
+      initLengthTimeSpeed(this.rlinks, this.timeVariants)
     },
 
     appendNewrNodes (payload: PointGeoJson) {
       // append new links and node to the project (import page)
-      simplifyGeometry(payload)
       payload.features.forEach(node => this.rnodes.features.push(node))
       this.getrNodesProperties()
     },
@@ -704,11 +705,8 @@ export const userLinksStore = defineStore('rlinks', {
       this.commitChanges({ name: 'Delete Link', deleteLinks: linkArr, deleteNodes: toDelete })
     },
 
-    deleterGroup (group: string) {
-      const cat = this.selectedrFilter
-      const filtered = this.rlinks.features.filter(link => link.properties[cat] == group)
-      const selectedIndex = filtered.map(link => link.properties.index)
-      this.deleteLink(selectedIndex)
+    deleterGroup (indexList: string[]) {
+      this.deleteLink(indexList)
     },
 
   },

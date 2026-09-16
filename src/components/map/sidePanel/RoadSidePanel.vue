@@ -112,11 +112,13 @@ function abortChanges() {
 // delete dialog
 const deleteDialog = ref()
 const deleteMessage = ref('')
-async function deleteButton (group: string, message: string) {
+async function deleteButton (group: string) {
   // obj contain trip and message.
-  deleteMessage.value = message
+  const features = rlinksStore.getFilteredrLinks(group)
+  const indexList = features.map(link => link.properties.index)
+  deleteMessage.value = `${group} (${indexList.length} links)`
   const resp = await deleteDialog.value.openDialog()
-  if (resp) { rlinksStore.deleterGroup(group)
+  if (resp) { rlinksStore.deleterGroup(indexList)
   }
 }
 
@@ -266,7 +268,7 @@ const { setFlyToId } = useFlyTo()
               size="small"
               location="bottom"
               :tooltip="$gettext('Delete All')"
-              @click="deleteButton(item, item)"
+              @click="deleteButton(item)"
             />
           </div>
         </template>

@@ -5,7 +5,7 @@ import short from 'short-uuid'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { lineString, point as Point } from '@turf/helpers'
-import { round } from './utils'
+import { cap, round } from './utils'
 import { cloneDeep } from 'lodash'
 const secPerHour = 3600
 
@@ -18,18 +18,23 @@ export function initLengthTimeSpeed(links: LineStringGeoJson, variants: NonEmpty
     variants.forEach(v => {
       // if speed in provided get time
       if (feature.properties[`speed${v}`]) {
-        const time = distance / Number(feature.properties[`speed${v}`]) * secPerHour // secs (km / km/h) * secPerHour
-        feature.properties[`time${v}`] = round(time, 0)// rounded to 0 decimals
+        const speed = Number(feature.properties[`speed${v}`])
+        const time = distance / speed * secPerHour // secs (km / km/h) * secPerHour
+        feature.properties[`speed${v}`] = cap(round(speed, 6))
+        feature.properties[`time${v}`] = cap(round(time, 0))
       // else if time is provided. get speed
       } else if (feature.properties[`time${v}`]) {
-        const speed = distance / Number(feature.properties[`time${v}`]) * secPerHour // Km/h  (km / secs) * secPerHour
-        feature.properties[`speed${v}`] = round(speed, 6)
+        const time = Number(feature.properties[`time${v}`])
+        const speed = distance / time * secPerHour // Km/h  (km / secs) * secPerHour
+        feature.properties[`speed${v}`] = cap(round(speed, 6))
+        feature.properties[`time${v}`] = cap(round(time, 0))
+
       // no time or speed. fix speed to 20kmh and calc time with this.
       } else {
         const speed = 20 // kmh
-        feature.properties[`speed${v}`] = speed
         const time = distance / speed * secPerHour // secs (km / km/h) * secPerHour
-        feature.properties[`time${v}`] = round(time, 0) // rounded to 0 decimals
+        feature.properties[`speed${v}`] = speed
+        feature.properties[`time${v}`] = cap(round(time, 0))
       }
     })
   })

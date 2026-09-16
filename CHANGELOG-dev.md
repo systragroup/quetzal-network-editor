@@ -1,3 +1,12 @@
+## [8.2.l] (2026-09-16)
+### Bug fixes
+* cap rlinks speed and time to max safe integer. mapbox has a limit of 10bytes...
+* fix delete group of rlinks
+
+### changes
+* init rlinks length time speed (like links)
+
+
 ## [8.2.k] (2026-09-04)
 ### Features
 * Add parameters

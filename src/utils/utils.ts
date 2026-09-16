@@ -145,6 +145,9 @@ export function weightedAverage(values: number[], weights: number[]) {
 export function round(value: number | string, precision: number = 0): number {
   return Number(Number(value)?.toFixed(precision)) || 0
 }
+export function cap(value: number): number {
+  return Math.min(value, Number.MAX_SAFE_INTEGER)
+}
 
 // serializer
 

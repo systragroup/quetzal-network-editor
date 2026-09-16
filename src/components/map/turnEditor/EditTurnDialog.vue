@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, Ref, toRefs, shallowRef } from 'vue'
+// To use with a v-if
+import { ref, watch, Ref, toRefs, shallowRef, onMounted } from 'vue'
 import mapboxgl, { MapMouseEvent } from 'mapbox-gl'
 import { userLinksStore } from '@src/store/rlinks'
 import { useMapStore } from '@src/store/map'
@@ -298,12 +299,7 @@ watch(turnRestrictions, () => {
 }, { deep: true })
 
 // mount component
-
-watch(showDialog, async (open) => {
-  if (!open) {
-    return
-  }
-  await nextTick()
+onMounted(async() => {
   if (!mapContainer.value) return
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
