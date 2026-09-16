@@ -10,7 +10,9 @@ import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { ref, onUnmounted, computed } from 'vue'
 import { useForm } from '@src/composables/UseForm'
-import Resizable from '@src/pages/layout/Resizable.vue'
+import LinksTable from '@src/components/map/table/LinksTable.vue'
+import ResizableRow from './layout/ResizableRow.vue'
+import ResizableCol from './layout/ResizableCol.vue'
 
 // init
 const store = useIndexStore()
@@ -32,10 +34,12 @@ const showLeftPanel = computed({
   set: (v: boolean) => store.showLeftPanel = v,
 })
 
+const showTable = ref(true)
+
 </script>
 <template>
   <section class="container">
-    <Resizable
+    <ResizableCol
       v-model="showLeftPanel"
       :min-left-px="420"
     >
@@ -57,11 +61,21 @@ const showLeftPanel = computed({
             {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
           </v-icon>
         </div>
-        <Map
-          :mode="mode"
-        />
+        <ResizableRow
+          v-model="showTable"
+          :min-height-px="200"
+        >
+          <template #top>
+            <Map
+              :mode="mode"
+            />
+          </template>
+          <template #bottom>
+            <LinksTable v-show="showTable" />
+          </template>
+        </ResizableRow>
       </template>
-    </Resizable>
+    </ResizableCol>
 
     <LinksEditDialog v-if="dialogType === 'pt'" />
     <RoadsEditDialog v-else-if="dialogType === 'road'" />

@@ -2,38 +2,37 @@
 import { ref, onMounted, toRefs, computed } from 'vue'
 
 interface Props {
-  minLeftPx?: number
-  maxLeft?: number
-
+  minHeightPx?: number
+  maxHeight?: number
 }
 
 // Define props with default values
 const props = withDefaults(defineProps<Props>(), {
-  minLeftPx: 420, // px
-  maxLeft: 50, // %
+  minHeightPx: 200, // px
+  maxHeight: 50, // %
 })
 
 const show = defineModel<boolean>({ default: true })
-const { maxLeft } = toRefs(props)
+const { maxHeight } = toRefs(props)
 
-const minLeft = computed(() => {
+const minHeight = computed(() => {
   const rect = sectionRef.value.getBoundingClientRect()
-  return (props.minLeftPx / rect.width) * 100
+  return (props.minHeightPx / rect.height) * 100
 })
 
 const sectionRef = ref()
 const toCollapse = ref(false)
 const smoothResize = ref(false)
-const left = ref(0) // in percent
+const top = ref(0) // in percent
 
 // init left panel size to minValue
 onMounted(() => {
-  left.value = show.value ? minLeft.value : 0
+  top.value = show.value ? minHeight.value : 0
   toCollapse.value = !show.value // init to grey if hidden
 })
 
 function startResize() {
-  if (left.value <= 1) {
+  if (top.value <= 1) {
     show.value = true // when close and drag to open
   }
   document.addEventListener('mousemove', onResize)
@@ -43,13 +42,13 @@ function startResize() {
 
 function onResize(e: MouseEvent) {
   const rect = sectionRef.value.getBoundingClientRect()
-  const parentWidth = rect.width
-  const position = e.clientX - rect.left //  offset
+  const parentHeight = rect.height
+  const position = e.clientY - rect.top
 
-  const percent = (position / parentWidth) * 100
-  left.value = Math.min(maxLeft.value, percent) // clip to max of 50%
+  const percent = 100 - (position / parentHeight) * 100
+  top.value = Math.min(maxHeight.value, percent) // clip to max of 50%
   // grey out and collapse on mouseup
-  toCollapse.value = left.value <= minLeft.value
+  toCollapse.value = top.value <= minHeight.value
 }
 
 function stopResize() {
@@ -72,7 +71,7 @@ function toggle() {
 function expand() {
   show.value = true
   smoothResize.value = true
-  left.value = minLeft.value + 1
+  top.value = minHeight.value + 1
 
   setTimeout(() => {
     smoothResize.value = false
@@ -81,7 +80,7 @@ function expand() {
 }
 function collapse() {
   smoothResize.value = true
-  left.value = 0
+  top.value = 0
   setTimeout(() => {
     smoothResize.value = false
     show.value = false
@@ -94,22 +93,24 @@ defineExpose({ toggle })
 <template>
   <div
     ref="sectionRef"
-    class="layout-row"
+    class="layout-col"
   >
     <!-- Left containter -->
     <div
-      class="container left-content"
-      :class="{ fading: toCollapse, smooth: smoothResize }"
-      :style="{ flexBasis: left + '%' }"
+      class="container"
+      :class="{ smooth: smoothResize }"
+
+      :style="{ flexBasis: (100-top) + '%' }"
     >
       <slot
-        name="left"
+        name="top"
         :toggle="toggle"
       />
     </div>
 
     <!-- scroll bar -->
     <div
+
       class="resize-handle"
       @mousedown="startResize"
     >
@@ -118,11 +119,12 @@ defineExpose({ toggle })
 
     <!-- Right containter -->
     <div
-      class="layout-col"
-      :style="{ flexBasis: (100 - left) + '%' }"
+      class="fading-content"
+      :class="{ fading: toCollapse }"
+      :style="{ flexBasis: top + '%' }"
     >
       <slot
-        name="right"
+        name="bottom"
         :toggle="toggle"
       />
     </div>
@@ -140,6 +142,7 @@ defineExpose({ toggle })
   width:100%;
   display: flex;
   flex-direction: column;
+  border:1px solid red;
 }
 .container {
   overflow: hidden;
@@ -150,19 +153,20 @@ defineExpose({ toggle })
 .container.smooth{
   transition: flex-basis 0.5s ease;
 }
-.left-content {
+.fading-content {
   transition:
     opacity 0.5s ease,
     filter 0.5s ease;
 }
-.left-content.fading {
+.fading-content.fading {
   opacity: 0.5;
   filter: grayscale(1);
   pointer-events: none;
 }
+
 .resize-handle {
-  width: 5px; /* larger hitbox */
-  cursor: col-resize;
+  height: 5px; /* larger hitbox */
+  cursor: row-resize;
   display: flex;
   background-color:rgb(var(--v-theme-grey));
   justify-content: center;
@@ -170,8 +174,8 @@ defineExpose({ toggle })
   flex-shrink: 0;
 }
 .resize-grip {
-  width: 3px;
-  height: 40px;
+  width: 40px;
+  height: 3px;
   border-radius: 10px;
   background-color: rgb(var(--v-theme-lightgrey));
   transition:
