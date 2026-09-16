@@ -1,37 +1,80 @@
-import { ref } from 'vue'
-const inf = Number.MAX_SAFE_INTEGER
+import { onMounted, Ref, ref } from 'vue'
+type Dir = 'col' | 'row'
 
-export function useResize(width: number = 200, height: number = 200, min: number = 0, max: number = inf) {
-  const panelWidth = ref(width)
-  const panelHeight = ref(height)
-  const isResizing = ref(false)
-  const panelDiv = ref()
-  const windowOffset = ref([0, 0])
+export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<number>, maxPercent: Ref<number>, dir: Dir) {
+  const direction = ref<Dir>(dir)
 
-  function startResize (event: MouseEvent) {
-    event.preventDefault()
-    isResizing.value = true
-    windowOffset.value = [
-      event.clientX - panelDiv.value.clientWidth,
-      event.clientY - panelDiv.value.clientHeight,
-    ]
-    document.addEventListener('mousemove', resize)
+  const size = ref(0) // percent
+  const toCollapse = ref(false)
+  const smoothResize = ref(false)
+  const initialOffset = 2 // start at min+this
+
+  onMounted(() => {
+    size.value = show.value ? minPercent.value + initialOffset : 0
+    toCollapse.value = !show.value
+  })
+
+  function startResize() {
+    if (size.value <= 1) {
+      show.value = true // when close and drag to open
+    }
+    document.addEventListener('mousemove', onResize)
     document.addEventListener('mouseup', stopResize)
+    document.body.style.userSelect = 'none'
   }
-  function resize (event: MouseEvent) {
-    if (isResizing.value) {
-      const w = event.clientX - windowOffset.value[0]
-      const h = event.clientY - windowOffset.value[1]
 
-      panelWidth.value = w < min ? min : w > max ? max : w
-      panelHeight.value = h < min ? min : h > max ? max : h
+  function onResize(e: MouseEvent) {
+    const parent = divRef.value.getBoundingClientRect()
+    let position = 0
+    if (direction.value === 'col') {
+      position = e.clientX - parent.left //  offset
+      position = (position / parent.width) * 100
+    } else {
+      position = e.clientY - parent.top
+      position = 100 - (position / parent.height) * 100
+    }
+
+    size.value = Math.min(maxPercent.value, position) // clip to max of 50%
+    toCollapse.value = size.value <= minPercent.value
+  }
+
+  function stopResize() {
+    document.removeEventListener('mousemove', onResize)
+    document.removeEventListener('mouseup', stopResize)
+    document.body.style.userSelect = ''
+    if (toCollapse.value) {
+      collapse()
+    } else {
+      show.value = true
     }
   }
-  function stopResize () {
-    isResizing.value = false
-    document.removeEventListener('mousemove', resize)
-    document.removeEventListener('mouseup', stopResize)
+  function toggle() {
+    if (show.value) {
+      collapse()
+    } else {
+      expand()
+    }
   }
 
-  return { panelWidth, panelHeight, panelDiv, startResize }
+  function expand() {
+    show.value = true
+    smoothResize.value = true
+    size.value = minPercent.value + initialOffset
+
+    setTimeout(() => {
+      smoothResize.value = false
+      toCollapse.value = false
+    }, 500)
+  }
+  function collapse() {
+    smoothResize.value = true
+    size.value = 0
+    setTimeout(() => {
+      smoothResize.value = false
+      show.value = false
+      toCollapse.value = true
+    }, 500)
+  }
+
+  return { toCollapse, size, smoothResize, startResize, toggle }
 }

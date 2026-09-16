@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, toRefs, computed } from 'vue'
+import { ref, toRefs, computed } from 'vue'
 
 interface Props {
   minLeftPx?: number
@@ -19,74 +19,11 @@ const minLeft = computed(() => {
   const rect = sectionRef.value.getBoundingClientRect()
   return (props.minLeftPx / rect.width) * 100
 })
-
 const sectionRef = ref()
-const toCollapse = ref(false)
-const smoothResize = ref(false)
-const left = ref(0) // in percent
 
-// init left panel size to minValue
-onMounted(() => {
-  left.value = show.value ? minLeft.value : 0
-  toCollapse.value = !show.value // init to grey if hidden
-})
+import { useResize } from '@src/composables/useResize.ts'
+const { size, toCollapse, smoothResize, toggle, startResize } = useResize(sectionRef, show, minLeft, maxLeft, 'col')
 
-function startResize() {
-  if (left.value <= 1) {
-    show.value = true // when close and drag to open
-  }
-  document.addEventListener('mousemove', onResize)
-  document.addEventListener('mouseup', stopResize)
-  document.body.style.userSelect = 'none'
-}
-
-function onResize(e: MouseEvent) {
-  const rect = sectionRef.value.getBoundingClientRect()
-  const parentWidth = rect.width
-  const position = e.clientX - rect.left //  offset
-
-  const percent = (position / parentWidth) * 100
-  left.value = Math.min(maxLeft.value, percent) // clip to max of 50%
-  // grey out and collapse on mouseup
-  toCollapse.value = left.value <= minLeft.value
-}
-
-function stopResize() {
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', stopResize)
-  document.body.style.userSelect = ''
-  if (toCollapse.value) {
-    collapse()
-  } else {
-    show.value = true
-  }
-}
-function toggle() {
-  if (show.value) {
-    collapse()
-  } else {
-    expand()
-  }
-}
-function expand() {
-  show.value = true
-  smoothResize.value = true
-  left.value = minLeft.value + 1
-
-  setTimeout(() => {
-    smoothResize.value = false
-    toCollapse.value = false
-  }, 500)
-}
-function collapse() {
-  smoothResize.value = true
-  left.value = 0
-  setTimeout(() => {
-    smoothResize.value = false
-    show.value = false
-    toCollapse.value = true
-  }, 500)
-}
 defineExpose({ toggle })
 
 </script>
@@ -99,7 +36,7 @@ defineExpose({ toggle })
     <div
       class="container fading-content"
       :class="{ fading: toCollapse, smooth: smoothResize }"
-      :style="{ flexBasis: left + '%' }"
+      :style="{ flexBasis: size + '%' }"
     >
       <slot
         name="left"
@@ -117,7 +54,7 @@ defineExpose({ toggle })
 
     <!-- Right containter -->
     <div
-      :style="{ flexBasis: (100 - left) + '%' }"
+      :style="{ flexBasis: (100 - size) + '%' }"
     >
       <slot
         name="right"
