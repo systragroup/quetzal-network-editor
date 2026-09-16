@@ -134,20 +134,11 @@ export function useAPI () {
     infra.value = resp.data
   }
 
-  // async function getFunctionTags(functionName: string): Promise<Revision[]> {
-  //   const resp = await quetzalClient.get<Revision[]>(`run/${functionName}/${infra.value}/tags`)
-  //   return resp.data
-  // }
-  // TO DELETE in next deployment. only for smooth deployment with old API
   async function getFunctionTags(functionName: string): Promise<Revision[]> {
     let revisions: Revision[] = []
-    try {
-      const resp = await quetzalClient.get<Revision[]>(`run/${functionName}/${infra.value}/tags`)
-      revisions = resp.data
-    } catch {
-      const resp = await quetzalClient.get<string>(`run/${functionName}/${infra.value}/tag`)
-      revisions = [{ tag: resp.data, revision: '' }]
-    }
+    const resp = await quetzalClient.get<Revision[]>(`run/${functionName}/${infra.value}/tags`)
+    revisions = resp.data
+
     return revisions
   }
 

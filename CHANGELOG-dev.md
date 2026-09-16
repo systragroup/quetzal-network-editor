@@ -5,6 +5,7 @@
 
 ### changes
 * init rlinks length time speed (like links)
+* add loading on run page while tags are fetching. cannot launch simulation
 
 
 ## [8.2.k] (2026-09-04)
