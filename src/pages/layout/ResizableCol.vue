@@ -50,10 +50,23 @@ defineExpose({ toggle })
       @mousedown="startResize"
     >
       <div class="resize-grip" />
+      <div
+        class="resize-button"
+        @mousedown.stop
+        @click="toggle"
+      >
+        <v-icon
+          size="small"
+          color="secondarydark"
+        >
+          {{ show ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
+        </v-icon>
+      </div>
     </div>
 
     <!-- Right containter -->
     <div
+      class="container"
       :style="{ flexBasis: (100 - size) + '%' }"
     >
       <slot
@@ -99,6 +112,7 @@ defineExpose({ toggle })
 .resize-handle {
   width: 5px; /* larger hitbox */
   cursor: col-resize;
+  position:relative;
   display: flex;
   background-color:rgb(var(--v-theme-grey));
   justify-content: center;
@@ -118,6 +132,19 @@ defineExpose({ toggle })
 .resize-handle:hover .resize-grip {
   background-color:rgb(var(--v-theme-darkgrey));
   opacity: 1;
+}
+.resize-button {
+  position: absolute;
+  width: 25px;
+  height: 50px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(var(--v-theme-primarydark));
+  top:0;
+  transform: translate(15px, 0);
+  cursor: pointer;
 }
 
 </style>

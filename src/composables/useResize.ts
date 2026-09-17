@@ -7,10 +7,11 @@ export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<numbe
   const size = ref(0) // percent
   const toCollapse = ref(false)
   const smoothResize = ref(false)
-  const initialOffset = 2 // start at min+this
+  const initialSize = ref(0)
 
   onMounted(() => {
-    size.value = show.value ? minPercent.value + initialOffset : 0
+    initialSize.value = minPercent.value + 2 // +2%
+    size.value = show.value ? initialSize.value : 0
     toCollapse.value = !show.value
   })
 
@@ -46,10 +47,12 @@ export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<numbe
       collapse()
     } else {
       show.value = true
+      initialSize.value = size.value
     }
   }
   function toggle() {
     if (show.value) {
+      initialSize.value = size.value
       collapse()
     } else {
       expand()
@@ -59,7 +62,7 @@ export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<numbe
   function expand() {
     show.value = true
     smoothResize.value = true
-    size.value = minPercent.value + initialOffset
+    size.value = initialSize.value
 
     setTimeout(() => {
       smoothResize.value = false

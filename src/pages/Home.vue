@@ -8,7 +8,7 @@ import ODEditDialog from '@src/components/map/Dialog/ODEditDialog.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
-import { ref, onUnmounted, computed } from 'vue'
+import { ref, onUnmounted, computed, watch } from 'vue'
 import { useForm } from '@src/composables/UseForm'
 import LinksTable from '@src/components/map/table/LinksTable.vue'
 import ResizableRow from './layout/ResizableRow.vue'
@@ -34,7 +34,19 @@ const showLeftPanel = computed({
   set: (v: boolean) => store.showLeftPanel = v,
 })
 
-const showTable = ref(true)
+// TODO make this better. and elsewhere?
+const editorTrip = computed(() => linksStore.editorTrip)
+watch(editorTrip, (val) => {
+  if (val && !showTable.value) {
+    showTable.value = true
+    bottomRef.value.toggle()
+  } else if (!val && showTable.value) {
+    showTable.value = false
+    bottomRef.value.toggle()
+  }
+})
+const bottomRef = ref()
+const showTable = ref(false)
 
 </script>
 <template>
@@ -49,21 +61,11 @@ const showTable = ref(true)
           v-model="mode"
         />
       </template>
-      <template #right="{toggle}">
-        <div
-          class="floating-toggle"
-          @click="toggle"
-        >
-          <v-icon
-            size="small"
-            color="secondarydark"
-          >
-            {{ showLeftPanel ? 'fas fa-chevron-left' : 'fas fa-chevron-right' }}
-          </v-icon>
-        </div>
+      <template #right>
         <ResizableRow
+          ref="bottomRef"
           v-model="showTable"
-          :min-height-px="200"
+          :min-height-px="250"
         >
           <template #top>
             <Map
@@ -87,15 +89,5 @@ const showTable = ref(true)
   width:100%;
   height:100%;
 }
-.floating-toggle {
-  position: absolute;
-  width: 25px;
-  height: 50px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgb(var(--v-theme-primarydark));
-  cursor: pointer;
-}
+
 </style>

@@ -46,13 +46,24 @@ defineExpose({ toggle })
       />
     </div>
 
-    <!-- scroll bar -->
+    <!-- scroll bar with toggle-->
     <div
-
       class="resize-handle"
       @mousedown="startResize"
     >
       <div class="resize-grip" />
+      <div
+        class="resize-button"
+        @mousedown.stop
+        @click="toggle"
+      >
+        <v-icon
+          size="small"
+          color="secondarydark"
+        >
+          {{ show ? 'fas fa-chevron-down' : 'fas fa-chevron-up' }}
+        </v-icon>
+      </div>
     </div>
 
     <!-- bottom containter -->
@@ -103,6 +114,7 @@ defineExpose({ toggle })
 
 .resize-handle {
   height: 5px; /* larger hitbox */
+  position:relative;
   cursor: row-resize;
   display: flex;
   background-color:rgb(var(--v-theme-grey));
@@ -125,4 +137,17 @@ defineExpose({ toggle })
   opacity: 1;
 }
 
+.resize-button {
+  position: absolute;
+  width: 50px;
+  height: 25px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(var(--v-theme-primarydark));
+  left:0;
+  transform: translate(0%, -15px);
+  cursor: pointer;
+}
 </style>
