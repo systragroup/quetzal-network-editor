@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useLinksStore } from '@src/store/links'
 import { GeoJsonProperties } from '@src/types/geojson'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ItemSlotBase } from 'vuetify/lib/components/VDataTable/types'
 
 export interface DataTableHeaders {
@@ -34,10 +34,14 @@ const rowProps = (item: ItemSlotBase<GeoJsonProperties>) => {
     ondblclick: () => click(item),
   }
 }
+import { useHighlight } from '@src/composables/useHighlight'
+const { setHighlightData } = useHighlight()
 
-// watch(hoveringIndex, (index) => {
-//   console.log(index)
-// })
+watch(hoveringIndex, (index) => {
+  const features = links.value.features.filter(el => el.properties.index === index)
+  setHighlightData(features)
+})
+
 import { useForm } from '@src/composables/UseForm'
 const { openDialog } = useForm()
 

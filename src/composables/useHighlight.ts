@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { ref, onUnmounted, Ref } from 'vue'
+import { ref, onUnmounted, shallowRef } from 'vue'
 import chroma from 'chroma-js'
 import { GeoJSONSource, Map } from 'mapbox-gl'
 import { baseLineString, LineStringFeatures } from '@src/types/geojson'
@@ -9,6 +9,7 @@ const BLUE = '#00BFFF'
 const SOURCEID = 'highlightLink'
 
 const highlightTrip = ref<string | null>(null)
+const map = shallowRef<Map>()
 
 function _getColor(color: string | undefined) {
   if (!color) return YELLOW
@@ -17,6 +18,7 @@ function _getColor(color: string | undefined) {
 }
 
 export function useHighlight() {
+  //
   // add a Highlight layer on the map
   //
   function setHighlightTrip(val: string | null) {
@@ -24,31 +26,45 @@ export function useHighlight() {
     highlightTrip.value = val
   }
 
-  function setHighlightData(map: Ref<Map>, features: LineStringFeatures[]) {
-    if (!map) return
+  let currentColor = YELLOW
+
+  function setHighlightData(features: LineStringFeatures[]) {
+    if (!map?.value) return
     const source = map.value.getSource(SOURCEID) as GeoJSONSource
     if (!source) return
-    const highlightLinks = baseLineString()
-    highlightLinks.features = cloneDeep(features)
-    const highlightColor = _getColor(features[0]?.properties.route_color)
-    source.setData(highlightLinks)
-    map.value.setPaintProperty(SOURCEID, 'line-color', highlightColor)
-    map.value.setPaintProperty(`${SOURCEID}-arrows`, 'icon-color', highlightColor)
+    // hide if nothing. show if something
+    if (features.length == 0) {
+      map.value.setLayoutProperty(SOURCEID, 'visibility', 'none')
+      map.value.setLayoutProperty(`${SOURCEID}-arrows`, 'visibility', 'none')
+    } else {
+      const highlightLinks = baseLineString()
+      highlightLinks.features = cloneDeep(features)
+      source.setData(highlightLinks)
+      map.value.setLayoutProperty(SOURCEID, 'visibility', 'visible')
+      map.value.setLayoutProperty(`${SOURCEID}-arrows`, 'visibility', 'visible')
+      // set color if needed
+      const highlightColor = _getColor(features[0]?.properties.route_color)
+      if (highlightColor !== currentColor) {
+        currentColor = highlightColor
+        map.value.setPaintProperty(SOURCEID, 'line-color', highlightColor)
+        map.value.setPaintProperty(`${SOURCEID}-arrows`, 'icon-color', highlightColor)
+      }
+    }
   }
 
-  function _unmount(map: Ref<Map>) {
-    // this is added to onUnmounted() when we init. making sure we have a map.
+  onUnmounted(() => {
     setHighlightTrip(null)
+    if (!map.value) return
     if (map.value.getSource(SOURCEID)) return // layer already init on map
     map.value.removeLayer(`${SOURCEID}-arrows`)
     map.value.removeLayer(SOURCEID)
     map.value.removeSource(SOURCEID)
-  }
+  })
 
-  function initLayer(map: Ref<Map>) {
-    // we dont want to have a map ref in the composable as components without map call it (like side panel)
-    // the only way would be to have a copy of the map, but this not the best for performance
-    onUnmounted(() => _unmount(map))
+  function initLayer(mapRef: Map) {
+    // init the composable with the map. can be call with other component then
+    map.value = mapRef
+    // localMap.value = map
     if (map.value.getSource(SOURCEID)) return // layer already init on map
     map.value.addSource(SOURCEID, {
       type: 'geojson',

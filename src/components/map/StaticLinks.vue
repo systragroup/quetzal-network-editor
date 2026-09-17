@@ -188,10 +188,10 @@ function contextMenuClick(trip: string) {
 
 // Highlight
 const { highlightTrip, setHighlightTrip, setHighlightData, initLayer } = useHighlight()
-onMounted(() => initLayer(map))
+onMounted(() => initLayer(map.value))
 watch(highlightTrip, async (trip) => {
   const features = visibleLinks.value.features.filter(el => el.properties.trip_id === trip)
-  setHighlightData(map, features)
+  setHighlightData(features)
 })
 
 </script>
