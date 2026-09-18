@@ -10,6 +10,7 @@ import NumberInput from './NumberInput.vue'
 import BooleanInput from './BooleanInput.vue'
 import { baseUnits } from '@src/constants/properties'
 import { cloneDeep } from 'lodash'
+import { getPropertyName, hasCalculator } from '@src/utils/form.ts'
 
 interface Props {
   hints: Record<string, string>
@@ -74,20 +75,6 @@ const orderedForm = computed (() => {
   )
   return ordered
 })
-
-function getPropertyName(key: string): string {
-  // time, time#AM, time_r, time#AM_r
-  // return time
-  return key.split('#')[0].split('_r')[0]
-}
-
-function hasCalculator(key: string) {
-  const name = getPropertyName(key)
-  if (['length', 'speed', 'time'].includes(name))
-    return true
-  else
-    return false
-}
 
 defineExpose({
   validate,

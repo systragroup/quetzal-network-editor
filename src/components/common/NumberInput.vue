@@ -2,7 +2,7 @@
 import { AttributeUnits } from '@src/types/typesStore'
 import { isDefined } from '@src/utils/utils'
 import { isUndefined } from 'lodash'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 interface Props {
   displayUnits: AttributeUnits | undefined
@@ -42,10 +42,14 @@ const computedModel = computed({
   get: () => convert(model.value, props.baseUnits, props.displayUnits),
   set: (value: number) => model.value = convert(value, props.displayUnits, props.baseUnits),
 })
-
+const numberInput = ref()
+defineExpose({
+  validate: (...args: any[]) => numberInput.value?.validate(...args),
+})
 </script>
 <template>
   <v-number-input
+    ref="numberInput"
     v-bind="$attrs"
     v-model="computedModel"
     :suffix="displaySuffix"

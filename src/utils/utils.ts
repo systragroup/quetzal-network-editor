@@ -21,13 +21,13 @@ export function getGroupForm (features: GeoJsonFeatures[], lineAttributes: strin
   const form: GroupForm = {}
   lineAttributes.forEach(key => {
     const val = new Set(features.map(link => link.properties[key]))
-    const test: FormFormat = {
+    const data: FormFormat = {
       value: val.size > 1 ? undefined : [...val][0],
       disabled: uneditable.includes(key),
       show: true,
       placeholder: val.size > 1,
     }
-    form[key] = test
+    form[key] = data
   })
   return form
 }

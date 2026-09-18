@@ -17,8 +17,11 @@ const linksStore = useLinksStore()
 
 // const links = computed(() => linksStore.links)
 const links = computed(() => linksStore.editorLinks)
+
+const lineAttributes = computed(() => linksStore.lineAttributes)
+
 const headers = computed<DataTableHeaders[]>(() => {
-  return linksStore.lineAttributes.map(name => {
+  return lineAttributes.value.map(name => {
     return { key: name, title: name }
   })
 })
@@ -31,7 +34,7 @@ function offHover() { hoveringIndex.value = null }
 const rowProps = (item: ItemSlotBase<GeoJsonProperties>) => {
   return {
     onMouseenter: () => onHover(item),
-    ondblclick: () => click(item),
+    // ondblclick: () => click(item),
   }
 }
 import { useHighlight } from '@src/composables/useHighlight'
@@ -42,14 +45,16 @@ watch(hoveringIndex, (index) => {
   setHighlightData(features)
 })
 
-import { useForm } from '@src/composables/UseForm'
-const { openDialog } = useForm()
+// import { useForm } from '@src/composables/UseForm'
+// const { openDialog } = useForm()
 
-function click(item: ItemSlotBase<GeoJsonProperties>) {
-  const selectedIndex = item.item.index
-  openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
-}
+// function click(item: ItemSlotBase<GeoJsonProperties>) {
+//   const selectedIndex = item.item.index
+//   openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
+// }
 
+import TableEditor from './tableEditor.vue'
+const editing = ref<string | null>(null)
 </script>
 <template>
   <div class="table-container">
@@ -65,7 +70,20 @@ function click(item: ItemSlotBase<GeoJsonProperties>) {
       :row-props="rowProps"
       hover
       @mouseleave="offHover"
-    />
+    >
+      <template
+        v-for="key in lineAttributes"
+        :key
+        v-slot:[`item.${key}`]="{ item }"
+      >
+        <table-editor
+          v-model="editing"
+          :cell-key="item.index+key"
+          :item="item"
+          :prop-key="key"
+        />
+      </template>
+    </v-data-table-virtual>
   </div>
 </template>
 <style lang="scss" scoped>

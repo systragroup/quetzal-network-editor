@@ -16,13 +16,14 @@ import { rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultPropert
 import DialogHeader from './DialogHeader.vue'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { cloneDeep } from 'lodash'
+import { changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
 
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
-const { showDialog, action, selectedArr, changeLengthTimeSpeed } = useForm()
+const { showDialog, action, selectedArr } = useForm()
 
 const rlinks = computed(() => rlinksStore.rlinks)
 const lineAttributes = computed(() => rlinksStore.rlineAttributes)
@@ -55,9 +56,10 @@ const rules = computed(() => selectedArr.value.map(idx => {
   const prefix = idx.split('_')[0] + '_'
   return {
     index: [
-      (val: string) => ((val === idx) || (!usedIndex.value.has(val))) || $gettext('already exist'),
-      (val: string) => val.startsWith(prefix) || $gettext('must start with prefix %{prefix}', { prefix }),
-      () => { //  check that all indexes are differents (only needed for 1 of the form. done too all for simplicity)
+      RulesFactory.unique(idx, usedIndex.value),
+      RulesFactory.prefix(prefix),
+      //  check that all indexes are differents (only needed for 1 of the form. done too all for simplicity)
+      () => {
         const uniqueIndexes = new Set(editorForm.value.map(form => form.index?.value))
         return (uniqueIndexes.size === editorForm.value.length) || $gettext('indexes must be different')
       },

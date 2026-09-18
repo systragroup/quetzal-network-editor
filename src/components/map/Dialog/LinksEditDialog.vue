@@ -24,7 +24,8 @@ const linksStore = useLinksStore()
 import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
 import { AttributeTypes } from '@src/types/typesStore.ts'
-const { showDialog, action, selectedArr, lingering, changeLengthTimeSpeed } = useForm()
+import { changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
+const { showDialog, action, selectedArr, lingering } = useForm()
 
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
@@ -54,22 +55,23 @@ const displayUnits = computed(() => store.displayUnits)
 
 const formRef = ref()
 const initialHash = ref()
-const rulesConstant = ref({ trip_id: '', index: '', prefix: '' })
 const editorForm = ref<GroupForm>({})
 
 const showHint = ref(false)
 const hints: Dict = attributesHints
-const rules: Record<string, Rule[]> = {
-  trip_id: [
-    (val: string) => ((val === rulesConstant.value.trip_id) || (!tripList.value.has(val)))
-    || $gettext('already exist'),
-  ],
-  index: [
-    (val: string) => ((val === rulesConstant.value.index) || (!usedIndex.value.has(val)))
-    || $gettext('already exist'),
-    (val: string) => val.startsWith(rulesConstant.value.prefix)
-    || $gettext('must start with prefix %{prefix}', { prefix: rulesConstant.value.prefix }),
-  ],
+
+const rules = ref<Record<string, Rule[]> >({})
+
+function createRules(index: string, tripId: string) {
+  return {
+    trip_id: [
+      RulesFactory.unique(tripId, tripList.value),
+    ],
+    index: [
+      RulesFactory.unique(index, usedIndex.value),
+      RulesFactory.prefix(index ? index.split('_')[0] + '_' : ''),
+    ],
+  }
 }
 
 onMounted(() => {
@@ -84,11 +86,9 @@ function init() {
   createForm()
   initialHash.value = hash(JSON.stringify(editorForm.value))
   const index = cloneDeep(editorForm.value.index?.value)
-  rulesConstant.value = {
-    trip_id: cloneDeep(editorForm.value.trip_id?.value),
-    index: index,
-    prefix: index ? index.split('_')[0] + '_' : '',
-  }
+  const tripId = cloneDeep(editorForm.value.trip_id?.value)
+  rules.value = createRules(index, tripId)
+
   showHint.value = false
   showDeleteOption.value = false
 }
