@@ -8,12 +8,12 @@ import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
 import NumberInput from './NumberInput.vue'
 import BooleanInput from './BooleanInput.vue'
-import { baseUnits } from '@src/constants/properties'
 import { getPropertyName, hasCalculator } from '@src/utils/form.ts'
 
 interface Props {
   hints: Record<string, string>
-  displayUnits?: Record<string, AttributeUnits | undefined>
+  displayUnits?: Record<string, AttributeUnits>
+  units?: Record<string, AttributeUnits>
   types?: Record<string, AttributeTypes >
   attributesChoices?: Record<string, any[]>
   attributeNonDeletable: string[]
@@ -26,6 +26,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   hints: () => ({} as Record<string, string>),
   displayUnits: () => ({} as Record<string, AttributeUnits>),
+  units: () => ({} as Record<string, AttributeUnits>),
   types: () => ({} as Record<string, AttributeTypes>),
   attributesChoices: () => ({} as Record<string, any[]>),
   rules: () => ({} as Record<string, Rule[]>),
@@ -115,7 +116,7 @@ function componentType(type: AttributeTypes) {
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
             :disabled="item.disabled"
-            :base-units="baseUnits()[getPropertyName(key)]"
+            :base-units="units[getPropertyName(key)]"
             :display-units="displayUnits[getPropertyName(key)]"
             :suffix="displayUnits[getPropertyName(key)]"
             :rules="item.disabled?[]: rules[key]"

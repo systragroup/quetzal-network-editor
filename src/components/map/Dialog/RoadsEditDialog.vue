@@ -34,9 +34,10 @@ const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
 const editLinks = computed(() => action.value !== 'Edit rNode Info')
 
 const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
+
 const typesMap = computed(() => {
-  if (editLinks.value) return Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
-  else return Object.fromEntries(rlinksStore.nodesDefaultAttributes.map(el => [el.name, el.type]))
+  if (editLinks.value) return rlinksStore.linkTypes
+  else return rlinksStore.nodeTypes
 })
 
 const attributeNonDeletable = computed<string[]>(() => {
@@ -49,7 +50,11 @@ const usedIndex = computed<Set<string>>(() => {
   else return new Set(rlinksStore.rnodes.features.map(el => el.properties.index))
 })
 
-const displayUnits = computed(() => store.displayUnits)
+const baseUnits = computed(() => {
+  if (editLinks.value) return rlinksStore.linkUnits
+  else return rlinksStore.nodeUnits
+})
+const displayUnits = computed(() => Object.assign(baseUnits.value, store.displayUnits))
 
 const rules = computed(() => selectedArr.value.map(idx => {
   const prefix = idx.split('_')[0] + '_'
@@ -319,6 +324,7 @@ watchEffect(() => {
               :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
               :display-units="displayUnits"
+              :units="baseUnits"
               :rules="rules[idx]"
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"

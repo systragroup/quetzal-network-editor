@@ -136,7 +136,7 @@ export function changeLengthTimeSpeed (key: string, formData: GroupForm) {
   }
 }
 
-const unitFactor: Record<AttributeUnits, number> = {
+const unitFactor: Record<Exclude<AttributeUnits, undefined>, number> = {
   'sec': 1, // base
   'min': 60,
   'hour': 3600,
@@ -146,7 +146,7 @@ const unitFactor: Record<AttributeUnits, number> = {
   'km/h': 1, // base
 }
 
-export function convert(value: number | undefined, fromUnit: AttributeUnits | undefined, toUnit: AttributeUnits | undefined) {
+export function convert(value: number | undefined, fromUnit: AttributeUnits, toUnit: AttributeUnits) {
   // just return value if we dont have from and to units.
   if (isUndefined(value)) return value
   if (isUndefined(fromUnit)) return value

@@ -124,6 +124,7 @@ function ToggleDeleteOption () {
           :show-hint="showHint"
           :show-delete-option="showDeleteOption"
           :hints="hints"
+          :units="{}"
           :rules="rules"
           :types="typesMap"
 

@@ -216,14 +216,14 @@ export const useLinksStore = defineStore('links', {
       const { name, type } = payload
       // some values like departures are reserved and must be undefined (array).
       const castedType = (Object.hasOwn(reservedLinkProperties, name)) ? reservedLinkProperties[name] : type
-      this.linksDefaultAttributes.push({ name: name, type: castedType })
+      this.linksDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
     },
 
     addNodesPropertie (payload: NewAttribute) {
       const { name, type } = payload
       // some values like departures are reserved and must be undefined (array).
       const castedType = (Object.hasOwn(reservedNodesProperties, name)) ? reservedLinkProperties[name] : type
-      this.nodesDefaultAttributes.push({ name: name, type: castedType })
+      this.nodesDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
     },
 
     deleteLinksPropertie (name: string) {
@@ -1035,8 +1035,15 @@ export const useLinksStore = defineStore('links', {
       return linestring
     },
     // this return the attribute type, of undefined.
-    lineAttributes: (state) => state.linksDefaultAttributes.map(attr => attr.name),
-    nodeAttributes: (state) => state.nodesDefaultAttributes.map(attr => attr.name),
+    lineAttributes: (state) => state.linksDefaultAttributes.map(el => el.name),
+    nodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
+    linkTypes: (state) => Object.fromEntries(state.linksDefaultAttributes.map(el => [el.name, el.type])),
+    nodeTypes: (state) => Object.fromEntries(state.nodesDefaultAttributes.map(el => [el.name, el.type])),
+    linkUnits: (state) =>
+      Object.fromEntries(state.linksDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
+    nodeUnits: (state) =>
+      Object.fromEntries(state.nodesDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
+
     timeVariants: (state) => {
       const attrs = new Set(state.linksDefaultAttributes.map(attr => attr.name))
       const timeVariants = state.variantChoice.filter(v => attrs.has(`time${v}`) || attrs.has(`speed${v}`))

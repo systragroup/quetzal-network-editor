@@ -13,12 +13,14 @@ import { DataTableHeader } from 'vuetify'
 import TableEditor from './tableEditor.vue'
 
 const linksStore = useLinksStore()
+const store = useIndexStore()
+
 const links = computed(() => linksStore.editorLinks)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const tableItems = computed(() => links.value.features.map(el => el.properties))
+const baseUnits = computed(() => linksStore.linkUnits)
+const displayUnits = computed(() => Object.assign(baseUnits.value, store.displayUnits))
 
-const store = useIndexStore()
-const displayUnits = computed(() => store.displayUnits)
 // table header and data
 
 const headers = computed<DataTableHeader[]>(() => {
@@ -33,15 +35,15 @@ const headers = computed<DataTableHeader[]>(() => {
 
 // edition stuff
 
+const attributesChoices = computed(() => linksStore.linksAttributesChoices)
+
 const usedIndex = computed<Set<string>>(() => new Set(linksStore.linksIndexes))
 
 const disabled = ['a', 'b', 'length', 'link_sequence', 'trip_id', 'headway', 'anchors', 'route_id', 'agency_id',
   'route_short_name', 'departures', 'arrivals', 'route_long_name', 'route_type', 'road_link_list',
 ]
 
-const typesMap = computed(() => {
-  return Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
-})
+const typesMap = computed(() => linksStore.linkTypes)
 
 function createRules(properties: GeoJsonProperties): RulesRecord {
   const index: string = properties.index
@@ -102,7 +104,10 @@ watch(hoveringIndex, (index) => {
           :disabled="disabled"
           :create-rules="createRules"
           :types="typesMap"
+          :units="baseUnits"
           :display-units="displayUnits"
+          :attributes-choices="attributesChoices"
+
           @confirm="applyChanges"
         />
       </template>

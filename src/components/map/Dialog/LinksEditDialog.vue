@@ -13,7 +13,6 @@ import { useGettext } from 'vue3-gettext'
 import { GroupForm, Rule } from '@src/types/components'
 import DialogHeader from './DialogHeader.vue'
 import { isScheduleTrip, hash } from '@src/utils/utils'
-import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -37,13 +36,18 @@ const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 const editLinks = computed(() => action.value !== 'Edit Node Info')
 
 const typesMap = computed(() => {
-  if (editLinks.value) return Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
-  else return Object.fromEntries(linksStore.nodesDefaultAttributes.map(el => [el.name, el.type]))
+  if (editLinks.value) return linksStore.linkTypes
+  else return linksStore.nodeTypes
 })
 
 const attributeNonDeletable = computed<string[]>(() => {
-  if (editLinks.value) return linksDefaultProperties.map(el => el.name)
-  else return nodesDefaultProperties.map(el => el.name)
+  if (editLinks.value) return linksStore.lineAttributes
+  else return linksStore.nodeAttributes
+})
+
+const baseUnits = computed(() => {
+  if (editLinks.value) return linksStore.linkUnits
+  else return linksStore.nodeUnits
 })
 
 const usedIndex = computed<Set<string>>(() => {
@@ -51,7 +55,7 @@ const usedIndex = computed<Set<string>>(() => {
   else return new Set(linksStore.nodesIndexes)
 })
 
-const displayUnits = computed(() => store.displayUnits)
+const displayUnits = computed(() => Object.assign(baseUnits.value, store.displayUnits))
 
 const formRef = ref()
 const initialHash = ref()
@@ -324,6 +328,7 @@ async function handleSimpleDialog(response: boolean) {
           :show-delete-option="showDeleteOption"
           :hints="hints"
           :display-units="displayUnits"
+          :units="baseUnits"
           :rules="rules"
           :attribute-non-deletable="attributeNonDeletable"
           :attributes-choices="attributesChoices"

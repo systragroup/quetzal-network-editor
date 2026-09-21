@@ -7,20 +7,23 @@ import BooleanInput from '@src/components/common/BooleanInput.vue'
 import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import { changeLengthTimeSpeed, convert, getForm, getPropertyName, getRules, hasCalculator } from '@src/utils/form'
 import { VTextField } from 'vuetify/lib/components'
-import { baseUnits } from '@src/constants/properties'
+import MenuSelector from '@src/components/utils/MenuSelector.vue'
+import ColorPicker from '@src/components/utils/ColorPicker.vue'
 
 interface Props {
   item: GeoJsonProperties
   index: string
   columns: string[]
   disabled: string[]
-  types: Record<string, AttributeTypes >
-  displayUnits: Record<string, AttributeUnits | undefined>
+  types: Record<string, AttributeTypes>
+  units: Record<string, AttributeUnits>
+  displayUnits: Record<string, AttributeUnits>
+  attributesChoices: Record<string, any[]>
   createRules: (_: GeoJsonProperties) => RulesRecord
 }
 
 const props = defineProps<Props>()
-const { item, columns, disabled, index, displayUnits } = toRefs(props)
+const { item, columns, disabled, index } = toRefs(props)
 const emits = defineEmits(['confirm'])
 const selectedIndex = defineModel<string | null>() // used to only show 1 row at the time
 
@@ -67,8 +70,8 @@ function componentType(type: AttributeTypes) {
 // convert values if needed
 function convertValue(value: unknown, propKey: string) {
   if (typeof (value) !== 'number') return value
-  const from = baseUnits()[getPropertyName(propKey)]
-  const to = displayUnits.value[getPropertyName(propKey)]
+  const from = props.units[getPropertyName(propKey)]
+  const to = props.displayUnits[getPropertyName(propKey)]
   return convert(value, from, to)
 }
 
@@ -99,13 +102,32 @@ function convertValue(value: unknown, propKey: string) {
         :rules="getRules(rules[propKey])"
         control-variant="hidden"
         variant="underlined"
-        :base-units="baseUnits()[getPropertyName(propKey)]"
+        :base-units="units[getPropertyName(propKey)]"
         :display-units="displayUnits[getPropertyName(propKey)]"
         :suffix="null"
         :precision="null"
         :prepend-inner-icon="hasCalculator(getPropertyName(propKey)) ? 'fas fa-calculator' : '' "
         @update:model-value="change(propKey)"
-      />
+      >
+        <template
+          v-if="propKey==='route_color'"
+          v-slot:append-inner
+        >
+          <ColorPicker
+            v-model:pcolor="editorForm[propKey].value"
+          />
+        </template>
+        <template
+          v-else-if="Object.keys(attributesChoices).includes(propKey)"
+          v-slot:append-inner
+        >
+          <MenuSelector
+            v-model="editorForm[propKey].value"
+            :items="attributesChoices[propKey]"
+            size="small"
+          />
+        </template>
+      </component>
 
       <span
         v-else

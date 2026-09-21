@@ -78,7 +78,7 @@ export const useODStore = defineStore('od', {
       const newProps = getDifference(properties, this.layerAttributes)
       newProps.forEach(prop => {
         const type = getPropertyType(this.layer, prop)
-        this.defaultAttributes.push({ name: prop, type: type })
+        this.defaultAttributes.push({ name: prop, type: type, unit: undefined })
       })
 
       this.selectedFilter = 'name'
@@ -163,7 +163,7 @@ export const useODStore = defineStore('od', {
       const { name, type } = payload
       this.layer.features.map(link => link.properties[name] = undefined)
       this.visibleLayer.features.map(link => link.properties[name] = undefined)
-      this.defaultAttributes.push({ name: name, type: type })
+      this.defaultAttributes.push({ name: name, type: type, unit: undefined })
     },
     deletePropertie (name: string) {
       // when a link property is deleted

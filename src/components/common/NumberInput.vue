@@ -5,8 +5,8 @@ import { isDefined } from '@src/utils/utils'
 import { computed, ref } from 'vue'
 
 interface Props {
-  displayUnits: AttributeUnits | undefined
-  baseUnits: AttributeUnits | undefined // could use suffix and not pass a units props... but would be more confusing
+  displayUnits: AttributeUnits
+  baseUnits: AttributeUnits // could use suffix and not pass a units props... but would be more confusing
   suffix?: string | null // Important! this remove suffix from v-bind="$attrs". we change suffix in this component.
 }
 const props = defineProps<Props>()

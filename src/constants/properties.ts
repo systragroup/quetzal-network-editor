@@ -11,10 +11,10 @@ export const linksDefaultProperties: Attributes[] = [
   { name: 'route_short_name', type: 'String', value: 'Q1' },
   { name: 'route_type', type: 'String', value: 'quenedi' },
   { name: 'route_color', type: 'String', value: '2196F3' },
-  { name: 'length', type: 'Number' },
-  { name: 'time', type: 'Number', value: 1 },
-  { name: 'speed', type: 'Number', value: 20 },
-  { name: 'headway', type: 'Number', value: 600 },
+  { name: 'length', type: 'Number', unit: 'm' },
+  { name: 'time', type: 'Number', value: 1, unit: 'sec' },
+  { name: 'speed', type: 'Number', value: 20, unit: 'km/h' },
+  { name: 'headway', type: 'Number', value: 600, unit: 'sec' },
   { name: 'route_width', type: 'Number', value: 3 },
   { name: 'pickup_type', type: 'Number', value: 0 },
   { name: 'drop_off_type', type: 'Number', value: 0 },
@@ -42,9 +42,9 @@ export const rlinksDefaultProperties: Attributes[] = [
   { name: 'b', type: 'String' },
   { name: 'route_color', type: 'String', value: '2196F3' },
   { name: 'route_width', type: 'Number', value: 1 },
-  { name: 'length', type: 'Number' },
-  { name: 'time', type: 'Number', value: 1 },
-  { name: 'speed', type: 'Number', value: 20 },
+  { name: 'length', type: 'Number', unit: 'm' },
+  { name: 'time', type: 'Number', value: 1, unit: 'sec' },
+  { name: 'speed', type: 'Number', value: 20, unit: 'km/h' },
   { name: 'highway', type: 'String', value: 'quenedi' },
   { name: 'oneway', type: 'String', value: '0' },
 ]
@@ -85,15 +85,6 @@ export const ODDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
   { name: 'name', type: 'String' },
 ]
-
-export const baseUnits = (): Record<string, AttributeUnits> => {
-  return {
-    headway: 'sec',
-    time: 'sec',
-    length: 'm',
-    speed: 'km/h',
-  }
-}
 
 export const ptDefaultAttributesChoices: AttributesChoice = { pickup_type: [0, 1, 2, 3], drop_off_type: [0, 1, 2, 3] }
 export const roadDefaultAttributesChoices: AttributesChoice = { oneway: ['0', '1'] }
