@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 // 3 states. true, false and undefined.
 // if not: undefined (may happen) will show as false, but exported as undefined
@@ -17,10 +17,16 @@ const computedModel = computed({
     else model.value = false
   },
 })
+const componentRef = ref()
+defineExpose({
+  validate: () => componentRef.value?.validate(),
+  select: () => componentRef.value?.select(),
+})
 
 </script>
 <template>
   <v-text-field
+    ref="componentRef"
     v-bind="$attrs"
     v-model="computedModel"
     :append-inner-icon="model === undefined ? 'far fa-square-minus': model ? 'far fa-square-check' : 'far fa-square'"

@@ -45,16 +45,7 @@ watch(hoveringIndex, (index) => {
   setHighlightData(features)
 })
 
-// import { useForm } from '@src/composables/UseForm'
-// const { openDialog } = useForm()
-
-// function click(item: ItemSlotBase<GeoJsonProperties>) {
-//   const selectedIndex = item.item.index
-//   openDialog({ action: 'Edit Link Info', selectedArr: [selectedIndex], lingering: true, type: 'pt' })
-// }
-
 import TableEditor from './tableEditor.vue'
-const editing = ref<string | null>(null)
 </script>
 <template>
   <div class="table-container">
@@ -71,16 +62,10 @@ const editing = ref<string | null>(null)
       hover
       @mouseleave="offHover"
     >
-      <template
-        v-for="key in lineAttributes"
-        :key
-        v-slot:[`item.${key}`]="{ item }"
-      >
+      <template #item="{ item }">
         <table-editor
-          v-model="editing"
-          :cell-key="item.index+key"
           :item="item"
-          :prop-key="key"
+          :columns="lineAttributes"
         />
       </template>
     </v-data-table-virtual>

@@ -44,7 +44,8 @@ const computedModel = computed({
 })
 const numberInput = ref()
 defineExpose({
-  validate: (...args: any[]) => numberInput.value?.validate(...args),
+  validate: () => numberInput.value?.validate(),
+  select: () => numberInput.value?.select(),
 })
 </script>
 <template>
