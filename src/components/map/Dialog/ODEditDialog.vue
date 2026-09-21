@@ -6,10 +6,10 @@ import attributesHints from '@constants/hints'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
-import { getGroupForm } from '@src/utils/utils'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { AttributeTypes } from '@src/types/typesStore'
+import { getGroupForm } from '@src/utils/form'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>

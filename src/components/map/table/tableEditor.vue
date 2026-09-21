@@ -1,61 +1,40 @@
 <script setup lang="ts">
-import { useLinksStore } from '@src/store/links'
 import { GeoJsonProperties } from '@src/types/geojson'
 import { computed, nextTick, ref, toRefs } from 'vue'
-import { FormFormat, GroupForm, Rule } from '@src/types/components'
+import { GroupForm, RulesRecord } from '@src/types/components'
 import NumberInput from '@src/components/common/NumberInput.vue'
 import BooleanInput from '@src/components/common/BooleanInput.vue'
 import { AttributeTypes } from '@src/types/typesStore'
-import { changeLengthTimeSpeed, getRules, hasCalculator, RulesFactory } from '@src/utils/form'
+import { changeLengthTimeSpeed, getForm, getRules, hasCalculator } from '@src/utils/form'
 import { VTextField } from 'vuetify/lib/components'
 
 interface Props {
   item: GeoJsonProperties
   columns: string[]
+  disabled: string[]
+  types: Record<string, AttributeTypes >
+  createRules: (_: GeoJsonProperties) => RulesRecord
 }
 
 const props = defineProps<Props>()
-const { item, columns } = toRefs(props)
-
-const editing = defineModel<boolean>()
-
-const linksStore = useLinksStore()
-// const tripSet = computed(() => new Set(linksStore.tripList))
+const { item, columns, disabled } = toRefs(props)
+const emits = defineEmits(['confirm'])
+const selectedIndex = defineModel<string | null>()
+const index = computed(() => item.value.index)
 
 const inputRefs = ref<VTextField[]>([])
 
-const selectedIndex = ref<string>('')
 const editorForm = ref<GroupForm>({})
 
-const usedIndex = computed<Set<string>>(() => new Set(linksStore.linksIndexes))
-const rules = ref<Record<string, Rule[]>>({})
-function createRules(index: string) {
-  return {
-    index: [
-      RulesFactory.unique(index, usedIndex.value),
-      RulesFactory.prefix(index ? index.split('_')[0] + '_' : ''),
-    ],
-    route_width: ['largerThanZero'],
-  }
-}
+const rules = ref<RulesRecord>({})
+
 async function startEdit(clickedKey: string) {
-  if (editing.value) return
-  editing.value = true
+  if (showEdition.value) return
+  editorForm.value = getForm(item.value, columns.value, disabled.value)
   selectedIndex.value = item.value.index
-  editorForm.value = {}
-  Object.keys(item.value).forEach((key: string) => {
-    const data: FormFormat = {
-      value: item.value[key],
-      disabled: isDisabled(key),
-      show: true,
-      placeholder: false,
-    }
-    editorForm.value[key] = data
-  })
 
-  rules.value = createRules(selectedIndex.value)
+  rules.value = props.createRules(item.value)
 
-  // focus on clicked input
   await nextTick()
   const idx = columns.value.indexOf(clickedKey)
   inputRefs.value[idx].select()
@@ -71,14 +50,13 @@ async function saveEdit() {
   const valid = errors.length == 0
   if (valid) {
     // Commit
-    // changeLengthTimeSpeed(propKey.value, editorForm.value)
-    linksStore.editLinkInfo({ selectedIndex: selectedIndex.value, info: editorForm.value })
-    editing.value = false
+    emits('confirm', { selectedIndex: selectedIndex.value, info: editorForm.value })
+    selectedIndex.value = null
   }
 }
 
 function cancelEdit() {
-  editing.value = false
+  selectedIndex.value = null
 }
 function componentType(type: AttributeTypes) {
   if (type === 'Number') return NumberInput
@@ -86,24 +64,15 @@ function componentType(type: AttributeTypes) {
   else return 'v-text-field'
 }
 
-const typesMap = computed(() => {
-  return Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
-})
-
-function isDisabled(attr: string) {
-  const disabled = new Set(['a', 'b', 'length', 'link_sequence', 'trip_id', 'headway', 'anchors',
-    'departures', 'arrivals', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
-  ])
-
-  return disabled.has(attr)
-}
+const showEdition = computed(() => selectedIndex.value === index.value)
 
 </script>
 <template>
   <!-- row -->
+  <!-- tabindex make the keyup work when typing on the row-->
   <tr
     tabindex="0"
-    :class="{'selected':editing}"
+    :class="{'selected':showEdition}"
     @keyup.enter="saveEdit"
     @keyup.esc="cancelEdit"
   >
@@ -115,8 +84,8 @@ function isDisabled(attr: string) {
       @dblclick="startEdit(propKey)"
     >
       <component
-        :is="componentType(typesMap[propKey])"
-        v-if="editing"
+        :is="componentType(types[propKey])"
+        v-if="showEdition"
         ref="inputRefs"
         v-model="editorForm[propKey].value"
         :color="'primary'"

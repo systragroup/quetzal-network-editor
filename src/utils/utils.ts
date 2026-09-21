@@ -1,4 +1,3 @@
-import { FormData, FormFormat, FormObject, GroupForm } from '@src/types/components'
 import { GeoJson, GeoJsonFeatures, LineStringGeoJson, PointGeoJson } from '@src/types/geojson'
 import { createHash } from 'sha256-uint8array'
 
@@ -16,56 +15,6 @@ export function setsAreEqual<T>(a: Set<T>, b: Set<T>) {
 }
 
 // Links Used in all
-
-export function getGroupForm (features: GeoJsonFeatures[], lineAttributes: string[], uneditable: string[]) {
-  const form: GroupForm = {}
-  lineAttributes.forEach(key => {
-    const val = new Set(features.map(link => link.properties[key]))
-    const data: FormFormat = {
-      value: val.size > 1 ? undefined : [...val][0],
-      disabled: uneditable.includes(key),
-      show: true,
-      placeholder: val.size > 1,
-    }
-    form[key] = data
-  })
-  return form
-}
-
-export function getForm (feature: GeoJsonFeatures, lineAttributes: string[], uneditable: string[]) {
-  // filter properties to only the one that are editable.
-  const form: GroupForm = {}
-  lineAttributes.forEach(key => {
-    form[key] = {
-      value: feature.properties[key],
-      disabled: uneditable.includes(key),
-      show: true,
-      placeholder: false,
-    }
-  })
-  return form
-}
-
-export function getModifiedKeys(form: GroupForm) {
-  // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
-  return Object.keys(form).filter(key => {
-    if (!form[key].placeholder) {
-      return true
-    } else if (form[key].value !== undefined && form[key].value !== null && form[key].value !== '') {
-      return true
-    }
-  },
-  )
-}
-export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, any> {
-  return properties.reduce(
-    (dict: Record<string, any>, key: string) => {
-      dict[key] = groupInfo[key].value
-      return dict
-    },
-    {},
-  )
-}
 
 export function isScheduleTrip(link: GeoJsonFeatures | undefined) {
   if (link == undefined) { return false }
@@ -236,10 +185,4 @@ export function arrayMinMax(arr: number[]) {
 
 export function numericSort(a: string, b: string) {
   return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })
-}
-
-export function formDataToRecord(formData: FormData[]): FormObject {
-  const obj: FormObject = {}
-  formData.forEach(el => obj[el.key] = el)
-  return obj
 }

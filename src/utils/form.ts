@@ -1,5 +1,6 @@
-import { GroupForm, Rule } from '@src/types/components'
-import { round } from 'lodash'
+import { FormData, FormObject, GroupForm, Rule } from '@src/types/components'
+import { round } from './utils'
+import { GeoJsonFeatures, GeoJsonProperties } from '@src/types/geojson'
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 const $gettext = (s: string, _p0?: any) => s
@@ -22,13 +23,68 @@ export class RulesFactory {
   }
 
   static prefix(prefix: string): Rule {
-    return (v: string) => v.startsWith(prefix) || $gettext('must start with prefix %{p}', { p: prefix })
+    return (v: string) => v.startsWith(prefix) || $gettext(`must start with prefix ${prefix}`)
   }
 }
 
 //
 // network specific form utils
 //
+
+export function getForm(property: GeoJsonProperties, lineAttributes: string[], disabled: string[]) {
+  const form: GroupForm = {}
+  lineAttributes.forEach(key => {
+    form[key] = {
+      value: property[key],
+      disabled: disabled.includes(getPropertyName(key)),
+      show: true,
+      placeholder: false,
+    }
+  })
+  return form
+}
+
+export function getGroupForm(features: GeoJsonFeatures[], lineAttributes: string[], uneditable: string[]) {
+  const form: GroupForm = {}
+  lineAttributes.forEach(key => {
+    const val = new Set(features.map(link => link.properties[key]))
+    form[key] = {
+      value: val.size > 1 ? undefined : [...val][0],
+      disabled: uneditable.includes(key),
+      show: true,
+      placeholder: val.size > 1,
+    }
+  })
+  return form
+}
+
+export function getModifiedKeys(form: GroupForm) {
+  // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
+  return Object.keys(form).filter(key => {
+    if (!form[key].placeholder) {
+      return true
+    } else if (form[key].value !== undefined && form[key].value !== null && form[key].value !== '') {
+      return true
+    }
+  },
+  )
+}
+
+export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, any> {
+  return properties.reduce(
+    (dict: Record<string, any>, key: string) => {
+      dict[key] = groupInfo[key].value
+      return dict
+    },
+    {},
+  )
+}
+
+export function formDataToRecord(formData: FormData[]): FormObject {
+  const obj: FormObject = {}
+  formData.forEach(el => obj[el.key] = el)
+  return obj
+}
 
 export function parseKey(key: string): [string, string] {
   // time, time#AM, time_r, time#AM_r.

@@ -6,8 +6,9 @@ import { FormData } from '@src/types/components.ts'
 import { useGettext } from 'vue3-gettext'
 import { PARAM_TYPES, SingleParam } from '@src/types/typesStore.ts'
 import BaseDialog from '../utils/BaseDialog.vue'
-import { formDataToRecord, isDefined } from '@src/utils/utils.ts'
+import { isDefined } from '@src/utils/utils.ts'
 import { cloneDeep } from 'lodash'
+import { formDataToRecord } from '@src/utils/form.ts'
 const { $gettext } = useGettext()
 
 interface Props {

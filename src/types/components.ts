@@ -11,6 +11,7 @@ export type GroupForm = Record<string, FormFormat>
 
 type RuleFunction = (_: string) => true | string
 export type Rule = string | RuleFunction
+export type RulesRecord = Record<string, Rule[]>
 
 export type FormType = 'number' | 'string' | 'boolean' | 'select' | 'time' | 'combo'
 

@@ -5,7 +5,6 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
   hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage,
-  getModifiedKeys,
   isUndefined } from '@src/utils/utils'
 import { simplifyGeometry } from '@src/utils/spatial'
 import { cloneDeep } from 'lodash'
@@ -46,6 +45,7 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
+import { getModifiedKeys } from '@src/utils/form'
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({

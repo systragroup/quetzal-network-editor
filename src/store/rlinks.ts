@@ -4,7 +4,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer } from '@src/utils/serializer'
-import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
+import { IndexAreDifferent, getDifference,
   getUnusedNodes,
   setsAreEqual } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
@@ -32,6 +32,7 @@ import { addReverseProperties, deleteReverseProperties, normalizeToString } from
 import { nextTick, toRaw } from 'vue'
 const $gettext = (s: string) => s
 import { useIndexStore } from '.'
+import { getModifiedKeys, groupFormToDict } from '@src/utils/form'
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),

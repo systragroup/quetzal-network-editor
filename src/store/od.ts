@@ -3,13 +3,14 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer, CRSis4326 } from '@src/utils/serializer'
-import { getModifiedKeys, getDifference, IndexAreDifferent } from '@src/utils/utils'
+import { getDifference, IndexAreDifferent } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewAttribute, NewODPayload, ODStore } from '@src/types/typesStore'
 import { baseLineString, basePoint, createPointFeature, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
 import { defaultIndexingMethod, ODDefaultProperties } from '@src/constants/properties'
 import { getPropertyType, getUUID, listAllProperties } from '@src/utils/network'
+import { getModifiedKeys } from '@src/utils/form'
 const $gettext = (s: string) => s
 
 export const useODStore = defineStore('od', {

@@ -7,7 +7,6 @@ import attributesHints from '@constants/hints'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
-import { getForm, getGroupForm } from '@src/utils/utils'
 import { getDirection } from '@src/utils/spatial'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
@@ -16,7 +15,7 @@ import { rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultPropert
 import DialogHeader from './DialogHeader.vue'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { cloneDeep } from 'lodash'
-import { changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
+import { changeLengthTimeSpeed, getForm, getGroupForm, RulesFactory } from '@src/utils/form.ts'
 const { $gettext } = useGettext()
 
 type Dict = Record<string, string>
@@ -110,10 +109,10 @@ function createForm() {
       editorForm.value = []
       selectedArr.value.forEach(index => {
         const feature = features.filter(link => link.properties.index === index)[0]
-        const form = getForm(feature, lineAttributes.value, disabled)
+        const form = getForm(feature.properties, lineAttributes.value, disabled)
         linkDir.value.push(getDirection(feature.geometry.coordinates))
         if (feature.properties.oneway === '0') {
-          const rform = getForm(feature, reversedAttributes.value, disabled)
+          const rform = getForm(feature.properties, reversedAttributes.value, disabled)
           // group together both direction
           reversedAttributes.value.forEach(key => {
             rform[key].grouped = true
