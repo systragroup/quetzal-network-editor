@@ -23,7 +23,7 @@ import { FileFormat, ImportPoly, IndexStore,
   ModelConfig,
   Notification, OtherFiles, ProjectInfo, SettingsPayload, StepPayload, Style } from '@src/types/typesStore.js'
 import { migrateStyle } from '@src/migrations/style.js'
-import { defaultModelConfig } from '@src/constants/properties.js'
+import { defaultModelConfig, baseUnits } from '@src/constants/properties.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -596,7 +596,7 @@ export const useIndexStore = defineStore('index', {
         && state.styles.length === 0)
     },
     hasDocs: (state) => state.docFiles.length > 0,
-    displayUnits: (state) => state.modelConfig.units || {},
+    displayUnits: (state) => Object.assign(baseUnits(), state.modelConfig.units),
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()

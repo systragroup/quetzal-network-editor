@@ -1,34 +1,18 @@
 <script setup lang="ts">
 import { AttributeUnits } from '@src/types/typesStore'
+import { convert } from '@src/utils/form'
 import { isDefined } from '@src/utils/utils'
-import { isUndefined } from 'lodash'
 import { computed, ref } from 'vue'
 
 interface Props {
   displayUnits: AttributeUnits | undefined
   baseUnits: AttributeUnits | undefined // could use suffix and not pass a units props... but would be more confusing
-  suffix?: string // Important! this remove suffix from v-bind="$attrs". we change suffix in this component.
+  suffix?: string | null // Important! this remove suffix from v-bind="$attrs". we change suffix in this component.
 }
 const props = defineProps<Props>()
 
-const unitFactor: Record<AttributeUnits, number> = {
-  'sec': 1, // base
-  'min': 60,
-  'hour': 3600,
-  'm': 1, // base
-  'km': 1000,
-  'km/h': 1, // base
-}
-
-function convert(value: number | undefined, fromUnit: AttributeUnits | undefined, toUnit: AttributeUnits | undefined) {
-  // just return value if we dont have from and to units.
-  if (isUndefined(value)) return value
-  if (isUndefined(fromUnit)) return value
-  if (isUndefined(toUnit)) return value
-  return value * unitFactor[fromUnit] / unitFactor[toUnit]
-}
-
 const displaySuffix = computed(() => {
+  if (props.suffix === null) return undefined
   if (isDefined(props.displayUnits) && isDefined(props.baseUnits) && (props.baseUnits !== props.displayUnits)) {
     return `${props.displayUnits} (${model.value} ${props.baseUnits}) `
   } else {

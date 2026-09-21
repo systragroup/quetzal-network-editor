@@ -57,3 +57,11 @@ export type TimeString = string // HH:MM:SS
 export type IsoTimeString = string // 2025-03-14T15:28:54Z
 
 export type IsoTimeStringTZ = string // 2024-12-13T08:00:00-04:00'
+
+export interface DataTableHeaders {
+  key: string
+  title: string
+  parser?: (_value: any) => any
+  width?: string
+  sortable?: boolean
+}

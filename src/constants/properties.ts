@@ -86,11 +86,13 @@ export const ODDefaultProperties: Attributes[] = [
   { name: 'name', type: 'String' },
 ]
 
-export const baseUnits: Record<string, AttributeUnits> = {
-  headway: 'sec',
-  time: 'sec',
-  length: 'm',
-  speed: 'km/h',
+export const baseUnits = (): Record<string, AttributeUnits> => {
+  return {
+    headway: 'sec',
+    time: 'sec',
+    length: 'm',
+    speed: 'km/h',
+  }
 }
 
 export const ptDefaultAttributesChoices: AttributesChoice = { pickup_type: [0, 1, 2, 3], drop_off_type: [0, 1, 2, 3] }

@@ -1,6 +1,8 @@
 import { FormData, FormObject, GroupForm, Rule } from '@src/types/components'
 import { round } from './utils'
 import { GeoJsonFeatures, GeoJsonProperties } from '@src/types/geojson'
+import { AttributeUnits } from '@src/types/typesStore'
+import { isUndefined } from 'lodash'
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 const $gettext = (s: string, _p0?: any) => s
@@ -132,4 +134,22 @@ export function changeLengthTimeSpeed (key: string, formData: GroupForm) {
       }
       break
   }
+}
+
+const unitFactor: Record<AttributeUnits, number> = {
+  'sec': 1, // base
+  'min': 60,
+  'hour': 3600,
+  'm': 1, // base
+  'km': 1000,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  'km/h': 1, // base
+}
+
+export function convert(value: number | undefined, fromUnit: AttributeUnits | undefined, toUnit: AttributeUnits | undefined) {
+  // just return value if we dont have from and to units.
+  if (isUndefined(value)) return value
+  if (isUndefined(fromUnit)) return value
+  if (isUndefined(toUnit)) return value
+  return value * unitFactor[fromUnit] / unitFactor[toUnit]
 }

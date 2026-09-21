@@ -9,7 +9,6 @@ import MenuSelector from '../utils/MenuSelector.vue'
 import NumberInput from './NumberInput.vue'
 import BooleanInput from './BooleanInput.vue'
 import { baseUnits } from '@src/constants/properties'
-import { cloneDeep } from 'lodash'
 import { getPropertyName, hasCalculator } from '@src/utils/form.ts'
 
 interface Props {
@@ -44,8 +43,6 @@ function deleteField(key: string) {
   emits('deleteField', key)
 }
 const shake = ref(false)
-
-const suffix = computed(() => Object.assign(cloneDeep(baseUnits), displayUnits.value))
 
 const formRef = ref()
 async function validate() {
@@ -118,9 +115,9 @@ function componentType(type: AttributeTypes) {
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
             :disabled="item.disabled"
-            :base-units="baseUnits[getPropertyName(key)]"
+            :base-units="baseUnits()[getPropertyName(key)]"
             :display-units="displayUnits[getPropertyName(key)]"
-            :suffix="suffix[getPropertyName(key)]"
+            :suffix="displayUnits[getPropertyName(key)]"
             :rules="item.disabled?[]: rules[key]"
             :precision="null"
             :prepend-inner-icon="hasCalculator(key) ? 'fas fa-calculator' : '' "

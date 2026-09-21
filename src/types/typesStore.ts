@@ -55,6 +55,8 @@ export interface ModelConfig {
   units?: Record<string, AttributeUnits>
 }
 
+export type AttributeUnits = 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'
+
 export type SpeedTimeMethod = 'speed' | 'time'
 export type IndexingMethod = 'uuid' | 'int'
 
@@ -226,7 +228,6 @@ export interface SchedulePayload {
 }
 
 export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined
-export type AttributeUnits = 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'
 
 export interface Attributes {
   name: string
