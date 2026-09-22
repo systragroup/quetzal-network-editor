@@ -8,7 +8,7 @@ import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import { changeLengthTimeSpeed, convert, getForm, getPropertyName, getRules, hasCalculator } from '@src/utils/form'
 import { VTextField } from 'vuetify/lib/components'
 import MenuSelector from '@src/components/utils/MenuSelector.vue'
-import ColorPicker from '@src/components/utils/ColorPicker.vue'
+import ColorInput from '@src/components/common/ColorInput.vue'
 
 interface Props {
   item: GeoJsonProperties
@@ -24,7 +24,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const { item, columns, disabled, index } = toRefs(props)
-const emits = defineEmits(['confirm'])
+const emits = defineEmits(['confirm', 'hover'])
 const selectedIndex = defineModel<string | null>() // used to only show 1 row at the time
 
 const inputRefs = ref<VTextField[]>([])
@@ -36,7 +36,7 @@ const showEdition = computed(() => selectedIndex.value === index.value)
 async function startEdit(clickedKey: string) {
   if (showEdition.value) return
   editorForm.value = getForm(item.value, columns.value, disabled.value)
-  selectedIndex.value = item.value.index
+  selectedIndex.value = index.value
   rules.value = props.createRules(item.value)
   await nextTick()
   const idx = columns.value.indexOf(clickedKey)
@@ -64,6 +64,7 @@ function cancelEdit() {
 function componentType(type: AttributeTypes) {
   if (type === 'Number') return NumberInput
   if (type === 'Boolean') return BooleanInput
+  if (type === 'Color') return ColorInput
   else return 'v-text-field'
 }
 
@@ -84,6 +85,7 @@ function convertValue(value: unknown, propKey: string) {
     :class="{'selected':showEdition}"
     @keyup.enter="saveEdit"
     @keyup.esc="cancelEdit"
+    @mouseenter="()=>emits('hover', index)"
   >
     <!-- item -->
     <td
@@ -110,15 +112,7 @@ function convertValue(value: unknown, propKey: string) {
         @update:model-value="change(propKey)"
       >
         <template
-          v-if="propKey==='route_color'"
-          v-slot:append-inner
-        >
-          <ColorPicker
-            v-model:pcolor="editorForm[propKey].value"
-          />
-        </template>
-        <template
-          v-else-if="Object.keys(attributesChoices).includes(propKey)"
+          v-if="Object.keys(attributesChoices).includes(propKey)"
           v-slot:append-inner
         >
           <MenuSelector

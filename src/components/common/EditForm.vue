@@ -3,12 +3,12 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { toRefs, ref, computed } from 'vue'
 import { GroupForm, Rule } from '@src/types/components'
-import ColorPicker from '../utils/ColorPicker.vue'
 import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
 import NumberInput from './NumberInput.vue'
 import BooleanInput from './BooleanInput.vue'
 import { getPropertyName, hasCalculator } from '@src/utils/form.ts'
+import ColorInput from './ColorInput.vue'
 
 interface Props {
   hints: Record<string, string>
@@ -81,6 +81,7 @@ defineExpose({
 function componentType(type: AttributeTypes) {
   if (type === 'Number') return NumberInput
   if (type === 'Boolean') return BooleanInput
+  if (type === 'Color') return ColorInput
   else return 'v-text-field'
 }
 
@@ -126,15 +127,7 @@ function componentType(type: AttributeTypes) {
             @update:model-value="change(key)"
           >
             <template
-              v-if="key==='route_color'"
-              v-slot:append-inner
-            >
-              <color-picker
-                v-model:pcolor="item.value"
-              />
-            </template>
-            <template
-              v-else-if="Object.keys(attributesChoices).includes(key)"
+              v-if="Object.keys(attributesChoices).includes(key)"
               v-slot:append-inner
             >
               <MenuSelector

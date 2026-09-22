@@ -102,6 +102,10 @@ defineExpose({ toggle })
   transition: flex-basis 0.5s ease;
 }
 .fading-content {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  display: flex;
   transition:
     opacity 0.5s ease,
     filter 0.5s ease;

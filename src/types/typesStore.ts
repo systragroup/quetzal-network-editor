@@ -227,7 +227,7 @@ export interface SchedulePayload {
   [key: string]: TimeString[]
 }
 
-export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined
+export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined | 'Color'
 
 export interface Attributes {
   name: string

@@ -3,7 +3,6 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { GeoJsonProperties } from '@src/types/geojson'
 import { computed, ref, watch } from 'vue'
-import { ItemSlotBase } from 'vuetify/lib/components/VDataTable/types'
 import { isDefined } from '@src/utils/utils.ts'
 import { RulesRecord } from '@src/types/components.ts'
 import { getPropertyName, RulesFactory } from '@src/utils/form.ts'
@@ -66,13 +65,9 @@ import { useHighlight } from '@src/composables/useHighlight'
 const { setHighlightData } = useHighlight()
 
 const hoveringIndex = ref<string | null>(null)
-function onHover(item: ItemSlotBase<GeoJsonProperties>) { hoveringIndex.value = item.item.index }
+function onHover(index: string) {
+  hoveringIndex.value = index }
 function offHover() { hoveringIndex.value = null }
-const rowProps = (item: ItemSlotBase<GeoJsonProperties>) => {
-  return {
-    onMouseenter: () => onHover(item),
-  }
-}
 
 watch(hoveringIndex, (index) => {
   const features = links.value.features.filter(el => el.properties.index === index)
@@ -89,14 +84,14 @@ watch(hoveringIndex, (index) => {
       :headers="headers"
       :items="tableItems"
       :item-value="'index'"
-      :height="100"
+      :item-height="51"
       hide-default-footer
-      :row-props="rowProps"
       hover
       @mouseleave="offHover"
     >
       <template #item="{ item }">
         <table-editor
+          :key="item.index"
           v-model="selectedIndex"
           :item="item"
           :index="item.index"
@@ -107,7 +102,7 @@ watch(hoveringIndex, (index) => {
           :units="baseUnits"
           :display-units="displayUnits"
           :attributes-choices="attributesChoices"
-
+          @hover="onHover"
           @confirm="applyChanges"
         />
       </template>
@@ -119,16 +114,15 @@ watch(hoveringIndex, (index) => {
 .table-container{
   display: flex;
   flex-direction: column;
-  height:100%;
-  overflow: auto;
+  overflow: hidden;
   width:100%;
+  height:100%;
   padding:0.5rem;
   background-color: rgb(var(--v-theme-primarydark)) !important;
-
 }
 .table{
-  height:100%;
   width:100%;
+  min-height: 0;
 }
 
 </style>
