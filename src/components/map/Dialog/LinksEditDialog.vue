@@ -55,7 +55,7 @@ const usedIndex = computed<Set<string>>(() => {
   else return new Set(linksStore.nodesIndexes)
 })
 
-const displayUnits = computed(() => Object.assign(baseUnits.value, store.displayUnits))
+const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
 
 const formRef = ref()
 const initialHash = ref()

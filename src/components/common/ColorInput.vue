@@ -21,35 +21,51 @@ const computedModel = computed({
 })
 const componentRef = ref()
 defineExpose({
-  validate: () => new Promise((resolve) => resolve([])),
-  select: () => {},
+  validate: () => componentRef.value?.validate(),
+  select: () => componentRef.value?.select(),
 })
+
+const menu = ref(false)
 
 </script>
 <template>
-  <v-color-input
+  <v-text-field
     ref="componentRef"
     v-bind="$attrs"
     v-model="computedModel"
+    readonly
     :show-swatches="true"
-    pip-location="append-inner"
-    color-pip
-    mode="hex"
-    :modes="['hex']"
-    :swatches="swatches"
+    @click="menu=true"
   >
     <!-- pass slots -->
-    <template
-      v-for="(_, name) in $slots"
-      #[name]="slotProps"
-    >
-      <slot
-        :name="name"
-        v-bind="slotProps"
-      />
+    <template #append-inner>
+      <v-menu
+        v-model="menu"
+        location="top"
+        :close-on-content-click="false"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
+            variant="text"
+            :color="computedModel"
+            icon="fas fa-palette"
+            v-bind="props"
+          />
+        </template>
+        <v-color-picker
+          v-model="computedModel"
+          class="menu"
+          mode="hex"
+          :modes="['hex']"
+          :swatches="swatches"
+          show-swatches
+        />
+      </v-menu>
     </template>
-  </v-color-input>
+  </v-text-field>
 </template>
-<style lang="scss">
-
+<style lang="scss" scoped>
+.menu{
+padding: 0.5rem;
+}
 </style>

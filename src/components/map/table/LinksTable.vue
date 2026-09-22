@@ -18,7 +18,7 @@ const links = computed(() => linksStore.editorLinks)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const tableItems = computed(() => links.value.features.map(el => el.properties))
 const baseUnits = computed(() => linksStore.linkUnits)
-const displayUnits = computed(() => Object.assign(baseUnits.value, store.displayUnits))
+const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
 
 // table header and data
 
@@ -62,6 +62,7 @@ const selectedIndex = ref<string | null>(null) // v-model to edit only 1 row of 
 
 // Highlight
 import { useHighlight } from '@src/composables/useHighlight'
+import { cloneDeep } from 'lodash'
 const { setHighlightData } = useHighlight()
 
 const hoveringIndex = ref<string | null>(null)
@@ -122,7 +123,7 @@ watch(hoveringIndex, (index) => {
 }
 .table{
   width:100%;
-  min-height: 0;
+  min-height: 50%;
 }
 
 </style>
