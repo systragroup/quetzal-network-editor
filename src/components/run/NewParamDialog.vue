@@ -32,7 +32,7 @@ const nameRule = (val: string) => !usedNames.value.includes(val) || $gettext('al
 const editorForm = ref<FormData[]>([
   {
     key: 'category',
-    label: 'category',
+    label: 'Parameter Category',
     value: undefined,
     placeholder: $gettext('Type or select'),
     type: 'combo',
@@ -43,7 +43,7 @@ const editorForm = ref<FormData[]>([
   },
   {
     key: 'text',
-    label: 'display text',
+    label: 'Parameter name',
     value: 'new param',
     type: 'string',
     rules: ['required'],
@@ -51,7 +51,7 @@ const editorForm = ref<FormData[]>([
   },
   {
     key: 'name',
-    label: 'variable name',
+    label: 'Variable name',
     value: 'param',
     type: 'string',
     rules: ['required', nameRule],
@@ -59,7 +59,7 @@ const editorForm = ref<FormData[]>([
   },
   {
     key: 'type',
-    label: 'type',
+    label: 'Value type',
     value: PARAM_TYPES[0],
     type: 'select',
     items: Object.values(PARAM_TYPES),
@@ -68,7 +68,7 @@ const editorForm = ref<FormData[]>([
   },
   {
     key: 'rules',
-    label: 'rules',
+    label: 'Rules',
     value: ['required'],
     type: 'select',
     items: ['required', 'largerThanZero', 'nonNegative'],
@@ -77,13 +77,13 @@ const editorForm = ref<FormData[]>([
   },
   {
     key: 'hint',
-    label: 'hint',
+    label: 'Hint',
     value: '',
     type: 'string',
   },
   {
     key: 'items',
-    label: 'choices',
+    label: 'Choice of values to select',
     disabled: false,
     value: undefined,
     type: 'combo',
@@ -92,7 +92,7 @@ const editorForm = ref<FormData[]>([
   },
   {
     key: 'multiple',
-    label: 'multiple',
+    label: 'Enable multiple choices',
     value: false,
     type: 'boolean',
     hint: $gettext('For selection: if multiple values can be selected or only one'),

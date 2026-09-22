@@ -245,10 +245,9 @@ const { setFlyToId } = useFlyTo()
             <div class="ma-2 item">
               {{ formatName(item) }}
             </div>
-
             <TooltipButton
               variant="text"
-              icon="fas fa-magnifying-glass"
+              icon="fas fa-location-crosshairs"
               location="bottom"
               :tooltip="$gettext('Fly to')"
               @click="setFlyToId(item)"
@@ -293,11 +292,10 @@ const { setFlyToId } = useFlyTo()
         :tooltip="$gettext('Edit Line geometry')"
         @click="store.changeAnchorMode()"
       />
-
       <TooltipButton
         class="mx-1"
         :color="showTurnRestrictions? 'green':'regular'"
-        icon="fas fa-diamond-turn-right"
+        icon="fas fa-arrows-turn-to-dots"
         size="small"
         location="right"
         :tooltip="$gettext('Show nodes with turn restrictions')"
