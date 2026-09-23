@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { GeoJsonProperties } from '@src/types/geojson'
-import { computed, nextTick, ref, toRefs } from 'vue'
+import { computed, nextTick, onUnmounted, ref, toRefs } from 'vue'
 import { GroupForm, RulesRecord } from '@src/types/components'
 import NumberInput from '@src/components/common/NumberInput.vue'
 import BooleanInput from '@src/components/common/BooleanInput.vue'
@@ -34,6 +34,7 @@ const rules = ref<RulesRecord>({})
 const showEdition = computed(() => selectedIndex.value === index.value)
 
 async function startEdit(clickedKey: string) {
+  // todo: move this out? its mouting weird
   if (showEdition.value) return
   editorForm.value = getForm(item.value, columns.value, disabled.value)
   selectedIndex.value = index.value
@@ -42,6 +43,14 @@ async function startEdit(clickedKey: string) {
   const idx = columns.value.indexOf(clickedKey)
   inputRefs.value[idx].select()
 }
+// onBeforeMount(() => {
+//   if (showEdition.value) {
+//     console.log('mount')
+//     editorForm.value = getForm(item.value, columns.value, disabled.value)
+//     selectedIndex.value = index.value
+//     rules.value = props.createRules(item.value)
+//   }
+// })
 
 function change (key: string) {
   changeLengthTimeSpeed(key, editorForm.value)
@@ -60,6 +69,12 @@ async function saveEdit() {
 function cancelEdit() {
   selectedIndex.value = null
 }
+onUnmounted(() => {
+  if (showEdition.value) {
+    cancelEdit()
+  }
+  // row is about to be removed
+})
 
 function componentType(type: AttributeTypes) {
   if (type === 'Number') return NumberInput

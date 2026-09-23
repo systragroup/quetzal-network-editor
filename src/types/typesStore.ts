@@ -83,6 +83,7 @@ export interface IndexStore {
   isMobile: boolean
   loading: Loading
   showLeftPanel: boolean
+  showBottomPanel: boolean
   anchorMode: boolean
   speedTimeMethod: SpeedTimeMethod
   linksPopupContent: string[]

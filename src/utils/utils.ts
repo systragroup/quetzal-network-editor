@@ -183,6 +183,6 @@ export function arrayMinMax(arr: number[]) {
   ])
 }
 
-export function numericSort(a: string, b: string) {
-  return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })
+export function numericSort(a: unknown, b: unknown) {
+  return String(a).localeCompare(String(b), undefined, { sensitivity: 'base', numeric: true })
 }

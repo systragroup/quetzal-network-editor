@@ -1,4 +1,4 @@
-import { onMounted, Ref, ref } from 'vue'
+import { onMounted, Ref, ref, watch } from 'vue'
 type Dir = 'col' | 'row'
 
 export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<number>, maxPercent: Ref<number>, dir: Dir) {
@@ -77,6 +77,11 @@ export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<numbe
       show.value = false
       toCollapse.value = true
     }, 500)
+
+    watch(show, (val) => {
+      if (val) expand()
+      else collapse()
+    })
   }
 
   return { toCollapse, size, smoothResize, startResize, toggle }

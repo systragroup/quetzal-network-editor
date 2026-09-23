@@ -52,7 +52,7 @@ export function getGroupForm(features: GeoJsonFeatures[], lineAttributes: string
     const val = new Set(features.map(link => link.properties[key]))
     form[key] = {
       value: val.size > 1 ? undefined : [...val][0],
-      disabled: uneditable.includes(key),
+      disabled: uneditable.includes(getPropertyName(key)),
       show: true,
       placeholder: val.size > 1,
     }

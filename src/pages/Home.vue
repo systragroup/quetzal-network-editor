@@ -8,11 +8,11 @@ import ODEditDialog from '@src/components/map/Dialog/ODEditDialog.vue'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
-import { ref, onUnmounted, computed, watch } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 import { useForm } from '@src/composables/UseForm'
-import LinksTable from '@src/components/map/table/LinksTable.vue'
 import ResizableRow from './layout/ResizableRow.vue'
 import ResizableCol from './layout/ResizableCol.vue'
+import BottomPanel from '@src/components/map/table/BottomPanel.vue'
 
 // init
 const store = useIndexStore()
@@ -34,19 +34,12 @@ const showLeftPanel = computed({
   set: (v: boolean) => store.showLeftPanel = v,
 })
 
-// TODO make this better. and elsewhere?
-const editorTrip = computed(() => linksStore.editorTrip)
-watch(editorTrip, (val) => {
-  if (val && !showTable.value) {
-    showTable.value = true
-    bottomRef.value.toggle()
-  } else if (!val && showTable.value) {
-    showTable.value = false
-    bottomRef.value.toggle()
-  }
+const showBottomPanel = computed({
+  get: () => store.showBottomPanel,
+  set: (v: boolean) => store.showBottomPanel = v,
 })
+
 const bottomRef = ref()
-const showTable = ref(false)
 
 </script>
 <template>
@@ -64,7 +57,7 @@ const showTable = ref(false)
       <template #right>
         <ResizableRow
           ref="bottomRef"
-          v-model="showTable"
+          v-model="showBottomPanel"
           :min-height-px="250"
         >
           <template #top>
@@ -73,7 +66,7 @@ const showTable = ref(false)
             />
           </template>
           <template #bottom>
-            <LinksTable v-show="showTable" />
+            <BottomPanel />
           </template>
         </ResizableRow>
       </template>

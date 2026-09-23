@@ -41,6 +41,7 @@ export const useIndexStore = defineStore('index', {
     },
     // edition params
     showLeftPanel: true,
+    showBottomPanel: false,
     anchorMode: false,
     speedTimeMethod: 'time',
     // general viz
