@@ -50,7 +50,6 @@ const bottomRef = ref()
     >
       <template #left>
         <SidePanel
-          v-show="showLeftPanel"
           v-model="mode"
         />
       </template>

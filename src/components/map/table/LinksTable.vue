@@ -4,10 +4,11 @@ import { useLinksStore } from '@src/store/links'
 import { GeoJsonProperties } from '@src/types/geojson'
 import { computed, ref, watch } from 'vue'
 import { isDefined } from '@src/utils/utils.ts'
-import { RulesRecord } from '@src/types/components.ts'
-import { getPropertyName, RulesFactory } from '@src/utils/form.ts'
+import { GroupForm, RulesRecord } from '@src/types/components.ts'
+import { getForm, getPropertyName, RulesFactory } from '@src/utils/form.ts'
 import { EditLinkPayload } from '@src/types/typesStore.ts'
 import { DataTableHeader } from 'vuetify'
+import { cloneDeep } from 'lodash'
 
 import TableEditor from './tableEditor.vue'
 
@@ -44,9 +45,11 @@ const disabled = ['a', 'b', 'length', 'link_sequence', 'trip_id', 'headway', 'an
 
 const typesMap = computed(() => linksStore.linkTypes)
 
-function createRules(properties: GeoJsonProperties): RulesRecord {
+const rules = ref<RulesRecord>({})
+
+function createRules(properties: GeoJsonProperties) {
   const index: string = properties.index
-  return {
+  rules.value = {
     index: [
       RulesFactory.unique(index, usedIndex.value),
       RulesFactory.prefix(index ? index.split('_')[0] + '_' : ''),
@@ -54,15 +57,24 @@ function createRules(properties: GeoJsonProperties): RulesRecord {
   }
 }
 
-function applyChanges(event: EditLinkPayload) {
-  linksStore.editLinkInfo(event)
-}
-
 const selectedIndex = ref<string | null>(null) // v-model to edit only 1 row of the table at the time
+const editorForm = ref<GroupForm>({})
+
+async function startEdit(index: string) {
+  const item = cloneDeep(tableItems.value.filter(el => el.index === index)[0])
+  editorForm.value = getForm(item, lineAttributes.value, disabled)
+  selectedIndex.value = index
+  createRules(item)
+}
+function applyChanges() {
+  if (!selectedIndex.value) return
+  const payload: EditLinkPayload = { selectedIndex: selectedIndex.value, info: editorForm.value }
+  linksStore.editLinkInfo(payload)
+  selectedIndex.value = null
+}
 
 // Highlight
 import { useHighlight } from '@src/composables/useHighlight'
-import { cloneDeep } from 'lodash'
 const { setHighlightData } = useHighlight()
 
 const hoveringIndex = ref<string | null>(null)
@@ -92,19 +104,19 @@ watch(hoveringIndex, (index) => {
     >
       <template #item="{ item }">
         <table-editor
-          :key="item.index"
           v-model="selectedIndex"
           :item="item"
           :index="item.index"
           :columns="lineAttributes"
-          :disabled="disabled"
-          :create-rules="createRules"
+          :editor-form="editorForm"
           :types="typesMap"
           :units="baseUnits"
           :display-units="displayUnits"
+          :rules="rules"
           :attributes-choices="attributesChoices"
           @hover="onHover"
           @confirm="applyChanges"
+          @edit="startEdit"
         />
       </template>
     </v-data-table-virtual>

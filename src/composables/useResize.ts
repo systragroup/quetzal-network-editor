@@ -16,9 +16,6 @@ export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<numbe
   })
 
   function startResize() {
-    if (size.value <= 1) {
-      show.value = true // when close and drag to open
-    }
     document.addEventListener('mousemove', onResize)
     document.addEventListener('mouseup', stopResize)
     document.body.style.userSelect = 'none'
@@ -60,13 +57,13 @@ export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<numbe
   }
 
   function expand() {
-    show.value = true
     smoothResize.value = true
     size.value = Math.max(lastSize.value, minPercent.value + 2)
 
     setTimeout(() => {
       smoothResize.value = false
       toCollapse.value = false
+      show.value = true
     }, 500)
   }
   function collapse() {

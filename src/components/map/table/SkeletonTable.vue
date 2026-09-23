@@ -1,11 +1,21 @@
+<script setup lang="ts">
+interface Props {
+  loading: boolean
+}
+defineProps<Props>()
+
+</script>
 <template>
   <div
     class="container"
   >
-    <h3>{{ $gettext('No data. start editing') }}</h3>
+    <h3 v-if="!loading">
+      {{ $gettext('No data. start editing') }}
+    </h3>
     <v-skeleton-loader
-      :boilerplate="true"
+      :boilerplate="!loading"
       type="table-tbody"
+      :loading="true"
       class="table"
       loading-text="tesa"
     />

@@ -4,9 +4,9 @@ import { userLinksStore } from '@src/store/rlinks'
 import { GeoJsonProperties } from '@src/types/geojson'
 import { computed, ref, watch } from 'vue'
 import { isDefined, numericSort } from '@src/utils/utils.ts'
-import { RulesRecord } from '@src/types/components.ts'
-import { getPropertyName, RulesFactory } from '@src/utils/form.ts'
-import { EditLinkPayload, EditRoadPayload } from '@src/types/typesStore.ts'
+import { GroupForm, RulesRecord } from '@src/types/components.ts'
+import { getForm, getPropertyName, RulesFactory } from '@src/utils/form.ts'
+import { EditRoadPayload } from '@src/types/typesStore.ts'
 import { DataTableHeader } from 'vuetify'
 import { cloneDeep } from 'lodash'
 
@@ -49,9 +49,11 @@ const disabled = ['a', 'b', 'length', 'turn_restrictions']
 
 const typesMap = computed(() => rlinksStore.linkTypes)
 
-function createRules(properties: GeoJsonProperties): RulesRecord {
+const rules = ref<RulesRecord>({})
+
+function createRules(properties: GeoJsonProperties) {
   const index: string = properties.index
-  return {
+  rules.value = {
     index: [
       RulesFactory.unique(index, usedIndex.value),
       RulesFactory.prefix(index ? index.split('_')[0] + '_' : ''),
@@ -59,15 +61,21 @@ function createRules(properties: GeoJsonProperties): RulesRecord {
   }
 }
 
-function applyChanges(event: EditLinkPayload) {
-  const payload: EditRoadPayload = {
-    infoArr: [event.info],
-    selectedArr: [event.selectedIndex],
-  }
-  rlinksStore.editLinkInfo(payload)
-}
-
 const selectedIndex = ref<string | null>(null) // v-model to edit only 1 row of the table at the time
+const editorForm = ref<GroupForm>({})
+
+async function startEdit(index: string) {
+  const item = cloneDeep(tableItems.value.filter(el => el.index === index)[0])
+  editorForm.value = getForm(item, lineAttributes.value, disabled)
+  selectedIndex.value = index
+  createRules(item)
+}
+function applyChanges() {
+  if (!selectedIndex.value) return
+  const payload: EditRoadPayload = { selectedArr: [selectedIndex.value], infoArr: [editorForm.value] }
+  rlinksStore.editLinkInfo(payload)
+  selectedIndex.value = null
+}
 
 // Highlight
 import { useFlyTo } from '@src/composables/useFlyTo.ts'
@@ -93,18 +101,18 @@ watch(selectedIndex, (index) => {
     >
       <template #item="{ item }">
         <table-editor
-          :key="item.index"
           v-model="selectedIndex"
           :item="item"
           :index="item.index"
           :columns="lineAttributes"
-          :disabled="disabled"
-          :create-rules="createRules"
+          :editor-form="editorForm"
           :types="typesMap"
           :units="baseUnits"
           :display-units="displayUnits"
+          :rules="rules"
           :attributes-choices="attributesChoices"
           @confirm="applyChanges"
+          @edit="startEdit"
         />
       </template>
     </v-data-table-virtual>

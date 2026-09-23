@@ -18,7 +18,7 @@ const showBottomPanel = computed({
 })
 const isRoadMode = computed(() => rlinksStore.editionMode)
 
-const isPtMode = computed(() => linksStore.editorTrip)
+const isPtMode = computed(() => linksStore.editorTrip !== null)
 watch(isPtMode, (val) => {
   if (val) showBottomPanel.value = true
   else showBottomPanel.value = false
@@ -28,7 +28,10 @@ watch(isPtMode, (val) => {
 <template>
   <LinksTable v-if="showBottomPanel && isPtMode" />
   <RoadLinksTable v-else-if="showBottomPanel && isRoadMode" />
-  <SkeletonTable v-else />
+  <SkeletonTable
+    v-else
+    :loading="isPtMode || isRoadMode"
+  />
 </template>
 <style lang="scss" scoped>
 .container{
