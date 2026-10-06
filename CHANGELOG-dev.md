@@ -1,3 +1,17 @@
+## [8.2.m] (2026-10-06)
+### Features
+* Table edition on Links and rLinks
+* disableUturn in modelConfig (for turn Editor)
+* hints in modelConfig to set custom hints on links/rlinks properties
+
+### changes
+* color input changed
+* lot of refactoring to reuse inputs / forms on both table and dialog.
+
+### Performances
+* improve links filtering performance and overall update
+
+
 ## [8.2.l] (2026-09-16)
 ### Bug fixes
 * cap rlinks speed and time to max safe integer. mapbox has a limit of 10bytes...
