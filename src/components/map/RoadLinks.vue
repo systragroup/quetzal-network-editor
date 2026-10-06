@@ -390,7 +390,8 @@ function contextMenuNode (event: CustomMapEvent) {
   }
 }
 // list (set) of selected RoadLinks when selecting multiple with righ click.
-const selectedIds = ref<Set<string>>(new Set([]))
+import { useSelected } from '@src/composables/UseSelect.ts'
+const { selectedIds } = useSelected()
 
 function toggleSelected(val: boolean) {
   selectedIds.value.forEach(id => {
@@ -910,9 +911,11 @@ watch(flyToId, (val) => {
       :close-button="false"
       :coordinates="contextMenu.coordinates"
       timeout="-1"
-      class="snackbar"
+      location="top"
     >
-      <v-list density="compact">
+      <v-list
+        density="compact"
+      >
         <v-list-item
           v-for="(action,key) in contextMenu.actions"
           :key="key"
@@ -936,4 +939,5 @@ watch(flyToId, (val) => {
   </section>
 </template>
 <style lang="scss" scoped>
+
 </style>

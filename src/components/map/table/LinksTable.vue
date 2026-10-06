@@ -24,9 +24,11 @@ const lineAttributes = computed(() => linksStore.lineAttributes)
 const tableItems = computed(() => links.value.features.map(el => el.properties))
 const baseUnits = computed(() => linksStore.linkUnits)
 const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
+
+// table header and data
+
 const showDisabled = ref(true)
 const disabled = [...lineDefaultProperties, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
-// table header and data
 
 const columns = computed(() => {
   let attrs = cloneDeep(lineAttributes.value)
@@ -143,8 +145,7 @@ watch(hoveringIndex, (index) => {
   height:100%;
   padding:0.5rem;
   background-color: rgb(var(--v-theme-primarydark)) !important;
-    text-align: center;
-
+  text-align: center;
 }
 .table{
   width:100%;

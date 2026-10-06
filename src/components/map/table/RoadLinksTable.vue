@@ -14,23 +14,35 @@ import TableEditor from './tableEditor.vue'
 
 const rlinksStore = userLinksStore()
 const store = useIndexStore()
+import { useSelected } from '@src/composables/UseSelect.ts'
+const { selectedIds } = useSelected()
 
-const rlinks = computed(() => rlinksStore.rlinks)
+const rlinks = computed(() => rlinksStore.rlinks.features.filter(el => selectedIds.value.has(el.properties.index)))
 
 // only get _r attributes if there is a rlink that is two way
-const hasTwoway = computed(() => rlinks.value.features.some(el => el.properties.oneway === '0'))
+const hasTwoway = computed(() => rlinks.value.some(el => el.properties.oneway === '0'))
 const lineAttributes = computed(() => {
   if (hasTwoway.value) return rlinksStore.linksDefaultAttributes.map(el => el.name).sort()
   else return rlinksStore.rlineAttributes
 })
-const tableItems = computed(() => rlinks.value.features.map(el => el.properties))
+const tableItems = computed(() => rlinks.value.map(el => el.properties))
 const baseUnits = computed(() => rlinksStore.linkUnits)
 const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
 
 // table header and data
+const disabled = ['a', 'b', 'length', 'turn_restrictions']
+const showDisabled = ref(true)
+
+const columns = computed(() => {
+  let attrs = cloneDeep(lineAttributes.value)
+  const enableAttrs = attrs.filter(el => !disabled.includes(getPropertyName(el)))
+  const disabledAttrs = attrs.filter(el => disabled.includes(getPropertyName(el)))
+  if (showDisabled.value) return [...enableAttrs, ...disabledAttrs]
+  else return enableAttrs
+})
 
 const headers = computed<DataTableHeader[]>(() => {
-  return lineAttributes.value.map(name => {
+  return columns.value.map(name => {
     const unit = displayUnits.value[getPropertyName(name)]
     let title = name
     if (isDefined(unit)) title = `${title} (${unit})`
@@ -43,9 +55,7 @@ const headers = computed<DataTableHeader[]>(() => {
 
 const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
 
-const usedIndex = computed<Set<string>>(() => new Set(rlinks.value.features.map(el => el.properties.index)))
-
-const disabled = ['a', 'b', 'length', 'turn_restrictions']
+const usedIndex = computed<Set<string>>(() => new Set(rlinks.value.map(el => el.properties.index)))
 
 const typesMap = computed(() => rlinksStore.linkTypes)
 
@@ -88,6 +98,9 @@ watch(selectedIndex, (index) => {
 </script>
 <template>
   <div class="table-container">
+    <h3 v-if="selectedIds.size ===0">
+      {{ $gettext('right click and drag on the map to select links') }}
+    </h3>
     <v-data-table-virtual
       class="table"
       :fixed-header="true"
@@ -104,7 +117,7 @@ watch(selectedIndex, (index) => {
           v-model="selectedIndex"
           :item="item"
           :index="item.index"
-          :columns="lineAttributes"
+          :columns="columns"
           :editor-form="editorForm"
           :types="typesMap"
           :units="baseUnits"
@@ -128,6 +141,8 @@ watch(selectedIndex, (index) => {
   height:100%;
   padding:0.5rem;
   background-color: rgb(var(--v-theme-primarydark)) !important;
+  text-align: center;
+
 }
 .table{
   width:100%;
