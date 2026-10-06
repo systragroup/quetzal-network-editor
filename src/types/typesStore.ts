@@ -54,6 +54,7 @@ export interface ModelConfig {
     road_links?: AttributesChoice
   }
   units?: Record<string, AttributeUnits>
+  hints?: Record<string, string>
 }
 
 export type AttributeUnits = undefined | 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'

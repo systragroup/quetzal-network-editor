@@ -6,8 +6,11 @@ import { computed, ref, watch } from 'vue'
 import { isDefined } from '@src/utils/utils.ts'
 import { GroupForm, RulesRecord } from '@src/types/components.ts'
 import { getForm, getPropertyName, RulesFactory } from '@src/utils/form.ts'
+import { useHighlight } from '@src/composables/useHighlight'
+import { lineDefaultProperties } from '@src/constants/properties.ts'
 import { EditLinkPayload } from '@src/types/typesStore.ts'
 import { DataTableHeader } from 'vuetify'
+
 import { cloneDeep } from 'lodash'
 
 import TableEditor from './tableEditor.vue'
@@ -16,15 +19,25 @@ const linksStore = useLinksStore()
 const store = useIndexStore()
 
 const links = computed(() => linksStore.editorLinks)
+const editorTrip = computed(() => linksStore.editorTrip)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const tableItems = computed(() => links.value.features.map(el => el.properties))
 const baseUnits = computed(() => linksStore.linkUnits)
 const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
-
+const showDisabled = ref(true)
+const disabled = [...lineDefaultProperties, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
 // table header and data
 
+const columns = computed(() => {
+  let attrs = cloneDeep(lineAttributes.value)
+  const enableAttrs = attrs.filter(el => !disabled.includes(getPropertyName(el)))
+  const disabledAttrs = attrs.filter(el => disabled.includes(getPropertyName(el)))
+  if (showDisabled.value) return [...enableAttrs, ...disabledAttrs]
+  else return enableAttrs
+})
+
 const headers = computed<DataTableHeader[]>(() => {
-  return lineAttributes.value.map(name => {
+  return columns.value.map(name => {
     const unit = displayUnits.value[getPropertyName(name)]
     let title = name
     if (isDefined(unit)) title = `${title} (${unit})`
@@ -38,10 +51,6 @@ const headers = computed<DataTableHeader[]>(() => {
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 
 const usedIndex = computed<Set<string>>(() => new Set(linksStore.linksIndexes))
-
-const disabled = ['a', 'b', 'length', 'link_sequence', 'trip_id', 'headway', 'anchors', 'route_id', 'agency_id',
-  'route_short_name', 'departures', 'arrivals', 'route_long_name', 'route_type', 'road_link_list',
-]
 
 const typesMap = computed(() => linksStore.linkTypes)
 
@@ -74,7 +83,6 @@ function applyChanges() {
 }
 
 // Highlight
-import { useHighlight } from '@src/composables/useHighlight'
 const { setHighlightData } = useHighlight()
 
 const hoveringIndex = ref<string | null>(null)
@@ -90,6 +98,9 @@ watch(hoveringIndex, (index) => {
 </script>
 <template>
   <div class="table-container">
+    <h3>
+      {{ editorTrip }}
+    </h3>
     <v-data-table-virtual
       class="table"
       :fixed-header="true"
@@ -107,7 +118,7 @@ watch(hoveringIndex, (index) => {
           v-model="selectedIndex"
           :item="item"
           :index="item.index"
-          :columns="lineAttributes"
+          :columns="columns"
           :editor-form="editorForm"
           :types="typesMap"
           :units="baseUnits"
@@ -132,6 +143,8 @@ watch(hoveringIndex, (index) => {
   height:100%;
   padding:0.5rem;
   background-color: rgb(var(--v-theme-primarydark)) !important;
+    text-align: center;
+
 }
 .table{
   width:100%;

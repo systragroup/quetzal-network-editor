@@ -3,7 +3,6 @@
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { computed, onMounted, ref, watch, watchEffect } from 'vue'
-import attributesHints from '@constants/hints'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
@@ -17,8 +16,6 @@ import { AttributeTypes } from '@src/types/typesStore.ts'
 import { cloneDeep } from 'lodash'
 import { changeLengthTimeSpeed, getForm, getGroupForm, RulesFactory } from '@src/utils/form.ts'
 const { $gettext } = useGettext()
-
-type Dict = Record<string, string>
 
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
@@ -73,7 +70,8 @@ const rules = computed(() => selectedArr.value.map(idx => {
 }),
 )
 
-const hints: Dict = attributesHints
+const hints = computed(() => store.hints)
+
 const formRef = ref()
 
 const editorForm = ref<GroupForm[]>([])
@@ -131,7 +129,7 @@ function createForm() {
       break
     case 'Edit Road Group Info':
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['index', 'length', 'time', 'a', 'b', 'turn_restrictions']
+      disabled = ['a', 'b', 'length', 'turn_restrictions', 'index', 'time']
       editorForm.value = [getGroupForm(features, lineAttributes.value, disabled)]
       break
 

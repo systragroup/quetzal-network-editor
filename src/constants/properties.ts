@@ -1,5 +1,8 @@
-import { Attributes, AttributesChoice, AttributeTypes,
-  AttributeUnits, IndexingMethod, ModelConfig } from '@src/types/typesStore'
+import { Attributes, AttributesChoice, AttributeTypes, IndexingMethod, ModelConfig } from '@src/types/typesStore'
+
+export const lineDefaultProperties = [
+  'trip_id', 'headway', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
+]
 
 export const linksDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
@@ -88,7 +91,6 @@ export const ODDefaultProperties: Attributes[] = [
 
 export const ptDefaultAttributesChoices: AttributesChoice = { pickup_type: [0, 1, 2, 3], drop_off_type: [0, 1, 2, 3] }
 export const roadDefaultAttributesChoices: AttributesChoice = { oneway: ['0', '1'] }
-export const defaultDisplayUnits: Record<string, AttributeUnits> = {}
 export const defaultIndexingMethod: IndexingMethod = 'uuid'
 
 export const defaultModelConfig: ModelConfig = {
@@ -99,7 +101,6 @@ export const defaultModelConfig: ModelConfig = {
     links: ptDefaultAttributesChoices,
     road_links: roadDefaultAttributesChoices,
   },
-  units: defaultDisplayUnits, // display units: still use baseUnits, but show (and edit) in others units in Forms
+  hints: {},
+  units: {}, // display units: still use baseUnits, but show (and edit) in others units in Forms
 }
-
-export const mapDefaultCenter = () => [-73.570337, 45.498310]

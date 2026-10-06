@@ -5,7 +5,6 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import { cloneDeep } from 'lodash'
-import attributesHints from '@constants/hints'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
@@ -15,8 +14,6 @@ import DialogHeader from './DialogHeader.vue'
 import { isScheduleTrip, hash } from '@src/utils/utils'
 const { $gettext } = useGettext()
 
-type Dict = Record<string, string>
-
 const store = useIndexStore()
 const linksStore = useLinksStore()
 
@@ -24,6 +21,7 @@ import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { getGroupForm, changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
+import { lineDefaultProperties } from '@src/constants/properties.ts'
 const { showDialog, action, selectedArr, lingering } = useForm()
 
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
@@ -62,7 +60,7 @@ const initialHash = ref()
 const editorForm = ref<GroupForm>({})
 
 const showHint = ref(false)
-const hints: Dict = attributesHints
+const hints = computed(() => store.hints)
 
 const rules = ref<Record<string, Rule[]> >({})
 
@@ -109,24 +107,22 @@ function createForm() {
       } else {
         features = linksStore.editorLinks.features
       }
-      disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
-      if (isSchedule.value) { disabled = [...disabled, 'speed'] }
+      disabled = ['index', 'a', 'b', 'length', 'time', 'link_sequence', 'anchors', 'departures', 'arrivals']
+      if (isSchedule.value) disabled = [...disabled, 'speed']
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Group Info':
       const selectedSet = new Set(selectedArr.value)
       features = linksStore.links.features.filter(link => selectedSet.has(link.properties.trip_id))
-      disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
+      disabled = ['index', 'a', 'b', 'length', 'time', 'link_sequence', 'anchors', 'departures', 'arrivals', 'trip_id']
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Link Info':
       // link is clicked on the map
       const selectedLink = selectedArr.value[0]
       features = linksStore.editorLinks.features.filter((link) => link.properties.index === selectedLink)
-      disabled = ['a', 'b', 'length', 'link_sequence', 'trip_id', 'headway', 'anchors',
-        'departures', 'arrivals', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
-      ]
-      if (isSchedule.value) { disabled = [...disabled, ...['speed', 'time']] }
+      disabled = [...lineDefaultProperties, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
+      if (isSchedule.value) disabled = [...disabled, ...['speed', 'time']]
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Node Info':

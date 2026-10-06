@@ -24,6 +24,7 @@ import { FileFormat, ImportPoly, IndexStore,
   Notification, OtherFiles, ProjectInfo, SettingsPayload, StepPayload, Style } from '@src/types/typesStore.js'
 import { migrateStyle } from '@src/migrations/style.js'
 import { defaultModelConfig } from '@src/constants/properties.js'
+import baseHints from '@src/constants/hints.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -597,6 +598,7 @@ export const useIndexStore = defineStore('index', {
     },
     hasDocs: (state) => state.docFiles.length > 0,
     displayUnits: (state) => state.modelConfig.units,
+    hints: (state) => Object.assign(cloneDeep(baseHints), state.modelConfig.hints),
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()
