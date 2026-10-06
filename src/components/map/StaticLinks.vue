@@ -51,26 +51,54 @@ watch(mode, (val) => {
 
 const links = computed(() => linksStore.links)
 const nodes = computed(() => linksStore.nodes)
+const visibleNodes = computed(() => linksStore.visibleNodes)
 const selectedPopupContent = computed(() => store.linksPopupContent)
-const showedTrips = computed(() => new Set(linksStore.selectedTrips))
-watch(showedTrips, () => setHiddenFeatures())
 
-const visibleNodes = ref(basePoint())
-const visibleLinks = ref(baseLineString())
+const showedTrips = computed(() => new Set(linksStore.selectedTrips))
+watch(showedTrips, () => setFilter())
+
+const updateLinks = computed(() => linksStore.updateLinks)
+watch(updateLinks, () => initLayers(), { deep: true })
+
+onMounted(() => {
+  initLayers()
+})
 
 const selectedFeatures = ref<LineStringFeatures[]>([])
 
-onMounted(() => {
-  setHiddenFeatures()
-})
+const visibleNodesIndex = ref<Set<string>>(new Set([]))
 
-function setHiddenFeatures () {
+async function setFilter() {
+  const linksFilter = [
+    'in',
+    ['to-string', ['get', 'trip_id']],
+    ['literal', [...showedTrips.value]],
+  ]
+  map.value.setFilter('links', linksFilter)
+
+  getVisibleNodes()
+  map.value.setFilter('nodes', [
+    'in',
+    ['get', 'index'],
+    ['literal', [...visibleNodesIndex.value]],
+  ])
+  await waitMapRender()
+}
+function waitMapRender() {
+  return new Promise<void>((resolve) => {
+    map.value.once('idle', () => {
+      resolve()
+    })
+  })
+}
+
+function getVisibleNodes() {
   // get visible links and nodes.
-  visibleLinks.value.features = links.value.features.filter(link => showedTrips.value.has(link.properties.trip_id))
+  const visibleLinks = links.value.features.filter(link => showedTrips.value.has(link.properties.trip_id))
 
   // get node with from the biggest links with this node
   let widthMap: Map<string, number> = new Map()
-  visibleLinks.value.features.forEach(link => {
+  visibleLinks.forEach(link => {
     const linkWidth: number = Number(link.properties.route_width) || 3
     for (const node of [link.properties.a, link.properties.b]) {
       const actualWidth = widthMap.get(node) || -1
@@ -78,15 +106,34 @@ function setHiddenFeatures () {
     }
   })
   const nodeSet = new Set(widthMap.keys())
-  visibleNodes.value.features = nodes.value.features.filter(node => nodeSet.has(node.properties.index))
-  linksStore.setVisibleNodes(visibleNodes.value)
+  visibleNodesIndex.value = nodeSet
+  const filteredNodes = basePoint()
+  filteredNodes.features = nodes.value.features.filter(node => nodeSet.has(node.properties.index))
+  linksStore.setVisibleNodes(filteredNodes)
 
   for (const [index, width] of widthMap.entries()) {
     map.value.setFeatureState({ source: 'nodes', id: index }, { route_width: width })
   }
+}
 
+function initLayers () {
+  // getVisibleNodes()
+  const filteredLinks = baseLineString()
+  filteredLinks.features = links.value.features.map(feature => {
+    return { type: 'Feature',
+      geometry: feature.geometry,
+      properties: {
+        a: feature.properties.a,
+        b: feature.properties.b,
+        index: feature.properties.index,
+        trip_id: feature.properties.trip_id,
+        route_width: feature.properties.route_width,
+        route_color: feature.properties.route_color,
+      },
+    }
+  })
   const linkSource = map.value.getSource('links') as GeoJSONSource
-  if (linkSource) linkSource.setData(visibleLinks.value)
+  if (linkSource) linkSource.setData(filteredLinks)
   const nodeSource = map.value.getSource('nodes') as GeoJSONSource
   if (nodeSource) nodeSource.setData(visibleNodes.value)
 }
@@ -97,7 +144,8 @@ function enterLink (event: CustomMapEvent) {
   event.map.getCanvas().style.cursor = 'pointer'
   const features = event.mapboxEvent.features
   if (features) {
-    selectedFeatures.value = features as LineStringFeatures[]
+    const ids = new Set(features.map(el => el.id))
+    selectedFeatures.value = links.value.features.filter(el => ids.has(el.properties.index))
   }
   if (popup.value?.isOpen()) popup.value.remove() // make sure there is no popup before creating one.
   if (selectedPopupContent.value.length > 0) { // do not show popup if nothing is selected (selectedPopupContent)
@@ -190,7 +238,7 @@ function contextMenuClick(trip: string) {
 const { highlightTrip, setHighlightTrip, setHighlightData, initLayer } = useHighlight()
 onMounted(() => initLayer(map.value))
 watch(highlightTrip, async (trip) => {
-  const features = visibleLinks.value.features.filter(el => el.properties.trip_id === trip)
+  const features = links.value.features.filter(el => el.properties.trip_id === trip)
   setHighlightData(features)
 })
 
@@ -202,7 +250,7 @@ watch(highlightTrip, async (trip) => {
       :reactive="false"
       :source="{
         type: 'geojson',
-        data: visibleLinks,
+        data: baseLineString(),
         buffer: 0,
         promoteId: 'index',
       }"
@@ -235,7 +283,7 @@ watch(highlightTrip, async (trip) => {
       :reactive="false"
       :source="{
         type: 'geojson',
-        data: visibleNodes,
+        data: basePoint(),
         buffer: 0,
         promoteId: 'index',
       }"

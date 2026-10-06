@@ -64,6 +64,7 @@ export const useLinksStore = defineStore('links', {
     // filters
     tripList: [],
     selectedTrips: [],
+    updateLinks: [],
     // Defauts links and nodes properties
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
@@ -244,16 +245,18 @@ export const useLinksStore = defineStore('links', {
     setEditorTrip (selectedTrip: string | null) {
       // set Trip Id
       this.editorTrip = selectedTrip
-      // set editor links corresponding to trip id
-      const linkFeatures = this.links.features.filter(link => link.properties.trip_id === this.editorTrip)
-      this.editorLinks.features = cloneDeep(linkFeatures)
+      if (selectedTrip === null) {
+        this.editorLinks.features = []
+        this.editorNodes.features = []
+      }
+      else {
+        const linkFeatures = this.links.features.filter(link => link.properties.trip_id === this.editorTrip)
+        this.editorLinks.features = cloneDeep(linkFeatures)
+        this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
 
-      // sort with sequence. we assume it is sort and action will place links in the correct order
-      this.editorLinks.features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
-
-      // get the corresponding nodes
-      const nodeFeatures = deleteUnusedNodes(this.nodes, this.editorLinks) // return nodes in links
-      this.editorNodes.features = cloneDeep(nodeFeatures)
+        const nodeFeatures = deleteUnusedNodes(this.nodes, this.editorLinks) // return nodes in links
+        this.editorNodes.features = cloneDeep(nodeFeatures)
+      }
 
       this.history = []
       this.redoStack = []
@@ -837,7 +840,6 @@ export const useLinksStore = defineStore('links', {
     },
 
     editGroupInfo (payload: EditGroupPayload) {
-      // TODO: add to history. but, this action is only available when not in edition mode. so there is still no history there.
       // edit line info on multiple trips at once.
       const editorGroupInfo = payload.info
       const groupTripIds = new Set(payload.selectedArray)
@@ -855,6 +857,7 @@ export const useLinksStore = defineStore('links', {
       }
       // get tripId list
       this._getTripList()
+      this.updateLinks = [] // trigger a full redraw
     },
 
     deleteUnusedNodes () {
@@ -926,6 +929,7 @@ export const useLinksStore = defineStore('links', {
       this._getTripList()
       this._getLinksProperties()
       this.setEditorTrip(null)
+      this.updateLinks = [] // trigger a full redraw
     },
 
     fixAllRoutingList() {
@@ -953,6 +957,7 @@ export const useLinksStore = defineStore('links', {
       this.links.features = this.links.features.filter(link => !tripList.includes(link.properties.trip_id))
       this.deleteUnusedNodes()
       this._getTripList()
+      this.updateLinks = [] // trigger a full redraw
     },
 
     applyPropertiesTypes(links: LineStringGeoJson) {

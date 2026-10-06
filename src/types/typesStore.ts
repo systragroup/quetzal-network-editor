@@ -53,6 +53,7 @@ export interface ModelConfig {
     links?: AttributesChoice
     road_links?: AttributesChoice
   }
+  lineProperties?: string[]
   units?: Record<string, AttributeUnits>
   hints?: Record<string, string>
 }
@@ -260,6 +261,7 @@ export interface LinksStore {
   linksDefaultAttributes: Attributes[]
   stickyMode: boolean
   routingMode: boolean
+  updateLinks: UpdateFeatures[]
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 
