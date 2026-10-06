@@ -94,6 +94,7 @@ export const defaultIndexingMethod: IndexingMethod = 'uuid'
 export const defaultModelConfig: ModelConfig = {
   version: 0,
   indexingMethod: defaultIndexingMethod,
+  disableUturn: false,
   attributesChoices: {
     links: ptDefaultAttributesChoices,
     road_links: roadDefaultAttributesChoices,

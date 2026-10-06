@@ -271,7 +271,6 @@ export const useIndexStore = defineStore('index', {
         const rlinksConfig = attributesChoices.road_links
         if (rlinksConfig) rlinks.loadrLinksAttributesChoices(rlinksConfig)
         const indexingMethod = config.indexingMethod
-        console.log(indexingMethod)
         if (indexingMethod) {
           rlinks.indexingMethod = indexingMethod
           links.indexingMethod = indexingMethod

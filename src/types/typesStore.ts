@@ -48,6 +48,7 @@ export interface OtherFiles extends FileFormat {
 export interface ModelConfig {
   version?: 0
   indexingMethod?: IndexingMethod
+  disableUturn?: boolean
   attributesChoices?: {
     links?: AttributesChoice
     road_links?: AttributesChoice

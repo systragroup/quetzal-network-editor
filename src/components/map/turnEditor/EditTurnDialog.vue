@@ -4,10 +4,12 @@ import { ref, watch, Ref, toRefs, shallowRef, onMounted } from 'vue'
 import mapboxgl, { MapMouseEvent } from 'mapbox-gl'
 import { userLinksStore } from '@src/store/rlinks'
 import { useMapStore } from '@src/store/map'
+import { useIndexStore } from '@src/store/index'
 import arrowImage from '@static/arrow.png'
 import { cloneDeep } from 'lodash'
 import { computed } from 'vue'
 import { baseLineString, basePoint, createLinestringFeature, createPointFeature,
+  GeoJsonFeatures,
   LineStringFeatures, LineStringGeoJson, PointFeatures, PolygonFeatures } from '@src/types/geojson'
 import { useTheme } from 'vuetify'
 import RoadChip from './RoadChip.vue'
@@ -44,6 +46,7 @@ const props = defineProps<Props>()
 const { nodeId } = toRefs(props)
 const showDialog = defineModel<boolean>()
 
+const store = useIndexStore()
 const rlinksStore = userLinksStore()
 const mapStore = useMapStore()
 
@@ -76,6 +79,12 @@ const linksOut = computed(() => {
   reversed.forEach(link => reverserLink(link, rAttributes.value))
   return [...links, ...reversed].sort((a, b) => a.properties.b.localeCompare(b.properties.b))
 })
+
+const disableUturn = computed(() => store.modelConfig.disableUturn)
+
+function isUturn(from: GeoJsonFeatures, to: GeoJsonFeatures) {
+  return from.properties.a == to.properties.b
+}
 
 // we have a dict of turn restriction for a selected variant.
 // when changing the variant: save the change in the rlinks and change the turnRestrictionDict
@@ -179,16 +188,16 @@ function addTurnLayer () {
   const center_m = toMeters(center.value, center.value) // [0, 0]
   intersectionsIn.forEach((inPoint) => {
     const inGeom = inPoint.geometry.coordinates
-    const inNode = inPoint.properties.a
     // get drawing order base on left,right,straight
     intersectionsOut.forEach(point => {
       point.properties.order = _crossFromPoints(inGeom, point.geometry.coordinates, center.value)
-      if (inNode == point.properties.b) point.properties.order = 10 // uturns is first
+      if (isUturn(inPoint, point)) point.properties.order = 10 // uturns is first
     })
     intersectionsOut.sort((a, b) => b.properties.order - a.properties.order)
     // get all points pair in the order (uturn,left,straight,right)
     // create a circle arc connecting them
     intersectionsOut.forEach((outPoint, j) => {
+      if (disableUturn.value && isUturn(inPoint, outPoint)) return // skip
       const inGeom_m = toMeters(inGeom, center.value)
       const inPosition_m = rotatePoint(inGeom_m, center_m, 0.05 * (j + 1))
 
@@ -448,13 +457,6 @@ function addPointsLayer() {
 import { useHover } from '@src/composables/useMapbox.ts'
 const { onHover, offHover, hoveringFeature } = useHover(map)
 
-watch(hoveringFeature, selected => {
-  if (selected) {
-    const feature = curvesGeojson.value.features.filter(link => link.properties.index === selected.featureId)[0]
-    feature.properties
-  }
-})
-
 function isHovering(fromLink: LineStringFeatures, toLink: LineStringFeatures) {
   const idx = fromLink.properties.index + toLink.properties.index
   return hoveringFeature.value?.featureId === idx
@@ -536,6 +538,14 @@ function clickOnLine(event: MapMouseEvent) {
             class="matrix-cell"
           >
             <v-btn
+              v-if="disableUturn && isUturn(from,to) "
+              icon="fas fa-x"
+              size="x-small"
+              :disabled="true"
+              variant="outlined"
+            />
+            <v-btn
+              v-else
               :icon="isRestricted(from,to)? 'fas fa-x': 'fas fa-check'"
               size="x-small"
               :variant="isHovering(from,to)? 'elevated': 'outlined'"
