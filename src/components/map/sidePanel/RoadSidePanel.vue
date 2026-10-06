@@ -47,11 +47,8 @@ watch(filteredChoices, (newVal, oldVal) => {
   // when add or delete. add the new group to the visible rlinks (or remove)
   const added = getDifference(newVal, oldVal)
   const removed = getDifference(oldVal, newVal)
-  if (added.length > 0) {
-    added.forEach(el => selectedrGoup.value.add(el))
-  } else if (removed.length > 0) {
-    removed.forEach(el => selectedrGoup.value.delete(el))
-  }
+  added.forEach(el => selectedrGoup.value.add(el))
+  removed.forEach(el => selectedrGoup.value.delete(el))
 })
 
 const searchString = ref('')

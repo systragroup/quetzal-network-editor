@@ -16,16 +16,17 @@ const rlinksStore = userLinksStore()
 const store = useIndexStore()
 import { useSelected } from '@src/composables/UseSelect.ts'
 const { selectedIds } = useSelected()
+const rlinks = computed(() => rlinksStore.rlinks)
 
-const rlinks = computed(() => rlinksStore.rlinks.features.filter(el => selectedIds.value.has(el.properties.index)))
+const selectedFeatures = computed(() => rlinks.value.features.filter(el => selectedIds.value.has(el.properties.index)))
 
 // only get _r attributes if there is a rlink that is two way
-const hasTwoway = computed(() => rlinks.value.some(el => el.properties.oneway === '0'))
+const hasTwoway = computed(() => selectedFeatures.value.some(el => el.properties.oneway === '0'))
 const lineAttributes = computed(() => {
   if (hasTwoway.value) return rlinksStore.linksDefaultAttributes.map(el => el.name).sort()
   else return rlinksStore.rlineAttributes
 })
-const tableItems = computed(() => rlinks.value.map(el => el.properties))
+const tableItems = computed(() => selectedFeatures.value.map(el => el.properties))
 const baseUnits = computed(() => rlinksStore.linkUnits)
 const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
 
@@ -55,7 +56,7 @@ const headers = computed<DataTableHeader[]>(() => {
 
 const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
 
-const usedIndex = computed<Set<string>>(() => new Set(rlinks.value.map(el => el.properties.index)))
+const usedIndex = computed<Set<string>>(() => new Set(rlinks.value.features.map(el => el.properties.index)))
 
 const typesMap = computed(() => rlinksStore.linkTypes)
 
@@ -84,6 +85,12 @@ function applyChanges() {
   if (!selectedIndex.value) return
   const payload: EditRoadPayload = { selectedArr: [selectedIndex.value], infoArr: [editorForm.value] }
   rlinksStore.editLinkInfo(payload)
+  // select new link if index changed
+  const newIndex = editorForm.value.index.value
+  if (newIndex !== selectedIndex.value) {
+    // remove old node. add new one
+    selectedIds.value = new Set([newIndex, ...selectedIds.value].filter(x => x !== selectedIndex.value))
+  }
   selectedIndex.value = null
 }
 

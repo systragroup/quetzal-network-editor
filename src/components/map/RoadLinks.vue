@@ -18,7 +18,7 @@ import { baseLineString, basePoint, createLinestringFeature,
   GeoJsonFeatures, LineStringFeatures, LineStringGeoJson, PointFeatures } from '@src/types/geojson'
 import { RoadsAction, UpdateFeatures } from '@src/types/typesStore'
 import RoadLinksDraw from './RoadLinksDraw.vue'
-import { setsAreEqual } from '@src/utils/utils.ts'
+import { getDifference, setsAreEqual } from '@src/utils/utils.ts'
 import EditTurnDialog from './turnEditor/EditTurnDialog.vue'
 const { openDialog, showDialog } = useForm()
 
@@ -347,15 +347,22 @@ const contextMenu = ref<ContextMenuRoad>({
 })
 const showTurnDialog = ref(false)
 function actionClick (event: ActionClickRoad) {
-  if (['Delete rLink', 'Delete Selected'].includes(event.action)) {
+  if (event.action === 'Delete rLink') {
     rlinksStore.deleteLink(event.feature)
+  } else if (event.action === 'Delete Selected') {
+    rlinksStore.deleteLink([...selectedIds.value])
   } else if (event.action === 'Edit Turn Restrictions') {
     showTurnDialog.value = true
   }
   else {
     // edit rlinks info, rnodes info. group info
     const action = event.action as RoadsAction// 'Edit Road Group Info' 'Edit rLink Info' 'Edit rNode Info'
-    openDialog({ action: action, selectedArr: Array.from(event.feature), lingering: true, type: 'road' })
+    if (event.action === 'Edit Road Group Info') {
+      // dont use the one in event, as other component could change selectedIds.
+      openDialog({ action: action, selectedArr: Array.from(selectedIds.value), lingering: true, type: 'road' })
+    } else {
+      openDialog({ action: action, selectedArr: Array.from(event.feature), lingering: true, type: 'road' })
+    }
   }
   contextMenu.value.showed = false
   deselectAll()
@@ -393,22 +400,20 @@ function contextMenuNode (event: CustomMapEvent) {
 import { useSelected } from '@src/composables/UseSelect.ts'
 const { selectedIds } = useSelected()
 
-function toggleSelected(val: boolean) {
-  selectedIds.value.forEach(id => {
-    map.value.setFeatureState(
-      { source: 'rlinks', id: id },
-      { select: val },
-    )
-  })
-}
+watch(selectedIds, (newVal, oldVal) => {
+  const added = getDifference(newVal, oldVal)
+  const removed = getDifference(oldVal, newVal)
+  removed.forEach(id => map.value.setFeatureState({ source: 'rlinks', id: id }, { select: false }))
+  added.forEach(id => map.value.setFeatureState({ source: 'rlinks', id: id }, { select: true }))
+})
 
 function deselectAll() {
-  toggleSelected(false)
   selectedIds.value = new Set([])
   contextMenu.value.showed = false
 }
 
 function rightClickOnMap(event: MapMouseEvent) {
+  if (!isRoadMode.value) return
   if (!event.originalEvent.ctrlKey && event.originalEvent.button === 2) {
     deselectAll()
   }
@@ -426,17 +431,17 @@ onBeforeUnmount(() => {
 // if someting is selected.
 
 function linkRightClick (event: CustomMapEvent) {
+  const ctrl = event.mapboxEvent.originalEvent.ctrlKey
+
   if (isRoadMode.value && hoveredStateId.value?.layerId === 'rlinks') {
-    if (!contextMenu.value.showed) {
+    if (!contextMenu.value.showed && !ctrl) {
       contextMenu.value.coordinates = [event.mapboxEvent.lngLat.lng, event.mapboxEvent.lngLat.lat]
     }
     contextMenu.value.showed = true
 
-    const ctrl = event.mapboxEvent.originalEvent.ctrlKey
     if (ctrl) {
       selectedIds.value = new Set([...selectedIds.value, ...hoveredStateId.value.id])
-      toggleSelected(true)
-      contextMenu.value.ids = [...cloneDeep(selectedIds.value)]
+      // contextMenu.value.ids = [...selectedIds.value] will direcrtly use selectedIds on confirm
       contextMenu.value.actions
           = [
           { name: 'Edit Road Group Info', text: $gettext('Edit selected Info') },
@@ -444,7 +449,6 @@ function linkRightClick (event: CustomMapEvent) {
         ]
     }
     else {
-      toggleSelected(false)
       selectedIds.value = new Set([])
       contextMenu.value.ids = cloneDeep(hoveredStateId.value.id)
       contextMenu.value.actions = [
@@ -460,16 +464,14 @@ function contextMenuSelection (event: MapSelectorEvent) {
   if (ctrl) {
     selectedIds.value = new Set([...selectedIds.value, ...event.selectedId])
   } else {
-    toggleSelected(false)
     selectedIds.value = event.selectedId
   }
-  toggleSelected(true)
 
   if (selectedIds.value.size > 0) {
     contextMenu.value.showed = true
     // put it in the navbar popup
     contextMenu.value.coordinates = null
-    contextMenu.value.ids = [...cloneDeep(selectedIds.value)]
+    // contextMenu.value.ids = [...selectedIds.value] will direcrtly use selectedIds on confirm
     contextMenu.value.actions
           = [
         { name: 'Edit Road Group Info', text: $gettext('Edit selected Info') },
