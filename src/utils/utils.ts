@@ -36,17 +36,13 @@ export function IndexAreDifferent (geojsonA: GeoJson, geojsonB: GeoJson) {
 
 export function deleteUnusedNodes (nodes: PointGeoJson, links: LineStringGeoJson) {
   // delete every every nodes not in links. return nodes.feautures
-  const a = links.features.map(item => item.properties.a)
-  const b = links.features.map(item => item.properties.b)
-  const ab = new Set([...a, ...b])
+  const ab = new Set(links.features.flatMap(item => [item.properties.a, item.properties.b]))
   return nodes.features.filter(node => ab.has(node.properties.index))
 }
 
 export function getUnusedNodes (nodes: PointGeoJson, links: LineStringGeoJson): string[] {
   // delete every every nodes not in links. return nodes.feautures
-  const a = links.features.map(item => item.properties.a)
-  const b = links.features.map(item => item.properties.b)
-  const ab: Set<string> = new Set([...a, ...b])
+  const ab = new Set(links.features.flatMap(item => [item.properties.a, item.properties.b]))
   const indexArr: string[] = nodes.features.map(node => node.properties.index)
   return getDifference(indexArr, ab)
 }

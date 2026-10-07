@@ -6,7 +6,7 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, ref, watch, toRefs, onMounted } from 'vue'
 import { useHighlight } from '@src/composables/useHighlight'
-import { baseLineString, basePoint, LineStringFeatures } from '@src/types/geojson'
+import { baseLineString, basePoint, lightenFeature, LineStringFeatures } from '@src/types/geojson'
 interface Props {
   map: mapboxgl.Map
   isEditorMode: boolean
@@ -69,6 +69,7 @@ const selectedFeatures = ref<LineStringFeatures[]>([])
 const visibleNodesIndex = ref<Set<string>>(new Set([]))
 
 async function setFilter() {
+  getVisibleNodes()
   const linksFilter = [
     'in',
     ['to-string', ['get', 'trip_id']],
@@ -76,7 +77,6 @@ async function setFilter() {
   ]
   map.value.setFilter('links', linksFilter)
 
-  getVisibleNodes()
   map.value.setFilter('nodes', [
     'in',
     ['get', 'index'],
@@ -84,6 +84,7 @@ async function setFilter() {
   ])
   await waitMapRender()
 }
+
 function waitMapRender() {
   return new Promise<void>((resolve) => {
     map.value.once('idle', () => {
@@ -117,25 +118,14 @@ function getVisibleNodes() {
 }
 
 function initLayers () {
-  // getVisibleNodes()
   const filteredLinks = baseLineString()
-  filteredLinks.features = links.value.features.map(feature => {
-    return { type: 'Feature',
-      geometry: feature.geometry,
-      properties: {
-        a: feature.properties.a,
-        b: feature.properties.b,
-        index: feature.properties.index,
-        trip_id: feature.properties.trip_id,
-        route_width: feature.properties.route_width,
-        route_color: feature.properties.route_color,
-      },
-    }
-  })
+  const keys = ['a', 'b', 'index', 'trip_id', 'route_width', 'route_color']
+  filteredLinks.features = links.value.features.map(feature => lightenFeature(feature, keys))
   const linkSource = map.value.getSource('links') as GeoJSONSource
   if (linkSource) linkSource.setData(filteredLinks)
   const nodeSource = map.value.getSource('nodes') as GeoJSONSource
   if (nodeSource) nodeSource.setData(visibleNodes.value)
+  setFilter()
 }
 
 const popup = ref<Popup>()

@@ -139,6 +139,15 @@ export function basePolygonFeature(): PolygonFeatures {
   }
 }
 
+export function lightenFeature<P extends GeoJsonFeatures>(feature: P, keys: string[]): P {
+  // return a geojson with only the provided properties
+  const properties = Object.fromEntries(keys.map(key => [key, feature.properties[key]]))
+  return {
+    type: 'Feature',
+    geometry: feature.geometry,
+    properties: properties,
+  } as P
+}
 //
 
 export function createLinestringFeature<P extends object = GeoJsonProperties>(
