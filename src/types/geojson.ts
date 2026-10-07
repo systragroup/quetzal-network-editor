@@ -45,6 +45,8 @@ export interface PolygonGeometry {
 
 export interface GeoJsonProperties {
   [key: string]: any
+  properties?: never
+  geometry?: never
 }
 
 export interface PointFeatures {

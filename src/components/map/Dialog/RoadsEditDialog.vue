@@ -3,11 +3,9 @@
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { computed, onMounted, ref, watch, watchEffect } from 'vue'
-import attributesHints from '@constants/hints'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useForm } from '@src/composables/UseForm'
-import { getForm, getGroupForm } from '@src/utils/utils'
 import { getDirection } from '@src/utils/spatial'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
@@ -16,13 +14,12 @@ import { rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultPropert
 import DialogHeader from './DialogHeader.vue'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { cloneDeep } from 'lodash'
+import { changeLengthTimeSpeed, getForm, getGroupForm, RulesFactory } from '@src/utils/form.ts'
 const { $gettext } = useGettext()
-
-type Dict = Record<string, string>
 
 const store = useIndexStore()
 const rlinksStore = userLinksStore()
-const { showDialog, action, selectedArr, changeLengthTimeSpeed } = useForm()
+const { showDialog, action, selectedArr } = useForm()
 
 const rlinks = computed(() => rlinksStore.rlinks)
 const lineAttributes = computed(() => rlinksStore.rlineAttributes)
@@ -34,9 +31,10 @@ const exclusionList = computed(() => Object.keys(editorForm.value[0]) || [])
 const editLinks = computed(() => action.value !== 'Edit rNode Info')
 
 const attributesChoices = computed(() => rlinksStore.rlinksAttributesChoices)
+
 const typesMap = computed(() => {
-  if (editLinks.value) return Object.fromEntries(rlinksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
-  else return Object.fromEntries(rlinksStore.nodesDefaultAttributes.map(el => [el.name, el.type]))
+  if (editLinks.value) return rlinksStore.linkTypes
+  else return rlinksStore.nodeTypes
 })
 
 const attributeNonDeletable = computed<string[]>(() => {
@@ -49,15 +47,20 @@ const usedIndex = computed<Set<string>>(() => {
   else return new Set(rlinksStore.rnodes.features.map(el => el.properties.index))
 })
 
-const displayUnits = computed(() => store.displayUnits)
+const baseUnits = computed(() => {
+  if (editLinks.value) return rlinksStore.linkUnits
+  else return rlinksStore.nodeUnits
+})
+const displayUnits = computed(() => Object.assign(baseUnits.value, store.displayUnits))
 
 const rules = computed(() => selectedArr.value.map(idx => {
   const prefix = idx.split('_')[0] + '_'
   return {
     index: [
-      (val: string) => ((val === idx) || (!usedIndex.value.has(val))) || $gettext('already exist'),
-      (val: string) => val.startsWith(prefix) || $gettext('must start with prefix %{prefix}', { prefix }),
-      () => { //  check that all indexes are differents (only needed for 1 of the form. done too all for simplicity)
+      RulesFactory.unique(idx, usedIndex.value),
+      RulesFactory.prefix(prefix),
+      //  check that all indexes are differents (only needed for 1 of the form. done too all for simplicity)
+      () => {
         const uniqueIndexes = new Set(editorForm.value.map(form => form.index?.value))
         return (uniqueIndexes.size === editorForm.value.length) || $gettext('indexes must be different')
       },
@@ -67,7 +70,8 @@ const rules = computed(() => selectedArr.value.map(idx => {
 }),
 )
 
-const hints: Dict = attributesHints
+const hints = computed(() => store.hints)
+
 const formRef = ref()
 
 const editorForm = ref<GroupForm[]>([])
@@ -104,14 +108,14 @@ function createForm() {
   switch (action.value) {
     case 'Edit rLink Info':
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['a', 'b', 'length']
+      disabled = ['a', 'b', 'length', 'turn_restrictions']
       editorForm.value = []
       selectedArr.value.forEach(index => {
         const feature = features.filter(link => link.properties.index === index)[0]
-        const form = getForm(feature, lineAttributes.value, disabled)
+        const form = getForm(feature.properties, lineAttributes.value, disabled)
         linkDir.value.push(getDirection(feature.geometry.coordinates))
         if (feature.properties.oneway === '0') {
-          const rform = getForm(feature, reversedAttributes.value, disabled)
+          const rform = getForm(feature.properties, reversedAttributes.value, disabled)
           // group together both direction
           reversedAttributes.value.forEach(key => {
             rform[key].grouped = true
@@ -125,7 +129,7 @@ function createForm() {
       break
     case 'Edit Road Group Info':
       features = rlinks.value.features.filter(link => selectedSet.has(link.properties.index))
-      disabled = ['index', 'length', 'time', 'a', 'b']
+      disabled = ['a', 'b', 'length', 'turn_restrictions', 'index', 'time']
       editorForm.value = [getGroupForm(features, lineAttributes.value, disabled)]
       break
 
@@ -318,6 +322,7 @@ watchEffect(() => {
               :show-delete-option="idx === 0 ? showDeleteOption:false"
               :hints="hints"
               :display-units="displayUnits"
+              :units="baseUnits"
               :rules="rules[idx]"
               :attribute-non-deletable="attributeNonDeletable"
               :attributes-choices="attributesChoices"

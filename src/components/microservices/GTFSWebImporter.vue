@@ -15,6 +15,7 @@ import { useGettext } from 'vue3-gettext'
 import { basePolygonFeature, GeoJsonFeatures, PolygonFeatures } from '@src/types/geojson'
 import { RunPayload } from '@src/types/api'
 import { StringTimeserie } from '@src/types/typesStore'
+import { DataTableHeader } from 'vuetify'
 const FUNCTION_NAME = import.meta.env.VITE_GTFS_IMPORTER_NAME
 
 const { $gettext } = useGettext()
@@ -183,15 +184,7 @@ function applyOverwriteDialog () {
   importGTFS()
 }
 
-export interface DataTableHeaders {
-  key: string
-  title: string
-  parser?: (_value: any) => any
-  width?: string
-  sortable?: boolean
-
-}
-const headers: DataTableHeaders[] = [
+const headers: DataTableHeader[] = [
   { key: 'index', title: 'id' },
   { key: 'allInPolygon', title: 'All in polygon' },
   { key: 'countryCode', title: 'Code' },

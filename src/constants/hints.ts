@@ -28,7 +28,7 @@ export const hints = {
      Links are group by trip_id in Quetzal-network-editor.`),
   length: $gettext('links geometry linestring length (meters)'),
   highway: $gettext('Main identifier or any kind of road, street or path. ex: (motorway, residential, primary)'),
-  speed: $gettext('speed on the link (Km/h)'),
+  speed: $gettext('speed on the link'),
   cycleway: $gettext('if the road contain a bike path. either yes, no or shared'),
   cycleway_reverse: $gettext('if the road contain a bike path in the opposite direction. either yes, no or shared. a road can be a oneway and have cycleway on both side.'),
 

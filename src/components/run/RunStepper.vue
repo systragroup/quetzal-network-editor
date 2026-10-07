@@ -42,9 +42,11 @@ const errorMessage = computed(() => runStore.errorMessage)
 const isProtected = computed(() => userStore.protected)
 const modelIsLoaded = computed(() => userStore.model !== null)
 const model = computed(() => userStore.model!)
+const initializing = ref(false)
 
 onMounted(async () => {
   if (modelIsLoaded.value) {
+    initializing.value = true
     await runStore.getInfra()
     const promises = []
     promises.push(runStore.getSteps())
@@ -52,8 +54,10 @@ onMounted(async () => {
     promises.push(runStore.checkRunningExecution())
     promises.push(runStore.checkLogs())
     await Promise.allSettled(promises)
+    initializing.value = false
   }
 })
+watch(initializing, v => console.log(v))
 
 watch(stepFunction, async (val) => {
   if (modelIsLoaded.value) {
@@ -119,15 +123,20 @@ function playAudio() {
       <v-card-title class="subtitle">
         {{ $gettext('Simulation') }}
       </v-card-title>
-      <v-card-subtitle class="model-tag">
-        {{ modelTag }}
-      </v-card-subtitle>
-      <MenuSelector
-        v-if="tagChoices.length>1"
-        v-model="modelTag"
-        :items="tagChoices"
-        size="x-small"
-      />
+      <div
+        v-if="!initializing"
+        class="title-container"
+      >
+        <v-card-subtitle class="model-tag">
+          {{ modelTag }}
+        </v-card-subtitle>
+        <MenuSelector
+          v-if="tagChoices.length>1"
+          v-model="modelTag"
+          :items="tagChoices"
+          size="x-small"
+        />
+      </div>
 
       <Logs :disabled="running || !modelIsLoaded" />
     </div>
@@ -164,11 +173,16 @@ function playAudio() {
         :title="$gettext('This scenario is protected')"
         :messages="$gettext(' You cannot run simulation.')"
       />
+      <v-progress-linear
+        v-if="initializing"
+        color="primary"
+        indeterminate
+      />
 
       <div class="buttons-row ma-2">
         <v-btn
           v-if="!running"
-          :disabled="isProtected || !modelIsLoaded"
+          :disabled="isProtected || !modelIsLoaded||initializing"
           color="success"
           prepend-icon="fa-solid fa-play"
           @click="run()"

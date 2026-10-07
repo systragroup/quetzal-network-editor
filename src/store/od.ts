@@ -3,13 +3,14 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer, CRSis4326 } from '@src/utils/serializer'
-import { getModifiedKeys, getDifference, IndexAreDifferent } from '@src/utils/utils'
+import { getDifference, IndexAreDifferent } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
 import { Attributes, EditGroupPayload, FilesPayload, MoveNode, NewAttribute, NewODPayload, ODStore } from '@src/types/typesStore'
 import { baseLineString, basePoint, createPointFeature, LineStringFeatures,
   LineStringGeoJson, LineStringGeometry } from '@src/types/geojson'
 import { defaultIndexingMethod, ODDefaultProperties } from '@src/constants/properties'
 import { getPropertyType, getUUID, listAllProperties } from '@src/utils/network'
+import { getModifiedKeys } from '@src/utils/form'
 const $gettext = (s: string) => s
 
 export const useODStore = defineStore('od', {
@@ -77,7 +78,7 @@ export const useODStore = defineStore('od', {
       const newProps = getDifference(properties, this.layerAttributes)
       newProps.forEach(prop => {
         const type = getPropertyType(this.layer, prop)
-        this.defaultAttributes.push({ name: prop, type: type })
+        this.defaultAttributes.push({ name: prop, type: type, unit: undefined })
       })
 
       this.selectedFilter = 'name'
@@ -162,7 +163,7 @@ export const useODStore = defineStore('od', {
       const { name, type } = payload
       this.layer.features.map(link => link.properties[name] = undefined)
       this.visibleLayer.features.map(link => link.properties[name] = undefined)
-      this.defaultAttributes.push({ name: name, type: type })
+      this.defaultAttributes.push({ name: name, type: type, unit: undefined })
     },
     deletePropertie (name: string) {
       // when a link property is deleted

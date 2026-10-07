@@ -48,12 +48,17 @@ export interface OtherFiles extends FileFormat {
 export interface ModelConfig {
   version?: 0
   indexingMethod?: IndexingMethod
+  disableUturn?: boolean
   attributesChoices?: {
     links?: AttributesChoice
     road_links?: AttributesChoice
   }
+  lineProperties?: string[]
   units?: Record<string, AttributeUnits>
+  hints?: Record<string, string>
 }
+
+export type AttributeUnits = undefined | 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'
 
 export type SpeedTimeMethod = 'speed' | 'time'
 export type IndexingMethod = 'uuid' | 'int'
@@ -81,6 +86,7 @@ export interface IndexStore {
   isMobile: boolean
   loading: Loading
   showLeftPanel: boolean
+  showBottomPanel: boolean
   anchorMode: boolean
   speedTimeMethod: SpeedTimeMethod
   linksPopupContent: string[]
@@ -225,13 +231,13 @@ export interface SchedulePayload {
   [key: string]: TimeString[]
 }
 
-export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined
-export type AttributeUnits = 'sec' | 'min' | 'hour' | 'm' | 'km' | 'km/h'
+export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined | 'Color'
 
 export interface Attributes {
   name: string
   type: AttributeTypes
   value?: string | number
+  unit?: AttributeUnits
 }
 
 export type AttributesChoice = Record<string, (string | number)[]>
@@ -255,6 +261,7 @@ export interface LinksStore {
   linksDefaultAttributes: Attributes[]
   stickyMode: boolean
   routingMode: boolean
+  updateLinks: UpdateFeatures[]
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 

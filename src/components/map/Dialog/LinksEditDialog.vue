@@ -5,18 +5,14 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import { cloneDeep } from 'lodash'
-import attributesHints from '@constants/hints'
 import SimpleDialog from '@src/components/utils/SimpleDialog.vue'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { useGettext } from 'vue3-gettext'
 import { GroupForm, Rule } from '@src/types/components'
 import DialogHeader from './DialogHeader.vue'
-import { getGroupForm, isScheduleTrip, hash } from '@src/utils/utils'
-import { linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties'
+import { isScheduleTrip, hash } from '@src/utils/utils'
 const { $gettext } = useGettext()
-
-type Dict = Record<string, string>
 
 const store = useIndexStore()
 const linksStore = useLinksStore()
@@ -24,7 +20,9 @@ const linksStore = useLinksStore()
 import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
 import { AttributeTypes } from '@src/types/typesStore.ts'
-const { showDialog, action, selectedArr, lingering, changeLengthTimeSpeed } = useForm()
+import { getGroupForm, changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
+import { lineDefaultProperties } from '@src/constants/properties.ts'
+const { showDialog, action, selectedArr, lingering } = useForm()
 
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
 const lineAttributes = computed(() => linksStore.lineAttributes)
@@ -36,13 +34,18 @@ const exclusionList = computed(() => Object.keys(editorForm.value) || [])
 const editLinks = computed(() => action.value !== 'Edit Node Info')
 
 const typesMap = computed(() => {
-  if (editLinks.value) return Object.fromEntries(linksStore.linksDefaultAttributes.map(el => [el.name, el.type]))
-  else return Object.fromEntries(linksStore.nodesDefaultAttributes.map(el => [el.name, el.type]))
+  if (editLinks.value) return linksStore.linkTypes
+  else return linksStore.nodeTypes
 })
 
 const attributeNonDeletable = computed<string[]>(() => {
-  if (editLinks.value) return linksDefaultProperties.map(el => el.name)
-  else return nodesDefaultProperties.map(el => el.name)
+  if (editLinks.value) return linksStore.lineAttributes
+  else return linksStore.nodeAttributes
+})
+
+const baseUnits = computed(() => {
+  if (editLinks.value) return linksStore.linkUnits
+  else return linksStore.nodeUnits
 })
 
 const usedIndex = computed<Set<string>>(() => {
@@ -50,26 +53,27 @@ const usedIndex = computed<Set<string>>(() => {
   else return new Set(linksStore.nodesIndexes)
 })
 
-const displayUnits = computed(() => store.displayUnits)
+const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
 
 const formRef = ref()
 const initialHash = ref()
-const rulesConstant = ref({ trip_id: '', index: '', prefix: '' })
 const editorForm = ref<GroupForm>({})
 
 const showHint = ref(false)
-const hints: Dict = attributesHints
-const rules: Record<string, Rule[]> = {
-  trip_id: [
-    (val: string) => ((val === rulesConstant.value.trip_id) || (!tripList.value.has(val)))
-    || $gettext('already exist'),
-  ],
-  index: [
-    (val: string) => ((val === rulesConstant.value.index) || (!usedIndex.value.has(val)))
-    || $gettext('already exist'),
-    (val: string) => val.startsWith(rulesConstant.value.prefix)
-    || $gettext('must start with prefix %{prefix}', { prefix: rulesConstant.value.prefix }),
-  ],
+const hints = computed(() => store.hints)
+
+const rules = ref<Record<string, Rule[]> >({})
+
+function createRules(index: string, tripId: string) {
+  return {
+    trip_id: [
+      RulesFactory.unique(tripId, tripList.value),
+    ],
+    index: [
+      RulesFactory.unique(index, usedIndex.value),
+      RulesFactory.prefix(index ? index.split('_')[0] + '_' : ''),
+    ],
+  }
 }
 
 onMounted(() => {
@@ -84,11 +88,9 @@ function init() {
   createForm()
   initialHash.value = hash(JSON.stringify(editorForm.value))
   const index = cloneDeep(editorForm.value.index?.value)
-  rulesConstant.value = {
-    trip_id: cloneDeep(editorForm.value.trip_id?.value),
-    index: index,
-    prefix: index ? index.split('_')[0] + '_' : '',
-  }
+  const tripId = cloneDeep(editorForm.value.trip_id?.value)
+  rules.value = createRules(index, tripId)
+
   showHint.value = false
   showDeleteOption.value = false
 }
@@ -105,24 +107,22 @@ function createForm() {
       } else {
         features = linksStore.editorLinks.features
       }
-      disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'anchors', 'departures', 'arrivals']
-      if (isSchedule.value) { disabled = [...disabled, 'speed'] }
+      disabled = ['index', 'a', 'b', 'length', 'time', 'link_sequence', 'anchors', 'departures', 'arrivals']
+      if (isSchedule.value) disabled = [...disabled, 'speed']
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Group Info':
       const selectedSet = new Set(selectedArr.value)
       features = linksStore.links.features.filter(link => selectedSet.has(link.properties.trip_id))
-      disabled = ['index', 'length', 'time', 'a', 'b', 'link_sequence', 'trip_id', 'anchors', 'departures', 'arrivals']
+      disabled = ['index', 'a', 'b', 'length', 'time', 'link_sequence', 'anchors', 'departures', 'arrivals', 'trip_id']
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Link Info':
       // link is clicked on the map
       const selectedLink = selectedArr.value[0]
       features = linksStore.editorLinks.features.filter((link) => link.properties.index === selectedLink)
-      disabled = ['a', 'b', 'length', 'link_sequence', 'trip_id', 'headway', 'anchors',
-        'departures', 'arrivals', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
-      ]
-      if (isSchedule.value) { disabled = [...disabled, ...['speed', 'time']] }
+      disabled = [...lineDefaultProperties, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
+      if (isSchedule.value) disabled = [...disabled, ...['speed', 'time']]
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break
     case 'Edit Node Info':
@@ -324,6 +324,7 @@ async function handleSimpleDialog(response: boolean) {
           :show-delete-option="showDeleteOption"
           :hints="hints"
           :display-units="displayUnits"
+          :units="baseUnits"
           :rules="rules"
           :attribute-non-deletable="attributeNonDeletable"
           :attributes-choices="attributesChoices"

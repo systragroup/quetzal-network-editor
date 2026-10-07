@@ -3,17 +3,17 @@ import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 import { toRefs, ref, computed } from 'vue'
 import { GroupForm, Rule } from '@src/types/components'
-import ColorPicker from '../utils/ColorPicker.vue'
 import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
 import NumberInput from './NumberInput.vue'
 import BooleanInput from './BooleanInput.vue'
-import { baseUnits } from '@src/constants/properties'
-import { cloneDeep } from 'lodash'
+import { getPropertyName, hasCalculator } from '@src/utils/form.ts'
+import ColorInput from './ColorInput.vue'
 
 interface Props {
   hints: Record<string, string>
-  displayUnits?: Record<string, AttributeUnits | undefined>
+  displayUnits?: Record<string, AttributeUnits>
+  units?: Record<string, AttributeUnits>
   types?: Record<string, AttributeTypes >
   attributesChoices?: Record<string, any[]>
   attributeNonDeletable: string[]
@@ -26,6 +26,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   hints: () => ({} as Record<string, string>),
   displayUnits: () => ({} as Record<string, AttributeUnits>),
+  units: () => ({} as Record<string, AttributeUnits>),
   types: () => ({} as Record<string, AttributeTypes>),
   attributesChoices: () => ({} as Record<string, any[]>),
   rules: () => ({} as Record<string, Rule[]>),
@@ -43,8 +44,6 @@ function deleteField(key: string) {
   emits('deleteField', key)
 }
 const shake = ref(false)
-
-const suffix = computed(() => Object.assign(cloneDeep(baseUnits), displayUnits.value))
 
 const formRef = ref()
 async function validate() {
@@ -75,20 +74,6 @@ const orderedForm = computed (() => {
   return ordered
 })
 
-function getPropertyName(key: string): string {
-  // time, time#AM, time_r, time#AM_r
-  // return time
-  return key.split('#')[0].split('_r')[0]
-}
-
-function hasCalculator(key: string) {
-  const name = getPropertyName(key)
-  if (['length', 'speed', 'time'].includes(name))
-    return true
-  else
-    return false
-}
-
 defineExpose({
   validate,
 })
@@ -96,6 +81,7 @@ defineExpose({
 function componentType(type: AttributeTypes) {
   if (type === 'Number') return NumberInput
   if (type === 'Boolean') return BooleanInput
+  if (type === 'Color') return ColorInput
   else return 'v-text-field'
 }
 
@@ -131,9 +117,9 @@ function componentType(type: AttributeTypes) {
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
             :disabled="item.disabled"
-            :base-units="baseUnits[getPropertyName(key)]"
+            :base-units="units[getPropertyName(key)]"
             :display-units="displayUnits[getPropertyName(key)]"
-            :suffix="suffix[getPropertyName(key)]"
+            :suffix="displayUnits[getPropertyName(key)]"
             :rules="item.disabled?[]: rules[key]"
             :precision="null"
             :prepend-inner-icon="hasCalculator(key) ? 'fas fa-calculator' : '' "
@@ -141,15 +127,7 @@ function componentType(type: AttributeTypes) {
             @update:model-value="change(key)"
           >
             <template
-              v-if="key==='route_color'"
-              v-slot:append-inner
-            >
-              <color-picker
-                v-model:pcolor="item.value"
-              />
-            </template>
-            <template
-              v-else-if="Object.keys(attributesChoices).includes(key)"
+              v-if="Object.keys(attributesChoices).includes(key)"
               v-slot:append-inner
             >
               <MenuSelector

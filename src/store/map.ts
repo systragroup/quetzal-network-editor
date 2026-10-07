@@ -1,10 +1,10 @@
-import { mapDefaultCenter } from '@src/constants/properties'
 import { GeoJsonFeatures } from '@src/types/geojson'
 import { MapPositionPayload, MapStore } from '@src/types/typesStore'
 import { getBounds } from '@src/utils/spatial'
 
 import { defineStore, acceptHMRUpdate } from 'pinia'
 const mapboxPublicKey = import.meta.env.VITE_MAPBOX_PUBLIC_KEY
+export const mapDefaultCenter = () => [-73.570337, 45.498310]
 
 export const useMapStore = defineStore('mapStore', {
   state: (): MapStore => ({

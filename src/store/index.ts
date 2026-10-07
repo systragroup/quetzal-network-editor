@@ -24,6 +24,7 @@ import { FileFormat, ImportPoly, IndexStore,
   Notification, OtherFiles, ProjectInfo, SettingsPayload, StepPayload, Style } from '@src/types/typesStore.js'
 import { migrateStyle } from '@src/migrations/style.js'
 import { defaultModelConfig } from '@src/constants/properties.js'
+import baseHints from '@src/constants/hints.js'
 const $gettext = (s: string) => s
 
 export const useIndexStore = defineStore('index', {
@@ -41,6 +42,7 @@ export const useIndexStore = defineStore('index', {
     },
     // edition params
     showLeftPanel: true,
+    showBottomPanel: false,
     anchorMode: false,
     speedTimeMethod: 'time',
     // general viz
@@ -270,7 +272,6 @@ export const useIndexStore = defineStore('index', {
         const rlinksConfig = attributesChoices.road_links
         if (rlinksConfig) rlinks.loadrLinksAttributesChoices(rlinksConfig)
         const indexingMethod = config.indexingMethod
-        console.log(indexingMethod)
         if (indexingMethod) {
           rlinks.indexingMethod = indexingMethod
           links.indexingMethod = indexingMethod
@@ -596,7 +597,8 @@ export const useIndexStore = defineStore('index', {
         && state.styles.length === 0)
     },
     hasDocs: (state) => state.docFiles.length > 0,
-    displayUnits: (state) => state.modelConfig.units || {},
+    displayUnits: (state) => state.modelConfig.units,
+    hints: (state) => Object.assign(cloneDeep(baseHints), state.modelConfig.hints),
     availableLayers: (state) => {
       // do not return empty links or rlinks or OD as available.
       const links = useLinksStore()

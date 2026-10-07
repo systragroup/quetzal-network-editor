@@ -27,17 +27,13 @@ async function reset () {
 
 // resizable div
 
-import { useResize } from '@src/composables/useResize'
-const { panelHeight: height, panelDiv: resizableDiv, startResize } = useResize(0, 50, 50)
+import { useResize } from '@src/composables/useResize.ts'
+const show = ref(true)
+const resizableDiv = ref()
+const { startResize, size: height } = useResize(resizableDiv, show, ref(50), ref(100), 'row')
 
 onMounted(() => {
-  if (resizableDiv.value) {
-    const windowHeight = (window.innerHeight)
-    const scrollHeight = resizableDiv.value.scrollHeight
-    const ratio = scrollHeight / windowHeight
-    // try to fit all content. if larger tha 25% of window, set to 25% of window
-    height.value = ratio > 0.25 ? 0.25 * windowHeight : scrollHeight
-  }
+  height.value = 90 //  init to 90%
 })
 
 // panel. show 10 param on mounted
@@ -181,121 +177,126 @@ const showNewParamForm = ref(false)
       />
     </v-card-title>
     <div
-      v-show="info"
       ref="resizableDiv"
-      class="info-div"
-      :style="{ height: height + 'px' }"
+      class="test"
     >
-      {{ info }}
-    </div>
-    <div
-      v-show="info"
-      class="drag-handle"
-      @mousedown="startResize"
-    />
-    <p v-if="parameters.length === 0">
-      {{ $gettext('No parameters') }}
-    </p>
-    <div class="expansion">
-      <v-form
-        ref="form"
-        validate-on="lazy"
+      <div
+        v-show="info"
+        class="info-div"
+        :style="{ flexBasis: (100-height) + '%' }"
       >
-        <v-expansion-panels
-          v-model="panels"
-          multiple
+        {{ info }}
+      </div>
+      <div
+        v-show="info"
+        class="drag-handle"
+        @mousedown="startResize"
+      />
+      <p v-if="parameters.length === 0">
+        {{ $gettext('No parameters') }}
+      </p>
+      <div class="expansion">
+        <v-form
+          ref="form"
+          validate-on="lazy"
         >
-          <v-expansion-panel
-            v-for="(group, key) in parameters"
-            :key="key"
-            class="categorie"
+          <v-expansion-panels
+            v-model="panels"
+            multiple
           >
-            <template v-slot:title>
-              <div class="title">
-                {{ group.category }}
-              </div>
-            </template>
-
-            <v-expansion-panel-text
-              style="background-color:rgb(var(--v-theme-lightgrey));"
+            <v-expansion-panel
+              v-for="(group, key) in parameters"
+              :key="key"
+              class="categorie"
             >
-              <div v-show="panels.includes(key)">
-                <div
-                  v-if="group.info"
-                  class="categorie-info"
-                >
-                  {{ group.info }}
+              <template v-slot:title>
+                <div class="title">
+                  {{ group.category }}
                 </div>
-                <li
-                  v-for="(item, itemKey) in group.params"
-                  :key="itemKey"
-                  class="param-list"
-                >
-                  <ParamInput
-                    :item="item"
-                  >
-                    <template
-                      v-if="showEdit && variants"
-                      v-slot:prepend
-                    >
-                      <MenuSelector
-                        v-if="isVariant(item)"
-                        :items="getVariantsChoices(group,item)"
-                        size="small"
-                        :model-value="getItemVariant(item)"
-                        @update:model-value="(v)=>changeItemVariant(v, item)"
-                      />
-                      <v-btn
-                        v-else
-                        variant="tonal"
-                        size="small"
-                        :disabled="getVariantsChoices(group,item).length==0"
-                        icon="fas fa-plus"
-                        @click="addItem(group, item)"
-                      />
-                    </template>
-                    <template
-                      v-if="showEdit"
-                      v-slot:append
-                    >
-                      <v-btn
-                        variant="text"
-                        color="error"
-                        size="small"
-                        icon="fas fa-trash"
-                        @click="deleteParam(group.category, item.name)"
-                      />
-                    </template>
-                  </ParamInput>
+              </template>
 
-                  <v-fade-transition>
-                    <div
-                      v-if="showHint"
-                      class="custom-hint"
+              <v-expansion-panel-text
+                style="background-color:rgb(var(--v-theme-lightgrey));"
+              >
+                <div v-show="panels.includes(key)">
+                  <div
+                    v-if="group.info"
+                    class="categorie-info"
+                  >
+                    {{ group.info }}
+                  </div>
+                  <li
+                    v-for="(item, itemKey) in group.params"
+                    :key="itemKey"
+                    class="param-list"
+                  >
+                    <ParamInput
+                      :item="item"
                     >
-                      <div
-                        v-if="!editHint"
-                        @dblclick="dblclick(key, itemKey)"
+                      <template
+                        v-if="showEdit && variants"
+                        v-slot:prepend
                       >
-                        {{ item.hint }}
+                        <MenuSelector
+                          v-if="isVariant(item)"
+                          :items="getVariantsChoices(group,item)"
+                          size="small"
+                          :model-value="getItemVariant(item)"
+                          @update:model-value="(v)=>changeItemVariant(v, item)"
+                        />
+                        <v-btn
+                          v-else
+                          variant="tonal"
+                          size="small"
+                          :disabled="getVariantsChoices(group,item).length==0"
+                          icon="fas fa-plus"
+                          @click="addItem(group, item)"
+                        />
+                      </template>
+                      <template
+                        v-if="showEdit"
+                        v-slot:append
+                      >
+                        <v-btn
+                          variant="text"
+                          color="error"
+                          size="small"
+                          icon="fas fa-trash"
+                          @click="deleteParam(group.category, item.name)"
+                        />
+                      </template>
+                    </ParamInput>
+
+                    <v-fade-transition>
+                      <div
+                        v-if="showHint"
+                        class="custom-hint"
+                      >
+                        <div
+                          v-if="!editHint"
+                          @dblclick="dblclick(key, itemKey)"
+                        >
+                          {{ item.hint }}
+                        </div>
+                        <textarea
+                          v-else
+                          :ref="el => setHintRef(el, key, itemKey)"
+                          v-model="item.hint"
+                          rows="1"
+                          class="edition"
+                          @keydown.enter="editHint=false"
+                        />
                       </div>
-                      <textarea
-                        v-else
-                        :ref="el => setHintRef(el, key, itemKey)"
-                        v-model="item.hint"
-                        rows="1"
-                        class="edition"
-                        @keydown.enter="editHint=false"
-                      />
-                    </div>
-                  </v-fade-transition>
-                </li>
-              </div>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-form>
+                    </v-fade-transition>
+                  </li>
+                </div>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+        </v-form>
+      </div>
     </div>
+
     <v-card-actions>
       <v-btn
         v-show="modelIsLoaded"
@@ -352,7 +353,6 @@ const showNewParamForm = ref(false)
   overflow-y: auto;
   padding: 1rem;
   margin-bottom:0
-
 }
 .drag-handle {
   height: 5px;
@@ -402,5 +402,11 @@ const showNewParamForm = ref(false)
   .categorie {
     font-size: 1em;
   }
+}
+
+.test{
+  display:flex;
+  flex-direction: column;
+  height: 100%;
 }
 </style>

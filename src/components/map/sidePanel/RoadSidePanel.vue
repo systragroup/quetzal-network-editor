@@ -47,11 +47,8 @@ watch(filteredChoices, (newVal, oldVal) => {
   // when add or delete. add the new group to the visible rlinks (or remove)
   const added = getDifference(newVal, oldVal)
   const removed = getDifference(oldVal, newVal)
-  if (added.length > 0) {
-    added.forEach(el => selectedrGoup.value.add(el))
-  } else if (removed.length > 0) {
-    removed.forEach(el => selectedrGoup.value.delete(el))
-  }
+  added.forEach(el => selectedrGoup.value.add(el))
+  removed.forEach(el => selectedrGoup.value.delete(el))
 })
 
 const searchString = ref('')
@@ -112,11 +109,13 @@ function abortChanges() {
 // delete dialog
 const deleteDialog = ref()
 const deleteMessage = ref('')
-async function deleteButton (group: string, message: string) {
+async function deleteButton (group: string) {
   // obj contain trip and message.
-  deleteMessage.value = message
+  const features = rlinksStore.getFilteredrLinks(group)
+  const indexList = features.map(link => link.properties.index)
+  deleteMessage.value = `${group} (${indexList.length} links)`
   const resp = await deleteDialog.value.openDialog()
-  if (resp) { rlinksStore.deleterGroup(group)
+  if (resp) { rlinksStore.deleterGroup(indexList)
   }
 }
 
@@ -243,10 +242,9 @@ const { setFlyToId } = useFlyTo()
             <div class="ma-2 item">
               {{ formatName(item) }}
             </div>
-
             <TooltipButton
               variant="text"
-              icon="fas fa-magnifying-glass"
+              icon="fas fa-location-crosshairs"
               location="bottom"
               :tooltip="$gettext('Fly to')"
               @click="setFlyToId(item)"
@@ -266,7 +264,7 @@ const { setFlyToId } = useFlyTo()
               size="small"
               location="bottom"
               :tooltip="$gettext('Delete All')"
-              @click="deleteButton(item, item)"
+              @click="deleteButton(item)"
             />
           </div>
         </template>
@@ -291,11 +289,10 @@ const { setFlyToId } = useFlyTo()
         :tooltip="$gettext('Edit Line geometry')"
         @click="store.changeAnchorMode()"
       />
-
       <TooltipButton
         class="mx-1"
         :color="showTurnRestrictions? 'green':'regular'"
-        icon="fas fa-diamond-turn-right"
+        icon="fas fa-arrows-turn-to-dots"
         size="small"
         location="right"
         :tooltip="$gettext('Show nodes with turn restrictions')"

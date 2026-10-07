@@ -4,7 +4,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 import { serializer } from '@src/utils/serializer'
-import { IndexAreDifferent, getModifiedKeys, getDifference, groupFormToDict,
+import { IndexAreDifferent, getDifference,
   getUnusedNodes,
   setsAreEqual } from '@src/utils/utils'
 import { cloneDeep } from 'lodash'
@@ -25,12 +25,14 @@ import { simplifyGeometry } from '@src/utils/spatial'
 import { _addGeojsonFeatures, _deleteGeojsonFeatures, _editGeojsonFeatures,
   addDefaultValuesToVariants, calcLengthTimeorSpeed, getBaseAttributesWithVariants,
   getDefaultLink, getNewIndex, getPropertyType, getType, getVariantsChoices,
+  initLengthTimeSpeed,
   listAllProperties,
   snapOnLink } from '@src/utils/network'
 import { addReverseProperties, deleteReverseProperties, normalizeToString } from '@src/utils/roadNetwork'
 import { nextTick, toRaw } from 'vue'
 const $gettext = (s: string) => s
 import { useIndexStore } from '.'
+import { getModifiedKeys, groupFormToDict } from '@src/utils/form'
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
@@ -233,11 +235,11 @@ export const userLinksStore = defineStore('rlinks', {
       this.deleteNonVariantAttributes()
       this._initOneways()
       this.initSelectedrFilter()
+      initLengthTimeSpeed(this.rlinks, this.timeVariants)
     },
 
     appendNewrNodes (payload: PointGeoJson) {
       // append new links and node to the project (import page)
-      simplifyGeometry(payload)
       payload.features.forEach(node => this.rnodes.features.push(node))
       this.getrNodesProperties()
     },
@@ -257,7 +259,7 @@ export const userLinksStore = defineStore('rlinks', {
       const newProps = getDifference(properties, this.rnodeAttributes)
       newProps.forEach(prop => {
         const type = getPropertyType(this.rnodes, prop)
-        this.nodesDefaultAttributes.push({ name: prop, type: type })
+        this.nodesDefaultAttributes.push({ name: prop, type: type, unit: undefined })
       })
     },
 
@@ -324,7 +326,7 @@ export const userLinksStore = defineStore('rlinks', {
       if (nameSet.has(name)) return // already exist
 
       const castedType = (Object.hasOwn(reservedrLinkProperties, name)) ? reservedrLinkProperties[name] : type
-      this.linksDefaultAttributes.push({ name: name, type: castedType })
+      this.linksDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
 
       // check to add the reversed attr. (if we manually add an attr in the app for example )
       if (name.endsWith('_r')) return
@@ -333,13 +335,13 @@ export const userLinksStore = defineStore('rlinks', {
       const rname = name + '_r'
       // add if doesnt exist already
       if (nameSet.has(rname)) return
-      this.linksDefaultAttributes.push({ name: name + '_r', type: castedType })
+      this.linksDefaultAttributes.push({ name: name + '_r', type: castedType, unit: undefined })
     },
 
     addNodesPropertie (payload: NewAttribute) {
       const { name, type } = payload
       const castedType = (Object.hasOwn(reservedrNodesProperties, name)) ? reservedrNodesProperties[name] : type
-      this.nodesDefaultAttributes.push({ name: name, type: castedType })
+      this.nodesDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
     },
 
     deleteLinksPropertie (name: string) {
@@ -704,11 +706,8 @@ export const userLinksStore = defineStore('rlinks', {
       this.commitChanges({ name: 'Delete Link', deleteLinks: linkArr, deleteNodes: toDelete })
     },
 
-    deleterGroup (group: string) {
-      const cat = this.selectedrFilter
-      const filtered = this.rlinks.features.filter(link => link.properties[cat] == group)
-      const selectedIndex = filtered.map(link => link.properties.index)
-      this.deleteLink(selectedIndex)
+    deleterGroup (indexList: string[]) {
+      this.deleteLink(indexList)
     },
 
   },
@@ -738,6 +737,14 @@ export const userLinksStore = defineStore('rlinks', {
     rlinksIsEmpty: (state) => state.rlinks.features.length === 0,
     rlineAttributes: (state) => state.linksDefaultAttributes.filter(el => !el.name.endsWith('_r')).map(el => el.name),
     reversedAttributes: (state) => state.linksDefaultAttributes.filter(el => el.name.endsWith('_r')).map(el => el.name),
+    rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
+    linkTypes: (state) => Object.fromEntries(state.linksDefaultAttributes.map(el => [el.name, el.type])),
+    nodeTypes: (state) => Object.fromEntries(state.nodesDefaultAttributes.map(el => [el.name, el.type])),
+    linkUnits: (state) =>
+      Object.fromEntries(state.linksDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
+    nodeUnits: (state) =>
+      Object.fromEntries(state.nodesDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
+
     timeVariants: (state) => {
       const attrs = new Set(state.linksDefaultAttributes.map(attr => attr.name))
       const timeVariants = state.variantChoice.filter(v => attrs.has(`time${v}`) || attrs.has(`speed${v}`))
@@ -756,7 +763,6 @@ export const userLinksStore = defineStore('rlinks', {
     },
 
     hasCycleway: (state) => state.linksDefaultAttributes.map(attr => attr.name).includes('cycleway'),
-    rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
   },
 })
 
