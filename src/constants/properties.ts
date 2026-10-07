@@ -1,5 +1,6 @@
 import { Attributes, AttributesChoice, AttributeTypes, IndexingMethod, ModelConfig } from '@src/types/typesStore'
 
+// line (trip) properties. non editable when editing a link
 export const lineDefaultProperties = [
   'trip_id', 'headway', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
 ]
@@ -101,6 +102,7 @@ export const defaultModelConfig: ModelConfig = {
     links: ptDefaultAttributesChoices,
     road_links: roadDefaultAttributesChoices,
   },
+  lineProperties: [],
   hints: {},
   units: {}, // display units: still use baseUnits, but show (and edit) in others units in Forms
 }

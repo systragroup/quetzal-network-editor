@@ -392,8 +392,12 @@ async function deleteScenario (scenarioToDelete: string) {
     store.changeLoading(false)
   }
 }
+
+const showGroupAction = ref(false)
 const checkedScenarios = ref<string[]>([])
-const showGroupAction = computed(() => checkedScenarios.value.length > 0)
+watch(checkedScenarios, (v) => {
+  if (v.length === 0) showGroupAction.value = false
+})
 
 async function downloadSelected() {
   const total = checkedScenarios.value.length
@@ -562,7 +566,7 @@ async function selectModel(v: string) {
             :class="{'is-active': modelScen === scen.key}"
           >
             <v-checkbox
-              v-if="!scenarioIsLoaded"
+              v-if="showGroupAction"
               :key="scen.key"
               v-model="checkedScenarios"
               :value="scen.scenario"
@@ -652,10 +656,25 @@ async function selectModel(v: string) {
     </div>
     <div
       v-else
-      class="mt-2"
+      class="list"
     >
+      <v-checkbox
+        density="compact"
+        class="pr-2"
+        :disabled="scenarioIsLoaded"
+        :hide-details="true"
+        @click.stop="()=>showGroupAction=true"
+      >
+        <v-tooltip
+          activator="parent"
+          location="top"
+          open-delay="250"
+        >
+          {{ $gettext('Select multiple') }}
+        </v-tooltip>
+      </v-checkbox>
       <v-btn
-        width="100%"
+        width="90%"
         prepend-icon="fa-solid fa-cloud-arrow-up"
         @click="createProject"
       >
