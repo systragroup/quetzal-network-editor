@@ -1,3 +1,9 @@
+## [8.2.n] (2026-10-07)
+### changes
+* Scenario explorer: only show checkboxes when clicking on bottom one
+### bug fixes
+* static Links: add filtering on mount
+
 ## [8.2.m] (2026-10-06)
 ### Features
 * Table edition on Links and rLinks
