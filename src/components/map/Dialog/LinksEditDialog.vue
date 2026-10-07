@@ -21,10 +21,10 @@ import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { getGroupForm, changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
-import { lineDefaultProperties } from '@src/constants/properties.ts'
 const { showDialog, action, selectedArr, lingering } = useForm()
 
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
+const tripProperties = computed(() => linksStore.tripProperties)
 const lineAttributes = computed(() => linksStore.lineAttributes)
 const nodeAttributes = computed(() => linksStore.nodeAttributes)
 const tripList = computed(() => new Set(linksStore.tripList))
@@ -121,7 +121,7 @@ function createForm() {
       // link is clicked on the map
       const selectedLink = selectedArr.value[0]
       features = linksStore.editorLinks.features.filter((link) => link.properties.index === selectedLink)
-      disabled = [...lineDefaultProperties, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
+      disabled = [...tripProperties.value, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
       if (isSchedule.value) disabled = [...disabled, ...['speed', 'time']]
       editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
       break

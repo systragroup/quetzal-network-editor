@@ -29,7 +29,7 @@ async function logout () {
 async function login () {
   const userStore = useUserStore()
   try {
-    const session = await fetchAuthSession()
+    const session = await fetchAuthSession({ forceRefresh: true })
     let jwtToken = session.tokens?.idToken
     if (!jwtToken) { throw new Error('no idToken') }
     const sessionIdInfo = jwtToken.payload as any

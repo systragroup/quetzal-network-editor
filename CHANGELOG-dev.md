@@ -1,3 +1,7 @@
+## [8.2.o] (2026-10-07)
+### Features
+* tripProperties in modelConfig. this disable edition of properties when editing  link (ex: headway)
+
 ## [8.2.n] (2026-10-07)
 ### changes
 * Scenario explorer: only show checkboxes when clicking on bottom one

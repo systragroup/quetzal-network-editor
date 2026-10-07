@@ -267,17 +267,16 @@ export const useIndexStore = defineStore('index', {
       const odStore = useODStore()
       const attributesChoices = config.attributesChoices
       if (attributesChoices) {
-        const linksConfig = attributesChoices.links
-        if (linksConfig)links.loadLinksAttributesChoices(linksConfig)
-        const rlinksConfig = attributesChoices.road_links
-        if (rlinksConfig) rlinks.loadrLinksAttributesChoices(rlinksConfig)
-        const indexingMethod = config.indexingMethod
-        if (indexingMethod) {
-          rlinks.indexingMethod = indexingMethod
-          links.indexingMethod = indexingMethod
-          odStore.indexingMethod = indexingMethod
-        }
+        links.loadLinksAttributesChoices(attributesChoices.links)
+        rlinks.loadrLinksAttributesChoices(attributesChoices.road_links)
       }
+      const indexingMethod = config.indexingMethod
+      if (indexingMethod) {
+        rlinks.indexingMethod = indexingMethod
+        links.indexingMethod = indexingMethod
+        odStore.indexingMethod = indexingMethod
+      }
+      links.loadTripProperties(config.tripProperties)
     },
     loadmodelSteps(payload: StepPayload[]) {
       const runstore = useRunStore()

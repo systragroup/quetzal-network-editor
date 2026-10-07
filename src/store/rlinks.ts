@@ -279,7 +279,9 @@ export const userLinksStore = defineStore('rlinks', {
       }
     },
 
-    loadrLinksAttributesChoices (payload: AttributesChoice) {
+    loadrLinksAttributesChoices (payload?: AttributesChoice) {
+      if (!payload) return
+      this.rlinksAttributesChoices = cloneDeep(roadDefaultAttributesChoices) // reset value
       Object.keys(payload).forEach(key => this.rlinksAttributesChoices[key] = payload[key])
       const attrs = Object.keys(this.rlinksAttributesChoices) // all attrbutes in attributesChoices
       let newAttrs = attrs.filter(item => !this.rlineAttributes.includes(item)) // ones not in rlinks

@@ -7,7 +7,6 @@ import { isDefined } from '@src/utils/utils.ts'
 import { GroupForm, RulesRecord } from '@src/types/components.ts'
 import { getForm, getPropertyName, RulesFactory } from '@src/utils/form.ts'
 import { useHighlight } from '@src/composables/useHighlight'
-import { lineDefaultProperties } from '@src/constants/properties.ts'
 import { EditLinkPayload } from '@src/types/typesStore.ts'
 import { DataTableHeader } from 'vuetify'
 
@@ -21,6 +20,8 @@ const store = useIndexStore()
 const links = computed(() => linksStore.editorLinks)
 const editorTrip = computed(() => linksStore.editorTrip)
 const lineAttributes = computed(() => linksStore.lineAttributes)
+const tripProperties = computed(() => linksStore.tripProperties)
+
 const tableItems = computed(() => links.value.features.map(el => el.properties))
 const baseUnits = computed(() => linksStore.linkUnits)
 const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
@@ -28,7 +29,7 @@ const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), st
 // table header and data
 
 const showDisabled = ref(true)
-const disabled = [...lineDefaultProperties, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
+const disabled = [...tripProperties.value, 'a', 'b', 'length', 'link_sequence', 'anchors', 'departures', 'arrivals']
 
 const columns = computed(() => {
   let attrs = cloneDeep(lineAttributes.value)

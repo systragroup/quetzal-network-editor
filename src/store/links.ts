@@ -12,7 +12,8 @@ import { cloneDeep } from 'lodash'
 import { GroupForm } from '@src/types/components'
 import { defaultIndexingMethod, linksDefaultProperties,
   nodesDefaultProperties, ptDefaultAttributesChoices, reservedLinkProperties,
-  reservedNodesProperties } from '@src/constants/properties'
+  reservedNodesProperties,
+  tripDefaultProperties } from '@src/constants/properties'
 
 import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   CloneTrip, EditGroupPayload, EditLinkPayload, LinksAction,
@@ -69,6 +70,7 @@ export const useLinksStore = defineStore('links', {
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
+    tripProperties: cloneDeep(tripDefaultProperties),
     // parameters
     routingMode: false,
     stickyMode: false,
@@ -204,13 +206,22 @@ export const useLinksStore = defineStore('links', {
         this.addNodesPropertie({ name: prop, type: type }) })
     },
 
-    loadLinksAttributesChoices (payload: AttributesChoice) {
+    loadLinksAttributesChoices (payload?: AttributesChoice) {
+      if (!payload) return
+      this.linksAttributesChoices = cloneDeep(ptDefaultAttributesChoices) // reset values
       Object.keys(payload).forEach(key => this.linksAttributesChoices[key] = payload[key])
       const attrs = Object.keys(this.linksAttributesChoices) // all attrbutes in attributesChoices
       const newAttrs = getDifference(attrs, this.lineAttributes)
       newAttrs.forEach(attr => {
         const dtype = getType(this.linksAttributesChoices[attr])
         this.addLinksPropertie({ name: attr, type: dtype }) })
+    },
+
+    loadTripProperties(payload?: string[]) {
+      if (!payload) return
+      this.tripProperties = cloneDeep(tripDefaultProperties) // reset values
+      const newProps = getDifference(payload, tripDefaultProperties)
+      this.tripProperties.push(...newProps)
     },
 
     addLinksPropertie (payload: NewAttribute) {

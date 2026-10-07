@@ -21,7 +21,6 @@ export const useUserStore = defineStore('userStore', {
     cognitoGroup: '',
     modelsList: [],
     idToken: '',
-    refreshExpTime: 1470 * 24 * 60 * 60,
     idExpTime: 0,
     credExpTime: 0,
     signinTime: 0,
@@ -103,18 +102,6 @@ export const useUserStore = defineStore('userStore', {
         console.log('token expired. refresh')
         await auth.login()
         await s3.login()
-      }
-      // refresh is expired after 4 years
-      if (currentTime > this.signinTime + this.refreshExpTime) {
-        auth.logout()
-        const store = useIndexStore()
-        if (this.signinTime > 0) {
-          store.changeAlert({
-            type: 'warning',
-            name: $gettext('sign out'),
-            message: $gettext('your session has expired. Please sign in again'),
-          })
-        }
       }
     },
 

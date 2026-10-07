@@ -53,7 +53,7 @@ export interface ModelConfig {
     links?: AttributesChoice
     road_links?: AttributesChoice
   }
-  lineProperties?: string[]
+  tripProperties?: string[]
   units?: Record<string, AttributeUnits>
   hints?: Record<string, string>
 }
@@ -246,22 +246,23 @@ export type NonEmptyArray<T> = [T, ...T[]]
 export interface LinksStore {
   links: LineStringGeoJson
   nodes: PointGeoJson
+  editorLinks: LineStringGeoJson
   visibleNodes: PointGeoJson
   editorNodes: PointGeoJson
+  editorTrip: string | null
   history: Commit[]
   redoStack: Commit[]
-  editorLinks: LineStringGeoJson
-  editorTrip: string | null
   variant: string
   variantChoice: NonEmptyArray<string>
   tripList: string[]
   selectedTrips: string[]
+  updateLinks: [] // trigger map update
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  tripProperties: string[]
   stickyMode: boolean
   routingMode: boolean
-  updateLinks: UpdateFeatures[]
   speedTimeMethod: SpeedTimeMethod
   indexingMethod: IndexingMethod
 
@@ -409,7 +410,6 @@ export interface UserStore {
   cognitoGroup: string
   modelsList: string[]
   idToken: string
-  refreshExpTime: number
   idExpTime: number
   signinTime: number
   credentials: IdentityCredentials
