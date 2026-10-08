@@ -1,9 +1,16 @@
-import { Attributes, AttributesChoice, AttributeTypes, IndexingMethod, ModelConfig } from '@src/types/typesStore'
+import { Attributes, AttributesChoice, AttributeTypes, AttributeUnits, IndexingMethod, ModelConfig } from '@src/types/typesStore'
 
 // line (trip) properties. non editable when editing a link
 export const tripDefaultProperties = [
   'trip_id', 'headway', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
 ]
+
+export const baseUnits: Record<string, AttributeUnits> = {
+  length: 'm',
+  time: 'sec',
+  speed: 'km/h',
+  headway: 'sec',
+}
 
 export const linksDefaultProperties: Attributes[] = [
   { name: 'index', type: 'String' },
@@ -15,10 +22,10 @@ export const linksDefaultProperties: Attributes[] = [
   { name: 'route_short_name', type: 'String', value: 'Q1' },
   { name: 'route_type', type: 'String', value: 'quenedi' },
   { name: 'route_color', type: 'Color', value: '2196F3' },
-  { name: 'length', type: 'Number', unit: 'm' },
-  { name: 'time', type: 'Number', value: 1, unit: 'sec' },
-  { name: 'speed', type: 'Number', value: 20, unit: 'km/h' },
-  { name: 'headway', type: 'Number', value: 600, unit: 'sec' },
+  { name: 'length', type: 'Number' },
+  { name: 'time', type: 'Number', value: 1 },
+  { name: 'speed', type: 'Number', value: 20 },
+  { name: 'headway', type: 'Number', value: 600 },
   { name: 'route_width', type: 'Number', value: 3 },
   { name: 'pickup_type', type: 'Number', value: 0 },
   { name: 'drop_off_type', type: 'Number', value: 0 },
@@ -46,9 +53,9 @@ export const rlinksDefaultProperties: Attributes[] = [
   { name: 'b', type: 'String' },
   { name: 'route_color', type: 'Color', value: '2196F3' },
   { name: 'route_width', type: 'Number', value: 1 },
-  { name: 'length', type: 'Number', unit: 'm' },
-  { name: 'time', type: 'Number', value: 1, unit: 'sec' },
-  { name: 'speed', type: 'Number', value: 20, unit: 'km/h' },
+  { name: 'length', type: 'Number' },
+  { name: 'time', type: 'Number', value: 1 },
+  { name: 'speed', type: 'Number', value: 20 },
   { name: 'highway', type: 'String', value: 'quenedi' },
   { name: 'oneway', type: 'String', value: '0' },
 ]

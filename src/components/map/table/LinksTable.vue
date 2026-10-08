@@ -13,6 +13,7 @@ import { DataTableHeader } from 'vuetify'
 import { cloneDeep } from 'lodash'
 
 import TableEditor from './tableEditor.vue'
+import { baseUnits } from '@src/constants/properties.ts'
 
 const linksStore = useLinksStore()
 const store = useIndexStore()
@@ -23,8 +24,7 @@ const lineAttributes = computed(() => linksStore.lineAttributes)
 const tripProperties = computed(() => linksStore.tripProperties)
 
 const tableItems = computed(() => links.value.features.map(el => el.properties))
-const baseUnits = computed(() => linksStore.linkUnits)
-const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
+const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits), store.displayUnits))
 
 // table header and data
 

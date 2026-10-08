@@ -10,7 +10,7 @@ import { getDirection } from '@src/utils/spatial'
 import { GroupForm } from '@src/types/components'
 import { useGettext } from 'vue3-gettext'
 import { LineStringFeatures } from '@src/types/geojson'
-import { rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultProperties } from '@src/constants/properties'
+import { baseUnits, rlinksConstantProperties, rlinksDefaultProperties, rnodesDefaultProperties } from '@src/constants/properties'
 import DialogHeader from './DialogHeader.vue'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { cloneDeep } from 'lodash'
@@ -47,11 +47,7 @@ const usedIndex = computed<Set<string>>(() => {
   else return new Set(rlinksStore.rnodes.features.map(el => el.properties.index))
 })
 
-const baseUnits = computed(() => {
-  if (editLinks.value) return rlinksStore.linkUnits
-  else return rlinksStore.nodeUnits
-})
-const displayUnits = computed(() => Object.assign(baseUnits.value, store.displayUnits))
+const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits), store.displayUnits))
 
 const rules = computed(() => selectedArr.value.map(idx => {
   const prefix = idx.split('_')[0] + '_'

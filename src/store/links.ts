@@ -228,14 +228,14 @@ export const useLinksStore = defineStore('links', {
       const { name, type } = payload
       // some values like departures are reserved and must be undefined (array).
       const castedType = (Object.hasOwn(reservedLinkProperties, name)) ? reservedLinkProperties[name] : type
-      this.linksDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
+      this.linksDefaultAttributes.push({ name: name, type: castedType })
     },
 
     addNodesPropertie (payload: NewAttribute) {
       const { name, type } = payload
       // some values like departures are reserved and must be undefined (array).
       const castedType = (Object.hasOwn(reservedNodesProperties, name)) ? reservedLinkProperties[name] : type
-      this.nodesDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
+      this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
 
     deleteLinksPropertie (name: string) {
@@ -1055,11 +1055,6 @@ export const useLinksStore = defineStore('links', {
     nodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
     linkTypes: (state) => Object.fromEntries(state.linksDefaultAttributes.map(el => [el.name, el.type])),
     nodeTypes: (state) => Object.fromEntries(state.nodesDefaultAttributes.map(el => [el.name, el.type])),
-    linkUnits: (state) =>
-      Object.fromEntries(state.linksDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
-    nodeUnits: (state) =>
-      Object.fromEntries(state.nodesDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
-
     timeVariants: (state) => {
       const attrs = new Set(state.linksDefaultAttributes.map(attr => attr.name))
       const timeVariants = state.variantChoice.filter(v => attrs.has(`time${v}`) || attrs.has(`speed${v}`))

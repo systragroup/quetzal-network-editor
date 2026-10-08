@@ -237,7 +237,6 @@ export interface Attributes {
   name: string
   type: AttributeTypes
   value?: string | number
-  unit?: AttributeUnits
 }
 
 export type AttributesChoice = Record<string, (string | number)[]>

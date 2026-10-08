@@ -9,7 +9,7 @@ import { getForm, getPropertyName, RulesFactory } from '@src/utils/form.ts'
 import { EditRoadPayload } from '@src/types/typesStore.ts'
 import { DataTableHeader } from 'vuetify'
 import { cloneDeep } from 'lodash'
-
+import { baseUnits } from '@src/constants/properties.ts'
 import TableEditor from './tableEditor.vue'
 
 const rlinksStore = userLinksStore()
@@ -27,8 +27,7 @@ const lineAttributes = computed(() => {
   else return rlinksStore.rlineAttributes
 })
 const tableItems = computed(() => selectedFeatures.value.map(el => el.properties))
-const baseUnits = computed(() => rlinksStore.linkUnits)
-const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
+const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits), store.displayUnits))
 
 // table header and data
 const disabled = ['a', 'b', 'length', 'turn_restrictions']
@@ -96,6 +95,7 @@ function applyChanges() {
 
 // Highlight
 import { useFlyTo } from '@src/composables/useFlyTo.ts'
+
 const { setFlyToId } = useFlyTo()
 
 watch(selectedIndex, (index) => {

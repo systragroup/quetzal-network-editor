@@ -1,3 +1,7 @@
+## [8.2.p] (2026-10-08)
+### bug fixes
+* revert back baseUnits to a global records. was not working well with variant
+
 ## [8.2.o] (2026-10-07)
 ### Features
 * tripProperties in modelConfig. this disable edition of properties when editing  link (ex: headway)

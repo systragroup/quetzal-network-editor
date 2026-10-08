@@ -259,7 +259,7 @@ export const userLinksStore = defineStore('rlinks', {
       const newProps = getDifference(properties, this.rnodeAttributes)
       newProps.forEach(prop => {
         const type = getPropertyType(this.rnodes, prop)
-        this.nodesDefaultAttributes.push({ name: prop, type: type, unit: undefined })
+        this.nodesDefaultAttributes.push({ name: prop, type: type })
       })
     },
 
@@ -328,7 +328,7 @@ export const userLinksStore = defineStore('rlinks', {
       if (nameSet.has(name)) return // already exist
 
       const castedType = (Object.hasOwn(reservedrLinkProperties, name)) ? reservedrLinkProperties[name] : type
-      this.linksDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
+      this.linksDefaultAttributes.push({ name: name, type: castedType })
 
       // check to add the reversed attr. (if we manually add an attr in the app for example )
       if (name.endsWith('_r')) return
@@ -337,13 +337,13 @@ export const userLinksStore = defineStore('rlinks', {
       const rname = name + '_r'
       // add if doesnt exist already
       if (nameSet.has(rname)) return
-      this.linksDefaultAttributes.push({ name: name + '_r', type: castedType, unit: undefined })
+      this.linksDefaultAttributes.push({ name: name + '_r', type: castedType })
     },
 
     addNodesPropertie (payload: NewAttribute) {
       const { name, type } = payload
       const castedType = (Object.hasOwn(reservedrNodesProperties, name)) ? reservedrNodesProperties[name] : type
-      this.nodesDefaultAttributes.push({ name: name, type: castedType, unit: undefined })
+      this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
 
     deleteLinksPropertie (name: string) {
@@ -742,10 +742,6 @@ export const userLinksStore = defineStore('rlinks', {
     rnodeAttributes: (state) => state.nodesDefaultAttributes.map(el => el.name),
     linkTypes: (state) => Object.fromEntries(state.linksDefaultAttributes.map(el => [el.name, el.type])),
     nodeTypes: (state) => Object.fromEntries(state.nodesDefaultAttributes.map(el => [el.name, el.type])),
-    linkUnits: (state) =>
-      Object.fromEntries(state.linksDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
-    nodeUnits: (state) =>
-      Object.fromEntries(state.nodesDefaultAttributes.filter(el => el.unit).map(el => [el.name, el.unit])),
 
     timeVariants: (state) => {
       const attrs = new Set(state.linksDefaultAttributes.map(attr => attr.name))

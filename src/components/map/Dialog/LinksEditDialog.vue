@@ -21,6 +21,7 @@ import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { getGroupForm, changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
+import { baseUnits } from '@src/constants/properties.ts'
 const { showDialog, action, selectedArr, lingering } = useForm()
 
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
@@ -43,18 +44,12 @@ const attributeNonDeletable = computed<string[]>(() => {
   else return linksStore.nodeAttributes
 })
 
-const baseUnits = computed(() => {
-  if (editLinks.value) return linksStore.linkUnits
-  else return linksStore.nodeUnits
-})
-
 const usedIndex = computed<Set<string>>(() => {
   if (editLinks.value) return new Set(linksStore.linksIndexes)
   else return new Set(linksStore.nodesIndexes)
 })
 
-const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits.value), store.displayUnits))
-
+const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits), store.displayUnits))
 const formRef = ref()
 const initialHash = ref()
 const editorForm = ref<GroupForm>({})
