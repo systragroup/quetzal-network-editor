@@ -249,7 +249,6 @@ watch(highlightTrip, async (trip) => {
         interactive: true,
         type: 'line',
         minzoom: 1,
-        maxzoom: 18,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.1, 1],
@@ -282,7 +281,6 @@ watch(highlightTrip, async (trip) => {
         interactive: true,
         type: 'circle',
         minzoom: 12,
-        maxzoom: 18,
         paint: {
           'circle-color': ['case', ['boolean', isEditorMode, false],$vuetify.theme.current.colors.mediumgrey, $vuetify.theme.current.colors.accent],
           'circle-stroke-color': $vuetify.theme.current.colors.white,

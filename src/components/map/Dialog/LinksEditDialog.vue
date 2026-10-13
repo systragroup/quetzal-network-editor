@@ -21,7 +21,7 @@ import { useForm } from '@src/composables/UseForm'
 import { getDefaultLink } from '@src/utils/network'
 import { AttributeTypes } from '@src/types/typesStore.ts'
 import { getGroupForm, changeLengthTimeSpeed, RulesFactory } from '@src/utils/form.ts'
-import { baseUnits } from '@src/constants/properties.ts'
+import { baseUnits, linksDefaultProperties, nodesDefaultProperties } from '@src/constants/properties.ts'
 const { showDialog, action, selectedArr, lingering } = useForm()
 
 const attributesChoices = computed(() => linksStore.linksAttributesChoices)
@@ -40,8 +40,8 @@ const typesMap = computed(() => {
 })
 
 const attributeNonDeletable = computed<string[]>(() => {
-  if (editLinks.value) return linksStore.lineAttributes
-  else return linksStore.nodeAttributes
+  if (editLinks.value) return linksDefaultProperties.map(el => el.name)
+  else return nodesDefaultProperties.map(el => el.name)
 })
 
 const usedIndex = computed<Set<string>>(() => {

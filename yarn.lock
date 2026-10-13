@@ -5967,10 +5967,10 @@ mapbox-gl@*:
     supercluster "^8.0.1"
     tinyqueue "^3.0.0"
 
-mapbox-gl@^3.31.0:
-  version "3.31.0"
-  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-3.31.0.tgz#15fc2e59c8231cab242680f106a379504600a5d0"
-  integrity sha512-7i25NyCPW5jnqsqJq3irgBBEoVTJgfZqTJJS446Q3ZuxyAb5Om75UIcxYIo38oz9eDswnBXr0riz+M/C8V7g3Q==
+mapbox-gl@^3.33.0:
+  version "3.33.0"
+  resolved "https://registry.yarnpkg.com/mapbox-gl/-/mapbox-gl-3.33.0.tgz#1b38dd38b6d371d037469598e3089a27e61b88bd"
+  integrity sha512-2HpIrVedccHedolZyMVG/7FXdpgmsLTENgEDsX71x3/gKDGfYMf1FCRY0prntknkn/JXcraUKXlBTv7vkr0EXg==
 
 markdown-it-katex@^2.0.3:
   version "2.0.3"

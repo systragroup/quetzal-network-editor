@@ -1,3 +1,7 @@
+## [FUTURE] (2026-10-13)
+### changes
+* remove maxzoom on layers
+
 ## [8.2.p] (2026-10-08)
 ### bug fixes
 * revert back baseUnits to a global records. was not working well with variant

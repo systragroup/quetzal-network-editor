@@ -56,7 +56,7 @@
     "lodash": "^4.18.1",
     "luxon": "^3.7.2",
     "map-promisified": "latest",
-    "mapbox-gl": "^3.31.0",
+    "mapbox-gl": "^3.33.0",
     "markdown-it": "^14.3.0",
     "markdown-it-katex": "^2.0.3",
     "ngraph.graph": "^20.0.1",

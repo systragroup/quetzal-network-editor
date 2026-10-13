@@ -189,7 +189,6 @@ function actionClick (event) {
         interactive: true,
         type: 'line',
         minzoom: 1,
-        maxzoom: 18,
         paint: {
           'line-color': ['case', ['has', 'route_color'], ['concat', '#', ['get', 'route_color']], $vuetify.theme.current.colors.linksprimary],
           'line-opacity': ['case', ['boolean', isEditorMode, false], 0.3, 1],
