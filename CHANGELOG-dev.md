@@ -1,6 +1,8 @@
-## [FUTURE] (2026-10-13)
+## [8.2.q] (2026-10-14)
 ### changes
-* remove maxzoom on layers
+* Remove maxzoom on layers
+* Can move very first pt point
+* Can start a new line with a sticky node
 
 ## [8.2.p] (2026-10-08)
 ### bug fixes
@@ -13,6 +15,7 @@
 ## [8.2.n] (2026-10-07)
 ### changes
 * Scenario explorer: only show checkboxes when clicking on bottom one
+
 ### bug fixes
 * static Links: add filtering on mount
 

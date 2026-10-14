@@ -344,16 +344,17 @@ function moveNode (event: CustomMapEvent) {
   const nodeIndex = selectedFeature.value.properties.index
   const first = cloneDeep(editorLinks.value.features.filter(link => link.properties.b === nodeIndex)[0])
   const last = cloneDeep(editorLinks.value.features.filter(link => link.properties.a === nodeIndex)[0])
-  let geometry = []
+  let geometry: number[][] = []
   if (first && last) {
     geometry = [...first.geometry.coordinates.slice(-2), last.geometry.coordinates[1]]
   } else if (first) {
     geometry = [...first.geometry.coordinates.slice(-2)]
-  } else {
+  } else if (last) {
     geometry = [...last.geometry.coordinates.slice(0, 2).toReversed()]
+  } else { // first point. no linestring to copy
+    const mousePosition = Object.values(event.mapboxEvent.lngLat)
+    geometry = [mousePosition, mousePosition]
   }
-  // eslint-disable-next-line max-len
-  // const geometry = [...first.geometry.coordinates.slice(-2), last.geometry.coordinates[1]]
   movingLine.value.features = [createLinestringFeature(geometry)]
   startMoving(event)
   // get position
@@ -373,32 +374,31 @@ function onMove (event: MapMouseEvent) {
 const stickyTitle = ref<string>('title')
 
 async function stopMovingNode () {
-  if (isMoving.value) { // only move node is we moved
-    const selected = selectedFeature.value! as PointFeatures
-    let modifiedLinks: LineStringFeatures[] = []
-    // if sticky. replace node with existing one
+  if (!isMoving.value) return // only move node is we moved
+  const selected = selectedFeature.value! as PointFeatures
+  let modifiedLinks: LineStringFeatures[] = []
+  // if sticky. replace node with existing one
 
-    if (stickyStateId.value) {
-      const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
-      const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
-      if (!nodesList.has(stickyNodeId)) {
-        stickyTitle.value = $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId })
-        const resp = await stickyDialog.value.openDialog()
-        if (resp) {
-          modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
-        }
-      } else {
-        store.changeNotification(
-          { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
+  if (stickyStateId.value) {
+    const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
+    const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
+    if (!nodesList.has(stickyNodeId)) {
+      stickyTitle.value = $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId })
+      const resp = await stickyDialog.value.openDialog()
+      if (resp) {
+        modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
       }
-    } else { //  just move the node (not sticky)
-      const geom = movingLine.value.features[0].geometry.coordinates[1]
-      modifiedLinks = linksStore.moveNode({ selectedNode: selected, lngLat: toRaw(geom) })
+    } else {
+      store.changeNotification(
+        { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
     }
+  } else { //  just move the node (not sticky)
+    const geom = movingLine.value.features[0].geometry.coordinates[1]
+    modifiedLinks = linksStore.moveNode({ selectedNode: selected, lngLat: toRaw(geom) })
+  }
 
-    if (routingMode.value) {
-      modifiedLinks.forEach(link => routeLink(link))
-    }
+  if (routingMode.value) {
+    modifiedLinks.forEach(link => routeLink(link))
   }
 
   stopMoving()

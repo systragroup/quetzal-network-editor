@@ -24,6 +24,7 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   AttributeTypes,
   SelectedAnchor,
   Commit,
+  FirstNodePayload,
 } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   createLinestringFeature,
@@ -410,16 +411,19 @@ export const useLinksStore = defineStore('links', {
       }
     },
 
-    createNewNode (geometry: number[]) {
+    createNewNode (payload: FirstNodePayload) {
       // only used to create the first node of a new Line
-      const node = getDefaultNode(this.nodesDefaultAttributes)
-      const nodeFeature = node.features[0]
-      nodeFeature.geometry.coordinates = toRaw(geometry)
-
-      nodeFeature.properties.index = getNewIndex('node_0', this.nodesIndexes, this.indexingMethod)
-
-      // Copy specified nodenewNode
-      this.commitChanges({ name: 'New Node', newNodes: [nodeFeature] })
+      const { geom, stickyNodeId } = payload
+      if (stickyNodeId) {
+        const nodeFeature = cloneDeep(this.nodes.features.filter(node => node.properties.index == stickyNodeId))[0]
+        this.commitChanges({ name: 'New Node', newNodes: [nodeFeature] })
+      } else {
+        const node = getDefaultNode(this.nodesDefaultAttributes)
+        const nodeFeature = node.features[0]
+        nodeFeature.geometry.coordinates = toRaw(geom)
+        nodeFeature.properties.index = getNewIndex('node_0', this.nodesIndexes, this.indexingMethod)
+        this.commitChanges({ name: 'New Node', newNodes: [nodeFeature] })
+      }
     },
 
     getNewNode (payload: NewNodePayload) {

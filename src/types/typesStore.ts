@@ -174,6 +174,10 @@ export interface NewNodePayload {
   coordinates: number[]
   nodeCopyId: string
 }
+export interface FirstNodePayload {
+  geom: number[]
+  stickyNodeId?: string
+}
 
 export interface SelectedNode {
   selectedNode: PointFeatures

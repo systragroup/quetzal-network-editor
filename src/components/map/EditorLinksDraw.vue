@@ -98,8 +98,8 @@ watch(hoveredStateId, (val) => {
   }
 })
 
-const firstNodeId = computed(() => { return linksStore.firstNodeId })
-const lastNodeId = computed(() => { return linksStore.lastNodeId })
+const firstNodeId = computed(() => linksStore.firstNodeId)
+const lastNodeId = computed(() => linksStore.lastNodeId)
 
 const firstNode = computed(() =>
   editorNodes.value.features.filter((node) => node.properties.index === firstNodeId.value)[0],
@@ -116,7 +116,8 @@ function addPoint (event: MapMouseEvent) {
   // for a new Line
   event.originalEvent.stopPropagation()
   if (editorNodes.value.features.length === 0) {
-    linksStore.createNewNode(Object.values(event.lngLat))
+    const stickyNodeId = cloneDeep(stickyStateId.value?.featureId) //  if clicked on sticky
+    linksStore.createNewNode({ geom: Object.values(event.lngLat), stickyNodeId: stickyNodeId })
     store.changeNotification({ text: '', autoClose: true })
   } else if (drawMode.value) {
     addPointPT(event)
