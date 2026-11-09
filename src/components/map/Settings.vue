@@ -1,142 +1,121 @@
-<script>
+<script setup>
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { userLinksStore } from '@src/store/rlinks'
 import { useUserStore } from '@src/store/user'
 import { ref, watch } from 'vue'
+import LinksDefaultDialog from './LinksDefaultDialog.vue'
+import { useGettext } from 'vue3-gettext'
+const { $gettext } = useGettext()
+const emit = defineEmits(['submit'])
+const store = useIndexStore()
+const linksStore = useLinksStore()
+const rlinksStore = userLinksStore()
+const userStore = useUserStore()
+const showHint = ref(false)
+const order = ref(0)
+const computeMethod = ref({
+  name: $gettext('Automatically Compute'),
+  type: 'radio',
+  value: 'time',
+  units: '',
+  hint: $gettext('When editing or drawing a network. We can compute (with the length) the time with the speed or the speed with the time.'),
+})
+const roadSpeed = ref({
+  name: $gettext('Road speed'),
+  type: 'Number',
+  value: 0,
+  units: 'km/h',
+  hint: $gettext('Speed used to calculate road travel time when a link is drawn'),
+})
+const linksPopupContent = ref({
+  name: $gettext('PT Popup Content'),
+  type: 'String',
+  choices: [],
+  value: '',
+  hint: $gettext('Link field to display when hovering a trip on the map'),
+})
+const roadsPopupContent = ref({
+  name: $gettext('Road Popup Content'),
+  type: 'String',
+  choices: [],
+  value: '',
+  hint: $gettext('Link field to display when hovering road link on the map'),
+})
+const defaultHighway = ref({
+  name: $gettext('Road Highway name'),
+  type: 'String',
+  value: '',
+  hint: $gettext('New road links Highway property name'),
+})
+const roadOneway = ref({
+  name: $gettext('Road Oneway'),
+  type: 'String',
+  value: '0',
+  hint: $gettext('New road links are oneway if set to 1'),
+})
+const outputName = ref({
+  name: $gettext('Export name'),
+  type: 'String',
+  value: '',
+  units: '.zip',
+  hint: $gettext('the name of the exported zip file'),
+})
+const rules = [
+  v => !!v || $gettext('Required'),
+  v => v >= 0 || $gettext('should be larger than 0'),
+]
+const zipRules = [v => v.slice(-4) !== '.zip' || $gettext('do not add .zip to the end')]
 
-const $gettext = s => s
-
-export default {
-  name: 'Settings',
-  emits: ['submit'],
-  setup (_, context) {
-    const store = useIndexStore()
-    const linksStore = useLinksStore()
-    const rlinksStore = userLinksStore()
-    const userStore = useUserStore()
-    const showHint = ref(false)
-    const order = ref(0)
-    const computeMethod = ref({
-      name: $gettext('Automatically Compute'),
-      type: 'radio',
-      value: 'time',
-      units: '',
-      hint: $gettext('When editing or drawing a network. We can compute (with the length) the time with the speed or the speed with the time.'),
-    })
-    const roadSpeed = ref({
-      name: $gettext('Road speed'),
-      type: 'Number',
-      value: 0,
-      units: 'km/h',
-      hint: $gettext('Speed used to calculate road travel time when a link is drawn'),
-    })
-    const linksPopupContent = ref({
-      name: $gettext('PT Popup Content'),
-      type: 'String',
-      choices: [],
-      value: '',
-      hint: $gettext('Link field to display when hovering a trip on the map'),
-    })
-    const roadsPopupContent = ref({
-      name: $gettext('Road Popup Content'),
-      type: 'String',
-      choices: [],
-      value: '',
-      hint: $gettext('Link field to display when hovering road link on the map'),
-    })
-    const defaultHighway = ref({
-      name: $gettext('Road Highway name'),
-      type: 'String',
-      value: '',
-      hint: $gettext('New road links Highway property name'),
-    })
-    const roadOneway = ref({
-      name: $gettext('Road Oneway'),
-      type: 'String',
-      value: '0',
-      hint: $gettext('New road links are oneway if set to 1'),
-    })
-    const outputName = ref({
-      name: $gettext('Export name'),
-      type: 'String',
-      value: '',
-      units: '.zip',
-      hint: $gettext('the name of the exported zip file'),
-    })
-    const rules = [
-      v => !!v || $gettext('Required'),
-      v => v >= 0 || $gettext('should be larger than 0'),
-    ]
-    const zipRules = [v => v.slice(-4) !== '.zip' || $gettext('do not add .zip to the end')]
-
-    const fetch = () => {
-      // value are init with this function.
-      // we want to get the value each time we show the settings.
-      // if not, Cancel will not work as the state here and in the store will differ.
-      computeMethod.value.value = store.speedTimeMethod
-      roadSpeed.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'speed')[0].value
-      linksPopupContent.value.choices = linksStore.lineAttributes
-      linksPopupContent.value.value = store.linksPopupContent
-      roadsPopupContent.value.choices = rlinksStore.rlineAttributes
-      roadsPopupContent.value.value = store.roadsPopupContent
-      roadOneway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'oneway')[0].value
-      defaultHighway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'highway')[0].value
-      outputName.value.value = userStore.outputName
-    }
-    const shake = ref(false)
-    const show = ref(false)
-    function cancel () {
-      context.emit('submit', false)
-      show.value = false
-    }
-    async function submit (event) {
-      const resp = await event
-      if (resp.valid) {
-        const payload = {
-          speedTimeMethod: computeMethod.value.value,
-          roadSpeed: roadSpeed.value.value,
-          linksPopupContent: linksPopupContent.value.value,
-          roadsPopupContent: roadsPopupContent.value.value,
-          outputName: outputName.value.value,
-          defaultHighway: defaultHighway.value.value,
-          roadOneway: roadOneway.value.value,
-        }
-        store.applySettings(payload)
-        context.emit('submit', true)
-        show.value = false
-        store.changeNotification(
-          { text: $gettext('modification applied'), autoClose: true, color: 'success' })
-      } else {
-        shake.value = true
-        setTimeout(() => {
-          shake.value = false
-        }, 500)
-      }
-    }
-
-    watch(show, (val) => { if (val) fetch() })
-
-    return {
-      showHint,
-      computeMethod,
-      roadSpeed,
-      roadOneway,
-      linksPopupContent,
-      roadsPopupContent,
-      defaultHighway,
-      outputName,
-      rules,
-      zipRules,
-      fetch,
-      submit,
-      cancel,
-      shake,
-      show,
-      order,
-    }
-  },
+const fetch = () => {
+  // value are init with this function.
+  // we want to get the value each time we show the settings.
+  // if not, Cancel will not work as the state here and in the store will differ.
+  computeMethod.value.value = store.speedTimeMethod
+  roadSpeed.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'speed')[0].value
+  linksPopupContent.value.choices = linksStore.lineAttributes
+  linksPopupContent.value.value = store.linksPopupContent
+  roadsPopupContent.value.choices = rlinksStore.rlineAttributes
+  roadsPopupContent.value.value = store.roadsPopupContent
+  roadOneway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'oneway')[0].value
+  defaultHighway.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'highway')[0].value
+  outputName.value.value = userStore.outputName
 }
+const shake = ref(false)
+const show = ref(false)
+function cancel () {
+  emit('submit', false)
+  show.value = false
+}
+async function submit (event) {
+  const resp = await event
+  if (resp.valid) {
+    const payload = {
+      speedTimeMethod: computeMethod.value.value,
+      roadSpeed: roadSpeed.value.value,
+      linksPopupContent: linksPopupContent.value.value,
+      roadsPopupContent: roadsPopupContent.value.value,
+      outputName: outputName.value.value,
+      defaultHighway: defaultHighway.value.value,
+      roadOneway: roadOneway.value.value,
+    }
+    store.applySettings(payload)
+    emit('submit', true)
+    show.value = false
+    store.changeNotification(
+      { text: $gettext('modification applied'), autoClose: true, color: 'success' })
+  } else {
+    shake.value = true
+    setTimeout(() => {
+      shake.value = false
+    }, 500)
+  }
+}
+
+watch(show, (val) => { if (val) fetch() })
+
+const showDialog = ref(false)
+
 </script>
 <template>
   <v-menu
@@ -169,6 +148,11 @@ export default {
     >
       <v-card-title class="subtitle">
         {{ $gettext('Settings') }}
+        <v-btn
+          variant="text"
+          icon="fas fa-cog"
+          @click="showDialog=true"
+        />
       </v-card-title>
       <v-form
         validate-on="submit lazy"
@@ -288,6 +272,7 @@ export default {
       </v-form>
     </v-card>
   </v-menu>
+  <LinksDefaultDialog v-model="showDialog" />
 </template>
 <style lang="scss" scoped>
 .layer-button {

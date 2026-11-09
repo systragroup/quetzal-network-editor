@@ -238,6 +238,13 @@ export const useLinksStore = defineStore('links', {
       const castedType = (Object.hasOwn(reservedNodesProperties, name)) ? reservedLinkProperties[name] : type
       this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
+    editLinksDefaultProperties(form: GroupForm) {
+      const filtered = Object.fromEntries(Object.entries(form).filter(([, item]) => !item.disabled))
+      Object.entries(filtered).forEach(([key, item]) => {
+        const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
+        attr.value = item.value
+      })
+    },
 
     deleteLinksPropertie (name: string) {
       this.links.features.forEach(link => delete link.properties[name])

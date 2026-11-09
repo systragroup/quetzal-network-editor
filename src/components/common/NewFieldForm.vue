@@ -20,19 +20,21 @@ const newFieldRef = ref()
 const newFieldName = ref<string | undefined>(undefined)
 const newFieldRules = [
   (val: string) => !props.exclusionsList.includes(val) || $gettext('field already exist'),
-  (val: string) => val !== '' || $gettext('cannot add empty field'),
+  (val: string) => !!val || $gettext('cannot add empty field'),
   (val: string) => !val?.includes('#') || $gettext('field cannot contain #'),
   (val: string) => !val?.endsWith('_r') || $gettext('field cannot end with _r'),
 
 ]
 
 async function addField () {
+  newFieldName.value = newFieldName.value?.trim()
   const resp = await newFieldRef.value.validate()
   if (!resp.valid) { return false }
   // emits('addField', { name: newFieldName.value, dtype: dtype.value })
   emits('addField', newFieldName.value, dtype.value)
 
   newFieldName.value = undefined // reset
+  newFieldRef.value?.reset()
   dtype.value = 'String' // reset
   store.changeNotification({ text: $gettext('Field added'), autoClose: true, color: 'success' })
 }

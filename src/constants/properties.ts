@@ -2,7 +2,7 @@ import { Attributes, AttributesChoice, AttributeTypes, AttributeUnits, IndexingM
 
 // line (trip) properties. non editable when editing a link
 export const tripDefaultProperties = [
-  'trip_id', 'headway', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_type',
+  'trip_id', 'headway', 'route_id', 'agency_id', 'route_long_name', 'route_type',
 ]
 
 export const baseUnits: Record<string, AttributeUnits> = {
@@ -18,8 +18,8 @@ export const linksDefaultProperties: Attributes[] = [
   { name: 'b', type: 'String' },
   { name: 'trip_id', type: 'String' },
   { name: 'route_id', type: 'String', value: 'Q1' },
-  { name: 'agency_id', type: 'String', value: 'QUENEDI' },
-  { name: 'route_short_name', type: 'String', value: 'Q1' },
+  { name: 'agency_id', type: 'String', value: 'QUENEDI' }, // delete?
+  { name: 'route_short_name', type: 'String', value: 'Q1' }, // delete?
   { name: 'route_type', type: 'String', value: 'quenedi' },
   { name: 'route_color', type: 'Color', value: '2196F3' },
   { name: 'length', type: 'Number' },

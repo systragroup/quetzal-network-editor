@@ -58,7 +58,7 @@ async function validate() {
   }
 }
 
-const orderedForm = computed (() => {
+const orderedForm = computed<GroupForm>(() => {
   // order editor Form in alphatical order
   let form = editorForm.value
   // order keys in alphabetical order, and with disabled last
@@ -103,8 +103,9 @@ function componentType(type: AttributeTypes) {
           :class="!item.grouped ? 'full-width' : ''"
         >
           <slot
+            :key="key"
             name="item"
-            :item="{item:item,key:key}"
+            :item="item"
           />
           <component
             :is="componentType(types[key])"
@@ -126,6 +127,13 @@ function componentType(type: AttributeTypes) {
             :label="String(key)"
             @update:model-value="change(key)"
           >
+            <template v-slot:append>
+              <slot
+                :key="key"
+                name="append"
+                :item="item"
+              />
+            </template>
             <template
               v-if="Object.keys(attributesChoices).includes(key)"
               v-slot:append-inner
@@ -136,6 +144,7 @@ function componentType(type: AttributeTypes) {
                 size="small"
               />
             </template>
+
             <template
               v-if="showDeleteOption"
               v-slot:prepend
