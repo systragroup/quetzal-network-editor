@@ -110,6 +110,7 @@ export const defaultModelConfig: ModelConfig = {
     road_links: roadDefaultAttributesChoices,
   },
   tripProperties: [],
+  propertiesOrder: [],
   hints: {},
   units: {}, // display units: still use baseUnits, but show (and edit) in others units in Forms
 }

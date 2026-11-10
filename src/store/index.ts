@@ -17,7 +17,7 @@ import { FileSerializer, infoSerializer, stylesSerializer } from '@src/utils/ser
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
-import { deleteUnusedNodes } from '@src/utils/utils'
+import { deleteUnusedNodes, hash } from '@src/utils/utils'
 import { FileFormat, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
   ModelConfig,
@@ -122,6 +122,9 @@ export const useIndexStore = defineStore('index', {
         const infoFile = otherFiles.filter(el => el.path === 'info.json')[0]
         otherFiles = otherFiles.filter(el => el !== infoFile)
 
+        const configFile = otherFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
+        otherFiles = otherFiles.filter(el => el !== configFile)
+
         const microservicesFiles = otherFiles.filter(el => el.path.startsWith('microservices/'))
         otherFiles = otherFiles.filter(el => !microservicesFiles.includes(el))
 
@@ -153,7 +156,6 @@ export const useIndexStore = defineStore('index', {
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
-        const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
         if (configFile) this.loadModelConfig(configFile.content)
 
         this.loadOtherFiles(inputFiles)
@@ -258,26 +260,31 @@ export const useIndexStore = defineStore('index', {
       return file.content
     },
 
-    loadModelConfig (payload: ModelConfig) {
-      const config = payload
+    loadModelConfig (config: ModelConfig) {
       // TODO migrate
       this.modelConfig = config
       const links = useLinksStore()
       const rlinks = userLinksStore()
       const odStore = useODStore()
-      const attributesChoices = config.attributesChoices
-      if (attributesChoices) {
-        links.loadLinksAttributesChoices(attributesChoices.links)
-        rlinks.loadrLinksAttributesChoices(attributesChoices.road_links)
+      links.loadConfig(config)
+      rlinks.loadConfig(config)
+
+      if (config.indexingMethod) {
+        odStore.indexingMethod = config.indexingMethod
       }
-      const indexingMethod = config.indexingMethod
-      if (indexingMethod) {
-        rlinks.indexingMethod = indexingMethod
-        links.indexingMethod = indexingMethod
-        odStore.indexingMethod = indexingMethod
-      }
-      links.loadTripProperties(config.tripProperties)
     },
+
+    setModelConfig (config: ModelConfig) {
+      const linksStore = useLinksStore()
+      if (config.tripProperties) {
+        this.modelConfig.tripProperties = config.tripProperties
+        linksStore.tripProperties = config.tripProperties
+      }
+      if (config.propertiesOrder) {
+        this.modelConfig.propertiesOrder = config.propertiesOrder
+      }
+    },
+
     loadmodelSteps(payload: StepPayload[]) {
       const runstore = useRunStore()
       runstore.loadModelSteps(payload)
@@ -440,6 +447,12 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
           zip.file('inputs/params.json', blob, { date: date })
         }
+        if (this.modelConfigChanged) {
+          console.log('yes')
+          const blob = new Blob([JSON.stringify(this.modelConfig)], { type: 'application/json' })
+          zip.file('inputs/modelConfig.json', blob, { date: date })
+        }
+
         if (this.styles.length > 0) {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           zip.file('styles.json', blob, { date: date })
@@ -448,6 +461,7 @@ export const useIndexStore = defineStore('index', {
         zip.file('info.json', blob, { date: date })
 
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
+          console.log(file)
           const content = this.getFileContent(file)
           zip.file(file.path, content, { date: date })
         }
@@ -595,6 +609,7 @@ export const useIndexStore = defineStore('index', {
         && runStore.parameters.length === 0
         && state.styles.length === 0)
     },
+    modelConfigChanged: (state) => hash(JSON.stringify(state.modelConfig)) !== hash(JSON.stringify(defaultModelConfig)),
     hasDocs: (state) => state.docFiles.length > 0,
     displayUnits: (state) => state.modelConfig.units,
     hints: (state) => Object.assign(cloneDeep(baseHints), state.modelConfig.hints),

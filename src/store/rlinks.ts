@@ -11,7 +11,7 @@ import { cloneDeep } from 'lodash'
 
 import { AddRoadNodeInlinePayload,
   AttributesChoice, Commit, CreateRlinkPayload,
-  EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
+  EditRoadPayload, FilesPayload, ModelConfig, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload,
   UpdateFeatures } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
@@ -277,6 +277,13 @@ export const userLinksStore = defineStore('rlinks', {
         // this function only apply the non _r val if its undefined.
         toSplit.forEach(link => addReverseProperties(link, this.reversedAttributes))
       }
+    },
+
+    loadConfig(config: ModelConfig) {
+      const attributesChoices = config.attributesChoices
+      if (attributesChoices) this.loadrLinksAttributesChoices(attributesChoices.road_links)
+      const indexingMethod = config.indexingMethod
+      if (indexingMethod) this.indexingMethod = indexingMethod
     },
 
     loadrLinksAttributesChoices (payload?: AttributesChoice) {

@@ -9,28 +9,27 @@ import { GroupForm, Rule } from '@src/types/components'
 import DialogHeader from './Dialog/DialogHeader.vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-
+import DragList from '../utils/DragList.vue'
 const store = useIndexStore()
 const linksStore = useLinksStore()
 
 import { getDefaultLink } from '@src/utils/network'
 import { AttributeTypes } from '@src/types/typesStore.ts'
-import { getGroupForm } from '@src/utils/form.ts'
+import { getGroupForm, getPropertyName, sortWithOrder } from '@src/utils/form.ts'
 import { baseUnits, linksDefaultProperties } from '@src/constants/properties.ts'
 import TooltipButton from '../utils/TooltipButton.vue'
 
 const showDialog = defineModel<boolean>({ default: false })
 
-const attributesChoices = computed(() => linksStore.linksAttributesChoices)
-const lineAttributes = computed(() => linksStore.lineAttributes)
-const linksAttributes = computed(() => lineAttributes.value.filter(el => !tripProperties.value.includes(el)))
+const _attributesChoices = computed(() => linksStore.linksAttributesChoices)
+const _typesMap = computed(() => linksStore.linkTypes)
+const _lineAttributes = computed(() => linksStore.lineAttributes)
+const _attributeNonDeletable = computed<string[]>(() => linksDefaultProperties.map(el => el.name))
+const _displayUnits = computed(() => Object.assign(cloneDeep(baseUnits), store.displayUnits))
+const _exclusionList = computed(() => Object.keys(editorForm.value))
 
-const typesMap = computed(() => linksStore.linkTypes)
-const attributeNonDeletable = computed<string[]>(() => linksDefaultProperties.map(el => el.name))
-const displayUnits = computed(() => Object.assign(cloneDeep(baseUnits), store.displayUnits))
-const exclusionList = computed(() => Object.keys(editorForm.value))
-
-const tripProperties = ref<string[]>([])
+const tripProperties = ref<string[]>([]) // tripsProperties,no variant. set in init()
+const order = ref<string[]>([]) // all props ordered, with variant. set in init()
 
 const formRef = ref()
 const editorForm = ref<GroupForm>({})
@@ -45,38 +44,45 @@ onMounted(() => {
 })
 watch(showDialog, (val) => {
   if (val) init()
+  showDeleteOption.value = false
+  showHint.value = false
 })
 
 function init() {
   store.changeNotification({ text: '', autoClose: true })
+  order.value = [...new Set(_lineAttributes.value.map(key => getPropertyName(key)))] //  get props name (no variant)
   tripProperties.value = cloneDeep(linksStore.tripProperties)
   createForm()
-  showHint.value = false
-  showDeleteOption.value = false
 }
 
 function createForm() {
   let disabled: string[] = []
   let features = []
+
   const newLink = getDefaultLink(linksStore.linksDefaultAttributes)
   newLink.features[0].properties.trip_id = undefined
   newLink.features[0].properties.time = undefined
   newLink.features[0].properties.link_sequence = undefined
   features = cloneDeep(newLink.features)
   disabled = ['index', 'a', 'b', 'length', 'time', 'link_sequence', 'anchors', 'departures', 'arrivals', 'trip_id']
-  editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
+  editorForm.value = getGroupForm(features, _lineAttributes.value, disabled)
 }
+
 const linksForm = computed(() => Object.fromEntries(
-  Object.entries(editorForm.value).filter(([key]) => linksAttributes.value.includes(key)),
+  Object.entries(editorForm.value).sort(([a], [b]) => sortWithOrder(order.value, a, b))
+    .filter(([key]) => !tripProperties.value.includes(getPropertyName(key))),
 ))
+
 const tripsForm = computed(() => Object.fromEntries(
-  Object.entries(editorForm.value).filter(([key]) => tripProperties.value.includes(key)),
+  Object.entries(editorForm.value).sort(([a], [b]) => sortWithOrder(order.value, a, b))
+    .filter(([key]) => tripProperties.value.includes(getPropertyName(key))),
 ))
 
 async function submitForm() {
   const resp = await formRef.value.validate()
   if (!resp) return
-  linksStore.tripProperties = tripProperties.value
+  store.setModelConfig({ tripProperties: tripProperties.value, propertiesOrder: order.value })
+  linksStore.sortLinksDefaultProperties(order.value)
   linksStore.editLinksDefaultProperties(editorForm.value)
   showDialog.value = false
 }
@@ -88,23 +94,23 @@ function cancel() {
 // add
 
 function addField (newFieldName: string, dtype: AttributeTypes) {
-  console.log(newFieldName)
   if (!newFieldName) return
   editorForm.value[newFieldName] = { disabled: false, placeholder: false, value: undefined, show: true }
   linksStore.addLinksPropertie({ name: newFieldName, type: dtype })
+  order.value.push(newFieldName)
 }
 
 // delete
 
-const showDeleteOption = ref(false)
 function deleteField (field: string) {
   delete editorForm.value[field]
   linksStore.deleteLinksPropertie(field)
+  order.value = order.value.filter(el => el !== field)
 }
 
-function ToggleDeleteOption () {
-  showDeleteOption.value = !showDeleteOption.value
-  if (showDeleteOption.value) {
+const showDeleteOption = ref(false)
+watch(showDeleteOption, (val) => {
+  if (val) {
     store.changeNotification({
       text: $gettext('This action will delete properties on every links'),
       autoClose: false,
@@ -113,17 +119,22 @@ function ToggleDeleteOption () {
   } else {
     store.changeNotification({ text: '', autoClose: true })
   }
-}
+},
+)
 
 // move
 
 function moveProperty(key: string) {
-  // TODO make this on apply
-  if (tripProperties.value.includes(key)) {
-    tripProperties.value = tripProperties.value.filter(el => el !== key)
+  const name = getPropertyName(key)
+  if (tripProperties.value.includes(name)) {
+    tripProperties.value = tripProperties.value.filter(el => el !== name)
   } else {
-    tripProperties.value.push(key)
+    tripProperties.value.push(name)
   }
+}
+
+function moveLayer() {
+  order.value = [...order.value] // force trigger
 }
 
 </script>
@@ -131,7 +142,7 @@ function moveProperty(key: string) {
   <v-dialog
     v-model="showDialog"
     scrollable
-    max-width="40rem"
+    max-width="60rem"
     persistent
     @keydown.enter="submitForm"
   >
@@ -141,22 +152,57 @@ function moveProperty(key: string) {
       <v-card-text class="container">
         <v-row>
           <v-col>
-            <div class="arrows-container">
+            <div class="title">
+              {{ $gettext('Order') }}
+            </div>
+            <DragList
+              v-slot="{item:key}"
+              :items="order"
+              @move="moveLayer"
+            >
+              <v-list-item
+                :class="{prepend:showDeleteOption}"
+              >
+                <template v-slot:prepend>
+                  <v-btn
+                    v-if="showDeleteOption"
+
+                    variant="text"
+                    icon="fas fa-trash small"
+                    size="x-small"
+                    :disabled="_attributeNonDeletable.includes(key)"
+                    color="error"
+                    @click="()=>deleteField(key)"
+                  />
+                </template>
+                <v-list-item-title :style="{'cursor': 'default'}">
+                  {{ key }}
+                </v-list-item-title>
+                <template v-slot:append>
+                  <v-icon
+                    :style="{'cursor':'grab'}"
+                    size="small"
+                    icon="fa-solid fa-arrows-up-down"
+                  />
+                </template>
+              </v-list-item>
+            </DragList>
+          </v-col>
+          <v-col>
+            <div class="title">
               Trip
             </div>
             <EditForm
               ref="formRef"
               v-model:editor-form="tripsForm"
               :show-hint="showHint"
-              :show-delete-option="showDeleteOption"
               :hints="hints"
-              :display-units="displayUnits"
+              :display-units="_displayUnits"
               :units="baseUnits"
               :rules="rules"
-              :attribute-non-deletable="attributeNonDeletable"
-              :attributes-choices="attributesChoices"
-              :types="typesMap"
-              @delete-field="deleteField"
+              :attribute-non-deletable="_attributeNonDeletable"
+              :attributes-choices="_attributesChoices"
+              :types="_typesMap"
             >
               <template
                 v-slot:append="{key}"
@@ -166,32 +212,31 @@ function moveProperty(key: string) {
                   icon="fas fa-arrow-right small"
                   size="x-small"
                   :tooltip="$gettext('set as link property')"
-                  :disabled="attributeNonDeletable.includes(key)"
+                  :disabled="_attributeNonDeletable.includes(key)"
                   @click.stop="()=>moveProperty(key)"
                 />
               </template>
             </EditForm>
             <NewFieldForm
-              :exclusions-list="exclusionList"
+              :exclusions-list="_exclusionList"
               @add-field="addField"
             />
           </v-col>
           <v-col>
-            <div class="arrows-container">
+            <div class="title">
               Link
             </div>
             <EditForm
               ref="formRef"
               v-model:editor-form="linksForm"
               :show-hint="showHint"
-              :show-delete-option="showDeleteOption"
               :hints="hints"
-              :display-units="displayUnits"
+              :display-units="_displayUnits"
               :units="baseUnits"
               :rules="rules"
-              :attribute-non-deletable="attributeNonDeletable"
-              :attributes-choices="attributesChoices"
-              :types="typesMap"
+              :attribute-non-deletable="_attributeNonDeletable"
+              :attributes-choices="_attributesChoices"
+              :types="_typesMap"
               @delete-field="deleteField"
             >
               <template
@@ -202,7 +247,7 @@ function moveProperty(key: string) {
                   icon="fas fa-arrow-left small"
                   size="x-small"
                   :tooltip="$gettext('set as trip property')"
-                  :disabled="attributeNonDeletable.includes(key)"
+                  :disabled="_attributeNonDeletable.includes(key)"
                   @click.stop="()=>moveProperty(key)"
                 />
               </template>
@@ -222,7 +267,7 @@ function moveProperty(key: string) {
           :icon="showDeleteOption? 'fas fa-minus-circle fa-rotate-90': 'fas fa-minus-circle'"
           size="x-small"
           variant="text"
-          @click="ToggleDeleteOption"
+          @click="showDeleteOption=!showDeleteOption"
         />
         <v-spacer />
 
@@ -249,12 +294,10 @@ function moveProperty(key: string) {
 .container {
   display: flex;
 }
-.arrows-container{
-  display: flex;
-  padding: 0 1rem 0.5rem ;
-  justify-content: space-between;
-  align-items: center; /* optional, vertical alignment */
-  justify-content: center;
+.title{
   font-size: large;
+  }
+.prepend{
+    padding-left:0
   }
 </style>

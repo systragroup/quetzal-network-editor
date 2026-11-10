@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
-import { toRefs, ref, computed } from 'vue'
+import { toRefs, ref } from 'vue'
 import { GroupForm, Rule } from '@src/types/components'
 import { AttributeTypes, AttributeUnits } from '@src/types/typesStore'
 import MenuSelector from '../utils/MenuSelector.vue'
@@ -16,10 +16,10 @@ interface Props {
   units?: Record<string, AttributeUnits>
   types?: Record<string, AttributeTypes >
   attributesChoices?: Record<string, any[]>
+  showDeleteOption?: boolean
+  showHint?: boolean
   attributeNonDeletable: string[]
   rules: Record<string, Rule[]>
-  showDeleteOption: boolean
-  showHint: boolean
 }
 
 // Define props with default values
@@ -31,8 +31,8 @@ const props = withDefaults(defineProps<Props>(), {
   attributesChoices: () => ({} as Record<string, any[]>),
   rules: () => ({} as Record<string, Rule[]>),
   attributeNonDeletable: () => [],
-  showHint: false,
-  showDeleteOption: false,
+  showHint: () => false,
+  showDeleteOption: () => false,
 })
 const { hints, types, displayUnits, rules, showHint, showDeleteOption, attributesChoices } = toRefs(props)
 const editorForm = defineModel<GroupForm>('editorForm', { default: () => ({}) })
@@ -58,22 +58,6 @@ async function validate() {
   }
 }
 
-const orderedForm = computed<GroupForm>(() => {
-  // order editor Form in alphatical order
-  let form = editorForm.value
-  // order keys in alphabetical order, and with disabled last
-  const keys = Object.keys(form).filter(key => !form[key].disabled).sort()
-  keys.push(...Object.keys(form).filter(key => form[key].disabled).sort())
-  const ordered = keys.reduce(
-    (obj: Record<string, any>, key: string) => {
-      obj[key] = form[key]
-      return obj
-    },
-    {},
-  )
-  return ordered
-})
-
 defineExpose({
   validate,
 })
@@ -97,7 +81,7 @@ function componentType(type: AttributeTypes) {
     >
       <div class="form-grid">
         <div
-          v-for="(item, key) in orderedForm"
+          v-for="(item, key) in editorForm"
           :key="key"
           class="form"
           :class="!item.grouped ? 'full-width' : ''"
@@ -111,13 +95,14 @@ function componentType(type: AttributeTypes) {
             :is="componentType(types[key])"
             v-if="item.show"
             v-model="item.value"
+            :class="{disabled : item.disabled}"
             control-variant="stacked"
             :hint="showHint? hints[key]: ''"
             :persistent-hint="showHint"
             :placeholder="item.placeholder? $gettext('multiple Values'):''"
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
-            :disabled="item.disabled"
+            :readonly="item.disabled"
             :base-units="units[getPropertyName(key)]"
             :display-units="displayUnits[getPropertyName(key)]"
             :suffix="displayUnits[getPropertyName(key)]"
@@ -127,13 +112,6 @@ function componentType(type: AttributeTypes) {
             :label="String(key)"
             @update:model-value="change(key)"
           >
-            <template v-slot:append>
-              <slot
-                :key="key"
-                name="append"
-                :item="item"
-              />
-            </template>
             <template
               v-if="Object.keys(attributesChoices).includes(key)"
               v-slot:append-inner
@@ -144,9 +122,19 @@ function componentType(type: AttributeTypes) {
                 size="small"
               />
             </template>
-
             <template
-              v-if="showDeleteOption"
+              v-if="$slots.prepend"
+              v-slot:prepend
+            >
+              <slot
+                :key="key"
+                name="prepend"
+                :disabled="true"
+                :item="item"
+              />
+            </template>
+            <template
+              v-else-if="showDeleteOption"
               v-slot:prepend
             >
               <v-btn
@@ -158,6 +146,16 @@ function componentType(type: AttributeTypes) {
                 @click="()=>deleteField(key)"
               />
             </template>
+            <template
+              v-if="$slots.append"
+              v-slot:append
+            >
+              <slot
+                :key="key"
+                name="append"
+                :item="item"
+              />
+            </template>
           </component>
         </div>
         <slot />
@@ -166,6 +164,9 @@ function componentType(type: AttributeTypes) {
   </div>
 </template>
 <style lang="scss" scoped>
+.disabled{
+  opacity: var(--v-disabled-opacity);
+}
 .box{
   max-height:100%;
   box-shadow: none;

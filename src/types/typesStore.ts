@@ -54,6 +54,7 @@ export interface ModelConfig {
     road_links?: AttributesChoice
   }
   tripProperties?: string[]
+  propertiesOrder?: string[]
   units?: Record<string, AttributeUnits>
   hints?: Record<string, string>
 }

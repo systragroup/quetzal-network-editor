@@ -34,11 +34,8 @@ const disabled = ['a', 'b', 'length', 'turn_restrictions']
 const showDisabled = ref(true)
 
 const columns = computed(() => {
-  let attrs = cloneDeep(lineAttributes.value)
-  const enableAttrs = attrs.filter(el => !disabled.includes(getPropertyName(el)))
-  const disabledAttrs = attrs.filter(el => disabled.includes(getPropertyName(el)))
-  if (showDisabled.value) return [...enableAttrs, ...disabledAttrs]
-  else return enableAttrs
+  if (showDisabled.value) return lineAttributes.value
+  return lineAttributes.value.filter(el => !disabled.includes(getPropertyName(el)))
 })
 
 const headers = computed<DataTableHeader[]>(() => {

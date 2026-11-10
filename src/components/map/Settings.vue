@@ -175,7 +175,7 @@ const showDialog = ref(false)
             <v-select
               v-model="linksPopupContent.value"
               variant="underlined"
-              :items="linksPopupContent.choices.sort()"
+              :items="linksPopupContent.choices.toSorted()"
               :label="$gettext(linksPopupContent.name)"
               :hint="showHint? $gettext(linksPopupContent.hint): ''"
               :persistent-hint="showHint"
@@ -186,7 +186,7 @@ const showDialog = ref(false)
             <v-select
               v-model="roadsPopupContent.value"
               variant="underlined"
-              :items="roadsPopupContent.choices.sort()"
+              :items="roadsPopupContent.choices.toSorted()"
               :label="$gettext(roadsPopupContent.name)"
               :hint="showHint? $gettext(roadsPopupContent.hint): ''"
               :persistent-hint="showHint"

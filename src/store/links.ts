@@ -25,6 +25,7 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   SelectedAnchor,
   Commit,
   FirstNodePayload,
+  ModelConfig,
 } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   createLinestringFeature,
@@ -47,7 +48,7 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
-import { getModifiedKeys } from '@src/utils/form'
+import { getModifiedKeys, sortWithOrder } from '@src/utils/form'
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
@@ -207,6 +208,16 @@ export const useLinksStore = defineStore('links', {
         this.addNodesPropertie({ name: prop, type: type }) })
     },
 
+    loadConfig(config: ModelConfig) {
+      this.loadTripProperties(config.tripProperties)
+      const attributesChoices = config.attributesChoices
+      if (attributesChoices) this.loadLinksAttributesChoices(attributesChoices.links)
+      const indexingMethod = config.indexingMethod
+      if (indexingMethod) this.indexingMethod = indexingMethod
+      const propertiesOrder = config.propertiesOrder
+      if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
+    },
+
     loadLinksAttributesChoices (payload?: AttributesChoice) {
       if (!payload) return
       this.linksAttributesChoices = cloneDeep(ptDefaultAttributesChoices) // reset values
@@ -238,6 +249,11 @@ export const useLinksStore = defineStore('links', {
       const castedType = (Object.hasOwn(reservedNodesProperties, name)) ? reservedLinkProperties[name] : type
       this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
+
+    sortLinksDefaultProperties(order: string[]) {
+      this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
+    },
+
     editLinksDefaultProperties(form: GroupForm) {
       const filtered = Object.fromEntries(Object.entries(form).filter(([, item]) => !item.disabled))
       Object.entries(filtered).forEach(([key, item]) => {

@@ -101,6 +101,8 @@ export function getPropertyName(key: string): string {
   // return time
   return key.split('#')[0].split('_r')[0]
 }
+export function sortWithOrder(order: string[], a: string, b: string) {
+  return order.indexOf(getPropertyName(a)) - order.indexOf(getPropertyName(b)) }
 
 export function hasCalculator(key: string) {
   const name = getPropertyName(key)

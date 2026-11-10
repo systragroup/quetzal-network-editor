@@ -152,7 +152,7 @@ async function deleteButton (group: string, message: string) {
         <div :style="{'padding-top': '0.5rem'}">
           <v-select
             v-model="vmodelSelectedFilter"
-            :items="attributesList.sort()"
+            :items="attributesList.toSorted()"
             prepend-inner-icon="fas fa-filter"
             :label="$gettext('filter')"
             variant="outlined"

@@ -399,7 +399,7 @@ export function useResult () {
     // e.g. get ['bus','subway'] for route_type
     let val = Array.from(new Set(layer.value.features.map(
       item => item.properties[selectedFilter.value])))
-    val = val.sort((a, b) => a - b)
+    val = val.toSorted((a, b) => a - b)
     return val
   })
 
