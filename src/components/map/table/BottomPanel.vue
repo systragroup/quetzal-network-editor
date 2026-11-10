@@ -20,8 +20,10 @@ const isRoadMode = computed(() => rlinksStore.editionMode)
 
 const isPtMode = computed(() => linksStore.editorTrip !== null)
 watch(isPtMode, (val) => {
-  if (val) showBottomPanel.value = true
-  else showBottomPanel.value = false
+  if (!val) showBottomPanel.value = false
+})
+watch(isRoadMode, (val) => {
+  if (!val) showBottomPanel.value = false
 })
 
 </script>

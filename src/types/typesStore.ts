@@ -264,6 +264,7 @@ export interface LinksStore {
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  newTripAttributes: Attributes[] // when creating a new trip
   tripProperties: string[]
   stickyMode: boolean
   routingMode: boolean

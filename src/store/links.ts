@@ -73,6 +73,7 @@ export const useLinksStore = defineStore('links', {
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
     tripProperties: cloneDeep(tripDefaultProperties),
+    newTripAttributes: [],
     // parameters
     routingMode: false,
     stickyMode: false,
@@ -283,6 +284,7 @@ export const useLinksStore = defineStore('links', {
       if (selectedTrip === null) {
         this.editorLinks.features = []
         this.editorNodes.features = []
+        this.newTripAttributes = []
       }
       else {
         const linkFeatures = this.links.features.filter(link => link.properties.trip_id === this.editorTrip)
@@ -462,7 +464,7 @@ export const useLinksStore = defineStore('links', {
 
     addNewLink (payload: NewLinkPayload) {
       const { action, geom, stickyNodeId } = payload
-      const newLink = getDefaultLink(this.linksDefaultAttributes)// trip_id already set in linksDefaultAttributes
+      const newLink = getDefaultLink(this.newTripAttributes)// trip_id already set in linksDefaultAttributes
       const newLinkFeature = newLink.features[0]
       let nodeId = action === 'Extend Line Upward' ? this.lastNodeId : this.firstNodeId
 
@@ -835,14 +837,13 @@ export const useLinksStore = defineStore('links', {
       }
       const updateMap = new Map(features.map(f => [f.properties.index, f])) // index should not change
       this.commitChanges({ name: 'Edit Line Properties', updateLinks: updateMap })
-      // New line
-      // change LinksDefault values. so drawing a link uses those inputed values
+      // New line. keep track of trip properties for first drawn link
       if (this.editorLinks.features.length === 0) {
+        this.newTripAttributes = cloneDeep(this.linksDefaultAttributes)
         props.forEach((key: string) => {
-          const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
+          const attr = this.newTripAttributes.filter(el => el.name === key)[0]
           attr.value = payload[key].value
-        },
-        )
+        })
       }
     },
 
