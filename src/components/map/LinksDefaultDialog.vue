@@ -146,52 +146,51 @@ function moveLayer() {
     persistent
     @keydown.enter="submitForm"
   >
-    <v-card>
+    <v-card class="test">
       <DialogHeader :title="$gettext('Edit default values')" />
       <v-divider />
       <v-card-text class="container">
-        <v-row>
-          <v-col>
-            <div class="title">
-              {{ $gettext('Order') }}
-            </div>
-            <DragList
-              v-slot="{item:key}"
-              :items="order"
-              @move="moveLayer"
+        <v-col class="col">
+          <h2 class="title">
+            {{ $gettext('Order') }}
+          </h2>
+          <DragList
+            v-slot="{item:key}"
+            :items="order"
+            @move="moveLayer"
+          >
+            <v-list-item
+              :class="{prepend:showDeleteOption}"
             >
-              <v-list-item
-                :class="{prepend:showDeleteOption}"
-              >
-                <template v-slot:prepend>
-                  <v-btn
-                    v-if="showDeleteOption"
-
-                    variant="text"
-                    icon="fas fa-trash small"
-                    size="x-small"
-                    :disabled="_attributeNonDeletable.includes(key)"
-                    color="error"
-                    @click="()=>deleteField(key)"
-                  />
-                </template>
-                <v-list-item-title :style="{'cursor': 'default'}">
-                  {{ key }}
-                </v-list-item-title>
-                <template v-slot:append>
-                  <v-icon
-                    :style="{'cursor':'grab'}"
-                    size="small"
-                    icon="fa-solid fa-arrows-up-down"
-                  />
-                </template>
-              </v-list-item>
-            </DragList>
-          </v-col>
-          <v-col>
-            <div class="title">
-              Trip
-            </div>
+              <template v-slot:prepend>
+                <v-btn
+                  v-if="showDeleteOption"
+                  variant="text"
+                  icon="fas fa-trash small"
+                  size="x-small"
+                  :disabled="_attributeNonDeletable.includes(key)"
+                  color="error"
+                  @click="()=>deleteField(key)"
+                />
+              </template>
+              <v-list-item-title :style="{'cursor': 'default'}">
+                {{ key }}
+              </v-list-item-title>
+              <template v-slot:append>
+                <v-icon
+                  :style="{'cursor':'grab'}"
+                  size="small"
+                  icon="fa-solid fa-arrows-up-down"
+                />
+              </template>
+            </v-list-item>
+          </DragList>
+        </v-col>
+        <v-col class="col">
+          <h2 class="title">
+            Trip
+          </h2>
+          <div class="inner-wrapper">
             <EditForm
               ref="formRef"
               v-model:editor-form="tripsForm"
@@ -217,15 +216,13 @@ function moveLayer() {
                 />
               </template>
             </EditForm>
-            <NewFieldForm
-              :exclusions-list="_exclusionList"
-              @add-field="addField"
-            />
-          </v-col>
-          <v-col>
-            <div class="title">
-              Link
-            </div>
+          </div>
+        </v-col>
+        <v-col class="col">
+          <h2 class="title">
+            Link
+          </h2>
+          <div class="inner-wrapper">
             <EditForm
               ref="formRef"
               v-model:editor-form="linksForm"
@@ -240,7 +237,7 @@ function moveLayer() {
               @delete-field="deleteField"
             >
               <template
-                v-slot:append="{key}"
+                v-slot:prepend="{key}"
               >
                 <TooltipButton
                   variant="text"
@@ -252,8 +249,12 @@ function moveLayer() {
                 />
               </template>
             </EditForm>
-          </v-col>
-        </v-row>
+            <NewFieldForm
+              :exclusions-list="_exclusionList"
+              @add-field="addField"
+            />
+          </div>
+        </v-col>
       </v-card-text>
       <v-divider />
       <v-card-actions>
@@ -293,11 +294,32 @@ function moveLayer() {
 <style lang="scss" scoped>
 .container {
   display: flex;
+  background-color:  rgba(var(--v-theme-lightgrey));
+  max-height: 100%;
+  gap:0.5rem;
+  overflow: hidden !important;
 }
 .title{
   font-size: large;
-  }
-.prepend{
-    padding-left:0
-  }
+}
+.prepend {
+  padding-left:0
+ }
+ .col{
+  padding:1rem;
+  background-color:  rgba(var(--v-theme-white));
+  overflow: scroll !important;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15)
+ }
+.inner-wrapper {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+ .order-col{
+    background-color:  rgba(var(--v-theme-white));
+    padding:0;
+    margin:0;
+ }
 </style>

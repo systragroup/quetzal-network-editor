@@ -93,6 +93,7 @@ function init() {
 function createForm() {
   let disabled: string[] = []
   let features = []
+  let filteredAttributes = []
   switch (action.value) {
     case 'Edit Line Info':
       if (linksStore.editorLinks.features.length === 0) {
@@ -104,13 +105,15 @@ function createForm() {
       }
       disabled = ['index', 'a', 'b', 'length', 'time', 'link_sequence', 'anchors', 'departures', 'arrivals']
       if (isSchedule.value) disabled = [...disabled, 'speed']
-      editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
+      filteredAttributes = lineAttributes.value.filter(el => !disabled.includes(el))
+      editorForm.value = getGroupForm(features, filteredAttributes, disabled)
       break
     case 'Edit Group Info':
       const selectedSet = new Set(selectedArr.value)
       features = linksStore.links.features.filter(link => selectedSet.has(link.properties.trip_id))
       disabled = ['index', 'a', 'b', 'length', 'time', 'link_sequence', 'anchors', 'departures', 'arrivals', 'trip_id']
-      editorForm.value = getGroupForm(features, lineAttributes.value, disabled)
+      filteredAttributes = lineAttributes.value.filter(el => !disabled.includes(el))
+      editorForm.value = getGroupForm(features, filteredAttributes, disabled)
       break
     case 'Edit Link Info':
       // link is clicked on the map

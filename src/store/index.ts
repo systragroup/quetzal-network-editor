@@ -17,7 +17,7 @@ import { FileSerializer, infoSerializer, stylesSerializer } from '@src/utils/ser
 import { useUserStore } from './user.js'
 import { cloneDeep } from 'lodash'
 
-import { deleteUnusedNodes, hash } from '@src/utils/utils'
+import { deleteUnusedNodes } from '@src/utils/utils'
 import { FileFormat, ImportPoly, IndexStore,
   MicroserviceParametersDTO,
   ModelConfig,
@@ -61,6 +61,7 @@ export const useIndexStore = defineStore('index', {
     otherFiles: [], // [{path, content}]
     docFiles: [], // [{path, content}]
     modelConfig: cloneDeep(defaultModelConfig),
+    localConfig: {}, // when loading a config from inputs
     // microservices
     importPoly: null,
     microservicesParams: [],
@@ -122,9 +123,6 @@ export const useIndexStore = defineStore('index', {
         const infoFile = otherFiles.filter(el => el.path === 'info.json')[0]
         otherFiles = otherFiles.filter(el => el !== infoFile)
 
-        const configFile = otherFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
-        otherFiles = otherFiles.filter(el => el !== configFile)
-
         const microservicesFiles = otherFiles.filter(el => el.path.startsWith('microservices/'))
         otherFiles = otherFiles.filter(el => !microservicesFiles.includes(el))
 
@@ -156,6 +154,8 @@ export const useIndexStore = defineStore('index', {
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
+        const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
+        this.localConfig = configFile.content
         if (configFile) this.loadModelConfig(configFile.content)
 
         this.loadOtherFiles(inputFiles)
@@ -278,10 +278,12 @@ export const useIndexStore = defineStore('index', {
       const linksStore = useLinksStore()
       if (config.tripProperties) {
         this.modelConfig.tripProperties = config.tripProperties
+        if (this.hasLocalConfig) this.localConfig.tripProperties = config.tripProperties
         linksStore.tripProperties = config.tripProperties
       }
       if (config.propertiesOrder) {
         this.modelConfig.propertiesOrder = config.propertiesOrder
+        if (this.hasLocalConfig) this.localConfig.propertiesOrder = config.propertiesOrder
       }
     },
 
@@ -447,11 +449,6 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
           zip.file('inputs/params.json', blob, { date: date })
         }
-        if (this.modelConfigChanged) {
-          console.log('yes')
-          const blob = new Blob([JSON.stringify(this.modelConfig)], { type: 'application/json' })
-          zip.file('inputs/modelConfig.json', blob, { date: date })
-        }
 
         if (this.styles.length > 0) {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
@@ -459,6 +456,11 @@ export const useIndexStore = defineStore('index', {
         }
         const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
         zip.file('info.json', blob, { date: date })
+
+        const localconfigFile = this.otherFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
+        if (this.hasLocalConfig) {
+          localconfigFile.content = this.localConfig // update localconfig file
+        }
 
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
           console.log(file)
@@ -609,8 +611,8 @@ export const useIndexStore = defineStore('index', {
         && runStore.parameters.length === 0
         && state.styles.length === 0)
     },
-    modelConfigChanged: (state) => hash(JSON.stringify(state.modelConfig)) !== hash(JSON.stringify(defaultModelConfig)),
     hasDocs: (state) => state.docFiles.length > 0,
+    hasLocalConfig: (state) => Object.keys(state.localConfig).length > 0,
     displayUnits: (state) => state.modelConfig.units,
     hints: (state) => Object.assign(cloneDeep(baseHints), state.modelConfig.hints),
     availableLayers: (state) => {

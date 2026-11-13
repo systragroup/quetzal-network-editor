@@ -95,14 +95,13 @@ function componentType(type: AttributeTypes) {
             :is="componentType(types[key])"
             v-if="item.show"
             v-model="item.value"
-            :class="{disabled : item.disabled}"
             control-variant="stacked"
             :hint="showHint? hints[key]: ''"
             :persistent-hint="showHint"
             :placeholder="item.placeholder? $gettext('multiple Values'):''"
             :persistent-placeholder=" item.placeholder? true: false"
             :variant="item.disabled? 'underlined': 'filled'"
-            :readonly="item.disabled"
+            :disabled="item.disabled"
             :base-units="units[getPropertyName(key)]"
             :display-units="displayUnits[getPropertyName(key)]"
             :suffix="displayUnits[getPropertyName(key)]"
@@ -164,9 +163,9 @@ function componentType(type: AttributeTypes) {
   </div>
 </template>
 <style lang="scss" scoped>
-.disabled{
-  opacity: var(--v-disabled-opacity);
-}
+// .disabled{
+//   opacity: var(--v-disabled-opacity);
+// }
 .box{
   max-height:100%;
   box-shadow: none;

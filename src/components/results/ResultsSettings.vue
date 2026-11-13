@@ -401,7 +401,7 @@ function cancel () {
           <v-select
             v-model="parameters[15].value"
             variant="underlined"
-            :items="['', ...featureChoices.sortoSortedt()]"
+            :items="['', ...featureChoices.toSorted()]"
             :label="$gettext(parameters[15].name)"
             :hint="showHint? $gettext(parameters[15].hint): ''"
             :persistent-hint="showHint"

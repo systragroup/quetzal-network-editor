@@ -1,3 +1,16 @@
+## [8.2.r] (2026-11-10)
+### Features
+    * PT default values editions and order
+    * PT trip/Link properties edition (set if link or trip property)
+    * propertiesOrder in modelConfig
+### changes
+    * can modify inputs/modelConfig.json and export to zip.
+    * Form data (links, rlinks) not sorted alphabetically anymore. disabled not at the end neither, because the order can be set.
+
+### bug fixes
+    * new Trip (pt line) was failling when clicking cancel in the dialog
+    * bottom table was not oppening properly 
+
 ## [8.2.q] (2026-10-14)
 ### changes
 * Remove maxzoom on layers
