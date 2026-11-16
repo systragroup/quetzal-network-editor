@@ -81,6 +81,9 @@ const tripsForm = computed(() => Object.fromEntries(
 async function submitForm() {
   const resp = await formRef.value.validate()
   if (!resp) return
+  // TODO: edit default values too
+  // we should put all in a editLinksDefaultPropertiesjson
+  // like [{key:trip_id:,default:trip_,trip:true,hint:'',attributes_choice:'',etc}]
   store.setModelConfig({ tripProperties: tripProperties.value, propertiesOrder: order.value })
   linksStore.sortLinksDefaultProperties(order.value)
   linksStore.editLinksDefaultProperties(editorForm.value)

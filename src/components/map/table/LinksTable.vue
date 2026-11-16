@@ -3,17 +3,16 @@ import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { GeoJsonProperties } from '@src/types/geojson'
 import { computed, ref, watch } from 'vue'
-import { isDefined } from '@src/utils/utils.ts'
+import { isDefined, numericSort } from '@src/utils/utils.ts'
 import { GroupForm, RulesRecord } from '@src/types/components.ts'
 import { getForm, getPropertyName, RulesFactory } from '@src/utils/form.ts'
 import { useHighlight } from '@src/composables/useHighlight'
 import { EditLinkPayload } from '@src/types/typesStore.ts'
 import { DataTableHeader } from 'vuetify'
-
 import { cloneDeep } from 'lodash'
-
 import TableEditor from './tableEditor.vue'
 import { baseUnits } from '@src/constants/properties.ts'
+import TooltipButton from '@src/components/utils/TooltipButton.vue'
 
 const linksStore = useLinksStore()
 const store = useIndexStore()
@@ -42,7 +41,7 @@ const headers = computed<DataTableHeader[]>(() => {
     let title = name
     if (isDefined(unit)) title = `${title} (${unit})`
     // else
-    return { key: name, title: title }
+    return { key: name, title: title, sort: numericSort }
   })
 })
 
@@ -98,9 +97,23 @@ watch(hoveringIndex, (index) => {
 </script>
 <template>
   <div class="table-container">
-    <h3>
-      {{ editorTrip }}
-    </h3>
+    <div class="table-header">
+      <h3 class="ml-auto">
+        {{ editorTrip }}
+      </h3>
+      <TooltipButton
+        variant="text"
+        class="ml-auto"
+        icon-size="regular"
+        :prepend-icon="showDisabled? 'fa-eye fa' : 'fa-eye-slash fa' "
+        location="top"
+        :tooltip="showDisabled? $gettext('Hide non-editable properties'): $gettext('Show All Properties')"
+        @click="showDisabled=!showDisabled"
+      >
+        {{ showDisabled? $gettext('hide'): $gettext('show') }}
+      </tooltipbutton>
+    </div>
+
     <v-data-table-virtual
       class="table"
       :fixed-header="true"
@@ -134,7 +147,13 @@ watch(hoveringIndex, (index) => {
   </div>
 </template>
 <style lang="scss" scoped>
-
+.table-header{
+  display:flex;
+  align-items: center;
+  padding:0.5rem;
+  padding-top:0;
+  justify-content: center;
+}
 .table-container{
   display: flex;
   flex-direction: column;

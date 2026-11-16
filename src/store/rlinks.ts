@@ -32,7 +32,7 @@ import { addReverseProperties, deleteReverseProperties, normalizeToString } from
 import { nextTick, toRaw } from 'vue'
 const $gettext = (s: string) => s
 import { useIndexStore } from '.'
-import { getModifiedKeys, groupFormToDict } from '@src/utils/form'
+import { getModifiedKeys, groupFormToDict, sortWithOrder } from '@src/utils/form'
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
@@ -284,6 +284,8 @@ export const userLinksStore = defineStore('rlinks', {
       if (attributesChoices) this.loadrLinksAttributesChoices(attributesChoices.road_links)
       const indexingMethod = config.indexingMethod
       if (indexingMethod) this.indexingMethod = indexingMethod
+      const propertiesOrder = config.propertiesOrder
+      if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
     },
 
     loadrLinksAttributesChoices (payload?: AttributesChoice) {
@@ -351,6 +353,10 @@ export const userLinksStore = defineStore('rlinks', {
       const { name, type } = payload
       const castedType = (Object.hasOwn(reservedrNodesProperties, name)) ? reservedrNodesProperties[name] : type
       this.nodesDefaultAttributes.push({ name: name, type: castedType })
+    },
+    sortLinksDefaultProperties(order?: string[]) {
+      if (!order) return
+      this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
     },
 
     deleteLinksPropertie (name: string) {

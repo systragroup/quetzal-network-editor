@@ -48,7 +48,7 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
-import { getModifiedKeys, sortWithOrder } from '@src/utils/form'
+import { getModifiedKeys, groupFormToDict, sortWithOrder } from '@src/utils/form'
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
@@ -251,15 +251,17 @@ export const useLinksStore = defineStore('links', {
       this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
 
-    sortLinksDefaultProperties(order: string[]) {
+    sortLinksDefaultProperties(order?: string[]) {
+      if (!order) return
       this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
     },
 
     editLinksDefaultProperties(form: GroupForm) {
-      const filtered = Object.fromEntries(Object.entries(form).filter(([, item]) => !item.disabled))
-      Object.entries(filtered).forEach(([key, item]) => {
+      const keys = getModifiedKeys(form)
+      const dict = groupFormToDict(keys, form)
+      Object.entries(dict).forEach(([key, value]) => {
         const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
-        attr.value = item.value
+        attr.value = value
       })
     },
 

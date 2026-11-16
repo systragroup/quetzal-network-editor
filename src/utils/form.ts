@@ -63,6 +63,7 @@ export function getGroupForm(features: GeoJsonFeatures[], lineAttributes: string
 export function getModifiedKeys(form: GroupForm) {
   // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
   return Object.keys(form).filter(key => {
+    if (form[key].disabled) return false
     if (!form[key].placeholder) {
       return true
     } else if (form[key].value !== undefined && form[key].value !== null && form[key].value !== '') {
@@ -102,7 +103,12 @@ export function getPropertyName(key: string): string {
   return key.split('#')[0].split('_r')[0]
 }
 export function sortWithOrder(order: string[], a: string, b: string) {
-  return order.indexOf(getPropertyName(a)) - order.indexOf(getPropertyName(b)) }
+  const keyA = getPropertyName(a)
+  const keyB = getPropertyName(b)
+  const indexA = order.includes(keyA) ? order.indexOf(keyA) : Infinity
+  const indexB = order.includes(keyB) ? order.indexOf(keyB) : Infinity
+  return indexA - indexB
+}
 
 export function hasCalculator(key: string) {
   const name = getPropertyName(key)

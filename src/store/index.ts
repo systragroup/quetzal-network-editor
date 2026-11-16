@@ -155,8 +155,10 @@ export const useIndexStore = defineStore('index', {
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
         const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
-        this.localConfig = configFile.content
-        if (configFile) this.loadModelConfig(configFile.content)
+        if (configFile) {
+          this.localConfig = configFile.content
+          this.loadModelConfig(configFile.content)
+        }
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
@@ -463,7 +465,6 @@ export const useIndexStore = defineStore('index', {
         }
 
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
-          console.log(file)
           const content = this.getFileContent(file)
           zip.file(file.path, content, { date: date })
         }
