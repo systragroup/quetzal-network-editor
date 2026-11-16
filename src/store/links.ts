@@ -26,6 +26,7 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   Commit,
   FirstNodePayload,
   ModelConfig,
+  AttributeValue,
 } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   createLinestringFeature,
@@ -48,7 +49,7 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
-import { getModifiedKeys, groupFormToDict, sortWithOrder } from '@src/utils/form'
+import { getModifiedKeys, sortWithOrder } from '@src/utils/form'
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
@@ -217,6 +218,8 @@ export const useLinksStore = defineStore('links', {
       if (indexingMethod) this.indexingMethod = indexingMethod
       const propertiesOrder = config.propertiesOrder
       if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
+      const defaultValues = config.linksDefaultValues
+      if (defaultValues) this.editLinksDefaultProperties(defaultValues)
     },
 
     loadLinksAttributesChoices (payload?: AttributesChoice) {
@@ -256,12 +259,10 @@ export const useLinksStore = defineStore('links', {
       this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
     },
 
-    editLinksDefaultProperties(form: GroupForm) {
-      const keys = getModifiedKeys(form)
-      const dict = groupFormToDict(keys, form)
+    editLinksDefaultProperties(dict: Record<string, AttributeValue>) {
       Object.entries(dict).forEach(([key, value]) => {
         const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
-        attr.value = value
+        if (attr) attr.value = value
       })
     },
 

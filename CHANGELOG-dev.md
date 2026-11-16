@@ -1,11 +1,14 @@
-## [8.2.r] (2026-11-10)
+## [8.2.r] (2026-11-16)
 ### Features
-    * PT default values editions and order
+    * PT default values editions and order edition
     * PT trip/Link properties edition (set if link or trip property)
     * propertiesOrder in modelConfig
+    * linksDefaultValues in modelConfig
+    * rlinksDefaultValues in modelConfig
 ### changes
-    * can modify inputs/modelConfig.json and export to zip.
+    * can modify inputs/modelConfig.json and export to zip. Only for local zip. cloud models should use the global model config on s3, so we cannot save a modelConfig per scenario.
     * Form data (links, rlinks) not sorted alphabetically anymore. disabled not at the end neither, because the order can be set.
+    * Can hide disabled properties in the links tables
 
 ### bug fixes
     * new Trip (pt line) was failling when clicking cancel in the dialog

@@ -55,6 +55,8 @@ export interface ModelConfig {
   }
   tripProperties?: string[]
   propertiesOrder?: string[]
+  linksDefaultValues?: Record<string, AttributeValue>
+  rlinksDefaultValues?: Record<string, AttributeValue>
   units?: Record<string, AttributeUnits>
   hints?: Record<string, string>
 }
@@ -238,14 +240,14 @@ export interface SchedulePayload {
 }
 
 export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined | 'Color'
-
+export type AttributeValue = string | number | boolean
 export interface Attributes {
   name: string
   type: AttributeTypes
-  value?: string | number
+  value?: AttributeValue
 }
 
-export type AttributesChoice = Record<string, (string | number)[]>
+export type AttributesChoice = Record<string, (AttributeValue)[]>
 export type NonEmptyArray<T> = [T, ...T[]]
 
 export interface LinksStore {

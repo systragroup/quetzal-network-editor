@@ -1,7 +1,7 @@
 import { FormData, FormObject, GroupForm, Rule } from '@src/types/components'
 import { round } from './utils'
 import { GeoJsonFeatures, GeoJsonProperties } from '@src/types/geojson'
-import { AttributeUnits } from '@src/types/typesStore'
+import { AttributeUnits, AttributeValue } from '@src/types/typesStore'
 import { isUndefined } from 'lodash'
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
@@ -73,9 +73,9 @@ export function getModifiedKeys(form: GroupForm) {
   )
 }
 
-export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, any> {
+export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, AttributeValue> {
   return properties.reduce(
-    (dict: Record<string, any>, key: string) => {
+    (dict: Record<string, AttributeValue>, key: string) => {
       dict[key] = groupInfo[key].value
       return dict
     },

@@ -287,6 +287,10 @@ export const useIndexStore = defineStore('index', {
         this.modelConfig.propertiesOrder = config.propertiesOrder
         if (this.hasLocalConfig) this.localConfig.propertiesOrder = config.propertiesOrder
       }
+      if (config.linksDefaultValues) {
+        this.modelConfig.linksDefaultValues = config.linksDefaultValues
+        if (this.hasLocalConfig) this.localConfig.linksDefaultValues = config.linksDefaultValues
+      }
     },
 
     loadmodelSteps(payload: StepPayload[]) {

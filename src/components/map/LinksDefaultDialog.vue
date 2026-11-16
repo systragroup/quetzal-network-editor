@@ -2,7 +2,7 @@
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { computed, onMounted, ref, watch } from 'vue'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isUndefined } from 'lodash'
 import EditForm from '@src/components/common/EditForm.vue'
 import NewFieldForm from '@src/components/common/NewFieldForm.vue'
 import { GroupForm, Rule } from '@src/types/components'
@@ -14,10 +14,11 @@ const store = useIndexStore()
 const linksStore = useLinksStore()
 
 import { getDefaultLink } from '@src/utils/network'
-import { AttributeTypes } from '@src/types/typesStore.ts'
+import { AttributeTypes, AttributeValue } from '@src/types/typesStore.ts'
 import { getGroupForm, getPropertyName, sortWithOrder } from '@src/utils/form.ts'
 import { baseUnits, linksDefaultProperties } from '@src/constants/properties.ts'
 import TooltipButton from '../utils/TooltipButton.vue'
+import { isDefined } from '@src/utils/utils.ts'
 
 const showDialog = defineModel<boolean>({ default: false })
 
@@ -81,13 +82,25 @@ const tripsForm = computed(() => Object.fromEntries(
 async function submitForm() {
   const resp = await formRef.value.validate()
   if (!resp) return
-  // TODO: edit default values too
+
+  const newValues: Record<string, AttributeValue> = {}
+  Object.entries(editorForm.value).forEach(([key, formData]) => {
+    // get values if not disabled and different to linksDefaultProperties.
+    // only get 'undefined', if it replace an existing defaultProperty
+    const oldProp = linksDefaultProperties.filter(prop => prop.name === key)[0]
+    const newValue = formData.value
+    if (formData.disabled) return
+    if (isUndefined(oldProp)) {
+      if (isDefined(newValue)) newValues[key] = newValue
+    } else if (oldProp.value !== newValue) newValues[key] = newValue
+  })
+
+  store.setModelConfig({ tripProperties: tripProperties.value, propertiesOrder: order.value, linksDefaultValues: newValues })
+  linksStore.sortLinksDefaultProperties(order.value)
+  linksStore.editLinksDefaultProperties(newValues)
+  showDialog.value = false
   // we should put all in a editLinksDefaultPropertiesjson
   // like [{key:trip_id:,default:trip_,trip:true,hint:'',attributes_choice:'',etc}]
-  store.setModelConfig({ tripProperties: tripProperties.value, propertiesOrder: order.value })
-  linksStore.sortLinksDefaultProperties(order.value)
-  linksStore.editLinksDefaultProperties(editorForm.value)
-  showDialog.value = false
 }
 
 function cancel() {

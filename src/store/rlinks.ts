@@ -10,7 +10,7 @@ import { IndexAreDifferent, getDifference,
 import { cloneDeep } from 'lodash'
 
 import { AddRoadNodeInlinePayload,
-  AttributesChoice, Commit, CreateRlinkPayload,
+  AttributesChoice, AttributeValue, Commit, CreateRlinkPayload,
   EditRoadPayload, FilesPayload, ModelConfig, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload,
   UpdateFeatures } from '@src/types/typesStore'
@@ -286,6 +286,8 @@ export const userLinksStore = defineStore('rlinks', {
       if (indexingMethod) this.indexingMethod = indexingMethod
       const propertiesOrder = config.propertiesOrder
       if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
+      const defaultValues = config.rlinksDefaultValues
+      if (defaultValues) this.editLinksDefaultProperties(defaultValues)
     },
 
     loadrLinksAttributesChoices (payload?: AttributesChoice) {
@@ -357,6 +359,12 @@ export const userLinksStore = defineStore('rlinks', {
     sortLinksDefaultProperties(order?: string[]) {
       if (!order) return
       this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
+    },
+    editLinksDefaultProperties(dict: Record<string, AttributeValue>) {
+      Object.entries(dict).forEach(([key, value]) => {
+        const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
+        if (attr) attr.value = value
+      })
     },
 
     deleteLinksPropertie (name: string) {
