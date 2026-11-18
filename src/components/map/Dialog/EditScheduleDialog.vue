@@ -329,7 +329,7 @@ function handleSimpleDialog(event: boolean) {
           <v-col cols="2">
             <v-select
               v-model="label"
-              :items="labelsChoices.sort()"
+              :items="labelsChoices.toSorted()"
               prepend-inner-icon="fas fa-tag"
               density="compact"
               variant="outlined"

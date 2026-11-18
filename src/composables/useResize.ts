@@ -41,45 +41,44 @@ export function useResize(divRef: Ref, show: Ref<boolean>, minPercent: Ref<numbe
     document.removeEventListener('mouseup', stopResize)
     document.body.style.userSelect = ''
     if (toCollapse.value) {
-      collapse()
+      show.value = false
     } else {
       show.value = true
       lastSize.value = size.value
     }
   }
+
   function toggle() {
     if (show.value) {
       lastSize.value = size.value
-      collapse()
+      show.value = false
     } else {
-      expand()
+      show.value = true
     }
   }
 
   function expand() {
     smoothResize.value = true
     size.value = Math.max(lastSize.value, minPercent.value + 2)
-
     setTimeout(() => {
       smoothResize.value = false
       toCollapse.value = false
-      show.value = true
     }, 500)
   }
+
   function collapse() {
     smoothResize.value = true
     size.value = 0
     setTimeout(() => {
       smoothResize.value = false
-      show.value = false
       toCollapse.value = true
     }, 500)
-
-    watch(show, (val) => {
-      if (val) expand()
-      else collapse()
-    })
   }
+
+  watch(show, (val) => {
+    if (val) expand()
+    else collapse()
+  })
 
   return { toCollapse, size, smoothResize, startResize, toggle }
 }

@@ -27,7 +27,7 @@ const searchString = defineModel<string>('searchString', { default: '' })
   >
     <v-select
       v-model="selectedFilter"
-      :items="filterChoices.sort()"
+      :items="filterChoices"
       :style="{'flex':1.3}"
       prepend-inner-icon="fas fa-filter"
       :label="$gettext('filter')"

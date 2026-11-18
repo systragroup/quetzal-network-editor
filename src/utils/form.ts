@@ -1,7 +1,7 @@
 import { FormData, FormObject, GroupForm, Rule } from '@src/types/components'
 import { round } from './utils'
 import { GeoJsonFeatures, GeoJsonProperties } from '@src/types/geojson'
-import { AttributeUnits } from '@src/types/typesStore'
+import { AttributeUnits, AttributeValue } from '@src/types/typesStore'
 import { isUndefined } from 'lodash'
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
@@ -63,6 +63,7 @@ export function getGroupForm(features: GeoJsonFeatures[], lineAttributes: string
 export function getModifiedKeys(form: GroupForm) {
   // get only keys that are not unmodified multipled Values (value==undefined and placeholder==true)
   return Object.keys(form).filter(key => {
+    if (form[key].disabled) return false
     if (!form[key].placeholder) {
       return true
     } else if (form[key].value !== undefined && form[key].value !== null && form[key].value !== '') {
@@ -72,9 +73,9 @@ export function getModifiedKeys(form: GroupForm) {
   )
 }
 
-export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, any> {
+export function groupFormToDict(properties: string[], groupInfo: GroupForm): Record<string, AttributeValue> {
   return properties.reduce(
-    (dict: Record<string, any>, key: string) => {
+    (dict: Record<string, AttributeValue>, key: string) => {
       dict[key] = groupInfo[key].value
       return dict
     },
@@ -100,6 +101,13 @@ export function getPropertyName(key: string): string {
   // time, time#AM, time_r, time#AM_r
   // return time
   return key.split('#')[0].split('_r')[0]
+}
+export function sortWithOrder(order: string[], a: string, b: string) {
+  const keyA = getPropertyName(a)
+  const keyB = getPropertyName(b)
+  const indexA = order.includes(keyA) ? order.indexOf(keyA) : Infinity
+  const indexB = order.includes(keyB) ? order.indexOf(keyB) : Infinity
+  return indexA - indexB
 }
 
 export function hasCalculator(key: string) {

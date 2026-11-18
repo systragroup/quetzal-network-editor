@@ -92,6 +92,15 @@ function init() {
 
 const linkDir = ref<number[]>([]) // to put 2 direction per form
 
+const combinedKeys = computed(() => {
+  return lineAttributes.value.reduce((acc: string[], key: string) => {
+    acc.push(key)
+    const rKey = key + '_r'
+    if (reversedAttributes.value.includes(rKey)) acc.push(rKey)
+    return acc
+  }, [])
+})
+
 function createForm() {
   let disabled: string[] = []
   let features: LineStringFeatures[] = []
@@ -108,17 +117,18 @@ function createForm() {
       editorForm.value = []
       selectedArr.value.forEach(index => {
         const feature = features.filter(link => link.properties.index === index)[0]
-        const form = getForm(feature.properties, lineAttributes.value, disabled)
         linkDir.value.push(getDirection(feature.geometry.coordinates))
         if (feature.properties.oneway === '0') {
-          const rform = getForm(feature.properties, reversedAttributes.value, disabled)
+          // both direction ordered combinedKeys
+          const combinedForm = getForm(feature.properties, combinedKeys.value, disabled)
           // group together both direction
           reversedAttributes.value.forEach(key => {
-            rform[key].grouped = true
-            form[key.slice(0, -2)].grouped = true
+            combinedForm[key].grouped = true
+            combinedForm[key.slice(0, -2)].grouped = true
           })
-          editorForm.value.push({ ...form, ...rform })
+          editorForm.value.push(combinedForm)
         } else {
+          const form = getForm(feature.properties, lineAttributes.value, disabled)
           editorForm.value.push(form)
         }
       })

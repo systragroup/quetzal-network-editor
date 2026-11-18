@@ -54,6 +54,9 @@ export interface ModelConfig {
     road_links?: AttributesChoice
   }
   tripProperties?: string[]
+  propertiesOrder?: string[]
+  linksDefaultValues?: Record<string, AttributeValue>
+  rlinksDefaultValues?: Record<string, AttributeValue>
   units?: Record<string, AttributeUnits>
   hints?: Record<string, string>
 }
@@ -97,6 +100,7 @@ export interface IndexStore {
   styles: Style[]
   projectInfo: ProjectInfo
   modelConfig: ModelConfig
+  localConfig: ModelConfig
   otherFiles: OtherFiles[]
   docFiles: OtherFiles[]
   microservicesParams: FileFormat[]
@@ -236,14 +240,14 @@ export interface SchedulePayload {
 }
 
 export type AttributeTypes = 'String' | 'Number' | 'Boolean' | undefined | 'Color'
-
+export type AttributeValue = string | number | boolean
 export interface Attributes {
   name: string
   type: AttributeTypes
-  value?: string | number
+  value?: AttributeValue
 }
 
-export type AttributesChoice = Record<string, (string | number)[]>
+export type AttributesChoice = Record<string, (AttributeValue)[]>
 export type NonEmptyArray<T> = [T, ...T[]]
 
 export interface LinksStore {
@@ -263,6 +267,7 @@ export interface LinksStore {
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  newTripAttributes: Attributes[] // when creating a new trip
   tripProperties: string[]
   stickyMode: boolean
   routingMode: boolean

@@ -25,6 +25,8 @@ import { AddNodeInlinePayload, AnchorPayload, AttributesChoice,
   SelectedAnchor,
   Commit,
   FirstNodePayload,
+  ModelConfig,
+  AttributeValue,
 } from '@src/types/typesStore'
 import { baseLineString, basePoint,
   createLinestringFeature,
@@ -47,7 +49,7 @@ import { initLengthTimeSpeed, calcLengthTimeorSpeed,
 const $gettext = (s: string) => s
 
 import { toRaw } from 'vue'
-import { getModifiedKeys } from '@src/utils/form'
+import { getModifiedKeys, sortWithOrder } from '@src/utils/form'
 
 export const useLinksStore = defineStore('links', {
   state: (): LinksStore => ({
@@ -72,6 +74,7 @@ export const useLinksStore = defineStore('links', {
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
     tripProperties: cloneDeep(tripDefaultProperties),
+    newTripAttributes: [],
     // parameters
     routingMode: false,
     stickyMode: false,
@@ -207,6 +210,18 @@ export const useLinksStore = defineStore('links', {
         this.addNodesPropertie({ name: prop, type: type }) })
     },
 
+    loadConfig(config: ModelConfig) {
+      this.loadTripProperties(config.tripProperties)
+      const attributesChoices = config.attributesChoices
+      if (attributesChoices) this.loadLinksAttributesChoices(attributesChoices.links)
+      const indexingMethod = config.indexingMethod
+      if (indexingMethod) this.indexingMethod = indexingMethod
+      const propertiesOrder = config.propertiesOrder
+      if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
+      const defaultValues = config.linksDefaultValues
+      if (defaultValues) this.editLinksDefaultProperties(defaultValues)
+    },
+
     loadLinksAttributesChoices (payload?: AttributesChoice) {
       if (!payload) return
       this.linksAttributesChoices = cloneDeep(ptDefaultAttributesChoices) // reset values
@@ -239,6 +254,18 @@ export const useLinksStore = defineStore('links', {
       this.nodesDefaultAttributes.push({ name: name, type: castedType })
     },
 
+    sortLinksDefaultProperties(order?: string[]) {
+      if (!order) return
+      this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
+    },
+
+    editLinksDefaultProperties(dict: Record<string, AttributeValue>) {
+      Object.entries(dict).forEach(([key, value]) => {
+        const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
+        if (attr) attr.value = value
+      })
+    },
+
     deleteLinksPropertie (name: string) {
       this.links.features.forEach(link => delete link.properties[name])
       this.editorLinks.features.forEach(link => delete link.properties[name])
@@ -260,6 +287,7 @@ export const useLinksStore = defineStore('links', {
       if (selectedTrip === null) {
         this.editorLinks.features = []
         this.editorNodes.features = []
+        this.newTripAttributes = []
       }
       else {
         const linkFeatures = this.links.features.filter(link => link.properties.trip_id === this.editorTrip)
@@ -439,7 +467,7 @@ export const useLinksStore = defineStore('links', {
 
     addNewLink (payload: NewLinkPayload) {
       const { action, geom, stickyNodeId } = payload
-      const newLink = getDefaultLink(this.linksDefaultAttributes)// trip_id already set in linksDefaultAttributes
+      const newLink = getDefaultLink(this.newTripAttributes)// trip_id already set in linksDefaultAttributes
       const newLinkFeature = newLink.features[0]
       let nodeId = action === 'Extend Line Upward' ? this.lastNodeId : this.firstNodeId
 
@@ -812,14 +840,13 @@ export const useLinksStore = defineStore('links', {
       }
       const updateMap = new Map(features.map(f => [f.properties.index, f])) // index should not change
       this.commitChanges({ name: 'Edit Line Properties', updateLinks: updateMap })
-      // New line
-      // change LinksDefault values. so drawing a link uses those inputed values
+      // New line. keep track of trip properties for first drawn link
       if (this.editorLinks.features.length === 0) {
+        this.newTripAttributes = cloneDeep(this.linksDefaultAttributes)
         props.forEach((key: string) => {
-          const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
+          const attr = this.newTripAttributes.filter(el => el.name === key)[0]
           attr.value = payload[key].value
-        },
-        )
+        })
       }
     },
 

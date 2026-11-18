@@ -37,7 +37,6 @@ const menu = ref(false)
     :show-swatches="true"
     @click="menu=true"
   >
-    <!-- pass slots -->
     <template #append-inner>
       <v-menu
         v-model="menu"
@@ -61,6 +60,16 @@ const menu = ref(false)
           show-swatches
         />
       </v-menu>
+    </template>
+    <!-- pass slots -->
+    <template
+      v-for="(_, name) in $slots"
+      #[name]="slotProps"
+    >
+      <slot
+        :name="name"
+        v-bind="slotProps"
+      />
     </template>
   </v-text-field>
 </template>

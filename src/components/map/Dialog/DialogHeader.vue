@@ -4,7 +4,7 @@ import { toRefs } from 'vue'
 import { useGettext } from 'vue3-gettext'
 const { $gettext } = useGettext()
 interface Props {
-  variantChoices: string[]
+  variantChoices?: string[]
   prefixesChoice?: string[]
   title?: string
 }

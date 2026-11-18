@@ -11,6 +11,7 @@ import { DataTableHeader } from 'vuetify'
 import { cloneDeep } from 'lodash'
 import { baseUnits } from '@src/constants/properties.ts'
 import TableEditor from './tableEditor.vue'
+import TooltipButton from '@src/components/utils/TooltipButton.vue'
 
 const rlinksStore = userLinksStore()
 const store = useIndexStore()
@@ -23,7 +24,7 @@ const selectedFeatures = computed(() => rlinks.value.features.filter(el => selec
 // only get _r attributes if there is a rlink that is two way
 const hasTwoway = computed(() => selectedFeatures.value.some(el => el.properties.oneway === '0'))
 const lineAttributes = computed(() => {
-  if (hasTwoway.value) return rlinksStore.linksDefaultAttributes.map(el => el.name).sort()
+  if (hasTwoway.value) return rlinksStore.linksDefaultAttributes.map(el => el.name)
   else return rlinksStore.rlineAttributes
 })
 const tableItems = computed(() => selectedFeatures.value.map(el => el.properties))
@@ -34,11 +35,8 @@ const disabled = ['a', 'b', 'length', 'turn_restrictions']
 const showDisabled = ref(true)
 
 const columns = computed(() => {
-  let attrs = cloneDeep(lineAttributes.value)
-  const enableAttrs = attrs.filter(el => !disabled.includes(getPropertyName(el)))
-  const disabledAttrs = attrs.filter(el => disabled.includes(getPropertyName(el)))
-  if (showDisabled.value) return [...enableAttrs, ...disabledAttrs]
-  else return enableAttrs
+  if (showDisabled.value) return lineAttributes.value
+  return lineAttributes.value.filter(el => !disabled.includes(getPropertyName(el)))
 })
 
 const headers = computed<DataTableHeader[]>(() => {
@@ -105,9 +103,24 @@ watch(selectedIndex, (index) => {
 </script>
 <template>
   <div class="table-container">
-    <h3 v-if="selectedIds.size ===0">
-      {{ $gettext('right click and drag on the map to select links') }}
-    </h3>
+    <div class="table-header">
+      <h3
+        class="ml-auto"
+      >
+        {{ selectedIds.size ===0? $gettext('right click and drag on the map to select links'): `${selectedIds.size} links` }}
+      </h3>
+      <TooltipButton
+        variant="text"
+        class="ml-auto"
+        icon-size="regular"
+        :prepend-icon="showDisabled? 'fa-eye fa' : 'fa-eye-slash fa' "
+        location="top"
+        :tooltip="showDisabled? $gettext('Hide non-editable properties'): $gettext('Show All Properties')"
+        @click="showDisabled=!showDisabled"
+      >
+        {{ showDisabled? $gettext('hide'): $gettext('show') }}
+      </tooltipbutton>
+    </div>
     <v-data-table-virtual
       class="table"
       :fixed-header="true"
@@ -139,7 +152,13 @@ watch(selectedIndex, (index) => {
   </div>
 </template>
 <style lang="scss" scoped>
-
+.table-header{
+  display:flex;
+  align-items: center;
+  padding:0.5rem;
+  padding-top:0;
+  justify-content: center;
+}
 .table-container{
   display: flex;
   flex-direction: column;

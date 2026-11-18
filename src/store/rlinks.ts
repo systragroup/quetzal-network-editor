@@ -10,8 +10,8 @@ import { IndexAreDifferent, getDifference,
 import { cloneDeep } from 'lodash'
 
 import { AddRoadNodeInlinePayload,
-  AttributesChoice, Commit, CreateRlinkPayload,
-  EditRoadPayload, FilesPayload, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
+  AttributesChoice, AttributeValue, Commit, CreateRlinkPayload,
+  EditRoadPayload, FilesPayload, ModelConfig, MoveNode, NewAttribute, NewNodePayload, NonEmptyArray, RlinksStore,
   SelectedAnchor, SplitRoadPayload,
   UpdateFeatures } from '@src/types/typesStore'
 import { baseLineString, basePoint, LineStringFeatures, LineStringGeoJson, PointFeatures,
@@ -32,7 +32,7 @@ import { addReverseProperties, deleteReverseProperties, normalizeToString } from
 import { nextTick, toRaw } from 'vue'
 const $gettext = (s: string) => s
 import { useIndexStore } from '.'
-import { getModifiedKeys, groupFormToDict } from '@src/utils/form'
+import { getModifiedKeys, groupFormToDict, sortWithOrder } from '@src/utils/form'
 export const userLinksStore = defineStore('rlinks', {
   state: (): RlinksStore => ({
     rlinks: baseLineString(),
@@ -279,6 +279,17 @@ export const userLinksStore = defineStore('rlinks', {
       }
     },
 
+    loadConfig(config: ModelConfig) {
+      const attributesChoices = config.attributesChoices
+      if (attributesChoices) this.loadrLinksAttributesChoices(attributesChoices.road_links)
+      const indexingMethod = config.indexingMethod
+      if (indexingMethod) this.indexingMethod = indexingMethod
+      const propertiesOrder = config.propertiesOrder
+      if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
+      const defaultValues = config.rlinksDefaultValues
+      if (defaultValues) this.editLinksDefaultProperties(defaultValues)
+    },
+
     loadrLinksAttributesChoices (payload?: AttributesChoice) {
       if (!payload) return
       this.rlinksAttributesChoices = cloneDeep(roadDefaultAttributesChoices) // reset value
@@ -344,6 +355,16 @@ export const userLinksStore = defineStore('rlinks', {
       const { name, type } = payload
       const castedType = (Object.hasOwn(reservedrNodesProperties, name)) ? reservedrNodesProperties[name] : type
       this.nodesDefaultAttributes.push({ name: name, type: castedType })
+    },
+    sortLinksDefaultProperties(order?: string[]) {
+      if (!order) return
+      this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
+    },
+    editLinksDefaultProperties(dict: Record<string, AttributeValue>) {
+      Object.entries(dict).forEach(([key, value]) => {
+        const attr = this.linksDefaultAttributes.filter(el => el.name === key)[0]
+        if (attr) attr.value = value
+      })
     },
 
     deleteLinksPropertie (name: string) {

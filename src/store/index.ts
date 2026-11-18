@@ -61,6 +61,7 @@ export const useIndexStore = defineStore('index', {
     otherFiles: [], // [{path, content}]
     docFiles: [], // [{path, content}]
     modelConfig: cloneDeep(defaultModelConfig),
+    localConfig: {}, // when loading a config from inputs
     // microservices
     importPoly: null,
     microservicesParams: [],
@@ -154,7 +155,10 @@ export const useIndexStore = defineStore('index', {
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
         const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
-        if (configFile) this.loadModelConfig(configFile.content)
+        if (configFile) {
+          this.localConfig = configFile.content
+          this.loadModelConfig(configFile.content)
+        }
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)
@@ -258,26 +262,37 @@ export const useIndexStore = defineStore('index', {
       return file.content
     },
 
-    loadModelConfig (payload: ModelConfig) {
-      const config = payload
+    loadModelConfig (config: ModelConfig) {
       // TODO migrate
       this.modelConfig = config
       const links = useLinksStore()
       const rlinks = userLinksStore()
       const odStore = useODStore()
-      const attributesChoices = config.attributesChoices
-      if (attributesChoices) {
-        links.loadLinksAttributesChoices(attributesChoices.links)
-        rlinks.loadrLinksAttributesChoices(attributesChoices.road_links)
+      links.loadConfig(config)
+      rlinks.loadConfig(config)
+
+      if (config.indexingMethod) {
+        odStore.indexingMethod = config.indexingMethod
       }
-      const indexingMethod = config.indexingMethod
-      if (indexingMethod) {
-        rlinks.indexingMethod = indexingMethod
-        links.indexingMethod = indexingMethod
-        odStore.indexingMethod = indexingMethod
-      }
-      links.loadTripProperties(config.tripProperties)
     },
+
+    setModelConfig (config: ModelConfig) {
+      const linksStore = useLinksStore()
+      if (config.tripProperties) {
+        this.modelConfig.tripProperties = config.tripProperties
+        if (this.hasLocalConfig) this.localConfig.tripProperties = config.tripProperties
+        linksStore.tripProperties = config.tripProperties
+      }
+      if (config.propertiesOrder) {
+        this.modelConfig.propertiesOrder = config.propertiesOrder
+        if (this.hasLocalConfig) this.localConfig.propertiesOrder = config.propertiesOrder
+      }
+      if (config.linksDefaultValues) {
+        this.modelConfig.linksDefaultValues = config.linksDefaultValues
+        if (this.hasLocalConfig) this.localConfig.linksDefaultValues = config.linksDefaultValues
+      }
+    },
+
     loadmodelSteps(payload: StepPayload[]) {
       const runstore = useRunStore()
       runstore.loadModelSteps(payload)
@@ -440,12 +455,18 @@ export const useIndexStore = defineStore('index', {
           const blob = new Blob([JSON.stringify(runStore.parameters)], { type: 'application/json' })
           zip.file('inputs/params.json', blob, { date: date })
         }
+
         if (this.styles.length > 0) {
           const blob = new Blob([JSON.stringify(this.styles)], { type: 'application/json' })
           zip.file('styles.json', blob, { date: date })
         }
         const blob = new Blob([JSON.stringify(this.projectInfo)], { type: 'application/json' })
         zip.file('info.json', blob, { date: date })
+
+        const localconfigFile = this.otherFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
+        if (this.hasLocalConfig) {
+          localconfigFile.content = this.localConfig // update localconfig file
+        }
 
         for (const file of [...this.otherFiles, ...this.microservicesParams]) {
           const content = this.getFileContent(file)
@@ -596,6 +617,7 @@ export const useIndexStore = defineStore('index', {
         && state.styles.length === 0)
     },
     hasDocs: (state) => state.docFiles.length > 0,
+    hasLocalConfig: (state) => Object.keys(state.localConfig).length > 0,
     displayUnits: (state) => state.modelConfig.units,
     hints: (state) => Object.assign(cloneDeep(baseHints), state.modelConfig.hints),
     availableLayers: (state) => {

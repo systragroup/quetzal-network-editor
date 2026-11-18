@@ -83,7 +83,7 @@ function moveLayer (name) {
         {{ $gettext('Static Layers') }}
       </v-card-title>
       <DragList
-        v-slot="item"
+        v-slot="{item:item}"
         :items="choices"
         @move="moveLayer"
       >
