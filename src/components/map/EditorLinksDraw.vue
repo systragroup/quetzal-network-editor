@@ -25,7 +25,7 @@ const isEditorMode = computed(() => linksStore.editorTrip !== null)
 const anchorMode = computed(() => store.anchorMode)
 const routingMode = computed(() => linksStore.routingMode)
 
-import { useRouting } from '@src/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.ts'
 import { cloneDeep } from 'lodash'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 const { routeLink } = useRouting()

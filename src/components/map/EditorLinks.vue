@@ -49,7 +49,7 @@ watch(showedTrips, () => setSourceData('stickyNodes', visibleNodes.value))
 const anchorMode = computed(() => store.anchorMode)
 const routingMode = computed(() => linksStore.routingMode)
 
-import { useRouting } from '@src/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.ts'
 import { cloneDeep } from 'lodash'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import EditorLinksDraw from './EditorLinksDraw.vue'

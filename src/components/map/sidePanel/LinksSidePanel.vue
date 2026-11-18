@@ -5,7 +5,7 @@ import { getNewIndex } from '@src/utils/network.ts'
 import { useIndexStore } from '@src/store/index'
 import { useLinksStore } from '@src/store/links'
 import { useGettext } from 'vue3-gettext'
-import { useRouting } from '@src/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.ts'
 import { userLinksStore } from '@src/store/rlinks'
 
 import SidePanelBottom from './SidePanelBottom.vue'
