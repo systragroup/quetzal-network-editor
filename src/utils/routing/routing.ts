@@ -1,14 +1,15 @@
-import { buildKdTree, knn } from './nearest.ts'
+import { buildKdTree } from './nearest.ts'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
 import { cloneDeep } from 'lodash'
 import createGraph from 'ngraph.graph'
-import path from 'ngraph.path'
 import { shallowRef, toRaw, computed, watch, onMounted, ref } from 'vue'
 import { calcLengthTimeorSpeed } from '../network.js'
 import { isRoutedLink } from '../utils.js'
 import { LineStringFeatures, PointFeatures } from '@src/types/geojson.js'
+import { buildGaph, buildMapping, dijkstra, getCandidates, getGeometryFromList, getMidPoints, getNearest, getPathWeight, snapToGeom } from './routing_utils.ts'
+import { Snapped } from './routing_links copy.ts'
 
 type Node = number[]
 type KnnData = [number, number, string]
@@ -18,6 +19,10 @@ const graph = shallowRef(createGraph())
 const kdTree = shallowRef(null)
 const linksMap = ref<Map<string, string>>(new Map())
 const linksGeometry = ref<Map<string, number[][]>>(new Map())
+const onlinks = ref(true)
+
+const linksNodeA = ref<Map<string, string>>(new Map())
+const linksNodeB = ref<Map<string, string>>(new Map())
 
 export function useRouting () {
   const store = useIndexStore()
@@ -34,7 +39,7 @@ export function useRouting () {
   watch(routingMode, () => init())
 
   function init() {
-    buildGaph()
+    buildGaph(rlinks, graph.value, linksMap.value, linksGeometry.value)
 
     if (routingMode.value) {
       if (!kdTree.value) {
@@ -48,68 +53,73 @@ export function useRouting () {
     }
   }
 
-  function buildGaph() {
-    rlinks.features.forEach(link => {
-      const { a, b, index, length } = link.properties
-      graph.value.addLink(a, b, { weight: length })
-      linksMap.value.set(`${a}-${b}`, index)
-      linksGeometry.value.set(index, link.geometry.coordinates)
-      if (link.properties.oneway === '0') {
-        graph.value.addLink(b, a, { weight: length })
-        linksMap.value.set(`${b}-${a}`, index + '_r')
-        linksGeometry.value.set(index + '_r', link.geometry.coordinates.toReversed())
-      }
-    })
-  }
-
   function buildTree() {
-    const dataSet = rnodes.features.map(node => [...toRaw(node.geometry.coordinates), node.properties.index])
+    let dataSet = rnodes.features.map(node => [...toRaw(node.geometry.coordinates), node.properties.index])
+    if (onlinks.value) {
+      const midpoints = getMidPoints(rlinks)
+      dataSet.concat(midpoints)
+      buildMapping(rlinks, linksNodeA.value, linksNodeB.value)
+    }
     kdTree.value = buildKdTree(dataSet as KnnData[])
-  }
-
-  function _dijkstra(from: string, to: string): string[] {
-    const pathFinder = path.aStar(graph.value, {
-      oriented: true,
-      distance: (fromNode, toNode, link) => { return link.data.weight },
-      heuristic() { return 0 },
-    })
-    const foundPath = pathFinder.find(from, to)
-    const nodesList = foundPath.map(el => el.id).reverse()
-    return nodesList as string[]
-  }
-
-  function _nearest(node: Node, k = 25): string[] {
-    const geom = node
-    const resp = knn(kdTree.value, geom, k)
-    const points = resp.points.map((p: KnnData) => p[2]) as string[]
-
-    return points
   }
 
   function _routingBetweenTwoPoints(nodeA: Node, nodeB: Node) {
     // takes 2 nodes and return the roadlinklist
-    const fromNode = _nearest(nodeA, 1)[0]
-    const toCandidate = _nearest(nodeB, 2)
-    const toNode = toCandidate.filter(node => node !== fromNode)[0] // do not route from the same node
-    const nodesList = _dijkstra(fromNode, toNode)
 
+    const fromNode = getNearest(kdTree.value, nodeA, 1)[0]
+    const toCandidate = getNearest(kdTree.value, nodeB, 2)
+    const toNode = toCandidate.filter(node => node !== fromNode)[0] // do not route from the same node
+    const nodesList = dijkstra(graph.value, fromNode, toNode)
     // nodes to links list [1,2,3,4] => [[1,2], [2,3], [3,4]]
     const linksList = nodesList.slice(0, -1).map((a, i) => linksMap.value.get(`${a}-${nodesList[i + 1]}`)!)
     return linksList
   }
 
-  function _getGeom(rlinksList: string[]) {
-    let slice = 0
-    let geom: number[][] = []
-    for (const index of rlinksList) {
-      const linkgeom = linksGeometry.value.get(index)!
-      geom = geom.concat(linkgeom.slice(slice))
-      slice = 1
+  // graph.addLink('a', 'b', {weight: 10});
+  function _routingBetweenTwoCandidates(fromCandidateLinks: Snapped[], toCandidateLinks: Snapped[]) {
+    let bestCost = Infinity
+    let fromidx = 0
+    let toidx = 0
+    let bestPath: string[] = []
+    fromCandidateLinks.forEach((fromLink, i) => {
+      toCandidateLinks.forEach((toLink, j) => {
+        let nodePath: string[] = []
+        let routingDist = 0
+        if (fromLink.link == toLink.link) {
+          routingDist = fromLink.offset < toLink.offset ? 0 : Infinity
+          nodePath = []
+        } else {
+          nodePath = dijkstra(graph.value, fromLink.b, toLink.a)
+          routingDist = getPathWeight(graph.value, nodePath)
+        }
+
+        const totDist = routingDist - fromLink.offset + toLink.offset
+        const cost = (totDist) + 2 * (fromLink.distance + toLink.distance)
+        if (cost < bestCost) {
+          bestCost = cost
+          fromidx = i
+          toidx = j
+          bestPath = nodePath
+        }
+      })
+    })
+
+    const firstNode = fromCandidateLinks[fromidx].a
+    const lastNode = toCandidateLinks[toidx].b
+    bestPath = [firstNode, ...bestPath, lastNode]
+
+    if (bestPath.length == 2) { // CANNOT ROUTE. return simple linestring
+      return []
     }
-    return geom
+
+    // nodes to links list [1,2,3,4] => [[1,2], [2,3], [3,4]]
+    const linksList = bestPath.slice(0, -1).map((a, i) => linksMap.value.get(`${a}-${bestPath[i + 1]}`)!)
+
+    // geom = geom.slice(fromIndex)
+    return linksList
   }
 
-  function _routeLink(nodeA: PointFeatures, nodeB: PointFeatures, anchors: Node[]): string[] {
+  function _routeLinkOnNodes(nodeA: PointFeatures, nodeB: PointFeatures, anchors: Node[]): string[] {
     // get route between 2 nodes, and its anchor inbetwwen
     const geomA = nodeA.geometry.coordinates
     const geomB = nodeB.geometry.coordinates
@@ -118,8 +128,8 @@ export function useRouting () {
     const linkList = nodesList.slice(0, -1).map((num, index) => [num, nodesList[index + 1]])
     let rlinksList: string[] = []
     let slice = 0
-    for (const tempLink of linkList) {
-      const indexList = _routingBetweenTwoPoints(tempLink[0], tempLink[1])
+    for (const [a, b] of linkList) {
+      const indexList = _routingBetweenTwoPoints(a, b)
       rlinksList = rlinksList.concat(indexList.slice(slice))
       slice = 1
     }
@@ -127,16 +137,57 @@ export function useRouting () {
     return rlinksList
   }
 
-  // exposed function
+  function _routeLinkOnLinks(nodeA: PointFeatures, nodeB: PointFeatures, anchors: Node[]) {
+    // dont modify object directly
+    const geomA = nodeA.geometry.coordinates
+    const geomB = nodeB.geometry.coordinates
+    // [1,2,3,4] => [[1,2], [2,3], [3,4]]
+    const nodesList = [geomA, ...anchors, geomB]
+    const linkList = nodesList.slice(0, -1).map((num, index) => [num, nodesList[index + 1]])
 
-  function routeLink(linkIndex: string) {
-    const link = cloneDeep(editorLinks.value.features.filter(link => link.properties.index === linkIndex)[0])
-    const nodeA = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.a)[0])
-    const nodeB = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.b)[0])
+    let fixedLink: undefined | string = undefined
+    const prevLink = editorLinks.value.features.filter(link => link.properties.b === nodeA.properties.index)[0]
+    if (prevLink && prevLink.properties.road_link_list) {
+      fixedLink = prevLink.properties.road_link_list.slice(-1)[0]
+    }
+
+    let rlinksList: string[] = []
+    let slice = 0
+    for (const [nodeA, nodeB] of linkList) {
+      let fromCandidateLinks = getCandidates(kdTree.value, rlinks, nodeA)
+      if (fixedLink) {
+        const filtered = fromCandidateLinks.filter(el => el.link == fixedLink)
+        if (filtered.length == 1) fromCandidateLinks = filtered
+      }
+
+      const toCandidateLinks = getCandidates(kdTree.value, rlinks, nodeB)
+      const indexList = _routingBetweenTwoCandidates(fromCandidateLinks, toCandidateLinks)
+      fixedLink = indexList.slice(-1)[0]
+      rlinksList = rlinksList.concat(indexList.slice(slice))
+      slice = 1
+    }
+    return rlinksList
+  }
+
+  function routeLinkOnLinks(link: LineStringFeatures, nodeA: PointFeatures, nodeB: PointFeatures) {
     const anchors = link.properties.anchors || []
     // route a link. commit changes
-    const rlinksList = _routeLink(nodeA, nodeB, anchors)
-    const geometry = _getGeom(rlinksList)
+    const rlinksList = _routeLinkOnLinks(nodeA, nodeB, anchors)
+    const geometry = getGeometryFromList(rlinksList, linksGeometry.value)
+    if (geometry.length > 0) {
+      link.geometry.coordinates = geometry
+    } else {
+      store.changeNotification({ text: 'cannot route', autoClose: true })
+    }
+    link.properties.road_link_list = rlinksList
+    snapToGeom(nodeA, nodeB, link)
+  }
+
+  function routeLinkOnNodes(link: LineStringFeatures, nodeA: PointFeatures, nodeB: PointFeatures) {
+    const anchors = link.properties.anchors || []
+    // route a link. commit changes
+    const rlinksList = _routeLinkOnNodes(nodeA, nodeB, anchors)
+    const geometry = getGeometryFromList(rlinksList, linksGeometry.value)
 
     if (geometry.length > 0) {
       link.geometry.coordinates = geometry
@@ -147,10 +198,19 @@ export function useRouting () {
     }
 
     link.properties.road_link_list = rlinksList
-    calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
+  }
 
+  // exposed function
+  function routeLink(linkIndex: string) {
+    const link = cloneDeep(editorLinks.value.features.filter(link => link.properties.index === linkIndex)[0])
+    const nodeA = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.a)[0])
+    const nodeB = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.b)[0])
+    if (onlinks.value) routeLinkOnLinks(link, nodeA, nodeB)
+    else routeLinkOnNodes(link, nodeA, nodeB)
+
+    calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
     linksStore.commitChanges({
-      name: `Route ${linkIndex}`,
+      name: `Route link`,
       updateLinks: new Map([link].map(f => [f.properties.index, f])),
       updateNodes: new Map([nodeA, nodeB].map(f => [f.properties.index, f])),
     })
