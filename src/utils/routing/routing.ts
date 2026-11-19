@@ -39,13 +39,11 @@ export function useRouting () {
   watch(routingMode, () => init())
 
   function init() {
-    buildGaph(rlinks, graph.value, linksMap.value, linksGeometry.value)
-
     if (routingMode.value) {
+      buildGaph(rlinks, graph.value, linksMap.value, linksGeometry.value)
+
       if (!kdTree.value) {
-        console.time('updateTree')
         buildTree()
-        console.timeEnd('updateTree')
       }
     } else {
       graph.value = createGraph()
@@ -201,23 +199,29 @@ export function useRouting () {
   }
 
   // exposed function
-  function routeLink(linkIndex: string) {
-    const link = cloneDeep(editorLinks.value.features.filter(link => link.properties.index === linkIndex)[0])
-    const nodeA = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.a)[0])
-    const nodeB = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.b)[0])
-    if (onlinks.value) routeLinkOnLinks(link, nodeA, nodeB)
-    else routeLinkOnNodes(link, nodeA, nodeB)
+  function routeLinks(linkIndexList: string[]) {
+    const updateLinks = new Map()
+    const updateNodes = new Map()
+    for (const linkIndex of linkIndexList) {
+      const link = cloneDeep(editorLinks.value.features.filter(link => link.properties.index === linkIndex)[0])
+      const nodeA = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.a)[0])
+      const nodeB = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.b)[0])
+      if (onlinks.value) routeLinkOnLinks(link, nodeA, nodeB)
+      else routeLinkOnNodes(link, nodeA, nodeB)
+      calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
+      updateLinks.set(linkIndex, link)
+      updateNodes.set(nodeA.properties.index, nodeA)
+      updateNodes.set(nodeB.properties.index, nodeB)
+    }
 
-    calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
     linksStore.commitChanges({
-      name: `Route link`,
-      updateLinks: new Map([link].map(f => [f.properties.index, f])),
-      updateNodes: new Map([nodeA, nodeB].map(f => [f.properties.index, f])),
+      name: `Route Links`,
+      updateLinks: updateLinks,
+      updateNodes: updateNodes,
     })
   }
 
   function _unrouteLink(link: LineStringFeatures) {
-    // dont modify object directly
     const nodeA = link.geometry.coordinates[0]
     const nodeB = link.geometry.coordinates.slice(-1)[0]
     const anchors = link.properties.anchors || []
@@ -225,28 +229,28 @@ export function useRouting () {
     const geom = [nodeA, ...anchors, nodeB]
     link.geometry.coordinates = geom
     link.properties.road_link_list = undefined
-    return link
   }
 
-  function unroute(link: LineStringFeatures) {
-    const modifiedLink = _unrouteLink(cloneDeep(link))
-    calcLengthTimeorSpeed(modifiedLink, linksStore.variantChoice, linksStore.speedTimeMethod)
+  function unroute(linkIndexList: string[]) {
+    const updateLinks = new Map()
+    for (const linkIndex of linkIndexList) {
+      const link = cloneDeep(editorLinks.value.features.filter(link => link.properties.index === linkIndex)[0])
+      _unrouteLink(link)
+      calcLengthTimeorSpeed(link, linksStore.variantChoice, linksStore.speedTimeMethod)
+      updateLinks.set(linkIndex, link)
+    }
     linksStore.commitChanges({
-      name: 'Route Link',
-      updateLinks: new Map([modifiedLink].map(f => [f.properties.index, f])) })
+      name: 'Unroute Links',
+      updateLinks: updateLinks })
   }
 
   function routeAll() {
     if (routingMode.value) {
-      for (const link of editorLinks.value.features) {
-        routeLink(link.properties.index)
-      }
+      routeLinks(editorLinks.value.features.map(el => el.properties.index))
     }
   }
   function unrouteAll() {
-    for (const link of editorLinks.value.features) {
-      unroute(link)
-    }
+    unroute(editorLinks.value.features.map(el => el.properties.index))
   }
 
   const isRouted = computed(() => {
@@ -263,7 +267,7 @@ export function useRouting () {
 
   return {
     toggleRouting,
-    routeLink,
+    routeLinks,
     isRouted,
   }
 }

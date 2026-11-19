@@ -53,7 +53,7 @@ import { useRouting } from '@src/utils/routing/routing.ts'
 import { cloneDeep } from 'lodash'
 import PromiseDialog from '../utils/PromiseDialog.vue'
 import EditorLinksDraw from './EditorLinksDraw.vue'
-const { routeLink } = useRouting()
+const { routeLinks } = useRouting()
 const routeAnchorMode = computed(() => anchorMode.value && routingMode.value)
 const routeAnchorLine = computed(() => routeAnchorMode.value ? linksStore.routeAnchorLine : baseLineString())
 
@@ -198,7 +198,7 @@ function contextMenuAnchor() {
     }
     if (routingMode.value) {
       const modLink = linksStore.deleteRoutingAnchorNode(payload)
-      routeLink(modLink.properties.index)
+      routeLinks([modLink.properties.index])
       // TODO: routeLink to return modeLink and not commit. commit action externally (route,unroute...)
       // commitChanges({ name: 'delete Routing Anchor', updateLinks: [link] })
     } else {
@@ -228,7 +228,7 @@ function actionClick (event: ActionClick) {
       break
     case 'Delete Stop':
       const modLink = linksStore.deleteNode({ selectedNode: selectedNode })
-      if (routingMode.value && modLink) { routeLink(modLink.properties.index) }
+      if (routingMode.value && modLink) { routeLinks([modLink.properties.index]) }
       break
     case 'Edit Node Info':
       const selectedIndex = selectedNode.properties.index
@@ -398,7 +398,7 @@ async function stopMovingNode () {
   }
 
   if (routingMode.value) {
-    modifiedLinks.forEach(link => routeLink(link.properties.index))
+    routeLinks(modifiedLinks.map(el => el.properties.index))
   }
 
   stopMoving()
@@ -447,7 +447,7 @@ function stopMovingNodeAnchor () {
   const geom = movingLine.value.features[0].geometry.coordinates[index]
   const modifiedLinks = linksStore.moveAnchor({ selectedNode: selected, lngLat: toRaw(geom) })
 
-  if (routingMode.value) { routeLink(modifiedLinks.properties.index) }
+  if (routingMode.value) { routeLinks([modifiedLinks.properties.index]) }
   stopMoving()
   map.value.off('mousemove', onMoveAnchor)
   map.value.off('mouseup', stopMovingNodeAnchor)
@@ -482,7 +482,7 @@ function stopMovingRouteAnchor () {
     const geom = movingLine.value.features[0].geometry.coordinates[index]
     const modifiedLinks = linksStore.moveRoutingAnchor({ selectedNode: selected, lngLat: toRaw(geom) })
 
-    routeLink(modifiedLinks.properties.index)
+    routeLinks([modifiedLinks.properties.index])
   }
 
   stopMoving()
