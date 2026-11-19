@@ -701,7 +701,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
         ...link.properties.anchors.slice(coordinatedIndex + 1)]
-      // this.commitChanges({ name: 'delete Routing Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'delete Routing Anchor', updateLinks: new Map([[linkIndex, link]]) })
 
       // return the modified link (used for Routing)
       return link
@@ -726,7 +726,7 @@ export const useLinksStore = defineStore('links', {
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       })
       // for routing
-      const linksToUpdate = [...linksA, ...linksB]
+      const linksToUpdate = [...linksB, ...linksA] // order matter for routing. we want them order as link_sequence
       const updateLinks = new Map(linksToUpdate.map(f => [f.properties.index, f]))
       const updateNodes = new Map([[nodeIndex, node]])
       this.commitChanges({ name: 'Move Node', updateLinks: updateLinks, updateNodes: updateNodes })
@@ -754,7 +754,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors[coordinatedIndex] = lngLat
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      // this.commitChanges({ name: 'Move Routing Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Move Routing Anchor', updateLinks: new Map([[linkIndex, link]]) })
 
       return link
     },
