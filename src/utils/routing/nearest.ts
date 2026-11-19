@@ -1,4 +1,4 @@
-export type Point = [number, number, string?]
+export type Point = [number, number, string]
 class Node {
   constructor(
     public point: Point,
