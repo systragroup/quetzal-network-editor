@@ -148,8 +148,8 @@ async function addPointPT(event: MapMouseEvent) {
   }
   if (routingMode.value) {
     const newLinkFeature = action === 'Extend Line Upward'
-      ? linksStore.editorLinks.features.slice(-1)[0]
-      : linksStore.editorLinks.features[0]
+      ? linksStore.editorLinks.features.slice(-1)[0].properties.index
+      : linksStore.editorLinks.features[0].properties.index
     routeLink(newLinkFeature)
   }
 }
