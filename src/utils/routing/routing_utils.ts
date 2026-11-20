@@ -7,8 +7,8 @@ import { knn } from './nearest.ts'
 
 import path from 'ngraph.path'
 
-type Node = number[]
-type KnnData = [number, number, string]
+export type Node = number[]
+export type KnnData = [number, number, string]
 interface Snapped {
   link: string
   a: string
@@ -32,9 +32,9 @@ export function buildGaph(rlinks: LineStringGeoJson, graph: Graph, linksMap: Map
 }
 
 export function getMidPoints(rlinks: LineStringGeoJson): KnnData[] {
-  // for links longeur than 500m, get points along every 500m
+  // for links longer than 500m, get points along every 500m
   // dist in meters.
-  const limit = 1 // % of links to process
+  const limit = 1
   let dist = 250
   let filtered = rlinks.features.filter(link => link.properties.length > 2 * dist)
   // while the number of links is larger than 1% of links. increase dist.
@@ -48,7 +48,8 @@ export function getMidPoints(rlinks: LineStringGeoJson): KnnData[] {
     const numPoints = Math.floor(link.properties.length / dist)
     for (let i = 1; i < numPoints + 1; i++) {
       const newPoint = along(link, (dist * i) / 1000, { units: 'kilometers' })
-      midPts.push([...toRaw(newPoint.geometry.coordinates), link.properties.a])
+      const geom = toRaw(newPoint.geometry.coordinates)
+      midPts.push([geom[0], geom[1], link.properties.a])
     }
   }
   return midPts

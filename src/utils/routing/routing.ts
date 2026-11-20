@@ -2,25 +2,23 @@ import { buildKdTree } from './nearest.ts'
 import { useIndexStore } from '@src/store/index'
 import { userLinksStore } from '@src/store/rlinks'
 import { useLinksStore } from '@src/store/links'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isUndefined } from 'lodash'
 import createGraph from 'ngraph.graph'
 import { shallowRef, toRaw, computed, watch, onMounted, ref } from 'vue'
 import { calcLengthTimeorSpeed } from '../network.js'
 import { isRoutedLink } from '../utils.js'
 import { LineStringFeatures, PointFeatures } from '@src/types/geojson.js'
-import { buildGaph, buildMapping, dijkstra, getCandidates, getGeometryFromList, getMidPoints, getNearest, getPathWeight, snapToGeom } from './routing_utils.ts'
+import { buildGaph, buildMapping, dijkstra, getCandidates, getGeometryFromList, getMidPoints, getNearest, getPathWeight, KnnData, Node, snapToGeom } from './routing_utils.ts'
 import { Snapped } from './routing_links copy.ts'
 
-type Node = number[]
-type KnnData = [number, number, string]
 // Global state. Can reuuse thoses anywhere in the app.
 // onMounted. only init if null (so we do it only once.)
 const graph = shallowRef(createGraph())
 const kdTree = shallowRef(null)
 const linksMap = ref<Map<string, string>>(new Map())
 const linksGeometry = ref<Map<string, number[][]>>(new Map())
-const onlinks = ref(true)
 
+// for  routing on links
 const linksNodeA = ref<Map<string, string>>(new Map())
 const linksNodeB = ref<Map<string, string>>(new Map())
 
@@ -28,7 +26,7 @@ export function useRouting () {
   const store = useIndexStore()
   const linksStore = useLinksStore()
   const rlinksStore = userLinksStore()
-
+  const onlinks = ref(false)
   const routingMode = computed(() => linksStore.routingMode)
   const editorLinks = computed(() => linksStore.editorLinks)
   const editorNodes = computed(() => linksStore.editorNodes)
@@ -39,6 +37,7 @@ export function useRouting () {
   watch(routingMode, () => init())
 
   function init() {
+    onlinks.value = store.modelConfig.routingMethod !== 'nodes'
     if (routingMode.value) {
       buildGaph(rlinks, graph.value, linksMap.value, linksGeometry.value)
 
@@ -76,44 +75,35 @@ export function useRouting () {
   // graph.addLink('a', 'b', {weight: 10});
   function _routingBetweenTwoCandidates(fromCandidateLinks: Snapped[], toCandidateLinks: Snapped[]) {
     let bestCost = Infinity
-    let fromidx = 0
-    let toidx = 0
     let bestPath: string[] = []
-    fromCandidateLinks.forEach((fromLink, i) => {
-      toCandidateLinks.forEach((toLink, j) => {
+    fromCandidateLinks.forEach((fromLink) => {
+      toCandidateLinks.forEach((toLink) => {
+        const firstNode = fromLink.a
+        const lastNode = toLink.b
         let nodePath: string[] = []
         let routingDist = 0
         if (fromLink.link == toLink.link) {
           routingDist = fromLink.offset < toLink.offset ? 0 : Infinity
-          nodePath = []
+          nodePath = [firstNode, lastNode]
         } else {
-          nodePath = dijkstra(graph.value, fromLink.b, toLink.a)
-          routingDist = getPathWeight(graph.value, nodePath)
+          const path = dijkstra(graph.value, fromLink.b, toLink.a)
+          nodePath = [firstNode, ...path, lastNode]
+          routingDist = getPathWeight(graph.value, nodePath.slice(0, -1)) // exclude last link, we add its offset
         }
-
-        const totDist = routingDist - fromLink.offset + toLink.offset
+        const totDist = routingDist + toLink.offset - fromLink.offset
         const cost = (totDist) + 2 * (fromLink.distance + toLink.distance)
         if (cost < bestCost) {
           bestCost = cost
-          fromidx = i
-          toidx = j
           bestPath = nodePath
         }
       })
     })
 
-    const firstNode = fromCandidateLinks[fromidx].a
-    const lastNode = toCandidateLinks[toidx].b
-    bestPath = [firstNode, ...bestPath, lastNode]
-
-    if (bestPath.length == 2) { // CANNOT ROUTE. return simple linestring
+    if ((bestPath.length === 2) && (bestPath[0] === bestPath[1])) { // CANNOT ROUTE. return simple linestring
       return []
     }
-
     // nodes to links list [1,2,3,4] => [[1,2], [2,3], [3,4]]
     const linksList = bestPath.slice(0, -1).map((a, i) => linksMap.value.get(`${a}-${bestPath[i + 1]}`)!)
-
-    // geom = geom.slice(fromIndex)
     return linksList
   }
 
@@ -148,7 +138,6 @@ export function useRouting () {
     if (prevLink && prevLink.properties.road_link_list) {
       fixedLink = prevLink.properties.road_link_list.slice(-1)[0]
     }
-
     let rlinksList: string[] = []
     let slice = 0
     for (const [nodeA, nodeB] of linkList) {
@@ -168,7 +157,7 @@ export function useRouting () {
   }
 
   function routeLinkOnLinks(link: LineStringFeatures, nodeA: PointFeatures, nodeB: PointFeatures) {
-    const anchors = link.properties.anchors || []
+    let anchors = link.properties.anchors || []
     // route a link. commit changes
     const rlinksList = _routeLinkOnLinks(nodeA, nodeB, anchors)
     const geometry = getGeometryFromList(rlinksList, linksGeometry.value)
@@ -204,6 +193,7 @@ export function useRouting () {
     const updateNodes = new Map()
     for (const linkIndex of linkIndexList) {
       const link = cloneDeep(editorLinks.value.features.filter(link => link.properties.index === linkIndex)[0])
+      if (isUndefined(link)) continue
       const nodeA = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.a)[0])
       const nodeB = cloneDeep(editorNodes.value.features.filter(n => n.properties.index === link.properties.b)[0])
       if (onlinks.value) routeLinkOnLinks(link, nodeA, nodeB)

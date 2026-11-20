@@ -209,8 +209,15 @@ async function cloneButton (tripId: string) {
         cloneNodes: cloneOptions.value.nodes,
         reverse: cloneOptions.value.reverse,
       })
-      store.changeNotification({ text: $gettext('Trip Duplicated'),
-        autoClose: true, color: 'success' }) }
+      const first = linksStore.links.features.filter(link => link.properties.trip_id === tripId)[0]
+      if (isRoutedLink(first)) {
+        store.changeNotification({ text: $gettext('Trip Duplicated, without road_link_list. please route new trip'),
+          autoClose: false, color: 'warning' })
+      } else {
+        store.changeNotification({ text: $gettext('Trip Duplicated'),
+          autoClose: true, color: 'success' })
+      }
+    }
   }
 }
 
@@ -227,7 +234,7 @@ async function deleteButton (trips: string[], message: string) {
 // Highlight
 
 import { useHighlight } from '@src/composables/useHighlight.ts'
-import { numericSort } from '@src/utils/utils.ts'
+import { isRoutedLink, numericSort } from '@src/utils/utils.ts'
 import TooltipButton from '@src/components/utils/TooltipButton.vue'
 const { setHighlightTrip } = useHighlight()
 function setHighlight(trip: string | null) {

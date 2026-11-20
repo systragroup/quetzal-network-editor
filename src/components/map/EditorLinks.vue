@@ -148,6 +148,12 @@ function selectClick (event: CustomMapEvent) {
       lngLat: event.mapboxEvent.lngLat,
       nodeType: type,
     })
+    if (routingMode.value && type === 'editorNodes') {
+      const link1 = selectedFeature.value.properties.index
+      const nodeIndex = editorLinks.value.features.filter(link => link.properties.index === link1)[0].properties.b
+      const link2 = editorLinks.value.features.filter(link => link.properties.a === nodeIndex)[0].properties.index
+      routeLinks([link1, link2])
+    }
   }
 }
 
