@@ -38,6 +38,7 @@ export const reservedLinkProperties: Record<string, AttributeTypes> = {
   departures: undefined,
   arrivals: undefined,
   road_link_list: undefined,
+  anchors: undefined,
 }
 export const reservedNodesProperties: Record<string, AttributeTypes> = {}
 
@@ -105,6 +106,8 @@ export const defaultModelConfig: ModelConfig = {
   version: 0,
   indexingMethod: defaultIndexingMethod,
   disableUturn: false,
+  routingMethod: 'links',
+  speedTimeMethod: 'time',
   attributesChoices: {
     links: ptDefaultAttributesChoices,
     road_links: roadDefaultAttributesChoices,

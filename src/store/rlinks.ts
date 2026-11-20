@@ -288,6 +288,8 @@ export const userLinksStore = defineStore('rlinks', {
       if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
       const defaultValues = config.rlinksDefaultValues
       if (defaultValues) this.editLinksDefaultProperties(defaultValues)
+      const speedTimeMethod = config.speedTimeMethod
+      if (speedTimeMethod) this.speedTimeMethod = speedTimeMethod
     },
 
     loadrLinksAttributesChoices (payload?: AttributesChoice) {

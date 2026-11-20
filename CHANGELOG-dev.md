@@ -1,3 +1,16 @@
+
+## [8.2.s] (2026-11-20)
+### Features
+    * routing on nodes or links
+    * routingMethod in modelConfig and in parameters
+    * speedTimeMethod in modelConfig
+### changes
+    * delete pt node: merge road_link_list and anchors
+    * add pt node inline: delete road_link_list and anchors
+    * clone trip: delete road_link_list and anchors
+### bug fixes
+    * export anchors (for routing) as list and not a string
+
 ## [8.2.r] (2026-11-16)
 ### Features
     * PT default values editions and order edition

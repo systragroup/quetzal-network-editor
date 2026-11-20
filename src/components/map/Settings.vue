@@ -21,6 +21,13 @@ const computeMethod = ref({
   units: '',
   hint: $gettext('When editing or drawing a network. We can compute (with the length) the time with the speed or the speed with the time.'),
 })
+const routingMethod = ref({
+  name: $gettext('PT routing'),
+  type: 'radio',
+  value: 'links',
+  units: '',
+  hint: $gettext('When routing PT links, use road links or road nodes'),
+})
 const roadSpeed = ref({
   name: $gettext('Road speed'),
   type: 'Number',
@@ -71,7 +78,8 @@ const fetch = () => {
   // value are init with this function.
   // we want to get the value each time we show the settings.
   // if not, Cancel will not work as the state here and in the store will differ.
-  computeMethod.value.value = store.speedTimeMethod
+  computeMethod.value.value = store.modelConfig.speedTimeMethod
+  routingMethod.value.value = store.modelConfig.routingMethod
   roadSpeed.value.value = rlinksStore.linksDefaultAttributes.filter(el => el.name == 'speed')[0].value
   linksPopupContent.value.choices = linksStore.lineAttributes
   linksPopupContent.value.value = store.linksPopupContent
@@ -92,6 +100,7 @@ async function submit (event) {
   if (resp.valid) {
     const payload = {
       speedTimeMethod: computeMethod.value.value,
+      routingMethod: routingMethod.value.value,
       roadSpeed: roadSpeed.value.value,
       linksPopupContent: linksPopupContent.value.value,
       roadsPopupContent: roadsPopupContent.value.value,
@@ -239,6 +248,22 @@ const showDialog = ref(false)
               <v-radio
                 :label="$gettext('Speed')"
                 value="speed"
+              />
+            </v-radio-group>
+            <v-radio-group
+              v-model="routingMethod.value"
+              inline
+              :label="$gettext(routingMethod.name)"
+              :hint="showHint? $gettext(routingMethod.hint): ''"
+              :persistent-hint="showHint"
+            >
+              <v-radio
+                :label="$gettext('Links')"
+                value="links"
+              />
+              <v-radio
+                :label="$gettext('Nodes')"
+                value="nodes"
               />
             </v-radio-group>
           </v-col>
