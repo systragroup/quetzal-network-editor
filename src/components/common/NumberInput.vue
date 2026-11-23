@@ -1,20 +1,25 @@
 <script setup lang="ts">
 import { AttributeUnits } from '@src/types/typesStore'
 import { convert } from '@src/utils/form'
-import { isDefined } from '@src/utils/utils'
+import { isDefined, round } from '@src/utils/utils'
 import { computed, ref } from 'vue'
 
 interface Props {
   displayUnits: AttributeUnits
   baseUnits: AttributeUnits // could use suffix and not pass a units props... but would be more confusing
   suffix?: string | null // Important! this remove suffix from v-bind="$attrs". we change suffix in this component.
+  precision?: number | null
 }
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  precision: null,
+  suffix: undefined,
+})
 
 const displaySuffix = computed(() => {
   if (props.suffix === null) return undefined
   if (isDefined(props.displayUnits) && isDefined(props.baseUnits) && (props.baseUnits !== props.displayUnits)) {
-    return `${props.displayUnits} (${model.value} ${props.baseUnits}) `
+    const rounded = round(model.value, 2)
+    return `${props.displayUnits} (${rounded} ${props.baseUnits}) `
   } else {
     return props.displayUnits
   }
@@ -38,7 +43,7 @@ defineExpose({
     v-bind="$attrs"
     v-model="computedModel"
     control-variant="stacked"
-    :precision="null"
+    :precision="precision"
     :suffix="displaySuffix"
   >
     <!-- pass all slots to v-number-inputs -->

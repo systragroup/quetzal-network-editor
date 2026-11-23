@@ -14,6 +14,7 @@ import { SchedulePayload } from '@src/types/typesStore'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 import { useGettext } from 'vue3-gettext'
 import NumberInput from '@src/components/common/NumberInput.vue'
+import MenuSelector from '@src/components/utils/MenuSelector.vue'
 const { $gettext } = useGettext()
 
 // Chart Dataset
@@ -49,7 +50,8 @@ const nodes = computed(() => linksStore.editorNodes)
 const tripKey = ref(0)
 const startTime = ref('08:00:00')
 const endTime = ref('09:00:00')
-const headway = ref(0)
+const units = ref<'min' | 'sec' | 'hour'>('min')
+const headwayMinutes = ref(0)
 const newTripMethod = ref<'single' | 'multiple'>('single')
 
 const initialHash = ref()
@@ -73,7 +75,7 @@ watch(showSchedule, (val) => {
 function mount() {
   store.changeNotification({ text: '', autoClose: true })
   links.value = cloneDeep(linksStore.editorLinks)
-  headway.value = links.value.features[0].properties.headway
+  headwayMinutes.value = links.value.features[0].properties.headway / 60
   initialHash.value = hash(JSON.stringify(links.value))
   tripKey.value = 0
   if (!isScheduleTrip(links.value.features[0])) {
@@ -116,7 +118,8 @@ const endTimeRules = ref([
 const newTripDialog = ref()
 async function openCreateNewTripDialog() {
   startTime.value = datasets.value[tripKey.value].data[0].x
-  const endtimeSec = Math.min(hhmmssToSeconds(startTime.value) + headway.value, 60 * 60 * 24 - 1) // max 23h59:59.
+  // max 23h59:59
+  const endtimeSec = Math.min(hhmmssToSeconds(startTime.value) + headwayMinutes.value * 60, 60 * 60 * 24 - 1)
   endTime.value = secondsTohhmmss(endtimeSec)
   const resp = await newTripDialog.value.openDialog()
   if (resp) {
@@ -127,7 +130,7 @@ async function openCreateNewTripDialog() {
       let currentTime = hhmmssToSeconds(startTime.value)
       while (currentTime <= hhmmssToSeconds(endTime.value)) {
         createNewTrip(currentTime)
-        currentTime += headway.value
+        currentTime += headwayMinutes.value * 60
       }
     }
   }
@@ -542,12 +545,21 @@ function handleSimpleDialog(event: boolean) {
                       @keydown.enter="newTripDialog.confirm"
                     />
                     <NumberInput
-                      v-model="headway"
+                      v-model="headwayMinutes"
                       label="headway"
-                      base-units="sec"
-                      display-units="min"
+                      :precision="2"
+                      base-units="min"
+                      :display-units="units"
                       :disabled="newTripMethod !== 'multiple'"
-                    />
+                    >
+                      <template #append>
+                        <MenuSelector
+                          v-model="units"
+                          :items="['sec','min','hour']"
+                          size="small"
+                        />
+                      </template>
+                    </NumberInput>
                   </div>
                 </div>
               </div>
