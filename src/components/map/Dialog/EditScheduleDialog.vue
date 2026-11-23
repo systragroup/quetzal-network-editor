@@ -13,6 +13,7 @@ import { TimeString } from '@src/types/components'
 import { SchedulePayload } from '@src/types/typesStore'
 import PromiseDialog from '@src/components/utils/PromiseDialog.vue'
 import { useGettext } from 'vue3-gettext'
+import NumberInput from '@src/components/common/NumberInput.vue'
 const { $gettext } = useGettext()
 
 // Chart Dataset
@@ -47,6 +48,10 @@ const links = ref<LineStringGeoJson>(baseLineString())
 const nodes = computed(() => linksStore.editorNodes)
 const tripKey = ref(0)
 const startTime = ref('08:00:00')
+const endTime = ref('09:00:00')
+const headway = ref(0)
+const newTripMethod = ref<'single' | 'multiple'>('single')
+
 const initialHash = ref()
 const label = ref('index')
 const datasets = ref<Dataset[]>([])
@@ -68,6 +73,7 @@ watch(showSchedule, (val) => {
 function mount() {
   store.changeNotification({ text: '', autoClose: true })
   links.value = cloneDeep(linksStore.editorLinks)
+  headway.value = links.value.features[0].properties.headway
   initialHash.value = hash(JSON.stringify(links.value))
   tripKey.value = 0
   if (!isScheduleTrip(links.value.features[0])) {
@@ -99,16 +105,31 @@ const listOfTrips = computed(() => {
 })
 
 // Create New Trip
-const rules = ref([
-  (val: string) => !listOfTrips.value.includes(val) || $gettext('departures time already used'),
+// const rules = ref([
+//   (val: string) => !listOfTrips.value.includes(val) || $gettext('departures time already used'),
+// ])
+const endTimeRules = ref([
+  (val: string) => (newTripMethod.value == 'single') || (hhmmssToSeconds(val) > hhmmssToSeconds(startTime.value))
+  || $gettext('end time must be bigger than start time'),
 ])
 
 const newTripDialog = ref()
 async function openCreateNewTripDialog() {
   startTime.value = datasets.value[tripKey.value].data[0].x
+  const endtimeSec = Math.min(hhmmssToSeconds(startTime.value) + headway.value, 60 * 60 * 24 - 1) // max 23h59:59.
+  endTime.value = secondsTohhmmss(endtimeSec)
   const resp = await newTripDialog.value.openDialog()
   if (resp) {
-    createNewTrip()
+    if (newTripMethod.value === 'single') {
+      const startTimeSecs = hhmmssToSeconds(startTime.value)
+      createNewTrip(startTimeSecs)
+    } else {
+      let currentTime = hhmmssToSeconds(startTime.value)
+      while (currentTime <= hhmmssToSeconds(endTime.value)) {
+        createNewTrip(currentTime)
+        currentTime += headway.value
+      }
+    }
   }
 }
 
@@ -120,9 +141,9 @@ function _findInsertIndex(arr: number[], num: number) {
   return index === -1 ? arr.length : index
 }
 
-function createNewTrip() {
-  const departuresList = links.value.features[0].properties.departures.map((el: TimeString) => hhmmssToSeconds(el))
-  const startTimeSecs = hhmmssToSeconds(startTime.value)
+function createNewTrip(startTimeSecs: number) {
+  const departuresList: number[] = links.value.features[0].properties.departures.map((el: TimeString) => hhmmssToSeconds(el))
+  if (departuresList.includes(startTimeSecs)) return // skip already existing departures
   // get the position to append the new Ttrip (if we add 9h to [8h, 10h], we have [8h, 9h, 10h])
   const index = _findInsertIndex(departuresList, startTimeSecs)
 
@@ -136,8 +157,8 @@ function createNewTrip() {
     let newArrival = hhmmssToSeconds(link.properties.arrivals[tripKey.value]) + timeDiff
     link.properties.arrivals.splice(index, 0, secondsTohhmmss(newArrival))
   })
-  buildChartDataset()
   tripKey.value = index
+  buildChartDataset()
 }
 
 function deleteTrip(val: number) {
@@ -440,19 +461,98 @@ function handleSimpleDialog(event: boolean) {
         </v-row>
         <PromiseDialog
           ref="newTripDialog"
-          confirm-color="primary"
+          confirm-color="success"
+          :max-width="800"
           :title="$gettext('Create New Trip')"
         >
-          <v-text-field
-            v-model="startTime"
-            variant="underlined"
-            autofocus
-            :rules="rules"
-            :label="$gettext('Start Time')"
-            type="time"
-            step="1"
-            @keydown.enter="newTripDialog.confirm"
-          />
+          <div class="content">
+            <v-radio-group v-model="newTripMethod">
+              <div
+                class="optionContainer"
+                :class="{ selected: newTripMethod === 'single' }"
+                @click="newTripMethod='single'"
+              >
+                <v-radio
+                  color="primary"
+                  value="single"
+                >
+                  <template #label>
+                    <h2>
+                      Single Trip
+                    </h2>
+                  </template>
+                </v-radio>
+                <div class="input">
+                  <p class="text-caption">
+                    Create one trip with a start time.
+                  </p>
+
+                  <v-text-field
+                    v-model="startTime"
+                    variant="underlined"
+                    width="30%"
+                    autofocus
+                    :label="$gettext('Start Time')"
+                    type="time"
+                    step="1"
+                    :disabled="newTripMethod !== 'single'"
+                    @keydown.enter="newTripDialog.confirm"
+                  />
+                </div>
+              </div>
+              <div
+                class="optionContainer"
+                :class="{ selected: newTripMethod === 'multiple' }"
+                @click="newTripMethod='multiple'"
+              >
+                <v-radio
+                  color="primary"
+                  value="multiple"
+                >
+                  <template #label>
+                    <h2>
+                      Multiple Trips
+                    </h2>
+                  </template>
+                </v-radio>
+                <div class="input">
+                  <p class="text-caption">
+                    Create several trips over a time range, with a specified headway
+                  </p>
+                  <div class="row">
+                    <v-text-field
+                      v-model="startTime"
+                      variant="underlined"
+                      autofocus
+                      :label="$gettext('Start Time')"
+                      type="time"
+                      step="1"
+                      :disabled="newTripMethod !== 'multiple'"
+                      @keydown.enter="newTripDialog.confirm"
+                    />
+                    <v-text-field
+                      v-model="endTime"
+                      variant="underlined"
+                      autofocus
+                      :rules="endTimeRules"
+                      :label="$gettext('End Time')"
+                      type="time"
+                      step="1"
+                      :disabled="newTripMethod !== 'multiple'"
+                      @keydown.enter="newTripDialog.confirm"
+                    />
+                    <NumberInput
+                      v-model="headway"
+                      label="headway"
+                      base-units="sec"
+                      display-units="min"
+                      :disabled="newTripMethod !== 'multiple'"
+                    />
+                  </div>
+                </div>
+              </div>
+            </v-radio-group>
+          </div>
         </PromiseDialog>
       </v-card-text>
       <v-divider />
@@ -512,5 +612,30 @@ function handleSimpleDialog(event: boolean) {
 }
 .title{
   padding: 1rem;
+}
+.content{
+  display: flex;
+  width: 100%;
+}
+.button-label{
+  font-weight:bold;
+  font-size: larger;
+}
+.optionContainer{
+  border: 1px solid rgba(var(--v-theme-black),0.5);
+  border-radius: 5px;
+  margin-bottom:0.5rem;
+}.selected {
+  border: 1px solid rgb(var(--v-theme-primary));
+  background: rgba(var(--v-theme-primary), 0.1);
+}
+
+.input{
+  margin-left: 2.5rem;
+  margin-right: 1rem;
+}
+.row{
+  display: flex;
+  gap:1rem;
 }
 </style>

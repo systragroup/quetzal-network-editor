@@ -1,4 +1,8 @@
-## [8.2.r] (2026-11-16)
+## [8.2.s] (2026-11-23)
+### Features
+    * Schedule trips: can add multiple ttrip at once (with a headway) [#618](https://github.com/systragroup/quetzal-network-editor/issues/618)
+
+## [8.2.r] (2026-11-20)
 ### Features
     * PT default values editions and order edition
     * PT trip/Link properties edition (set if link or trip property)

@@ -37,6 +37,8 @@ defineExpose({
     ref="numberInput"
     v-bind="$attrs"
     v-model="computedModel"
+    control-variant="stacked"
+    :precision="null"
     :suffix="displaySuffix"
   >
     <!-- pass all slots to v-number-inputs -->
