@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { unzipCalendar } from '@src/utils/io'
+import { unzipFile } from '@src/utils/io'
 import DatePicker from '@comp/utils/DatePicker.vue'
 import { ref, computed, onBeforeUnmount, toRaw } from 'vue'
 import { useGTFSStore } from '@src/store/GTFSImporter'
@@ -14,6 +14,16 @@ import { StringTimeserie } from '@src/types/typesStore'
 const { $gettext } = useGettext()
 const FUNCTION_NAME = import.meta.env.VITE_GTFS_IMPORTER_NAME
 
+interface Calendar {
+  service_id: string
+  start_date: string
+  end_date: string
+}
+interface CalendarDate {
+  service_id: string
+  date: string
+  end_date: string
+}
 const runGTFS = useGTFSStore()
 const linksStore = useLinksStore()
 const store = useIndexStore()
@@ -53,6 +63,21 @@ function uploadGTFS () {
   if (element) element.value = '' // clean it for next file
 }
 
+async function getMinMaxDates(zip: File) {
+  const calendar = await unzipFile(zip, 'calendar.txt') as Calendar[]
+  if (calendar.length > 0) {
+    const minDate = calendar.map(el => el.start_date).toSorted()[0]
+    const maxDate = calendar.map(el => el.end_date).toSorted().slice(-1)[0]
+    return [minDate, maxDate]
+  } else {
+    const calendarDates = await unzipFile(zip, 'calendar_dates.txt') as CalendarDate[]
+    const dates = calendarDates.map(el => el.date).toSorted()
+    const minDate = dates[0]
+    const maxDate = dates.slice(-1)[0]
+    return [minDate, maxDate]
+  }
+}
+
 async function readZip (event: Event) {
   try {
     store.changeLoading(true)
@@ -64,12 +89,7 @@ async function readZip (event: Event) {
       return
     }
     for (const file of Array.from(zfiles)) {
-      const calendar = await unzipCalendar(file) as any
-      const minDate = calendar.reduce((min: any, date: any) =>
-        (date.start_date < min ? date.start_date : min), calendar[0].start_date)
-      const maxDate = calendar.reduce((max: any, date: any) =>
-        (date.end_date > max ? date.end_date : max), calendar[0].end_date)
-
+      const [minDate, maxDate] = await getMinMaxDates(file)
       const payload = {
         content: file,
         info: { name: file.name, minDate, maxDate, date: minDate, progress: 0 },

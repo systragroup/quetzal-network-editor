@@ -1,7 +1,10 @@
 ## [8.2.s] (2026-11-23)
 ### Features
     * Schedule trips: can add multiple ttrip at once (with a headway) [#618](https://github.com/systragroup/quetzal-network-editor/issues/618)
-
+### bug fixes
+    * GTFS importer: uses calendar_dates.txt if calendar.txt is empty [#620](https://github.com/systragroup/quetzal-network-editor/issues/620)
+    * GTFS importer: calendar date was not converted properly to an isoDate (because of timezone) [#621](https://github.com/systragroup/quetzal-network-editor/issues/621)
+    
 ## [8.2.r] (2026-11-20)
 ### Features
     * PT default values editions and order edition
