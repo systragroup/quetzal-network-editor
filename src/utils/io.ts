@@ -61,13 +61,13 @@ export async function extractZip (file: File) {
   return result
 }
 
-export async function unzipCalendar (file: File) {
+export async function unzipFile (file: File, fileName: string) {
   // unzip a file and return a json (solo json zipped)
   const ZIP = new JSZip()
   const zip = await ZIP.loadAsync(file)
   const filesNames = Object.keys(zip.files)
-  if (filesNames.includes('calendar.txt')) {
-    const tfile = zip.file('calendar.txt')
+  if (filesNames.includes(fileName)) {
+    const tfile = zip.file(fileName)
     if (tfile) {
       const bytes = await tfile.async('uint8array')
       const content = parseCSV(bytes)
@@ -75,7 +75,7 @@ export async function unzipCalendar (file: File) {
     }
   }
 
-  return {}
+  return []
 }
 
 export function parseCSV(bytes: Uint8Array | ArrayBuffer) {
