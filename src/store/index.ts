@@ -130,6 +130,12 @@ export const useIndexStore = defineStore('index', {
 
         const outputFiles = otherFiles.filter(el => el.path.startsWith('outputs/'))
 
+        const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
+        if (configFile) {
+          this.localConfig = configFile.content
+          this.loadModelConfig(configFile.content)
+        }
+
         otherFiles = otherFiles.filter(el => !outputFiles.includes(el))
         // at this point. nothing is used in otherFiles.
 
@@ -153,11 +159,6 @@ export const useIndexStore = defineStore('index', {
         if (stylesFile) { this.loadStyles(stylesFile.content) }
         if (infoFile) { this.loadInfo(infoFile.content) }
         if (microservicesFiles.length > 0) { this.loadMicroservicesFiles(microservicesFiles) }
-        const configFile = inputFiles.filter(el => el.path === 'inputs/modelConfig.json')[0]
-        if (configFile) {
-          this.localConfig = configFile.content
-          this.loadModelConfig(configFile.content)
-        }
 
         this.loadOtherFiles(inputFiles)
         this.loadOtherFiles(outputFiles)

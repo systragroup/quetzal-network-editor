@@ -270,6 +270,7 @@ export interface LinksStore {
   nodesDefaultAttributes: Attributes[]
   linksAttributesChoices: AttributesChoice
   linksDefaultAttributes: Attributes[]
+  attributesOrder: string[]
   newTripAttributes: Attributes[] // when creating a new trip
   tripProperties: string[]
   stickyMode: boolean

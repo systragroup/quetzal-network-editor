@@ -179,6 +179,7 @@ function createNewLine () {
   const name = getNewIndex('trip_0', tripList.value, linksStore.indexingMethod)
   linksStore.setEditorTrip(name)
   openDialog({ action: 'Edit Line Info', selectedArr: [name], lingering: true, type: 'pt' })
+  linksStore.initNewTrip({ trip_id: name })
 }
 
 function confirmChanges() {

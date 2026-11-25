@@ -74,6 +74,7 @@ export const useLinksStore = defineStore('links', {
     linksDefaultAttributes: cloneDeep(linksDefaultProperties),
     nodesDefaultAttributes: cloneDeep(nodesDefaultProperties),
     linksAttributesChoices: cloneDeep(ptDefaultAttributesChoices),
+    attributesOrder: [],
     tripProperties: cloneDeep(tripDefaultProperties),
     newTripAttributes: [],
     // parameters
@@ -156,7 +157,48 @@ export const useLinksStore = defineStore('links', {
           }
         }
       }
+      // this.fixCircularLines()
     },
+
+    // TODO:  do we want to ban or support circular line?
+    // fixCircularLines() {
+    //   const links = this.links
+    //   const nodes = this.nodes
+    //   const groups = Object.values(Object.groupBy(links.features, item => item.properties.trip_id))
+    //   const newNodesMap: Map<string, string> = new Map([])
+    //   let usedIndex: string[] = this.nodes.features.map(node => node.properties.index)
+    //   for (const group of groups) {
+    //     const newNodes = this._fixCircularLine(group!, usedIndex)
+    //     newNodes.forEach((value, key) => newNodesMap.set(key, value))
+    //   }
+    //   const nodesSet = new Set(newNodesMap.values())
+    //   const nodesPool = nodes.features.filter(node => nodesSet.has(node.properties.index))
+
+    //   newNodesMap.forEach((oldIndex, newIndex) => {
+    //     const newNode = cloneDeep(nodesPool.filter(node => node.properties.index == oldIndex)[0])
+    //     newNode.properties.index = newIndex
+    //     this.nodes.features.push(newNode)
+    //   })
+    //   console.log(newNodesMap)
+    // },
+    // _fixCircularLine(links: LineStringFeatures[], usedIndex: string[]) {
+    //   const newNodesMap: Map<string, string> = new Map([])
+    //   const seen = new Set([links[0].properties.a])
+    //   const len = links.length - 1
+    //   links.forEach((link, i) => {
+    //     const node = link.properties.b
+    //     if (seen.has(node)) {
+    //       const newIndex = getNewIndex(node, usedIndex, this.indexingMethod)
+    //       link.properties.b = newIndex
+    //       if (i < len) links[i + 1].properties.a = newIndex // if not the last link, next a is replaced
+    //       seen.add(newIndex)
+    //       usedIndex.push(newIndex)
+    //       newNodesMap.set(newIndex, node)
+    //     }
+    //     seen.add(node)
+    //   })
+    //   return newNodesMap
+    // },
 
     appendNewLinks (payload: LineStringGeoJson) {
       // append new links to the project. payload = links geojson file
@@ -250,6 +292,7 @@ export const useLinksStore = defineStore('links', {
       // some values like departures are reserved and must be undefined (array).
       const castedType = (Object.hasOwn(reservedLinkProperties, name)) ? reservedLinkProperties[name] : type
       this.linksDefaultAttributes.push({ name: name, type: castedType })
+      this.sortLinksDefaultProperties(this.attributesOrder)
     },
 
     addNodesPropertie (payload: NewAttribute) {
@@ -261,6 +304,8 @@ export const useLinksStore = defineStore('links', {
 
     sortLinksDefaultProperties(order?: string[]) {
       if (!order) return
+      if (order.length == 0) return
+      this.attributesOrder = order
       this.linksDefaultAttributes.sort((a, b) => sortWithOrder(order, a.name, b.name))
     },
 
@@ -873,12 +918,20 @@ export const useLinksStore = defineStore('links', {
       this.commitChanges({ name: 'Edit Line Properties', updateLinks: updateMap })
       // New line. keep track of trip properties for first drawn link
       if (this.editorLinks.features.length === 0) {
-        this.newTripAttributes = cloneDeep(this.linksDefaultAttributes)
-        props.forEach((key: string) => {
-          const attr = this.newTripAttributes.filter(el => el.name === key)[0]
-          attr.value = payload[key].value
-        })
+        const attrs: Record<string, AttributeValue> = {}
+        props.forEach((key: string) => attrs[key] = payload[key].value)
+        this.initNewTrip(attrs)
       }
+    },
+
+    initNewTrip(props: Record<string, AttributeValue>) {
+      // New line. keep track of trip properties for first drawn link
+      // use also to set the tripId when clicking the new line button
+      this.newTripAttributes = cloneDeep(this.linksDefaultAttributes)
+      Object.keys(props).forEach((key: string) => {
+        const attr = this.newTripAttributes.filter(el => el.name === key)[0]
+        attr.value = props[key]
+      })
     },
 
     editLinkInfo (payload: EditLinkPayload) {
@@ -1093,7 +1146,7 @@ export const useLinksStore = defineStore('links', {
     nodesIndexes: (state) => {
       const _editorIndex = state.editorNodes.features.map(node => node.properties.index)
       const _otherIndex = state.nodes.features.map(node => node.properties.index)
-      return [..._editorIndex, ..._otherIndex]
+      return [..._editorIndex, ..._otherIndex] as string[]
     },
     routeAnchorNodes: (state) => {
       // cannot use the getAnchorGeojson as we dont work on geometry and idx is not +1
