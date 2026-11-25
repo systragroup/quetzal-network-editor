@@ -51,7 +51,6 @@ const routingMode = computed(() => linksStore.routingMode)
 
 import { useRouting } from '@src/utils/routing/routing.ts'
 import { cloneDeep } from 'lodash'
-import PromiseDialog from '../utils/PromiseDialog.vue'
 import EditorLinksDraw from './EditorLinksDraw.vue'
 const { routeLinks } = useRouting()
 const routeAnchorMode = computed(() => anchorMode.value && routingMode.value)
@@ -66,8 +65,6 @@ const anchorNodes = computed(() => {
     return basePoint()
   }
 })
-
-const stickyDialog = ref()
 
 // TODO: updateLink like roadLinks
 watch(editorLinks, (links) => {
@@ -377,7 +374,6 @@ function onMove (event: MapMouseEvent) {
     isMoving.value = true
   }
 }
-const stickyTitle = ref<string>('title')
 
 async function stopMovingNode () {
   if (!isMoving.value) return // only move node is we moved
@@ -389,14 +385,12 @@ async function stopMovingNode () {
     const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
     const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
     if (!nodesList.has(stickyNodeId)) {
-      stickyTitle.value = $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId })
-      const resp = await stickyDialog.value.openDialog()
-      if (resp) {
-        modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
-      }
+      modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
+      store.changeNotification(
+        { text: $gettext('%{node} selected', { node: stickyNodeId }), autoClose: true, color: 'success' })
     } else {
       store.changeNotification(
-        { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
+        { text: $gettext('%{node} already in the trip cannot use', { node: stickyNodeId }), autoClose: true, color: 'error' })
     }
   } else { //  just move the node (not sticky)
     const geom = movingLine.value.features[0].geometry.coordinates[1]
@@ -499,10 +493,6 @@ function stopMovingRouteAnchor () {
 </script>
 <template>
   <section>
-    <PromiseDialog
-      ref="stickyDialog"
-      :title="stickyTitle"
-    />
     <EditorLinksDraw
       :map="map"
       :hovered-state-id="hoveredStateId"
