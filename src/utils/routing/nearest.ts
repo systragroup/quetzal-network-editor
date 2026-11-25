@@ -1,12 +1,13 @@
+export type Point = [number, number, string]
 class Node {
-  constructor(point, left, right) {
-    this.point = point
-    this.left = left
-    this.right = right
-  }
+  constructor(
+    public point: Point,
+    public left: Node,
+    public right: Node,
+  ) {}
 }
 
-function buildKdTree(points, depth = 0) {
+function buildKdTree(points: Point[], depth = 0) {
   if (points.length === 0) {
     return null
   }
@@ -22,10 +23,10 @@ function buildKdTree(points, depth = 0) {
   return new Node(median, leftChild, rightChild)
 }
 
-function haversine(coord1, coord2) {
+export function haversine(coord1: Point, coord2: Point): number {
   const [lon1, lat1] = coord1
   const [lon2, lat2] = coord2
-  const toRad = (deg) => deg * (Math.PI / 180)
+  const toRad = (deg: number) => deg * (Math.PI / 180)
   const R = 6371000 // radius of Earth in meters
   const phi_1 = toRad(lat1)
   const phi_2 = toRad(lat2)
@@ -42,7 +43,7 @@ function haversine(coord1, coord2) {
   return meters
 }
 
-function findNearestPoint(tree, queryPoint, bestPoint = null, bestDist = Infinity, depth = 0) {
+function findNearestPoint(tree: Node, queryPoint: Point, bestPoint = null, bestDist = Infinity, depth = 0) {
   if (tree === null) {
     return { point: bestPoint, distance: bestDist }
   }
@@ -51,7 +52,7 @@ function findNearestPoint(tree, queryPoint, bestPoint = null, bestDist = Infinit
   const currentPoint = tree.point
   const currentDist = haversine(queryPoint, currentPoint)
 
-  let nearest = bestPoint
+  let nearest: Point | null = bestPoint
   let nearestDist = bestDist
 
   if (currentDist < bestDist) {

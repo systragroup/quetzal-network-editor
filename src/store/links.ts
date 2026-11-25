@@ -5,7 +5,8 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import { serializer } from '@src/utils/serializer'
 import { IndexAreDifferent, deleteUnusedNodes, isScheduleTrip,
   hhmmssToSeconds, secondsTohhmmss, getDifference, weightedAverage,
-  isUndefined } from '@src/utils/utils'
+  isUndefined,
+  isRoutedLink } from '@src/utils/utils'
 import { simplifyGeometry } from '@src/utils/spatial'
 import { cloneDeep } from 'lodash'
 
@@ -160,6 +161,8 @@ export const useLinksStore = defineStore('links', {
     appendNewLinks (payload: LineStringGeoJson) {
       // append new links to the project. payload = links geojson file
       payload.features.forEach(link => this.links.features.push(link))
+      this._parseRoutingProperties()
+
       this._getLinksProperties()
       this._getTripList()
       this.selectedTrips = this.tripList
@@ -220,6 +223,8 @@ export const useLinksStore = defineStore('links', {
       if (propertiesOrder) this.sortLinksDefaultProperties(propertiesOrder)
       const defaultValues = config.linksDefaultValues
       if (defaultValues) this.editLinksDefaultProperties(defaultValues)
+      const speedTimeMethod = config.speedTimeMethod
+      if (speedTimeMethod) this.speedTimeMethod = speedTimeMethod
     },
 
     loadLinksAttributesChoices (payload?: AttributesChoice) {
@@ -386,6 +391,12 @@ export const useLinksStore = defineStore('links', {
             }
           }
         }
+        if (isRoutedLink(cloned.features[0])) {
+          cloned.features.forEach(link => {
+            link.properties.road_link_list = undefined
+            link.properties.anchors = undefined
+          })
+        }
       }
 
       if (payload.cloneNodes) {
@@ -419,9 +430,8 @@ export const useLinksStore = defineStore('links', {
       this.tripList = Array.from(new Set(this.links.features.map(item => item.properties.trip_id)))
     },
 
-    calcSchedule(geojsonLink: LineStringGeoJson, action: LinksAction) {
+    _calcSchedule(link: LineStringFeatures, action: LinksAction) {
       // ScheduleTrip
-      const link = geojsonLink.features[0]
       if (isScheduleTrip(link)) {
         if (action === 'Extend Line Upward') {
           link.properties['departures'] = link.properties['arrivals']
@@ -482,6 +492,7 @@ export const useLinksStore = defineStore('links', {
       const toNodeFeature = cloneDeep(toNode.features[0])
 
       // // if there is no link to copy, create one. (new Line)
+
       if (this.editorLinks.features.length === 0) {
         newLinkFeature.properties.a = fromNodeFeature.properties.index
         newLinkFeature.properties.b = toNodeFeature.properties.index
@@ -489,7 +500,6 @@ export const useLinksStore = defineStore('links', {
         newLinkFeature.geometry.coordinates = [fromNodeFeature.geometry.coordinates, toNodeFeature.geometry.coordinates]
       }
       // Take last link or first link
-
       else if (action === 'Extend Line Upward') {
         const copyFeature = cloneDeep(this.editorLinks.features.slice(-1)[0])
         Object.assign(newLinkFeature, copyFeature)
@@ -508,22 +518,26 @@ export const useLinksStore = defineStore('links', {
       const desiredIndex = newLinkFeature.properties.index || 'link_0' // will be undified for new line. so link_0
       newLinkFeature.properties.index = getNewIndex(desiredIndex, this.linksIndexes, this.indexingMethod)
 
-      calcLengthTimeorSpeed(newLink.features[0], this.timeVariants, this.speedTimeMethod)
-      this.calcSchedule(newLink, payload.action)
+      calcLengthTimeorSpeed(newLinkFeature, this.timeVariants, this.speedTimeMethod)
+      this._calcSchedule(newLinkFeature, payload.action)
 
-      const feature = newLink.features[0]
+      // remove routing info
+      if (isRoutedLink(newLinkFeature)) {
+        newLinkFeature.properties.road_link_list = undefined
+        newLinkFeature.properties.anchors = undefined
+      }
 
       if (payload.action === 'Extend Line Upward') {
-        feature.properties.link_sequence += 1
+        newLinkFeature.properties.link_sequence += 1
         this.commitChanges({
-          name: 'Extend Line Upward', newLinks: [feature], newNodes: [toNodeFeature],
+          name: 'Extend Line Upward', newLinks: [newLinkFeature], newNodes: [toNodeFeature],
         })
       } else if (payload.action === 'Extend Line Downward') {
         const modified = cloneDeep(this.editorLinks.features)
         modified.forEach(link => link.properties.link_sequence += 1)
         this.commitChanges(
           { name: 'Extend Line Downward',
-            newLinks: [feature],
+            newLinks: [newLinkFeature],
             updateLinks: new Map(modified.map(f => [f.properties.index, f])),
             newNodes: [toNodeFeature],
 
@@ -561,9 +575,20 @@ export const useLinksStore = defineStore('links', {
           link1.properties[`speed${v}`] = weightedAverage(speedList, timeList)
         })
         calcLengthTimeorSpeed(link1, this.timeVariants, this.speedTimeMethod)
+
+        if (isRoutedLink(link1)) {
+          // concat anchors and add the deleted node as an anchor
+          link1.properties.road_link_list = [...link1.properties.road_link_list, ...link2.properties.road_link_list]
+          const anchors1 = link1.properties.anchors ? link1.properties.anchors : []
+          const anchors2 = link2.properties.anchors ? link2.properties.anchors : []
+          const nodeCoord = link2.geometry.coordinates[0]
+          link1.properties.anchors = [...anchors1, nodeCoord, ...anchors2]
+        }
+
         toEdit.push(link1)
         toDelete.push(link2.properties.index)
       }
+      // change links_sequence on all links after node
       if (link2) {
         const sliceIdx = this.editorLinks.features.findIndex(link => link.properties.index === link2.properties.index)
         const toModify = cloneDeep(this.editorLinks.features.slice(sliceIdx + 1))
@@ -620,6 +645,12 @@ export const useLinksStore = defineStore('links', {
           link1.properties.arrivals[i] = secondsTohhmmss(midPoint)
           link2.properties.departures[i] = secondsTohhmmss(midPoint)
         }
+      }
+      if (isRoutedLink(link1)) {
+        link1.properties.road_link_list = undefined
+        link1.properties.anchors = undefined
+        link2.properties.road_link_list = undefined
+        link2.properties.anchors = undefined
       }
       // add new node and link
       const modified = cloneDeep(this.editorLinks.features.slice(featureIndex + 1))
@@ -701,7 +732,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors = [...link.properties.anchors.slice(0, coordinatedIndex),
         ...link.properties.anchors.slice(coordinatedIndex + 1)]
-      // this.commitChanges({ name: 'delete Routing Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'delete Routing Anchor', updateLinks: new Map([[linkIndex, link]]) })
 
       // return the modified link (used for Routing)
       return link
@@ -726,7 +757,7 @@ export const useLinksStore = defineStore('links', {
         calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
       })
       // for routing
-      const linksToUpdate = [...linksA, ...linksB]
+      const linksToUpdate = [...linksB, ...linksA] // order matter for routing. we want them order as link_sequence
       const updateLinks = new Map(linksToUpdate.map(f => [f.properties.index, f]))
       const updateNodes = new Map([[nodeIndex, node]])
       this.commitChanges({ name: 'Move Node', updateLinks: updateLinks, updateNodes: updateNodes })
@@ -754,7 +785,7 @@ export const useLinksStore = defineStore('links', {
       const link = cloneDeep(this.editorLinks.features.filter(feature => feature.properties.index === linkIndex)[0])
       link.properties.anchors[coordinatedIndex] = lngLat
       calcLengthTimeorSpeed(link, this.timeVariants, this.speedTimeMethod)
-      // this.commitChanges({ name: 'Move Routing Anchor', updateLinks: [link] })
+      this.commitChanges({ name: 'Move Routing Anchor', updateLinks: new Map([[linkIndex, link]]) })
 
       return link
     },
@@ -979,6 +1010,23 @@ export const useLinksStore = defineStore('links', {
       groups.forEach(features => this.fixRoutingList(features as LineStringFeatures[]))
     },
 
+    _parseRoutingProperties() {
+      this.links.features.forEach(link => {
+        // make sure anchors are array of coords [[x,y],[x,y]], and not a flat string
+        const { anchors } = link.properties
+        if (anchors) {
+          if (!Array.isArray(anchors)) {
+            const arr = anchors.split(',').map(Number)
+            const coords = Array.from(
+              { length: arr.length / 2 },
+              (_, i) => [arr[i * 2], arr[i * 2 + 1]],
+            )
+            link.properties.anchors = coords
+          }
+        }
+      })
+    },
+
     fixRoutingList(features: LineStringFeatures[]) {
       let lastVisited = ''
       features.sort((a, b) => a.properties.link_sequence - b.properties.link_sequence)
@@ -1053,9 +1101,10 @@ export const useLinksStore = defineStore('links', {
       let lineIndex = 0 // position of the node in the complete linetring
       let i = 0
       state.editorLinks.features.forEach(feature => {
-        const linkIndex = feature.properties.index
+        const { index: linkIndex, anchors } = feature.properties
         lineIndex += 1
-        feature.properties.anchors?.forEach((pt: number[], idx: number) => {
+        if (!anchors) return
+        anchors.forEach((pt: number[], idx: number) => {
           const node: PointFeatures = {
             properties: { index: i++, linkIndex, coordinatedIndex: idx, lineIndex: lineIndex },
             geometry: { coordinates: pt, type: 'Point' },

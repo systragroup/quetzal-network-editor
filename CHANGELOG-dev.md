@@ -1,3 +1,17 @@
+
+## [8.2.t] (2026-11-23)
+### Features
+    * routing on nodes or links
+    * routingMethod in modelConfig and in parameters
+    * speedTimeMethod in modelConfig
+### changes
+    * delete pt node: merge road_link_list and anchors
+    * add pt node inline: delete road_link_list and anchors
+    * clone trip: delete road_link_list and anchors
+### bug fixes
+    * export anchors (for routing) as list and not a string
+
+
 ## [8.2.s] (2026-11-23)
 ### Features
     * Schedule trips: can add multiple ttrip at once (with a headway) [#618](https://github.com/systragroup/quetzal-network-editor/issues/618)
@@ -5,6 +19,7 @@
     * GTFS importer: uses calendar_dates.txt if calendar.txt is empty [#620](https://github.com/systragroup/quetzal-network-editor/issues/620)
     * GTFS importer: calendar date was not converted properly to an isoDate (because of timezone) [#621](https://github.com/systragroup/quetzal-network-editor/issues/621)
     
+
 ## [8.2.r] (2026-11-20)
 ### Features
     * PT default values editions and order edition

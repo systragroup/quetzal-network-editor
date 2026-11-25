@@ -94,10 +94,24 @@ watch(hoveringIndex, (index) => {
   setHighlightData(features)
 })
 
+import { useForm } from '@src/composables/UseForm'
+
+const { openDialog } = useForm()
+function editTrip() {
+  openDialog({ action: 'Edit Line Info', selectedArr: [linksStore.editorTrip!], lingering: true, type: 'pt' })
+}
 </script>
 <template>
   <div class="table-container">
     <div class="table-header">
+      <v-btn
+
+        variant="text"
+        prepend-icon="fas fa-list"
+        @click="editTrip"
+      >
+        {{ $gettext('Edit Line Properties') }}
+      </v-btn>
       <h3 class="ml-auto">
         {{ editorTrip }}
       </h3>

@@ -49,11 +49,10 @@ watch(showedTrips, () => setSourceData('stickyNodes', visibleNodes.value))
 const anchorMode = computed(() => store.anchorMode)
 const routingMode = computed(() => linksStore.routingMode)
 
-import { useRouting } from '@src/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.ts'
 import { cloneDeep } from 'lodash'
-import PromiseDialog from '../utils/PromiseDialog.vue'
 import EditorLinksDraw from './EditorLinksDraw.vue'
-const { routeLink } = useRouting()
+const { routeLinks } = useRouting()
 const routeAnchorMode = computed(() => anchorMode.value && routingMode.value)
 const routeAnchorLine = computed(() => routeAnchorMode.value ? linksStore.routeAnchorLine : baseLineString())
 
@@ -66,8 +65,6 @@ const anchorNodes = computed(() => {
     return basePoint()
   }
 })
-
-const stickyDialog = ref()
 
 // TODO: updateLink like roadLinks
 watch(editorLinks, (links) => {
@@ -148,6 +145,12 @@ function selectClick (event: CustomMapEvent) {
       lngLat: event.mapboxEvent.lngLat,
       nodeType: type,
     })
+    if (routingMode.value && type === 'editorNodes') {
+      const link1 = selectedFeature.value.properties.index
+      const nodeIndex = editorLinks.value.features.filter(link => link.properties.index === link1)[0].properties.b
+      const link2 = editorLinks.value.features.filter(link => link.properties.a === nodeIndex)[0].properties.index
+      routeLinks([link1, link2])
+    }
   }
 }
 
@@ -198,7 +201,7 @@ function contextMenuAnchor() {
     }
     if (routingMode.value) {
       const modLink = linksStore.deleteRoutingAnchorNode(payload)
-      routeLink(modLink)
+      routeLinks([modLink.properties.index])
       // TODO: routeLink to return modeLink and not commit. commit action externally (route,unroute...)
       // commitChanges({ name: 'delete Routing Anchor', updateLinks: [link] })
     } else {
@@ -228,7 +231,7 @@ function actionClick (event: ActionClick) {
       break
     case 'Delete Stop':
       const modLink = linksStore.deleteNode({ selectedNode: selectedNode })
-      if (routingMode.value && modLink) { routeLink(modLink) }
+      if (routingMode.value && modLink) { routeLinks([modLink.properties.index]) }
       break
     case 'Edit Node Info':
       const selectedIndex = selectedNode.properties.index
@@ -371,7 +374,6 @@ function onMove (event: MapMouseEvent) {
     isMoving.value = true
   }
 }
-const stickyTitle = ref<string>('title')
 
 async function stopMovingNode () {
   if (!isMoving.value) return // only move node is we moved
@@ -383,14 +385,12 @@ async function stopMovingNode () {
     const stickyNodeId = cloneDeep(stickyStateId.value.featureId)
     const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
     if (!nodesList.has(stickyNodeId)) {
-      stickyTitle.value = $gettext('Replace %{node} with %{b}?', { node: selected.properties.index, b: stickyNodeId })
-      const resp = await stickyDialog.value.openDialog()
-      if (resp) {
-        modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
-      }
+      modifiedLinks = linksStore.applyStickyNode({ selectedNode: selected, stickyNodeId: stickyNodeId })
+      store.changeNotification(
+        { text: $gettext('%{node} selected', { node: stickyNodeId }), autoClose: true, color: 'success' })
     } else {
       store.changeNotification(
-        { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
+        { text: $gettext('%{node} already in the trip cannot use', { node: stickyNodeId }), autoClose: true, color: 'error' })
     }
   } else { //  just move the node (not sticky)
     const geom = movingLine.value.features[0].geometry.coordinates[1]
@@ -398,7 +398,7 @@ async function stopMovingNode () {
   }
 
   if (routingMode.value) {
-    modifiedLinks.forEach(link => routeLink(link))
+    routeLinks(modifiedLinks.map(el => el.properties.index))
   }
 
   stopMoving()
@@ -447,7 +447,7 @@ function stopMovingNodeAnchor () {
   const geom = movingLine.value.features[0].geometry.coordinates[index]
   const modifiedLinks = linksStore.moveAnchor({ selectedNode: selected, lngLat: toRaw(geom) })
 
-  if (routingMode.value) { routeLink(modifiedLinks) }
+  if (routingMode.value) { routeLinks([modifiedLinks.properties.index]) }
   stopMoving()
   map.value.off('mousemove', onMoveAnchor)
   map.value.off('mouseup', stopMovingNodeAnchor)
@@ -482,7 +482,7 @@ function stopMovingRouteAnchor () {
     const geom = movingLine.value.features[0].geometry.coordinates[index]
     const modifiedLinks = linksStore.moveRoutingAnchor({ selectedNode: selected, lngLat: toRaw(geom) })
 
-    routeLink(modifiedLinks)
+    routeLinks([modifiedLinks.properties.index])
   }
 
   stopMoving()
@@ -493,10 +493,6 @@ function stopMovingRouteAnchor () {
 </script>
 <template>
   <section>
-    <PromiseDialog
-      ref="stickyDialog"
-      :title="stickyTitle"
-    />
     <EditorLinksDraw
       :map="map"
       :hovered-state-id="hoveredStateId"

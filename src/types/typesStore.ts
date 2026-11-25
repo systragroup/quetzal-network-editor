@@ -49,6 +49,8 @@ export interface ModelConfig {
   version?: 0
   indexingMethod?: IndexingMethod
   disableUturn?: boolean
+  routingMethod?: RoutingMethod
+  speedTimeMethod?: SpeedTimeMethod
   attributesChoices?: {
     links?: AttributesChoice
     road_links?: AttributesChoice
@@ -65,9 +67,11 @@ export type AttributeUnits = undefined | 'sec' | 'min' | 'hour' | 'm' | 'km' | '
 
 export type SpeedTimeMethod = 'speed' | 'time'
 export type IndexingMethod = 'uuid' | 'int'
+export type RoutingMethod = 'nodes' | 'links'
 
 export interface SettingsPayload {
   speedTimeMethod: SpeedTimeMethod
+  routingMethod: RoutingMethod
   defaultHighway: string
   roadSpeed: number
   roadOneway: '0' | '1'
@@ -91,7 +95,6 @@ export interface IndexStore {
   showLeftPanel: boolean
   showBottomPanel: boolean
   anchorMode: boolean
-  speedTimeMethod: SpeedTimeMethod
   linksPopupContent: string[]
   roadsPopupContent: string[]
   importPoly: ImportPoly | null

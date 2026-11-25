@@ -44,7 +44,6 @@ export const useIndexStore = defineStore('index', {
     showLeftPanel: true,
     showBottomPanel: false,
     anchorMode: false,
-    speedTimeMethod: 'time',
     // general viz
     linksPopupContent: ['trip_id'],
     roadsPopupContent: ['highway'],
@@ -335,9 +334,13 @@ export const useIndexStore = defineStore('index', {
       rlinksStore.ChangeDefaultValues(
         { highway: payload.defaultHighway, speed: Number(payload.roadSpeed), oneway: payload.roadOneway })
 
-      this.speedTimeMethod = payload.speedTimeMethod
+      this.modelConfig.speedTimeMethod = payload.speedTimeMethod
+      if (this.hasLocalConfig) this.localConfig.speedTimeMethod = payload.speedTimeMethod
       linksStore.speedTimeMethod = payload.speedTimeMethod
       rlinksStore.speedTimeMethod = payload.speedTimeMethod
+
+      this.modelConfig.routingMethod = payload.routingMethod
+      if (this.hasLocalConfig) this.localConfig.routingMethod = payload.routingMethod
 
       this.linksPopupContent = payload.linksPopupContent
       this.roadsPopupContent = payload.roadsPopupContent

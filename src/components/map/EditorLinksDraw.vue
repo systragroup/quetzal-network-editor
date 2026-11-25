@@ -25,10 +25,9 @@ const isEditorMode = computed(() => linksStore.editorTrip !== null)
 const anchorMode = computed(() => store.anchorMode)
 const routingMode = computed(() => linksStore.routingMode)
 
-import { useRouting } from '@src/utils/routing/routing.js'
+import { useRouting } from '@src/utils/routing/routing.ts'
 import { cloneDeep } from 'lodash'
-import PromiseDialog from '../utils/PromiseDialog.vue'
-const { routeLink } = useRouting()
+const { routeLinks } = useRouting()
 
 // drawLink
 
@@ -135,12 +134,12 @@ async function addPointPT(event: MapMouseEvent) {
       const stickyNodeId = cloneDeep(stickyStateId.value?.featureId)
       const nodesList = new Set(editorNodes.value.features.map(node => node.properties.index))
       if (!nodesList.has(stickyNodeId)) { // cannot reuse same node
-        dialogTitle.value = $gettext('Replace %{node} with %{b}?', { node: selectedNodeId, b: stickyNodeId })
-        const resp = await stickyDialog.value.openDialog()
-        if (resp) { linksStore.addNewLink({ geom: pointGeom, action: action, stickyNodeId: stickyNodeId }) }
+        linksStore.addNewLink({ geom: pointGeom, action: action, stickyNodeId: stickyNodeId })
+        store.changeNotification(
+          { text: $gettext('%{node} selected', { node: stickyNodeId }), autoClose: true, color: 'success' })
       } else {
         store.changeNotification(
-          { text: $gettext('Node already in use by the trip. Cannot replace'), autoClose: true, color: 'error' })
+          { text: $gettext('%{node} already in the trip cannot use', { node: stickyNodeId }), autoClose: true, color: 'error' })
       }
     } else {
       linksStore.addNewLink({ geom: pointGeom, action: action })
@@ -148,23 +147,15 @@ async function addPointPT(event: MapMouseEvent) {
   }
   if (routingMode.value) {
     const newLinkFeature = action === 'Extend Line Upward'
-      ? linksStore.editorLinks.features.slice(-1)[0]
-      : linksStore.editorLinks.features[0]
-    routeLink(newLinkFeature)
+      ? linksStore.editorLinks.features.slice(-1)[0].properties.index
+      : linksStore.editorLinks.features[0].properties.index
+    routeLinks([newLinkFeature])
   }
 }
 
-const stickyDialog = ref()
-const dialogTitle = ref<string>('')
-
 </script>
 <template>
-  <section>
-    <PromiseDialog
-      ref="stickyDialog"
-      :title="dialogTitle"
-    />
-  </section>
+  <section />
 </template>
 <style lang="scss" scoped>
 

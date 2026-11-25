@@ -9,7 +9,7 @@ interface Props {
 // Define props with default values
 const props = withDefaults(defineProps<Props>(), {
   minHeightPx: 200, // px
-  maxHeight: 50, // %
+  maxHeight: 80, // %
 })
 
 const show = defineModel<boolean>({ default: true })
