@@ -1,4 +1,10 @@
 
+## [8.2.u] (2026-11-25)
+### changes
+    * remove sticky node dialog. replace with snackbar.
+    * load ModelConfig before networks. need to save the attributes order now to sort when parsing network
+### bug fixes
+    * creating new line and clicking cancel was causing bug on save after.
 ## [8.2.t] (2026-11-23)
 ### Features
     * routing on nodes or links
